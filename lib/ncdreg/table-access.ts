@@ -20,7 +20,6 @@ export type TableAccess = {
 
 const PERSON_READ: Capability[] = [
   "person_search",
-  "drill_down",
   "recall_work",
   "data_quality",
   "merge_request",

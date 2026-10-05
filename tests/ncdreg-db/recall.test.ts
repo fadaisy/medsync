@@ -13,7 +13,12 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { decideGoLive, requestGoLive } from "@/lib/ncdreg/admin";
 import { withNcd } from "@/lib/ncdreg/db";
 import { dispatchReminders } from "@/lib/ncdreg/recall/dispatcher";
-import { approveTemplate, ensureTemplates, listTemplates, submitTemplate } from "@/lib/ncdreg/recall/templates";
+import {
+  approveTemplate,
+  ensureTemplates,
+  listTemplates,
+  submitTemplate,
+} from "@/lib/ncdreg/recall/templates";
 import { loggingTransport, sendGuarded, SYNTHETIC_REASON } from "@/lib/ncdreg/recall/transport";
 import { searchPersons } from "@/lib/ncdreg/search";
 import { ctxFor, enrol, ok, randomName } from "./_engine";
@@ -29,7 +34,8 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
   let phoneN = 100;
   const phone = () => `0772 ${String(phoneN++).padStart(3, "0")} 456`;
 
-  const sys = (f: NcdFacility, hhmm = "10:00") => ctxFor(lane.db, f, { userId: null }, { principal: "system", at: at(hhmm) });
+  const sys = (f: NcdFacility, hhmm = "10:00") =>
+    ctxFor(lane.db, f, { userId: null }, { principal: "system", at: at(hhmm) });
 
   async function settings(f: NcdFacility) {
     await lane.pg.query(
@@ -43,7 +49,9 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     const lead = await ctxFor(lane.db, f, "registry_lead");
     const second = await ctxFor(lane.db, f, "head_of_department");
     await ensureTemplates(lead);
-    for (const t of (await listTemplates(lead)).filter((x) => x.language === "en" && x.status !== "approved")) {
+    for (const t of (await listTemplates(lead)).filter(
+      (x) => x.language === "en" && x.status !== "approved",
+    )) {
       await submitTemplate(lead, t.id);
       await approveTemplate(lead, t.id);
       await approveTemplate(second, t.id);
@@ -52,14 +60,36 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
 
   async function realPerson(): Promise<string> {
     const c = await ctxFor(lane.db, real, "clinician");
-    const identity = { givenName: randomName(), familyName: randomName(), sex: "female" as const, ageYears: 55, phone1: phone() };
-    const { token } = await searchPersons(c, { givenName: identity.givenName, familyName: identity.familyName, sex: "female", birthYear: null, phones: [identity.phone1], hospitalNumber: null, nationalId: null });
+    const identity = {
+      givenName: randomName(),
+      familyName: randomName(),
+      sex: "female" as const,
+      ageYears: 55,
+      phone1: phone(),
+    };
+    const { token } = await searchPersons(c, {
+      givenName: identity.givenName,
+      familyName: identity.familyName,
+      sex: "female",
+      birthYear: null,
+      phones: [identity.phone1],
+      hospitalNumber: null,
+      nationalId: null,
+    });
     const personId = randomUUID();
     await ok(c, "person.enrol", {
       personId,
       searchToken: token,
       identity,
-      registrations: [{ registrationId: randomUUID(), condition: "hypertension", subtype: "primary", diagnosisYear: 2020, basisOfDiagnosis: "unknown" }],
+      registrations: [
+        {
+          registrationId: randomUUID(),
+          condition: "hypertension",
+          subtype: "primary",
+          diagnosisYear: 2020,
+          basisOfDiagnosis: "unknown",
+        },
+      ],
       privacy: { version: "0.1-draft", acknowledged: true },
       smsAllowed: true,
       callsAllowed: true,
@@ -71,18 +101,35 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
   /** An appointment through the real path (closing a visit with a next date; D-22: a will-return call books none). */
   async function appointment(f: NcdFacility, personId: string, date: string) {
     const clin = await ctxFor(lane.db, f, "clinician");
-    await ok(clin, "visit.record", { visitId: randomUUID(), personId, visitDate: clin.today, visitType: "scheduled", isHistorical: false, weightKg: 70, bp: [[130, 80]], nextAppointmentDate: date });
+    await ok(clin, "visit.record", {
+      visitId: randomUUID(),
+      personId,
+      visitDate: clin.today,
+      visitType: "scheduled",
+      isHistorical: false,
+      weightKg: 70,
+      bp: [[130, 80]],
+      nextAppointmentDate: date,
+    });
     return reminders(personId);
   }
 
   async function reminders(personId: string) {
-    const { rows } = await lane.pg.query<{ id: string; kind: string; seq: number; status: string; status_reason: string | null; due_on: string }>(
+    const { rows } = await lane.pg.query<{
+      id: string;
+      kind: string;
+      seq: number;
+      status: string;
+      status_reason: string | null;
+      due_on: string;
+    }>(
       `SELECT id, kind, seq, status, status_reason, due_on::text FROM public.ncd_reminder WHERE person_id = $1 ORDER BY kind, seq`,
       [personId],
     );
     return rows;
   }
-  const before = async (personId: string) => (await reminders(personId)).find((r) => r.kind === "before")!;
+  const before = async (personId: string) =>
+    (await reminders(personId)).find((r) => r.kind === "before")!;
 
   beforeAll(async () => {
     lane = await bootLane();
@@ -101,19 +148,31 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     const second = await ctxFor(lane.db, demo, "head_of_department");
     const officer = await ctxFor(lane.db, demo, "registry_officer");
     await ensureTemplates(lead);
-    const t = (await listTemplates(lead)).find((x) => x.language === "en" && x.purpose === "missed_visit")!;
+    const t = (await listTemplates(lead)).find(
+      (x) => x.language === "en" && x.purpose === "missed_visit",
+    )!;
     expect(t.status).toBe("draft");
     await expect(approveTemplate(lead, t.id)).rejects.toThrow(/awaiting approval/);
     await submitTemplate(lead, t.id);
     const first = await approveTemplate(lead, t.id);
-    expect(first).toMatchObject({ status: "pending_review", firstApprover: demo.users.registry_lead });
+    expect(first).toMatchObject({
+      status: "pending_review",
+      firstApprover: demo.users.registry_lead,
+    });
     await expect(approveTemplate(lead, t.id)).rejects.toThrow(/different person/);
     await expect(approveTemplate(officer, t.id)).rejects.toThrow(/sms_template_approve/);
     const done = await approveTemplate(second, t.id);
-    expect(done).toMatchObject({ status: "approved", firstApprover: demo.users.registry_lead, approvedBy: demo.users.head_of_department });
+    expect(done).toMatchObject({
+      status: "approved",
+      firstApprover: demo.users.registry_lead,
+      approvedBy: demo.users.head_of_department,
+    });
     // The table's CHECK holds the same rule underneath the code.
     await expect(
-      lane.pg.query(`UPDATE public.ncd_sms_template SET approved_by = first_approver WHERE id = $1`, [t.id]),
+      lane.pg.query(
+        `UPDATE public.ncd_sms_template SET approved_by = first_approver WHERE id = $1`,
+        [t.id],
+      ),
     ).rejects.toThrow();
     // Luganda slots stay empty and cannot be submitted: no translation is written.
     const lg = (await listTemplates(lead)).filter((x) => x.language === "lg");
@@ -124,8 +183,12 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
   it("E4: saving a template body with a banned term is refused", async () => {
     const lead = await ctxFor(lane.db, demo, "registry_lead");
     const { saveTemplateBody } = await import("@/lib/ncdreg/recall/templates");
-    const t = (await listTemplates(lead)).find((x) => x.language === "en" && x.purpose === "appointment_reminder")!;
-    await expect(saveTemplateBody(lead, t.id, "Bring your insulin to [HOSPITAL NAME]")).rejects.toThrow(/insulin/);
+    const t = (await listTemplates(lead)).find(
+      (x) => x.language === "en" && x.purpose === "appointment_reminder",
+    )!;
+    await expect(
+      saveTemplateBody(lead, t.id, "Bring your insulin to [HOSPITAL NAME]"),
+    ).rejects.toThrow(/insulin/);
   });
 
   it("E5: the dispatcher sends only approved templates", async () => {
@@ -133,7 +196,10 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     await appointment(real, p, "2026-10-07");
     const mock = loggingTransport();
     await dispatchReminders(await sys(real), { transport: mock });
-    expect(await before(p)).toMatchObject({ status: "blocked", status_reason: "No approved template" });
+    expect(await before(p)).toMatchObject({
+      status: "blocked",
+      status_reason: "No approved template",
+    });
     expect(mock.outbox).toEqual([]);
 
     await approveEnglish(real);
@@ -144,9 +210,16 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     expect(await before(q)).toMatchObject({ status: "sent" });
     expect(mock.outbox).toHaveLength(1);
     expect(mock.outbox[0]!.toE164).toMatch(/^\+2567/);
-    expect(mock.outbox[0]!.body).toBe("You have an appointment at Lane Hospital on 07 Oct 2026. Reply STOP to opt out.");
+    expect(mock.outbox[0]!.body).toBe(
+      "You have an appointment at Lane Hospital on 07 Oct 2026. Reply STOP to opt out.",
+    );
     // The log keeps the keyed hash, never the number.
-    const { rows } = await lane.pg.query<{ to_hmac: string; result: string; body: string; phone1_hmac: string }>(
+    const { rows } = await lane.pg.query<{
+      to_hmac: string;
+      result: string;
+      body: string;
+      phone1_hmac: string;
+    }>(
       `SELECT l.to_hmac, l.result, l.body, p.phone1_hmac FROM public.ncd_sms_log l JOIN public.ncd_person p ON p.id = l.person_id WHERE l.person_id = $1`,
       [q],
     );
@@ -187,11 +260,20 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     expect((await reminders(p)).every((r) => r.status === "cancelled")).toBe(true);
     // Even a reminder that is still pending (scheduled before the event, never cancelled) is
     // re-checked against status at send time.
-    await lane.pg.query(`UPDATE public.ncd_reminder SET status = 'pending', status_reason = NULL WHERE person_id = $1`, [p]);
-    await lane.pg.query(`UPDATE public.ncd_appointment SET status = 'pending' WHERE person_id = $1`, [p]);
+    await lane.pg.query(
+      `UPDATE public.ncd_reminder SET status = 'pending', status_reason = NULL WHERE person_id = $1`,
+      [p],
+    );
+    await lane.pg.query(
+      `UPDATE public.ncd_appointment SET status = 'pending' WHERE person_id = $1`,
+      [p],
+    );
     const mock = loggingTransport();
     await dispatchReminders(await sys(real), { transport: mock });
-    expect(await before(p)).toMatchObject({ status: "cancelled", status_reason: "Status at send time: death" });
+    expect(await before(p)).toMatchObject({
+      status: "cancelled",
+      status_reason: "Status at send time: death",
+    });
     expect(mock.outbox).toEqual([]);
   });
 
@@ -199,7 +281,11 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     const p = await realPerson();
     await appointment(real, p, "2026-10-07");
     const clin = await ctxFor(lane.db, real, "clinician");
-    await ok(clin, "person.update", { personId: p, reason: "Asked to stop messages", optOutSms: true });
+    await ok(clin, "person.update", {
+      personId: p,
+      reason: "Asked to stop messages",
+      optOutSms: true,
+    });
     const mock = loggingTransport();
     await dispatchReminders(await sys(real), { transport: mock });
     expect(await before(p)).toMatchObject({ status: "blocked", status_reason: "Opted out of SMS" });
@@ -212,12 +298,31 @@ describe.skipIf(!laneOn)("recall: reminders re-checked at send time", () => {
     const { personId } = await enrol(clin, { phone: phone() });
     await appointment(demo, personId, "2026-10-07");
     const calls: string[] = [];
-    const live: Transport = { name: "africastalking", sender: { send: async (m) => (calls.push(m.toE164), { ok: true }) } };
+    const live: Transport = {
+      name: "africastalking",
+      sender: { send: async (m) => (calls.push(m.toE164), { ok: true }) },
+    };
     await dispatchReminders(await sys(demo), { transport: live });
-    expect(await before(personId)).toMatchObject({ status: "blocked", status_reason: SYNTHETIC_REASON });
+    expect(await before(personId)).toMatchObject({
+      status: "blocked",
+      status_reason: SYNTHETIC_REASON,
+    });
     // Straight at the boundary too, with another transport: refused before the sender is called.
     const system: NcdContext = await sys(demo);
-    const d = await withNcd(system, "app", (tx) => sendGuarded(tx, loggingTransport(), { facilityId: demo.facilityId, personId, reminderId: null, toE164: "+256772000000", toHmac: null, body: "Test" }), lane.db);
+    const d = await withNcd(
+      system,
+      "app",
+      (tx) =>
+        sendGuarded(tx, loggingTransport(), {
+          facilityId: demo.facilityId,
+          personId,
+          reminderId: null,
+          toE164: "+256772000000",
+          toHmac: null,
+          body: "Test",
+        }),
+      lane.db,
+    );
     expect(d).toEqual({ result: "blocked", reason: SYNTHETIC_REASON });
     expect(calls).toEqual([]);
     const { rows } = await lane.pg.query<{ result: string; reason: string; transport: string }>(

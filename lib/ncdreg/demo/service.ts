@@ -8,20 +8,27 @@
  */
 import "server-only";
 
+import type { NcdContext } from "../context";
+import type { NcdTx } from "../db";
+import type { DemoCatalogue, ScenarioPatient } from "./catalogue";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
-import { ncdCommandLog, ncdDemoLoad, ncdIndicatorSnapshot, ncdPerson, ncdSmsTemplate } from "@/db/schema";
-
+import {
+  ncdCommandLog,
+  ncdDemoLoad,
+  ncdIndicatorSnapshot,
+  ncdPerson,
+  ncdSmsTemplate,
+} from "@/db/schema";
 import { setConditionEnabled } from "../admin";
 import { applyCommand } from "../commands/apply";
 import { enabledConditions } from "../commands/shared";
-import { authorize, fromDb, NcdError, type NcdContext } from "../context";
-import { rows, withNcd, type NcdTx } from "../db";
+import { authorize, fromDb, NcdError } from "../context";
+import { rows, withNcd } from "../db";
 import { generatePatients } from "../fixtures/generator";
-import { storeSnapshot } from "../indicators/snapshot";
 import { addMonths, monthOf } from "../indicators/engine";
+import { storeSnapshot } from "../indicators/snapshot";
 import { FULL_ROLES } from "../standard/conditions";
-import type { DemoCatalogue, ScenarioPatient } from "./catalogue";
 import { DEMO_ACTORS, DEMO_CATALOGUE } from "./source";
 import { dayIso, uuidv5, writeScenarioPatient } from "./writer";
 
@@ -58,7 +65,9 @@ export function generatedCohort(cat: DemoCatalogue, day0: string): ScenarioPatie
     bpModule: FULL_ROLES.bp,
     glucoseModule: FULL_ROLES.glycaemic,
     reservedNames: new Set(cat.scenario_patients.map((p) => `${p.given_name} ${p.family_name}`)),
-    reservedPhones: new Set(cat.scenario_patients.map((p) => p.phone_1).filter((x): x is string => !!x)),
+    reservedPhones: new Set(
+      cat.scenario_patients.map((p) => p.phone_1).filter((x): x is string => !!x),
+    ),
   });
 }
 
@@ -67,12 +76,20 @@ export async function turnOn(ctx: NcdContext, mode: DemoMode, cat: DemoCatalogue
   authorize(ctx, "demo_data_manage");
   const day0 = ctx.today;
   const { id, previous } = await run(ctx, async (tx) => {
-    const [{ approved } = { approved: false }] = await rows<{ approved: boolean }>(tx, sql`SELECT private.ncd_facility_approved(${ctx.facilityId}) AS approved`);
+    const [{ approved } = { approved: false }] = await rows<{ approved: boolean }>(
+      tx,
+      sql`SELECT private.ncd_facility_approved(${ctx.facilityId}) AS approved`,
+    );
     if (approved) throw new NcdError("interlock", cat.ui_copy.blocked_after_go_live);
     const active = await tx
       .select({ id: ncdDemoLoad.id })
       .from(ncdDemoLoad)
-      .where(and(eq(ncdDemoLoad.facilityId, ctx.facilityId), inArray(ncdDemoLoad.status, ["loading", "on", "removing"])));
+      .where(
+        and(
+          eq(ncdDemoLoad.facilityId, ctx.facilityId),
+          inArray(ncdDemoLoad.status, ["loading", "on", "removing"]),
+        ),
+      );
     if (active.length) throw new NcdError("conflict", "Demo data is already on or loading.");
     const previous = [...(await enabledConditions(tx, ctx))];
     const [row] = await tx
@@ -96,22 +113,41 @@ export async function turnOn(ctx: NcdContext, mode: DemoMode, cat: DemoCatalogue
     // Enable the catalogue's modules; remember the previous settings (restored on removal).
     await run(loader, async (tx) => {
       for (const code of cat.condition_modules_enabled_while_on)
-        if (!previous.includes(code)) await setConditionEnabled(loader, code, true, "Demo data on", tx);
+        if (!previous.includes(code))
+          await setConditionEnabled(loader, code, true, "Demo data on", tx);
       const templates = await tx.select({ id: ncdSmsTemplate.id }).from(ncdSmsTemplate).limit(1);
       if (!templates.length)
-        await tx.insert(ncdSmsTemplate).values(
-          cat.sms_templates_demo.map((t) => ({ facilityId: ctx.facilityId, purpose: t.purpose, language: t.language, body: t.text, status: t.status, createdBy: ctx.userId })),
-        );
+        await tx
+          .insert(ncdSmsTemplate)
+          .values(
+            cat.sms_templates_demo.map((t) => ({
+              facilityId: ctx.facilityId,
+              purpose: t.purpose,
+              language: t.language,
+              body: t.text,
+              status: t.status,
+              createdBy: ctx.userId,
+            })),
+          );
     });
-    for (const p of cat.scenario_patients) await writeScenarioPatient(loader, p, { day0, demoLoadId: id });
+    for (const p of cat.scenario_patients)
+      await writeScenarioPatient(loader, p, { day0, demoLoadId: id });
     await dataQualitySteps(loader, cat, day0, id);
     const total = mode === "full_clinic" ? generatedCohort(cat, day0).length : 0;
     await run(ctx, (tx) =>
-      tx.update(ncdDemoLoad).set({ progress: { next: 0, total, scenario: cat.scenario_patients.length } }).where(eq(ncdDemoLoad.id, id)),
+      tx
+        .update(ncdDemoLoad)
+        .set({ progress: { next: 0, total, scenario: cat.scenario_patients.length } })
+        .where(eq(ncdDemoLoad.id, id)),
     );
     if (mode === "scenario") await finishLoad(ctx, id, day0);
   } catch (e) {
-    await run(ctx, (tx) => tx.update(ncdDemoLoad).set({ status: "failed", progress: { error: e instanceof Error ? e.message : String(e) } }).where(eq(ncdDemoLoad.id, id)));
+    await run(ctx, (tx) =>
+      tx
+        .update(ncdDemoLoad)
+        .set({ status: "failed", progress: { error: e instanceof Error ? e.message : String(e) } })
+        .where(eq(ncdDemoLoad.id, id)),
+    );
     throw e;
   }
   return { id };
@@ -121,9 +157,17 @@ export async function turnOn(ctx: NcdContext, mode: DemoMode, cat: DemoCatalogue
  * Full clinic: write the next chunk of the generated cohort (resumable, idempotent by command id).
  * Called by the administration card and the cron route until the load is done.
  */
-export async function continueLoad(ctx: NcdContext, budgetMs = 20_000, cat: DemoCatalogue = DEMO_CATALOGUE) {
+export async function continueLoad(
+  ctx: NcdContext,
+  budgetMs = 20_000,
+  cat: DemoCatalogue = DEMO_CATALOGUE,
+) {
+  authorize(ctx, "demo_data_manage");
   const [load] = await run(ctx, (tx) =>
-    tx.select().from(ncdDemoLoad).where(and(eq(ncdDemoLoad.facilityId, ctx.facilityId), eq(ncdDemoLoad.status, "loading"))),
+    tx
+      .select()
+      .from(ncdDemoLoad)
+      .where(and(eq(ncdDemoLoad.facilityId, ctx.facilityId), eq(ncdDemoLoad.status, "loading"))),
   );
   if (!load || load.mode !== "full_clinic") return { done: true, next: 0, total: 0 };
   const cohort = generatedCohort(cat, load.day0);
@@ -131,29 +175,68 @@ export async function continueLoad(ctx: NcdContext, budgetMs = 20_000, cat: Demo
   let next = progress.next ?? 0;
   const loader = loaderContext({ ...ctx, userId: load.startedBy }, load.id, load.day0);
   const started = Date.now();
+  const stillLoading = async () =>
+    (
+      await run(ctx, (tx) =>
+        tx
+          .select({ id: ncdDemoLoad.id })
+          .from(ncdDemoLoad)
+          .where(and(eq(ncdDemoLoad.id, load.id), eq(ncdDemoLoad.status, "loading"))),
+      )
+    ).length > 0;
   while (next < cohort.length && Date.now() - started < budgetMs) {
+    // Turned off (or failed) meanwhile: write nothing more against this load (finding 6).
+    // ponytail: checked per patient, not locked; a patient in flight at removal is caught by removal's residue check.
+    if (!(await stillLoading())) return { done: true, next, total: cohort.length };
     await writeScenarioPatient(loader, cohort[next]!, { day0: load.day0, demoLoadId: load.id });
     next++;
   }
-  await run(ctx, (tx) => tx.update(ncdDemoLoad).set({ progress: { ...progress, next, total: cohort.length } }).where(eq(ncdDemoLoad.id, load.id)));
-  if (next >= cohort.length) await finishLoad({ ...ctx, userId: load.startedBy }, load.id, load.day0);
+  await run(ctx, (tx) =>
+    tx
+      .update(ncdDemoLoad)
+      .set({ progress: { ...progress, next, total: cohort.length } })
+      .where(and(eq(ncdDemoLoad.id, load.id), eq(ncdDemoLoad.status, "loading"))),
+  );
+  if (next >= cohort.length)
+    await finishLoad({ ...ctx, userId: load.startedBy }, load.id, load.day0);
   return { done: next >= cohort.length, next, total: cohort.length };
 }
 
 /** §10.3 optional steps: a same-day duplicate visit for the catalogue's patient, kept and queried. */
-async function dataQualitySteps(loader: NcdContext, cat: DemoCatalogue, day0: string, demoLoadId: string) {
+async function dataQualitySteps(
+  loader: NcdContext,
+  cat: DemoCatalogue,
+  day0: string,
+  demoLoadId: string,
+) {
   const step = cat.data_quality_demo.find((d) => d.rule === "same_day_duplicate_visit");
   const key = step?.how.match(/for ([A-Z]{2}) on day 0/)?.[1];
   if (!key || !cat.scenario_patients.some((p) => p.key === key)) return;
   const personId = uuidv5(`${demoLoadId}:${key}:person`);
   await applyCommand(
     { ...loader, enteredAt: new Date(`${day0}T09:30:00+03:00`) },
-    { id: uuidv5(`${demoLoadId}:${key}:dq-visit`), type: "visit.arrive", payload: { visitId: uuidv5(`${demoLoadId}:${key}:dq-visit-row`), personId, visitType: "unscheduled" }, clientTs: null },
+    {
+      id: uuidv5(`${demoLoadId}:${key}:dq-visit`),
+      type: "visit.arrive",
+      payload: {
+        visitId: uuidv5(`${demoLoadId}:${key}:dq-visit-row`),
+        personId,
+        visitType: "unscheduled",
+      },
+      clientTs: null,
+    },
   );
 }
 
 /** Snapshots for the 12 complete months before day 0 (synthetic, never signable), then "on". */
 async function finishLoad(ctx: NcdContext, demoLoadId: string, day0: string) {
+  const [live] = await run(ctx, (tx) =>
+    tx
+      .select({ id: ncdDemoLoad.id })
+      .from(ncdDemoLoad)
+      .where(and(eq(ncdDemoLoad.id, demoLoadId), eq(ncdDemoLoad.status, "loading"))),
+  );
+  if (!live) return;
   const loader = loaderContext(ctx, demoLoadId, day0);
   const last = addMonths(monthOf(day0), -1);
   for (let i = 11; i >= 0; i--) await storeSnapshot(loader, addMonths(last, -i), dayIso(day0, 0));
@@ -163,7 +246,10 @@ async function finishLoad(ctx: NcdContext, demoLoadId: string, day0: string) {
       sql`SELECT (SELECT count(*)::int FROM public.ncd_person WHERE demo_load_id = ${demoLoadId}) AS persons,
                  (SELECT count(*)::int FROM public.ncd_visit v JOIN public.ncd_person p ON p.id = v.person_id WHERE p.demo_load_id = ${demoLoadId}) AS visits`,
     );
-    await tx.update(ncdDemoLoad).set({ status: "on", counts: c ?? {} }).where(eq(ncdDemoLoad.id, demoLoadId));
+    await tx
+      .update(ncdDemoLoad)
+      .set({ status: "on", counts: c ?? {} })
+      .where(and(eq(ncdDemoLoad.id, demoLoadId), eq(ncdDemoLoad.status, "loading")));
   });
 }
 
@@ -188,15 +274,30 @@ const CHILD_ORDER = [
 async function removePersons(tx: NcdTx, who: ReturnType<typeof sql>, loadId: string | null) {
   const counts: Record<string, number> = {};
   // Abort if anything selected belongs to a person who is not synthetic (§10.5).
-  const [{ bad } = { bad: 0 }] = await rows<{ bad: number }>(tx, sql`SELECT count(*)::int AS bad FROM public.ncd_person WHERE ${who} AND NOT is_synthetic`);
-  if (bad) throw new NcdError("interlock", "Removal refused: the selection includes a record that is not synthetic. Nothing was changed.");
+  const [{ bad } = { bad: 0 }] = await rows<{ bad: number }>(
+    tx,
+    sql`SELECT count(*)::int AS bad FROM public.ncd_person WHERE ${who} AND NOT is_synthetic`,
+  );
+  if (bad)
+    throw new NcdError(
+      "interlock",
+      "Removal refused: the selection includes a record that is not synthetic. Nothing was changed.",
+    );
   const ids = sql`(SELECT id FROM public.ncd_person WHERE ${who} AND is_synthetic)`;
   // Merge tombstones point at survivors; clear the pointers inside the set first.
   await tx.execute(sql`UPDATE public.ncd_person SET merged_into_id = NULL WHERE id IN ${ids}`);
-  await tx.execute(sql`UPDATE public.ncd_registration SET superseded_by_id = NULL WHERE person_id IN ${ids}`);
+  await tx.execute(
+    sql`UPDATE public.ncd_registration SET superseded_by_id = NULL WHERE person_id IN ${ids}`,
+  );
   for (const t of CHILD_ORDER) {
-    const col = t === "ncd_merge_request" ? sql`(person_id IN ${ids} OR loser_person_id IN ${ids})` : sql`person_id IN ${ids}`;
-    const r = await rows<{ n: number }>(tx, sql`WITH d AS (DELETE FROM ${sql.raw(`public.${t}`)} WHERE ${col} RETURNING 1) SELECT count(*)::int AS n FROM d`);
+    const col =
+      t === "ncd_merge_request"
+        ? sql`(person_id IN ${ids} OR loser_person_id IN ${ids})`
+        : sql`person_id IN ${ids}`;
+    const r = await rows<{ n: number }>(
+      tx,
+      sql`WITH d AS (DELETE FROM ${sql.raw(`public.${t}`)} WHERE ${col} RETURNING 1) SELECT count(*)::int AS n FROM d`,
+    );
     counts[t] = r[0]?.n ?? 0;
   }
   const cl = await rows<{ n: number }>(
@@ -205,10 +306,21 @@ async function removePersons(tx: NcdTx, who: ReturnType<typeof sql>, loadId: str
   );
   counts.ncd_command_log = cl[0]?.n ?? 0;
   if (loadId) {
-    const s = await tx.delete(ncdIndicatorSnapshot).where(and(eq(ncdIndicatorSnapshot.demoLoadId, loadId), eq(ncdIndicatorSnapshot.isSynthetic, true))).returning({ id: ncdIndicatorSnapshot.id });
+    const s = await tx
+      .delete(ncdIndicatorSnapshot)
+      .where(
+        and(
+          eq(ncdIndicatorSnapshot.demoLoadId, loadId),
+          eq(ncdIndicatorSnapshot.isSynthetic, true),
+        ),
+      )
+      .returning({ id: ncdIndicatorSnapshot.id });
     counts.ncd_indicator_snapshot = s.length;
   }
-  const p = await rows<{ n: number }>(tx, sql`WITH d AS (DELETE FROM public.ncd_person WHERE ${who} AND is_synthetic RETURNING 1) SELECT count(*)::int AS n FROM d`);
+  const p = await rows<{ n: number }>(
+    tx,
+    sql`WITH d AS (DELETE FROM public.ncd_person WHERE ${who} AND is_synthetic RETURNING 1) SELECT count(*)::int AS n FROM d`,
+  );
   counts.ncd_person = p[0]?.n ?? 0;
   return counts;
 }
@@ -218,7 +330,15 @@ export async function turnOff(ctx: NcdContext, confirmed: boolean) {
   authorize(ctx, "demo_data_manage");
   if (!confirmed) throw new NcdError("invalid", DEMO_CATALOGUE.ui_copy.confirm_off);
   const [load] = await run(ctx, (tx) =>
-    tx.select().from(ncdDemoLoad).where(and(eq(ncdDemoLoad.facilityId, ctx.facilityId), inArray(ncdDemoLoad.status, ["loading", "on", "failed"]))),
+    tx
+      .select()
+      .from(ncdDemoLoad)
+      .where(
+        and(
+          eq(ncdDemoLoad.facilityId, ctx.facilityId),
+          inArray(ncdDemoLoad.status, ["loading", "on", "failed"]),
+        ),
+      ),
   );
   if (!load) throw new NcdError("not_found", "Demo data is not on.");
   const loader = loaderContext(ctx, load.id, ctx.today);
@@ -230,15 +350,29 @@ export async function turnOff(ctx: NcdContext, confirmed: boolean) {
                + (SELECT count(*) FROM public.ncd_command_log WHERE demo_load_id = ${load.id})
                + (SELECT count(*) FROM public.ncd_indicator_snapshot WHERE demo_load_id = ${load.id}) AS n`,
     );
-    if (Number(left?.n ?? 0) !== 0) throw new NcdError("interlock", "Verification failed: demo rows remain. Nothing was changed.");
+    if (Number(left?.n ?? 0) !== 0)
+      throw new NcdError(
+        "interlock",
+        "Verification failed: demo rows remain. Nothing was changed.",
+      );
     // Condition modules return to what they were before the load.
-    const before = new Set(((load.previousConditionSettings as { enabled?: string[] }).enabled ?? []) as string[]);
+    const before = new Set(
+      ((load.previousConditionSettings as { enabled?: string[] }).enabled ?? []) as string[],
+    );
     for (const code of await enabledConditions(tx, loader))
       if (!before.has(code)) await setConditionEnabled(loader, code, false, "Demo data off", tx);
     return c;
   });
   await run(ctx, (tx) =>
-    tx.update(ncdDemoLoad).set({ status: "off", endedBy: ctx.userId, endedAt: ctx.enteredAt, counts: { ...(load.counts as object), removed: counts } }).where(eq(ncdDemoLoad.id, load.id)),
+    tx
+      .update(ncdDemoLoad)
+      .set({
+        status: "off",
+        endedBy: ctx.userId,
+        endedAt: ctx.enteredAt,
+        counts: { ...(load.counts as object), removed: counts },
+      })
+      .where(eq(ncdDemoLoad.id, load.id)),
   );
   return counts;
 }
@@ -247,10 +381,14 @@ export async function turnOff(ctx: NcdContext, confirmed: boolean) {
 export async function removeAllSynthetic(ctx: NcdContext) {
   authorize(ctx, "demo_data_manage");
   const loader = loaderContext(ctx, "00000000-0000-0000-0000-000000000000", ctx.today);
-  return run({ ...loader, demoLoadId: null }, (tx) => removePersons(tx, sql`facility_id = ${ctx.facilityId}`, null));
+  return run({ ...loader, demoLoadId: null }, (tx) =>
+    removePersons(tx, sql`facility_id = ${ctx.facilityId}`, null),
+  );
 }
 
 export async function demoPersons(ctx: NcdContext, loadId: string) {
-  return run(ctx, (tx) => tx.select({ id: ncdPerson.id }).from(ncdPerson).where(eq(ncdPerson.demoLoadId, loadId)));
+  return run(ctx, (tx) =>
+    tx.select({ id: ncdPerson.id }).from(ncdPerson).where(eq(ncdPerson.demoLoadId, loadId)),
+  );
 }
 export { ncdCommandLog };

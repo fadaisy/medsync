@@ -7,6 +7,7 @@
 import { randomUUID } from "node:crypto";
 import type { Lane } from "../emr-db/_pglite";
 import type { NcdFacility } from "./_ncd";
+import type { NcdContext } from "@/lib/ncdreg/context";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { searchPersons } from "@/lib/ncdreg/search";
@@ -38,7 +39,7 @@ const enrolPayload = (token: string, o: Record<string, unknown> = {}) => ({
   smsAllowed: false,
   callsAllowed: true,
   isSynthetic: true,
-  dismissedCandidates: [],
+  dismissedCandidates: [] as string[],
   confirmations: [],
   ...o,
 });
@@ -69,20 +70,47 @@ describe.skipIf(!laneOn)("enrolment and identity", () => {
     };
   };
 
+  /** A search for exactly the names being enrolled (the token is bound to them). */
+  const signed = async <P extends { identity: { givenName: string; familyName: string } }>(
+    c: NcdContext,
+    p: P,
+  ) => ({
+    ...p,
+    searchToken: (
+      await searchPersons(c, {
+        givenName: p.identity.givenName,
+        familyName: p.identity.familyName,
+        sex: null,
+        birthYear: null,
+        phones: [],
+        hospitalNumber: null,
+        nationalId: null,
+      })
+    ).token,
+  });
+  const runE = async (c: NcdContext, p: ReturnType<typeof enrolPayload>, id?: string) =>
+    run(c, "person.enrol", await signed(c, p), id);
+  const okE = async (c: NcdContext, p: ReturnType<typeof enrolPayload>) =>
+    ok(c, "person.enrol", await signed(c, p));
+
   it("A1: create is rejected server-side without a search token, or with a forged or stale one", async () => {
     const c = await ctxFor(lane.db, f, "clinician");
     refused(await run(c, "person.enrol", enrolPayload("1234567890.deadbeef")), "forbidden");
-    const { token: t } = await token();
+    const p = await signed(c, enrolPayload(""));
     const tomorrow = { ...c, enteredAt: new Date(c.enteredAt.getTime() + 25 * 3600 * 1000) };
-    refused(await run(tomorrow, "person.enrol", enrolPayload(t)), "forbidden");
+    refused(await run(tomorrow, "person.enrol", p), "forbidden");
     // Another user's token is not this user's.
     const other = await ctxFor(lane.db, f, "registry_officer");
-    refused(await run(other, "person.enrol", enrolPayload(t)), "forbidden");
+    refused(await run(other, "person.enrol", p), "forbidden");
+    // A token for other names does not unlock this enrolment.
+    const { token: t } = await token();
+    refused(await run(c, "person.enrol", enrolPayload(t)), "forbidden");
+    await okE(c, p);
   });
 
   it("A3: nothing but the system-issued number is mandatory (no phone, no ID, no hospital number)", async () => {
     const { c, token: t } = await token();
-    const r = await ok(c, "person.enrol", enrolPayload(t));
+    const r = await okE(c, enrolPayload(t));
     expect(String(r.registryNumber)).toMatch(/^DEMO-M-/); // synthetic before go-live
   });
 
@@ -92,18 +120,18 @@ describe.skipIf(!laneOn)("enrolment and identity", () => {
     const first = enrolPayload(t, {
       identity: identity({ givenName: "Esther", familyName: fam, phone1: "0772 555 001" }),
     });
-    await ok(c, "person.enrol", first);
+    await okE(c, first);
     const again = enrolPayload(t, {
       identity: identity({ familyName: fam, phone1: "0772 555 001", givenName: "Ester" }),
     });
-    const r = await run(c, "person.enrol", again);
+    const r = await runE(c, again);
     refused(r, "duplicates");
     if (!r.ok)
       expect((r.detail?.candidates as { personId: string; tier: string }[])[0]).toMatchObject({
         personId: first.personId,
         tier: "probable",
       });
-    await ok(c, "person.enrol", { ...again, dismissedCandidates: [first.personId] });
+    await okE(c, { ...again, dismissedCandidates: [first.personId] });
   });
 
   it("A4: several registrations on different dates; a second of one condition is refused; disabled modules refused", async () => {
@@ -155,14 +183,10 @@ describe.skipIf(!laneOn)("enrolment and identity", () => {
 
   it("hard blocks: under 18, future date of birth", async () => {
     const { c, token: t } = await token();
+    refused(await runE(c, enrolPayload(t, { identity: identity({ ageYears: 17 }) })), "invalid");
     refused(
-      await run(c, "person.enrol", enrolPayload(t, { identity: identity({ ageYears: 17 }) })),
-      "invalid",
-    );
-    refused(
-      await run(
+      await runE(
         c,
-        "person.enrol",
         enrolPayload(t, {
           identity: { ...identity(), ageYears: undefined, dateOfBirth: "2030-01-01" },
         }),
@@ -174,7 +198,7 @@ describe.skipIf(!laneOn)("enrolment and identity", () => {
   it("A5: notice version, acknowledgement time and contact preferences are recorded", async () => {
     const { c, token: t } = await token();
     const p = enrolPayload(t, { smsAllowed: false, callsAllowed: true });
-    await ok(c, "person.enrol", p);
+    await okE(c, p);
     const { rows } = await lane.pg.query(
       `SELECT privacy_notice_version, privacy_notice_ack_at IS NOT NULL AS ack, sms_allowed, calls_allowed FROM public.ncd_person WHERE id = $1`,
       [p.personId],
@@ -214,8 +238,8 @@ describe.skipIf(!laneOn)("enrolment and identity", () => {
     const { c, token: t } = await token();
     const id = randomUUID();
     const p = enrolPayload(t);
-    const a = await run(c, "person.enrol", p, id);
-    const b = await run(c, "person.enrol", p, id);
+    const a = await runE(c, p, id);
+    const b = await runE(c, p, id);
     expect(a.ok && b.ok).toBe(true);
     if (a.ok && b.ok) {
       expect(b.replayed).toBe(true);

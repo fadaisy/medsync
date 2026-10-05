@@ -1,6 +1,7 @@
 /** A condition module in no file of the standard (§5.6 extensibility test). */
-import { CONDITION_CATALOGUE } from "@/lib/ncdreg/standard/conditions";
 import type { ConditionModule } from "@/lib/ncdreg/standard/types";
+
+import { CONDITION_CATALOGUE } from "@/lib/ncdreg/standard/conditions";
 
 export const THROWAWAY: ConditionModule = {
   version: "test-1",

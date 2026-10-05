@@ -32,6 +32,22 @@ const ICONS = {
 } as const;
 export type NavIcon = keyof typeof ICONS;
 
-export function NcdNavItem(p: { href: string; label: string; icon: NavIcon; domain?: Domain; count?: number; exact?: boolean }) {
-  return <SidebarNavItem href={p.href} label={p.label} icon={ICONS[p.icon]} domain={p.domain} count={p.count} exact={p.exact} />;
+export function NcdNavItem(p: {
+  href: string;
+  label: string;
+  icon: NavIcon;
+  domain?: Domain;
+  count?: number;
+  exact?: boolean;
+}) {
+  return (
+    <SidebarNavItem
+      href={p.href}
+      label={p.label}
+      icon={ICONS[p.icon]}
+      domain={p.domain}
+      count={p.count}
+      exact={p.exact}
+    />
+  );
 }

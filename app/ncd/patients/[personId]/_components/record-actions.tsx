@@ -1,17 +1,23 @@
 "use client";
 
 import type { ConditionModule, ReviewComponent } from "@/lib/ncdreg/standard/types";
-import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { CalendarPlusIcon, ClipboardPlusIcon, PhoneIcon, PlusIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
-import { SheetBody, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  SheetBody,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { REFERRAL_SOURCE, WHERE_FIRST_DIAGNOSED } from "@/lib/ncdreg/standard/code-lists";
-import { revealPhoneAction } from "../../../actions";
 import { EventDialog } from "../../../_components/event-dialog";
 import { useOutbox } from "../../../_components/outbox-provider";
+import { revealPhoneAction } from "../../../actions";
 import { Seg } from "../../../visit/[visitId]/_components/controls";
 import { ReviewDialog } from "./review-dialog";
 
@@ -76,14 +82,43 @@ export function RecordActions({
           {msg}
         </p>
       ) : null}
-      <EventDialog open={dialog === "event"} onOpenChange={(o) => setDialog(o ? "event" : null)} personId={personId} personName={personName} modules={modules} today={today} onDone={() => router.refresh()} />
-      <ReviewDialog open={dialog === "review"} onOpenChange={(o) => setDialog(o ? "review" : null)} personId={personId} components={reviewComponents} today={today} />
-      <RegistrationDialog open={dialog === "registration"} onOpenChange={(o) => setDialog(o ? "registration" : null)} personId={personId} modules={addable} />
+      <EventDialog
+        open={dialog === "event"}
+        onOpenChange={(o) => setDialog(o ? "event" : null)}
+        personId={personId}
+        personName={personName}
+        modules={modules}
+        today={today}
+        onDone={() => router.refresh()}
+      />
+      <ReviewDialog
+        open={dialog === "review"}
+        onOpenChange={(o) => setDialog(o ? "review" : null)}
+        personId={personId}
+        components={reviewComponents}
+        today={today}
+      />
+      <RegistrationDialog
+        open={dialog === "registration"}
+        onOpenChange={(o) => setDialog(o ? "registration" : null)}
+        personId={personId}
+        modules={addable}
+      />
     </div>
   );
 }
 
-function RegistrationDialog({ open, onOpenChange, personId, modules }: { open: boolean; onOpenChange: (o: boolean) => void; personId: string; modules: ConditionModule[] }) {
+function RegistrationDialog({
+  open,
+  onOpenChange,
+  personId,
+  modules,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  personId: string;
+  modules: ConditionModule[];
+}) {
   const router = useRouter();
   const { submit } = useOutbox();
   const [code, setCode] = useState(modules[0]?.code ?? "");
@@ -119,15 +154,54 @@ function RegistrationDialog({ open, onOpenChange, personId, modules }: { open: b
         <SheetDescription>One registration per condition; the date is today.</SheetDescription>
       </SheetHeader>
       <SheetBody className="flex flex-col gap-4">
-        <Seg label="Condition" hideLabel={false} value={code} onChange={(v) => (setCode(v), setSubtype(""), setBasis(""))} options={modules.map((x) => [x.code, x.label] as const)} />
-        {m && m.subtypes.length > 1 ? <Seg label="Type" hideLabel={false} value={subtype} onChange={setSubtype} options={m.subtypes.map((s) => [s.code, s.label] as const)} /> : null}
-        {m ? <Seg label="Basis of diagnosis" hideLabel={false} value={basis} onChange={setBasis} options={m.basis_of_diagnosis.map((s) => [s.code, s.label] as const)} /> : null}
+        <Seg
+          label="Condition"
+          hideLabel={false}
+          value={code}
+          onChange={(v) => (setCode(v), setSubtype(""), setBasis(""))}
+          options={modules.map((x) => [x.code, x.label] as const)}
+        />
+        {m && m.subtypes.length > 1 ? (
+          <Seg
+            label="Type"
+            hideLabel={false}
+            value={subtype}
+            onChange={setSubtype}
+            options={m.subtypes.map((s) => [s.code, s.label] as const)}
+          />
+        ) : null}
+        {m ? (
+          <Seg
+            label="Basis of diagnosis"
+            hideLabel={false}
+            value={basis}
+            onChange={setBasis}
+            options={m.basis_of_diagnosis.map((s) => [s.code, s.label] as const)}
+          />
+        ) : null}
         <label className="flex w-40 flex-col gap-1">
           <span className="text-label">Year diagnosed</span>
-          <input className={`${field} font-mono`} inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+          <input
+            className={`${field} font-mono`}
+            inputMode="numeric"
+            value={year}
+            onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          />
         </label>
-        <Seg label="Where first diagnosed" hideLabel={false} value={where} onChange={setWhere} options={WHERE_FIRST_DIAGNOSED.codes.map((c) => [c.code, c.label] as const)} />
-        <Seg label="Referred from" hideLabel={false} value={referral} onChange={setReferral} options={REFERRAL_SOURCE.codes.map((c) => [c.code, c.label] as const)} />
+        <Seg
+          label="Where first diagnosed"
+          hideLabel={false}
+          value={where}
+          onChange={setWhere}
+          options={WHERE_FIRST_DIAGNOSED.codes.map((c) => [c.code, c.label] as const)}
+        />
+        <Seg
+          label="Referred from"
+          hideLabel={false}
+          value={referral}
+          onChange={setReferral}
+          options={REFERRAL_SOURCE.codes.map((c) => [c.code, c.label] as const)}
+        />
         {msg ? (
           <p role="alert" className="text-body-s text-ink-800">
             {msg}
@@ -147,7 +221,17 @@ function RegistrationDialog({ open, onOpenChange, personId, modules }: { open: b
 }
 
 /** "Show number": revealed on request only, audited server-side; a demo number is never dialable. */
-export function ShowNumber({ personId, slot, masked, demo }: { personId: string; slot: 1 | 2; masked: string; demo: boolean }) {
+export function ShowNumber({
+  personId,
+  slot,
+  masked,
+  demo,
+}: {
+  personId: string;
+  slot: 1 | 2;
+  masked: string;
+  demo: boolean;
+}) {
   const [shown, setShown] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (

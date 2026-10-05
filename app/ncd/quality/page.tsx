@@ -11,10 +11,19 @@ import { QueryList } from "./_components/query-list";
 
 export const metadata: Metadata = { title: "Data quality" };
 
-const monthLabel = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+const monthLabel = (m: string) =>
+  new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 
 /** G3, G4, A7: the query list, the monthly audit sample, and duplicate review with four-eyes merge. */
-export default async function QualityPage({ searchParams }: { searchParams: Promise<{ month?: string; queries?: string }> }) {
+export default async function QualityPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string; queries?: string }>;
+}) {
   const { ctx } = await requireNcdScope();
   const dq = can(ctx, "data_quality", "audit_view");
   const merge = can(ctx, "merge_request", "merge_approve");
@@ -29,12 +38,24 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
   ]);
   return (
     <Page>
-      <PageTitle title="Data quality" subline={`Queries, the monthly audit sample and duplicate records · as at ${fmtDate(ctx.today)}`} />
+      <PageTitle
+        title="Data quality"
+        subline={`Queries, the monthly audit sample and duplicate records · as at ${fmtDate(ctx.today)}`}
+      />
       {queries ? (
         <QueryList
           status={qStatus}
           canResolve={can(ctx, "data_quality")}
-          rows={queries.map((q) => ({ id: q.id, personId: q.personId, ruleText: q.ruleText, status: q.status, note: q.resolutionNote, created: q.createdAt.toISOString().slice(0, 10), name: q.identity?.name ?? "Unknown", registryNumber: q.identity?.registryNumber ?? "" }))}
+          rows={queries.map((q) => ({
+            id: q.id,
+            personId: q.personId,
+            ruleText: q.ruleText,
+            status: q.status,
+            note: q.resolutionNote,
+            created: q.createdAt.toISOString().slice(0, 10),
+            name: q.identity?.name ?? "Unknown",
+            registryNumber: q.identity?.registryNumber ?? "",
+          }))}
         />
       ) : null}
       {sample ? (
@@ -45,7 +66,14 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
           canCheck={can(ctx, "data_quality")}
           fields={AUDIT_FIELDS.map((f) => ({ key: f.key, label: f.label }))}
           agreement={sample.agreement}
-          rows={sample.rows.map((r) => ({ id: r.id, personId: r.personId, visitDate: r.visitDate, name: r.identity?.name ?? "Unknown", registryNumber: r.identity?.registryNumber ?? "", fields: r.fieldAgreement ?? null }))}
+          rows={sample.rows.map((r) => ({
+            id: r.id,
+            personId: r.personId,
+            visitDate: r.visitDate,
+            name: r.identity?.name ?? "Unknown",
+            registryNumber: r.identity?.registryNumber ?? "",
+            fields: r.fieldAgreement ?? null,
+          }))}
         />
       ) : null}
       {merges ? (

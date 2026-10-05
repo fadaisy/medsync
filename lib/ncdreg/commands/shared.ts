@@ -12,6 +12,7 @@ import { and, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import {
   ncdAppointment,
   ncdConditionSetting,
+  ncdDefinitionVersion,
   ncdEvent,
   ncdFacilitySettings,
   ncdNameIndex,
@@ -279,21 +280,55 @@ export async function assertPersonAlive(tx: NcdTx, personId: string, onDate: str
     throw new NcdError("invalid", "A visit cannot be dated after a recorded death.");
 }
 
+/** I2: medicines a second person approved for this facility's list ({ add: [{ code, label }] } proposals). */
+export async function medicineAdditions(
+  tx: NcdTx,
+  ctx: NcdContext,
+): Promise<{ code: string; label: string }[]> {
+  const approved = await tx
+    .select({ payload: ncdDefinitionVersion.payload })
+    .from(ncdDefinitionVersion)
+    .where(
+      and(
+        eq(ncdDefinitionVersion.facilityId, ctx.facilityId),
+        eq(ncdDefinitionVersion.definitionId, "medicine"),
+        eq(ncdDefinitionVersion.status, "approved"),
+      ),
+    );
+  const out = new Map<string, string>();
+  for (const { payload } of approved) {
+    const add = (payload as { add?: unknown }).add;
+    if (!Array.isArray(add)) continue;
+    for (const x of add as { code?: unknown; label?: unknown }[])
+      if (typeof x.code === "string" && typeof x.label === "string" && !medicineByCode.has(x.code))
+        out.set(x.code, x.label);
+  }
+  return [...out].map(([code, label]) => ({ code, label }));
+}
+
 /* ─── A1/A2: search before create ─────────────────────────────────────── */
 
 const TOKEN_TTL_MS = 24 * 3600 * 1000;
-/** A search token: proof that a search ran for this user at this facility in the last 24 hours. */
-export function issueSearchToken(ctx: NcdContext): string {
+/**
+ * A search token: proof that a search ran for this user at this facility in the last 24 hours, for
+ * these names. It unlocks enrolling only the names that were searched (finding 15).
+ */
+type Names = { givenName: string; familyName: string };
+const nameKey = (n: Names) =>
+  [...new Set(nameTokenHmacs(n.givenName, n.familyName))].sort().join(",");
+const tokenMac = (ctx: NcdContext, ts: number, n: Names) =>
+  blindIndex(`ncd-search:${ctx.userId}:${ctx.facilityId}:${ctx.principal}:${ts}:${nameKey(n)}`);
+export function issueSearchToken(ctx: NcdContext, names: Names): string {
   const ts = ctx.enteredAt.getTime();
-  return `${ts}.${blindIndex(`ncd-search:${ctx.userId}:${ctx.facilityId}:${ctx.principal}:${ts}`)}`;
+  return `${ts}.${tokenMac(ctx, ts, names)}`;
 }
-export function verifySearchToken(ctx: NcdContext, token: string): boolean {
+export function verifySearchToken(ctx: NcdContext, token: string, names: Names): boolean {
   const [ts, mac] = token.split(".");
   const t = Number(ts);
   if (!Number.isFinite(t) || !mac) return false;
   if (ctx.enteredAt.getTime() - t > TOKEN_TTL_MS || t - ctx.enteredAt.getTime() > 60_000)
     return false;
-  return blindIndex(`ncd-search:${ctx.userId}:${ctx.facilityId}:${ctx.principal}:${t}`) === mac;
+  return tokenMac(ctx, t, names) === mac;
 }
 
 export async function findCandidates(

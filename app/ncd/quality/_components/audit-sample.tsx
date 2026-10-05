@@ -1,14 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Seg } from "../../visit/[visitId]/_components/controls";
 import { fmtDate } from "../../_components/kit";
+import { Seg } from "../../visit/[visitId]/_components/controls";
 import { drawSampleAction, recordAgreementAction } from "../actions";
 
-type Row = { id: string; personId: string; visitDate: string; name: string; registryNumber: string; fields: Record<string, boolean> | null };
+type Row = {
+  id: string;
+  personId: string;
+  visitDate: string;
+  name: string;
+  registryNumber: string;
+  fields: Record<string, boolean> | null;
+};
 type Field = { key: string; label: string };
 
 /** G4: the month's audit sample, the field-level check of each sampled visit, and the agreement rate. */
@@ -45,12 +52,18 @@ export function AuditSample({
             Audit sample · {monthLabel}
           </h2>
           <p className="text-caption text-muted-foreground">
-            5% of the month&apos;s closed visits, at least 10, drawn from the seed <span className="font-mono">{seed}</span>. The same seed always draws the same visits.
+            5% of the month&apos;s closed visits, at least 10, drawn from the seed{" "}
+            <span className="font-mono">{seed}</span>. The same seed always draws the same visits.
           </p>
         </div>
         <label className="ml-auto flex flex-col gap-1">
           <span className="text-label">Month</span>
-          <input type="month" value={month} onChange={(e) => e.target.value && router.push(`/ncd/quality?month=${e.target.value}`)} className="border-input h-9 rounded-lg border bg-transparent px-2 text-[14px]" />
+          <input
+            type="month"
+            value={month}
+            onChange={(e) => e.target.value && router.push(`/ncd/quality?month=${e.target.value}`)}
+            className="border-input h-9 rounded-lg border bg-transparent px-2 text-[14px]"
+          />
         </label>
         {canCheck ? (
           <Button variant="secondary" disabled={pending} onClick={draw}>
@@ -61,7 +74,9 @@ export function AuditSample({
       <p className="text-body-s">
         Agreement with the source:{" "}
         <span className="font-mono tabular-nums">
-          {agreement.rate == null ? "not checked yet" : `${Math.round(agreement.rate * 100)}% (${agreement.agree} of ${agreement.checked} fields)`}
+          {agreement.rate == null
+            ? "not checked yet"
+            : `${Math.round(agreement.rate * 100)}% (${agreement.agree} of ${agreement.checked} fields)`}
         </span>
       </p>
       {msg ? (
@@ -97,7 +112,9 @@ function SampleRow({ row, fields, canCheck }: { row: Row; fields: Field[]; canCh
         <span className="font-medium">{row.name}</span>
         <span className="text-caption text-muted-foreground font-mono">{row.registryNumber}</span>
         <span className="text-caption text-muted-foreground">Visit {fmtDate(row.visitDate)}</span>
-        <span className="text-caption text-ink-700 ml-auto">{row.fields ? "Checked" : "Not checked"}</span>
+        <span className="text-caption text-ink-700 ml-auto">
+          {row.fields ? "Checked" : "Not checked"}
+        </span>
       </div>
       {canCheck ? (
         <>
@@ -116,7 +133,12 @@ function SampleRow({ row, fields, canCheck }: { row: Row; fields: Field[]; canCh
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="secondary" disabled={pending || !Object.keys(values).length} onClick={save}>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={pending || !Object.keys(values).length}
+              onClick={save}
+            >
               Save check
             </Button>
             {msg ? (

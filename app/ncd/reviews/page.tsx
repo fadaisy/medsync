@@ -18,7 +18,10 @@ export default async function ReviewsPage() {
   const rows = await reviewsDueList(ctx);
   return (
     <Page>
-      <PageTitle title="Reviews due" subline={`Due now or in the next 30 days, as at ${fmtDate(ctx.today)} · earliest first`} />
+      <PageTitle
+        title="Reviews due"
+        subline={`Due now or in the next 30 days, as at ${fmtDate(ctx.today)} · earliest first`}
+      />
       {rows.length ? (
         <div className="border-border overflow-x-auto border-y">
           <table className="w-full min-w-[720px] border-collapse text-[14px]">
@@ -34,11 +37,21 @@ export default async function ReviewsPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.identity.id} className="border-border hover:bg-ink-25 h-14 border-b last:border-b-0">
+                <tr
+                  key={r.identity.id}
+                  className="border-border hover:bg-ink-25 h-14 border-b last:border-b-0"
+                >
                   <td className="px-3.5 py-2">
-                    <Link href={`/ncd/patients/${r.identity.id}?tab=reviews`} className="focus-visible:shadow-focus flex flex-col rounded-sm outline-none">
-                      <span className="text-foreground font-medium underline-offset-4 hover:underline">{r.identity.name}</span>
-                      <span className="text-caption text-muted-foreground font-mono">{r.identity.registryNumber}</span>
+                    <Link
+                      href={`/ncd/patients/${r.identity.id}?tab=reviews`}
+                      className="focus-visible:shadow-focus flex flex-col rounded-sm outline-none"
+                    >
+                      <span className="text-foreground font-medium underline-offset-4 hover:underline">
+                        {r.identity.name}
+                      </span>
+                      <span className="text-caption text-muted-foreground font-mono">
+                        {r.identity.registryNumber}
+                      </span>
                     </Link>
                   </td>
                   <td className="px-3.5 py-2">
@@ -46,7 +59,8 @@ export default async function ReviewsPage() {
                       {r.reviews.map((v) => (
                         <li key={v.component}>
                           <Tag hue="slate">
-                            {REVIEW_LABELS[v.component]} {v.due ? "due" : `due ${fmtDate(v.dueOn)}`} · {v.last ? `last done ${fmtDate(v.last)}` : "never done"}
+                            {REVIEW_LABELS[v.component]} {v.due ? "due" : `due ${fmtDate(v.dueOn)}`}{" "}
+                            · {v.last ? `last done ${fmtDate(v.last)}` : "never done"}
                           </Tag>
                         </li>
                       ))}
@@ -62,7 +76,10 @@ export default async function ReviewsPage() {
         </div>
       ) : (
         <EmptyState title="No reviews due">
-          <p className="text-body-s text-muted-foreground">Patients whose kidney, eye, foot, lipid or HbA1c review falls due in the next 30 days appear here.</p>
+          <p className="text-body-s text-muted-foreground">
+            Patients whose kidney, eye, foot, lipid or HbA1c review falls due in the next 30 days
+            appear here.
+          </p>
         </EmptyState>
       )}
     </Page>

@@ -125,5 +125,5 @@ export * from "./monitoring";
 
 // ─── The ward builder and the live bed board (migration 0090 — GATED, ADRs 0191–0196)
 export * from "./ward-builder";
-// ─── NCDSync, the hospital NCD registry (migration 0093 — GATED, ADRs 0208–0212)
+// ─── NCDSync, the hospital NCD registry (migration 0093 — GATED, ADRs 0208–0213)
 export * from "./ncd-registry";

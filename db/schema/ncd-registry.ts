@@ -15,7 +15,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
- * NCDSync, the hospital NCD registry (migration 0093, docs/ncd/, ADRs 0208–0212). The SQL is the
+ * NCDSync, the hospital NCD registry (migration 0093, docs/ncd/, ADRs 0208–0213). The SQL is the
  * source of truth (CHECKs, triggers, policies live there); tests/emr-db/drizzle-parity.test.ts holds
  * these columns to it. Every table carries facility_id (= hospitals.id) except the capability map.
  * Identifiers are `*_ciphertext` (lib/encryption) with `*_hmac` blind indexes.

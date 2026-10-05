@@ -1,9 +1,16 @@
+import type { TemplatePurpose } from "@/lib/ncdreg/recall/templates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { can } from "@/lib/ncdreg/context";
-import { ensureTemplates, LANGUAGE_LABEL, listTemplates, PURPOSE_LABEL, STATUS_LABEL, type TemplatePurpose } from "@/lib/ncdreg/recall/templates";
+import {
+  ensureTemplates,
+  LANGUAGE_LABEL,
+  listTemplates,
+  PURPOSE_LABEL,
+  STATUS_LABEL,
+} from "@/lib/ncdreg/recall/templates";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { EmptyState, Page, PageTitle } from "../../_components/kit";
 import { TemplateCard } from "./_components/template-card";
@@ -22,7 +29,10 @@ export default async function TemplatesPage() {
         title="SMS templates"
         subline="Only an approved template is ever sent. Approval takes two different people. A message never names a condition, a measurement, a medicine or the department."
         right={
-          <Link href="/ncd/recall" className="text-label text-teal-text underline-offset-4 hover:underline">
+          <Link
+            href="/ncd/recall"
+            className="text-label text-teal-text underline-offset-4 hover:underline"
+          >
             Back to Recall
           </Link>
         }
@@ -47,7 +57,10 @@ export default async function TemplatesPage() {
         </div>
       ) : (
         <EmptyState title="No templates yet">
-          <p className="text-body-s text-muted-foreground">A registry lead opening this page creates the English drafts and the empty Luganda slots.</p>
+          <p className="text-body-s text-muted-foreground">
+            A registry lead opening this page creates the English drafts and the empty Luganda
+            slots.
+          </p>
         </EmptyState>
       )}
     </Page>

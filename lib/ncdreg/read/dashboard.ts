@@ -22,7 +22,11 @@ import { loadDataset } from "../indicators/load";
 import { enabledModules } from "../indicators/snapshot";
 import { CLASS_LABELS, RULE_CLASS_PHRASES } from "../standard/classifications";
 import { ADMISSION_REASON, EVENT_TYPE, NOT_OBTAINED_REASON } from "../standard/code-lists";
-import { HOSPITAL_PARAMS, indicatorByCode, INDICATOR_DEFINITION_VERSION } from "../standard/indicators";
+import {
+  HOSPITAL_PARAMS,
+  INDICATOR_DEFINITION_VERSION,
+  indicatorByCode,
+} from "../standard/indicators";
 import { identities, logAccess } from "./views";
 
 /* ─── pure: suppression, scales, ordering ─────────────────────────────── */
@@ -63,7 +67,13 @@ export const pctOf = (num: number, den: number) => (den > 0 ? Math.round((100 * 
 /* ─── cells ───────────────────────────────────────────────────────────── */
 
 export type Cell = { n: number; text: string; suppressed: boolean; href: string | null };
-export type Line = { label: string; num: Cell; den: Cell | null; pct: number | null; note?: string };
+export type Line = {
+  label: string;
+  num: Cell;
+  den: Cell | null;
+  pct: number | null;
+  note?: string;
+};
 export type View = {
   month: string;
   /** Holds drill_down: nothing is suppressed for this viewer. */
@@ -77,7 +87,13 @@ export type View = {
 
 const fmt = (n: number) => n.toLocaleString("en-GB");
 
-export function cell(v: View, n: number | undefined, key: string, part: string, ids?: readonly string[]): Cell {
+export function cell(
+  v: View,
+  n: number | undefined,
+  key: string,
+  part: string,
+  ids?: readonly string[],
+): Cell {
   const count = n ?? 0;
   const suppressed = isSuppressed(count, ids ?? [], v.isSynthetic, v.canDrill);
   const href =
@@ -88,18 +104,34 @@ export function cell(v: View, n: number | undefined, key: string, part: string, 
 }
 
 /** A part of a result as a line: count, its denominator, and a percentage unless either is suppressed. */
-export function line(v: View, key: string, r: IndicatorResult | undefined, part: string, label: string, denPart = "den"): Line {
+export function line(
+  v: View,
+  key: string,
+  r: IndicatorResult | undefined,
+  part: string,
+  label: string,
+  denPart = "den",
+): Line {
   const num = cell(v, part === "num" ? r?.num : r?.parts?.[part], key, part, r?.ids[part]);
   const denN = r?.den;
   const den = denN == null ? null : cell(v, denN, key, denPart, r?.ids[denPart]);
-  return { label, num, den, pct: den && !num.suppressed && !den.suppressed ? pctOf(num.n, den.n) : null };
+  return {
+    label,
+    num,
+    den,
+    pct: den && !num.suppressed && !den.suppressed ? pctOf(num.n, den.n) : null,
+  };
 }
 
 /* ─── labels ──────────────────────────────────────────────────────────── */
 
 export function classLabel(m: ConditionModule, cls: string): string {
   const oc = m.outcome_classification;
-  return (oc.kind === "rule" ? RULE_CLASS_PHRASES[oc.classification]?.[cls] : undefined) ?? CLASS_LABELS[cls] ?? cls;
+  return (
+    (oc.kind === "rule" ? RULE_CLASS_PHRASES[oc.classification]?.[cls] : undefined) ??
+    CLASS_LABELS[cls] ??
+    cls
+  );
 }
 
 /** Care-band labels built from the catalogue labels of the two band modules. */
@@ -113,12 +145,21 @@ export function careBandLabels(catalogue: readonly ConditionModule[]): Record<Ca
   };
 }
 
-export const eventLabel = (code: string) => EVENT_TYPE.codes.find((c) => c.code === code)?.label ?? code.replace(/_/g, " ");
+export const eventLabel = (code: string) =>
+  EVENT_TYPE.codes.find((c) => c.code === code)?.label ?? code.replace(/_/g, " ");
 
 export const monthLabel = (m: string) =>
-  new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+  new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-GB", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 export const monthLong = (m: string) =>
-  new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+  new Date(`${m}-01T00:00:00Z`).toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 
 /** The last complete month at `today` (the default reporting month). */
 export const lastCompleteMonth = (today: string) => addMonths(today.slice(0, 7), -1);
@@ -126,7 +167,12 @@ export const lastCompleteMonth = (today: string) => addMonths(today.slice(0, 7),
 /* ─── filters ─────────────────────────────────────────────────────────── */
 
 const AGE_BANDS = ["18_29", "30_49", "50_69", "70_plus"] as const;
-const CARE_BANDS: readonly CareBand[] = ["hypertension_only", "diabetes_only", "both_without_complications", "either_with_complications"];
+const CARE_BANDS: readonly CareBand[] = [
+  "hypertension_only",
+  "diabetes_only",
+  "both_without_complications",
+  "either_with_complications",
+];
 export const AGE_BAND_LABELS: Record<(typeof AGE_BANDS)[number], string> = {
   "18_29": "18 to 29",
   "30_49": "30 to 49",
@@ -185,7 +231,12 @@ export type ConditionRow = {
   cascade: Segment[];
 };
 
-type Computed = { report: IndicatorReport; trend: IndicatorReport[]; ds: Dataset; enabled: Set<string> };
+type Computed = {
+  report: IndicatorReport;
+  trend: IndicatorReport[];
+  ds: Dataset;
+  enabled: Set<string>;
+};
 
 async function compute(ctx: NcdContext, month: string, filters: Filters): Promise<Computed> {
   const [ds, enabled] = await Promise.all([loadDataset(ctx), enabledModules(ctx)]);
@@ -231,7 +282,13 @@ export async function dashboardBoard(ctx: NcdContext, month: string, filters: Fi
     const den = cell(v, g04?.den, key, "den", g04?.ids.den);
     const segs = ordered.map((cls): Segment => {
       const l = line(v, key, g04, cls, classLabel(m, cls));
-      return { key: cls, label: l.label, cell: l.num, pct: l.pct, tip: tipOf(l.label, l.num, den, g04?.version ?? INDICATOR_DEFINITION_VERSION) };
+      return {
+        key: cls,
+        label: l.label,
+        cell: l.num,
+        pct: l.pct,
+        tip: tipOf(l.label, l.num, den, g04?.version ?? INDICATOR_DEFINITION_VERSION),
+      };
     });
     const lead = segs[0]!;
     const g06key = `G06.${m.code}`;
@@ -255,18 +312,28 @@ export async function dashboardBoard(ctx: NcdContext, month: string, filters: Fi
       trend: trend.map((t) => {
         const r = t.results[key];
         const n = r?.parts?.[leading] ?? 0;
-        const hidden = isSuppressed(n, r?.ids[leading] ?? [], v.isSynthetic, v.canDrill) || isSuppressed(r?.den ?? 0, r?.ids.den ?? [], v.isSynthetic, v.canDrill);
+        const hidden =
+          isSuppressed(n, r?.ids[leading] ?? [], v.isSynthetic, v.canDrill) ||
+          isSuppressed(r?.den ?? 0, r?.ids.den ?? [], v.isSynthetic, v.canDrill);
         return { month: t.month, pct: hidden ? null : pctOf(n, r?.den ?? 0) };
       }),
       cascade: steps.map(([part, label]) => {
         const l = line(v, g06key, g06, part, label);
-        return { key: part, label, cell: l.num, pct: l.pct, tip: tipOf(label, l.num, g06den, g06?.version ?? INDICATOR_DEFINITION_VERSION) };
+        return {
+          key: part,
+          label,
+          cell: l.num,
+          pct: l.pct,
+          tip: tipOf(label, l.num, g06den, g06?.version ?? INDICATOR_DEFINITION_VERSION),
+        };
       }),
     };
   });
 
   const prevC01 = trend[10]?.results.C01?.num;
-  const districts = [...new Set(ds.persons.map((p) => p.district).filter((d): d is string => !!d))].sort();
+  const districts = [
+    ...new Set(ds.persons.map((p) => p.district).filter((d): d is string => !!d)),
+  ].sort();
   return {
     month,
     view: v,
@@ -284,7 +351,10 @@ export type DashboardBoard = Awaited<ReturnType<typeof dashboardBoard>>;
 
 /* ─── F2 drill-down ───────────────────────────────────────────────────── */
 
-export async function drillDown(ctx: NcdContext, o: { code: string; part: string; month: string; filters: Filters }) {
+export async function drillDown(
+  ctx: NcdContext,
+  o: { code: string; part: string; month: string; filters: Filters },
+) {
   authorize(ctx, "drill_down");
   const [ds, enabled] = await Promise.all([loadDataset(ctx), enabledModules(ctx)]);
   const report = computeIndicators(ds, {
@@ -297,7 +367,12 @@ export async function drillDown(ctx: NcdContext, o: { code: string; part: string
   const r = report.results[o.code];
   const ids = r?.ids[o.part] ?? [];
   const unique = [...new Set(ids)];
-  await logAccess(ctx, "drilldown", null, { code: o.code, part: o.part, month: o.month, count: ids.length });
+  await logAccess(ctx, "drilldown", null, {
+    code: o.code,
+    part: o.part,
+    month: o.month,
+    count: ids.length,
+  });
   const who = await identities(ctx, unique);
   const people = unique
     .map((id) => who.get(id))
@@ -317,14 +392,28 @@ export async function snapshotState(ctx: NcdContext, month: string) {
       tx
         .select()
         .from(ncdIndicatorSnapshot)
-        .where(and(eq(ncdIndicatorSnapshot.facilityId, ctx.facilityId), eq(ncdIndicatorSnapshot.month, `${month}-01`))),
+        .where(
+          and(
+            eq(ncdIndicatorSnapshot.facilityId, ctx.facilityId),
+            eq(ncdIndicatorSnapshot.month, `${month}-01`),
+          ),
+        ),
     ctx.db,
   );
-  const snap = snaps.find((x) => x.signedAt) ?? snaps.find((x) => !x.isSynthetic) ?? snaps[0] ?? null;
+  const snap =
+    snaps.find((x) => x.signedAt) ?? snaps.find((x) => !x.isSynthetic) ?? snaps[0] ?? null;
   if (!snap?.signedAt) return { snap, signed: null };
   const { db } = await import("@/db");
-  const [u] = snap.signedBy ? await db.select({ fullName: users.fullName, email: users.email }).from(users).where(eq(users.id, snap.signedBy)) : [];
-  return { snap, signed: { by: u?.fullName ?? u?.email ?? "the registry lead", at: snap.signedAt } };
+  const [u] = snap.signedBy
+    ? await db
+        .select({ fullName: users.fullName, email: users.email })
+        .from(users)
+        .where(eq(users.id, snap.signedBy))
+    : [];
+  return {
+    snap,
+    signed: { by: u?.fullName ?? u?.email ?? "the registry lead", at: snap.signedAt },
+  };
 }
 
 export async function monthlyReport(ctx: NcdContext, month: string) {
@@ -336,7 +425,11 @@ export async function monthlyReport(ctx: NcdContext, month: string) {
   if (signed && snap) {
     // A signed month reads its stored results: immutable, no person ids.
     results = (snap.results as unknown as IndicatorReport).results;
-    enabled = new Set(Object.keys(results).filter((k) => k.startsWith("G01.")).map((k) => k.slice(4)));
+    enabled = new Set(
+      Object.keys(results)
+        .filter((k) => k.startsWith("G01."))
+        .map((k) => k.slice(4)),
+    );
   } else {
     const [ds, en] = await Promise.all([loadDataset(ctx), enabledModules(ctx)]);
     const report = computeIndicators(ds, {
@@ -350,7 +443,13 @@ export async function monthlyReport(ctx: NcdContext, month: string) {
     results = report.results;
     enabled = en;
   }
-  const view: View = { month, canDrill: can(ctx, "drill_down"), links: false, isSynthetic, filterQuery: "" };
+  const view: View = {
+    month,
+    canDrill: can(ctx, "drill_down"),
+    links: false,
+    isSynthetic,
+    filterQuery: "",
+  };
   return {
     view,
     results,
@@ -373,18 +472,31 @@ export type TableSection = { title: string; rows: TableRow[] };
 
 const quarterLabel = (q: string) => `${q.slice(5)} ${q.slice(0, 4)}`;
 
-function partLabel(code: string, part: string, m: ConditionModule | undefined, bands: Record<string, string>): string {
+function partLabel(
+  code: string,
+  part: string,
+  m: ConditionModule | undefined,
+  bands: Record<string, string>,
+): string {
   if (code === "G04" && m) return classLabel(m, part);
   if (code === "G06")
     return (
-      { registered: "Registered", under_care: "Under care", visit_3_months: "Seen in 3 months", leading_class: m ? classLabel(m, outcomeClasses(m).leading) : part }[part] ?? part
+      {
+        registered: "Registered",
+        under_care: "Under care",
+        visit_3_months: "Seen in 3 months",
+        leading_class: m ? classLabel(m, outcomeClasses(m).leading) : part,
+      }[part] ?? part
     );
   if (code === "H05") return part.replace(/^below_(\d+)_(\d+)$/, "Below $1/$2");
   if (code === "H08") {
     const [type, reason] = part.split(":");
-    return reason ? `${eventLabel(type!)}: ${ADMISSION_REASON.codes.find((c) => c.code === reason)?.label ?? reason}` : eventLabel(part);
+    return reason
+      ? `${eventLabel(type!)}: ${ADMISSION_REASON.codes.find((c) => c.code === reason)?.label ?? reason}`
+      : eventLabel(part);
   }
-  if (code === "H09") return NOT_OBTAINED_REASON.codes.find((c) => c.code === part)?.label ?? part.replace(/_/g, " ");
+  if (code === "H09")
+    return NOT_OBTAINED_REASON.codes.find((c) => c.code === part)?.label ?? part.replace(/_/g, " ");
   if (code === "H12") return bands[part] ?? part;
   return part;
 }
@@ -403,14 +515,28 @@ export function tableSections(
     const lines: Line[] = [];
     if (r.num != null) lines.push(line(v, key, r, "num", "Patients"));
     if (r.code === "C16") {
-      for (const q of Object.keys(r.parts ?? {}).filter((k) => k.endsWith(":cohort")).map((k) => k.slice(0, -7))) {
+      for (const q of Object.keys(r.parts ?? {})
+        .filter((k) => k.endsWith(":cohort"))
+        .map((k) => k.slice(0, -7))) {
         const den = cell(v, r.parts?.[`${q}:cohort`], key, `${q}:cohort`, r.ids[`${q}:cohort`]);
         lines.push({ label: `Registered ${quarterLabel(q)}`, num: den, den: null, pct: null });
-        for (const k of Object.keys(r.parts ?? {}).filter((x) => x.startsWith(`${q}:`) && !x.endsWith(":cohort"))) {
+        for (const k of Object.keys(r.parts ?? {}).filter(
+          (x) => x.startsWith(`${q}:`) && !x.endsWith(":cohort"),
+        )) {
           const part = k.slice(q.length + 1);
           const num = cell(v, r.parts?.[k], key, k, r.ids[k]);
-          const lab = m && part === outcomeClasses(m).leading ? classLabel(m, part) : part === "other" ? "Not in range" : (CLASS_LABELS[part] ?? part);
-          lines.push({ label: lab, num, den, pct: num.suppressed || den.suppressed ? null : pctOf(num.n, den.n) });
+          const lab =
+            m && part === outcomeClasses(m).leading
+              ? classLabel(m, part)
+              : part === "other"
+                ? "Not in range"
+                : (CLASS_LABELS[part] ?? part);
+          lines.push({
+            label: lab,
+            num,
+            den,
+            pct: num.suppressed || den.suppressed ? null : pctOf(num.n, den.n),
+          });
         }
       }
     } else
@@ -419,14 +545,31 @@ export function tableSections(
           ...line(v, key, r, part, partLabel(r.code, part, m, bands)),
           note: r.rates?.[part] != null ? `${r.rates[part]} per 1,000` : undefined,
         });
-    if (!lines.length && r.den != null) lines.push({ label: "Denominator", num: cell(v, r.den, key, "den", r.ids.den), den: null, pct: null });
-    return { key, code: r.code, label: label ?? `${indicatorLabel(r.code)}${m ? `, ${m.label}` : ""}`, version: r.version, lines };
+    if (!lines.length && r.den != null)
+      lines.push({
+        label: "Denominator",
+        num: cell(v, r.den, key, "den", r.ids.den),
+        den: null,
+        pct: null,
+      });
+    return {
+      key,
+      code: r.code,
+      label: label ?? `${indicatorLabel(r.code)}${m ? `, ${m.label}` : ""}`,
+      version: r.version,
+      lines,
+    };
   };
   const keep = (xs: (TableRow | null)[]) => xs.filter((x): x is TableRow => !!x);
-  const coreConditional = Object.keys(results).filter((k) => /^C(0[4-9]|1[01])$/.test(k)).sort();
+  const coreConditional = Object.keys(results)
+    .filter((k) => /^C(0[4-9]|1[01])$/.test(k))
+    .sort();
   const nr = Object.keys(results).filter((k) => k.startsWith("not_recorded."));
   return [
-    { title: "Facility", rows: keep(["C01", "C02", "C03", "C12", "C13", "C14", "C15"].map((k) => row(k))) },
+    {
+      title: "Facility",
+      rows: keep(["C01", "C02", "C03", "C12", "C13", "C14", "C15"].map((k) => row(k))),
+    },
     {
       title: "Control at latest visit (HEARTS360)",
       rows: keep([
@@ -439,8 +582,17 @@ export function tableSections(
     },
     ...modules.map((m) => ({
       title: m.label,
-      rows: keep(["G01", "G02", "G03", "G04", "G05", "G06", "C16"].map((c) => row(`${c}.${m.code}`))),
+      rows: keep(
+        ["G01", "G02", "G03", "G04", "G05", "G06", "C16"].map((c) => row(`${c}.${m.code}`)),
+      ),
     })),
-    { title: "Hospital", rows: keep(["H01", "H02", "H03", "H04", "H05", "H06", "H07", "H08", "H09", "H10", "H11", "H12"].map((k) => row(k))) },
+    {
+      title: "Hospital",
+      rows: keep(
+        ["H01", "H02", "H03", "H04", "H05", "H06", "H07", "H08", "H09", "H10", "H11", "H12"].map(
+          (k) => row(k),
+        ),
+      ),
+    },
   ].filter((s) => s.rows.length);
 }

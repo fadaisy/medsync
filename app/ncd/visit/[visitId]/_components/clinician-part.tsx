@@ -1,16 +1,23 @@
 "use client";
 
 import type { ConditionModule } from "@/lib/ncdreg/standard/types";
-import { useMemo, useRef, useState, useTransition } from "react";
+import type { FormRegistration } from "@/lib/ncdreg/visit-form";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { CheckIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { completeness } from "@/lib/ncdreg/indicators/engine";
-import { HYPOGLYCAEMIA, MEDICINE_GROUP_LABELS, MEDICINE_LIST, MISSED_DOSES, NOT_OBTAINED_REASON } from "@/lib/ncdreg/standard/code-lists";
-import { needsConfirmation } from "@/lib/ncdreg/standard/validation";
+import {
+  HYPOGLYCAEMIA,
+  MEDICINE_GROUP_LABELS,
+  MEDICINE_LIST,
+  MISSED_DOSES,
+  NOT_OBTAINED_REASON,
+} from "@/lib/ncdreg/standard/code-lists";
 import { RECORDED_CONTROL } from "@/lib/ncdreg/standard/types";
-import { visitFormSpec, type FormRegistration } from "@/lib/ncdreg/visit-form";
+import { needsConfirmation } from "@/lib/ncdreg/standard/validation";
+import { visitFormSpec } from "@/lib/ncdreg/visit-form";
 import { useOutbox } from "../../../_components/outbox-provider";
 import { ConfirmValues, Seg } from "./controls";
 
@@ -56,6 +63,7 @@ export function ClinicianPart({
   initial,
   carried,
   intervalsWeeks,
+  extraMedicines,
   nurse,
 }: {
   visitId: string;
@@ -67,6 +75,8 @@ export function ClinicianPart({
   initial: ClinicianInitial;
   carried: { codes: string[]; other: string | null; from: string } | null;
   intervalsWeeks: number[];
+  /** I2: approved additions to the facility's medicine list. */
+  extraMedicines: { code: string; label: string }[];
   nurse: { weight: boolean; bp: boolean; glucose: boolean };
 }) {
   const { submit } = useOutbox();
@@ -74,13 +84,20 @@ export function ClinicianPart({
   const closed = stage === "closed";
   const spec = useMemo(() => visitFormSpec(regs, visitType), [regs, visitType]);
   const offers = (code: string) => spec.some((f) => f.key === code);
-  const groupsFirst = useMemo(() => [...new Set(regs.flatMap((r) => r.module.medicine_groups))], [regs]);
+  const groupsFirst = useMemo(
+    () => [...new Set(regs.flatMap((r) => r.module.medicine_groups))],
+    [regs],
+  );
 
   const fresh = !initial.clinicianSaved;
   const [meds, setMeds] = useState<string[]>(fresh ? (carried?.codes ?? []) : initial.medicines);
-  const [other, setOther] = useState(fresh ? (carried?.other ?? "") : (initial.medicinesOther ?? ""));
+  const [other, setOther] = useState(
+    fresh ? (carried?.other ?? "") : (initial.medicinesOther ?? ""),
+  );
   const [confirmed, setConfirmed] = useState<boolean>(!!initial.confirmedUnchanged);
-  const [edited, setEdited] = useState(!fresh && !initial.confirmedUnchanged && initial.medicines.length > 0);
+  const [edited, setEdited] = useState(
+    !fresh && !initial.confirmedUnchanged && initial.medicines.length > 0,
+  );
   const [missed, setMissed] = useState(initial.missedDoses);
   const [hypo, setHypo] = useState(initial.hypoglycaemia);
   const [hba1c, setHba1c] = useState(initial.hba1c ? String(initial.hba1c.percent) : "");
@@ -90,25 +107,41 @@ export function ClinicianPart({
   const [next, setNext] = useState(initial.nextAppointmentDate ?? "");
   const [dispo, setDispo] = useState(initial.disposition);
   const [control, setControl] = useState<Record<string, string>>(() =>
-    Object.fromEntries(initial.observations.filter((o) => o.code === "recorded_control").map((o) => [o.registrationId, String(o.value)])),
+    Object.fromEntries(
+      initial.observations
+        .filter((o) => o.code === "recorded_control")
+        .map((o) => [o.registrationId, String(o.value)]),
+    ),
   );
   const [obs, setObs] = useState<Record<string, Record<string, string | number | boolean>>>(() => {
     const m: Record<string, Record<string, string | number | boolean>> = {};
     for (const o of initial.observations.filter((x) => x.code !== "recorded_control"))
-      (m[o.registrationId] ??= {})[o.code] = o.value === "true" ? true : o.value === "false" ? false : (o.value ?? "");
+      (m[o.registrationId] ??= {})[o.code] =
+        o.value === "true" ? true : o.value === "false" ? false : (o.value ?? "");
     return m;
   });
   const [confirm, setConfirm] = useState<string[] | null>(null);
-  const [confirmKind, setConfirmKind] = useState<"visit.save_clinician" | "visit.close">("visit.close");
+  const [confirmKind, setConfirmKind] = useState<"visit.save_clinician" | "visit.close">(
+    "visit.close",
+  );
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const started = useRef(stage === "with_clinician" || stage === "closed");
 
+  const formRef = useRef<HTMLFormElement>(null);
   const touchStart = () => {
     if (started.current || closed) return;
     started.current = true;
     void submit("visit.start_clinician", { visitId, personId });
   };
+  // B8: the first focus inside the clinician part starts it (stage with_clinician).
+  useEffect(() => {
+    const el = formRef.current;
+    if (!el) return;
+    const on = () => touchStart();
+    el.addEventListener("focusin", on);
+    return () => el.removeEventListener("focusin", on);
+  });
 
   const score = completeness({
     visit: {
@@ -129,15 +162,30 @@ export function ClinicianPart({
   const payload = (confirmations: string[]) => ({
     visitId,
     personId,
-    medicines: confirmed || edited ? { codes: meds, otherText: meds.includes("other") ? other : null, confirmedUnchanged: confirmed } : null,
+    medicines:
+      confirmed || edited
+        ? {
+            codes: meds,
+            otherText: meds.includes("other") ? other : null,
+            confirmedUnchanged: confirmed,
+          }
+        : null,
     missedDoses: missed,
     hypoglycaemia: offers("hypoglycaemia") ? hypo : null,
     medicinesObtained: obtained,
     notObtainedReason: obtained === "partial" || obtained === "none" ? reason : null,
     hba1c: offers("hba1c") && hba1c ? { percent: Number(hba1c), resultDate: hba1cDate } : null,
     conditionFields: regs
-      .filter((r) => r.module.outcome_classification.kind === "clinician_recorded" || r.module.visit_fields.some((f) => f.storage === "observation"))
-      .map((r) => ({ registrationId: r.registrationId, recordedControl: control[r.registrationId] ?? null, observations: obs[r.registrationId] ?? {} }))
+      .filter(
+        (r) =>
+          r.module.outcome_classification.kind === "clinician_recorded" ||
+          r.module.visit_fields.some((f) => f.storage === "observation"),
+      )
+      .map((r) => ({
+        registrationId: r.registrationId,
+        recordedControl: control[r.registrationId] ?? null,
+        observations: obs[r.registrationId] ?? {},
+      }))
       .filter((c) => c.recordedControl || Object.keys(c.observations).length),
     nextAppointmentDate: dispo ? null : next || null,
     disposition: dispo,
@@ -147,21 +195,38 @@ export function ClinicianPart({
   const act = (kind: "visit.save_clinician" | "visit.close", confirmations: string[] = []) =>
     start(async () => {
       setMsg(null);
-      const flags = needsConfirmation({ hba1c_percent: hba1c ? Number(hba1c) : null }).filter((f) => !confirmations.includes(f));
+      const flags = needsConfirmation({ hba1c_percent: hba1c ? Number(hba1c) : null }).filter(
+        (f) => !confirmations.includes(f),
+      );
       if (flags.length) return (setConfirmKind(kind), setConfirm(flags));
       const r = await submit(kind, payload(confirmations));
       if (!r.ok) return setMsg("message" in r ? r.message : "Not saved");
       if (kind === "visit.close") {
-        setMsg("queued" in r ? "Visit closed on this device. Sent when the connection returns." : "Visit closed.");
+        setMsg(
+          "queued" in r
+            ? "Visit closed on this device. Sent when the connection returns."
+            : "Visit closed.",
+        );
         router.refresh();
       } else setMsg("queued" in r ? "Draft saved on this device." : "Draft saved.");
     });
 
-  const medLabel = (c: string) => MEDICINE_LIST.medicines.find((m) => m.code === c)?.label ?? c;
-  const groups = [...groupsFirst, ...Object.keys(MEDICINE_GROUP_LABELS).filter((g) => !groupsFirst.includes(g))];
+  const medLabel = (c: string) =>
+    MEDICINE_LIST.medicines.find((m) => m.code === c)?.label ??
+    extraMedicines.find((m) => m.code === c)?.label ??
+    c;
+  const groups = [
+    ...groupsFirst,
+    ...Object.keys(MEDICINE_GROUP_LABELS).filter((g) => !groupsFirst.includes(g)),
+  ];
 
   return (
-    <form className="flex flex-col gap-5" onFocus={touchStart} onSubmit={(e) => e.preventDefault()} aria-label="Clinician entries">
+    <form
+      ref={formRef}
+      className="flex flex-col gap-5"
+      onSubmit={(e) => e.preventDefault()}
+      aria-label="Clinician entries"
+    >
       <fieldset disabled={closed || pending} className="flex flex-col gap-5">
         <section className="flex flex-col gap-2" aria-labelledby="meds-h">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -169,7 +234,16 @@ export function ClinicianPart({
               Current medicines after this visit
             </h3>
             {carried && !confirmed ? (
-              <Button type="button" variant="soft" onClick={() => (setMeds(carried.codes), setOther(carried.other ?? ""), setConfirmed(true), setEdited(false))}>
+              <Button
+                type="button"
+                variant="soft"
+                onClick={() => (
+                  setMeds(carried.codes),
+                  setOther(carried.other ?? ""),
+                  setConfirmed(true),
+                  setEdited(false)
+                )}
+              >
                 <CheckIcon aria-hidden /> Confirm unchanged
               </Button>
             ) : confirmed ? (
@@ -178,22 +252,35 @@ export function ClinicianPart({
               </span>
             ) : null}
           </div>
-          {carried ? <p className="text-caption text-muted-foreground">Carried forward from the visit of {carried.from}. No doses are recorded.</p> : null}
+          {carried ? (
+            <p className="text-caption text-muted-foreground">
+              Carried forward from the visit of {carried.from}. No doses are recorded.
+            </p>
+          ) : null}
           <ul className="flex flex-wrap gap-1.5">
             {meds.map((c) => (
-              <li key={c} className="border-ink-200 inline-flex h-8 items-center gap-1 rounded-md border pr-1 pl-2.5 text-[13px]">
+              <li
+                key={c}
+                className="border-ink-200 inline-flex h-8 items-center gap-1 rounded-md border pr-1 pl-2.5 text-[13px]"
+              >
                 {medLabel(c)}
                 <button
                   type="button"
                   className="hover:bg-ink-100 focus-visible:shadow-focus grid size-6 place-items-center rounded"
                   aria-label={`Remove ${medLabel(c)}`}
-                  onClick={() => (setMeds(meds.filter((x) => x !== c)), setConfirmed(false), setEdited(true))}
+                  onClick={() => (
+                    setMeds(meds.filter((x) => x !== c)),
+                    setConfirmed(false),
+                    setEdited(true)
+                  )}
                 >
                   <XIcon className="size-3.5" aria-hidden />
                 </button>
               </li>
             ))}
-            {!meds.length ? <li className="text-caption text-muted-foreground">No medicines listed.</li> : null}
+            {!meds.length ? (
+              <li className="text-caption text-muted-foreground">No medicines listed.</li>
+            ) : null}
           </ul>
           <label className="flex max-w-md flex-col gap-1">
             <span className="text-caption text-ink-600">Add a medicine</span>
@@ -221,29 +308,65 @@ export function ClinicianPart({
                     ))}
                 </optgroup>
               ))}
+              {extraMedicines.length ? (
+                <optgroup label="Added at this facility">
+                  {extraMedicines.map((m) => (
+                    <option key={m.code} value={m.code}>
+                      {m.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
             </select>
           </label>
           {meds.includes("other") ? (
             <label className="flex max-w-md flex-col gap-1">
               <span className="text-caption text-ink-600">Other medicine (name only)</span>
-              <input className="border-input h-9 rounded-md border bg-transparent px-2 text-[13px]" value={other} onChange={(e) => (setOther(e.target.value), setEdited(true))} />
+              <input
+                className="border-input h-9 rounded-md border bg-transparent px-2 text-[13px]"
+                value={other}
+                onChange={(e) => (setOther(e.target.value), setEdited(true))}
+              />
             </label>
           ) : null}
         </section>
 
-        <Seg label="Missed doses in the past 7 days" hideLabel={false} value={missed} onChange={setMissed} options={MISSED_DOSES.codes.map((c) => [c.code, c.label] as const)} />
+        <Seg
+          label="Missed doses in the past 7 days"
+          hideLabel={false}
+          value={missed}
+          onChange={setMissed}
+          options={MISSED_DOSES.codes.map((c) => [c.code, c.label] as const)}
+        />
         {offers("hypoglycaemia") ? (
-          <Seg label="Hypoglycaemia since last visit" hideLabel={false} value={hypo} onChange={setHypo} options={HYPOGLYCAEMIA.codes.map((c) => [c.code, c.label] as const)} />
+          <Seg
+            label="Hypoglycaemia since last visit"
+            hideLabel={false}
+            value={hypo}
+            onChange={setHypo}
+            options={HYPOGLYCAEMIA.codes.map((c) => [c.code, c.label] as const)}
+          />
         ) : null}
         {offers("hba1c") ? (
           <div className="flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1">
               <span className="text-label">HbA1c % (if resulted)</span>
-              <input className="border-input h-9 w-28 rounded-md border bg-transparent px-2 font-mono" inputMode="decimal" value={hba1c} onChange={(e) => setHba1c(e.target.value.replace(",", "."))} />
+              <input
+                className="border-input h-9 w-28 rounded-md border bg-transparent px-2 font-mono"
+                inputMode="decimal"
+                value={hba1c}
+                onChange={(e) => setHba1c(e.target.value.replace(",", "."))}
+              />
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-label">Result date</span>
-              <input type="date" className="border-input h-9 rounded-md border bg-transparent px-2 font-mono text-[13px]" value={hba1cDate} max={visitDate} onChange={(e) => setHba1cDate(e.target.value)} />
+              <input
+                type="date"
+                className="border-input h-9 rounded-md border bg-transparent px-2 font-mono text-[13px]"
+                value={hba1cDate}
+                max={visitDate}
+                onChange={(e) => setHba1cDate(e.target.value)}
+              />
             </label>
           </div>
         ) : null}
@@ -251,9 +374,16 @@ export function ClinicianPart({
         {regs
           .filter((r) => r.module.outcome_classification.kind === "clinician_recorded")
           .map((r: { registrationId: string; module: ConditionModule }) => (
-            <section key={r.registrationId} className="border-border flex flex-col gap-3 rounded-lg border p-3" aria-label={r.module.label}>
+            <section
+              key={r.registrationId}
+              className="border-border flex flex-col gap-3 rounded-lg border p-3"
+              aria-label={r.module.label}
+            >
               <h3 className="text-label">
-                {r.module.label} <span className="text-muted-foreground text-[11px] font-normal">· clinician-recorded</span>
+                {r.module.label}{" "}
+                <span className="text-muted-foreground text-[11px] font-normal">
+                  · clinician-recorded
+                </span>
               </h3>
               <Seg
                 label={`${r.module.label}: control as you judge it`}
@@ -266,15 +396,45 @@ export function ClinicianPart({
                 .filter((f) => f.storage === "observation")
                 .map((f) => {
                   const cur = obs[r.registrationId]?.[f.code];
-                  const set = (v: string | number | boolean) => setObs({ ...obs, [r.registrationId]: { ...(obs[r.registrationId] ?? {}), [f.code]: v } });
+                  const set = (v: string | number | boolean) =>
+                    setObs({
+                      ...obs,
+                      [r.registrationId]: { ...(obs[r.registrationId] ?? {}), [f.code]: v },
+                    });
                   if (f.type === "enum")
-                    return <Seg key={f.code} label={f.label} hideLabel={false} value={cur as string} onChange={set} options={(f.options ?? []).map((o) => [o.code, o.label] as const)} />;
+                    return (
+                      <Seg
+                        key={f.code}
+                        label={f.label}
+                        hideLabel={false}
+                        value={cur as string}
+                        onChange={set}
+                        options={(f.options ?? []).map((o) => [o.code, o.label] as const)}
+                      />
+                    );
                   if (f.type === "boolean")
-                    return <Seg key={f.code} label={f.label} hideLabel={false} value={cur == null ? null : String(cur)} onChange={(v) => set(v === "true")} options={[["true", "Yes"], ["false", "No"]]} />;
+                    return (
+                      <Seg
+                        key={f.code}
+                        label={f.label}
+                        hideLabel={false}
+                        value={cur == null ? null : String(cur)}
+                        onChange={(v) => set(v === "true")}
+                        options={[
+                          ["true", "Yes"],
+                          ["false", "No"],
+                        ]}
+                      />
+                    );
                   return (
                     <label key={f.code} className="flex flex-col gap-1">
                       <span className="text-label">{f.label}</span>
-                      <input className="border-input h-9 w-28 rounded-md border bg-transparent px-2 font-mono" inputMode="numeric" value={cur == null ? "" : String(cur)} onChange={(e) => set(e.target.value === "" ? "" : Number(e.target.value))} />
+                      <input
+                        className="border-input h-9 w-28 rounded-md border bg-transparent px-2 font-mono"
+                        inputMode="numeric"
+                        value={cur == null ? "" : String(cur)}
+                        onChange={(e) => set(e.target.value === "" ? "" : Number(e.target.value))}
+                      />
                     </label>
                   );
                 })}
@@ -282,9 +442,26 @@ export function ClinicianPart({
           ))}
 
         <div className="flex flex-col gap-2">
-          <Seg label="Medicines obtained" hideLabel={false} value={obtained} onChange={setObtained} options={[["full", "In full"], ["partial", "In part"], ["none", "None"], ["not_applicable", "Not applicable"]]} />
+          <Seg
+            label="Medicines obtained"
+            hideLabel={false}
+            value={obtained}
+            onChange={setObtained}
+            options={[
+              ["full", "In full"],
+              ["partial", "In part"],
+              ["none", "None"],
+              ["not_applicable", "Not applicable"],
+            ]}
+          />
           {obtained === "partial" || obtained === "none" ? (
-            <Seg label="Reason" hideLabel={false} value={reason} onChange={setReason} options={NOT_OBTAINED_REASON.codes.map((c) => [c.code, c.label] as const)} />
+            <Seg
+              label="Reason"
+              hideLabel={false}
+              value={reason}
+              onChange={setReason}
+              options={NOT_OBTAINED_REASON.codes.map((c) => [c.code, c.label] as const)}
+            />
           ) : null}
         </div>
 
@@ -294,13 +471,24 @@ export function ClinicianPart({
           </h3>
           <div className="flex flex-wrap items-center gap-2">
             {intervalsWeeks.map((w) => (
-              <Button key={w} type="button" variant={next === addDays(visitDate, w * 7) && !dispo ? "primary" : "secondary"} onClick={() => (setNext(addDays(visitDate, w * 7)), setDispo(null))}>
+              <Button
+                key={w}
+                type="button"
+                variant={next === addDays(visitDate, w * 7) && !dispo ? "primary" : "secondary"}
+                onClick={() => (setNext(addDays(visitDate, w * 7)), setDispo(null))}
+              >
                 {w} weeks
               </Button>
             ))}
             <label className="flex items-center gap-2">
               <span className="sr-only">Next appointment date</span>
-              <input type="date" min={addDays(visitDate, 1)} className="border-input h-8 rounded-md border bg-transparent px-2 font-mono text-[13px]" value={next} onChange={(e) => (setNext(e.target.value), setDispo(null))} />
+              <input
+                type="date"
+                min={addDays(visitDate, 1)}
+                className="border-input h-8 rounded-md border bg-transparent px-2 font-mono text-[13px]"
+                value={next}
+                onChange={(e) => (setNext(e.target.value), setDispo(null))}
+              />
             </label>
           </div>
           <Seg
@@ -308,7 +496,11 @@ export function ClinicianPart({
             hideLabel={false}
             value={dispo ?? ""}
             onChange={(v) => setDispo(v || null)}
-            options={[["", "Keep in this clinic"], ["transfer_out", "Transfer out"], ["discharged_to_primary_care", "Discharge to primary care"]]}
+            options={[
+              ["", "Keep in this clinic"],
+              ["transfer_out", "Transfer out"],
+              ["discharged_to_primary_care", "Discharge to primary care"],
+            ]}
           />
         </section>
 
@@ -316,11 +508,20 @@ export function ClinicianPart({
           <p className="text-label">
             Completeness <span className="font-mono tabular-nums">{score.score}%</span>
           </p>
-          <p className="text-caption text-ink-600">{score.missing.length ? `Missing: ${score.missing.map((m) => m.replace(/^recorded_control:/, "control: ").replace(/_/g, " ")).join(", ")}` : "Every core field is recorded."}</p>
+          <p className="text-caption text-ink-600">
+            {score.missing.length
+              ? `Missing: ${score.missing.map((m) => m.replace(/^recorded_control:/, "control: ").replace(/_/g, " ")).join(", ")}`
+              : "Every core field is recorded."}
+          </p>
         </section>
 
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="secondary" size="lg" onClick={() => act("visit.save_clinician")}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            onClick={() => act("visit.save_clinician")}
+          >
             Save draft
           </Button>
           <Button type="button" size="lg" onClick={() => act("visit.close")}>
@@ -333,8 +534,16 @@ export function ClinicianPart({
           {msg}
         </p>
       ) : null}
-      {closed ? <p className="text-caption text-ink-600">This visit is closed. A late laboratory result can be added from the patient record.</p> : null}
-      <ConfirmValues fields={confirm} onCancel={() => setConfirm(null)} onConfirm={(f) => (setConfirm(null), act(confirmKind, f))} />
+      {closed ? (
+        <p className="text-caption text-ink-600">
+          This visit is closed. A late laboratory result can be added from the patient record.
+        </p>
+      ) : null}
+      <ConfirmValues
+        fields={confirm}
+        onCancel={() => setConfirm(null)}
+        onConfirm={(f) => (setConfirm(null), act(confirmKind, f))}
+      />
     </form>
   );
 }

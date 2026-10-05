@@ -8,12 +8,13 @@
  */
 import "server-only";
 
+import type { NcdContext } from "../context";
+import type { NcdTx } from "../db";
 import { and, asc, eq, ne } from "drizzle-orm";
 
 import { ncdSmsTemplate } from "@/db/schema";
-
-import { authorize, NcdError, type NcdContext } from "../context";
-import { withNcd, type NcdTx } from "../db";
+import { authorize, NcdError } from "../context";
+import { withNcd } from "../db";
 import { DEMO_CATALOGUE } from "../demo/source";
 import { bannedTermsIn } from "./banned";
 
@@ -51,7 +52,11 @@ export async function ensureTemplates(ctx: NcdContext): Promise<void> {
     ctx,
     "app",
     async (tx) => {
-      const [any] = await tx.select({ id: ncdSmsTemplate.id }).from(ncdSmsTemplate).where(eq(ncdSmsTemplate.facilityId, ctx.facilityId)).limit(1);
+      const [any] = await tx
+        .select({ id: ncdSmsTemplate.id })
+        .from(ncdSmsTemplate)
+        .where(eq(ncdSmsTemplate.facilityId, ctx.facilityId))
+        .limit(1);
       if (!any) await tx.insert(ncdSmsTemplate).values(seedRows(ctx.facilityId, ctx.userId));
     },
     ctx.db,
@@ -66,14 +71,21 @@ export async function listTemplates(ctx: NcdContext): Promise<SmsTemplate[]> {
       tx
         .select()
         .from(ncdSmsTemplate)
-        .where(and(eq(ncdSmsTemplate.facilityId, ctx.facilityId), ne(ncdSmsTemplate.status, "retired")))
+        .where(
+          and(eq(ncdSmsTemplate.facilityId, ctx.facilityId), ne(ncdSmsTemplate.status, "retired")),
+        )
         .orderBy(asc(ncdSmsTemplate.purpose), asc(ncdSmsTemplate.language)),
     ctx.db,
   );
 }
 
 /** The approved template for a purpose and language, if any (what the dispatcher may send). */
-export async function approvedTemplate(tx: NcdTx, facilityId: string, purpose: TemplatePurpose, language = "en") {
+export async function approvedTemplate(
+  tx: NcdTx,
+  facilityId: string,
+  purpose: TemplatePurpose,
+  language = "en",
+) {
   const [t] = await tx
     .select()
     .from(ncdSmsTemplate)
@@ -92,17 +104,28 @@ export async function approvedTemplate(tx: NcdTx, facilityId: string, purpose: T
 export function checkBody(body: string): void {
   const hits = bannedTermsIn(body);
   if (hits.length)
-    throw new NcdError("invalid", `The message may not name a condition, a measurement, a medicine or the department. Remove: ${hits.join(", ")}.`, { banned: hits });
+    throw new NcdError(
+      "invalid",
+      `The message may not name a condition, a measurement, a medicine or the department. Remove: ${hits.join(", ")}.`,
+      { banned: hits },
+    );
 }
 
 async function load(tx: NcdTx, ctx: NcdContext, id: string): Promise<SmsTemplate> {
-  const [t] = await tx.select().from(ncdSmsTemplate).where(and(eq(ncdSmsTemplate.id, id), eq(ncdSmsTemplate.facilityId, ctx.facilityId)));
+  const [t] = await tx
+    .select()
+    .from(ncdSmsTemplate)
+    .where(and(eq(ncdSmsTemplate.id, id), eq(ncdSmsTemplate.facilityId, ctx.facilityId)));
   if (!t) throw new NcdError("not_found", "Template not found.");
   return t;
 }
 
 /** Editing returns the template to draft and clears any approval: a changed text is a new text. */
-export async function saveTemplateBody(ctx: NcdContext, id: string, body: string): Promise<SmsTemplate> {
+export async function saveTemplateBody(
+  ctx: NcdContext,
+  id: string,
+  body: string,
+): Promise<SmsTemplate> {
   authorize(ctx, "code_list_manage");
   const text = body.trim();
   checkBody(text);
@@ -112,16 +135,36 @@ export async function saveTemplateBody(ctx: NcdContext, id: string, body: string
     async (tx) => {
       const t = await load(tx, ctx, id);
       if (t.status === "approved")
-        await tx.update(ncdSmsTemplate).set({ status: "retired" }).where(eq(ncdSmsTemplate.id, t.id));
-      const values = { body: text, status: "draft", firstApprover: null, approvedBy: null, approvedAt: null, version: t.version + 1 };
+        await tx
+          .update(ncdSmsTemplate)
+          .set({ status: "retired" })
+          .where(eq(ncdSmsTemplate.id, t.id));
+      const values = {
+        body: text,
+        status: "draft",
+        firstApprover: null,
+        approvedBy: null,
+        approvedAt: null,
+        version: t.version + 1,
+      };
       if (t.status === "approved") {
         const [n] = await tx
           .insert(ncdSmsTemplate)
-          .values({ facilityId: ctx.facilityId, purpose: t.purpose, language: t.language, createdBy: ctx.userId, ...values })
+          .values({
+            facilityId: ctx.facilityId,
+            purpose: t.purpose,
+            language: t.language,
+            createdBy: ctx.userId,
+            ...values,
+          })
           .returning();
         return n!;
       }
-      const [n] = await tx.update(ncdSmsTemplate).set(values).where(eq(ncdSmsTemplate.id, t.id)).returning();
+      const [n] = await tx
+        .update(ncdSmsTemplate)
+        .set(values)
+        .where(eq(ncdSmsTemplate.id, t.id))
+        .returning();
       return n!;
     },
     ctx.db,
@@ -139,7 +182,11 @@ export async function submitTemplate(ctx: NcdContext, id: string): Promise<SmsTe
       if (t.status !== "draft") throw new NcdError("conflict", "Only a draft can be submitted.");
       if (!t.body.trim()) throw new NcdError("invalid", "Write the message before submitting it.");
       checkBody(t.body);
-      const [n] = await tx.update(ncdSmsTemplate).set({ status: "pending_review", firstApprover: null, approvedBy: null }).where(eq(ncdSmsTemplate.id, t.id)).returning();
+      const [n] = await tx
+        .update(ncdSmsTemplate)
+        .set({ status: "pending_review", firstApprover: null, approvedBy: null })
+        .where(eq(ncdSmsTemplate.id, t.id))
+        .returning();
       return n!;
     },
     ctx.db,
@@ -158,14 +205,20 @@ export async function approveTemplate(ctx: NcdContext, id: string): Promise<SmsT
     "app",
     async (tx) => {
       const t = await load(tx, ctx, id);
-      if (t.status !== "pending_review") throw new NcdError("conflict", "Only a template awaiting approval can be approved.");
+      if (t.status !== "pending_review")
+        throw new NcdError("conflict", "Only a template awaiting approval can be approved.");
       if (!t.body.trim()) throw new NcdError("invalid", "An empty template cannot be approved.");
       checkBody(t.body);
       if (!t.firstApprover) {
-        const [n] = await tx.update(ncdSmsTemplate).set({ firstApprover: ctx.userId }).where(eq(ncdSmsTemplate.id, t.id)).returning();
+        const [n] = await tx
+          .update(ncdSmsTemplate)
+          .set({ firstApprover: ctx.userId })
+          .where(eq(ncdSmsTemplate.id, t.id))
+          .returning();
         return n!;
       }
-      if (t.firstApprover === ctx.userId) throw new NcdError("forbidden", "A second, different person must approve this template.");
+      if (t.firstApprover === ctx.userId)
+        throw new NcdError("forbidden", "A second, different person must approve this template.");
       await tx
         .update(ncdSmsTemplate)
         .set({ status: "retired" })

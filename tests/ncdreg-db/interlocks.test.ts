@@ -47,22 +47,27 @@ describe.skipIf(!laneOn)("go-live interlock and administration", () => {
     lane = await bootLane();
     f = await ncdFacility(lane.pg, "Interlock facility");
   }, 120_000);
-  const tok = async (c: Awaited<ReturnType<typeof ctxFor>>) =>
-    (
-      await searchPersons(c, {
-        givenName: "a",
-        familyName: "b",
-        sex: null,
-        birthYear: null,
-        phones: [],
-        hospitalNumber: null,
-        nationalId: null,
-      })
-    ).token;
+  /** realEnrol with a search token for exactly its names (tokens are bound to the names searched). */
+  const signedReal = async (
+    c: Awaited<ReturnType<typeof ctxFor>>,
+    o: Record<string, unknown> = {},
+  ) => {
+    const p = realEnrol("", o);
+    const { token } = await searchPersons(c, {
+      givenName: p.identity.givenName,
+      familyName: p.identity.familyName,
+      sex: null,
+      birthYear: null,
+      phones: [],
+      hospitalNumber: null,
+      nationalId: null,
+    });
+    return { ...p, searchToken: token };
+  };
 
   it("before go-live: a real person is refused, by the server and by the database", async () => {
     const c = await ctxFor(lane.db, f, "clinician");
-    refused(await run(c, "person.enrol", realEnrol(await tok(c))), "interlock");
+    refused(await run(c, "person.enrol", await signedReal(c)), "interlock");
     await expect(
       lane.pg.query(
         `INSERT INTO public.ncd_person (facility_id, registry_number, is_synthetic, given_name_ciphertext, family_name_ciphertext, sex, birth_year, privacy_notice_version, privacy_notice_ack_at)
@@ -119,10 +124,10 @@ describe.skipIf(!laneOn)("go-live interlock and administration", () => {
     expect((await facilityStatus(lead)).approved).toBe(true);
     // After go-live: real persons are accepted, synthetic refused, draft core modules cannot be enabled.
     const c = await ctxFor(lane.db, f, "clinician");
-    const r = await ok(c, "person.enrol", realEnrol(await tok(c)));
+    const r = await ok(c, "person.enrol", await signedReal(c));
     expect(String(r.registryNumber)).toMatch(/^NCD-2026-\d{5}$/);
     refused(
-      await run(c, "person.enrol", { ...realEnrol(await tok(c)), isSynthetic: true }),
+      await run(c, "person.enrol", { ...(await signedReal(c)), isSynthetic: true }),
       "interlock",
     );
     await expect(setConditionEnabled(lead, "epilepsy", true, "x")).rejects.toThrow(/draft module/);

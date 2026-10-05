@@ -6,12 +6,12 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
+import type { FacilityStatus } from "@/lib/ncdreg/admin";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { NoticeBanner } from "@/app/ncd/_components/notice-banner";
-import type { FacilityStatus } from "@/lib/ncdreg/admin";
 import { DEMO_COPY } from "@/lib/ncdreg/demo/source";
 
 const status = (o: Partial<FacilityStatus>): FacilityStatus => ({
@@ -30,17 +30,31 @@ const demo = (s: string) => ({ status: s }) as unknown as NonNullable<FacilitySt
 describe("interlock 9: the demo banner", () => {
   it("is present while demo data is on or loading, with the turn-off action for managers", () => {
     for (const s of ["on", "loading"]) {
-      const html = renderToStaticMarkup(createElement(NoticeBanner, { status: status({ demo: demo(s), syntheticPersons: 26 }), canManageDemo: true }));
+      const html = renderToStaticMarkup(
+        createElement(NoticeBanner, {
+          status: status({ demo: demo(s), syntheticPersons: 26 }),
+          canManageDemo: true,
+        }),
+      );
       expect(html).toContain(DEMO_COPY.banner);
       expect(html).toContain(DEMO_COPY.switch_off);
       expect(html).toContain("Not approved for patient data.");
     }
   });
   it("one region, lines not stacked banners; no turn-off for others; gone when off", () => {
-    const html = renderToStaticMarkup(createElement(NoticeBanner, { status: status({ demo: demo("on") }), canManageDemo: false }));
+    const html = renderToStaticMarkup(
+      createElement(NoticeBanner, { status: status({ demo: demo("on") }), canManageDemo: false }),
+    );
     expect(html.match(/role="note"/g)).toHaveLength(1);
     expect(html).not.toContain(DEMO_COPY.switch_off);
-    expect(renderToStaticMarkup(createElement(NoticeBanner, { status: status({ demo: demo("off"), approved: true, draftDefinitions: false }), canManageDemo: true }))).not.toContain(DEMO_COPY.banner);
+    expect(
+      renderToStaticMarkup(
+        createElement(NoticeBanner, {
+          status: status({ demo: demo("off"), approved: true, draftDefinitions: false }),
+          canManageDemo: true,
+        }),
+      ),
+    ).not.toContain(DEMO_COPY.banner);
   });
   it("the layout wraps every NCD screen in the banner", () => {
     const layout = readFileSync(resolve(__dirname, "../../app/ncd/layout.tsx"), "utf8");
@@ -60,7 +74,11 @@ describe("interlock 5: every figure comes from the indicator engine", () => {
   };
   ["lib/ncdreg", "app/ncd", "app/api/cron"].forEach((d) => walk(join(root, d)));
   it("only lib/ncdreg/indicators/snapshot.ts writes ncd_indicator_snapshot (demo removal only deletes)", () => {
-    const writers = files.filter((f) => /\.(insert|update)\(ncdIndicatorSnapshot\)|INSERT INTO public\.ncd_indicator_snapshot|UPDATE public\.ncd_indicator_snapshot/.test(readFileSync(f, "utf8")));
+    const writers = files.filter((f) =>
+      /\.(insert|update)\(ncdIndicatorSnapshot\)|INSERT INTO public\.ncd_indicator_snapshot|UPDATE public\.ncd_indicator_snapshot/.test(
+        readFileSync(f, "utf8"),
+      ),
+    );
     expect(writers.map((f) => relative(root, f))).toEqual(["lib/ncdreg/indicators/snapshot.ts"]);
   });
   it("the snapshot module stores only what computeIndicators returned", () => {

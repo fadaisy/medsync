@@ -12,7 +12,11 @@ import { EmptyState, fmtDate, Page, PageTitle } from "./_components/kit";
 export const dynamic = "force-dynamic";
 
 /** B8 Today's clinic, the NCD home (§11.3 item 1). */
-export default async function TodaysClinic({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
+export default async function TodaysClinic({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
   const { ctx } = await requireNcdScope();
   const sp = await searchParams;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(sp.date ?? "") ? sp.date! : ctx.today;
@@ -25,14 +29,23 @@ export default async function TodaysClinic({ searchParams }: { searchParams: Pro
         subline={fmtDate(date)}
         right={
           <>
-            <span className="text-body-s text-ink-600 font-mono tabular-nums" aria-label={`${clinic.closed} of ${clinic.expected} visits closed`}>
+            <span
+              className="text-body-s text-ink-600 font-mono tabular-nums"
+              aria-label={`${clinic.closed} of ${clinic.expected} visits closed`}
+            >
               {clinic.closed} of {clinic.expected} visits closed
             </span>
             <form method="get" className="flex items-center gap-2">
               <label htmlFor="clinic-date" className="sr-only">
                 Clinic date
               </label>
-              <input id="clinic-date" name="date" type="date" defaultValue={date} className="border-input h-8 rounded-md border px-2 font-mono text-[13px]" />
+              <input
+                id="clinic-date"
+                name="date"
+                type="date"
+                defaultValue={date}
+                className="border-input h-8 rounded-md border px-2 font-mono text-[13px]"
+              />
               <Button type="submit" variant="secondary" size="md">
                 Show
               </Button>
@@ -49,7 +62,13 @@ export default async function TodaysClinic({ searchParams }: { searchParams: Pro
           ) : null}
         </EmptyState>
       ) : (
-        <ClinicTable rows={clinic.rows} date={date} today={ctx.today} canEnrol={can(ctx, "enrol")} timeZone={ctx.timeZone} />
+        <ClinicTable
+          rows={clinic.rows}
+          date={date}
+          today={ctx.today}
+          canEnrol={can(ctx, "enrol")}
+          timeZone={ctx.timeZone}
+        />
       )}
     </Page>
   );

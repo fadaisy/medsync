@@ -1,7 +1,7 @@
 -- ─────────────────────────────────────────────────────────────────────────
 -- 0093_ncd_registry — ⚠️ GATED — owner-applied (npm run db:migrate).
 --
--- NCDSync, the hospital NCD registry (docs/ncd/, PROMPT-NCDSYNC-BUILD-v2, ADRs 0208–0212).
+-- NCDSync, the hospital NCD registry (docs/ncd/, PROMPT-NCDSYNC-BUILD-v2, ADRs 0208–0213).
 -- ADDITIVE and re-runnable: new roles, functions, tables, triggers and policies. No existing row is
 -- changed and no existing table is altered.
 --   1. Roles medsync_ncd_app (no BYPASSRLS; every NCD read and write) and medsync_ncd_analytics
@@ -760,6 +760,10 @@ BEGIN
     RAISE EXCEPTION 'ncd: a signed snapshot is immutable' USING ERRCODE = '42501';
   END IF;
   IF NEW.signed_at IS NOT NULL THEN
+    IF NEW.results IS DISTINCT FROM OLD.results OR NEW.month IS DISTINCT FROM OLD.month
+       OR NEW.definition_version IS DISTINCT FROM OLD.definition_version OR NEW.is_synthetic IS DISTINCT FROM OLD.is_synthetic THEN
+      RAISE EXCEPTION 'ncd: signing records the signature only' USING ERRCODE = '42501';
+    END IF;
     IF NEW.is_synthetic THEN
       RAISE EXCEPTION 'ncd: a synthetic snapshot cannot be signed' USING ERRCODE = '42501';
     END IF;
@@ -797,6 +801,16 @@ CREATE TRIGGER ncd_condition_guard BEFORE INSERT ON public.ncd_condition_setting
 CREATE OR REPLACE FUNCTION private.ncd_go_live_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
+  -- A request is born 'requested', undecided: approval is only ever an update by a second person.
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.status <> 'requested' OR NEW.decided_by IS NOT NULL OR NEW.decided_at IS NOT NULL THEN
+      RAISE EXCEPTION 'ncd: a go-live request starts as requested' USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+  END IF;
+  IF OLD.status <> 'requested' AND NEW.status <> OLD.status THEN
+    RAISE EXCEPTION 'ncd: a decided go-live request cannot change' USING ERRCODE = '42501';
+  END IF;
   IF NEW.status = 'approved' AND OLD.status <> 'approved' THEN
     IF NEW.decided_by IS NULL OR NEW.decided_by = NEW.requested_by THEN
       RAISE EXCEPTION 'ncd: go-live needs a second, different approver' USING ERRCODE = '42501';
@@ -825,21 +839,24 @@ BEGIN
 END;
 $$;
 DROP TRIGGER IF EXISTS ncd_go_live_guard ON public.ncd_go_live_request;
-CREATE TRIGGER ncd_go_live_guard BEFORE UPDATE ON public.ncd_go_live_request
+CREATE TRIGGER ncd_go_live_guard BEFORE INSERT OR UPDATE ON public.ncd_go_live_request
   FOR EACH ROW EXECUTE FUNCTION private.ncd_go_live_guard();
 
 -- §10.6 interlock 1: demo data only before go-live.
 CREATE OR REPLACE FUNCTION private.ncd_demo_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
-  IF private.ncd_facility_approved(NEW.facility_id) THEN
+  IF TG_OP = 'UPDATE' AND OLD.status IN ('off','failed') AND NEW.status IN ('loading','on','removing') THEN
+    RAISE EXCEPTION 'ncd: a finished demo load cannot be resumed; turn demo data on again' USING ERRCODE = '42501';
+  END IF;
+  IF NEW.status IN ('loading','on') AND private.ncd_facility_approved(NEW.facility_id) THEN
     RAISE EXCEPTION 'ncd: Demo data cannot be turned on once the registry is approved for patient data.' USING ERRCODE = '42501';
   END IF;
   RETURN NEW;
 END;
 $$;
 DROP TRIGGER IF EXISTS ncd_demo_guard ON public.ncd_demo_load;
-CREATE TRIGGER ncd_demo_guard BEFORE INSERT ON public.ncd_demo_load
+CREATE TRIGGER ncd_demo_guard BEFORE INSERT OR UPDATE ON public.ncd_demo_load
   FOR EACH ROW EXECUTE FUNCTION private.ncd_demo_guard();
 
 -- D-11: the clinical safety officer role is assigned only by the database owner, never by the app.
@@ -848,6 +865,9 @@ LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
   IF NEW.ncd_role = 'clinical_safety_officer' AND current_user IN ('medsync_ncd_app','medsync_ncd_analytics','authenticated','anon') THEN
     RAISE EXCEPTION 'ncd: the clinical safety officer role is not assignable from the application' USING ERRCODE = '42501';
+  END IF;
+  IF TG_OP = 'INSERT' AND current_user = 'medsync_ncd_app' AND NEW.user_id = private.current_user_id() THEN
+    RAISE EXCEPTION 'ncd: nobody assigns a registry role to themselves' USING ERRCODE = '42501';
   END IF;
   RETURN NEW;
 END;
@@ -903,7 +923,8 @@ BEGIN
              AND c.table_name IN ('ncd_facility_settings','ncd_condition_setting','ncd_person','ncd_registration','ncd_visit',
                'ncd_observation','ncd_review','ncd_event','ncd_appointment','ncd_call','ncd_demo_load','ncd_go_live_request',
                'ncd_indicator_snapshot')
-             AND c.column_name NOT LIKE '%\_ciphertext' AND c.column_name NOT LIKE '%\_hmac' LOOP
+             AND c.column_name NOT LIKE '%\_ciphertext' AND c.column_name NOT LIKE '%\_hmac'
+             AND c.column_name NOT IN ('date_of_birth','patient_user_id','provisional_patient_id') LOOP
     EXECUTE format('GRANT SELECT (%I) ON public.%I TO medsync_ncd_analytics', r.column_name, r.table_name);
   END LOOP;
 END $$;
@@ -949,7 +970,7 @@ GRANT SELECT, INSERT, UPDATE ON public.ncd_staff_role TO medsync_ncd_app;
 ALTER TABLE public.ncd_person ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_person FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_person_select ON public.ncd_person;
-CREATE POLICY ncd_person_select ON public.ncd_person FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(is_synthetic));
+CREATE POLICY ncd_person_select ON public.ncd_person FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(is_synthetic));
 DROP POLICY IF EXISTS ncd_person_insert ON public.ncd_person;
 CREATE POLICY ncd_person_insert ON public.ncd_person FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{enrol,legacy_entry,demo_write}'::text[])) AND private.ncd_synthetic_ok(is_synthetic));
 DROP POLICY IF EXISTS ncd_person_update ON public.ncd_person;
@@ -964,7 +985,7 @@ CREATE POLICY ncd_person_analytics ON public.ncd_person FOR SELECT TO medsync_nc
 ALTER TABLE public.ncd_name_index ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_name_index FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_name_index_select ON public.ncd_name_index;
-CREATE POLICY ncd_name_index_select ON public.ncd_name_index FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_name_index_select ON public.ncd_name_index FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_name_index_insert ON public.ncd_name_index;
 CREATE POLICY ncd_name_index_insert ON public.ncd_name_index FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{enrol,legacy_entry,data_quality,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_name_index_update ON public.ncd_name_index;
@@ -977,7 +998,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.ncd_name_index TO medsync_ncd_app
 ALTER TABLE public.ncd_registration ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_registration FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_registration_select ON public.ncd_registration;
-CREATE POLICY ncd_registration_select ON public.ncd_registration FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_registration_select ON public.ncd_registration FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_registration_insert ON public.ncd_registration;
 CREATE POLICY ncd_registration_insert ON public.ncd_registration FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{enrol,legacy_entry,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_registration_update ON public.ncd_registration;
@@ -992,7 +1013,7 @@ CREATE POLICY ncd_registration_analytics ON public.ncd_registration FOR SELECT T
 ALTER TABLE public.ncd_visit ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_visit FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_visit_select ON public.ncd_visit;
-CREATE POLICY ncd_visit_select ON public.ncd_visit FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_visit_select ON public.ncd_visit FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_visit_insert ON public.ncd_visit;
 CREATE POLICY ncd_visit_insert ON public.ncd_visit FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{nurse_visit_write,clinician_visit_write,legacy_entry,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_visit_update ON public.ncd_visit;
@@ -1007,7 +1028,7 @@ CREATE POLICY ncd_visit_analytics ON public.ncd_visit FOR SELECT TO medsync_ncd_
 ALTER TABLE public.ncd_observation ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_observation FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_observation_select ON public.ncd_observation;
-CREATE POLICY ncd_observation_select ON public.ncd_observation FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_observation_select ON public.ncd_observation FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_observation_insert ON public.ncd_observation;
 CREATE POLICY ncd_observation_insert ON public.ncd_observation FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{nurse_visit_write,clinician_visit_write,legacy_entry,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_observation_update ON public.ncd_observation;
@@ -1022,7 +1043,7 @@ CREATE POLICY ncd_observation_analytics ON public.ncd_observation FOR SELECT TO 
 ALTER TABLE public.ncd_review ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_review FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_review_select ON public.ncd_review;
-CREATE POLICY ncd_review_select ON public.ncd_review FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_review_select ON public.ncd_review FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_review_insert ON public.ncd_review;
 CREATE POLICY ncd_review_insert ON public.ncd_review FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{review_write,legacy_entry,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_review_update ON public.ncd_review;
@@ -1037,7 +1058,7 @@ CREATE POLICY ncd_review_analytics ON public.ncd_review FOR SELECT TO medsync_nc
 ALTER TABLE public.ncd_event ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_event FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_event_select ON public.ncd_event;
-CREATE POLICY ncd_event_select ON public.ncd_event FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_event_select ON public.ncd_event FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_event_insert ON public.ncd_event;
 CREATE POLICY ncd_event_insert ON public.ncd_event FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{event_write,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_event_update ON public.ncd_event;
@@ -1052,7 +1073,7 @@ CREATE POLICY ncd_event_analytics ON public.ncd_event FOR SELECT TO medsync_ncd_
 ALTER TABLE public.ncd_appointment ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_appointment FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_appointment_select ON public.ncd_appointment;
-CREATE POLICY ncd_appointment_select ON public.ncd_appointment FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_appointment_select ON public.ncd_appointment FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_appointment_insert ON public.ncd_appointment;
 CREATE POLICY ncd_appointment_insert ON public.ncd_appointment FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{nurse_visit_write,clinician_visit_write,legacy_entry,demo_write,recall_work}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_appointment_update ON public.ncd_appointment;
@@ -1067,7 +1088,7 @@ CREATE POLICY ncd_appointment_analytics ON public.ncd_appointment FOR SELECT TO 
 ALTER TABLE public.ncd_reminder ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_reminder FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_reminder_select ON public.ncd_reminder;
-CREATE POLICY ncd_reminder_select ON public.ncd_reminder FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write,audit_view}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_reminder_select ON public.ncd_reminder FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write,audit_view}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_reminder_insert ON public.ncd_reminder;
 CREATE POLICY ncd_reminder_insert ON public.ncd_reminder FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{nurse_visit_write,clinician_visit_write,legacy_entry,demo_write,recall_work}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_reminder_update ON public.ncd_reminder;
@@ -1080,7 +1101,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.ncd_reminder TO medsync_ncd_app;
 ALTER TABLE public.ncd_call ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ncd_call FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ncd_call_select ON public.ncd_call;
-CREATE POLICY ncd_call_select ON public.ncd_call FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_call_select ON public.ncd_call FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_call_insert ON public.ncd_call;
 CREATE POLICY ncd_call_insert ON public.ncd_call FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{recall_work,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_call_update ON public.ncd_call;

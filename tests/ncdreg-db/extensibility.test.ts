@@ -7,7 +7,6 @@
  */
 import { randomUUID } from "node:crypto";
 import type { Lane } from "../emr-db/_pglite";
-import { CATALOGUE, THROWAWAY } from "./_throwaway";
 import type { NcdFacility } from "./_ncd";
 import { beforeAll, describe, expect, it } from "vitest";
 
@@ -16,8 +15,7 @@ import { loadDataset } from "@/lib/ncdreg/indicators/load";
 import { enabledModules } from "@/lib/ncdreg/indicators/snapshot";
 import { ctxFor, enableModule, enrol, ok, refused, run } from "./_engine";
 import { bootLane, laneOn, ncdFacility } from "./_ncd";
-
-
+import { CATALOGUE, THROWAWAY } from "./_throwaway";
 
 describe.skipIf(!laneOn)("a new condition needs only a catalogue record", () => {
   let lane: Lane;

@@ -88,8 +88,16 @@ export type ComputeOptions = {
 const valid = (v: DVisit) => v.closed && !v.invalid;
 const visitsIn = (p: DPerson, a: string, b: string) =>
   p.visits.filter((v) => valid(v) && inRange(v.date, a, b));
-const latest = <T extends { date: string }>(xs: readonly T[]) =>
-  [...xs].sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+/** The latest by date; same-day ties go to the later-entered record, then the id, so input order never matters. */
+const latest = <T extends { date: string; enteredDate?: string; id?: string }>(xs: readonly T[]) =>
+  [...xs]
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) ||
+        (a.enteredDate ?? "").localeCompare(b.enteredDate ?? "") ||
+        (a.id ?? "").localeCompare(b.id ?? ""),
+    )
+    .at(-1);
 const firstRegistration = (p: DPerson, asOf: string) =>
   p.registrations
     .filter((r) => r.date <= asOf)
@@ -356,7 +364,12 @@ export function computeIndicators(ds: Dataset, o: ComputeOptions): IndicatorRepo
         !(a.status === "cancelled" && a.reason !== "superseded" && a.updatedDate < d),
     );
     const cur = [...known]
-      .sort((a, b) => a.createdDate.localeCompare(b.createdDate) || a.date.localeCompare(b.date))
+      .sort(
+        (a, b) =>
+          a.createdDate.localeCompare(b.createdDate) ||
+          a.date.localeCompare(b.date) ||
+          a.id.localeCompare(b.id),
+      )
       .at(-1);
     if (!cur || cur.date >= d) return false;
     return !p.visits.some((v) => valid(v) && v.date >= cur.date && v.date < d);

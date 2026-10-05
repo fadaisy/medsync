@@ -174,7 +174,10 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
   const gluOnly = (s.registered_by_condition[o.glucoseModule] ?? 0) - both;
   void total;
   // Persons who die are additional to `size` (catalogue note): top up for the expected deaths.
-  const n = Math.max(0, Math.round((o.size - (o.existing ?? 0)) / (1 - PARAMS.deathPerYear * PARAMS.deathSpan)));
+  const n = Math.max(
+    0,
+    Math.round((o.size - (o.existing ?? 0)) / (1 - PARAMS.deathPerYear * PARAMS.deathSpan)),
+  );
   const complicated = new Set<string>();
   const usedNames = new Set(o.reservedNames ?? []);
   const usedPhones = new Set(o.reservedPhones ?? []);
@@ -281,7 +284,10 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
       if (v.medicines_obtained === "partial")
         v.medicines_not_obtained_reason = rng.chance(0.55) ? "stock_out" : "cost";
       if (conds.includes(o.bpModule) || rng.chance(0.9))
-        v.bp = bpReading(rng, rng.chance(PARAMS.bpInRange[m]! * (t - regDay < 120 ? PARAMS.newRegistrantControl : 1)));
+        v.bp = bpReading(
+          rng,
+          rng.chance(PARAMS.bpInRange[m]! * (t - regDay < 120 ? PARAMS.newRegistrantControl : 1)),
+        );
       if (hasGlu) {
         v.hypoglycaemia = "none";
         const cls = rng.weighted(PARAMS.glucoseClasses);
@@ -324,7 +330,10 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
     const events: ScenarioPatient["events"] = [];
     const span = Math.max(1, -Math.max(regDay, HISTORY)) / 365;
     for (const [type, h0] of Object.entries(PARAMS.events)) {
-      const h = type === "admission" ? h0 : h0 * (isComplicated ? PARAMS.complicatedEventFactor : PARAMS.otherEventFactor);
+      const h =
+        type === "admission"
+          ? h0
+          : h0 * (isComplicated ? PARAMS.complicatedEventFactor : PARAMS.otherEventFactor);
       if ((type === "foot_ulcer_new" || type === "amputation_minor") && !hasGlu) continue;
       if (rng.chance(h * span)) {
         const day = rng.int(Math.max(regDay, HISTORY), deathDay ?? -1);
@@ -381,7 +390,9 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
           day: d,
           examined: true,
           method: "dilated_fundoscopy",
-          retinopathy_grade: rng.chance(isComplicated ? PARAMS.retinopathy * 3 : PARAMS.retinopathy * 0.15)
+          retinopathy_grade: rng.chance(
+            isComplicated ? PARAMS.retinopathy * 3 : PARAMS.retinopathy * 0.15,
+          )
             ? "mild_npdr"
             : "no_apparent_retinopathy",
           macular_oedema: "absent",

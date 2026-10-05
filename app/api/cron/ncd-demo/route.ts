@@ -13,12 +13,21 @@ import { ncdRegistryLiveFor } from "@/lib/ncdreg/scope";
  * administration card also continues the load while it is open. Not yet scheduled in vercel.json.
  */
 export async function GET(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) return new NextResponse("Unauthorized", { status: 401 });
-  const loads = await db.select().from(ncdDemoLoad).where(and(eq(ncdDemoLoad.status, "loading"), eq(ncdDemoLoad.mode, "full_clinic")));
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`)
+    return new NextResponse("Unauthorized", { status: 401 });
+  const loads = await db
+    .select()
+    .from(ncdDemoLoad)
+    .where(and(eq(ncdDemoLoad.status, "loading"), eq(ncdDemoLoad.mode, "full_clinic")));
   const out = [];
   for (const l of loads) {
     if (!ncdRegistryLiveFor(l.facilityId)) continue;
-    const ctx = await resolveContext({ userId: l.startedBy, facilityId: l.facilityId, principal: "user" });
+    const ctx = await resolveContext({
+      userId: l.startedBy,
+      facilityId: l.facilityId,
+      principal: "user",
+    });
     out.push({ load: l.id, ...(await continueLoad(ctx, 40_000)) });
   }
   return NextResponse.json({ ok: true, loads: out });

@@ -2,7 +2,13 @@
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
-import { SheetBody, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  SheetBody,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 /** A segmented single choice: real radio buttons, keyboard-operable, one tap each (§4 Forms). */
@@ -31,10 +37,19 @@ export function Seg({
             className={cn(
               "text-label has-[:focus-visible]:shadow-focus inline-flex cursor-pointer items-center justify-center rounded-md px-3 transition-colors duration-100",
               big ? "h-11 min-w-20" : "h-8",
-              value === v ? "bg-background text-foreground shadow-xs" : "text-ink-600 hover:text-foreground",
+              value === v
+                ? "bg-background text-foreground shadow-xs"
+                : "text-ink-600 hover:text-foreground",
             )}
           >
-            <input type="radio" className="sr-only" name={label} value={v} checked={value === v} onChange={() => onChange(v)} />
+            <input
+              type="radio"
+              className="sr-only"
+              name={label}
+              value={v}
+              checked={value === v}
+              onChange={() => onChange(v)}
+            />
             {l}
           </label>
         ))}
@@ -58,12 +73,23 @@ const FIELD_WORDS: Record<string, string> = {
 };
 
 /** §5.5: values outside a plausible range are shown back for confirmation, never blocked. */
-export function ConfirmValues({ fields, onCancel, onConfirm }: { fields: string[] | null; onCancel: () => void; onConfirm: (f: string[]) => void }) {
+export function ConfirmValues({
+  fields,
+  onCancel,
+  onConfirm,
+}: {
+  fields: string[] | null;
+  onCancel: () => void;
+  onConfirm: (f: string[]) => void;
+}) {
   return (
     <EditorDialog open={!!fields} onOpenChange={(o) => (o ? null : onCancel())} width="medium">
       <SheetHeader>
         <SheetTitle>Check these values</SheetTitle>
-        <SheetDescription>They are outside the usual range. Confirm them if they are right, or go back and correct them.</SheetDescription>
+        <SheetDescription>
+          They are outside the usual range. Confirm them if they are right, or go back and correct
+          them.
+        </SheetDescription>
       </SheetHeader>
       <SheetBody>
         <ul className="text-body-s flex list-disc flex-col gap-1 pl-5">

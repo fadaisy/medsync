@@ -5,8 +5,20 @@ import { useState, useTransition } from "react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
-import { SheetBody, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ADMISSION_REASON, DEATH_PLACE, DEATH_SOURCE, EVENT_TYPE, REPORTING_UNITS } from "@/lib/ncdreg/standard/code-lists";
+import {
+  SheetBody,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  ADMISSION_REASON,
+  DEATH_PLACE,
+  DEATH_SOURCE,
+  EVENT_TYPE,
+  REPORTING_UNITS,
+} from "@/lib/ncdreg/standard/code-lists";
 import { Seg } from "../visit/[visitId]/_components/controls";
 import { useOutbox } from "./outbox-provider";
 
@@ -51,7 +63,8 @@ export function EventDialog({
   const [pending, start] = useTransition();
   const types = [...EVENT_TYPE.codes, ...modules.flatMap((m) => m.event_types)];
   const reasons = [...ADMISSION_REASON.codes, ...modules.flatMap((m) => m.admission_reasons)];
-  const ready = type && date && (type !== "admission" || reason) && (type !== "death" || (place && source));
+  const ready =
+    type && date && (type !== "admission" || reason) && (type !== "death" || (place && source));
 
   const save = () =>
     start(async () => {
@@ -81,7 +94,7 @@ export function EventDialog({
       <SheetBody className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
           <span className="text-label">Event</span>
-          <select className={field} value={type} onChange={(e) => setType(e.target.value)} autoFocus>
+          <select className={field} value={type} onChange={(e) => setType(e.target.value)}>
             <option value="">Choose…</option>
             {types.map((t) => (
               <option key={t.code} value={t.code}>
@@ -93,13 +106,30 @@ export function EventDialog({
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1">
             <span className="text-label">Date</span>
-            <input type="date" max={today} className={`${field} font-mono`} value={date} onChange={(e) => setDate(e.target.value)} />
+            <input
+              type="date"
+              max={today}
+              className={`${field} font-mono`}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </label>
           <label className="text-body-s inline-flex h-10 items-center gap-2">
-            <input type="checkbox" checked={estimated} onChange={(e) => setEstimated(e.target.checked)} /> Date estimated
+            <input
+              type="checkbox"
+              checked={estimated}
+              onChange={(e) => setEstimated(e.target.checked)}
+            />{" "}
+            Date estimated
           </label>
         </div>
-        <Seg label="Reported by" hideLabel={false} value={unit} onChange={setUnit} options={REPORTING_UNITS.codes.map((c) => [c.code, c.label] as const)} />
+        <Seg
+          label="Reported by"
+          hideLabel={false}
+          value={unit}
+          onChange={setUnit}
+          options={REPORTING_UNITS.codes.map((c) => [c.code, c.label] as const)}
+        />
         {type === "admission" ? (
           <label className="flex flex-col gap-1">
             <span className="text-label">Main reason for admission</span>
@@ -115,8 +145,20 @@ export function EventDialog({
         ) : null}
         {type === "death" ? (
           <>
-            <Seg label="Place" hideLabel={false} value={place} onChange={setPlace} options={DEATH_PLACE.codes.map((c) => [c.code, c.label] as const)} />
-            <Seg label="Information from" hideLabel={false} value={source} onChange={setSource} options={DEATH_SOURCE.codes.map((c) => [c.code, c.label] as const)} />
+            <Seg
+              label="Place"
+              hideLabel={false}
+              value={place}
+              onChange={setPlace}
+              options={DEATH_PLACE.codes.map((c) => [c.code, c.label] as const)}
+            />
+            <Seg
+              label="Information from"
+              hideLabel={false}
+              value={source}
+              onChange={setSource}
+              options={DEATH_SOURCE.codes.map((c) => [c.code, c.label] as const)}
+            />
             <label className="flex flex-col gap-1">
               <span className="text-label">Cause, if known (optional)</span>
               <input className={field} value={cause} onChange={(e) => setCause(e.target.value)} />
@@ -126,11 +168,17 @@ export function EventDialog({
         {type === "transfer_out" ? (
           <label className="flex flex-col gap-1">
             <span className="text-label">Transferred to (optional)</span>
-            <input className={field} value={destination} onChange={(e) => setDestination(e.target.value)} />
+            <input
+              className={field}
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+            />
           </label>
         ) : null}
         {type === "death" || type === "transfer_out" || type === "withdrawal" ? (
-          <p className="text-caption text-ink-700">This ends active follow-up and stops every pending reminder.</p>
+          <p className="text-caption text-ink-700">
+            This ends active follow-up and stops every pending reminder.
+          </p>
         ) : null}
         {msg ? (
           <p role="alert" className="text-body-s text-ink-800">

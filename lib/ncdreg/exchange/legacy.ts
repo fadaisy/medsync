@@ -7,15 +7,18 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-
+import type { NcdContext } from "../context";
+import type { Candidate, IdentityFacts } from "../identity";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { applyCommand } from "../commands/apply";
-import { authorize, moduleOf, NcdError, type NcdContext } from "../context";
-import { rows as dbRows, withNcd } from "../db";
 import { findCandidates } from "../commands/shared";
+import { authorize, moduleOf, NcdError } from "../context";
+import { rows as dbRows, withNcd } from "../db";
+import { tierCandidates } from "../identity";
 import { searchPersons } from "../search";
+import { needsConfirmation } from "../standard/validation";
 
 export const LEGACY_COLUMNS = [
   "hospital_number",
@@ -42,7 +45,10 @@ export const LEGACY_COLUMNS = [
 export const LEGACY_TEMPLATE = `${LEGACY_COLUMNS.join(",")}\n`;
 
 const iso = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const num = z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().finite().nonnegative().nullable());
+const num = z.preprocess(
+  (v) => (v === "" || v == null ? null : Number(v)),
+  z.number().finite().nonnegative().nullable(),
+);
 const rowSchema = z.object({
   hospital_number: z.string().trim().max(40),
   given_name: z.string().trim().min(1).max(60),
@@ -105,29 +111,52 @@ export type DryRun = {
   persons: number;
   errors: { line: number; message: string }[];
   duplicates: { line: number; tier: string; matched: string[] }[];
+  /** Values outside the usual range: the import confirms them only if the user accepts this list. */
+  confirmations: { line: number; fields: string[] }[];
 };
+
+const rowConfirmations = (r: Row) =>
+  needsConfirmation({
+    systolic: r.systolic,
+    diastolic: r.diastolic,
+    weight_kg: r.weight_kg,
+    glucose_mmol: r.glucose_mmol,
+    hba1c_percent: r.hba1c_percent,
+  });
 
 function parse(ctx: NcdContext, text: string) {
   const [header, ...body] = parseCsv(text);
-  if (!header || LEGACY_COLUMNS.some((c, i) => header[i]?.trim() !== c)) throw new NcdError("invalid", `The header must be: ${LEGACY_COLUMNS.join(",")}`);
+  if (!header || LEGACY_COLUMNS.some((c, i) => header[i]?.trim() !== c))
+    throw new NcdError("invalid", `The header must be: ${LEGACY_COLUMNS.join(",")}`);
   const errors: DryRun["errors"] = [];
   const ok: { line: number; row: Row }[] = [];
   body.forEach((cells, i) => {
     const line = i + 2;
-    const r = rowSchema.safeParse(Object.fromEntries(LEGACY_COLUMNS.map((c, j) => [c, cells[j] ?? ""])));
-    if (!r.success) return errors.push({ line, message: r.error.issues.map((x) => `${x.path.join(".")}: ${x.message}`).join("; ") });
+    const r = rowSchema.safeParse(
+      Object.fromEntries(LEGACY_COLUMNS.map((c, j) => [c, cells[j] ?? ""])),
+    );
+    if (!r.success)
+      return errors.push({
+        line,
+        message: r.error.issues.map((x) => `${x.path.join(".")}: ${x.message}`).join("; "),
+      });
     try {
       const m = moduleOf(ctx, r.data.condition);
-      if (!m.subtypes.some((s) => s.code === r.data.subtype)) throw new Error(`subtype ${r.data.subtype}`);
-      if (r.data.visit_date > ctx.today || r.data.registration_date > ctx.today) throw new Error("a date is in the future");
+      if (!m.subtypes.some((s) => s.code === r.data.subtype))
+        throw new Error(`subtype ${r.data.subtype}`);
+      if (r.data.visit_date > ctx.today || r.data.registration_date > ctx.today)
+        throw new Error("a date is in the future");
     } catch (e) {
       return errors.push({ line, message: (e as Error).message });
     }
     ok.push({ line, row: r.data });
   });
-  const key = (r: Row) => r.hospital_number || `${r.given_name.toLowerCase()}|${r.family_name.toLowerCase()}|${r.date_of_birth}`;
+  const key = (r: Row) =>
+    r.hospital_number ||
+    `${r.given_name.toLowerCase()}|${r.family_name.toLowerCase()}|${r.date_of_birth}`;
   const groups = new Map<string, { line: number; row: Row }[]>();
-  for (const x of ok) (groups.get(key(x.row)) ?? groups.set(key(x.row), []).get(key(x.row))!).push(x);
+  for (const x of ok)
+    (groups.get(key(x.row)) ?? groups.set(key(x.row), []).get(key(x.row))!).push(x);
   return { errors, groups, total: body.length };
 }
 
@@ -139,9 +168,11 @@ export async function legacyDryRun(ctx: NcdContext, text: string): Promise<DryRu
     ctx,
     "app",
     async (tx) => {
+      // Earlier patients in the same file count too: the import enrols them first.
+      const earlier: Candidate[] = [];
       for (const [, g] of groups) {
         const r = g[0]!.row;
-        const c = await findCandidates(tx, ctx, {
+        const facts: IdentityFacts = {
           givenName: r.given_name,
           familyName: r.family_name,
           sex: r.sex,
@@ -149,26 +180,77 @@ export async function legacyDryRun(ctx: NcdContext, text: string): Promise<DryRu
           phones: [r.phone || null],
           hospitalNumber: r.hospital_number || null,
           nationalId: null,
-        });
-        for (const x of c.filter((y) => y.tier !== "possible")) duplicates.push({ line: g[0]!.line, tier: x.tier, matched: x.matched });
+        };
+        const c = await findCandidates(tx, ctx, facts);
+        for (const x of c.filter((y) => y.tier !== "possible"))
+          duplicates.push({ line: g[0]!.line, tier: x.tier, matched: x.matched });
+        for (const x of tierCandidates(facts, earlier).filter((y) => y.tier !== "possible"))
+          duplicates.push({
+            line: g[0]!.line,
+            tier: x.tier,
+            matched: [...x.matched, `same file, ${x.personId}`],
+          });
+        earlier.push({ ...facts, personId: `line ${g[0]!.line}` });
       }
     },
     ctx.db,
   );
-  return { rows: total, persons: groups.size, errors, duplicates };
+  const confirmations = [...groups.values()]
+    .flat()
+    .map(({ line, row }) => ({ line, fields: rowConfirmations(row) }))
+    .filter((c) => c.fields.length)
+    .sort((a, b) => a.line - b.line);
+  return { rows: total, persons: groups.size, errors, duplicates, confirmations };
 }
 
-/** Writes only when the dry run is clean (no errors, no probable or definite duplicate). */
-export async function legacyApply(ctx: NcdContext, text: string) {
+/**
+ * Writes only when the dry run is clean (no errors, no probable or definite duplicate) and the user
+ * accepted the out-of-range values it listed. All or nothing: one transaction, each command a savepoint.
+ */
+export async function legacyApply(
+  ctx: NcdContext,
+  text: string,
+  o: { acceptConfirmations: boolean },
+) {
   const dry = await legacyDryRun(ctx, text);
-  if (dry.errors.length || dry.duplicates.length) throw new NcdError("invalid", "Fix the errors and settle the duplicates the dry run reported first.");
+  if (dry.errors.length || dry.duplicates.length)
+    throw new NcdError(
+      "invalid",
+      "Fix the errors and settle the duplicates the dry run reported first.",
+    );
+  if (dry.confirmations.length && !o.acceptConfirmations)
+    throw new NcdError(
+      "needs_confirmation",
+      "Check the values outside the usual range against the source first.",
+    );
   const { groups } = parse(ctx, text);
-  const [{ approved } = { approved: false }] = await withNcd(ctx, "app", (tx) => dbRows<{ approved: boolean }>(tx, sql`SELECT private.ncd_facility_approved(${ctx.facilityId}) AS approved`), ctx.db);
+  return withNcd(ctx, "app", (tx) => applyGroups({ ...ctx, db: tx }, groups), ctx.db);
+}
+
+async function applyGroups(ctx: NcdContext, groups: ReturnType<typeof parse>["groups"]) {
+  const [{ approved } = { approved: false }] = await withNcd(
+    ctx,
+    "app",
+    (tx) =>
+      dbRows<{ approved: boolean }>(
+        tx,
+        sql`SELECT private.ncd_facility_approved(${ctx.facilityId}) AS approved`,
+      ),
+    ctx.db,
+  );
   let persons = 0;
   let visits = 0;
   for (const [, g] of groups) {
     const r = g[0]!.row;
-    const { token } = await searchPersons(ctx, { givenName: r.given_name, familyName: r.family_name, sex: r.sex, birthYear: null, phones: [r.phone || null], hospitalNumber: r.hospital_number || null, nationalId: null });
+    const { token } = await searchPersons(ctx, {
+      givenName: r.given_name,
+      familyName: r.family_name,
+      sex: r.sex,
+      birthYear: null,
+      phones: [r.phone || null],
+      hospitalNumber: r.hospital_number || null,
+      nationalId: null,
+    });
     const personId = randomUUID();
     const regs = [...new Map(g.map((x) => [x.row.condition, x.row])).values()];
     const res = await applyCommand(ctx, {
@@ -177,18 +259,37 @@ export async function legacyApply(ctx: NcdContext, text: string) {
       payload: {
         personId,
         searchToken: token,
-        identity: { givenName: r.given_name, familyName: r.family_name, sex: r.sex, dateOfBirth: r.date_of_birth, phone1: r.phone || null, hospitalNumber: r.hospital_number || null },
-        registrations: regs.map((x) => ({ registrationId: randomUUID(), condition: x.condition, subtype: x.subtype, basisOfDiagnosis: x.basis_of_diagnosis, diagnosisYear: x.diagnosis_year, registrationDate: x.registration_date })),
+        identity: {
+          givenName: r.given_name,
+          familyName: r.family_name,
+          sex: r.sex,
+          dateOfBirth: r.date_of_birth,
+          phone1: r.phone || null,
+          hospitalNumber: r.hospital_number || null,
+        },
+        registrations: regs.map((x) => ({
+          registrationId: randomUUID(),
+          condition: x.condition,
+          subtype: x.subtype,
+          basisOfDiagnosis: x.basis_of_diagnosis,
+          diagnosisYear: x.diagnosis_year,
+          registrationDate: x.registration_date,
+        })),
         privacy: { version: "0.1-draft", acknowledged: true },
         smsAllowed: false,
         callsAllowed: true,
         isSynthetic: !approved,
-        confirmations: ["height_cm"],
       },
     });
-    if (!res.ok) throw new NcdError(res.code === "error" ? "invalid" : res.code, `Line ${g[0]!.line}: ${res.message}`);
+    if (!res.ok)
+      throw new NcdError(
+        res.code === "error" ? "invalid" : res.code,
+        `Line ${g[0]!.line}: ${res.message}`,
+      );
     persons++;
-    for (const { line, row } of g.sort((a, b) => a.row.visit_date.localeCompare(b.row.visit_date))) {
+    for (const { line, row } of g.sort((a, b) =>
+      a.row.visit_date.localeCompare(b.row.visit_date),
+    )) {
       const v = await applyCommand(ctx, {
         id: randomUUID(),
         type: "visit.record",
@@ -200,14 +301,34 @@ export async function legacyApply(ctx: NcdContext, text: string) {
           isHistorical: true,
           weightKg: row.weight_kg,
           bp: row.systolic != null && row.diastolic != null ? [[row.systolic, row.diastolic]] : [],
-          glucose: row.glucose_mmol != null && row.glucose_type ? { value: row.glucose_mmol, unit: "mmol", type: row.glucose_type, method: "laboratory" } : null,
-          hba1c: row.hba1c_percent != null ? { percent: row.hba1c_percent, resultDate: row.visit_date } : null,
-          medicines: { codes: row.medicines ? row.medicines.split(";").map((m) => m.trim()).filter(Boolean) : [], confirmedUnchanged: false },
+          glucose:
+            row.glucose_mmol != null && row.glucose_type
+              ? {
+                  value: row.glucose_mmol,
+                  unit: "mmol",
+                  type: row.glucose_type,
+                  method: "laboratory",
+                }
+              : null,
+          hba1c:
+            row.hba1c_percent != null
+              ? { percent: row.hba1c_percent, resultDate: row.visit_date }
+              : null,
+          medicines: {
+            codes: row.medicines
+              ? row.medicines
+                  .split(";")
+                  .map((m) => m.trim())
+                  .filter(Boolean)
+              : [],
+            confirmedUnchanged: false,
+          },
           nextAppointmentDate: row.next_appointment,
-          confirmations: ["systolic", "diastolic", "systolic_not_above_diastolic", "weight_kg", "glucose_mmol", "hba1c_percent"],
+          confirmations: rowConfirmations(row),
         },
       });
-      if (!v.ok) throw new NcdError(v.code === "error" ? "invalid" : v.code, `Line ${line}: ${v.message}`);
+      if (!v.ok)
+        throw new NcdError(v.code === "error" ? "invalid" : v.code, `Line ${line}: ${v.message}`);
       visits++;
     }
   }

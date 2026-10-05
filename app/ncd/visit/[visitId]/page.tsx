@@ -13,7 +13,12 @@ import { Trajectory } from "./_components/trajectory";
 
 export const dynamic = "force-dynamic";
 
-const TYPE: Record<string, string> = { scheduled: "Scheduled visit", unscheduled: "Unscheduled visit", refill_only: "Refill only", remote: "Remote visit" };
+const TYPE: Record<string, string> = {
+  scheduled: "Scheduled visit",
+  unscheduled: "Unscheduled visit",
+  refill_only: "Refill only",
+  remote: "Remote visit",
+};
 
 /** Visit capture (§11.3 item 4, B1–B9): one screen, nurse part and clinician part, no wizard. */
 export default async function VisitPage({ params }: { params: Promise<{ visitId: string }> }) {
@@ -39,12 +44,18 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
             </Link>
           </h1>
           <p className="text-body-s text-ink-600 flex flex-wrap items-center gap-2">
-            <Num>{id.registryNumber}</Num> · {id.sex === "female" ? "F" : "M"} · {id.age} y <ConditionTags conditions={pv.modules.map(({ module: m }) => ({ code: m.code, label: m.label }))} />
+            <Num>{id.registryNumber}</Num> · {id.sex === "female" ? "F" : "M"} · {id.age} y{" "}
+            <ConditionTags
+              conditions={pv.modules.map(({ module: m }) => ({ code: m.code, label: m.label }))}
+            />
           </p>
         </div>
         <div className="flex items-center gap-3">
           <StageLabel stage={visit.stage as "waiting"} />
-          <Link href={`/ncd/visit/${visit.id}/nurse`} className={buttonVariants({ variant: "secondary" })}>
+          <Link
+            href={`/ncd/visit/${visit.id}/nurse`}
+            className={buttonVariants({ variant: "secondary" })}
+          >
             <SmartphoneIcon aria-hidden /> Phone view
           </Link>
         </div>
@@ -54,7 +65,11 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
         <h2 id="traj-h" className="text-heading-s mb-3">
           Where this patient is heading
         </h2>
-        <Trajectory visits={pv.trajectory.filter((t) => t.id !== visit.id)} rows={{ glucose, hba1c }} kidney={pv.kidney} />
+        <Trajectory
+          visits={pv.trajectory.filter((t) => t.id !== visit.id)}
+          rows={{ glucose, hba1c }}
+          kidney={pv.kidney}
+        />
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
@@ -79,15 +94,26 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
             </h2>
             <ul className="flex flex-col gap-1.5">
               {pv.reviews.map((r) => (
-                <li key={r.component} className="text-body-s flex items-center justify-between gap-3">
+                <li
+                  key={r.component}
+                  className="text-body-s flex items-center justify-between gap-3"
+                >
                   <span>{REVIEW_LABELS[r.component]}</span>
                   <span className="text-ink-600 flex items-center gap-2">
                     {r.last ? `last ${fmtDate(r.last)}` : "never recorded"}
-                    {r.due ? <span className="border-ink-300 text-ink-800 rounded-md border px-2 text-[12px]">due</span> : null}
+                    {r.due ? (
+                      <span className="border-ink-300 text-ink-800 rounded-md border px-2 text-[12px]">
+                        due
+                      </span>
+                    ) : null}
                   </span>
                 </li>
               ))}
-              {!pv.reviews.length ? <li className="text-caption text-muted-foreground">No review components for these conditions.</li> : null}
+              {!pv.reviews.length ? (
+                <li className="text-caption text-muted-foreground">
+                  No review components for these conditions.
+                </li>
+              ) : null}
             </ul>
           </section>
         </div>
@@ -118,7 +144,12 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
             }}
             carried={v.carried}
             intervalsWeeks={v.intervalsWeeks}
-            nurse={{ weight: visit.weightKg != null, bp: visit.visitBp != null, glucose: visit.glucose != null }}
+            extraMedicines={v.extraMedicines}
+            nurse={{
+              weight: visit.weightKg != null,
+              bp: visit.visitBp != null,
+              glucose: visit.glucose != null,
+            }}
           />
         </section>
       </div>

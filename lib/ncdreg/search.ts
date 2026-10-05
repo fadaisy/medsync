@@ -17,5 +17,5 @@ export async function searchPersons(
 ): Promise<{ token: string; candidates: TieredCandidate[] }> {
   authorize(ctx, "person_search", "demo_write");
   const candidates = await withNcd(ctx, "app", (tx) => findCandidates(tx, ctx, typed), ctx.db);
-  return { token: issueSearchToken(ctx), candidates };
+  return { token: issueSearchToken(ctx, typed), candidates };
 }

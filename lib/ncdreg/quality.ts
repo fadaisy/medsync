@@ -8,11 +8,11 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
+import type { NcdContext } from "./context";
 import { and, asc, desc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 
 import { ncdAuditSample, ncdMergeRequest, ncdPerson, ncdQuery, ncdVisit } from "@/db/schema";
-
-import { authorize, NcdError, type NcdContext } from "./context";
+import { authorize, NcdError } from "./context";
 import { withNcd } from "./db";
 import { identities, logAccess } from "./read/views";
 import { CONSISTENCY_RULES } from "./standard/validation";
@@ -30,14 +30,25 @@ export async function queryList(ctx: NcdContext, status: "open" | "closed") {
       tx
         .select()
         .from(ncdQuery)
-        .where(and(eq(ncdQuery.facilityId, ctx.facilityId), status === "open" ? eq(ncdQuery.status, "open") : inArray(ncdQuery.status, ["resolved", "dismissed"])))
+        .where(
+          and(
+            eq(ncdQuery.facilityId, ctx.facilityId),
+            status === "open"
+              ? eq(ncdQuery.status, "open")
+              : inArray(ncdQuery.status, ["resolved", "dismissed"]),
+          ),
+        )
         .orderBy(status === "open" ? asc(ncdQuery.createdAt) : desc(ncdQuery.resolvedAt))
         .limit(200),
     ctx.db,
   );
   const ids = await identities(ctx, [...new Set(qs.map((q) => q.personId))]);
   await logAccess(ctx, "list_view", null, { list: "queries", status, count: qs.length });
-  return qs.map((q) => ({ ...q, ruleText: RULE_TEXT.get(q.ruleId) ?? q.ruleId, identity: ids.get(q.personId) ?? null }));
+  return qs.map((q) => ({
+    ...q,
+    ruleText: RULE_TEXT.get(q.ruleId) ?? q.ruleId,
+    identity: ids.get(q.personId) ?? null,
+  }));
 }
 
 /* ─── G4 audit sample ──────────────────────────────────────────────────── */
@@ -52,8 +63,10 @@ export const AUDIT_FIELDS = [
   { key: "next_appointment", label: "Next appointment" },
 ] as const;
 
-export const auditSeed = (facilityId: string, month: string) => `${facilityId}:${month.slice(0, 7)}`;
-export const auditSize = (visits: number) => Math.min(visits, Math.max(10, Math.ceil(visits * 0.05)));
+export const auditSeed = (facilityId: string, month: string) =>
+  `${facilityId}:${month.slice(0, 7)}`;
+export const auditSize = (visits: number) =>
+  Math.min(visits, Math.max(10, Math.ceil(visits * 0.05)));
 
 /**
  * The sample: every visit ranked by SHA-256(seed + visit id), the first `auditSize(n)` taken.
@@ -97,12 +110,24 @@ export async function drawAuditSample(ctx: NcdContext, month: string) {
             lt(ncdVisit.visitDate, next),
           ),
         );
-      const picked = drawSample(visits.map((v) => v.id), seed);
+      const picked = drawSample(
+        visits.map((v) => v.id),
+        seed,
+      );
       const person = new Map(visits.map((v) => [v.id, v.personId]));
       if (picked.length)
         await tx
           .insert(ncdAuditSample)
-          .values(picked.map((visitId) => ({ facilityId: ctx.facilityId, personId: person.get(visitId)!, visitId, month: start, seed, createdAt: ctx.enteredAt })))
+          .values(
+            picked.map((visitId) => ({
+              facilityId: ctx.facilityId,
+              personId: person.get(visitId)!,
+              visitId,
+              month: start,
+              seed,
+              createdAt: ctx.enteredAt,
+            })),
+          )
           .onConflictDoNothing();
       return { seed, visits: visits.length, sampled: picked };
     },
@@ -137,16 +162,25 @@ export async function auditSample(ctx: NcdContext, month: string) {
   return {
     month: start,
     seed: rowsOf[0]?.s.seed ?? auditSeed(ctx.facilityId, start),
-    rows: rowsOf.map(({ s, visitDate }) => ({ ...s, visitDate, identity: ids.get(s.personId) ?? null })),
+    rows: rowsOf.map(({ s, visitDate }) => ({
+      ...s,
+      visitDate,
+      identity: ids.get(s.personId) ?? null,
+    })),
     agreement: { agree, checked, rate: checked ? agree / checked : null },
   };
 }
 
 /** The registry lead records field-level agreement for one sampled visit. */
-export async function recordAgreement(ctx: NcdContext, sampleId: string, fields: Record<string, boolean>) {
+export async function recordAgreement(
+  ctx: NcdContext,
+  sampleId: string,
+  fields: Record<string, boolean>,
+) {
   authorize(ctx, "data_quality");
   const known = new Set<string>(AUDIT_FIELDS.map((f) => f.key));
-  if (Object.keys(fields).some((k) => !known.has(k))) throw new NcdError("invalid", "Unknown audit field.");
+  if (Object.keys(fields).some((k) => !known.has(k)))
+    throw new NcdError("invalid", "Unknown audit field.");
   return withNcd(
     ctx,
     "app",
@@ -170,11 +204,21 @@ export async function mergeRequests(ctx: NcdContext) {
   const rs = await withNcd(
     ctx,
     "app",
-    (tx) => tx.select().from(ncdMergeRequest).where(eq(ncdMergeRequest.facilityId, ctx.facilityId)).orderBy(desc(ncdMergeRequest.requestedAt)).limit(100),
+    (tx) =>
+      tx
+        .select()
+        .from(ncdMergeRequest)
+        .where(eq(ncdMergeRequest.facilityId, ctx.facilityId))
+        .orderBy(desc(ncdMergeRequest.requestedAt))
+        .limit(100),
     ctx.db,
   );
   const ids = await identities(ctx, [...new Set(rs.flatMap((r) => [r.personId, r.loserPersonId]))]);
-  return rs.map((r) => ({ ...r, survivor: ids.get(r.personId) ?? null, loser: ids.get(r.loserPersonId) ?? null }));
+  return rs.map((r) => ({
+    ...r,
+    survivor: ids.get(r.personId) ?? null,
+    loser: ids.get(r.loserPersonId) ?? null,
+  }));
 }
 
 /** Two records picked by registry number, for the duplicate review. */
@@ -187,7 +231,13 @@ export async function personByRegistryNumber(ctx: NcdContext, registryNumber: st
       tx
         .select({ id: ncdPerson.id })
         .from(ncdPerson)
-        .where(and(eq(ncdPerson.facilityId, ctx.facilityId), eq(ncdPerson.registryNumber, registryNumber.trim().toUpperCase()), isNull(ncdPerson.mergedIntoId)))
+        .where(
+          and(
+            eq(ncdPerson.facilityId, ctx.facilityId),
+            eq(ncdPerson.registryNumber, registryNumber.trim().toUpperCase()),
+            isNull(ncdPerson.mergedIntoId),
+          ),
+        )
         .limit(1),
     ctx.db,
   );

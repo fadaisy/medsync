@@ -10,8 +10,13 @@ import type { QueuedCommand, SendResult } from "@/lib/ncdreg/offline/outbox";
 import { IDBFactory } from "fake-indexeddb";
 import { describe, expect, it } from "vitest";
 
+import {
+  purgeOnSignOut,
+  readSnapshot,
+  saveSnapshot,
+  SNAPSHOT_TTL_MS,
+} from "@/lib/ncdreg/offline/cache";
 import { Outbox } from "@/lib/ncdreg/offline/outbox";
-import { purgeOnSignOut, readSnapshot, saveSnapshot } from "@/lib/ncdreg/offline/cache";
 import { idbGet, idbKeys, openStore } from "@/lib/ncdreg/offline/store";
 
 let n = 0;
@@ -55,7 +60,7 @@ describe("outbox", () => {
     const a2 = cmd("A");
     for (const c of [a1, b1, a2]) await ob.enqueue(c);
     expect(await ob.waiting()).toBe(3);
-    expect(await ob.flush()).toEqual({ sent: 3, failed: 0, discarded: 0 });
+    expect(await ob.flush()).toEqual({ sent: 3, failed: 0, discarded: 0, held: 0 });
     expect(s.applied).toEqual([a1.id, b1.id, a2.id]);
     expect(await ob.waiting()).toBe(0);
     expect(await ob.lastSync()).not.toBeNull();
@@ -75,11 +80,11 @@ describe("outbox", () => {
       },
       () => clock,
     );
-    const a1 = cmd("A");
+    const a1 = cmd("A", "visit.save_nurse", { weightKg: 300 });
     const a2 = cmd("A");
     const b1 = cmd("B");
     for (const c of [a1, a2, b1]) await ob.enqueue(c);
-    expect(await ob.flush()).toEqual({ sent: 1, failed: 1, discarded: 0 });
+    expect(await ob.flush()).toEqual({ sent: 1, failed: 1, discarded: 0, held: 0 });
     expect(sent).toEqual([b1.id]);
     down = false;
     expect((await ob.flush()).sent).toBe(0); // still backing off
@@ -123,9 +128,63 @@ describe("outbox", () => {
       message: "This demo patient was removed.",
     }));
     await ob.enqueue(cmd("A"));
-    expect(await ob.flush()).toEqual({ sent: 0, failed: 0, discarded: 1 });
+    expect(await ob.flush()).toEqual({ sent: 0, failed: 0, discarded: 1, held: 0 });
     expect(await ob.waiting()).toBe(0);
     expect((await ob.notes())[0]?.message).toBe("This demo patient was removed.");
+  });
+
+  it("a refusal that needs a person's decision is held, blocks that patient only, and is released or discarded deliberately", async () => {
+    const db = await fresh();
+    const sent: QueuedCommand[] = [];
+    const ob = new Outbox(db, async (c) => {
+      sent.push(c);
+      const conf = (c.payload.confirmations as string[] | undefined) ?? [];
+      if (c.payload.weightKg === 300 && !conf.includes("weight_kg"))
+        return {
+          ok: false,
+          hold: true,
+          code: "needs_confirmation",
+          message: "Confirm",
+          detail: { fields: ["weight_kg"] },
+        };
+      return { ok: true };
+    });
+    const a1 = cmd("A", "visit.save_nurse", { weightKg: 300 });
+    const a2 = cmd("A");
+    const b1 = cmd("B");
+    for (const c of [a1, a2, b1]) await ob.enqueue(c);
+    expect(await ob.flush()).toEqual({ sent: 1, failed: 0, discarded: 0, held: 1 });
+    expect(sent.map((c) => c.id)).toEqual([a1.id, b1.id]); // a2 waits behind the held a1
+    expect((await ob.heldItems()).map((x) => x.c.id)).toEqual([a1.id]);
+    // Still held on the next flush: never discarded, never resent without a decision.
+    await ob.flush();
+    expect(await ob.waiting()).toBe(2);
+    await ob.release(a1.id, { confirmations: ["weight_kg"] });
+    expect(await ob.flush()).toMatchObject({ sent: 2, held: 0 });
+    expect(await ob.waiting()).toBe(0);
+    // A deliberate discard leaves a note.
+    const c = cmd("A", "visit.save_nurse", { weightKg: 300 });
+    await ob.enqueue(c);
+    await ob.flush();
+    await ob.discard(c.id, "entered twice");
+    expect(await ob.waiting()).toBe(0);
+    expect((await ob.notes()).some((x) => x.id === c.id && /entered twice/.test(x.message))).toBe(
+      true,
+    );
+  });
+
+  it("the device copy expires: a snapshot older than the TTL is removed on read", async () => {
+    const db = await fresh();
+    const at = Date.parse("2026-10-05T08:00:00Z");
+    await saveSnapshot(db, {
+      fetchedAt: new Date(at).toISOString(),
+      date: "2026-10-05",
+      clinic: [],
+      overdue: [],
+    });
+    expect(await readSnapshot(db, at + SNAPSHOT_TTL_MS - 1)).not.toBeNull();
+    expect(await readSnapshot(db, at + SNAPSHOT_TTL_MS + 1)).toBeNull();
+    expect(await readSnapshot(db, at)).toBeNull(); // removed, not hidden
   });
 
   it("online-only commands never queue", async () => {
@@ -155,7 +214,19 @@ describe("the offline read cache (§9)", () => {
   const snap = (ids: string[]) => ({
     fetchedAt: "2026-10-05T08:00:00Z",
     date: "2026-10-05",
-    clinic: ids.map((personId) => ({ personId, name: `Name ${personId}`, registryNumber: "DEMO-1", sex: "female" as const, age: 50, conditions: [], visitId: null, stage: "not_arrived", heightCm: 160, glucose: false, trajectory: [] })),
+    clinic: ids.map((personId) => ({
+      personId,
+      name: `Name ${personId}`,
+      registryNumber: "DEMO-1",
+      sex: "female" as const,
+      age: 50,
+      conditions: [],
+      visitId: null,
+      stage: "not_arrived",
+      heightCm: 160,
+      glucose: false,
+      trajectory: [],
+    })),
     overdue: [],
   });
 

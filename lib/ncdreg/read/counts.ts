@@ -5,9 +5,10 @@
  */
 import "server-only";
 
+import type { NcdContext } from "../context";
 import { sql } from "drizzle-orm";
 
-import { can, type NcdContext } from "../context";
+import { can } from "../context";
 import { rows, withNcd } from "../db";
 
 export type SidebarCounts = { today: number; patients: number; recall: number; queries: number };

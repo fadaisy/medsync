@@ -305,8 +305,17 @@ export async function assignRole(
   role: "registry_lead" | "head_of_department" | "auditor",
 ) {
   authorize(ctx, "ncd_role_assign");
-  return run(ctx, (tx) =>
-    tx
+  if (userId === ctx.userId)
+    throw new NcdError("forbidden", "Nobody assigns a registry role to themselves.");
+  return run(ctx, async (tx) => {
+    // The person must already work here: an active affiliation or an admin seat at this facility.
+    const [{ staff } = { staff: false }] = await rows<{ staff: boolean }>(
+      tx,
+      sql`SELECT cardinality(private.ncd_user_roles(${userId}::uuid, ${ctx.facilityId}::uuid)) > 0 AS staff`,
+    );
+    if (!staff)
+      throw new NcdError("forbidden", "Registry roles go to staff of this facility only.");
+    return tx
       .insert(ncdStaffRole)
       .values({
         facilityId: ctx.facilityId,
@@ -314,8 +323,8 @@ export async function assignRole(
         ncdRole: role,
         grantedBy: ctx.userId,
         grantedAt: ctx.enteredAt,
-      }),
-  );
+      });
+  });
 }
 export async function revokeRole(ctx: NcdContext, assignmentId: string) {
   authorize(ctx, "ncd_role_assign");

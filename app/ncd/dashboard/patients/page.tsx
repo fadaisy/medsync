@@ -4,7 +4,13 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { can } from "@/lib/ncdreg/context";
-import { drillDown, indicatorLabel, monthLong, parseFilters, parseMonth } from "@/lib/ncdreg/read/dashboard";
+import {
+  drillDown,
+  indicatorLabel,
+  monthLong,
+  parseFilters,
+  parseMonth,
+} from "@/lib/ncdreg/read/dashboard";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { EmptyState, Num, Page, PageTitle, ROOMY_TABLE } from "../../_components/kit";
 
@@ -26,11 +32,20 @@ export default async function DrillDownPage({ searchParams }: { searchParams: Pr
   const { result, count, people } = await drillDown(ctx, { code, part, month, filters });
   if (!result) notFound();
 
-  const condition = result.condition ? ctx.catalogue.find((m) => m.code === result.condition)?.label : null;
-  const back = new URLSearchParams(Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === "string" && !["code", "part"].includes(e[0])));
+  const condition = result.condition
+    ? ctx.catalogue.find((m) => m.code === result.condition)?.label
+    : null;
+  const back = new URLSearchParams(
+    Object.entries(sp).filter(
+      (e): e is [string, string] => typeof e[1] === "string" && !["code", "part"].includes(e[0]),
+    ),
+  );
   return (
     <Page>
-      <Link href={`/ncd/dashboard?${back}`} className="text-caption text-ink-700 inline-flex w-fit items-center gap-1 underline-offset-2 hover:underline">
+      <Link
+        href={`/ncd/dashboard?${back}`}
+        className="text-caption text-ink-700 inline-flex w-fit items-center gap-1 underline-offset-2 hover:underline"
+      >
         <ArrowLeftIcon className="size-3.5" aria-hidden />
         Dashboard
       </Link>
@@ -38,7 +53,14 @@ export default async function DrillDownPage({ searchParams }: { searchParams: Pr
         title={`${indicatorLabel(result.code)}${condition ? `, ${condition}` : ""}`}
         subline={
           <>
-            {result.code} · {part === "num" ? "numerator" : part === "den" ? "denominator" : part.replace(/_/g, " ")} · {monthLong(month)} · {count.toLocaleString("en-GB")} {count === 1 ? "entry" : "entries"} · definition {result.version}. This list is logged.
+            {result.code} ·{" "}
+            {part === "num"
+              ? "numerator"
+              : part === "den"
+                ? "denominator"
+                : part.replace(/_/g, " ")}{" "}
+            · {monthLong(month)} · {count.toLocaleString("en-GB")}{" "}
+            {count === 1 ? "entry" : "entries"} · definition {result.version}. This list is logged.
           </>
         }
       />
@@ -66,10 +88,19 @@ export default async function DrillDownPage({ searchParams }: { searchParams: Pr
             {people.map((p) => (
               <tr key={p.id} className="border-ink-100 border-b">
                 <td className="pr-4">
-                  <Link href={`/ncd/patients/${p.id}`} className="text-foreground focus-visible:shadow-focus rounded-xs font-medium underline-offset-2 outline-none hover:underline">
-                    {p.name}
-                  </Link>
-                  {p.isSynthetic ? <span className="text-muted-foreground ml-2 text-[11px]">Synthetic</span> : null}
+                  {can(ctx, "person_search") ? (
+                    <Link
+                      href={`/ncd/patients/${p.id}`}
+                      className="text-foreground focus-visible:shadow-focus rounded-xs font-medium underline-offset-2 outline-none hover:underline"
+                    >
+                      {p.name}
+                    </Link>
+                  ) : (
+                    <span className="text-foreground font-medium">{p.name}</span>
+                  )}
+                  {p.isSynthetic ? (
+                    <span className="text-muted-foreground ml-2 text-[11px]">Synthetic</span>
+                  ) : null}
                 </td>
                 <td className="pr-4">
                   <Num>{p.registryNumber}</Num>

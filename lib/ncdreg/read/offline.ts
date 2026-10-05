@@ -1,15 +1,20 @@
 /** What a device keeps for offline work (§9): today's list with trajectories, and the overdue list. */
 import "server-only";
 
+import type { NcdContext } from "../context";
 import type { OfflineSnapshot } from "../offline/cache";
-import { can, type NcdContext } from "../context";
+
+import { can } from "../context";
 import { loadDataset } from "../indicators/load";
 import { modulesOf, trajectory } from "./derive";
 import { recallList, todayClinic } from "./views";
 
 export async function offlineSnapshot(ctx: NcdContext): Promise<OfflineSnapshot> {
   const clinic = can(ctx, "person_search") ? await todayClinic(ctx) : { rows: [] };
-  const ds = await loadDataset(ctx, clinic.rows.map((r) => r.personId));
+  const ds = await loadDataset(
+    ctx,
+    clinic.rows.map((r) => r.personId),
+  );
   const byId = new Map(ds.persons.map((p) => [p.id, p]));
   const overdue = can(ctx, "recall_work") ? await recallList(ctx) : [];
   return {
@@ -27,7 +32,9 @@ export async function offlineSnapshot(ctx: NcdContext): Promise<OfflineSnapshot>
         visitId: r.visitId,
         stage: r.stage,
         heightCm: null,
-        glucose: modulesOf(p, ctx.catalogue).some(({ module: m }) => m.visit_fields.some((f) => f.code === "glucose")),
+        glucose: modulesOf(p, ctx.catalogue).some(({ module: m }) =>
+          m.visit_fields.some((f) => f.code === "glucose"),
+        ),
         trajectory: trajectory(p).map((v) => ({
           date: v.date,
           bp: v.bp ? `${v.bp[0]}/${v.bp[1]}` : null,

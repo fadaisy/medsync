@@ -82,9 +82,11 @@ export type PersonSeed = {
   phone?: string | null;
   conditions?: { condition: string; subtype?: string; basis?: string; registrationDate?: string }[];
   heightCm?: number;
+  /** Default true; false only in a facility a test has approved for patient data. */
+  synthetic?: boolean;
 };
 
-/** Enrol a synthetic person through the real path (search, then person.enrol). */
+/** Enrol a person (synthetic unless told otherwise) through the real path (search, then person.enrol). */
 export async function enrol(ctx: NcdContext, s: PersonSeed = {}) {
   const personId = randomUUID();
   const identity = {
@@ -126,7 +128,7 @@ export async function enrol(ctx: NcdContext, s: PersonSeed = {}) {
     privacy: { version: "0.1-draft", acknowledged: true },
     smsAllowed: true,
     callsAllowed: true,
-    isSynthetic: true,
+    isSynthetic: s.synthetic ?? true,
     dismissedCandidates: [],
     confirmations: [],
   });

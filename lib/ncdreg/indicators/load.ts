@@ -16,15 +16,24 @@ const d = (x: unknown) =>
 const n = (x: unknown) => (x == null ? null : Number(x));
 
 /** The whole facility, or only `personIds` (a record or a list page). */
-export async function loadDataset(ctx: NcdContext, personIds?: readonly string[]): Promise<Dataset> {
+export async function loadDataset(
+  ctx: NcdContext,
+  personIds?: readonly string[],
+): Promise<Dataset> {
   return withNcd(
     ctx,
     "analytics",
     async (tx) => {
       const tz = ctx.timeZone;
-      const ids = personIds ? sql`ARRAY[${sql.join(personIds.map((i) => sql`${i}::uuid`), sql`, `)}]::uuid[]` : null;
+      const ids = personIds
+        ? sql`ARRAY[${sql.join(
+            personIds.map((i) => sql`${i}::uuid`),
+            sql`, `,
+          )}]::uuid[]`
+        : null;
       const only = (col = "person_id") => (ids ? sql`AND ${sql.raw(col)} = ANY(${ids})` : sql``);
-      if (personIds && !personIds.length) return { facilityId: ctx.facilityId, timeZone: tz, persons: [] };
+      if (personIds && !personIds.length)
+        return { facilityId: ctx.facilityId, timeZone: tz, persons: [] };
       const local = (col: string) =>
         sql.raw(`to_char(${col} AT TIME ZONE '${tz.replace(/'/g, "")}', 'YYYY-MM-DD')`);
       const [persons, regs, visits, obs, reviews, events, appts, calls] = await Promise.all([
@@ -32,11 +41,11 @@ export async function loadDataset(ctx: NcdContext, personIds?: readonly string[]
           tx,
           sql`SELECT id, sex, birth_year, is_synthetic, district_name, known_cvd, has_valid_phone,
                                  to_char(recall_removed_at AT TIME ZONE ${tz}, 'YYYY-MM-DD') AS recall_removed
-                            FROM public.ncd_person WHERE merged_into_id IS NULL ${only("id")}`,
+                            FROM public.ncd_person WHERE merged_into_id IS NULL ${only("id")} ORDER BY id`,
         ),
         rows<Row>(
           tx,
-          sql`SELECT id, person_id, condition_code, registration_date FROM public.ncd_registration WHERE superseded_by_id IS NULL ${only()}`,
+          sql`SELECT id, person_id, condition_code, registration_date FROM public.ncd_registration WHERE superseded_by_id IS NULL ${only()} ORDER BY registration_date, id`,
         ),
         rows<Row>(
           tx,
@@ -45,27 +54,30 @@ export async function loadDataset(ctx: NcdContext, personIds?: readonly string[]
                      visit_systolic, visit_diastolic, glucose_mmol, glucose_type, hba1c_percent, hba1c_result_date, weight_kg,
                      medicines, medicines_confirmed_unchanged, missed_doses, medicines_obtained, not_obtained_reason,
                      next_appointment_date, disposition
-                FROM public.ncd_visit WHERE true ${only()}`,
+                FROM public.ncd_visit WHERE true ${only()} ORDER BY visit_date, coalesce(closed_at, entered_at), id`,
         ),
         rows<Row>(
           tx,
-          sql`SELECT visit_id, registration_id, value_text FROM public.ncd_observation WHERE code = 'recorded_control' ${only()}`,
+          sql`SELECT visit_id, registration_id, value_text FROM public.ncd_observation WHERE code = 'recorded_control' ${only()} ORDER BY visit_id, registration_id`,
         ),
         rows<Row>(
           tx,
-          sql`SELECT person_id, component, review_date, data, derived FROM public.ncd_review WHERE NOT is_invalid ${only()}`,
+          sql`SELECT person_id, component, review_date, data, derived FROM public.ncd_review WHERE NOT is_invalid ${only()} ORDER BY review_date, entered_at, id`,
         ),
         rows<Row>(
           tx,
-          sql`SELECT person_id, event_type, event_date, admission_reason FROM public.ncd_event WHERE NOT is_invalid ${only()}`,
+          sql`SELECT person_id, event_type, event_date, admission_reason FROM public.ncd_event WHERE NOT is_invalid ${only()} ORDER BY event_date, entered_at, id`,
         ),
         rows<Row>(
           tx,
           sql`SELECT id, person_id, appointment_date, status, status_reason,
                      ${local("entered_at")} AS created_date, ${local("updated_at")} AS updated_date
-                FROM public.ncd_appointment WHERE true ${only()}`,
+                FROM public.ncd_appointment WHERE true ${only()} ORDER BY entered_at, id`,
         ),
-        rows<Row>(tx, sql`SELECT person_id, call_date, outcome FROM public.ncd_call WHERE true ${only()}`),
+        rows<Row>(
+          tx,
+          sql`SELECT person_id, call_date, outcome FROM public.ncd_call WHERE true ${only()} ORDER BY call_date, entered_at, id`,
+        ),
       ]);
       const by = <T>(xs: Row[], key: string, map: (r: Row) => T) => {
         const m = new Map<string, T[]>();

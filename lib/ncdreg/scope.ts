@@ -1,7 +1,8 @@
 import "server-only";
 
-import { cache } from "react";
+import type { NcdContext } from "./context";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -11,8 +12,7 @@ import { hospitals } from "@/db/schema/hospitals";
 import { ncdStaffRole } from "@/db/schema/ncd-registry";
 import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
-
-import { resolveContext, type NcdContext } from "./context";
+import { resolveContext } from "./context";
 
 /**
  * The NCD registry is off until the owner applies migration 0093 and names the hospital:
@@ -45,7 +45,12 @@ export const requireNcdScope = cache(async (): Promise<NcdScope> => {
   const [aff] = await db
     .select({ hospitalId: staffAffiliations.hospitalId })
     .from(staffAffiliations)
-    .where(and(eq(staffAffiliations.userId, userId), inArray(staffAffiliations.state, ["active", "approved"])))
+    .where(
+      and(
+        eq(staffAffiliations.userId, userId),
+        inArray(staffAffiliations.state, ["active", "approved"]),
+      ),
+    )
     .orderBy(desc(staffAffiliations.approvedAt))
     .limit(1);
   const [admin] = aff
@@ -68,7 +73,17 @@ export const requireNcdScope = cache(async (): Promise<NcdScope> => {
 
   const ctx = await resolveContext({ userId, facilityId, principal: "user" });
   if (!ctx.roles.length) notFound();
-  const [h] = await db.select({ name: hospitals.name }).from(hospitals).where(eq(hospitals.id, facilityId));
-  const [u] = await db.select({ fullName: users.fullName, email: users.email }).from(users).where(eq(users.id, userId));
-  return { ctx, hospitalName: h?.name ?? "Hospital", fullName: u?.fullName ?? u?.email ?? "Signed in" };
+  const [h] = await db
+    .select({ name: hospitals.name })
+    .from(hospitals)
+    .where(eq(hospitals.id, facilityId));
+  const [u] = await db
+    .select({ fullName: users.fullName, email: users.email })
+    .from(users)
+    .where(eq(users.id, userId));
+  return {
+    ctx,
+    hospitalName: h?.name ?? "Hospital",
+    fullName: u?.fullName ?? u?.email ?? "Signed in",
+  };
 });

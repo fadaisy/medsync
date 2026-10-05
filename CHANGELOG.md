@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — NCDSync, the hospital NCD registry, dark behind `NCD_REGISTRY` — 2026-10-05
+
+- **NCDReg 0.1 (draft) as data** (`lib/ncdreg/standard/`): the data dictionary, code lists, calculations (BMI, visit blood pressure, 2021 CKD-EPI eGFR, KDIGO, foot risk, hypertension grade, care band, status), validation, a condition catalogue of two full and eight core modules, and 34 indicator definitions locked to HEARTS360 plus hospital additions. Generated documents in `docs/ncd/`.
+- **The registry** (`/ncd`): Today's clinic with arrival and stage, search and enrol with tiered duplicate matching over encrypted identifiers, one-screen visit capture (nurse and clinician parts, trajectory, carried-forward medicines, completeness), the patient record, annual reviews, events, recall with call logging and SMS reminders through a logging mock, reviews due, my patients, the one-screen dashboard with drill-down, the signed monthly report, data quality (queries, audit sample, four-eyes merge), exchange (aggregates, DHIS2 refusing until mapped, FHIR R4 refusing unverified codes, de-identified research releases, full export, legacy import), administration, offline capture with an encrypted outbox, and a removable demo data mode from the catalogue file.
+- **Migration 0093** (GATED, owner-applied): 26 tables keyed on the facility, row-level security forced on every one with policies generated from the capability map, two app roles without BYPASSRLS, interlock triggers (synthetic before go-live only, no deletion of real records, immutable signed snapshots, four-eyes approvals), audit triggers.
+- ADRs 0208–0213 (proposed). Nothing here is approved for patient data: the standard, every code list and every core module await Clinical Safety Officer and Registry Technical Group sign-off (`docs/ncd/SIGNOFF-REGISTER.md`).
+
 ### Added — "Show all" medicines in the prescribing dialog — 2026-09-30
 
 - **Every medicine by class.** The Plan's prescribing dialog has a **Show all** beside the search. It opens every medicine of the general formulary MS-RX-CAT-001 (182 medicines in 68 classes) in a centred pop-up, under its body system and class as the catalogue classifies them. Medicines are A to Z within a class, never ranked, with their routes; the four with a signed regimen say so. Choosing one prescribes it. The filter matches the generic name, the class or the body system, as the search does; the body systems are jump links (one scrolling row on a phone).

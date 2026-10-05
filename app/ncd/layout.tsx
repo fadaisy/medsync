@@ -3,7 +3,11 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { Avatar } from "@/components/medsync/avatar";
-import { SIDEBAR_CLASS, SidebarGroupLabel, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
+import {
+  SIDEBAR_CLASS,
+  SidebarGroupLabel,
+  SidebarWorkspace,
+} from "@/components/medsync/sidebar-nav";
 import { facilityStatus } from "@/lib/ncdreg/admin";
 import { can } from "@/lib/ncdreg/context";
 import { sidebarCounts } from "@/lib/ncdreg/read/counts";
@@ -13,13 +17,20 @@ import { NoticeBanner } from "./_components/notice-banner";
 import { OutboxProvider, SignOutButton } from "./_components/outbox-provider";
 import { NAV } from "./_lib/nav";
 
-export const metadata: Metadata = { title: "NCD registry", robots: { index: false, follow: false }, manifest: "/ncd/manifest.webmanifest" };
+export const metadata: Metadata = {
+  title: "NCD registry",
+  robots: { index: false, follow: false },
+  manifest: "/ncd/manifest.webmanifest",
+};
 
 /** NCDSync shell (§11.3): sidebar in three groups shown by capability, one banner region, the content. */
 export default async function NcdLayout({ children }: { children: ReactNode }) {
   const { ctx, hospitalName, fullName } = await requireNcdScope();
   const [status, counts] = await Promise.all([facilityStatus(ctx), sidebarCounts(ctx)]);
-  const groups = NAV.map((g) => ({ ...g, items: g.items.filter((i) => can(ctx, ...i.caps)) })).filter((g) => g.items.length);
+  const groups = NAV.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => can(ctx, ...i.caps)),
+  })).filter((g) => g.items.length);
   return (
     <OutboxProvider>
       <div className="bg-background text-foreground flex min-h-svh w-full">
@@ -34,7 +45,14 @@ export default async function NcdLayout({ children }: { children: ReactNode }) {
                 <ul className="flex flex-col gap-0.5">
                   {g.items.map((i) => (
                     <li key={i.href}>
-                      <NcdNavItem href={i.href} label={i.label} icon={i.icon} domain={i.domain} exact={i.exact} count={i.count ? counts[i.count] : undefined} />
+                      <NcdNavItem
+                        href={i.href}
+                        label={i.label}
+                        icon={i.icon}
+                        domain={i.domain}
+                        exact={i.exact}
+                        count={i.count ? counts[i.count] : undefined}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -46,7 +64,9 @@ export default async function NcdLayout({ children }: { children: ReactNode }) {
             <div className="min-w-0 flex-1">
               <p className="text-label text-foreground truncate">{fullName}</p>
               <SignOutButton />
-              <p className="text-muted-foreground truncate text-[11px]">{ctx.roles.map((r) => r.replace(/_/g, " ")).join(", ")}</p>
+              <p className="text-muted-foreground truncate text-[11px]">
+                {ctx.roles.map((r) => r.replace(/_/g, " ")).join(", ")}
+              </p>
             </div>
           </div>
         </aside>

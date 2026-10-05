@@ -5,6 +5,7 @@
  * label and `sms_banned_terms` entry in the condition catalogue. Client-safe (no server imports).
  */
 import type { ConditionModule } from "../standard/types";
+
 import { MEDICINE_LIST } from "../standard/code-lists";
 import { CONDITION_CATALOGUE } from "../standard/conditions";
 
@@ -40,7 +41,9 @@ export function bannedTerms(catalogue: readonly ConditionModule[] = CONDITION_CA
     .filter((m) => m.group !== "other")
     .flatMap((m) => [m.label, m.code, m.atc]);
   const modules = catalogue.flatMap((m) => [m.label, m.code, ...m.sms_banned_terms]);
-  return [...new Set([...FIXED, ...medicines, ...modules].map(normaliseTerm).filter((t) => t.length > 1))].sort();
+  return [
+    ...new Set([...FIXED, ...medicines, ...modules].map(normaliseTerm).filter((t) => t.length > 1)),
+  ].sort();
 }
 
 /** Placeholders a template may carry; they are filled at send time and are not scanned as words. */

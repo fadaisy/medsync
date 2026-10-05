@@ -294,12 +294,15 @@ async function seed(pg: Pg, f: NcdFacility) {
     status: "off",
     started_by: f.users.registry_lead,
   });
+  // Born 'requested' (the guard allows nothing else), then withdrawn so a probe may insert a new one.
+  const goLiveId = uid();
   await add("ncd_go_live_request", {
-    id: uid(),
+    id: goLiveId,
     facility_id: F,
-    status: "withdrawn",
+    status: "requested",
     requested_by: f.users.registry_lead,
   });
+  await q(`UPDATE public.ncd_go_live_request SET status = 'withdrawn' WHERE id = $1`, [goLiveId]);
   await add("ncd_export_request", {
     id: uid(),
     facility_id: F,
@@ -357,7 +360,8 @@ async function attempt(
   } catch (e) {
     const m = (e as Error).message;
     // Only a refusal counts as deny; anything else is a broken probe.
-    if (/row-level security|permission denied|append-only|never deleted/i.test(m)) return false;
+    if (/row-level security|permission denied|append-only|never deleted|to themselves/i.test(m))
+      return false;
     throw new Error(`${table} ${op}: ${m}`);
   }
 }

@@ -9,14 +9,13 @@
  */
 import "server-only";
 
+import type { NcdTx } from "../db";
 import type { SmsSender } from "@/lib/notifications/sink";
 import { eq } from "drizzle-orm";
 
 import { ncdPerson, ncdSmsLog } from "@/db/schema";
 import { createAfricasTalkingSender } from "@/lib/notifications/africastalking";
 import { isGsmSafe, SMS_MAX_BODY_CHARS } from "@/lib/notifications/sink";
-
-import type { NcdTx } from "../db";
 
 export type Transport = { name: string; sender: SmsSender };
 export type Delivery = { result: "logged" | "sent" | "failed" | "blocked"; reason: string | null };
@@ -51,15 +50,34 @@ export const SYNTHETIC_REASON = "Synthetic person: never dispatched";
 export async function sendGuarded(
   tx: NcdTx,
   transport: Transport,
-  m: { facilityId: string; personId: string; reminderId: string | null; toE164: string; toHmac: string | null; body: string },
+  m: {
+    facilityId: string;
+    personId: string;
+    reminderId: string | null;
+    toE164: string;
+    toHmac: string | null;
+    body: string;
+  },
 ): Promise<Delivery> {
-  const [p] = await tx.select({ synthetic: ncdPerson.isSynthetic }).from(ncdPerson).where(eq(ncdPerson.id, m.personId));
+  const [p] = await tx
+    .select({ synthetic: ncdPerson.isSynthetic })
+    .from(ncdPerson)
+    .where(eq(ncdPerson.id, m.personId));
   let d: Delivery;
-  if (!p || p.synthetic) d = { result: "blocked", reason: p ? SYNTHETIC_REASON : "Person not found" };
-  else if (!isGsmSafe(m.body) || m.body.length > SMS_MAX_BODY_CHARS) d = { result: "blocked", reason: "Message does not fit one SMS part" };
+  if (!p || p.synthetic)
+    d = { result: "blocked", reason: p ? SYNTHETIC_REASON : "Person not found" };
+  else if (!isGsmSafe(m.body) || m.body.length > SMS_MAX_BODY_CHARS)
+    d = { result: "blocked", reason: "Message does not fit one SMS part" };
   else {
-    const r = await transport.sender.send({ toE164: m.toE164, body: m.body }).catch((e: unknown) => ({ ok: false as const, reason: e instanceof Error ? e.message : "send failed" }));
-    d = r.ok ? { result: transport.name === "logging_mock" ? "logged" : "sent", reason: null } : { result: "failed", reason: r.reason };
+    const r = await transport.sender
+      .send({ toE164: m.toE164, body: m.body })
+      .catch((e: unknown) => ({
+        ok: false as const,
+        reason: e instanceof Error ? e.message : "send failed",
+      }));
+    d = r.ok
+      ? { result: transport.name === "logging_mock" ? "logged" : "sent", reason: null }
+      : { result: "failed", reason: r.reason };
   }
   await tx.insert(ncdSmsLog).values({
     facilityId: m.facilityId,

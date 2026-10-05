@@ -43,7 +43,15 @@ export async function writeAll(
   demoLoadId: string,
 ) {
   let commands = 0;
-  for (const p of ps)
+  let t = performance.now();
+  for (const [i, p] of ps.entries()) {
     commands += (await writeScenarioPatient(ctx, p, { day0, demoLoadId })).commands;
+    if ((i + 1) % 100 === 0) {
+      process.stdout.write(
+        `written ${i + 1}: ${Math.round(performance.now() - t)} ms for the last 100\n`,
+      );
+      t = performance.now();
+    }
+  }
   return commands;
 }

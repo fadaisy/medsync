@@ -8,7 +8,14 @@ import type { Lane } from "../emr-db/_pglite";
 import type { NcdFacility } from "./_ncd";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { auditSample, auditSeed, auditSize, drawAuditSample, drawSample, recordAgreement } from "@/lib/ncdreg/quality";
+import {
+  auditSample,
+  auditSeed,
+  auditSize,
+  drawAuditSample,
+  drawSample,
+  recordAgreement,
+} from "@/lib/ncdreg/quality";
 import { ctxFor, enrol } from "./_engine";
 import { bootLane, laneOn, ncdFacility } from "./_ncd";
 
@@ -71,6 +78,8 @@ describe.skipIf(!laneOn)("G4: audit sample in the database", () => {
     expect(agreement).toEqual({ agree: 3, checked: 4, rate: 0.75 });
     const clin = await ctxFor(lane.db, f, "clinician");
     await expect(recordAgreement(clin, s1!.id, { weight: true })).rejects.toThrow(/data_quality/);
-    await expect(recordAgreement(lead, s1!.id, { favourite_colour: true })).rejects.toThrow(/Unknown audit field/);
+    await expect(recordAgreement(lead, s1!.id, { favourite_colour: true })).rejects.toThrow(
+      /Unknown audit field/,
+    );
   });
 });

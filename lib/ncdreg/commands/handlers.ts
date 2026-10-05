@@ -12,6 +12,7 @@ import type { Payload } from "./schema";
 import { and, asc, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 
 import {
+  ncdAccessEvent,
   ncdAppointment,
   ncdAuditSample,
   ncdCall,
@@ -53,6 +54,7 @@ import {
   createAppointment,
   enabledConditions,
   findCandidates,
+  medicineAdditions,
   refreshQueries,
   snapshotVersion,
   verifySearchToken,
@@ -117,8 +119,11 @@ export async function enrol(
   p: Payload<"person.enrol">,
 ): Promise<Result> {
   authorize(ctx, "enrol", "legacy_entry", "demo_write");
-  if (!verifySearchToken(ctx, p.searchToken))
-    throw new NcdError("forbidden", "Search for the patient before creating a new record.");
+  if (!verifySearchToken(ctx, p.searchToken, p.identity))
+    throw new NcdError(
+      "forbidden",
+      "Search for the patient, by the names you are enrolling, before creating a new record.",
+    );
   if (ctx.principal === "demo_loader" && !p.isSynthetic)
     throw new NcdError("forbidden", "The demo loader writes synthetic persons only.");
   const [{ approved } = { approved: false }] = await rows<{ approved: boolean }>(
@@ -254,6 +259,21 @@ export async function enrol(
       );
   for (const r of p.registrations) await insertRegistration(tx, ctx, p.personId, r, backEntry);
   await refreshQueries(tx, ctx, p.personId);
+  // A2: a dismissed definite or probable match is a decision about identity; it is recorded.
+  const dismissed = candidates.filter(
+    (c) => c.tier !== "possible" && p.dismissedCandidates.includes(c.personId),
+  );
+  if (dismissed.length)
+    await tx.insert(ncdAccessEvent).values({
+      facilityId: ctx.facilityId,
+      userId: ctx.userId,
+      principal: ctx.principal,
+      action: "dismiss_candidates",
+      personId: p.personId,
+      demoLoadId: ctx.demoLoadId,
+      detail: { dismissed: dismissed.map((c) => ({ personId: c.personId, tier: c.tier })) },
+      at: ctx.enteredAt,
+    });
   return { personId: p.personId, registryNumber };
 }
 
@@ -422,6 +442,21 @@ export async function flagPhone(
 
 type VisitRow = typeof ncdVisit.$inferSelect;
 
+/** An appointment named by a visit or a call must be this person's own. */
+async function assertOwnAppointment(
+  tx: NcdTx,
+  personId: string,
+  appointmentId: string | null | undefined,
+) {
+  if (!appointmentId) return;
+  const [a] = await tx
+    .select({ personId: ncdAppointment.personId })
+    .from(ncdAppointment)
+    .where(eq(ncdAppointment.id, appointmentId));
+  if (!a || a.personId !== personId)
+    throw new NcdError("invalid", "That appointment is not this person's.");
+}
+
 export async function arrive(
   tx: NcdTx,
   ctx: NcdContext,
@@ -434,6 +469,7 @@ export async function arrive(
   await assertPersonAlive(tx, p.personId, date);
   const regs = await registrationsOf(tx, p.personId);
   if (!regs.length) throw new NcdError("invalid", "This person holds no registration.");
+  await assertOwnAppointment(tx, p.personId, p.appointmentId);
   await tx.insert(ncdVisit).values({
     id: p.visitId,
     facilityId: ctx.facilityId,
@@ -485,8 +521,19 @@ export async function saveNurse(
     [v] = await tx.select().from(ncdVisit).where(eq(ncdVisit.id, p.visitId));
   }
   if (!v || v.personId !== p.personId) throw new NcdError("not_found", "Visit not found.");
-  if (v.status === "closed") throw new NcdError("conflict", "This visit is closed.");
   const set = nurseFields(ctx, person.heightCm, p);
+  // G2: a re-save keeps the earlier values as a version. Measurements taken offline may arrive after
+  // the clinician closed the visit: they are kept, versioned, and the visit stays closed (§9).
+  if (v.nurseSavedAt || v.status === "closed")
+    await snapshotVersion(
+      tx,
+      ctx,
+      "ncd_visit",
+      v,
+      v.status === "closed"
+        ? "Measurements received after the visit closed"
+        : "Measurements saved again",
+    );
   await tx
     .update(ncdVisit)
     .set({
@@ -571,9 +618,12 @@ async function applyClinician(
   if (p.hba1c && !offers("hba1c"))
     throw new NcdError("invalid", "HbA1c is not recorded for this person's conditions.");
   if (p.hba1c) requireConfirmed({ hba1c_percent: p.hba1c.percent }, p.confirmations);
-  if (p.medicines)
+  if (p.medicines) {
+    const added = new Set((await medicineAdditions(tx, ctx)).map((m) => m.code));
     for (const c of p.medicines.codes)
-      if (!medicineByCode.has(c)) throw new NcdError("invalid", `Unknown medicine ${c}.`);
+      if (!medicineByCode.has(c) && !added.has(c))
+        throw new NcdError("invalid", `Unknown medicine ${c}.`);
+  }
   if (
     p.medicinesObtained &&
     p.medicinesObtained !== "full" &&
@@ -608,6 +658,8 @@ async function applyClinician(
     if (cf.recordedControl)
       await upsertObservation(tx, ctx, v, reg.id, "recorded_control", cf.recordedControl);
   }
+  if (v.clinicianSavedAt)
+    await snapshotVersion(tx, ctx, "ncd_visit", v, "Clinician entries saved again");
   const set: Partial<typeof ncdVisit.$inferInsert> = {
     clinicianSavedBy: ctx.userId,
     clinicianSavedAt: ctx.enteredAt,
@@ -1020,6 +1072,7 @@ export async function logCall(tx: NcdTx, ctx: NcdContext, p: Payload<"call.log">
   const callDate = ctx.principal === "demo_loader" && p.callDate ? p.callDate : ctx.today;
   if (p.outcome === "will_return" && p.newAppointmentDate && p.newAppointmentDate <= callDate)
     throw new NcdError("invalid", "The new date must be after today.");
+  await assertOwnAppointment(tx, p.personId, p.appointmentId);
   await tx.insert(ncdCall).values({
     id: p.callId,
     facilityId: ctx.facilityId,
@@ -1067,8 +1120,7 @@ export async function requestMerge(
   if (p.personId === p.loserPersonId)
     throw new NcdError("invalid", "Choose two different records.");
   const [a, b] = [await personRow(tx, p.personId), await personRow(tx, p.loserPersonId)];
-  if (a.isSynthetic !== b.isSynthetic)
-    throw new NcdError("invalid", "A synthetic and a real record cannot be merged.");
+  assertMergeable(a, b);
   await tx.insert(ncdMergeRequest).values({
     id: p.mergeId,
     facilityId: ctx.facilityId,
@@ -1079,6 +1131,17 @@ export async function requestMerge(
     requestedAt: ctx.enteredAt,
   });
   return { mergeId: p.mergeId };
+}
+
+/** A merge never mixes real and synthetic records, nor two demo loads: removal selects by load (HZ-10). */
+function assertMergeable(
+  a: { isSynthetic: boolean; demoLoadId: string | null },
+  b: { isSynthetic: boolean; demoLoadId: string | null },
+) {
+  if (a.isSynthetic !== b.isSynthetic)
+    throw new NcdError("invalid", "A synthetic and a real record cannot be merged.");
+  if (a.demoLoadId !== b.demoLoadId)
+    throw new NcdError("invalid", "Records from different demo loads cannot be merged.");
 }
 
 const CHILD_TABLES = [
@@ -1118,7 +1181,32 @@ export async function decideMerge(
   if (!p.approve) return { merged: false };
   const survivor = await personRow(tx, m.personId);
   const loser = await personRow(tx, m.loserPersonId);
+  assertMergeable(survivor, loser);
   await snapshotVersion(tx, ctx, "ncd_person", loser, `Merged into ${survivor.registryNumber}`);
+  // One open query per person and rule: the loser's copy of a rule the survivor already has open is closed first.
+  const survivorOpen = await tx
+    .select({ ruleId: ncdQuery.ruleId })
+    .from(ncdQuery)
+    .where(and(eq(ncdQuery.personId, survivor.id), eq(ncdQuery.status, "open")));
+  if (survivorOpen.length)
+    await tx
+      .update(ncdQuery)
+      .set({
+        status: "resolved",
+        resolutionNote: "Closed by merge: the surviving record holds the same query.",
+        resolvedBy: ctx.userId,
+        resolvedAt: ctx.enteredAt,
+      })
+      .where(
+        and(
+          eq(ncdQuery.personId, loser.id),
+          eq(ncdQuery.status, "open"),
+          inArray(
+            ncdQuery.ruleId,
+            survivorOpen.map((q) => q.ruleId),
+          ),
+        ),
+      );
   for (const t of CHILD_TABLES)
     await tx
       .update(t)

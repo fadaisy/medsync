@@ -9,12 +9,32 @@ import { useOutbox } from "../../_components/outbox-provider";
 import { findRecordAction } from "../actions";
 
 type Found = { id: string; name: string; registryNumber: string; age: number; sex: string };
-type Row = { id: string; personId: string; status: string; reason: string | null; requestedBy: string; requestedAt: string; survivor: string; loser: string };
+type Row = {
+  id: string;
+  personId: string;
+  status: string;
+  reason: string | null;
+  requestedBy: string;
+  requestedAt: string;
+  survivor: string;
+  loser: string;
+};
 
-const input = "border-input focus-visible:shadow-focus h-10 rounded-lg border bg-transparent px-3 text-[14px] outline-none";
+const input =
+  "border-input focus-visible:shadow-focus h-10 rounded-lg border bg-transparent px-3 text-[14px] outline-none";
 
 /** A7: pick two records, request a merge; a different person approves or refuses it. */
-export function MergePanel({ rows, userId, canRequest, canApprove }: { rows: Row[]; userId: string | null; canRequest: boolean; canApprove: boolean }) {
+export function MergePanel({
+  rows,
+  userId,
+  canRequest,
+  canApprove,
+}: {
+  rows: Row[];
+  userId: string | null;
+  canRequest: boolean;
+  canApprove: boolean;
+}) {
   const { submit } = useOutbox();
   const [nums, setNums] = useState(["", ""]);
   const [found, setFound] = useState<(Found | null)[]>([null, null]);
@@ -33,7 +53,12 @@ export function MergePanel({ rows, userId, canRequest, canApprove }: { rows: Row
     start(async () => {
       const [a, b] = found;
       if (!a || !b) return;
-      const r = await submit("merge.request", { mergeId: crypto.randomUUID(), personId: a.id, loserPersonId: b.id, reason });
+      const r = await submit("merge.request", {
+        mergeId: crypto.randomUUID(),
+        personId: a.id,
+        loserPersonId: b.id,
+        reason,
+      });
       setMsg(r.ok ? "Merge requested. A different person must approve it." : r.message);
       if (r.ok) {
         setFound([null, null]);
@@ -44,7 +69,13 @@ export function MergePanel({ rows, userId, canRequest, canApprove }: { rows: Row
   const decide = (row: Row, approve: boolean) =>
     start(async () => {
       const r = await submit("merge.decide", { mergeId: row.id, personId: row.personId, approve });
-      setMsg(r.ok ? (approve ? "Merged. The second record now points to the first." : "Merge refused.") : r.message);
+      setMsg(
+        r.ok
+          ? approve
+            ? "Merged. The second record now points to the first."
+            : "Merge refused."
+          : r.message,
+      );
     });
 
   const pendingRows = rows.filter((r) => r.status === "requested");
@@ -64,27 +95,51 @@ export function MergePanel({ rows, userId, canRequest, canApprove }: { rows: Row
                 {i === 0 ? "Record to keep (registry number)" : "Duplicate record to merge into it"}
               </label>
               <div className="flex gap-2">
-                <input id={`merge-${i}`} value={nums[i]} onChange={(e) => setNums((n) => (i === 0 ? [e.target.value, n[1]!] : [n[0]!, e.target.value]))} className={`${input} min-w-0 flex-1 font-mono`} />
-                <Button variant="secondary" disabled={pending || nums[i]!.trim().length < 3} onClick={() => find(i)}>
+                <input
+                  id={`merge-${i}`}
+                  value={nums[i]}
+                  onChange={(e) =>
+                    setNums((n) => (i === 0 ? [e.target.value, n[1]!] : [n[0]!, e.target.value]))
+                  }
+                  className={`${input} min-w-0 flex-1 font-mono`}
+                />
+                <Button
+                  variant="secondary"
+                  disabled={pending || nums[i]!.trim().length < 3}
+                  onClick={() => find(i)}
+                >
                   Find
                 </Button>
               </div>
               {found[i] ? (
                 <p className="text-body-s">
-                  {found[i]!.name} · {found[i]!.sex} · {found[i]!.age} years · <span className="font-mono">{found[i]!.registryNumber}</span>
+                  {found[i]!.name} · {found[i]!.sex} · {found[i]!.age} years ·{" "}
+                  <span className="font-mono">{found[i]!.registryNumber}</span>
                 </p>
               ) : null}
             </div>
           ))}
           <label className="flex flex-col gap-1 md:col-span-2">
             <span className="text-label">Why these are the same person</span>
-            <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} className={input} />
+            <input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={300}
+              className={input}
+            />
           </label>
           <div className="flex flex-wrap items-center gap-3 md:col-span-2">
-            <Button disabled={pending || !found[0] || !found[1] || !!same || reason.trim().length < 3} onClick={request}>
+            <Button
+              disabled={pending || !found[0] || !found[1] || !!same || reason.trim().length < 3}
+              onClick={request}
+            >
               Request merge
             </Button>
-            <span className="text-caption text-muted-foreground">{same ? "Pick two different records." : "The person who requests a merge cannot approve it."}</span>
+            <span className="text-caption text-muted-foreground">
+              {same
+                ? "Pick two different records."
+                : "The person who requests a merge cannot approve it."}
+            </span>
           </div>
         </div>
       ) : null}
@@ -101,7 +156,8 @@ export function MergePanel({ rows, userId, canRequest, canApprove }: { rows: Row
             return (
               <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 py-3">
                 <span className="text-body-s">
-                  Keep <span className="font-medium">{r.survivor}</span>, merge <span className="font-medium">{r.loser}</span> into it
+                  Keep <span className="font-medium">{r.survivor}</span>, merge{" "}
+                  <span className="font-medium">{r.loser}</span> into it
                 </span>
                 <span className="text-caption text-muted-foreground">
                   Requested {fmtDate(r.requestedAt)}
@@ -112,12 +168,21 @@ export function MergePanel({ rows, userId, canRequest, canApprove }: { rows: Row
                     <Button size="sm" disabled={pending} onClick={() => decide(r, true)}>
                       Approve merge
                     </Button>
-                    <Button size="sm" variant="secondary" disabled={pending} onClick={() => decide(r, false)}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => decide(r, false)}
+                    >
                       Refuse
                     </Button>
                   </span>
                 ) : (
-                  <span className="text-caption text-muted-foreground ml-auto">{mine ? "You requested this. A different person decides." : "Awaiting a registry lead"}</span>
+                  <span className="text-caption text-muted-foreground ml-auto">
+                    {mine
+                      ? "You requested this. A different person decides."
+                      : "Awaiting a registry lead"}
+                  </span>
                 )}
               </li>
             );

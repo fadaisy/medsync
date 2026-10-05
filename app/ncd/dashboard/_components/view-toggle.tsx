@@ -8,7 +8,19 @@ import { ViewSwitcher } from "@/components/medsync/view-switcher";
 import { DASHBOARD_LAYOUT } from "./frame";
 
 /** The Charts and Table switch (F7, §11.4 "always a table"): the table is the charts' text alternative. */
-export function DashboardViews({ title, actions, filters, charts, table }: { title: ReactNode; actions: ReactNode; filters: ReactNode; charts: ReactNode; table: ReactNode }) {
+export function DashboardViews({
+  title,
+  actions,
+  filters,
+  charts,
+  table,
+}: {
+  title: ReactNode;
+  actions: ReactNode;
+  filters: ReactNode;
+  charts: ReactNode;
+  table: ReactNode;
+}) {
   const [view, setView] = useState<"charts" | "table">("charts");
   return (
     <>
@@ -32,7 +44,11 @@ export function DashboardViews({ title, actions, filters, charts, table }: { tit
       {view === "charts" ? (
         charts
       ) : (
-        <section data-region="table" aria-label="Every indicator with numerator and denominator" className={DASHBOARD_LAYOUT.table}>
+        <section
+          data-region="table"
+          aria-label="Every indicator with numerator and denominator"
+          className={DASHBOARD_LAYOUT.table}
+        >
           {table}
         </section>
       )}

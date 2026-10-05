@@ -19,10 +19,18 @@ describe.skipIf(!laneOn)("monthly snapshots", () => {
     lane = await bootLane();
     draft = await ncdFacility(lane.pg, "Snapshot draft facility");
     approved = await ncdFacility(lane.pg, "Snapshot approved facility");
-    await lane.pg.query(
-      `INSERT INTO public.ncd_go_live_request (facility_id, status, requested_by, decided_by, decided_at) VALUES ($1, 'approved', $2, $3, now())`,
-      [approved.facilityId, approved.users.registry_lead, approved.users.clinical_safety_officer],
-    );
+    {
+      const {
+        rows: [gl],
+      } = await lane.pg.query<{ id: string }>(
+        `INSERT INTO public.ncd_go_live_request (facility_id, requested_by) VALUES ($1, $2) RETURNING id`,
+        [approved.facilityId, approved.users.registry_lead],
+      );
+      await lane.pg.query(
+        `UPDATE public.ncd_go_live_request SET status = 'approved', decided_by = $2, decided_at = now() WHERE id = $1`,
+        [gl!.id, approved.users.clinical_safety_officer],
+      );
+    }
   }, 120_000);
 
   it("no report can be signed before go-live", async () => {

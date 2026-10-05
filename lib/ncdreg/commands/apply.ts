@@ -91,7 +91,7 @@ export async function applyCommand(ctx: NcdContext, raw: unknown): Promise<Comma
           .from(ncdCommandLog)
           .where(eq(ncdCommandLog.commandId, id));
         if (prior) {
-          if (prior.type !== type)
+          if (prior.type !== type || prior.personId !== (payload.personId ?? null))
             throw new NcdError("conflict", "This command id was used for another command.");
           return { ok: true as const, replayed: true, result: prior.result };
         }

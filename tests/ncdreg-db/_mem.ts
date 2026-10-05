@@ -4,8 +4,9 @@
  * through the real command path (tests/ncdreg-db/calibration.test.ts).
  */
 import type { ScenarioPatient } from "@/lib/ncdreg/demo/catalogue";
-import { dayIso, medicines } from "@/lib/ncdreg/demo/writer";
 import type { Dataset, DPerson } from "@/lib/ncdreg/indicators/dataset";
+
+import { dayIso, medicines } from "@/lib/ncdreg/demo/writer";
 import { egfr, footRisk, kdigoA, kdigoG, visitBp } from "@/lib/ncdreg/standard/calculations";
 
 export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset {
@@ -14,7 +15,11 @@ export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset
     timeZone: "Africa/Kampala",
     persons: ps.map((p, i): DPerson => {
       const birthYear = Number(day0.slice(0, 4)) - p.age_years_at_day_0;
-      const regs = p.registrations.map((r) => ({ id: `${i}:${r.condition}`, condition: r.condition, date: dayIso(day0, r.registered_day) }));
+      const regs = p.registrations.map((r) => ({
+        id: `${i}:${r.condition}`,
+        condition: r.condition,
+        date: dayIso(day0, r.registered_day),
+      }));
       const deathDay = p.events.find((e) => e.type === "death")?.day;
       const visits = p.visits.map((v, j) => {
         const bp = v.bp ? visitBp(v.bp as [number, number][]) : null;
@@ -28,16 +33,21 @@ export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset
           enteredDate: dayIso(day0, v.day),
           bp,
           glucose: v.glucose ? { value: v.glucose.value, type: v.glucose.type } : null,
-          hba1c: v.hba1c ? { percent: v.hba1c.value_percent, resultDate: dayIso(day0, v.hba1c.result_day) } : null,
+          hba1c: v.hba1c
+            ? { percent: v.hba1c.value_percent, resultDate: dayIso(day0, v.hba1c.result_day) }
+            : null,
           weightKg: v.weight_kg ?? null,
           medicines: medicines(v.medicines).codes,
           medicinesRecorded: true,
           missedDoses: v.missed_doses ?? null,
           medicinesObtained: v.medicines_obtained ?? null,
           notObtainedReason: v.medicines_not_obtained_reason ?? null,
-          nextAppointment: v.next_appointment_day != null ? dayIso(day0, v.next_appointment_day) : null,
+          nextAppointment:
+            v.next_appointment_day != null ? dayIso(day0, v.next_appointment_day) : null,
           disposition: null,
-          recordedControl: Object.fromEntries(Object.entries(v.recorded_control ?? {}).map(([c, x]) => [`${i}:${c}`, x])),
+          recordedControl: Object.fromEntries(
+            Object.entries(v.recorded_control ?? {}).map(([c, x]) => [`${i}:${c}`, x]),
+          ),
         };
       });
       // Appointments: one per visit with a next date, created that day; a later one supersedes; death cancels.
@@ -48,7 +58,12 @@ export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset
           date: v.nextAppointment!,
           createdDate: v.date,
           status: j < all.length - 1 ? "superseded" : deathDay != null ? "cancelled" : "pending",
-          updatedDate: j < all.length - 1 ? all[j + 1]!.date : deathDay != null ? dayIso(day0, deathDay) : v.date,
+          updatedDate:
+            j < all.length - 1
+              ? all[j + 1]!.date
+              : deathDay != null
+                ? dayIso(day0, deathDay)
+                : v.date,
           reason: j < all.length - 1 ? "superseded" : deathDay != null ? "death" : null,
         }));
       const reviews = p.reviews.map((r) => {
@@ -56,7 +71,11 @@ export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset
         const data = r as Record<string, unknown>;
         const derived: Record<string, unknown> = {};
         if (r.component === "kidney" && data.creatinine_umol_l != null) {
-          const e = egfr(Number(data.creatinine_umol_l), Number(date.slice(0, 4)) - birthYear, p.sex);
+          const e = egfr(
+            Number(data.creatinine_umol_l),
+            Number(date.slice(0, 4)) - birthYear,
+            p.sex,
+          );
           derived.egfr = e;
           derived.kdigoG = kdigoG(e);
           if (data.urine_test === "acr") derived.kdigoA = kdigoA(Number(data.acr_mg_mmol));
@@ -73,7 +92,14 @@ export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset
         return {
           component: r.component,
           date,
-          data: { ...data, creatinineUmol: data.creatinine_umol_l, urineTest: data.urine_test, examined: data.examined, retinopathyGrade: data.retinopathy_grade, macularOedema: data.macular_oedema },
+          data: {
+            ...data,
+            creatinineUmol: data.creatinine_umol_l,
+            urineTest: data.urine_test,
+            examined: data.examined,
+            retinopathyGrade: data.retinopathy_grade,
+            macularOedema: data.macular_oedema,
+          },
           derived,
         };
       });
@@ -89,9 +115,16 @@ export function toDataset(ps: readonly ScenarioPatient[], day0: string): Dataset
         registrations: regs,
         visits,
         reviews,
-        events: p.events.map((e) => ({ type: e.type, date: dayIso(day0, e.day), admissionReason: e.main_reason ?? null })),
+        events: p.events.map((e) => ({
+          type: e.type,
+          date: dayIso(day0, e.day),
+          admissionReason: e.main_reason ?? null,
+        })),
         appointments: appts,
-        calls: (p.recall?.calls ?? []).map((c) => ({ date: dayIso(day0, c.day), outcome: c.outcome })),
+        calls: (p.recall?.calls ?? []).map((c) => ({
+          date: dayIso(day0, c.day),
+          outcome: c.outcome,
+        })),
       };
     }),
   };

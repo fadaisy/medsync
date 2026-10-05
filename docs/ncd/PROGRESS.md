@@ -45,3 +45,90 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
   (throwaway core module through registration and a closed visit, engine level) 3/3; calculation tests 81/81 (P1 file).
 - The code-search test caught `heart_failure` typed as a literal in the baseline schema (a known-CVD code that shares the
   module code); now derived from the code list.
+
+## P3 — Indicator engine · DONE (performance timing re-run in progress)
+
+- Built: `lib/ncdreg/indicators/{dataset,load,engine,snapshot}.ts` (C01–C16, the generic G01–G06 family for every enabled
+  module, H01–H12, monthly snapshots), the seeded generator `lib/ncdreg/fixtures/generator.ts`, ADR 0212.
+- Golden dataset: 69 patients and the expected numbers written by a separate agent that never read the engine
+  (`tests/ncdreg-db/golden/`), loaded through the commands. **58/58 expectations equal**, every number and the patients
+  behind it; sum checks hold; G04.hypertension = C04–C06 and G04.diabetes = C07–C11 exactly.
+  One expectation pair (C13/C14) was re-derived by hand when D-22 changed the will-return rule (R10 joins C13); recorded
+  in expected.ts with the reason.
+- Snapshot immutability: `tests/ncdreg-db/snapshot.test.ts` 3/3 (signing refused before go-live; signed snapshot refuses
+  update and delete; recompute returns it unchanged).
+- Generator determinism: `tests/ncdreg/generator.test.ts` 3/3.
+- Performance: profiled at 1,000 generated patients: ~14 s per 100 patients written (enrol 11→35 ms as the duplicate
+  search grows, visit ~20 ms); dashboard timings on 2,000 below (two earlier 2,000-patient runs were starved by parallel
+  work and stopped).
+
+## P4 — Command path, identity, administration, go-live · DONE
+
+- Built: `lib/ncdreg/commands/*` (P2) plus `lib/ncdreg/admin.ts` (I2 definition versions with a different approver, I3
+  settings, I4 condition catalogue, roles, §8.3 go-live request and approval), the client outbox
+  `lib/ncdreg/offline/{store,outbox}.ts`, ADRs 0209–0211.
+- Checks: `tests/ncdreg/identity.test.ts` 10/10 (the catalogue's duplicate_check_demo lands in its tiers; fixture pairs);
+  `tests/ncdreg-db/enrolment.test.ts` 9/9 (A1 token, A2 server-side, A3, A4, A5, A6, idempotency, A7 merge);
+  `tests/ncdreg-db/interlocks.test.ts` 8/8 (real person refused before go-live, DEMO- series, draft module before/after
+  go-live, go-live refused with synthetic persons or a draft core module, same-user and non-CSO approval refused,
+  I2 four-eyes, role limits); `tests/ncdreg/outbox.test.ts` 8/8 (fake IndexedDB).
+- **CHECKPOINT 2** passed (continuous mode).
+
+## P5 — Today's clinic and visit capture · DONE
+
+- Built: `/ncd` Today's clinic, `/ncd/enrol`, `/ncd/patients`, `/ncd/patients/[id]` (record, reviews, events, late lab),
+  `/ncd/visit/[id]` and its phone view, shared kit, event dialog, `lib/ncdreg/visit-form.ts`, read models.
+- Checks: `tests/ncdreg-db/visit.test.ts` 10/10 (B1, B3, B4, B7, B8 with audit, B9, D1, G2, every hard block, confirm
+  never block, C2); `tests/ncdreg/visit-form.test.ts` 32/32 (**speed budget: 9 required inputs** for diabetes +
+  hypertension with unchanged medicines; each core registration adds ≤ 2; B9 assembly incl. a throwaway module; B2, B6,
+  G1; every confirm range; every consistency query).
+
+## P6 — Recall · DONE (lane C)
+
+- Built: `lib/ncdreg/recall/*` (banned terms from the catalogue, templates with two approvers, the transport boundary,
+  the send-time dispatcher), `/ncd/recall`, `/ncd/recall/templates`, cron route. Notes: `docs/ncd/lanes/C.md`.
+- Checks: `tests/ncdreg/recall.test.ts` 7/7 (E4 banned-term scan, E3 quiet hours); `tests/ncdreg-db/recall.test.ts` 7/7
+  (E5 two approvers, E4 refusal, only approved templates sent, quiet hours, D1 no send after death, E6 opt-out at send
+  time, interlock 3 synthetic never dispatched under any transport).
+
+## P7 — Annual review and events · DONE
+
+- C1/C2 forms and calculations, C3 list (`/ncd/reviews`), D2 event form from the record and the patients list, D3 reasons.
+- Checks: C2 in `visit.test.ts`; C3 boundary dates in `visit-form.test.ts` (12 months exactly, less a day, 30/31 days).
+
+## P8 — Dashboards, reports, quality, demo data · DONE (calibration gate run pending)
+
+- Built (lane B): `/ncd/dashboard` (F1, F3, F6, F7, §11.4 charts), drill-down, `/ncd/report/[month]` (F5). Lane C:
+  `/ncd/my`, `/ncd/quality` (G3, G4, A7 UI). Mine: `/ncd/admin`, the demo service `lib/ncdreg/demo/{catalogue,source,
+writer,service}.ts`, cron continuation, ADR 0213.
+- Checks: `tests/ncdreg/dashboard.test.ts` 13/13 (suppression 1–4 and the synthetic exemption, shared scale, G02 order,
+  colour ramp, F7 layout contract on markup — no browser runner, so "four rows visible at 1440×1000" is unverified);
+  `tests/ncdreg-db/quality.test.ts` 4/4 (G4 reproducible from its seed); **acceptance walk `tests/ncdreg-db/demo.test.ts`
+  13/13** (every expect block, 9 day-0 stages and arrival times, featured trajectory 6 visits, 8 overdue in order with
+  last outcomes, duplicate tiers, one dashboard row per enabled condition, same-day duplicate query, interlocks 1, 2, 4, 7,
+  idempotent replay, removal without residue keeping a hand-entered synthetic person and the audit log, modules restored);
+  `tests/ncdreg/interlocks-static.test.ts` 5/5 (interlock 9 banner; interlock 5 only the snapshot module writes indicator
+  values). Interlock 8 in `interlocks.test.ts`; interlock 3 in lane C; interlock 6 in P10.
+- Calibration: five tuning rounds on an in-memory mirror (D-26): round 1 30/38, round 2 30/38, round 3 33/38, round 4
+  35/38 (kept), round 5 33/38. Known gaps after round 5: C07, H08 dialysis_start, H08 amputation. The database-backed gate
+  run (`tests/ncdreg-db/calibration.test.ts`) writes `docs/ncd/calibration-result.md`.
+- **CHECKPOINT 3** passed (continuous mode).
+
+## P9 — Offline · DONE
+
+- Built: `lib/ncdreg/offline/cache.ts`, the outbox provider with sync state and sign-out purge, `public/ncd-sw.js`
+  (scope /ncd; static shell and hashed assets only, D-24), `/ncd-offline`, the NCD manifest.
+- Checks: outbox, replay, ordering, back-off, permanent refusal notes, encryption at rest, non-extractable key, cache
+  replaced whole (removed demo records leave the device), purge only when the outbox is empty: `tests/ncdreg/outbox.test.ts`
+  8/8. Conflict rule (same-day duplicate kept and queried): acceptance walk. No browser-level offline test (no runner).
+
+## P10 — Exchange · DONE
+
+- Built: `lib/ncdreg/exchange/{index,legacy}.ts`, `lib/ncdreg/exchange/dhis2-mapping.json` (shipped empty), `/ncd/exchange`
+  and its download route.
+- Checks: `tests/ncdreg-db/exchange.test.ts` 7/7 (DHIS2 refuses with empty identifiers, runs once mapped; FHIR refuses
+  unverified codes, and with the development flag every resource passes the R4 structure schemas; four-eyes release; no
+  identifier field or value in the research extract; full export with the dictionary, logged; legacy dry run reports a
+  row error and a probable duplicate and refuses to apply, a clean file imports as back-entry; **interlock 6**).
+- Generated: `DATA-INVENTORY.md` (28 tables). Written: `HAZARD-LOG.md` (12 hazards), `USER-GUIDE.md`, ADRs 0209–0213.
+- **CHECKPOINT 4** passed (continuous mode).

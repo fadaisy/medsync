@@ -5,17 +5,26 @@
  */
 import "server-only";
 
+import type { NcdContext } from "../context";
+import type { NcdTx } from "../db";
+import type { DPerson } from "../indicators/dataset";
 import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 
-import { ncdAccessEvent, ncdAppointment, ncdCall, ncdObservation, ncdPerson, ncdVisit } from "@/db/schema";
+import {
+  ncdAccessEvent,
+  ncdAppointment,
+  ncdCall,
+  ncdNameIndex,
+  ncdObservation,
+  ncdPerson,
+  ncdVisit,
+} from "@/db/schema";
 import { formatUgPhone } from "@/lib/onboarding/fields";
-
-import { authorize, can, type NcdContext } from "../context";
-import { dec } from "../crypto";
-import { facilitySettings } from "../commands/shared";
-import { withNcd, type NcdTx } from "../db";
+import { facilitySettings, medicineAdditions } from "../commands/shared";
+import { authorize, can } from "../context";
+import { dec, nameTokenHmacs } from "../crypto";
+import { withNcd } from "../db";
 import { normalisePhone } from "../identity";
-import type { DPerson } from "../indicators/dataset";
 import { loadDataset } from "../indicators/load";
 import { CLASS_LABELS } from "../standard/classifications";
 import {
@@ -74,8 +83,51 @@ const mask = (p: string) => {
   return `${f.slice(0, 4)} ••• ${f.slice(-3)}`;
 };
 
-export async function identities(ctx: NcdContext, ids: readonly string[], tx?: NcdTx): Promise<Map<string, Identity>> {
+export async function identities(
+  ctx: NcdContext,
+  ids: readonly string[],
+  tx?: NcdTx,
+): Promise<Map<string, Identity>> {
   if (!ids.length) return new Map();
+  // §8.1: identifiers only for roles that may reveal them; everyone else sees registry number, sex and age.
+  if (!can(ctx, "identifier_reveal")) {
+    const rows = await withNcd(
+      ctx,
+      "analytics",
+      (t) =>
+        t
+          .select({
+            id: ncdPerson.id,
+            reg: ncdPerson.registryNumber,
+            syn: ncdPerson.isSynthetic,
+            sex: ncdPerson.sex,
+            birthYear: ncdPerson.birthYear,
+            district: ncdPerson.districtName,
+          })
+          .from(ncdPerson)
+          .where(inArray(ncdPerson.id, [...ids])),
+      ctx.db,
+    );
+    const year = Number(ctx.today.slice(0, 4));
+    return new Map(
+      rows.map((r) => [
+        r.id,
+        {
+          id: r.id,
+          name: r.reg,
+          initials: "",
+          registryNumber: r.reg,
+          isSynthetic: r.syn,
+          sex: r.sex as "female" | "male",
+          age: year - r.birthYear,
+          phones: [],
+          smsAllowed: false,
+          callsAllowed: false,
+          district: r.district,
+        },
+      ]),
+    );
+  }
   const read = async (t: NcdTx) =>
     t
       .select({
@@ -135,7 +187,11 @@ export async function revealPhone(ctx: NcdContext, personId: string, slot: 1 | 2
     "app",
     async (tx) => {
       const [p] = await tx
-        .select({ p1: ncdPerson.phone1Ciphertext, p2: ncdPerson.phone2Ciphertext, syn: ncdPerson.isSynthetic })
+        .select({
+          p1: ncdPerson.phone1Ciphertext,
+          p2: ncdPerson.phone2Ciphertext,
+          syn: ncdPerson.isSynthetic,
+        })
         .from(ncdPerson)
         .where(eq(ncdPerson.id, personId));
       if (!p) return null;
@@ -165,7 +221,10 @@ export type ClinicRow = {
   reviewDue: string[];
 };
 
-export async function todayClinic(ctx: NcdContext, date = ctx.today): Promise<{ rows: ClinicRow[]; expected: number; closed: number }> {
+export async function todayClinic(
+  ctx: NcdContext,
+  date = ctx.today,
+): Promise<{ rows: ClinicRow[]; expected: number; closed: number }> {
   authorize(ctx, "person_search", "demo_write");
   const { appts, visits } = await withNcd(
     ctx,
@@ -174,18 +233,38 @@ export async function todayClinic(ctx: NcdContext, date = ctx.today): Promise<{ 
       const appts = await tx
         .select({ id: ncdAppointment.id, personId: ncdAppointment.personId })
         .from(ncdAppointment)
-        .where(and(eq(ncdAppointment.appointmentDate, date), inArray(ncdAppointment.status, ["pending", "attended"])));
+        .where(
+          and(
+            eq(ncdAppointment.appointmentDate, date),
+            inArray(ncdAppointment.status, ["pending", "attended"]),
+          ),
+        );
       const visits = await tx
-        .select({ id: ncdVisit.id, personId: ncdVisit.personId, stage: ncdVisit.stage, arrivedAt: ncdVisit.arrivedAt, appointmentId: ncdVisit.appointmentId, status: ncdVisit.status })
+        .select({
+          id: ncdVisit.id,
+          personId: ncdVisit.personId,
+          stage: ncdVisit.stage,
+          arrivedAt: ncdVisit.arrivedAt,
+          appointmentId: ncdVisit.appointmentId,
+          status: ncdVisit.status,
+        })
         .from(ncdVisit)
-        .where(and(eq(ncdVisit.visitDate, date), eq(ncdVisit.isInvalid, false), eq(ncdVisit.isHistorical, false)))
+        .where(
+          and(
+            eq(ncdVisit.visitDate, date),
+            eq(ncdVisit.isInvalid, false),
+            eq(ncdVisit.isHistorical, false),
+          ),
+        )
         .orderBy(asc(ncdVisit.arrivedAt));
       await logAccess(ctx, "list_view", null, { list: "today", date }, tx);
       return { appts, visits };
     },
     ctx.db,
   );
-  const personIds = [...new Set([...appts.map((a) => a.personId), ...visits.map((v) => v.personId)])];
+  const personIds = [
+    ...new Set([...appts.map((a) => a.personId), ...visits.map((v) => v.personId)]),
+  ];
   const [ids, ds] = await Promise.all([identities(ctx, personIds), loadDataset(ctx, personIds)]);
   const byId = new Map(ds.persons.map((p) => [p.id, p]));
   const rows: ClinicRow[] = [];
@@ -200,7 +279,9 @@ export async function todayClinic(ctx: NcdContext, date = ctx.today): Promise<{ 
     const lastBp = [...prior].reverse().find((v) => v.bp);
     const lastGlu = [...prior].reverse().find((v) => v.glucose);
     const mods = modulesOf(p, ctx.catalogue);
-    const glucoseApplies = mods.some(({ module: m }) => m.visit_fields.some((f) => f.code === "glucose"));
+    const glucoseApplies = mods.some(({ module: m }) =>
+      m.visit_fields.some((f) => f.code === "glucose"),
+    );
     rows.push({
       personId,
       identity: idn,
@@ -212,60 +293,138 @@ export async function todayClinic(ctx: NcdContext, date = ctx.today): Promise<{ 
       walkIn: !appt,
       lastBp: lastBp?.bp ? `${lastBp.bp[0]}/${lastBp.bp[1]}` : null,
       lastBpTone: lastBp?.bp ? (lastBp.bp[0] < 140 && lastBp.bp[1] < 90 ? "in" : "out") : null,
-      lastGlucose: glucoseApplies && lastGlu?.glucose ? `${lastGlu.glucose.value.toFixed(1)} ${lastGlu.glucose.type === "fasting" ? "fasting" : lastGlu.glucose.type === "random" ? "random" : "after meal"}` : null,
+      lastGlucose:
+        glucoseApplies && lastGlu?.glucose
+          ? `${lastGlu.glucose.value.toFixed(1)} ${lastGlu.glucose.type === "fasting" ? "fasting" : lastGlu.glucose.type === "random" ? "random" : "after meal"}`
+          : null,
       glucoseApplies,
-      reviewDue: reviewsDue(p, ctx.catalogue, date).filter((r) => r.due).map((r) => r.component),
+      reviewDue: reviewsDue(p, ctx.catalogue, date)
+        .filter((r) => r.due)
+        .map((r) => r.component),
     });
   }
-  const order = { with_clinician: 0, measurements_taken: 1, waiting: 2, not_arrived: 3, closed: 4 } as const;
-  rows.sort((a, b) => order[a.stage] - order[b.stage] || (a.arrivedAt ?? "z").localeCompare(b.arrivedAt ?? "z"));
+  const order = {
+    with_clinician: 0,
+    measurements_taken: 1,
+    waiting: 2,
+    not_arrived: 3,
+    closed: 4,
+  } as const;
+  rows.sort(
+    (a, b) =>
+      order[a.stage] - order[b.stage] || (a.arrivedAt ?? "z").localeCompare(b.arrivedAt ?? "z"),
+  );
   return { rows, expected: rows.length, closed: rows.filter((r) => r.stage === "closed").length };
 }
 
 /* ─── Patients ─────────────────────────────────────────────────────────── */
 
-export async function patientsList(ctx: NcdContext, o: { q?: string; limit?: number; offset?: number } = {}) {
-  authorize(ctx, "person_search", "drill_down", "recall_work", "demo_write");
-  const { idsPage, total } = await withNcd(
+export async function patientsList(ctx: NcdContext, o: { limit?: number; offset?: number } = {}) {
+  authorize(ctx, "person_search", "recall_work", "demo_write");
+  const limit = o.limit ?? 50;
+  const { page, total } = await withNcd(
     ctx,
     "app",
     async (tx) => {
-      const all = await tx
-        .select({ id: ncdPerson.id, reg: ncdPerson.registryNumber })
+      const page = await tx
+        .select({ id: ncdPerson.id })
         .from(ncdPerson)
         .where(and(eq(ncdPerson.facilityId, ctx.facilityId), isNull(ncdPerson.mergedIntoId)))
-        .orderBy(desc(ncdPerson.enteredAt));
-      await logAccess(ctx, "list_view", null, { list: "patients" }, tx);
-      return { idsPage: all, total: all.length };
+        .orderBy(desc(ncdPerson.enteredAt), asc(ncdPerson.id))
+        .limit(limit)
+        .offset(o.offset ?? 0);
+      const [{ n } = { n: 0 }] = await tx
+        .select({ n: sql<number>`count(*)::int` })
+        .from(ncdPerson)
+        .where(and(eq(ncdPerson.facilityId, ctx.facilityId), isNull(ncdPerson.mergedIntoId)));
+      await logAccess(ctx, "list_view", null, { list: "patients", offset: o.offset ?? 0 }, tx);
+      return { page, total: n };
     },
     ctx.db,
   );
-  const ids = await identities(ctx, idsPage.map((r) => r.id));
-  const q = o.q?.trim().toLowerCase();
-  const matched = [...ids.values()].filter((i) => !q || i.name.toLowerCase().includes(q) || i.registryNumber.toLowerCase().includes(q));
-  const page = matched.slice(o.offset ?? 0, (o.offset ?? 0) + (o.limit ?? 50));
-  const ds = await loadDataset(ctx, page.map((p) => p.id));
-  const byId = new Map(ds.persons.map((p) => [p.id, p]));
   return {
     total,
-    matched: matched.length,
-    rows: page.map((idn) => {
-      const p = byId.get(idn.id)!;
+    rows: await listRows(
+      ctx,
+      page.map((r) => r.id),
+    ),
+  };
+}
+
+async function listRows(ctx: NcdContext, ids: string[]) {
+  const [idn, ds] = await Promise.all([identities(ctx, ids), loadDataset(ctx, ids)]);
+  const byId = new Map(ds.persons.map((p) => [p.id, p]));
+  return ids
+    .filter((id) => idn.has(id) && byId.has(id))
+    .map((id) => {
+      const p = byId.get(id)!;
       return {
-        identity: idn,
-        conditions: modulesOf(p, ctx.catalogue).map(({ module: m }) => ({ code: m.code, label: m.label })),
+        identity: idn.get(id)!,
+        conditions: modulesOf(p, ctx.catalogue).map(({ module: m }) => ({
+          code: m.code,
+          label: m.label,
+        })),
         status: statusOf(p, ctx.today),
         lastVisit: closedVisits(p).at(-1)?.date ?? null,
         careBand: careBandOf(p, ctx.today),
       };
-    }),
-  };
+    });
+}
+
+/**
+ * Search the register without putting a name in a URL (§8.2): an exact registry number, or the name
+ * tokens through their blind indexes. Returns at most 20 patients.
+ */
+export async function patientSearch(ctx: NcdContext, q: string) {
+  authorize(ctx, "person_search", "recall_work", "demo_write");
+  const text = q.trim();
+  if (text.length < 2) return [];
+  const ids = await withNcd(
+    ctx,
+    "app",
+    async (tx) => {
+      if (/^(ncd|demo)-/i.test(text)) {
+        const r = await tx
+          .select({ id: ncdPerson.id })
+          .from(ncdPerson)
+          .where(
+            and(
+              eq(ncdPerson.facilityId, ctx.facilityId),
+              sql`upper(${ncdPerson.registryNumber}) = upper(${text})`,
+            ),
+          );
+        return r.map((x) => x.id);
+      }
+      const tokens = nameTokenHmacs(text, "");
+      if (!tokens.length) return [];
+      const r = await tx
+        .selectDistinct({ id: ncdNameIndex.personId })
+        .from(ncdNameIndex)
+        .innerJoin(ncdPerson, eq(ncdPerson.id, ncdNameIndex.personId))
+        .where(
+          and(
+            eq(ncdNameIndex.facilityId, ctx.facilityId),
+            inArray(ncdNameIndex.tokenHmac, tokens),
+            isNull(ncdPerson.mergedIntoId),
+          ),
+        )
+        .limit(20);
+      await logAccess(ctx, "search", null, { tokens: tokens.length, found: r.length }, tx);
+      return r.map((x) => x.id);
+    },
+    ctx.db,
+  );
+  return listRows(ctx, ids);
 }
 
 /* ─── Patient record (and the visit screen's header + trajectory) ──────── */
 
-export async function personView(ctx: NcdContext, personId: string, o: { audit?: boolean } = { audit: true }) {
-  authorize(ctx, "person_search", "drill_down", "recall_work", "data_quality", "demo_write");
+export async function personView(
+  ctx: NcdContext,
+  personId: string,
+  o: { audit?: boolean } = { audit: true },
+) {
+  authorize(ctx, "person_search", "recall_work", "data_quality", "demo_write");
   const [ids, ds] = await Promise.all([identities(ctx, [personId]), loadDataset(ctx, [personId])]);
   const identity = ids.get(personId);
   const p = ds.persons[0];
@@ -281,7 +440,7 @@ export async function personView(ctx: NcdContext, personId: string, o: { audit?:
     reviews: reviewsDue(p, ctx.catalogue, ctx.today),
     trajectory: trajectory(p),
     kidney: latestKidney(p),
-    grade: gradeFromLatest(p),
+    grade: gradeFromLatest(p, ctx.catalogue),
     lastClasses: lastClasses(p, ctx.catalogue),
     appointment: currentAppointment(p),
     overdueDays: overdueDays(p, ctx.today),
@@ -314,7 +473,10 @@ export async function recallList(ctx: NcdContext) {
     if (d != null) overdue.push({ p, days: d });
   }
   // E1: days overdue, then the outcome class at the last visit (rule modules only: not in range first).
-  const ids = await identities(ctx, overdue.map((o) => o.p.id));
+  const ids = await identities(
+    ctx,
+    overdue.map((o) => o.p.id),
+  );
   const rows: RecallRow[] = overdue.map(({ p, days }) => {
     const cls = lastClasses(p, ctx.catalogue).filter((c) => !c.clinicianRecorded);
     const lastCall = [...p.calls].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
@@ -331,7 +493,11 @@ export async function recallList(ctx: NcdContext) {
       noPhone: !p.hasValidPhone,
     };
   });
-  rows.sort((a, b) => b.daysOverdue - a.daysOverdue || Number(a.classes.every((c) => c.leading)) - Number(b.classes.every((c) => c.leading)));
+  rows.sort(
+    (a, b) =>
+      b.daysOverdue - a.daysOverdue ||
+      Number(a.classes.every((c) => c.leading)) - Number(b.classes.every((c) => c.leading)),
+  );
   await logAccess(ctx, "list_view", null, { list: "recall", count: rows.length });
   return rows;
 }
@@ -343,12 +509,22 @@ export async function reviewsDueList(ctx: NcdContext) {
   const ds = await loadDataset(ctx);
   const due = ds.persons
     .filter((p) => !["died", "withdrawn", "transferred_out"].includes(statusOf(p, ctx.today)))
-    .map((p) => ({ p, reviews: reviewsDue(p, ctx.catalogue, ctx.today).filter((r) => r.due || r.dueSoon) }))
+    .map((p) => ({
+      p,
+      reviews: reviewsDue(p, ctx.catalogue, ctx.today).filter((r) => r.due || r.dueSoon),
+    }))
     .filter((x) => x.reviews.length);
-  const ids = await identities(ctx, due.map((d) => d.p.id));
+  const ids = await identities(
+    ctx,
+    due.map((d) => d.p.id),
+  );
   await logAccess(ctx, "list_view", null, { list: "reviews_due", count: due.length });
   return due
-    .map(({ p, reviews }) => ({ identity: ids.get(p.id)!, reviews, earliest: reviews.map((r) => r.dueOn).sort()[0]! }))
+    .map(({ p, reviews }) => ({
+      identity: ids.get(p.id)!,
+      reviews,
+      earliest: reviews.map((r) => r.dueOn).sort()[0]!,
+    }))
     .sort((a, b) => a.earliest.localeCompare(b.earliest));
 }
 
@@ -368,17 +544,36 @@ export async function myPanel(ctx: NcdContext, demoOn: boolean) {
         .where(
           and(
             eq(ncdVisit.facilityId, ctx.facilityId),
-            demoOn ? sql`(${ncdVisit.clinicianSavedBy} = ${ctx.userId} OR ${ncdPerson.isSynthetic})` : eq(ncdVisit.clinicianSavedBy, ctx.userId!),
+            demoOn
+              ? sql`(${ncdVisit.clinicianSavedBy} = ${ctx.userId} OR ${ncdPerson.isSynthetic})`
+              : eq(ncdVisit.clinicianSavedBy, ctx.userId!),
           ),
         ),
     ctx.db,
   );
-  const ds = await loadDataset(ctx, seen.map((s) => s.id));
-  const lists = { not_leading: [] as string[], review_due: [] as string[], overdue: [] as string[] };
+  const ds = await loadDataset(
+    ctx,
+    seen.map((s) => s.id),
+  );
+  const lists = {
+    not_leading: [] as string[],
+    review_due: [] as string[],
+    overdue: [] as string[],
+  };
   for (const p of ds.persons) {
     const st = statusOf(p, ctx.today);
     if (["died", "withdrawn", "transferred_out"].includes(st)) continue;
-    if (lastClasses(p, ctx.catalogue).some((c) => !c.leading && c.cls !== "not_recorded")) lists.not_leading.push(p.id);
+    // Rule-classified modules only, and only a real "not in range": not recorded / not classifiable are not a result.
+    if (
+      lastClasses(p, ctx.catalogue).some(
+        (c) =>
+          !c.clinicianRecorded &&
+          !c.leading &&
+          c.cls !== "not_recorded" &&
+          c.cls !== "not_classifiable",
+      )
+    )
+      lists.not_leading.push(p.id);
     if (reviewsDue(p, ctx.catalogue, ctx.today).some((r) => r.due)) lists.review_due.push(p.id);
     if (st === "overdue") lists.overdue.push(p.id);
   }
@@ -386,7 +581,16 @@ export async function myPanel(ctx: NcdContext, demoOn: boolean) {
 }
 
 export async function callsToday(ctx: NcdContext) {
-  return withNcd(ctx, "app", (tx) => tx.select().from(ncdCall).where(and(gte(ncdCall.callDate, ctx.today), lte(ncdCall.callDate, ctx.today))), ctx.db);
+  return withNcd(
+    ctx,
+    "app",
+    (tx) =>
+      tx
+        .select()
+        .from(ncdCall)
+        .where(and(gte(ncdCall.callDate, ctx.today), lte(ncdCall.callDate, ctx.today))),
+    ctx.db,
+  );
 }
 
 export { CLASS_LABELS, can, classesAtVisit };
@@ -403,14 +607,35 @@ export async function visitView(ctx: NcdContext, visitId: string) {
       if (!visit) return null;
       const obs = await tx.select().from(ncdObservation).where(eq(ncdObservation.visitId, visitId));
       const [prev] = await tx
-        .select({ medicines: ncdVisit.medicines, other: ncdVisit.medicinesOtherCiphertext, date: ncdVisit.visitDate })
+        .select({
+          medicines: ncdVisit.medicines,
+          other: ncdVisit.medicinesOtherCiphertext,
+          date: ncdVisit.visitDate,
+        })
         .from(ncdVisit)
-        .where(and(eq(ncdVisit.personId, visit.personId), eq(ncdVisit.status, "closed"), eq(ncdVisit.isInvalid, false), sql`${ncdVisit.id} <> ${visitId}`))
+        .where(
+          and(
+            eq(ncdVisit.personId, visit.personId),
+            eq(ncdVisit.status, "closed"),
+            eq(ncdVisit.isInvalid, false),
+            sql`${ncdVisit.id} <> ${visitId}`,
+          ),
+        )
         .orderBy(desc(ncdVisit.visitDate), desc(ncdVisit.closedAt))
         .limit(1);
       const settings = await facilitySettings(tx, ctx);
-      const [h] = await tx.select({ height: ncdPerson.heightCm }).from(ncdPerson).where(eq(ncdPerson.id, visit.personId));
-      return { visit, obs, prev: prev ?? null, settings, heightCm: h?.height ?? null };
+      const [h] = await tx
+        .select({ height: ncdPerson.heightCm })
+        .from(ncdPerson)
+        .where(eq(ncdPerson.id, visit.personId));
+      return {
+        visit,
+        obs,
+        prev: prev ?? null,
+        settings,
+        heightCm: h?.height ?? null,
+        extraMedicines: await medicineAdditions(tx, ctx),
+      };
     },
     ctx.db,
   );
@@ -431,8 +656,12 @@ export async function visitView(ctx: NcdContext, visitId: string) {
       bp: v.bpReadings,
       visitBp: v.visitSystolic != null ? `${v.visitSystolic}/${v.visitDiastolic}` : null,
       bmi: v.bmi,
-      glucose: v.glucoseMmol != null ? { value: v.glucoseMmol, type: v.glucoseType, method: v.glucoseMethod } : null,
-      hba1c: v.hba1cPercent != null ? { percent: v.hba1cPercent, resultDate: v.hba1cResultDate } : null,
+      glucose:
+        v.glucoseMmol != null
+          ? { value: v.glucoseMmol, type: v.glucoseType, method: v.glucoseMethod }
+          : null,
+      hba1c:
+        v.hba1cPercent != null ? { percent: v.hba1cPercent, resultDate: v.hba1cResultDate } : null,
       medicines: v.medicines,
       medicinesOther: dec(v.medicinesOtherCiphertext),
       medicinesConfirmedUnchanged: v.medicinesConfirmedUnchanged,
@@ -444,10 +673,17 @@ export async function visitView(ctx: NcdContext, visitId: string) {
       disposition: v.disposition,
       nurseSavedAt: v.nurseSavedAt?.toISOString() ?? null,
       clinicianSavedAt: v.clinicianSavedAt?.toISOString() ?? null,
-      observations: data.obs.map((o) => ({ registrationId: o.registrationId, code: o.code, value: o.valueText ?? o.valueNum })),
+      observations: data.obs.map((o) => ({
+        registrationId: o.registrationId,
+        code: o.code,
+        value: o.valueText ?? o.valueNum,
+      })),
     },
-    carried: data.prev ? { codes: data.prev.medicines, other: dec(data.prev.other), from: data.prev.date } : null,
+    carried: data.prev
+      ? { codes: data.prev.medicines, other: dec(data.prev.other), from: data.prev.date }
+      : null,
     intervalsWeeks: data.settings.defaultIntervalWeeks,
+    extraMedicines: data.extraMedicines,
     glucoseUnit: data.settings.glucoseUnit,
     heightCm: data.heightCm,
   };
@@ -456,7 +692,7 @@ export type VisitView = NonNullable<Awaited<ReturnType<typeof visitView>>>;
 
 /** Details tab: identifiers decrypted for the record view (already audited by personView). */
 export async function personDetails(ctx: NcdContext, personId: string) {
-  authorize(ctx, "person_search", "drill_down", "recall_work", "data_quality", "demo_write");
+  authorize(ctx, "identifier_reveal", "demo_write");
   return withNcd(
     ctx,
     "app",

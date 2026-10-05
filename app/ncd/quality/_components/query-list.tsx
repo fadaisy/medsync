@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useState, useTransition } from "react";
 
 import { Tag } from "@/components/medsync/tag";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,27 @@ import { fmtDate } from "../../_components/kit";
 import { useOutbox } from "../../_components/outbox-provider";
 import { FilterChipLink } from "../../my/_components/filter-link";
 
-type Row = { id: string; personId: string; ruleText: string; status: string; note: string | null; created: string; name: string; registryNumber: string };
+type Row = {
+  id: string;
+  personId: string;
+  ruleText: string;
+  status: string;
+  note: string | null;
+  created: string;
+  name: string;
+  registryNumber: string;
+};
 
 /** G3: queries from the consistency rules, each with a status and a resolution note. */
-export function QueryList({ rows, status, canResolve }: { rows: Row[]; status: "open" | "closed"; canResolve: boolean }) {
+export function QueryList({
+  rows,
+  status,
+  canResolve,
+}: {
+  rows: Row[];
+  status: "open" | "closed";
+  canResolve: boolean;
+}) {
   return (
     <section aria-labelledby="queries-h" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -20,10 +37,18 @@ export function QueryList({ rows, status, canResolve }: { rows: Row[]; status: "
           Query list
         </h2>
         <span className="ml-auto flex gap-2">
-          <FilterChipLink href="/ncd/quality?queries=open" active={status === "open"} count={status === "open" ? rows.length : 0}>
+          <FilterChipLink
+            href="/ncd/quality?queries=open"
+            active={status === "open"}
+            count={status === "open" ? rows.length : 0}
+          >
             Open
           </FilterChipLink>
-          <FilterChipLink href="/ncd/quality?queries=closed" active={status === "closed"} count={status === "closed" ? rows.length : 0}>
+          <FilterChipLink
+            href="/ncd/quality?queries=closed"
+            active={status === "closed"}
+            count={status === "closed" ? rows.length : 0}
+          >
             Resolved
           </FilterChipLink>
         </span>
@@ -35,7 +60,9 @@ export function QueryList({ rows, status, canResolve }: { rows: Row[]; status: "
           ))}
         </ul>
       ) : (
-        <p className="text-body-s text-muted-foreground">{status === "open" ? "No open queries." : "No resolved queries yet."}</p>
+        <p className="text-body-s text-muted-foreground">
+          {status === "open" ? "No open queries." : "No resolved queries yet."}
+        </p>
       )}
     </section>
   );
@@ -49,15 +76,24 @@ function QueryRow({ row, canResolve }: { row: Row; canResolve: boolean }) {
   const [pending, start] = useTransition();
   const resolve = (status: "resolved" | "dismissed") =>
     start(async () => {
-      const r = await submit("query.resolve", { queryId: row.id, personId: row.personId, status, note });
+      const r = await submit("query.resolve", {
+        queryId: row.id,
+        personId: row.personId,
+        status,
+        note,
+      });
       setMsg(r.ok ? null : r.message);
     });
   const noteId = `note-${row.id}`;
   return (
     <li className="flex flex-col gap-2 px-1 py-3">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <Link href={`/ncd/patients/${row.personId}`} className="text-foreground font-medium underline-offset-4 hover:underline">
-          {row.name} <span className="text-caption text-muted-foreground font-mono">{row.registryNumber}</span>
+        <Link
+          href={`/ncd/patients/${row.personId}`}
+          className="text-foreground font-medium underline-offset-4 hover:underline"
+        >
+          {row.name}{" "}
+          <span className="text-caption text-muted-foreground font-mono">{row.registryNumber}</span>
         </Link>
         <span className="text-body-s">{row.ruleText}</span>
         <span className="text-caption text-muted-foreground">Raised {fmtDate(row.created)}</span>
@@ -72,12 +108,26 @@ function QueryRow({ row, canResolve }: { row: Row; canResolve: boolean }) {
             <label htmlFor={noteId} className="text-label">
               Resolution note
             </label>
-            <textarea id={noteId} value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={300} className="border-input focus-visible:shadow-focus rounded-lg border bg-transparent p-2 text-[14px] outline-none" />
+            <textarea
+              id={noteId}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              maxLength={300}
+              className="border-input focus-visible:shadow-focus rounded-lg border bg-transparent p-2 text-[14px] outline-none"
+            />
             <div className="flex flex-wrap gap-2">
-              <Button disabled={pending || note.trim().length < 3} onClick={() => resolve("resolved")}>
+              <Button
+                disabled={pending || note.trim().length < 3}
+                onClick={() => resolve("resolved")}
+              >
                 Resolve
               </Button>
-              <Button variant="secondary" disabled={pending || note.trim().length < 3} onClick={() => resolve("dismissed")}>
+              <Button
+                variant="secondary"
+                disabled={pending || note.trim().length < 3}
+                onClick={() => resolve("dismissed")}
+              >
                 Dismiss
               </Button>
               <Button variant="ghost" onClick={() => setOpen(false)}>

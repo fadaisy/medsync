@@ -17,11 +17,19 @@ export type QueuedCommand = {
   payload: Record<string, unknown> & { personId?: string };
   clientTs: string;
 };
-type Meta = { seq: number; personKey: string; attempts: number; nextAttemptAt: number };
+type Meta = {
+  seq: number;
+  personKey: string;
+  attempts: number;
+  nextAttemptAt: number;
+  /** Refused in a way a person must decide (duplicates, values to confirm, a conflict): kept, not retried. */
+  held?: { code: string; message: string; detail?: Record<string, unknown> };
+};
 export type SendResult =
   | { ok: true }
   | { ok: false; retry: true } // network, timeout, 5xx: try again later
-  | { ok: false; retry: false; message: string }; // refused for good
+  | { ok: false; retry: false; message: string } // refused for good: discarded with a visible note
+  | { ok: false; hold: true; code: string; message: string; detail?: Record<string, unknown> }; // a person decides
 export type Note = { id: string; type: CommandType; message: string; at: string };
 
 const BACKOFF_MS = (n: number) => Math.min(2 ** n * 2000, 5 * 60_000);
@@ -70,14 +78,20 @@ export class Outbox {
    * Send what is due, oldest first, one patient's commands strictly in order: a patient whose head
    * command is waiting on a retry holds the rest of that patient's queue.
    */
-  async flush(): Promise<{ sent: number; failed: number; discarded: number }> {
+  async flush(): Promise<{ sent: number; failed: number; discarded: number; held: number }> {
     const blocked = new Set<string>();
     let sent = 0;
     let failed = 0;
     let discarded = 0;
+    let held = 0;
     for (const item of await this.items()) {
       const { c, meta } = item;
       if (blocked.has(meta.personKey)) continue;
+      if (meta.held) {
+        // Nothing for this patient goes ahead of an entry waiting for a decision (§9 order).
+        blocked.add(meta.personKey);
+        continue;
+      }
       if (meta.nextAttemptAt > this.now()) {
         blocked.add(meta.personKey);
         continue;
@@ -91,6 +105,11 @@ export class Outbox {
       if (r.ok) {
         await idbDel(this.db, "outbox", c.id);
         sent++;
+      } else if ("hold" in r) {
+        meta.held = { code: r.code, message: r.message, detail: r.detail };
+        await putSealed(this.db, "outbox", c.id, { c, meta });
+        blocked.add(meta.personKey);
+        held++;
       } else if (r.retry) {
         meta.attempts++;
         meta.nextAttemptAt = this.now() + BACKOFF_MS(meta.attempts);
@@ -110,6 +129,35 @@ export class Outbox {
     }
     if (sent || discarded)
       await idbPut(this.db, "meta", "lastSync", new Date(this.now()).toISOString());
-    return { sent, failed, discarded };
+    return { sent, failed, discarded, held };
+  }
+
+  /** Entries waiting for a person's decision. */
+  async heldItems() {
+    return (await this.items()).filter((x) => x.meta.held);
+  }
+
+  /** Send a held entry again, optionally with a changed payload (e.g. the confirmed fields). */
+  async release(id: string, patch: Record<string, unknown> = {}) {
+    const it = (await this.items()).find((x) => x.c.id === id);
+    if (!it) return;
+    const meta: Meta = { ...it.meta, held: undefined, attempts: 0, nextAttemptAt: 0 };
+    await putSealed(this.db, "outbox", id, {
+      c: { ...it.c, payload: { ...it.c.payload, ...patch } },
+      meta,
+    });
+  }
+
+  /** Discard a held entry deliberately; it becomes a note, never a silent loss. */
+  async discard(id: string, reason: string) {
+    const it = (await this.items()).find((x) => x.c.id === id);
+    if (!it) return;
+    await idbDel(this.db, "outbox", id);
+    await putSealed(this.db, "notes", id, {
+      id,
+      type: it.c.type,
+      message: `Discarded by the user: ${reason}`,
+      at: new Date(this.now()).toISOString(),
+    } satisfies Note);
   }
 }

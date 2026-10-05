@@ -26,7 +26,10 @@ export default async function RecallPage() {
     recallList(ctx),
     templateFor(ctx, "missed_visit"),
   ]);
-  const r = (code: string) => ({ num: report.results[code]?.num ?? 0, den: report.results[code]?.den ?? 0 });
+  const r = (code: string) => ({
+    num: report.results[code]?.num ?? 0,
+    den: report.results[code]?.den ?? 0,
+  });
   const c13 = r("C13");
   const c14 = r("C14");
   const c15 = r("C15");
@@ -38,7 +41,10 @@ export default async function RecallPage() {
         subline={`Overdue list as at ${fmtDate(ctx.today)} · longest overdue first`}
         right={
           can(ctx, "code_list_manage", "sms_template_approve") ? (
-            <Link href="/ncd/recall/templates" className="text-label text-teal-text underline-offset-4 hover:underline">
+            <Link
+              href="/ncd/recall/templates"
+              className="text-label text-teal-text underline-offset-4 hover:underline"
+            >
               SMS templates
             </Link>
           ) : null
@@ -77,11 +83,16 @@ export default async function RecallPage() {
           catalogue={ctx.catalogue}
           canReveal={can(ctx, "identifier_reveal")}
           canRecordEvent={can(ctx, "event_write")}
-          template={template ? { body: template.body, approved: template.status === "approved" } : null}
+          template={
+            template ? { body: template.body, approved: template.status === "approved" } : null
+          }
         />
       ) : (
         <EmptyState title="No one is overdue">
-          <p className="text-body-s text-muted-foreground">Patients whose appointment passed with no visit since appear here, longest overdue first.</p>
+          <p className="text-body-s text-muted-foreground">
+            Patients whose appointment passed with no visit since appear here, longest overdue
+            first.
+          </p>
         </EmptyState>
       )}
     </Page>

@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { FilterChip } from "@/components/ui/data-table";
 import { CALL_OUTCOME, labelOf } from "@/lib/ncdreg/standard/code-lists";
 import { cn } from "@/lib/utils";
-import { revealPhoneAction } from "../../actions";
 import { EventDialog } from "../../_components/event-dialog";
 import { ClassChip, fmtDate, fmtShort, Num, PhoneText } from "../../_components/kit";
 import { useOutbox } from "../../_components/outbox-provider";
+import { revealPhoneAction } from "../../actions";
 import { Seg } from "../../visit/[visitId]/_components/controls";
 
 type Filter = "to_call" | "called" | "no_phone";
@@ -24,7 +24,12 @@ const FILTERS: [Filter, string][] = [
   ["called", "Called"],
   ["no_phone", "No phone"],
 ];
-const inFilter = (r: RecallRow, f: Filter) => (f === "no_phone" ? r.noPhone : f === "called" ? !r.noPhone && r.calledThisMonth : !r.noPhone && !r.calledThisMonth);
+const inFilter = (r: RecallRow, f: Filter) =>
+  f === "no_phone"
+    ? r.noPhone
+    : f === "called"
+      ? !r.noPhone && r.calledThisMonth
+      : !r.noPhone && !r.calledThisMonth;
 
 /** E1: the overdue list as a roomy table, with "Log a call" beside it (a panel in the grid, not a sheet). */
 export function RecallBoard({
@@ -50,9 +55,18 @@ export function RecallBoard({
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
       <section aria-label="Overdue patients" className="flex min-w-0 flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter the overdue list">
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Filter the overdue list"
+        >
           {FILTERS.map(([f, label]) => (
-            <FilterChip key={f} active={filter === f} onClick={() => setFilter(f)} count={rows.filter((r) => inFilter(r, f)).length}>
+            <FilterChip
+              key={f}
+              active={filter === f}
+              onClick={() => setFilter(f)}
+              count={rows.filter((r) => inFilter(r, f)).length}
+            >
               {label}
             </FilterChip>
           ))}
@@ -62,14 +76,18 @@ export function RecallBoard({
         </div>
         <div className="border-border overflow-x-auto border-y">
           <table className="w-full min-w-[820px] border-collapse text-[14px]">
-            <caption className="sr-only">Overdue patients, longest overdue first. Select a patient to log a call.</caption>
+            <caption className="sr-only">
+              Overdue patients, longest overdue first. Select a patient to log a call.
+            </caption>
             <thead>
               <tr className="text-ink-600 border-border border-b text-left text-[13px]">
-                {["Patient", "Days overdue", "Missed", "At last visit", "Phone", "Last call"].map((h) => (
-                  <th key={h} scope="col" className="h-11 px-3.5 font-medium">
-                    {h}
-                  </th>
-                ))}
+                {["Patient", "Days overdue", "Missed", "At last visit", "Phone", "Last call"].map(
+                  (h) => (
+                    <th key={h} scope="col" className="h-11 px-3.5 font-medium">
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
@@ -77,11 +95,25 @@ export function RecallBoard({
                 const on = r.identity.id === selectedId;
                 const phone = r.identity.phones.find((p) => !p.invalid) ?? r.identity.phones[0];
                 return (
-                  <tr key={r.identity.id} className={cn("border-border h-14 cursor-pointer border-b last:border-b-0", on ? "bg-accent" : "hover:bg-ink-25")} onClick={() => setSelectedId(r.identity.id)}>
+                  <tr
+                    key={r.identity.id}
+                    className={cn(
+                      "border-border h-14 cursor-pointer border-b last:border-b-0",
+                      on ? "bg-accent" : "hover:bg-ink-25",
+                    )}
+                    onClick={() => setSelectedId(r.identity.id)}
+                  >
                     <td className="px-3.5">
-                      <button type="button" aria-pressed={on} onClick={() => setSelectedId(r.identity.id)} className="focus-visible:shadow-focus flex flex-col items-start rounded-sm text-left outline-none">
+                      <button
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setSelectedId(r.identity.id)}
+                        className="focus-visible:shadow-focus flex flex-col items-start rounded-sm text-left outline-none"
+                      >
                         <span className="text-foreground font-medium">{r.identity.name}</span>
-                        <span className="text-caption text-muted-foreground font-mono">{r.identity.registryNumber}</span>
+                        <span className="text-caption text-muted-foreground font-mono">
+                          {r.identity.registryNumber}
+                        </span>
                       </button>
                     </td>
                     <td className="px-3.5">
@@ -102,12 +134,21 @@ export function RecallBoard({
                       )}
                     </td>
                     <td className="px-3.5">
-                      {phone ? <PhoneText masked={phone.masked} invalid={phone.invalid} demo={r.identity.isSynthetic} /> : <span className="text-muted-foreground">No phone recorded</span>}
+                      {phone ? (
+                        <PhoneText
+                          masked={phone.masked}
+                          invalid={phone.invalid}
+                          demo={r.identity.isSynthetic}
+                        />
+                      ) : (
+                        <span className="text-muted-foreground">No phone recorded</span>
+                      )}
                     </td>
                     <td className="px-3.5">
                       {r.lastCall ? (
                         <span>
-                          {labelOf(CALL_OUTCOME, r.lastCall.outcome)} · <Num>{fmtShort(r.lastCall.date)}</Num>
+                          {labelOf(CALL_OUTCOME, r.lastCall.outcome)} ·{" "}
+                          <Num>{fmtShort(r.lastCall.date)}</Num>
                         </span>
                       ) : (
                         <span className="text-muted-foreground">Not called</span>
@@ -127,7 +168,10 @@ export function RecallBoard({
           </table>
         </div>
       </section>
-      <aside aria-label="Log a call" className="bg-card border-border flex flex-col gap-4 rounded-xl border p-4 shadow-card lg:sticky lg:top-4">
+      <aside
+        aria-label="Log a call"
+        className="bg-card border-border shadow-card flex flex-col gap-4 rounded-xl border p-4 lg:sticky lg:top-4"
+      >
         {selected ? (
           <LogCall
             key={selected.identity.id}
@@ -139,7 +183,9 @@ export function RecallBoard({
             onLogged={() => setSelectedId(null)}
           />
         ) : (
-          <p className="text-body-s text-muted-foreground">Select a patient in the list to log a call.</p>
+          <p className="text-body-s text-muted-foreground">
+            Select a patient in the list to log a call.
+          </p>
         )}
         <TemplatePreview template={template} />
       </aside>
@@ -198,7 +244,10 @@ function LogCall({
   // Moved or transferred and Died open the event form; the call is logged once the event is saved.
   const choose = (o: Outcome) => {
     if (o === "died" || o === "moved_or_transferred") {
-      if (!canRecordEvent) return setMsg("Recording a death or a transfer needs the event permission. Ask a clinician.");
+      if (!canRecordEvent)
+        return setMsg(
+          "Recording a death or a transfer needs the event permission. Ask a clinician.",
+        );
       return setEventType(o === "died" ? "death" : "transfer_out");
     }
     setPicked(o);
@@ -210,7 +259,8 @@ function LogCall({
         <p className="text-caption text-ink-600 font-medium">Log a call</p>
         <p className="text-body-m text-foreground font-medium">{idn.name}</p>
         <p className="text-caption text-muted-foreground">
-          <span className="font-mono">{idn.registryNumber}</span> · {row.daysOverdue} days overdue · missed {fmtDate(row.missed)}
+          <span className="font-mono">{idn.registryNumber}</span> · {row.daysOverdue} days overdue ·
+          missed {fmtDate(row.missed)}
           {row.conditions.length ? ` · ${row.conditions.join(", ")}` : ""}
         </p>
       </div>
@@ -218,14 +268,20 @@ function LogCall({
       <div className="flex flex-col gap-2">
         {idn.phones.length ? (
           idn.phones.map((p) => (
-            <div key={p.slot} className="bg-muted flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2">
+            <div
+              key={p.slot}
+              className="bg-muted flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2"
+            >
               <span className="inline-flex items-center gap-2">
                 <PhoneIcon className="text-ink-500 size-4" aria-hidden />
                 {revealed[p.slot] ? (
                   idn.isSynthetic ? (
                     <PhoneText masked={revealed[p.slot]!} demo />
                   ) : (
-                    <a href={`tel:${revealed[p.slot]!.replace(/\s+/g, "")}`} className="text-teal-text font-mono tabular-nums underline-offset-4 hover:underline">
+                    <a
+                      href={`tel:${revealed[p.slot]!.replace(/\s+/g, "")}`}
+                      className="text-teal-text font-mono tabular-nums underline-offset-4 hover:underline"
+                    >
                       {revealed[p.slot]}
                     </a>
                   )
@@ -234,7 +290,12 @@ function LogCall({
                 )}
               </span>
               {canReveal && !revealed[p.slot] && !p.invalid ? (
-                <Button variant="secondary" size="sm" disabled={pending} onClick={() => reveal(p.slot)}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={pending}
+                  onClick={() => reveal(p.slot)}
+                >
                   Show number
                 </Button>
               ) : null}
@@ -243,20 +304,40 @@ function LogCall({
         ) : (
           <p className="text-body-s text-muted-foreground">No phone recorded.</p>
         )}
-        <p className="text-caption text-muted-foreground">Showing a phone number is written to the audit log.</p>
-        {valid.length > 1 ? <Seg label="Number called" value={String(slot)} onChange={(v) => setSlot(v === "2" ? 2 : 1)} options={valid.map((p) => [String(p.slot), `Number ${p.slot}`] as const)} hideLabel={false} /> : null}
+        <p className="text-caption text-muted-foreground">
+          Showing a phone number is written to the audit log.
+        </p>
+        {valid.length > 1 ? (
+          <Seg
+            label="Number called"
+            value={String(slot)}
+            onChange={(v) => setSlot(v === "2" ? 2 : 1)}
+            options={valid.map((p) => [String(p.slot), `Number ${p.slot}`] as const)}
+            hideLabel={false}
+          />
+        ) : null}
       </div>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="text-label mb-1">Outcome</legend>
         <div className="grid grid-cols-2 gap-2">
           {CALL_OUTCOME.codes.map((o) => (
-            <Button key={o.code} variant={picked === o.code ? "soft" : "secondary"} className="h-11" aria-pressed={picked === o.code} disabled={pending} onClick={() => choose(o.code as Outcome)}>
+            <Button
+              key={o.code}
+              variant={picked === o.code ? "soft" : "secondary"}
+              className="h-11"
+              aria-pressed={picked === o.code}
+              disabled={pending}
+              onClick={() => choose(o.code as Outcome)}
+            >
               {o.label}
             </Button>
           ))}
         </div>
-        <p className="text-caption text-muted-foreground">Pick an outcome, then confirm. Moved, transferred or died opens the event form and stops every reminder.</p>
+        <p className="text-caption text-muted-foreground">
+          Pick an outcome, then confirm. Moved, transferred or died opens the event form and stops
+          every reminder.
+        </p>
       </fieldset>
 
       {picked ? (
@@ -264,12 +345,23 @@ function LogCall({
           {picked === "will_return" ? (
             <label className="flex flex-col gap-1">
               <span className="text-label">New appointment date (optional)</span>
-              <input type="date" min={today} value={newDate} onChange={(e) => setNewDate(e.target.value)} className="border-input h-10 rounded-lg border bg-transparent px-3 text-[14px]" />
+              <input
+                type="date"
+                min={today}
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                className="border-input h-10 rounded-lg border bg-transparent px-3 text-[14px]"
+              />
             </label>
           ) : null}
           <p className="text-body-s">
             Log <span className="font-medium">{labelOf(CALL_OUTCOME, picked)}</span>
-            {picked === "wrong_number" ? " and flag the number invalid" : picked === "declined" ? " and remove from the overdue list" : ""}?
+            {picked === "wrong_number"
+              ? " and flag the number invalid"
+              : picked === "declined"
+                ? " and remove from the overdue list"
+                : ""}
+            ?
           </p>
           <div className="flex gap-2">
             <Button disabled={pending} onClick={() => log(picked)}>
@@ -314,9 +406,17 @@ function TemplatePreview({ template }: { template: { body: string; approved: boo
         </p>
         <Tag hue="slate">{template?.approved ? "Approved template" : "Draft template"}</Tag>
       </div>
-      <p className="border-border text-ink-700 rounded-lg border border-dashed p-3 font-mono text-[12px]">{template?.body || "No template written yet."}</p>
-      {!template?.approved ? <p className="text-caption text-muted-foreground">None sent. A template is sent only after two people approve it.</p> : null}
-      <p className="text-caption text-muted-foreground">It never names a condition, a measurement, a medicine or the department.</p>
+      <p className="border-border text-ink-700 rounded-lg border border-dashed p-3 font-mono text-[12px]">
+        {template?.body || "No template written yet."}
+      </p>
+      {!template?.approved ? (
+        <p className="text-caption text-muted-foreground">
+          None sent. A template is sent only after two people approve it.
+        </p>
+      ) : null}
+      <p className="text-caption text-muted-foreground">
+        It never names a condition, a measurement, a medicine or the department.
+      </p>
     </div>
   );
 }
