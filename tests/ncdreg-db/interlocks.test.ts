@@ -203,5 +203,27 @@ describe.skipIf(!laneOn)("go-live interlock and administration", () => {
     ).rejects.toThrow(/not assignable/);
     const sa = await ctxFor(lane.db, f, { userId: f.superadminId });
     expect(sa.roles).toEqual([]);
+    // The administrator cannot give a superadmin a registry role (they are not staff here for NCD).
+    await expect(assignRole(admin, f.superadminId, "registry_lead")).rejects.toThrow(/staff/);
+  });
+
+  it("0094: a superadmin holds only roles assigned explicitly, by the database owner, at that hospital", async () => {
+    // Owner path (SQL editor): the superadmin is on staff here as a doctor, yet gets only the assigned role.
+    await lane.pg.query(
+      `INSERT INTO public.ncd_staff_role (facility_id, user_id, ncd_role, granted_by) VALUES ($1, $2, 'clinical_safety_officer', $2)`,
+      [f.facilityId, f.superadminId],
+    );
+    const sa = await ctxFor(lane.db, f, { userId: f.superadminId });
+    expect(sa.roles).toEqual(["clinical_safety_officer"]);
+    expect([...sa.caps]).toContain("clinical_safety_approve");
+    expect([...sa.caps]).not.toContain("identifier_reveal");
+    // Nothing at another hospital.
+    const g = await ncdFacility(lane.pg, "Second facility for 0094");
+    expect((await ctxFor(lane.db, g, { userId: f.superadminId })).roles).toEqual([]);
+    // Revoked: back to nothing.
+    await lane.pg.query(`UPDATE public.ncd_staff_role SET revoked_at = now() WHERE user_id = $1`, [
+      f.superadminId,
+    ]);
+    expect((await ctxFor(lane.db, f, { userId: f.superadminId })).roles).toEqual([]);
   });
 });

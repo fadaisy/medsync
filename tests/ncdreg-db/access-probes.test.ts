@@ -131,6 +131,9 @@ async function seed(pg: Pg, f: NcdFacility) {
     facility_id: F,
     user_id: f.superadminId,
     ncd_role: "auditor",
+    // Revoked: since 0094 an explicit assignment would give the superadmin that role, and the
+    // "superadmin on staff here" actor below must hold none.
+    revoked_at: "2026-10-01T00:00:00Z",
   });
   rows.ncd_person = {
     key: "id",

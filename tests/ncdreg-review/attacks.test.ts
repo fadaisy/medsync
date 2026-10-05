@@ -247,7 +247,7 @@ describe.skipIf(!laneOn)("review attacks", () => {
     await expect(continueLoad(auditor, 1)).rejects.toThrow();
   });
 
-  it("superadmin resolves to no NCD role", async () => {
+  it("superadmin with no explicit assignment resolves to no NCD role", async () => {
     const sa = await resolveContext(
       { userId: f.superadminId, facilityId: f.facilityId, principal: "user" },
       { db: lane.db },

@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — NCDSync: a superadmin can hold registry roles assigned explicitly — 2026-10-06
+
+- Migration **0094** (GATED, owner-applied) changes `private.ncd_user_roles`: a superadmin now holds the NCD roles
+  assigned to them explicitly in `ncd_staff_role` at a hospital, and still none derived from cadres or the admin
+  roster ([ADR 0215](docs/adr/0215-ncd-superadmin-explicit-roles.md)). The first assignment is made by the database
+  owner only.
+
 ### Added — NCDSync, the hospital NCD registry, dark behind `NCD_REGISTRY` — 2026-10-05
 
 - **NCDReg 0.1 (draft) as data** (`lib/ncdreg/standard/`): the data dictionary, code lists, calculations (BMI, visit blood pressure, 2021 CKD-EPI eGFR, KDIGO, foot risk, hypertension grade, care band, status), validation, a condition catalogue of two full and eight core modules, and 34 indicator definitions locked to HEARTS360 plus hospital additions. Generated documents in `docs/ncd/`.
