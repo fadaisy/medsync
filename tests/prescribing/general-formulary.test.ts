@@ -82,9 +82,46 @@ describe("MS-RX-CAT-001 generated module", () => {
     expect(FORMULARY_SOURCE).toBe("data/prescribing/drug-catalogue.v0.json");
   });
 
-  it("the data copy is byte-identical to the pack as delivered", () => {
-    expect(readFileSync(join(root, FORMULARY_SOURCE))).toEqual(
-      readFileSync(join(root, "docs/emr/clerking-v2/plan/drug-catalogue.v0.json")),
+  it("the data copy is the pack as delivered plus the diabetes pack's additions, and nothing else", () => {
+    // MS-NCD-DM-PACK-001 wiring/formulary.additions.json (P0-22): oral_glucose_lowering split into
+    // child classes, new names with no dose. Every other entry stays as delivered.
+    type Entry = { id: string } & Record<string, unknown>;
+    const delivered = JSON.parse(
+      readFileSync(join(root, "docs/emr/clerking-v2/plan/drug-catalogue.v0.json"), "utf8"),
+    ) as { classes: Entry[]; drugs: Entry[]; diagnosisLinks: { profileId: string }[] };
+    const moved: Record<string, Record<string, unknown>> = {
+      oral_glucose_lowering: { note: expect.any(String) },
+      metformin: { class: "oral_glucose_lowering.biguanide" },
+      gliclazide: { class: "oral_glucose_lowering.sulfonylurea" },
+      glibenclamide: { class: "oral_glucose_lowering.sulfonylurea", onEmhsluDraft: false },
+    };
+    const now = new Map([...DRUG_CLASSES, ...FORMULARY_DRUGS].map((x) => [x.id, x]));
+    for (const x of [...delivered.classes, ...delivered.drugs])
+      expect(now.get(x.id), x.id).toEqual({ ...x, ...moved[x.id] });
+    const was = new Set([...delivered.classes, ...delivered.drugs].map((x) => x.id));
+    expect([...now.keys()].filter((id) => !was.has(id)).sort()).toEqual(
+      [
+        "oral_glucose_lowering.biguanide",
+        "oral_glucose_lowering.sulfonylurea",
+        "oral_glucose_lowering.sglt2_inhibitor",
+        "oral_glucose_lowering.dpp4_inhibitor",
+        "oral_glucose_lowering.thiazolidinedione",
+        "glp1_receptor_agonist",
+        "glimepiride",
+        "dapagliflozin",
+        "empagliflozin",
+        "vildagliptin",
+        "sitagliptin",
+        "pioglitazone",
+        "semaglutide",
+        "insulin_aspart",
+        "insulin_biphasic_aspart",
+        "bendroflumethiazide",
+      ].sort(),
+    );
+    const dm2 = (l: { profileId: string }) => l.profileId === "dx.dm_type2";
+    expect(DIAGNOSIS_LINKS.filter((l) => !dm2(l))).toEqual(
+      delivered.diagnosisLinks.filter((l) => !dm2(l)),
     );
   });
 });
@@ -183,7 +220,7 @@ describe("MS-RX-CAT-001 structure (drug-catalogue-validate.py)", () => {
       drugs: FORMULARY_DRUGS.length,
       links: DIAGNOSIS_LINKS.length,
       groups: ALLERGY_GROUPS.length,
-    }).toEqual({ systems: 14, classes: 69, leaf: 67, drugs: 182, links: 100, groups: 28 });
+    }).toEqual({ systems: 14, classes: 75, leaf: 72, drugs: 192, links: 100, groups: 28 });
   });
 });
 

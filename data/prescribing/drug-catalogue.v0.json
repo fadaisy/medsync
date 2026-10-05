@@ -586,7 +586,50 @@
       "system": "endocrine",
       "parent": null,
       "allergyGroup": null,
-      "note": "Merged class: metformin (biguanide) and sulfonylureas."
+      "note": "Parent class, split by the diabetes pack (P0-22): biguanide, sulfonylureas, SGLT2 inhibitors, DPP-4 inhibitors and thiazolidinediones. Links to it list every child's drugs."
+    },
+    {
+      "id": "oral_glucose_lowering.biguanide",
+      "name": "Biguanides",
+      "system": "endocrine",
+      "parent": "oral_glucose_lowering",
+      "allergyGroup": null
+    },
+    {
+      "id": "oral_glucose_lowering.sulfonylurea",
+      "name": "Sulfonylureas",
+      "system": "endocrine",
+      "parent": "oral_glucose_lowering",
+      "allergyGroup": "sulfonylurea"
+    },
+    {
+      "id": "oral_glucose_lowering.sglt2_inhibitor",
+      "name": "SGLT2 inhibitors",
+      "system": "endocrine",
+      "parent": "oral_glucose_lowering",
+      "allergyGroup": null
+    },
+    {
+      "id": "oral_glucose_lowering.dpp4_inhibitor",
+      "name": "DPP-4 inhibitors",
+      "system": "endocrine",
+      "parent": "oral_glucose_lowering",
+      "allergyGroup": null
+    },
+    {
+      "id": "oral_glucose_lowering.thiazolidinedione",
+      "name": "Thiazolidinediones",
+      "system": "endocrine",
+      "parent": "oral_glucose_lowering",
+      "allergyGroup": null
+    },
+    {
+      "id": "glp1_receptor_agonist",
+      "name": "GLP-1 receptor agonists",
+      "system": "endocrine",
+      "parent": null,
+      "allergyGroup": null,
+      "note": "Injected; not under the oral class."
     },
     {
       "id": "thyroid",
@@ -4940,6 +4983,56 @@
       "onEmhsluDraft": true
     },
     {
+      "id": "bendroflumethiazide",
+      "generic": "Bendroflumethiazide",
+      "class": "diuretic.thiazide",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [
+        "sulfonamide"
+      ],
+      "flags": {
+        "renal": true,
+        "hepatic": false,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
       "id": "furosemide",
       "generic": "Furosemide",
       "class": "diuretic.loop",
@@ -6659,9 +6752,107 @@
       "onEmhsluDraft": null
     },
     {
+      "id": "insulin_aspart",
+      "generic": "Insulin aspart (rapid-acting analogue)",
+      "class": "insulin",
+      "routes": [
+        "sc"
+      ],
+      "methods": {
+        "sc": [
+          "SC injection"
+        ]
+      },
+      "presentationsDraft": [
+        "Cartridge or prefilled pen"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": true,
+        "hepatic": false,
+        "weightBasedInChildren": true,
+        "weightBasedInAdults": true,
+        "controlled": false,
+        "highAlert": true,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "insulin_biphasic_aspart",
+      "generic": "Biphasic insulin aspart (premixed analogue)",
+      "class": "insulin",
+      "routes": [
+        "sc"
+      ],
+      "methods": {
+        "sc": [
+          "SC injection"
+        ]
+      },
+      "presentationsDraft": [
+        "Cartridge or prefilled pen"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": true,
+        "hepatic": false,
+        "weightBasedInChildren": true,
+        "weightBasedInAdults": true,
+        "controlled": false,
+        "highAlert": true,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
       "id": "metformin",
       "generic": "Metformin",
-      "class": "oral_glucose_lowering",
+      "class": "oral_glucose_lowering.biguanide",
       "routes": [
         "oral"
       ],
@@ -6711,7 +6902,7 @@
     {
       "id": "glibenclamide",
       "generic": "Glibenclamide",
-      "class": "oral_glucose_lowering",
+      "class": "oral_glucose_lowering.sulfonylurea",
       "routes": [
         "oral"
       ],
@@ -6757,12 +6948,12 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": true
+      "onEmhsluDraft": false
     },
     {
       "id": "gliclazide",
       "generic": "Gliclazide",
-      "class": "oral_glucose_lowering",
+      "class": "oral_glucose_lowering.sulfonylurea",
       "routes": [
         "oral"
       ],
@@ -6785,6 +6976,351 @@
         "weightBasedInAdults": false,
         "controlled": false,
         "highAlert": true,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "glimepiride",
+      "generic": "Glimepiride",
+      "class": "oral_glucose_lowering.sulfonylurea",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [
+        "sulfonylurea"
+      ],
+      "flags": {
+        "renal": true,
+        "hepatic": true,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": true,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "dapagliflozin",
+      "generic": "Dapagliflozin",
+      "class": "oral_glucose_lowering.sglt2_inhibitor",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": true,
+        "hepatic": false,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "empagliflozin",
+      "generic": "Empagliflozin",
+      "class": "oral_glucose_lowering.sglt2_inhibitor",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": true,
+        "hepatic": false,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "vildagliptin",
+      "generic": "Vildagliptin",
+      "class": "oral_glucose_lowering.dpp4_inhibitor",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": true,
+        "hepatic": true,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "sitagliptin",
+      "generic": "Sitagliptin",
+      "class": "oral_glucose_lowering.dpp4_inhibitor",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": true,
+        "hepatic": false,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "pioglitazone",
+      "generic": "Pioglitazone",
+      "class": "oral_glucose_lowering.thiazolidinedione",
+      "routes": [
+        "oral"
+      ],
+      "methods": {
+        "oral": [
+          "By mouth"
+        ]
+      },
+      "presentationsDraft": [
+        "Tablet"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": false,
+        "hepatic": true,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
+        "narrowTherapeuticIndex": false,
+        "reserveAntibiotic": false
+      },
+      "charts": [
+        "mar",
+        "glucose"
+      ],
+      "dose": {
+        "status": "to-verify",
+        "verifyAt": [
+          "Medscape",
+          "Uganda Clinical Guidelines 2023",
+          "BNF / BNFC"
+        ],
+        "regimens": [],
+        "bands": {
+          "adult": null,
+          "olderAdult": null,
+          "child": null
+        },
+        "renal": null,
+        "hepatic": null,
+        "pregnancy": null
+      },
+      "onEmhsluDraft": null
+    },
+    {
+      "id": "semaglutide",
+      "generic": "Semaglutide",
+      "class": "glp1_receptor_agonist",
+      "routes": [
+        "sc"
+      ],
+      "methods": {
+        "sc": [
+          "SC injection"
+        ]
+      },
+      "presentationsDraft": [
+        "Prefilled pen"
+      ],
+      "allergyGroups": [],
+      "flags": {
+        "renal": false,
+        "hepatic": false,
+        "weightBasedInChildren": false,
+        "weightBasedInAdults": false,
+        "controlled": false,
+        "highAlert": false,
         "narrowTherapeuticIndex": false,
         "reserveAntibiotic": false
       },
@@ -10959,9 +11495,11 @@
       "profileId": "dx.dm_type2",
       "classes": [
         "oral_glucose_lowering",
+        "glp1_receptor_agonist",
         "insulin",
         "statin",
-        "acei"
+        "acei",
+        "arb"
       ],
       "supportive": []
     },
