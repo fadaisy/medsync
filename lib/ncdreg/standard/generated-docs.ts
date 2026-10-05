@@ -1,7 +1,12 @@
-import { renderConditionModules, renderStandard } from "./document";
+import type { GoldenExpectations } from "./document";
 
-/** Path (from the repository root) → renderer. Later phases add INDICATORS.md and DATA-INVENTORY.md. */
-export const GENERATED_DOCS: Record<string, () => string> = {
-  "docs/ncd/NCDREG-v0.1-DRAFT.md": renderStandard,
-  "docs/ncd/CONDITION-MODULES.md": renderConditionModules,
-};
+import { renderConditionModules, renderIndicators, renderStandard } from "./document";
+
+/** Path (from the repository root) → renderer. INDICATORS.md names the golden-dataset patients. */
+export function generatedDocs(golden: GoldenExpectations): Record<string, () => string> {
+  return {
+    "docs/ncd/NCDREG-v0.1-DRAFT.md": renderStandard,
+    "docs/ncd/CONDITION-MODULES.md": renderConditionModules,
+    "docs/ncd/INDICATORS.md": () => renderIndicators(golden),
+  };
+}

@@ -184,17 +184,15 @@ export async function createAppointment(
   const reminders = [{ kind: "before", seq: 1, dueOn: addDays(date, -s.reminderBeforeDays) }];
   for (let i = 1; i <= s.reminderMaxMissed; i++)
     reminders.push({ kind: "missed", seq: i, dueOn: addDays(date, s.reminderAfterDays * i) });
-  await tx
-    .insert(ncdReminder)
-    .values(
-      reminders.map((r) => ({
-        facilityId: ctx.facilityId,
-        personId,
-        appointmentId: a!.id,
-        ...r,
-        createdAt: ctx.enteredAt,
-      })),
-    );
+  await tx.insert(ncdReminder).values(
+    reminders.map((r) => ({
+      facilityId: ctx.facilityId,
+      personId,
+      appointmentId: a!.id,
+      ...r,
+      createdAt: ctx.enteredAt,
+    })),
+  );
   return a!.id;
 }
 

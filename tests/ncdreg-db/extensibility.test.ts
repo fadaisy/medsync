@@ -11,6 +11,9 @@ import type { NcdFacility } from "./_ncd";
 import type { ConditionModule } from "@/lib/ncdreg/standard/types";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { computeIndicators } from "@/lib/ncdreg/indicators/engine";
+import { loadDataset } from "@/lib/ncdreg/indicators/load";
+import { enabledModules } from "@/lib/ncdreg/indicators/snapshot";
 import { CONDITION_CATALOGUE } from "@/lib/ncdreg/standard/conditions";
 import { ctxFor, enableModule, enrol, ok, refused, run } from "./_engine";
 import { bootLane, laneOn, ncdFacility } from "./_ncd";
@@ -135,5 +138,51 @@ describe.skipIf(!laneOn)("a new condition needs only a catalogue record", () => 
     await expect(enrol(clin, { conditions: [{ condition: "asthma" }] })).rejects.toThrow(
       /not enabled/,
     );
+  });
+
+  it("the generic indicators report the throwaway module with clinician-recorded classes", async () => {
+    const lead = await ctxFor(lane.db, f, "registry_lead", {
+      catalogue: CATALOGUE,
+      at: "2026-12-05T09:00:00+03:00",
+    });
+    const enabled = await enabledModules(lead);
+    expect(enabled.has(THROWAWAY.code)).toBe(true);
+    const r = computeIndicators(await loadDataset(lead), {
+      month: "2026-11",
+      catalogue: CATALOGUE,
+      enabled,
+    });
+    const k = (c: string) => r.results[`${c}.${THROWAWAY.code}`]!;
+    expect(k("G01").num).toBe(2);
+    expect(k("G02").num).toBe(1);
+    // Registered in October: not before the 3-month window of November (Sep–Nov), so G04's denominator is empty…
+    expect(k("G04").den).toBe(0);
+    // …and in December's window the visit is the latest, so its recorded control is the class.
+    const dec = computeIndicators(await loadDataset(lead), {
+      month: "2027-01",
+      asOf: "2027-01-31",
+      catalogue: CATALOGUE,
+      enabled,
+    });
+    expect(dec.results[`G04.${THROWAWAY.code}`]!.parts).toMatchObject({
+      controlled: 0,
+      partly_controlled: 0,
+      not_controlled: 0,
+      not_assessed: 0,
+    });
+    expect(Object.keys(k("G04").parts!)).toEqual([
+      "controlled",
+      "partly_controlled",
+      "not_controlled",
+      "not_assessed",
+      "not_recorded",
+      "no_visit",
+    ]);
+    expect(k("G06").parts).toEqual({
+      registered: 2,
+      under_care: 1,
+      visit_3_months: 1,
+      leading_class: 0,
+    });
   });
 });

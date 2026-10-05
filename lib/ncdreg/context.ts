@@ -114,3 +114,15 @@ export function moduleOf(ctx: NcdContext, code: string): ConditionModule {
   if (!m) throw new NcdError("invalid", `Unknown condition: ${code}`);
   return m;
 }
+
+/** A Postgres refusal (policy or interlock trigger), wrapped by the driver, as an NcdError. */
+export function fromDb(e: unknown): NcdError {
+  if (e instanceof NcdError) return e;
+  const err = e as { code?: string; message?: string; cause?: { code?: string; message?: string } };
+  const code = err.cause?.code ?? err.code;
+  const message = (err.cause?.message ?? err.message ?? "Error").replace(/^ncd: /, "");
+  return new NcdError(
+    code === "42501" ? "forbidden" : code === "23514" ? "interlock" : "invalid",
+    message,
+  );
+}

@@ -21,7 +21,6 @@ import {
   ncdObservation,
   ncdPerson,
   ncdQuery,
-  ncdRecordVersion,
   ncdRegistration,
   ncdReminder,
   ncdReview,
@@ -750,8 +749,6 @@ export async function recordVisit(
 ): Promise<Result> {
   if (p.isHistorical) authorize(ctx, "legacy_entry", "demo_write");
   else authorize(ctx, "clinician_visit_write", "demo_write");
-  if (!p.isHistorical && ctx.principal !== "demo_loader" && p.visitDate !== ctx.today)
-    throw new NcdError("invalid", "A visit that is not back-entry is dated today.");
   if (p.visitDate > ctx.today) throw new NcdError("invalid", "The visit date is in the future.");
   const regs = await registrationsOf(tx, p.personId);
   const firstReg = regs.map((r) => r.registrationDate).sort()[0];
@@ -1097,7 +1094,6 @@ const CHILD_TABLES = [
   ncdSmsLog,
   ncdQuery,
   ncdAuditSample,
-  ncdRecordVersion,
 ] as const;
 
 export async function decideMerge(

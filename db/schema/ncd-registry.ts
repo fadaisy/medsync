@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -118,6 +119,9 @@ export const ncdPerson = pgTable("ncd_person", {
   phone2Ciphertext: text("phone2_ciphertext"),
   phone2Hmac: text("phone2_hmac"),
   phone2Invalid: boolean("phone2_invalid").notNull().default(false),
+  hasValidPhone: boolean("has_valid_phone").generatedAlwaysAs(
+    sql`(phone1_hmac IS NOT NULL AND NOT phone1_invalid) OR (phone2_hmac IS NOT NULL AND NOT phone2_invalid)`,
+  ),
   nokNameCiphertext: text("nok_name_ciphertext"),
   nokPhoneCiphertext: text("nok_phone_ciphertext"),
   districtCode: text("district_code"),

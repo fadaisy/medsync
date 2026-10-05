@@ -239,3 +239,49 @@ export function renderConditionModules(): string {
   );
   return out.join("\n");
 }
+
+export type GoldenExpectations = Record<
+  string,
+  { num?: number; den?: number; parts?: Record<string, number>; who: Record<string, string[]> }
+>;
+
+export function renderIndicators(golden: GoldenExpectations): string {
+  const out: string[] = [HEADER("NCDReg indicators")];
+  out.push(
+    "Each indicator's definition and version, and the golden-dataset expectation it is tested against " +
+      "(tests/ncdreg-db/golden: 69 hand-designed synthetic patients, reporting month 2026-09). The patients behind each " +
+      "number are listed by their fixture ids. G-indicators are reported per enabled condition.\n",
+  );
+  for (const i of ALL_INDICATORS) {
+    out.push(`## ${i.code} — ${i.label}\n`);
+    out.push(
+      `- Numerator: ${i.numerator}`,
+      `- Denominator: ${i.denominator}`,
+      `- Version: ${i.version} (${i.status})`,
+    );
+    if (i.condition) out.push(`- Condition (named in the standard): ${i.condition}`);
+    const keys = Object.keys(golden).filter(
+      (k) =>
+        k === i.code ||
+        k.startsWith(`${i.code}.`) ||
+        (i.code === "C04" && k === "not_recorded.hypertension") ||
+        (i.code === "C07" && k === "not_recorded.diabetes"),
+    );
+    for (const k of keys) {
+      const g = golden[k]!;
+      const nums = [g.num != null ? `num ${g.num}` : null, g.den != null ? `den ${g.den}` : null]
+        .filter(Boolean)
+        .join(", ");
+      const parts = g.parts
+        ? Object.entries(g.parts)
+            .map(([a, b]) => `${a} ${b}`)
+            .join(", ")
+        : "";
+      out.push(`- Golden \`${k}\`: ${[nums, parts].filter(Boolean).join("; ")}`);
+      for (const [w, ids] of Object.entries(g.who))
+        out.push(`  - ${w}: ${ids.length ? ids.join(", ") : "none"}`);
+    }
+    out.push("");
+  }
+  return out.join("\n");
+}

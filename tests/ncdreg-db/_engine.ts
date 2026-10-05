@@ -46,7 +46,7 @@ export async function run<T extends CommandType>(
   ctx: NcdContext,
   type: T,
   payload: Payload<T> | Record<string, unknown>,
-  id = randomUUID(),
+  id: string = randomUUID(),
 ) {
   return applyCommand(ctx, { id, type, payload, clientTs: null });
 }
@@ -67,6 +67,13 @@ export function refused(r: CommandResult, code?: string) {
   if (code && !r.ok) expect(r.code).toBe(code);
 }
 
+/** Random letters: unrelated names, so the duplicate check (A2) stays quiet unless a test wants it. */
+export const randomName = () =>
+  [...randomUUID().replace(/[^0-9a-f]/g, "")]
+    .slice(0, 9)
+    .map((c) => String.fromCharCode(97 + ((parseInt(c, 16) + Math.floor(Math.random() * 10)) % 26)))
+    .join("");
+
 export type PersonSeed = {
   given?: string;
   family?: string;
@@ -81,8 +88,8 @@ export type PersonSeed = {
 export async function enrol(ctx: NcdContext, s: PersonSeed = {}) {
   const personId = randomUUID();
   const identity = {
-    givenName: s.given ?? `Given${personId.slice(0, 4)}`,
-    familyName: s.family ?? `Family${personId.slice(4, 8)}`,
+    givenName: s.given ?? randomName(),
+    familyName: s.family ?? randomName(),
     sex: s.sex ?? "female",
     ageYears: s.ageYears ?? 50,
     phone1: s.phone === undefined ? null : s.phone,

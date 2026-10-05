@@ -5,9 +5,10 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { GENERATED_DOCS } from "../lib/ncdreg/standard/generated-docs";
+import { generatedDocs } from "../lib/ncdreg/standard/generated-docs";
+import { EXPECTED } from "../tests/ncdreg-db/golden/expected";
 
-for (const [path, render] of Object.entries(GENERATED_DOCS)) {
+for (const [path, render] of Object.entries(generatedDocs(EXPECTED))) {
   writeFileSync(resolve(__dirname, "..", path), render());
   process.stdout.write(`wrote ${path}\n`);
 }

@@ -86,7 +86,7 @@ export const TABLE_ACCESS: Readonly<Record<string, TableAccess>> = {
   ncd_name_index: {
     select: PERSON_READ,
     insert: ["enrol", "legacy_entry", "data_quality", "demo_write"],
-    update: "none",
+    update: ["merge_approve"],
     delete: "synthetic",
     person: "person_id",
   },
@@ -149,7 +149,7 @@ export const TABLE_ACCESS: Readonly<Record<string, TableAccess>> = {
   ncd_sms_log: {
     select: ["recall_work", "data_quality", "audit_view", "reminder_dispatch", "demo_write"],
     insert: ["reminder_dispatch"],
-    update: "none",
+    update: ["merge_approve"],
     delete: "synthetic",
     person: "person_id",
   },
@@ -170,7 +170,7 @@ export const TABLE_ACCESS: Readonly<Record<string, TableAccess>> = {
   ncd_audit_sample: {
     select: ["data_quality", "audit_view", "demo_write"],
     insert: ["data_quality"],
-    update: ["data_quality"],
+    update: ["data_quality", "merge_approve"],
     delete: "synthetic",
     person: "person_id",
   },

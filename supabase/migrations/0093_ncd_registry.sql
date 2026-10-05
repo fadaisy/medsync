@@ -139,6 +139,9 @@ CREATE TABLE IF NOT EXISTS public.ncd_person (
   phone2_ciphertext text,
   phone2_hmac text,
   phone2_invalid boolean NOT NULL DEFAULT false,
+  -- Non-identifying: whether recall can reach the person (C13 excludes "no phone number").
+  has_valid_phone boolean GENERATED ALWAYS AS (
+    (phone1_hmac IS NOT NULL AND NOT phone1_invalid) OR (phone2_hmac IS NOT NULL AND NOT phone2_invalid)) STORED,
   nok_name_ciphertext text,
   nok_phone_ciphertext text,
   district_code text,
@@ -651,6 +654,15 @@ BEGIN
 END;
 $$;
 
+-- Non-identifying counts for banners and the go-live screen, to any NCD role at the facility.
+CREATE OR REPLACE FUNCTION private.ncd_person_counts() RETURNS TABLE (total integer, synthetic integer)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
+  SELECT count(*)::int, count(*) FILTER (WHERE is_synthetic)::int FROM public.ncd_person
+  WHERE facility_id = private.current_hospital_id() AND private.ncd_has_any_capability();
+$$;
+REVOKE ALL ON FUNCTION private.ncd_person_counts() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION private.ncd_person_counts() TO medsync_ncd_app;
+
 REVOKE ALL ON FUNCTION private.ncd_user_roles(uuid, uuid), private.ncd_current_roles(), private.ncd_can_any(text[]),
   private.ncd_has_any_capability(), private.ncd_person_synthetic(uuid), private.ncd_facility_approved(uuid),
   private.ncd_demo_active(uuid), private.ncd_next_registry_number(integer) FROM PUBLIC;
@@ -955,9 +967,11 @@ DROP POLICY IF EXISTS ncd_name_index_select ON public.ncd_name_index;
 CREATE POLICY ncd_name_index_select ON public.ncd_name_index FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{person_search,drill_down,recall_work,data_quality,merge_request,merge_approve,legacy_entry,late_lab_results,own_panel,export_approve,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_name_index_insert ON public.ncd_name_index;
 CREATE POLICY ncd_name_index_insert ON public.ncd_name_index FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{enrol,legacy_entry,data_quality,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+DROP POLICY IF EXISTS ncd_name_index_update ON public.ncd_name_index;
+CREATE POLICY ncd_name_index_update ON public.ncd_name_index FOR UPDATE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{merge_approve}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id))) WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{merge_approve}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_name_index_delete ON public.ncd_name_index;
 CREATE POLICY ncd_name_index_delete ON public.ncd_name_index FOR DELETE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND private.ncd_person_synthetic(person_id) AND (SELECT private.ncd_can_any('{demo_write}'::text[])));
-GRANT SELECT, INSERT, DELETE ON public.ncd_name_index TO medsync_ncd_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ncd_name_index TO medsync_ncd_app;
 
 -- ncd_registration
 ALTER TABLE public.ncd_registration ENABLE ROW LEVEL SECURITY;
@@ -1084,9 +1098,11 @@ DROP POLICY IF EXISTS ncd_sms_log_select ON public.ncd_sms_log;
 CREATE POLICY ncd_sms_log_select ON public.ncd_sms_log FOR SELECT TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{recall_work,data_quality,audit_view,reminder_dispatch,demo_write}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_sms_log_insert ON public.ncd_sms_log;
 CREATE POLICY ncd_sms_log_insert ON public.ncd_sms_log FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{reminder_dispatch}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+DROP POLICY IF EXISTS ncd_sms_log_update ON public.ncd_sms_log;
+CREATE POLICY ncd_sms_log_update ON public.ncd_sms_log FOR UPDATE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{merge_approve}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id))) WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{merge_approve}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_sms_log_delete ON public.ncd_sms_log;
 CREATE POLICY ncd_sms_log_delete ON public.ncd_sms_log FOR DELETE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND private.ncd_person_synthetic(person_id) AND (SELECT private.ncd_can_any('{demo_write}'::text[])));
-GRANT SELECT, INSERT, DELETE ON public.ncd_sms_log TO medsync_ncd_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ncd_sms_log TO medsync_ncd_app;
 
 -- ncd_sms_template
 ALTER TABLE public.ncd_sms_template ENABLE ROW LEVEL SECURITY;
@@ -1120,7 +1136,7 @@ CREATE POLICY ncd_audit_sample_select ON public.ncd_audit_sample FOR SELECT TO m
 DROP POLICY IF EXISTS ncd_audit_sample_insert ON public.ncd_audit_sample;
 CREATE POLICY ncd_audit_sample_insert ON public.ncd_audit_sample FOR INSERT TO medsync_ncd_app WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{data_quality}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_audit_sample_update ON public.ncd_audit_sample;
-CREATE POLICY ncd_audit_sample_update ON public.ncd_audit_sample FOR UPDATE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{data_quality}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id))) WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{data_quality}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
+CREATE POLICY ncd_audit_sample_update ON public.ncd_audit_sample FOR UPDATE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{data_quality,merge_approve}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id))) WITH CHECK (facility_id = (SELECT private.current_hospital_id()) AND (SELECT private.ncd_can_any('{data_quality,merge_approve}'::text[])) AND private.ncd_synthetic_ok(private.ncd_person_synthetic(person_id)));
 DROP POLICY IF EXISTS ncd_audit_sample_delete ON public.ncd_audit_sample;
 CREATE POLICY ncd_audit_sample_delete ON public.ncd_audit_sample FOR DELETE TO medsync_ncd_app USING (facility_id = (SELECT private.current_hospital_id()) AND private.ncd_person_synthetic(person_id) AND (SELECT private.ncd_can_any('{demo_write}'::text[])));
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.ncd_audit_sample TO medsync_ncd_app;

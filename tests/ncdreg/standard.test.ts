@@ -13,7 +13,7 @@ import { CLASSIFICATIONS } from "@/lib/ncdreg/standard/classifications";
 import { ALL_CODE_LISTS, MEDICINE_LIST, OBSERVATION_CODES } from "@/lib/ncdreg/standard/code-lists";
 import { CONDITION_CATALOGUE } from "@/lib/ncdreg/standard/conditions";
 import { DICTIONARY } from "@/lib/ncdreg/standard/dictionary";
-import { GENERATED_DOCS } from "@/lib/ncdreg/standard/generated-docs";
+import { generatedDocs } from "@/lib/ncdreg/standard/generated-docs";
 import { ALL_INDICATORS, WINDOWS } from "@/lib/ncdreg/standard/indicators";
 import {
   CONFIRM_RANGES,
@@ -21,6 +21,7 @@ import {
   DUPLICATE_RULES,
   HARD_BLOCKS,
 } from "@/lib/ncdreg/standard/validation";
+import { EXPECTED } from "../ncdreg-db/golden/expected";
 
 const code = z.object({ code: z.string().min(1), label: z.string().min(1) }).strict();
 const versioned = {
@@ -195,7 +196,7 @@ describe("everything is draft and versioned (§5)", () => {
 });
 
 describe("generated documents never drift (§5)", () => {
-  for (const [path, render] of Object.entries(GENERATED_DOCS)) {
+  for (const [path, render] of Object.entries(generatedDocs(EXPECTED))) {
     it(`${path} regenerates identically twice and matches the file`, () => {
       const a = render();
       expect(render()).toBe(a);
