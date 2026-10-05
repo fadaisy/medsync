@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.5.0-draft",
+ "version": "0.5.1-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -30,8 +30,10 @@
    "DM-ACU-ROUTE-25",
    "DM-ACU-ROUTE-25B",
    "DM-ACU-ROUTE-02",
+   "DM-ACU-ROUTE-02P",
    "DM-ACU-ROUTE-30",
    "DM-ACU-ROUTE-14",
+   "DM-ACU-ROUTE-14P",
    "DM-ACU-ROUTE-11",
    "DM-ACU-ROUTE-29",
    "DM-ACU-ROUTE-17",
@@ -72,12 +74,12 @@
   "DM-ACT-EDU": 12,
   "DM-ACT-RECALL": 2,
   "DM-ACT-REFER": 25,
-  "DM-ACT-RX": 10,
+  "DM-ACT-RX": 12,
   "DM-ACT-SCREEN": 13,
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 5,
   "DM-ACT-THERAPY": 38,
-  "DM-ACU-ROUTE": 50,
+  "DM-ACU-ROUTE": 52,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -109,8 +111,8 @@
   "confirm": 43,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 50,
-  "act": 106
+  "acute_route": 52,
+  "act": 108
  },
  "rules": [
   {
@@ -491,7 +493,9 @@
     "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
     "interruptRank": null,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
@@ -541,7 +545,9 @@
     "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
     "interruptRank": null,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
@@ -1054,7 +1060,8 @@
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": [
-     "sus_preg_done"
+     "sus_preg_done",
+     "sus_preg_01_known"
     ]
    }
   },
@@ -1792,7 +1799,66 @@
    "lane": "acute_route",
    "title": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.ketones_urine",
+    "obs.ketones_blood",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "obs.glucose"
+   ],
+   "predicate": "catalog.rule:acu_ketones",
+   "params": {
+    "acu-dka-bohb": "REF-DM-ACU-DKA-BOHB",
+    "acu-dka-glu": "REF-DM-ACU-DKA-GLU"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-01"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "neutralProposal": null,
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": 12,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-02P",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. Route now; the paediatric DKA pathway gives the fluids",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
     "pregnancy": "any"
    },
    "reads": [
@@ -2162,7 +2228,7 @@
    "id": "DM-ACU-ROUTE-13",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes with vomiting, abdominal pain or dehydration, and no glucose on record: capillary glucose today, and ketones if it is raised",
+   "title": "Diabetes with vomiting, abdominal pain, dehydration or acutely unwell, and no glucose on record: capillary glucose today, and ketones if it is raised",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -2223,7 +2289,60 @@
    "lane": "acute_route",
    "title": "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose"
+   ],
+   "predicate": "catalog.rule:acu_hhs_glu",
+   "params": {
+    "acu-hhs-glu": "REF-DM-ACU-HHS-GLU"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "section": "Figure 2B - The diagnosis criteria of HHS",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-07"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "neutralProposal": null,
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": 14,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-14P",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. Route now; the paediatric DKA pathway gives the fluids",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
     "pregnancy": "any"
    },
    "reads": [
@@ -2685,7 +2804,9 @@
     "unlessCapability": null,
     "notWhen": [
      "sus_single_repeated",
-     "incid_02_preg"
+     "incid_02_preg",
+     "incid_02_symptoms",
+     "incid_02_two_tests"
     ]
    }
   },
@@ -3665,7 +3786,7 @@
    "id": "DM-ACU-ROUTE-23",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
+   "title": "Type 1 diabetes or on insulin, with vomiting, abdominal pain or acutely unwell: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -4775,7 +4896,7 @@
    "id": "DM-ACU-ROUTE-23D",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
+   "title": "Type 1 or on insulin, vomiting, abdominal pain or acutely unwell, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -5307,7 +5428,9 @@
     "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
     "interruptRank": null,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
@@ -5325,7 +5448,7 @@
    "title": "Pregnant with diabetes and unwell: ketoacidosis in pregnancy can come with only a modestly raised glucose (below 13.9 mmol/L). Ketones now, and same-day assessment by a medical or diabetes team (JBDS 2023)",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "ncd.pregnant (no CFC concept yet)",
@@ -5359,7 +5482,7 @@
     "posterior": "moderate",
     "restrictedClasses": [],
     "interruptRank": null,
-    "pregnancyUnknownCounts": false,
+    "pregnancyUnknownCounts": true,
     "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
@@ -5418,19 +5541,16 @@
    "id": "DM-SUS-PREG-03",
    "family": "DM-SUS-PREG",
    "lane": "suspect",
-   "title": "Pregnant, before 24 weeks, no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
+   "title": "Pregnant (before 24 weeks, or gestation not recorded), no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "pregnant"
    },
    "reads": [
-    "ncd.pregnant (no CFC concept yet)",
-    "ncd.gestation_weeks (no CFC concept yet)"
+    "ncd.pregnant (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:sus_preg_first",
-   "params": {
-    "preg-ug26-early": "REF-DM-PREG-UG26-EARLY"
-   },
+   "params": {},
    "minTrust": 2,
    "emits": [
     "state",
@@ -5463,7 +5583,9 @@
     "unlessCapability": null,
     "notWhen": [
      "sus_preg_first_known",
-     "sus_preg_first_done"
+     "sus_preg_first_done",
+     "sus_preg_first_late",
+     "sus_preg_first_ucg"
     ]
    }
   },
@@ -7463,7 +7585,7 @@
    "id": "DM-ACT-RX-04",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin. Check ketones first",
+   "title": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin at these values at diagnosis; in an established patient, review treatment (a value taken during an acute illness may settle). Check ketones first",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -8589,7 +8711,7 @@
    "id": "DM-ACT-PREG-ASA-01",
    "family": "DM-ACT-RX",
    "lane": "act",
-   "title": "Pregnant with type 1 or type 2 diabetes, 12 weeks or more: review starting aspirin to reduce the risk of pre-eclampsia (2026: from 12 to 16 weeks); agree it with the antenatal team",
+   "title": "Pregnant with type 1 or type 2 diabetes, 12 to 16 weeks: review starting aspirin to reduce the risk of pre-eclampsia (2026); agree it with the antenatal team",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -8604,7 +8726,8 @@
    ],
    "predicate": "catalog.step:preg_asa",
    "params": {
-    "preg-ug26-asa-weeks": "REF-DM-PREG-UG26-ASA-WEEKS"
+    "preg-ug26-asa-weeks": "REF-DM-PREG-UG26-ASA-WEEKS",
+    "preg-ug26-asa-end": "REF-DM-PREG-UG26-ASA-END"
    },
    "minTrust": 2,
    "emits": [
@@ -8815,7 +8938,7 @@
    "id": "DM-ACT-RX-04B",
    "family": "DM-ACT-RX",
    "lane": "act",
-   "title": "On high-dose steroids, with diabetes, not on insulin: the 2026 guideline lists this as an indication for insulin. Review treatment",
+   "title": "On a steroid, with diabetes, not on insulin: if the dose is high, the 2026 guideline lists this as an indication for insulin. Review treatment",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -9140,6 +9263,7 @@
    },
    "reads": [
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.never_b12 (no CFC concept yet)",
     "ncd.months_since_b12 (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_b12",
@@ -9242,6 +9366,102 @@
      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
      "verifiedOn": "2026-10-05",
      "claim": "UG26-PREVENT-MET"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14M",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4: below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.age_years (no CFC concept yet)",
+    "obs.glucose",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.capillary_glucose_context (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_14m",
+   "params": {
+    "ctrl-older-age": "REF-DM-CTRL-OLDER-AGE",
+    "ctrl-older-fpg-healthy": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "section": "Table 13.2, p. S284",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "verifiedOn": "2026-10-05",
+     "claim": "SRC-ADA26-T132"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14BM",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 (frail or cognitively impaired): below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.age_years (no CFC concept yet)",
+    "obs.glucose",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.capillary_glucose_context (no CFC concept yet)",
+    "ncd.frailty_or_limited_life_expectancy (no CFC concept yet)",
+    "ncd.cognitive_impairment (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_14bm",
+   "params": {
+    "ctrl-older-age": "REF-DM-CTRL-OLDER-AGE",
+    "ctrl-older-fpg-complex": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "section": "Table 13.2, p. S284",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "verifiedOn": "2026-10-05",
+     "claim": "SRC-ADA26-T132"
     }
    ],
    "status": "draft",
@@ -9990,10 +10210,10 @@
    "citations": [
     {
      "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
-     "section": "PDF p. 31 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "section": "PDF p. 33 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
      "verifiedOn": "2026-10-05",
-     "claim": "UG26-T8-ELDERLY"
+     "claim": "UG26-PIO"
     }
    ],
    "status": "draft",

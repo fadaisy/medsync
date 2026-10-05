@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -36,8 +36,10 @@
    "DM-ACU-ROUTE-25",
    "DM-ACU-ROUTE-25B",
    "DM-ACU-ROUTE-02",
+   "DM-ACU-ROUTE-02P",
    "DM-ACU-ROUTE-30",
    "DM-ACU-ROUTE-14",
+   "DM-ACU-ROUTE-14P",
    "DM-ACU-ROUTE-11",
    "DM-ACU-ROUTE-29",
    "DM-ACU-ROUTE-17",
@@ -75,8 +77,10 @@
   "DM-ACU-ROUTE-25",
   "DM-ACU-ROUTE-25B",
   "DM-ACU-ROUTE-02",
+  "DM-ACU-ROUTE-02P",
   "DM-ACU-ROUTE-30",
   "DM-ACU-ROUTE-14",
+  "DM-ACU-ROUTE-14P",
   "DM-ACU-ROUTE-11",
   "DM-ACU-ROUTE-29",
   "DM-ACU-ROUTE-17",
@@ -674,7 +678,7 @@
   "prior_gdm": {
    "valueType": "boolean",
    "requires": null,
-   "restrictedClass": null,
+   "restrictedClass": "sexual_reproductive_health",
    "display": "Gestational diabetes in a previous pregnancy"
   },
   "postpartum_weeks": {
@@ -1342,6 +1346,12 @@
    "requires": null,
    "restrictedClass": null,
    "display": "Months since the last vitamin B12 level"
+  },
+  "never_b12": {
+   "valueType": "boolean",
+   "requires": null,
+   "restrictedClass": null,
+   "display": "Vitamin B12 never measured"
   }
  },
  "diagnosis": [
@@ -1676,7 +1686,7 @@
     },
     {
      "id": "who_hd_hba1c_symptoms",
-     "label": "HbA1c 6.5% or more, with thirst, passing a lot of urine or unexplained weight loss",
+     "label": "Laboratory HbA1c 6.5% or more, with thirst, passing a lot of urine or unexplained weight loss",
      "all": [
       {
        "feature": "hba1c",
@@ -1684,6 +1694,10 @@
        "value": 6.5,
        "_ref": "REF-DM-DX-HBA1C",
        "unit": "%"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
       }
      ],
      "any": [
@@ -1719,7 +1733,7 @@
     },
     {
      "id": "who_hd_hba1c_repeat",
-     "label": "HbA1c 6.5% or more, and a second diabetes-range result on a later day",
+     "label": "Laboratory HbA1c 6.5% or more, and a second diabetes-range result on a later day",
      "all": [
       {
        "feature": "hba1c",
@@ -1731,6 +1745,10 @@
       {
        "feature": "repeat_abnormal_result",
        "op": "present"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
       }
      ],
      "citation": {
@@ -1956,7 +1974,8 @@
      "runWhen": "not_established"
     },
     "review": [
-     "F13"
+     "F13",
+     "W10"
     ],
     "default": false
    }
@@ -2576,6 +2595,229 @@
        "ref": "REF-DM-DX-UG26-RBG"
       }
      }
+    },
+    {
+     "id": "ug26_fcap_symptoms",
+     "label": "Fasting capillary glucose 7.0 mmol/L or more (meter, where no laboratory is available), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 7.0,
+       "_ref": "REF-DM-DX-FPG",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "fasting"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-14",
+       "section": "Section 'Diagnostic tests' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-POC-WHO"
+      }
+     }
+    },
+    {
+     "id": "ug26_fcap_repeat",
+     "label": "Fasting capillary glucose 7.0 mmol/L or more (meter, where no laboratory is available), and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 7.0,
+       "_ref": "REF-DM-DX-FPG",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "fasting"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "ug26_random_cap_symptoms",
+     "label": "Capillary glucose 11.1 mmol/L or more (meter; random, or 2 hours after food), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-DX-RANDOM",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "in",
+       "value": [
+        "random",
+        "two_hours_after_food"
+       ]
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-14",
+       "section": "Section 'Diagnostic tests' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-POC-WHO"
+      }
+     }
+    },
+    {
+     "id": "ug26_cap_high_symptoms",
+     "label": "Any capillary glucose 12.2 mmol/L or more (meter, whatever the timing), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 12.2,
+       "_ref": "REF-DM-DX-OGTT2H-CAP",
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "needsCsoInput": "A pack inference: 12.2 mmol/L is the highest capillary threshold in WHO's table, so a reading at or above it is in the diabetes range whatever its timing. WHO does not state this as a criterion. For CSO signature with D-DM-04.",
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
+    },
+    {
+     "id": "ug26_cap_hi_symptoms",
+     "label": "A meter reading HI (above the meter's range), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "needsCsoInput": "A meter's upper limit is above every diagnostic threshold, so HI with symptoms is in the diabetes range. A pack inference, with D-DM-04.",
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
     }
    ],
    "citation": {
@@ -2606,6 +2848,9 @@
     "signed": "UG-01, UG-02, UG-03, UG-04 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "review": [
+     "W20"
     ]
    }
   },
@@ -4142,8 +4387,11 @@
     "review": [
      "F12"
     ],
-    "restrictedClasses": [],
-    "runWhen": "not_established"
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "A risk factor for diabetes: a glucose test at least every 3 years"
    }
   },
   {
@@ -4251,8 +4499,11 @@
     "sources": [
      "UG 2026 summarised"
     ],
-    "restrictedClasses": [],
-    "runWhen": "not_established"
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Re-test glucose 6 to 12 weeks after the birth, then every 1 to 3 years"
    }
   },
   {
@@ -5120,7 +5371,8 @@
     },
     "review": [
      "F38",
-     "H21"
+     "H21",
+     "W05"
     ],
     "notWhen": [
      {
@@ -5146,6 +5398,88 @@
         "bodyProposed": "OTHER",
         "verified": true,
         "ref": "REF-DM-PREG-WINDOW-START"
+       }
+      }
+     },
+     {
+      "id": "sus_preg_01_known",
+      "label": "Diabetes or gestational diabetes already recorded",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
        }
       }
      }
@@ -6913,7 +7247,8 @@
      "K01",
      "L01",
      "L04",
-     "L19"
+     "L19",
+     "W06"
     ],
     "interruptRank": 12,
     "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
@@ -6922,7 +7257,223 @@
     ],
     "restrictedClasses": [],
     "runWhen": "always"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
+  },
+  {
+   "id": "DM-ACU-ROUTE-02P",
+   "display": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. Route now; the paediatric DKA pathway gives the fluids",
+   "condition": "dka",
+   "when": {
+    "id": "acu_ketones",
+    "label": "Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI",
+    "any": [
+     {
+      "feature": "urine_ketones",
+      "op": "in",
+      "value": [
+       "2plus",
+       "3plus"
+      ]
+     },
+     {
+      "feature": "bohb",
+      "op": ">=",
+      "value": 3.0,
+      "_ref": "REF-DM-ACU-DKA-BOHB",
+      "unit": "mmol/L"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-ACU-DKA-GLU",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-ACU-DKA-GLU",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-ACU-DKA-GLU",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-ACU-DKA-GLU",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-ACU-DKA-GLU",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "_ref": "REF-DM-ACU-DKA-GLU",
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-01",
+      "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-DKA-BOHB"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "venous_ph",
+    "bicarbonate",
+    "sodium",
+    "urea"
+   ],
+   "mimicsToExclude": [
+    "Starvation ketosis",
+    "Alcoholic ketoacidosis",
+    "Ketosis of pregnancy",
+    "Captopril or valproate (false-positive strip)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-01",
+     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Two OR-groups are conjoined by putting the second in atLeast with n = 1. Ketosis with a glucose below 11.1 in a person not known to have diabetes does not fire this rule; on an SGLT2 inhibitor rule 03 covers it. No blood gas at this site: refer on ketones and the clinical picture; do not wait.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "H03",
+     "K01",
+     "L01",
+     "L04",
+     "L19",
+     "W06"
+    ],
+    "interruptRank": 12,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ]
   },
   {
    "id": "DM-ACU-ROUTE-03",
@@ -8065,7 +8616,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-13",
-   "display": "Diabetes with vomiting, abdominal pain or dehydration, and no glucose on record: capillary glucose today, and ketones if it is raised",
+   "display": "Diabetes with vomiting, abdominal pain, dehydration or acutely unwell, and no glucose on record: capillary glucose today, and ketones if it is raised",
    "condition": "hyperglycaemic_crisis",
    "when": {
     "id": "acu_known_unwell",
@@ -8221,7 +8772,8 @@
      "J01",
      "L01",
      "L04",
-     "V01"
+     "V01",
+     "W14"
     ],
     "notWhen": [
      {
@@ -8390,7 +8942,8 @@
     },
     "review": [
      "F02",
-     "F25"
+     "F25",
+     "W06"
     ],
     "interruptRank": 14,
     "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
@@ -8400,7 +8953,139 @@
     ],
     "restrictedClasses": [],
     "runWhen": "always"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
+  },
+  {
+   "id": "DM-ACU-ROUTE-14P",
+   "display": "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. Route now; the paediatric DKA pathway gives the fluids",
+   "condition": "hhs",
+   "when": {
+    "id": "acu_hhs_glu",
+    "label": "Any glucose 30.0 mmol/L or more, or a meter reading HI",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 30.0,
+      "_ref": "REF-DM-ACU-HHS-GLU",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 30.0,
+      "_ref": "REF-DM-ACU-HHS-GLU",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 30.0,
+      "_ref": "REF-DM-ACU-HHS-GLU",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 30.0,
+      "_ref": "REF-DM-ACU-HHS-GLU",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 30.0,
+      "_ref": "REF-DM-ACU-HHS-GLU",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 30.0,
+      "_ref": "REF-DM-ACU-HHS-GLU",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-07",
+      "section": "Figure 2B - The diagnosis criteria of HHS",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-HHS-GLU"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "sodium",
+    "urea",
+    "effective_osmolality",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Ketoacidosis (the two overlap in more than a third of crises)",
+    "A meter error (repeat, and send a laboratory glucose)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-07",
+     "section": "Figure 2B - The diagnosis criteria of HHS",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Negative or weak ketones do not clear the patient: that is the definition of the hyperosmolar state. Typical patient: older, type 2, drowsy and very dry, often with an infection.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F02",
+     "F25",
+     "W06"
+    ],
+    "interruptRank": 14,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised",
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ]
   },
   {
    "id": "DM-ACU-ROUTE-15",
@@ -9326,7 +10011,8 @@
     },
     "review": [
      "F14",
-     "H25"
+     "H25",
+     "W11"
     ],
     "notWhen": [
      {
@@ -9378,6 +10064,108 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-PREG-DIP"
+       }
+      }
+     },
+     {
+      "id": "incid_02_symptoms",
+      "label": "A classic symptom or a crisis is recorded (one value diagnoses)",
+      "any": [
+       {
+        "feature": "polyuria",
+        "op": "present"
+       },
+       {
+        "feature": "polydipsia",
+        "op": "present"
+       },
+       {
+        "feature": "polyphagia",
+        "op": "present"
+       },
+       {
+        "feature": "foot_numbness_burning",
+        "op": "present"
+       },
+       {
+        "feature": "pruritus",
+        "op": "present"
+       },
+       {
+        "feature": "unexplained_weight_loss",
+        "op": "present"
+       },
+       {
+        "feature": "wasting",
+        "op": "present"
+       },
+       {
+        "feature": "weakness",
+        "op": "present"
+       },
+       {
+        "feature": "hyperglycaemic_crisis_now",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "In the presence of classic symptoms of hyperglycaemia described above and/or a hyperglycaemic crisis such as diabetic ketoacidosis or hyperosmolar hyperglycaemic state, a single blood glucose test (RBG ≥11.1 mmol/l or 200 mg/dl or FBG ≥7.0 mmol/l or 126 mg/dl) is sufficient to diagnose diabetes.",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-SINGLE",
+        "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "incid_02_two_tests",
+      "label": "Two different tests in the diabetes range (fasting 7.0 or more, HbA1c 6.5% or more, 2-hour 11.1 or more)",
+      "atLeast": {
+       "n": 2,
+       "of": [
+        {
+         "feature": "fasting_pg",
+         "op": ">=",
+         "value": 7.0,
+         "_ref": "REF-DM-DX-UG26-FPG",
+         "unit": "mmol/L"
+        },
+        {
+         "feature": "ogtt_2h_pg",
+         "op": ">=",
+         "value": 11.1,
+         "_ref": "REF-DM-DX-UG26-OGTT",
+         "unit": "mmol/L"
+        },
+        {
+         "feature": "hba1c",
+         "op": ">=",
+         "value": 6.5,
+         "_ref": "REF-DM-DX-UG26-HBA1C",
+         "unit": "%"
+        }
+       ]
+      },
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "two abnormal tests (RBG or FBG or 2h BG after an OGTT or HbA1c) performed at the same time or at two different time points",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-TWO",
+        "section": "PDF p. 19 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
        }
       }
      }
@@ -12464,7 +13252,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-23",
-   "display": "Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
+   "display": "Type 1 diabetes or on insulin, with vomiting, abdominal pain or acutely unwell: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick",
@@ -12555,7 +13343,8 @@
      "K21",
      "L04",
      "L05",
-     "V01"
+     "V01",
+     "W14"
     ],
     "notWhen": [
      {
@@ -16365,7 +17154,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-23D",
-   "display": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
+   "display": "Type 1 or on insulin, vomiting, abdominal pain or acutely unwell, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick_district",
@@ -16452,7 +17241,8 @@
     "review": [
      "Q12",
      "U02",
-     "V01"
+     "V01",
+     "W14"
     ],
     "unlessCapability": "lab.ketones_blood",
     "notWhen": [
@@ -17922,12 +18712,13 @@
      "tier": "today"
     },
     "review": [
-     "V04"
+     "V04",
+     "W01"
     ],
     "notWhen": [
      {
       "id": "acu_insulin_sick_review_signs",
-      "label": "Ketones 1.6 mmol/L or more, urine 2+, or a sign (an interrupting rule applies)",
+      "label": "Blood ketones 1.6 mmol/L or more, urine ketones 2+ or more, deep rapid breathing, or drowsiness (an interrupting rule owns it)",
       "any": [
        {
         "feature": "bohb",
@@ -17946,14 +18737,6 @@
        },
        {
         "feature": "deep_rapid_breathing",
-        "op": "present"
-       },
-       {
-        "feature": "acetone_breath",
-        "op": "present"
-       },
-       {
-        "feature": "dehydration",
         "op": "present"
        },
        {
@@ -18181,8 +18964,11 @@
     "sources": [
      "UG 2026 summarised"
     ],
-    "restrictedClasses": [],
-    "runWhen": "not_established"
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "A risk factor for raised glucose: test for it now (a 75 g OGTT where available, otherwise a fasting glucose)"
    }
   },
   {
@@ -18356,6 +19142,14 @@
      }
     ],
     "signed": "D-DM-42 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "pregnancyUnknownCounts": true,
+    "unknownDisplays": {
+     "pregnant": "Pregnancy is not recorded: ask now. If pregnant with diabetes and unwell: ketones now and same-day assessment by a medical or diabetes team (JBDS 2023)"
+    },
+    "unknownUrgency": "same_day",
+    "review": [
+     "W07"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -18438,22 +19232,15 @@
   },
   {
    "id": "DM-SUS-PREG-03",
-   "display": "Pregnant, before 24 weeks, no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
+   "display": "Pregnant (before 24 weeks, or gestation not recorded), no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
    "condition": "gestational_diabetes",
    "when": {
     "id": "sus_preg_first",
-    "label": "Pregnant, before 24 weeks",
+    "label": "Pregnant (before 24 weeks, or gestation not recorded)",
     "all": [
      {
       "feature": "pregnant",
       "op": "present"
-     },
-     {
-      "feature": "gestation_weeks",
-      "op": "<",
-      "value": 24,
-      "_ref": "REF-DM-PREG-UG26-EARLY",
-      "unit": "weeks"
      }
     ],
     "citation": {
@@ -18468,8 +19255,7 @@
       "claim": "UG26-PREG-SCREEN",
       "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
       "bodyProposed": "UG-MOH",
-      "verified": true,
-      "ref": "REF-DM-PREG-UG26-EARLY"
+      "verified": true
      }
     }
    },
@@ -18630,7 +19416,106 @@
         "verified": true
        }
       }
+     },
+     {
+      "id": "sus_preg_first_late",
+      "label": "24 weeks or more (DM-SUS-PREG-01 owns it)",
+      "all": [
+       {
+        "feature": "gestation_weeks",
+        "op": ">=",
+        "value": 24,
+        "_ref": "REF-DM-PREG-UG26-EARLY",
+        "unit": "weeks"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UG26-EARLY"
+       }
+      }
+     },
+     {
+      "id": "sus_preg_first_ucg",
+      "label": "Pregnant, with any of: BMI above 35, age above 40, gestational diabetes before, diabetes in a first-degree relative, a previous baby over 4 kg or an unexplained third-trimester death, polyhydramnios, glucose in the urine, a baby large for dates (DM-SUS-PREG-UCG owns it)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "any": [
+       {
+        "feature": "bmi",
+        "op": ">",
+        "value": 35,
+        "_ref": "REF-DM-PREG-UCG-BMI",
+        "unit": "kg/m2"
+       },
+       {
+        "feature": "age_years",
+        "op": ">",
+        "value": 40,
+        "_ref": "REF-DM-PREG-UCG-AGE",
+        "unit": "years"
+       },
+       {
+        "feature": "prior_gdm",
+        "op": "present"
+       },
+       {
+        "feature": "fh_diabetes_first_degree",
+        "op": "present"
+       },
+       {
+        "feature": "prior_macrosomia_or_stillbirth",
+        "op": "present"
+       },
+       {
+        "feature": "polyhydramnios",
+        "op": "present"
+       },
+       {
+        "feature": "glycosuria",
+        "op": "present"
+       },
+       {
+        "feature": "fetus_large_for_dates",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-GDM-01",
+        "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UCG-BMI"
+       }
+      }
      }
+    ],
+    "review": [
+     "W12",
+     "W21"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"
@@ -19009,7 +19894,7 @@
     "notWhen": [
      {
       "id": "sus_admitted_done",
-      "label": "A glucose recorded at this visit",
+      "label": "A glucose recorded at this visit, or diabetes already known",
       "any": [
        {
         "feature": "random_pg",
@@ -19018,6 +19903,75 @@
        {
         "feature": "capillary_glucose",
         "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "hba1c",
+        "op": "recorded"
+       },
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
        }
       ],
       "citation": {
@@ -19036,6 +19990,9 @@
        }
       }
      }
+    ],
+    "review": [
+     "W21"
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -19268,9 +20225,48 @@
     "ages": "adult",
     "review": [
      "F12",
-     "T10"
+     "T10",
+     "W17"
     ],
     "measures": "hba1c",
+    "notWhen": [
+     {
+      "id": "due_hba1c_6_above",
+      "label": "Last HbA1c 7.0% or more and 3 months or more ago (DM-ACT-TEST-HBA1C-03 owns it)",
+      "all": [
+       {
+        "feature": "hba1c",
+        "op": ">=",
+        "value": 7.0,
+        "_ref": "REF-DM-CTRL-HBA1C-TARGET",
+        "unit": "%"
+       },
+       {
+        "feature": "months_since_hba1c",
+        "op": ">=",
+        "value": 3,
+        "_ref": "REF-DM-CTRL-WINDOW-ABOVE",
+        "unit": "months"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "undated (accompanies WHO PEN 2020)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) — Management of Type 2 Diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Monitor glycaemic control every three months until diabetes is controlled, then every six months",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A12-67",
+        "section": "Monitoring of glycaemic control",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-WINDOW-ABOVE"
+       }
+      }
+     }
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -23667,7 +24663,7 @@
   },
   {
    "id": "DM-ACT-RX-04",
-   "display": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin. Check ketones first",
+   "display": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin at these values at diagnosis; in an established patient, review treatment (a value taken during an acute illness may settle). Check ketones first",
    "when": {
     "id": "rx_severe",
     "label": "Type 2 or unclassified, not on insulin, with HbA1c 10% or more, fasting glucose above 14 mmol/L, or random, meter or post-load glucose above 16.7 mmol/L",
@@ -23858,7 +24854,8 @@
      "H34",
      "H27",
      "H21",
-     "T10"
+     "T10",
+     "W19"
     ],
     "notWhen": [
      {
@@ -27022,6 +28019,12 @@
      "UG 2026 summarised",
      "UG 2026 summarised"
     ],
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "review": [
+     "W05"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
@@ -27131,16 +28134,22 @@
       }
      }
     ],
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "review": [
+     "W05"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
   },
   {
    "id": "DM-ACT-PREG-ASA-01",
-   "display": "Pregnant with type 1 or type 2 diabetes, 12 weeks or more: review starting aspirin to reduce the risk of pre-eclampsia (2026: from 12 to 16 weeks); agree it with the antenatal team",
+   "display": "Pregnant with type 1 or type 2 diabetes, 12 to 16 weeks: review starting aspirin to reduce the risk of pre-eclampsia (2026); agree it with the antenatal team",
    "when": {
     "id": "preg_asa",
-    "label": "Pregnant, 12 weeks or more, with type 1 or type 2 diabetes recorded",
+    "label": "Pregnant, 12 to 16 weeks, with type 1 or type 2 diabetes recorded",
     "all": [
      {
       "feature": "pregnant",
@@ -27160,6 +28169,13 @@
        "type_1",
        "type_2"
       ]
+     },
+     {
+      "feature": "gestation_weeks",
+      "op": "<=",
+      "value": 16,
+      "_ref": "REF-DM-PREG-UG26-ASA-END",
+      "unit": "weeks"
      }
     ],
     "citation": {
@@ -27236,6 +28252,9 @@
        }
       }
      }
+    ],
+    "review": [
+     "W15"
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -27472,7 +28491,64 @@
         "verified": true
        }
       }
+     },
+     {
+      "id": "due_hba1c_above_relaxed",
+      "label": "A relaxed or 'avoid symptoms' plan, or a reason to relax (frailty, cognitive impairment, a significant low, impaired awareness: Gold score 4 or more)",
+      "any": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "relaxed",
+         "avoid_symptoms"
+        ]
+       },
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       },
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       },
+       {
+        "feature": "hypo_awareness_score",
+        "op": ">=",
+        "value": 4,
+        "_ref": "REF-DM-HYPO-IAH",
+        "unit": "score"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "ISPAD 2022; ADA 2025 (2026 not opened)",
+       "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Assessment and management of hypoglycemia (Chapter 12); ADA Standards of Care 2025 Section 6",
+       "url": "https://www.ispad.org/asset/F61C3D00-8344-4C30-A7B5E142B14737FE/",
+       "quote": "Impaired hypoglycemia awareness [IAH] is a syndrome in which the ability to detect hypoglycemia is diminished or absent, reported in 25% of adults with T1D. [...] score of ≥4 implies IAH",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-41",
+        "section": "ISPAD: Impaired awareness of hypoglycemia; ADA: recs 6.11 and narrative",
+        "bodyProposed": "ISPAD",
+        "verified": true,
+        "ref": "REF-DM-HYPO-IAH"
+       }
+      }
      }
+    ],
+    "review": [
+     "W17"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -27564,7 +28640,7 @@
     "urgency": "routine",
     "ages": "adult",
     "appliesTo": {
-     "pregnancy": "not_pregnant"
+     "pregnancy": "any"
     },
     "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "notWhen": [
@@ -27597,6 +28673,10 @@
        }
       }
      }
+    ],
+    "lessTreatment": true,
+    "review": [
+     "W23"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -27686,16 +28766,20 @@
     "urgency": "routine",
     "ages": "adult",
     "appliesTo": {
-     "pregnancy": "not_pregnant"
+     "pregnancy": "any"
     },
     "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "lessTreatment": true,
+    "review": [
+     "W23"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-04B",
-   "display": "On high-dose steroids, with diabetes, not on insulin: the 2026 guideline lists this as an indication for insulin. Review treatment",
+   "display": "On a steroid, with diabetes, not on insulin: if the dose is high, the 2026 guideline lists this as an indication for insulin. Review treatment",
    "when": {
     "id": "rx_steroid_insulin",
     "label": "On a glucocorticoid, with diabetes, not on insulin",
@@ -27822,6 +28906,9 @@
     "signed": "UG-22 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "review": [
+     "W19"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -28129,6 +29216,115 @@
     "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "rx_06c_owned",
+      "label": "Type 2 diabetes recorded, aged 40 or over, not on a statin (DM-ACT-RX-06 owns it)",
+      "all": [
+       {
+        "feature": "dm_type_recorded",
+        "op": "==",
+        "value": "type_2"
+       },
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 40,
+        "_ref": "REF-DM-CVD-STATIN-AGE",
+        "unit": "years"
+       },
+       {
+        "feature": "on_statin",
+        "op": "absent"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Statins are recommended for all people with type 2 diabetes 40 years old or older, but only if this does not negatively impact access to glucose-lowering and blood pressure-lowering medication.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-32",
+        "section": "Section 'Control of blood pressure and blood lipids' (p.17); 'Control of blood lipids' (pp.23-24)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CVD-STATIN-AGE"
+       }
+      },
+      "atLeast": {
+       "n": 1,
+       "of": [
+        {
+         "feature": "dm_status",
+         "op": "==",
+         "value": "known"
+        },
+        {
+         "feature": "dm_type_recorded",
+         "op": "in",
+         "value": [
+          "type_1",
+          "type_2",
+          "unclassified",
+          "other",
+          "gestational"
+         ]
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "metformin"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "glibenclamide"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "gliclazide"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "glimepiride"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "insulin"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "sglt2_inhibitor"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "pioglitazone"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "dpp4_inhibitor"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "glp1_ra"
+        }
+       ]
+      }
+     }
+    ],
+    "review": [
+     "W21"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -28551,19 +29747,12 @@
    "display": "On metformin: vitamin B12 every year (2026: on long-term metformin)",
    "when": {
     "id": "due_b12",
-    "label": "On metformin, 12 months or more since the last B12",
+    "label": "On metformin, B12 never measured or 12 months or more since the last",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
       "op": "==",
       "value": "metformin"
-     },
-     {
-      "feature": "months_since_b12",
-      "op": ">=",
-      "value": 12,
-      "_ref": "REF-DM-CVD-LIPID-INTERVAL",
-      "unit": "months"
      }
     ],
     "citation": {
@@ -28581,7 +29770,20 @@
       "verified": true,
       "ref": "REF-DM-CVD-LIPID-INTERVAL"
      }
-    }
+    },
+    "any": [
+     {
+      "feature": "never_b12",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_b12",
+      "op": ">=",
+      "value": 12,
+      "_ref": "REF-DM-CVD-LIPID-INTERVAL",
+      "unit": "months"
+     }
+    ]
    },
    "standard": "local",
    "version": "2026 (summarised version)",
@@ -28611,6 +29813,9 @@
     "signed": "UG-42 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "review": [
+     "W16"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -28766,8 +29971,264 @@
     "sources": [
      "UG 2026 summarised"
     ],
-    "restrictedClasses": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
     "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14M",
+   "display": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4: below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "when": {
+    "id": "dm_act_rx_14m",
+    "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4 mmol/L",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 65,
+      "_ref": "REF-DM-CTRL-OLDER-AGE",
+      "unit": "years"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 4.4,
+      "_ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "in",
+      "value": [
+       "insulin",
+       "glibenclamide",
+       "gliclazide",
+       "glimepiride"
+      ]
+     },
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026",
+     "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-ADA26-T132",
+      "section": "Table 13.2, p. S284",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026",
+    "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+    "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-ADA26-T132",
+     "section": "Table 13.2, p. S284",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "any"
+    },
+    "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "notWhen": [
+     {
+      "id": "dm-act-rx-14m_plasma",
+      "label": "A fasting plasma glucose below 4.4 mmol/L (the plasma prompt owns it)",
+      "all": [
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 4.4,
+        "_ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY",
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+       }
+      }
+     }
+    ],
+    "lessTreatment": true,
+    "review": [
+     "W23",
+     "W04"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14BM",
+   "display": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 (frail or cognitively impaired): below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "when": {
+    "id": "dm_act_rx_14bm",
+    "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 mmol/L and frail or cognitively impaired",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 65,
+      "_ref": "REF-DM-CTRL-OLDER-AGE",
+      "unit": "years"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 5.0,
+      "_ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX",
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "in",
+      "value": [
+       "insulin",
+       "glibenclamide",
+       "gliclazide",
+       "glimepiride"
+      ]
+     },
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     }
+    ],
+    "any": [
+     {
+      "feature": "frailty_or_limited_life_expectancy",
+      "op": "present"
+     },
+     {
+      "feature": "cognitive_impairment",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026",
+     "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-ADA26-T132",
+      "section": "Table 13.2, p. S284",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026",
+    "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+    "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-ADA26-T132",
+     "section": "Table 13.2, p. S284",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "any"
+    },
+    "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "lessTreatment": true,
+    "review": [
+     "W23",
+     "W04"
+    ],
+    "notWhen": [
+     {
+      "id": "dm-act-rx-14bm_plasma",
+      "label": "A fasting plasma glucose below 5.0 mmol/L (the plasma prompt owns it)",
+      "all": [
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 5.0,
+        "_ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX",
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
    }
   }
  ],
@@ -30378,12 +31839,12 @@
     "version": "2026 (summarised version)",
     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
-    "quote": "-Metformin -DPP-IV inhibitors such as sitagliptin, teneligliptin, and vildagliptin -SGLT2i such as dapagliflozin and empagliflozin -Gliclazide is the SU of choice",
+    "quote": "Avoid using pioglitazone in patients at risk of osteoporosis and heart failure such as elderly patients",
     "retrieved": "2026-10-05",
     "csoSigned": false,
     "x": {
-     "claim": "UG26-T8-ELDERLY",
-     "section": "PDF p. 31 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "claim": "UG26-PIO",
+     "section": "PDF p. 33 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
      "bodyProposed": "UG-MOH",
      "verified": true
     }
@@ -30397,6 +31858,9 @@
      "UG 2026 summarised"
     ],
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "review": [
+     "W22"
+    ],
     "restrictedClasses": []
    }
   },
@@ -33214,7 +34678,8 @@
      "L09",
      "T06",
      "T10",
-     "U06"
+     "U06",
+     "W02"
     ],
     "ages": "adult",
     "notWhen": [
@@ -33323,7 +34788,7 @@
      },
      {
       "id": "tgt_general_tight",
-      "label": "A tight tier agreed and not on insulin (the tight target applies)",
+      "label": "A tight target agreed, not on insulin or a sulfonylurea (the tight target applies)",
       "all": [
        {
         "feature": "glycaemic_target_tier",
@@ -33334,6 +34799,21 @@
         "feature": "glucose_lowering_therapy",
         "op": "!=",
         "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "glimepiride"
        }
       ],
       "citation": {
@@ -33573,22 +35053,19 @@
      "H14",
      "J12",
      "K13",
-     "T10"
+     "T10",
+     "W13"
     ],
     "ages": "adult",
     "notWhen": [
      {
       "id": "tier_not_relaxed",
-      "label": "A different glycaemic target tier has already been agreed",
+      "label": "'Avoid symptoms' agreed (no HbA1c target)",
       "all": [
        {
         "feature": "glycaemic_target_tier",
-        "op": "in",
-        "value": [
-         "general",
-         "tight",
-         "avoid_symptoms"
-        ]
+        "op": "==",
+        "value": "avoid_symptoms"
        }
       ],
       "citation": {
@@ -33613,7 +35090,8 @@
      "tgt_hba1c_general",
      "tgt_hba1c_older_healthy",
      "tgt_hba1c_ckd",
-     "tgt_hba1c_tb"
+     "tgt_hba1c_tb",
+     "tgt_hba1c_elderly_2026"
     ],
     "restrictedClasses": []
    }
@@ -34270,7 +35748,8 @@
     "supersedes": [
      "tgt_hba1c_general",
      "tgt_hba1c_tight",
-     "tgt_hba1c_older_healthy"
+     "tgt_hba1c_older_healthy",
+     "tgt_hba1c_elderly_2026"
     ],
     "restrictedClasses": []
    }
@@ -34397,7 +35876,9 @@
     "review": [
      "F04",
      "T10",
-     "V02"
+     "V02",
+     "W09",
+     "W04"
     ],
     "ages": "adult",
     "notWhen": [
@@ -34529,6 +36010,246 @@
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
        }
       }
+     },
+     {
+      "id": "tgt_fpg_surrogate_inpatient",
+      "label": "An inpatient (the in-hospital target applies)",
+      "all": [
+       {
+        "feature": "care_setting",
+        "op": "==",
+        "value": "inpatient"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-INPT-TGT",
+        "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_0",
+      "label": "65 or over on insulin or a sulfonylurea, fasting glucose below 4.4 mmol/L",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "_ref": "REF-DM-CTRL-OLDER-AGE",
+        "unit": "years"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 4.4,
+        "_ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY",
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_cap_0",
+      "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4 mmol/L",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "_ref": "REF-DM-CTRL-OLDER-AGE",
+        "unit": "years"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": "<",
+        "value": 4.4,
+        "_ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY",
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       },
+       {
+        "feature": "capillary_glucose_context",
+        "op": "==",
+        "value": "fasting"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_1",
+      "label": "65 or over on insulin or a sulfonylurea, fasting glucose below 5.0 mmol/L and frail or cognitively impaired",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "_ref": "REF-DM-CTRL-OLDER-AGE",
+        "unit": "years"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 5.0,
+        "_ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX",
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       }
+      ],
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_cap_1",
+      "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 mmol/L and frail or cognitively impaired",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "_ref": "REF-DM-CTRL-OLDER-AGE",
+        "unit": "years"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": "<",
+        "value": 5.0,
+        "_ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX",
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       },
+       {
+        "feature": "capillary_glucose_context",
+        "op": "==",
+        "value": "fasting"
+       }
+      ],
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+       }
+      }
      }
     ],
     "restrictedClasses": []
@@ -34655,7 +36376,8 @@
     "review": [
      "F04",
      "T10",
-     "V02"
+     "V02",
+     "W09"
     ],
     "ages": "adult",
     "notWhen": [
@@ -34785,6 +36507,32 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_ppg_surrogate_inpatient",
+      "label": "An inpatient (the in-hospital target applies)",
+      "all": [
+       {
+        "feature": "care_setting",
+        "op": "==",
+        "value": "inpatient"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-INPT-TGT",
+        "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
        }
       }
      }
@@ -34927,7 +36675,7 @@
    "display": "HbA1c below 6.5% (2026: newly diagnosed, young, no comorbidities, a low risk of lows; never on insulin or a sulfonylurea here)",
    "when": {
     "id": "tgt_tight",
-    "label": "A tight target agreed",
+    "label": "A tight target agreed, not on insulin or a sulfonylurea",
     "all": [
      {
       "feature": "glycaemic_target_tier",
@@ -34938,6 +36686,21 @@
       "feature": "glucose_lowering_therapy",
       "op": "!=",
       "value": "insulin"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "glibenclamide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "gliclazide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "glimepiride"
      }
     ],
     "citation": {
@@ -35055,7 +36818,8 @@
      "Q11",
      "T10",
      "U06",
-     "V13"
+     "V13",
+     "W02"
     ],
     "ages": "adult",
     "notWhen": [
@@ -35466,6 +37230,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-UG26-ELDERLY"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -35502,6 +37332,43 @@
     "signed": "UG-16 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "tgt_elderly_tier",
+      "label": "A target tier agreed (general, relaxed, tight or 'avoid symptoms')",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "general",
+         "relaxed",
+         "tight",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Newly diagnosed young individuals with a long-life expectancy (>10 years), no comorbidities, and a low risk of hypoglycaemia <6.5% (48 mmol/mol) Elderly individuals (≥60 years) with long-standing diabetes, a high risk of hypoglycaemia, short-life expectancy, and comorbidities such as renal dysfunction and atherosclerotic cardiovascular diseases <8% (64 mmol/mol)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-TGT-HBA1C",
+        "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "review": [
+     "W03",
+     "W21"
     ],
     "restrictedClasses": []
    }
@@ -36885,7 +38752,9 @@
      "F04",
      "H06",
      "U10",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -36958,7 +38827,9 @@
      "F04",
      "H06",
      "U10",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -37224,7 +39095,9 @@
      "F07",
      "F04",
      "H06",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -37302,7 +39175,9 @@
      "F07",
      "F04",
      "H06",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -39705,6 +41580,12 @@
   "REF-DM-PREV-UG26-BMI": {
    "value": 35,
    "unit": "kg/m2",
+   "status": "draft",
+   "needsCsoInput": false
+  },
+  "REF-DM-PREG-UG26-ASA-END": {
+   "value": 16,
+   "unit": "weeks",
    "status": "draft",
    "needsCsoInput": false
   }

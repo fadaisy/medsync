@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -96,6 +96,18 @@
   "ug26_rbg_hba1c": [
    "REF-DM-DX-UG26-RBG",
    "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_fcap_symptoms": [
+   "REF-DM-DX-FPG"
+  ],
+  "ug26_fcap_repeat": [
+   "REF-DM-DX-FPG"
+  ],
+  "ug26_random_cap_symptoms": [
+   "REF-DM-DX-RANDOM"
+  ],
+  "ug26_cap_high_symptoms": [
+   "REF-DM-DX-OGTT2H-CAP"
   ],
   "who_ifg": [
    "REF-DM-IH-IFG-WHO",
@@ -231,6 +243,10 @@
   ],
   "due_hba1c_6": [
    "REF-DM-CTRL-WINDOW-AT-TARGET"
+  ],
+  "due_hba1c_6_above": [
+   "REF-DM-CTRL-HBA1C-TARGET",
+   "REF-DM-CTRL-WINDOW-ABOVE"
   ],
   "due_hba1c_3": [
    "REF-DM-CTRL-WINDOW-ABOVE"
@@ -422,7 +438,8 @@
    "REF-DM-DX-UG26-FPG"
   ],
   "preg_asa": [
-   "REF-DM-PREG-UG26-ASA-WEEKS"
+   "REF-DM-PREG-UG26-ASA-WEEKS",
+   "REF-DM-PREG-UG26-ASA-END"
   ],
   "rx_cpep": [
    "REF-DM-RX-UG26-CPEP"
@@ -430,6 +447,9 @@
   "due_hba1c_above": [
    "REF-DM-CTRL-HBA1C-TARGET",
    "REF-DM-CTRL-WINDOW-ABOVE"
+  ],
+  "due_hba1c_above_relaxed": [
+   "REF-DM-HYPO-IAH"
   ],
   "dm_act_rx_14": [
    "REF-DM-CTRL-OLDER-AGE",
@@ -448,6 +468,9 @@
    "REF-DM-KID-GFR-G3A",
    "REF-DM-KID-UACR-COUNT"
   ],
+  "rx_06c_owned": [
+   "REF-DM-CVD-STATIN-AGE"
+  ],
   "due_eye_mild": [
    "REF-DM-EYE-RECALL-MILD-MIN"
   ],
@@ -456,6 +479,20 @@
   ],
   "rx_prevent": [
    "REF-DM-PREV-UG26-BMI"
+  ],
+  "dm_act_rx_14m": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "dm-act-rx-14m_plasma": [
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "dm_act_rx_14bm": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "dm-act-rx-14bm_plasma": [
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
   ],
   "sus_risk_who": [
    "REF-DM-SUS-AGE-WHO",
@@ -559,6 +596,13 @@
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU"
   ],
   "acu_edka_bohb_normal": [
@@ -627,6 +671,12 @@
    "REF-DM-ACU-HHS-GLU",
    "REF-DM-ACU-HHS-GLU",
    "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
    "REF-DM-ACU-HHS-GLU"
   ],
   "con_preg_any_11": [
@@ -650,6 +700,11 @@
    "REF-DM-DX-FPG",
    "REF-DM-DX-HBA1C",
    "REF-DM-DX-OGTT2H"
+  ],
+  "incid_02_two_tests": [
+   "REF-DM-DX-UG26-FPG",
+   "REF-DM-DX-UG26-OGTT",
+   "REF-DM-DX-UG26-HBA1C"
   ],
   "cls_t1_unclassified": [
    "REF-DM-CLS-T1-AGE",
@@ -974,8 +1029,12 @@
    "REF-DM-IH-UG26-RBG",
    "REF-DM-DX-UG26-RBG"
   ],
-  "sus_preg_first": [
+  "sus_preg_first_late": [
    "REF-DM-PREG-UG26-EARLY"
+  ],
+  "sus_preg_first_ucg": [
+   "REF-DM-PREG-UCG-BMI",
+   "REF-DM-PREG-UCG-AGE"
   ],
   "con_preg_hba1c_early": [
    "REF-DM-PREG-UG26-EARLY",
@@ -998,6 +1057,22 @@
   ],
   "tgt_ckd": [
    "REF-DM-KID-GFR-G3A"
+  ],
+  "tgt_fpg_floor_0": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "tgt_fpg_floor_cap_0": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "tgt_fpg_floor_1": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "tgt_fpg_floor_cap_1": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
   ],
   "tgt_elderly_2026": [
    "REF-DM-CTRL-UG26-ELDERLY",

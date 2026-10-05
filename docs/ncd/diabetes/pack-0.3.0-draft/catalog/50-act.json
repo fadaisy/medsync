@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -144,9 +144,46 @@
     "ages": "adult",
     "review": [
      "F12",
-     "T10"
+     "T10",
+     "W17"
     ],
     "measures": "hba1c",
+    "notWhen": [
+     {
+      "id": "due_hba1c_6_above",
+      "label": "Last HbA1c 7.0% or more and 3 months or more ago (DM-ACT-TEST-HBA1C-03 owns it)",
+      "all": [
+       {
+        "feature": "hba1c",
+        "op": ">=",
+        "value": 7.0,
+        "unit": "%"
+       },
+       {
+        "feature": "months_since_hba1c",
+        "op": ">=",
+        "value": 3,
+        "unit": "months"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "undated (accompanies WHO PEN 2020)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) — Management of Type 2 Diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Monitor glycaemic control every three months until diabetes is controlled, then every six months",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A12-67",
+        "section": "Monitoring of glycaemic control",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-WINDOW-ABOVE"
+       }
+      }
+     }
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -4498,7 +4535,7 @@
   },
   {
    "id": "DM-ACT-RX-04",
-   "display": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin. Check ketones first",
+   "display": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin at these values at diagnosis; in an established patient, review treatment (a value taken during an acute illness may settle). Check ketones first",
    "when": {
     "id": "rx_severe",
     "label": "Type 2 or unclassified, not on insulin, with HbA1c 10% or more, fasting glucose above 14 mmol/L, or random, meter or post-load glucose above 16.7 mmol/L",
@@ -4682,7 +4719,8 @@
      "H34",
      "H27",
      "H21",
-     "T10"
+     "T10",
+     "W19"
     ],
     "notWhen": [
      {
@@ -7807,6 +7845,12 @@
      "UG 2026 summarised",
      "UG 2026 summarised"
     ],
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "review": [
+     "W05"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
@@ -7912,16 +7956,22 @@
       }
      }
     ],
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "review": [
+     "W05"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
   },
   {
    "id": "DM-ACT-PREG-ASA-01",
-   "display": "Pregnant with type 1 or type 2 diabetes, 12 weeks or more: review starting aspirin to reduce the risk of pre-eclampsia (2026: from 12 to 16 weeks); agree it with the antenatal team",
+   "display": "Pregnant with type 1 or type 2 diabetes, 12 to 16 weeks: review starting aspirin to reduce the risk of pre-eclampsia (2026); agree it with the antenatal team",
    "when": {
     "id": "preg_asa",
-    "label": "Pregnant, 12 weeks or more, with type 1 or type 2 diabetes recorded",
+    "label": "Pregnant, 12 to 16 weeks, with type 1 or type 2 diabetes recorded",
     "all": [
      {
       "feature": "pregnant",
@@ -7940,6 +7990,12 @@
        "type_1",
        "type_2"
       ]
+     },
+     {
+      "feature": "gestation_weeks",
+      "op": "<=",
+      "value": 16,
+      "unit": "weeks"
      }
     ],
     "citation": {
@@ -8016,6 +8072,9 @@
        }
       }
      }
+    ],
+    "review": [
+     "W15"
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -8249,7 +8308,63 @@
         "verified": true
        }
       }
+     },
+     {
+      "id": "due_hba1c_above_relaxed",
+      "label": "A relaxed or 'avoid symptoms' plan, or a reason to relax (frailty, cognitive impairment, a significant low, impaired awareness: Gold score 4 or more)",
+      "any": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "relaxed",
+         "avoid_symptoms"
+        ]
+       },
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       },
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       },
+       {
+        "feature": "hypo_awareness_score",
+        "op": ">=",
+        "value": 4,
+        "unit": "score"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "ISPAD 2022; ADA 2025 (2026 not opened)",
+       "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Assessment and management of hypoglycemia (Chapter 12); ADA Standards of Care 2025 Section 6",
+       "url": "https://www.ispad.org/asset/F61C3D00-8344-4C30-A7B5E142B14737FE/",
+       "quote": "Impaired hypoglycemia awareness [IAH] is a syndrome in which the ability to detect hypoglycemia is diminished or absent, reported in 25% of adults with T1D. [...] score of ≥4 implies IAH",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-41",
+        "section": "ISPAD: Impaired awareness of hypoglycemia; ADA: recs 6.11 and narrative",
+        "bodyProposed": "ISPAD",
+        "verified": true,
+        "ref": "REF-DM-HYPO-IAH"
+       }
+      }
      }
+    ],
+    "review": [
+     "W17"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -8339,7 +8454,7 @@
     "urgency": "routine",
     "ages": "adult",
     "appliesTo": {
-     "pregnancy": "not_pregnant"
+     "pregnancy": "any"
     },
     "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "notWhen": [
@@ -8372,6 +8487,10 @@
        }
       }
      }
+    ],
+    "lessTreatment": true,
+    "review": [
+     "W23"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -8459,16 +8578,20 @@
     "urgency": "routine",
     "ages": "adult",
     "appliesTo": {
-     "pregnancy": "not_pregnant"
+     "pregnancy": "any"
     },
     "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "lessTreatment": true,
+    "review": [
+     "W23"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-04B",
-   "display": "On high-dose steroids, with diabetes, not on insulin: the 2026 guideline lists this as an indication for insulin. Review treatment",
+   "display": "On a steroid, with diabetes, not on insulin: if the dose is high, the 2026 guideline lists this as an indication for insulin. Review treatment",
    "when": {
     "id": "rx_steroid_insulin",
     "label": "On a glucocorticoid, with diabetes, not on insulin",
@@ -8595,6 +8718,9 @@
     "signed": "UG-22 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "review": [
+     "W19"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -8897,6 +9023,114 @@
     "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "rx_06c_owned",
+      "label": "Type 2 diabetes recorded, aged 40 or over, not on a statin (DM-ACT-RX-06 owns it)",
+      "all": [
+       {
+        "feature": "dm_type_recorded",
+        "op": "==",
+        "value": "type_2"
+       },
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 40,
+        "unit": "years"
+       },
+       {
+        "feature": "on_statin",
+        "op": "absent"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Statins are recommended for all people with type 2 diabetes 40 years old or older, but only if this does not negatively impact access to glucose-lowering and blood pressure-lowering medication.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-32",
+        "section": "Section 'Control of blood pressure and blood lipids' (p.17); 'Control of blood lipids' (pp.23-24)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CVD-STATIN-AGE"
+       }
+      },
+      "atLeast": {
+       "n": 1,
+       "of": [
+        {
+         "feature": "dm_status",
+         "op": "==",
+         "value": "known"
+        },
+        {
+         "feature": "dm_type_recorded",
+         "op": "in",
+         "value": [
+          "type_1",
+          "type_2",
+          "unclassified",
+          "other",
+          "gestational"
+         ]
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "metformin"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "glibenclamide"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "gliclazide"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "glimepiride"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "insulin"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "sglt2_inhibitor"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "pioglitazone"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "dpp4_inhibitor"
+        },
+        {
+         "feature": "glucose_lowering_therapy",
+         "op": "==",
+         "value": "glp1_ra"
+        }
+       ]
+      }
+     }
+    ],
+    "review": [
+     "W21"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -9318,18 +9552,12 @@
    "display": "On metformin: vitamin B12 every year (2026: on long-term metformin)",
    "when": {
     "id": "due_b12",
-    "label": "On metformin, 12 months or more since the last B12",
+    "label": "On metformin, B12 never measured or 12 months or more since the last",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
       "op": "==",
       "value": "metformin"
-     },
-     {
-      "feature": "months_since_b12",
-      "op": ">=",
-      "value": 12,
-      "unit": "months"
      }
     ],
     "citation": {
@@ -9347,7 +9575,19 @@
       "verified": true,
       "ref": "REF-DM-CVD-LIPID-INTERVAL"
      }
-    }
+    },
+    "any": [
+     {
+      "feature": "never_b12",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_b12",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ]
    },
    "standard": "local",
    "version": "2026 (summarised version)",
@@ -9377,6 +9617,9 @@
     "signed": "UG-42 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "review": [
+     "W16"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -9531,8 +9774,258 @@
     "sources": [
      "UG 2026 summarised"
     ],
-    "restrictedClasses": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
     "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14M",
+   "display": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4: below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "when": {
+    "id": "dm_act_rx_14m",
+    "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4 mmol/L",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 65,
+      "unit": "years"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 4.4,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "in",
+      "value": [
+       "insulin",
+       "glibenclamide",
+       "gliclazide",
+       "glimepiride"
+      ]
+     },
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026",
+     "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-ADA26-T132",
+      "section": "Table 13.2, p. S284",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026",
+    "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+    "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-ADA26-T132",
+     "section": "Table 13.2, p. S284",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "any"
+    },
+    "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "notWhen": [
+     {
+      "id": "dm-act-rx-14m_plasma",
+      "label": "A fasting plasma glucose below 4.4 mmol/L (the plasma prompt owns it)",
+      "all": [
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 4.4,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+       }
+      }
+     }
+    ],
+    "lessTreatment": true,
+    "review": [
+     "W23",
+     "W04"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14BM",
+   "display": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 (frail or cognitively impaired): below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "when": {
+    "id": "dm_act_rx_14bm",
+    "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 mmol/L and frail or cognitively impaired",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 65,
+      "unit": "years"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 5.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "in",
+      "value": [
+       "insulin",
+       "glibenclamide",
+       "gliclazide",
+       "glimepiride"
+      ]
+     },
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     }
+    ],
+    "any": [
+     {
+      "feature": "frailty_or_limited_life_expectancy",
+      "op": "present"
+     },
+     {
+      "feature": "cognitive_impairment",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026",
+     "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-ADA26-T132",
+      "section": "Table 13.2, p. S284",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026",
+    "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+    "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-ADA26-T132",
+     "section": "Table 13.2, p. S284",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "any"
+    },
+    "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "lessTreatment": true,
+    "review": [
+     "W23",
+     "W04"
+    ],
+    "notWhen": [
+     {
+      "id": "dm-act-rx-14bm_plasma",
+      "label": "A fasting plasma glucose below 5.0 mmol/L (the plasma prompt owns it)",
+      "all": [
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 5.0,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
    }
   }
  ],
@@ -11133,12 +11626,12 @@
     "version": "2026 (summarised version)",
     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
-    "quote": "-Metformin -DPP-IV inhibitors such as sitagliptin, teneligliptin, and vildagliptin -SGLT2i such as dapagliflozin and empagliflozin -Gliclazide is the SU of choice",
+    "quote": "Avoid using pioglitazone in patients at risk of osteoporosis and heart failure such as elderly patients",
     "retrieved": "2026-10-05",
     "csoSigned": false,
     "x": {
-     "claim": "UG26-T8-ELDERLY",
-     "section": "PDF p. 31 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "claim": "UG26-PIO",
+     "section": "PDF p. 33 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
      "bodyProposed": "UG-MOH",
      "verified": true
     }
@@ -11152,6 +11645,9 @@
      "UG 2026 summarised"
     ],
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "review": [
+     "W22"
+    ],
     "restrictedClasses": []
    }
   },

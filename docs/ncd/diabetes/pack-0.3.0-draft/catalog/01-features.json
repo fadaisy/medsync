@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,7 +13,7 @@
  "counts": {
   "reuse": 50,
   "reconcile": 45,
-  "new": 112
+  "new": 113
  },
  "features": [
   {
@@ -1406,8 +1406,11 @@
    "section": "risk_context",
    "group": "rc_pregnancy",
    "x": {
-    "status": "new"
-   }
+    "status": "new",
+    "restrictedClass": "sexual_reproductive_health",
+    "signed": "D-DM-30 (GATE A 2026-10-05), applied in R11 (W08)"
+   },
+   "restrictedClass": "sexual_reproductive_health"
   },
   {
    "code": "postpartum_weeks",
@@ -2819,6 +2822,16 @@
    "valueType": "number",
    "section": "hba1c_validity",
    "unit": "months",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "never_b12",
+   "display": "Vitamin B12 never measured",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "hba1c_validity",
    "x": {
     "status": "new"
    }

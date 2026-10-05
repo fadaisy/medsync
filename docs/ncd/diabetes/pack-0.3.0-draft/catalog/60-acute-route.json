@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -386,7 +386,8 @@
      "K01",
      "L01",
      "L04",
-     "L19"
+     "L19",
+     "W06"
     ],
     "interruptRank": 12,
     "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
@@ -395,7 +396,216 @@
     ],
     "restrictedClasses": [],
     "runWhen": "always"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
+  },
+  {
+   "id": "DM-ACU-ROUTE-02P",
+   "display": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. Route now; the paediatric DKA pathway gives the fluids",
+   "condition": "dka",
+   "when": {
+    "id": "acu_ketones",
+    "label": "Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI",
+    "any": [
+     {
+      "feature": "urine_ketones",
+      "op": "in",
+      "value": [
+       "2plus",
+       "3plus"
+      ]
+     },
+     {
+      "feature": "bohb",
+      "op": ">=",
+      "value": 3.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-01",
+      "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-DKA-BOHB"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "venous_ph",
+    "bicarbonate",
+    "sodium",
+    "urea"
+   ],
+   "mimicsToExclude": [
+    "Starvation ketosis",
+    "Alcoholic ketoacidosis",
+    "Ketosis of pregnancy",
+    "Captopril or valproate (false-positive strip)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-01",
+     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Two OR-groups are conjoined by putting the second in atLeast with n = 1. Ketosis with a glucose below 11.1 in a person not known to have diabetes does not fire this rule; on an SGLT2 inhibitor rule 03 covers it. No blood gas at this site: refer on ketones and the clinical picture; do not wait.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "H03",
+     "K01",
+     "L01",
+     "L04",
+     "L19",
+     "W06"
+    ],
+    "interruptRank": 12,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ]
   },
   {
    "id": "DM-ACU-ROUTE-03",
@@ -1498,7 +1708,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-13",
-   "display": "Diabetes with vomiting, abdominal pain or dehydration, and no glucose on record: capillary glucose today, and ketones if it is raised",
+   "display": "Diabetes with vomiting, abdominal pain, dehydration or acutely unwell, and no glucose on record: capillary glucose today, and ketones if it is raised",
    "condition": "hyperglycaemic_crisis",
    "when": {
     "id": "acu_known_unwell",
@@ -1654,7 +1864,8 @@
      "J01",
      "L01",
      "L04",
-     "V01"
+     "V01",
+     "W14"
     ],
     "notWhen": [
      {
@@ -1817,7 +2028,8 @@
     },
     "review": [
      "F02",
-     "F25"
+     "F25",
+     "W06"
     ],
     "interruptRank": 14,
     "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
@@ -1827,7 +2039,133 @@
     ],
     "restrictedClasses": [],
     "runWhen": "always"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
+  },
+  {
+   "id": "DM-ACU-ROUTE-14P",
+   "display": "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. Route now; the paediatric DKA pathway gives the fluids",
+   "condition": "hhs",
+   "when": {
+    "id": "acu_hhs_glu",
+    "label": "Any glucose 30.0 mmol/L or more, or a meter reading HI",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 30.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 30.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 30.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 30.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 30.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 30.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-07",
+      "section": "Figure 2B - The diagnosis criteria of HHS",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-HHS-GLU"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "sodium",
+    "urea",
+    "effective_osmolality",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Ketoacidosis (the two overlap in more than a third of crises)",
+    "A meter error (repeat, and send a laboratory glucose)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-07",
+     "section": "Figure 2B - The diagnosis criteria of HHS",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Negative or weak ketones do not clear the patient: that is the definition of the hyperosmolar state. Typical patient: older, type 2, drowsy and very dry, often with an infection.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F02",
+     "F25",
+     "W06"
+    ],
+    "interruptRank": 14,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised",
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ]
   },
   {
    "id": "DM-ACU-ROUTE-15",
@@ -4015,7 +4353,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-23",
-   "display": "Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
+   "display": "Type 1 diabetes or on insulin, with vomiting, abdominal pain or acutely unwell: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick",
@@ -4106,7 +4444,8 @@
      "K21",
      "L04",
      "L05",
-     "V01"
+     "V01",
+     "W14"
     ],
     "notWhen": [
      {
@@ -7688,7 +8027,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-23D",
-   "display": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
+   "display": "Type 1 or on insulin, vomiting, abdominal pain or acutely unwell, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick_district",
@@ -7775,7 +8114,8 @@
     "review": [
      "Q12",
      "U02",
-     "V01"
+     "V01",
+     "W14"
     ],
     "unlessCapability": "lab.ketones_blood",
     "notWhen": [
@@ -8817,12 +9157,13 @@
      "tier": "today"
     },
     "review": [
-     "V04"
+     "V04",
+     "W01"
     ],
     "notWhen": [
      {
       "id": "acu_insulin_sick_review_signs",
-      "label": "Ketones 1.6 mmol/L or more, urine 2+, or a sign (an interrupting rule applies)",
+      "label": "Blood ketones 1.6 mmol/L or more, urine ketones 2+ or more, deep rapid breathing, or drowsiness (an interrupting rule owns it)",
       "any": [
        {
         "feature": "bohb",
@@ -8840,14 +9181,6 @@
        },
        {
         "feature": "deep_rapid_breathing",
-        "op": "present"
-       },
-       {
-        "feature": "acetone_breath",
-        "op": "present"
-       },
-       {
-        "feature": "dehydration",
         "op": "present"
        },
        {
@@ -9053,6 +9386,14 @@
      }
     ],
     "signed": "D-DM-42 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "pregnancyUnknownCounts": true,
+    "unknownDisplays": {
+     "pregnant": "Pregnancy is not recorded: ask now. If pregnant with diabetes and unwell: ketones now and same-day assessment by a medical or diabetes team (JBDS 2023)"
+    },
+    "unknownUrgency": "same_day",
+    "review": [
+     "W07"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -9137,7 +9478,7 @@
    "target": "dka",
    "kind": "citation.reverify",
    "change": {
-    "what": "2024 consensus criteria re-read: glucose 11.1 or known diabetes; ketones 3.0 or urine 2+; pH below 7.3 and/or bicarbonate below 18. Severity table recorded.",
+    "what": "2024 consensus criteria re-read: glucose 11.1 or known diabetes; ketones 3.0 or urine 2+; pH below 7.3 and/or bicarbonate below 15. Severity table recorded.",
     "refs": [
      "REF-DM-ACU-DKA-GLU",
      "REF-DM-ACU-DKA-BOHB",
@@ -9223,7 +9564,7 @@
    "target": "hhs",
    "kind": "citation.reverify",
    "change": {
-    "what": "Glucose 33.3 or more; effective osmolality above 300 or total above 320; ketones below 3.0; pH 7.3 or more and bicarbonate 15 or more.",
+    "what": "Glucose 30.0 or more; effective osmolality above 300 or total above 320; ketones below 3.0; pH 7.3 or more and bicarbonate 15 or more.",
     "refs": [
      "REF-DM-ACU-HHS-GLU",
      "REF-DM-ACU-HHS-OSM-EFF",

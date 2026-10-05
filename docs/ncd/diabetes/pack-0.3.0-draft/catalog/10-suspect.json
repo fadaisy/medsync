@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1275,8 +1275,11 @@
     "review": [
      "F12"
     ],
-    "restrictedClasses": [],
-    "runWhen": "not_established"
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "A risk factor for diabetes: a glucose test at least every 3 years"
    }
   },
   {
@@ -1383,8 +1386,11 @@
     "sources": [
      "UG 2026 summarised"
     ],
-    "restrictedClasses": [],
-    "runWhen": "not_established"
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Re-test glucose 6 to 12 weeks after the birth, then every 1 to 3 years"
    }
   },
   {
@@ -2243,7 +2249,8 @@
     },
     "review": [
      "F38",
-     "H21"
+     "H21",
+     "W05"
     ],
     "notWhen": [
      {
@@ -2269,6 +2276,88 @@
         "bodyProposed": "OTHER",
         "verified": true,
         "ref": "REF-DM-PREG-WINDOW-START"
+       }
+      }
+     },
+     {
+      "id": "sus_preg_01_known",
+      "label": "Diabetes or gestational diabetes already recorded",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
        }
       }
      }
@@ -2721,7 +2810,8 @@
     },
     "review": [
      "F14",
-     "H25"
+     "H25",
+     "W11"
     ],
     "notWhen": [
      {
@@ -2773,6 +2863,105 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-PREG-DIP"
+       }
+      }
+     },
+     {
+      "id": "incid_02_symptoms",
+      "label": "A classic symptom or a crisis is recorded (one value diagnoses)",
+      "any": [
+       {
+        "feature": "polyuria",
+        "op": "present"
+       },
+       {
+        "feature": "polydipsia",
+        "op": "present"
+       },
+       {
+        "feature": "polyphagia",
+        "op": "present"
+       },
+       {
+        "feature": "foot_numbness_burning",
+        "op": "present"
+       },
+       {
+        "feature": "pruritus",
+        "op": "present"
+       },
+       {
+        "feature": "unexplained_weight_loss",
+        "op": "present"
+       },
+       {
+        "feature": "wasting",
+        "op": "present"
+       },
+       {
+        "feature": "weakness",
+        "op": "present"
+       },
+       {
+        "feature": "hyperglycaemic_crisis_now",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "In the presence of classic symptoms of hyperglycaemia described above and/or a hyperglycaemic crisis such as diabetic ketoacidosis or hyperosmolar hyperglycaemic state, a single blood glucose test (RBG ≥11.1 mmol/l or 200 mg/dl or FBG ≥7.0 mmol/l or 126 mg/dl) is sufficient to diagnose diabetes.",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-SINGLE",
+        "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "incid_02_two_tests",
+      "label": "Two different tests in the diabetes range (fasting 7.0 or more, HbA1c 6.5% or more, 2-hour 11.1 or more)",
+      "atLeast": {
+       "n": 2,
+       "of": [
+        {
+         "feature": "fasting_pg",
+         "op": ">=",
+         "value": 7.0,
+         "unit": "mmol/L"
+        },
+        {
+         "feature": "ogtt_2h_pg",
+         "op": ">=",
+         "value": 11.1,
+         "unit": "mmol/L"
+        },
+        {
+         "feature": "hba1c",
+         "op": ">=",
+         "value": 6.5,
+         "unit": "%"
+        }
+       ]
+      },
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "two abnormal tests (RBG or FBG or 2h BG after an OGTT or HbA1c) performed at the same time or at two different time points",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-TWO",
+        "section": "PDF p. 19 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
        }
       }
      }
@@ -3866,8 +4055,11 @@
     "sources": [
      "UG 2026 summarised"
     ],
-    "restrictedClasses": [],
-    "runWhen": "not_established"
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "A risk factor for raised glucose: test for it now (a 75 g OGTT where available, otherwise a fasting glucose)"
    }
   },
   {
@@ -3946,21 +4138,15 @@
   },
   {
    "id": "DM-SUS-PREG-03",
-   "display": "Pregnant, before 24 weeks, no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
+   "display": "Pregnant (before 24 weeks, or gestation not recorded), no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
    "condition": "gestational_diabetes",
    "when": {
     "id": "sus_preg_first",
-    "label": "Pregnant, before 24 weeks",
+    "label": "Pregnant (before 24 weeks, or gestation not recorded)",
     "all": [
      {
       "feature": "pregnant",
       "op": "present"
-     },
-     {
-      "feature": "gestation_weeks",
-      "op": "<",
-      "value": 24,
-      "unit": "weeks"
      }
     ],
     "citation": {
@@ -3975,8 +4161,7 @@
       "claim": "UG26-PREG-SCREEN",
       "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
       "bodyProposed": "UG-MOH",
-      "verified": true,
-      "ref": "REF-DM-PREG-UG26-EARLY"
+      "verified": true
      }
     }
    },
@@ -4137,7 +4322,103 @@
         "verified": true
        }
       }
+     },
+     {
+      "id": "sus_preg_first_late",
+      "label": "24 weeks or more (DM-SUS-PREG-01 owns it)",
+      "all": [
+       {
+        "feature": "gestation_weeks",
+        "op": ">=",
+        "value": 24,
+        "unit": "weeks"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UG26-EARLY"
+       }
+      }
+     },
+     {
+      "id": "sus_preg_first_ucg",
+      "label": "Pregnant, with any of: BMI above 35, age above 40, gestational diabetes before, diabetes in a first-degree relative, a previous baby over 4 kg or an unexplained third-trimester death, polyhydramnios, glucose in the urine, a baby large for dates (DM-SUS-PREG-UCG owns it)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "any": [
+       {
+        "feature": "bmi",
+        "op": ">",
+        "value": 35,
+        "unit": "kg/m2"
+       },
+       {
+        "feature": "age_years",
+        "op": ">",
+        "value": 40,
+        "unit": "years"
+       },
+       {
+        "feature": "prior_gdm",
+        "op": "present"
+       },
+       {
+        "feature": "fh_diabetes_first_degree",
+        "op": "present"
+       },
+       {
+        "feature": "prior_macrosomia_or_stillbirth",
+        "op": "present"
+       },
+       {
+        "feature": "polyhydramnios",
+        "op": "present"
+       },
+       {
+        "feature": "glycosuria",
+        "op": "present"
+       },
+       {
+        "feature": "fetus_large_for_dates",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-GDM-01",
+        "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UCG-BMI"
+       }
+      }
      }
+    ],
+    "review": [
+     "W12",
+     "W21"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"
@@ -4338,7 +4619,7 @@
     "notWhen": [
      {
       "id": "sus_admitted_done",
-      "label": "A glucose recorded at this visit",
+      "label": "A glucose recorded at this visit, or diabetes already known",
       "any": [
        {
         "feature": "random_pg",
@@ -4347,6 +4628,75 @@
        {
         "feature": "capillary_glucose",
         "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "hba1c",
+        "op": "recorded"
+       },
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
        }
       ],
       "citation": {
@@ -4365,6 +4715,9 @@
        }
       }
      }
+    ],
+    "review": [
+     "W21"
     ],
     "restrictedClasses": [],
     "runWhen": "always"

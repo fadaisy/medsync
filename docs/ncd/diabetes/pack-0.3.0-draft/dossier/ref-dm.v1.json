@@ -1,23 +1,23 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.5.0-draft",
+ "version": "0.5.1-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
- "count": 380,
+ "count": 381,
  "verification": {
   "confirmed": 227,
   "confirmed_with_note": 94,
   "not_found": 7,
   "could_not_open": 2,
   "wrong_attribution": 1,
-  "not_rechecked": 49
+  "not_rechecked": 50
  },
  "counts": {
-  "withValue": 233,
+  "withValue": 234,
   "needsCsoInput": 16,
   "withConflict": 39,
-  "usedByARule": 150
+  "usedByARule": 151
  },
  "entries": [
   {
@@ -64,6 +64,8 @@
      "sus_paed_range",
      "sus_single_abnormal",
      "sus_single_fasting_meter",
+     "ug26_fcap_repeat",
+     "ug26_fcap_symptoms",
      "who_hd_fcap_repeat",
      "who_hd_fcap_symptoms",
      "who_hd_fpg_repeat",
@@ -145,6 +147,7 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "ug26_cap_high_symptoms",
      "who_hd_cap_high_symptoms",
      "who_hd_ogtt_cap_repeat",
      "who_hd_ogtt_cap_symptoms"
@@ -187,6 +190,7 @@
      "dip_random",
      "remission_glucose_high",
      "sus_incidental",
+     "ug26_random_cap_symptoms",
      "who_hd_random_cap_symptoms",
      "who_hd_random_symptoms"
     ]
@@ -3542,6 +3546,7 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "due_hba1c_6_above",
      "due_hba1c_above",
      "rx_first"
     ]
@@ -4021,6 +4026,7 @@
     },
     "usedByCriteria": [
      "due_hba1c_3",
+     "due_hba1c_6_above",
      "due_hba1c_above"
     ]
    }
@@ -4411,6 +4417,7 @@
      "batch": "V3"
     },
     "usedByCriteria": [
+     "due_hba1c_above_relaxed",
      "hypo_high",
      "tgt_hba1c_general_relaxed_applies",
      "tgt_hba1c_older_healthy_relaxed_applies",
@@ -8089,6 +8096,7 @@
     },
     "usedByCriteria": [
      "dm_act_rx_06b",
+     "rx_06c_owned",
      "rx_statin"
     ]
    }
@@ -10494,6 +10502,12 @@
     "usedByCriteria": [
      "dm_act_rx_14",
      "dm_act_rx_14b",
+     "dm_act_rx_14bm",
+     "dm_act_rx_14m",
+     "tgt_fpg_floor_0",
+     "tgt_fpg_floor_1",
+     "tgt_fpg_floor_cap_0",
+     "tgt_fpg_floor_cap_1",
      "tgt_older"
     ]
    }
@@ -11327,6 +11341,7 @@
      "batch": null
     },
     "usedByCriteria": [
+     "sus_preg_first_ucg",
      "sus_preg_ucg"
     ]
    }
@@ -11359,6 +11374,7 @@
      "batch": null
     },
     "usedByCriteria": [
+     "sus_preg_first_ucg",
      "sus_preg_ucg"
     ]
    }
@@ -11487,6 +11503,7 @@
     "usedByCriteria": [
      "dm_act_edu_10b",
      "edu_10c_fasting",
+     "incid_02_two_tests",
      "ug26_fpg_hba1c",
      "ug26_fpg_ogtt",
      "ug26_fpg_repeat",
@@ -11558,6 +11575,7 @@
      "batch": null
     },
     "usedByCriteria": [
+     "incid_02_two_tests",
      "ug26_fpg_ogtt",
      "ug26_ogtt_hba1c",
      "ug26_ogtt_repeat"
@@ -11594,6 +11612,7 @@
     "usedByCriteria": [
      "con_preg_hba1c_early",
      "dm_act_edu_10c",
+     "incid_02_two_tests",
      "ug26_fpg_hba1c",
      "ug26_hba1c_repeat",
      "ug26_ogtt_hba1c",
@@ -11728,7 +11747,7 @@
     },
     "usedByCriteria": [
      "con_preg_hba1c_early",
-     "sus_preg_first"
+     "sus_preg_first_late"
     ]
    }
   },
@@ -12007,7 +12026,11 @@
      "batch": null
     },
     "usedByCriteria": [
-     "dm_act_rx_14b"
+     "dm-act-rx-14bm_plasma",
+     "dm_act_rx_14b",
+     "dm_act_rx_14bm",
+     "tgt_fpg_floor_1",
+     "tgt_fpg_floor_cap_1"
     ]
    }
   },
@@ -12039,7 +12062,11 @@
      "batch": null
     },
     "usedByCriteria": [
-     "dm_act_rx_14"
+     "dm-act-rx-14m_plasma",
+     "dm_act_rx_14",
+     "dm_act_rx_14m",
+     "tgt_fpg_floor_0",
+     "tgt_fpg_floor_cap_0"
     ]
    }
   },
@@ -12318,6 +12345,38 @@
     },
     "usedByCriteria": [
      "rx_prevent"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-ASA-END",
+   "text": "2026 Uganda guideline: aspirin to reduce pre-eclampsia risk is started by this gestation (from 12)",
+   "value": 16,
+   "unit": "weeks",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 76 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "from 12– 16 weeks of gestation to reduce the risk of preeclampsia.",
+    "claims": [
+     "UG26-PREG-ASA"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "preg_asa"
     ]
    }
   }

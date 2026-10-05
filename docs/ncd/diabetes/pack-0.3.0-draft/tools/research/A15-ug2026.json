@@ -1155,5 +1155,26 @@
   "conflicts": null,
   "notes": "Summarised version; the URL is the comprehensive version's. Page numbers are PDF pages (printed page + 2).",
   "how_verified": "Read in full from the CSO-supplied PDF's text layer (pypdf); quote checked as a verbatim substring."
+ },
+ {
+  "id": "UG26-PIO",
+  "topic": "Pioglitazone and osteoporosis",
+  "claim": "Avoid using pioglitazone in patients at risk of osteoporosis and heart failure such as elderly patients",
+  "values": {
+   "quote": "Avoid using pioglitazone in patients at risk of osteoporosis and heart failure such as elderly patients"
+  },
+  "population": "As stated in the section",
+  "standard": "MoH-Uganda",
+  "version": "2026 (summarised version)",
+  "document": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+  "section": "PDF p. 33 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+  "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+  "quote": "Avoid using pioglitazone in patients at risk of osteoporosis and heart failure such as elderly patients",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "from_memory": false,
+  "conflicts": null,
+  "notes": "Summarised version; the URL is the comprehensive version's. Page numbers are PDF pages (printed page + 2).",
+  "how_verified": "Read in full from the CSO-supplied PDF's text layer (pypdf); quote checked as a verbatim substring."
  }
 ]

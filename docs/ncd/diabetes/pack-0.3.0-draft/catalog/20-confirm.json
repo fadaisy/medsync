@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -334,13 +334,17 @@
     },
     {
      "id": "who_hd_hba1c_symptoms",
-     "label": "HbA1c 6.5% or more, with thirst, passing a lot of urine or unexplained weight loss",
+     "label": "Laboratory HbA1c 6.5% or more, with thirst, passing a lot of urine or unexplained weight loss",
      "all": [
       {
        "feature": "hba1c",
        "op": ">=",
        "value": 6.5,
        "unit": "%"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
       }
      ],
      "any": [
@@ -376,7 +380,7 @@
     },
     {
      "id": "who_hd_hba1c_repeat",
-     "label": "HbA1c 6.5% or more, and a second diabetes-range result on a later day",
+     "label": "Laboratory HbA1c 6.5% or more, and a second diabetes-range result on a later day",
      "all": [
       {
        "feature": "hba1c",
@@ -387,6 +391,10 @@
       {
        "feature": "repeat_abnormal_result",
        "op": "present"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
       }
      ],
      "citation": {
@@ -609,7 +617,8 @@
      "runWhen": "not_established"
     },
     "review": [
-     "F13"
+     "F13",
+     "W10"
     ],
     "default": false
    }
@@ -1210,6 +1219,225 @@
        "ref": "REF-DM-DX-UG26-RBG"
       }
      }
+    },
+    {
+     "id": "ug26_fcap_symptoms",
+     "label": "Fasting capillary glucose 7.0 mmol/L or more (meter, where no laboratory is available), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "fasting"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-14",
+       "section": "Section 'Diagnostic tests' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-POC-WHO"
+      }
+     }
+    },
+    {
+     "id": "ug26_fcap_repeat",
+     "label": "Fasting capillary glucose 7.0 mmol/L or more (meter, where no laboratory is available), and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "fasting"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "ug26_random_cap_symptoms",
+     "label": "Capillary glucose 11.1 mmol/L or more (meter; random, or 2 hours after food), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "in",
+       "value": [
+        "random",
+        "two_hours_after_food"
+       ]
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-14",
+       "section": "Section 'Diagnostic tests' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-POC-WHO"
+      }
+     }
+    },
+    {
+     "id": "ug26_cap_high_symptoms",
+     "label": "Any capillary glucose 12.2 mmol/L or more (meter, whatever the timing), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 12.2,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "needsCsoInput": "A pack inference: 12.2 mmol/L is the highest capillary threshold in WHO's table, so a reading at or above it is in the diabetes range whatever its timing. WHO does not state this as a criterion. For CSO signature with D-DM-04.",
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
+    },
+    {
+     "id": "ug26_cap_hi_symptoms",
+     "label": "A meter reading HI (above the meter's range), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "needsCsoInput": "A meter's upper limit is above every diagnostic threshold, so HI with symptoms is in the diabetes range. A pack inference, with D-DM-04.",
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
     }
    ],
    "citation": {
@@ -1240,6 +1468,9 @@
     "signed": "UG-01, UG-02, UG-03, UG-04 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "review": [
+     "W20"
     ]
    }
   },

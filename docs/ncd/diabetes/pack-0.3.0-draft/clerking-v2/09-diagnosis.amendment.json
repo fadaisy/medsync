@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -70,7 +70,7 @@
     "mirrors": "REF-DM-SUS-HOSP-GLU"
    },
    "REF-DX-GLU-HHS": {
-    "value": 33.3,
+    "value": 30.0,
     "unit": "mmol/L",
     "meaning": "HHS: plasma glucose at or above this value",
     "source": "ADA-EASD-CRISES-2024",
@@ -86,7 +86,7 @@
     "mirrors": "REF-DM-ACU-KETONE-LOW"
    },
    "REF-DX-BICARB-DKA": {
-    "value": 18,
+    "value": 15,
     "unit": "mmol/L",
     "meaning": "DKA: bicarbonate below this value",
     "source": "ADA-EASD-CRISES-2024",
@@ -174,7 +174,7 @@
     "note": "MedSync's own rule (briefing Part 4), not a guideline number. It must match the age band the NCD catalog calls 'adult'."
    },
    "REF-DX-RESULT-AGE-KIDNEY": {
-    "value": 365,
+    "value": 12,
     "unit": "days",
     "meaning": "How old an eGFR or ACR may be and still count for the yearly kidney check",
     "source": "WHO-HEARTS-D-2020",
@@ -1772,7 +1772,7 @@
      "vital": "vs.glucose",
      "gte_ref": "REF-DX-GLU-HHS"
     },
-    "why": "Glucose 33.3 mmol/L or more",
+    "why": "Glucose 30.0 mmol/L or more",
     "suggest": [
      "dx.hhs",
      "dx.dka",

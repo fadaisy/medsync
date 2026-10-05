@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.0-draft",
+  "version": "0.5.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2110,7 +2110,9 @@
      "F04",
      "H06",
      "U10",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2183,7 +2185,9 @@
      "F04",
      "H06",
      "U10",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2377,7 +2381,9 @@
      "F07",
      "F04",
      "H06",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2455,7 +2461,9 @@
      "F07",
      "F04",
      "H06",
-     "V02"
+     "V02",
+     "W04",
+     "W09"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -3263,7 +3271,8 @@
      "L09",
      "T06",
      "T10",
-     "U06"
+     "U06",
+     "W02"
     ],
     "ages": "adult",
     "notWhen": [
@@ -3371,7 +3380,7 @@
      },
      {
       "id": "tgt_general_tight",
-      "label": "A tight tier agreed and not on insulin (the tight target applies)",
+      "label": "A tight target agreed, not on insulin or a sulfonylurea (the tight target applies)",
       "all": [
        {
         "feature": "glycaemic_target_tier",
@@ -3382,6 +3391,21 @@
         "feature": "glucose_lowering_therapy",
         "op": "!=",
         "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "glimepiride"
        }
       ],
       "citation": {
@@ -3620,22 +3644,19 @@
      "H14",
      "J12",
      "K13",
-     "T10"
+     "T10",
+     "W13"
     ],
     "ages": "adult",
     "notWhen": [
      {
       "id": "tier_not_relaxed",
-      "label": "A different glycaemic target tier has already been agreed",
+      "label": "'Avoid symptoms' agreed (no HbA1c target)",
       "all": [
        {
         "feature": "glycaemic_target_tier",
-        "op": "in",
-        "value": [
-         "general",
-         "tight",
-         "avoid_symptoms"
-        ]
+        "op": "==",
+        "value": "avoid_symptoms"
        }
       ],
       "citation": {
@@ -3660,7 +3681,8 @@
      "tgt_hba1c_general",
      "tgt_hba1c_older_healthy",
      "tgt_hba1c_ckd",
-     "tgt_hba1c_tb"
+     "tgt_hba1c_tb",
+     "tgt_hba1c_elderly_2026"
     ],
     "restrictedClasses": []
    }
@@ -4314,7 +4336,8 @@
     "supersedes": [
      "tgt_hba1c_general",
      "tgt_hba1c_tight",
-     "tgt_hba1c_older_healthy"
+     "tgt_hba1c_older_healthy",
+     "tgt_hba1c_elderly_2026"
     ],
     "restrictedClasses": []
    }
@@ -4441,7 +4464,9 @@
     "review": [
      "F04",
      "T10",
-     "V02"
+     "V02",
+     "W09",
+     "W04"
     ],
     "ages": "adult",
     "notWhen": [
@@ -4572,6 +4597,238 @@
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
        }
       }
+     },
+     {
+      "id": "tgt_fpg_surrogate_inpatient",
+      "label": "An inpatient (the in-hospital target applies)",
+      "all": [
+       {
+        "feature": "care_setting",
+        "op": "==",
+        "value": "inpatient"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-INPT-TGT",
+        "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_0",
+      "label": "65 or over on insulin or a sulfonylurea, fasting glucose below 4.4 mmol/L",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "unit": "years"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 4.4,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_cap_0",
+      "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 4.4 mmol/L",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "unit": "years"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": "<",
+        "value": 4.4,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       },
+       {
+        "feature": "capillary_glucose_context",
+        "op": "==",
+        "value": "fasting"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_1",
+      "label": "65 or over on insulin or a sulfonylurea, fasting glucose below 5.0 mmol/L and frail or cognitively impaired",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "unit": "years"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 5.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       }
+      ],
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_floor_cap_1",
+      "label": "65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 mmol/L and frail or cognitively impaired",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "unit": "years"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": "<",
+        "value": 5.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "in",
+        "value": [
+         "insulin",
+         "glibenclamide",
+         "gliclazide",
+         "glimepiride"
+        ]
+       },
+       {
+        "feature": "capillary_glucose_context",
+        "op": "==",
+        "value": "fasting"
+       }
+      ],
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+       }
+      }
      }
     ],
     "restrictedClasses": []
@@ -4698,7 +4955,8 @@
     "review": [
      "F04",
      "T10",
-     "V02"
+     "V02",
+     "W09"
     ],
     "ages": "adult",
     "notWhen": [
@@ -4827,6 +5085,32 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_ppg_surrogate_inpatient",
+      "label": "An inpatient (the in-hospital target applies)",
+      "all": [
+       {
+        "feature": "care_setting",
+        "op": "==",
+        "value": "inpatient"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-INPT-TGT",
+        "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
        }
       }
      }
@@ -4969,7 +5253,7 @@
    "display": "HbA1c below 6.5% (2026: newly diagnosed, young, no comorbidities, a low risk of lows; never on insulin or a sulfonylurea here)",
    "when": {
     "id": "tgt_tight",
-    "label": "A tight target agreed",
+    "label": "A tight target agreed, not on insulin or a sulfonylurea",
     "all": [
      {
       "feature": "glycaemic_target_tier",
@@ -4980,6 +5264,21 @@
       "feature": "glucose_lowering_therapy",
       "op": "!=",
       "value": "insulin"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "glibenclamide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "gliclazide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "glimepiride"
      }
     ],
     "citation": {
@@ -5097,7 +5396,8 @@
      "Q11",
      "T10",
      "U06",
-     "V13"
+     "V13",
+     "W02"
     ],
     "ages": "adult",
     "notWhen": [
@@ -5505,6 +5805,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-UG26-ELDERLY"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -5541,6 +5907,43 @@
     "signed": "UG-16 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "tgt_elderly_tier",
+      "label": "A target tier agreed (general, relaxed, tight or 'avoid symptoms')",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "general",
+         "relaxed",
+         "tight",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Newly diagnosed young individuals with a long-life expectancy (>10 years), no comorbidities, and a low risk of hypoglycaemia <6.5% (48 mmol/mol) Elderly individuals (≥60 years) with long-standing diabetes, a high risk of hypoglycaemia, short-life expectancy, and comorbidities such as renal dysfunction and atherosclerotic cardiovascular diseases <8% (64 mmol/mol)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-TGT-HBA1C",
+        "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "review": [
+     "W03",
+     "W21"
     ],
     "restrictedClasses": []
    }
