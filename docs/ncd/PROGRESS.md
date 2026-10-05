@@ -29,3 +29,19 @@ database; `tsc` needs `NODE_OPTIONS=--max-old-space-size=6144` on this 8 GB mach
   (exists, passes), `tests/ncdreg/calculations.test.ts` (eGFR cross-checks 92/99/32/133 exact, every KDIGO, foot, grade
   boundary, care band, status order): 3 files, 81 tests passed.
 - **CHECKPOINT 1** passed (continuous mode: no stop).
+
+## P2 — Engine · DONE
+
+- Built: migration `0093_ncd_registry.sql` (GATED; 26 tables, roles `medsync_ncd_app`/`medsync_ncd_analytics` without
+  BYPASSRLS, capability functions, interlock triggers, audit triggers, generated policy + grant blocks via
+  `npm run ncdreg:policies`); Drizzle `db/schema/ncd-registry.ts`; `lib/ncdreg/{capabilities,table-access,migration-blocks,
+db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{schema,shared,handlers,apply}.ts`
+  (enrol, registration, visit arrive/nurse/clinician/close/record/lab/invalid, review, event, call, merge, query,
+  generic observations and recorded control, arrival and stage, the injectable entry time). ADR 0208 (proposed).
+- Checks (PGlite lane, `EMR_PGLITE=1`): `tests/ncdreg-db/migration.test.ts` (applies after all 0000–0090, re-runs to a
+  no-op, RLS enabled+forced on every NCD table, facility_id everywhere but the capability map, no BYPASSRLS, generated
+  blocks current) 7/7; `tests/emr-db/drizzle-parity.test.ts` 180/180 with the NCD tables; **access probes 1,664/1,664**
+  (26 tables × 16 actors × 4 operations, expectations derived from the I1 map); `tests/ncdreg-db/extensibility.test.ts`
+  (throwaway core module through registration and a closed visit, engine level) 3/3; calculation tests 81/81 (P1 file).
+- The code-search test caught `heart_failure` typed as a literal in the baseline schema (a known-CVD code that shares the
+  module code); now derived from the code list.

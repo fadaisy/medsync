@@ -261,4 +261,7 @@ export function conditionModule(code: string): ConditionModule {
  * Exported as named roles so code outside the standard asks for "the module the C04 family is about"
  * without spelling its code.
  */
+/** §5.2: "Other annual items" are offered to anyone with one of these registrations. */
+export const OTHER_ANNUAL_ITEMS_MODULES = [DIABETES.code, HYPERTENSION.code] as const;
+
 export const FULL_ROLES = { glycaemic: DIABETES.code, bp: HYPERTENSION.code } as const;

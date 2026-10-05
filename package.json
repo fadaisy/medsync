@@ -38,7 +38,8 @@
     "ncd:manifest": "tsx scripts/ncd-manifest.ts",
     "ncd:check": "tsx scripts/ncd-check.ts",
     "prepare": "husky",
-    "ncdreg:docs": "tsx scripts/ncdreg-docs.ts"
+    "ncdreg:docs": "tsx scripts/ncdreg-docs.ts",
+    "ncdreg:policies": "tsx scripts/ncdreg-policies.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
