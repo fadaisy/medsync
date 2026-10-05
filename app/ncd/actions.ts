@@ -48,3 +48,10 @@ export async function revealPhoneAction(personId: string, slot: 1 | 2) {
     return { ok: false as const, message: err.message };
   }
 }
+
+/** The device's offline read cache (§9), refreshed while online. */
+export async function offlineSnapshotAction() {
+  const { ctx } = await requireNcdScope();
+  const { offlineSnapshot } = await import("@/lib/ncdreg/read/offline");
+  return offlineSnapshot(ctx);
+}

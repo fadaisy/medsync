@@ -11,6 +11,7 @@ import { IDBFactory } from "fake-indexeddb";
 import { describe, expect, it } from "vitest";
 
 import { Outbox } from "@/lib/ncdreg/offline/outbox";
+import { purgeOnSignOut, readSnapshot, saveSnapshot } from "@/lib/ncdreg/offline/cache";
 import { idbGet, idbKeys, openStore } from "@/lib/ncdreg/offline/store";
 
 let n = 0;
@@ -147,5 +148,37 @@ describe("outbox", () => {
     const key = await idbGet<CryptoKey>(db, "meta", "key");
     expect(key?.extractable).toBe(false);
     await expect(crypto.subtle.exportKey("raw", key!)).rejects.toThrow();
+  });
+});
+
+describe("the offline read cache (§9)", () => {
+  const snap = (ids: string[]) => ({
+    fetchedAt: "2026-10-05T08:00:00Z",
+    date: "2026-10-05",
+    clinic: ids.map((personId) => ({ personId, name: `Name ${personId}`, registryNumber: "DEMO-1", sex: "female" as const, age: 50, conditions: [], visitId: null, stage: "not_arrived", heightCm: 160, glucose: false, trajectory: [] })),
+    overdue: [],
+  });
+
+  it("is encrypted at rest and replaced whole, so removed (demo) records leave the device at the next sync", async () => {
+    const db = await fresh();
+    await saveSnapshot(db, snap(["A", "B"]));
+    const raw = await idbGet<{ ct: ArrayBuffer }>(db, "cache", "snapshot");
+    expect(new TextDecoder().decode(raw!.ct)).not.toContain("Name A");
+    await saveSnapshot(db, snap(["B"])); // A was a demo patient, removed on the server
+    expect((await readSnapshot(db))!.clinic.map((p) => p.personId)).toEqual(["B"]);
+  });
+
+  it("is purged on sign-out only once the outbox is empty", async () => {
+    const db = await fresh();
+    const ob = new Outbox(db, async () => ({ ok: false, retry: true }));
+    await saveSnapshot(db, snap(["A"]));
+    await ob.enqueue(cmd("A"));
+    expect(await purgeOnSignOut(db)).toEqual({ purged: false, waiting: 1 });
+    expect(await readSnapshot(db)).not.toBeNull();
+    const ob2 = new Outbox(db, server().send);
+    await ob2.flush();
+    expect(await purgeOnSignOut(db)).toEqual({ purged: true, waiting: 0 });
+    expect(await readSnapshot(db)).toBeNull();
+    expect(await idbGet(db, "meta", "key")).toBeUndefined();
   });
 });

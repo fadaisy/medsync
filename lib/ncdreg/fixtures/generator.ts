@@ -41,28 +41,37 @@ export const PARAMS = {
   /** Share of generated persons first registered before the 18-month history window. */
   registeredBeforeHistory: 0.42,
   /** Probability of attending each scheduled appointment on time (within a few days). */
-  attendOnTime: 0.83,
+  attendOnTime: 0.78,
   /** After a missed appointment: probability the person comes back at all (else drops out). */
-  returnsAfterMiss: 0.72,
+  returnsAfterMiss: 0.8,
+  /** Share of persons who stop attending before the last 12 months (lost to follow-up). */
+  lostBeforeYear: 0.075,
   /** Probability per missed appointment that the registry officer calls. */
   calledWhenOverdue: 0.55,
   /** Probability a called patient returns within 15 days of the call. */
-  returnsWithin15AfterCall: 0.45,
+  returnsWithin15AfterCall: 0.6,
   /** Annual death hazard. */
   deathPerYear: 0.024,
+  /** Death hazard applied over the history (18 months, but tuned to the 12-month rate). */
+  deathSpan: 1.1,
+  /** Event hazard multipliers: complications cluster on persons with a reduced eGFR. */
+  complicatedEventFactor: 2.5,
+  otherEventFactor: 0.45,
+  /** Control in the first 120 days after registration, relative to the month's rate. */
+  newRegistrantControl: 0.95,
   /** Annual event hazards per person. */
   events: {
     admission: 0.055,
-    foot_ulcer_new: 0.03,
+    foot_ulcer_new: 0.06,
     stroke: 0.013,
-    dialysis_start: 0.008,
-    amputation_minor: 0.005,
+    dialysis_start: 0.016,
+    amputation_minor: 0.012,
   },
   /** Share of persons with each review in the last 12 months (kidney among all, eyes/feet among glucose-module persons). */
   kidneyReview: 0.44,
   eyesReview: 0.22,
   feetReview: 0.47,
-  hba1cTested: 0.31,
+  hba1cTested: 0.36,
   statin: 0.58,
   knownCvd: 0.012,
   retinopathy: 0.12,
@@ -73,6 +82,8 @@ export const PARAMS = {
   /** KDIGO G among reviewed. */
   kidneyG: { G1: 0.29, G2: 0.41, G3a: 0.16, G3b: 0.08, G4: 0.04, G5: 0.02 },
   medicinesNotFull: 0.12,
+  /** Stable patients on long refill intervals (no visit in 3 months, yet not overdue). */
+  longInterval: 0.15,
 } as const;
 
 type GenOptions = {
@@ -162,7 +173,9 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
   const bpOnly = (s.registered_by_condition[o.bpModule] ?? 0) - both;
   const gluOnly = (s.registered_by_condition[o.glucoseModule] ?? 0) - both;
   void total;
-  const n = Math.max(0, o.size - (o.existing ?? 0));
+  // Persons who die are additional to `size` (catalogue note): top up for the expected deaths.
+  const n = Math.max(0, Math.round((o.size - (o.existing ?? 0)) / (1 - PARAMS.deathPerYear * PARAMS.deathSpan)));
+  const complicated = new Set<string>();
   const usedNames = new Set(o.reservedNames ?? []);
   const usedPhones = new Set(o.reservedPhones ?? []);
   const out: ScenarioPatient[] = [];
@@ -224,7 +237,10 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
       where_first_diagnosed: "this_facility" as const,
       referral_source: "outpatients" as const,
     }));
-    const deathDay = rng.chance(PARAMS.deathPerYear * 1.5)
+    const kidneyG = rng.chance(PARAMS.kidneyReview) ? rng.weighted(PARAMS.kidneyG) : null;
+    const isComplicated = kidneyG != null && kidneyG !== "G1" && kidneyG !== "G2";
+    const lostDay = rng.chance(PARAMS.lostBeforeYear) ? rng.int(HISTORY + 30, -380) : null;
+    const deathDay = rng.chance(PARAMS.deathPerYear * PARAMS.deathSpan)
       ? rng.int(Math.max(regDay, HISTORY) + 30, -2)
       : null;
     const meds = [
@@ -240,7 +256,9 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
     ];
     const visits: ScenarioVisit[] = [];
     const calls: { day: number; outcome: string; new_appointment_day?: number }[] = [];
+    const long = rng.chance(PARAMS.longInterval);
     const interval = () => {
+      if (long) return rng.int(95, 120);
       const v = Math.round(s.visit_interval_days.typical + (rng.next() - 0.5) * 40);
       return Math.max(s.visit_interval_days.min, Math.min(s.visit_interval_days.max, v));
     };
@@ -248,6 +266,7 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
     const hba1cDay = hasGlu && rng.chance(PARAMS.hba1cTested) ? rng.int(-360, -5) : null;
     while (t < 0) {
       if (deathDay != null && t >= deathDay) break;
+      if (lostDay != null && t >= lostDay) break;
       const next = t + interval();
       const m = monthIndex(t);
       const v: ScenarioVisit = {
@@ -262,7 +281,7 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
       if (v.medicines_obtained === "partial")
         v.medicines_not_obtained_reason = rng.chance(0.55) ? "stock_out" : "cost";
       if (conds.includes(o.bpModule) || rng.chance(0.9))
-        v.bp = bpReading(rng, rng.chance(PARAMS.bpInRange[m]!));
+        v.bp = bpReading(rng, rng.chance(PARAMS.bpInRange[m]! * (t - regDay < 120 ? PARAMS.newRegistrantControl : 1)));
       if (hasGlu) {
         v.hypoglycaemia = "none";
         const cls = rng.weighted(PARAMS.glucoseClasses);
@@ -300,11 +319,12 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
         calls.push({ day: callDay, outcome: rng.pick(["no_answer", "call_later", "no_answer"]) });
       }
       if (!rng.chance(PARAMS.returnsAfterMiss)) break;
-      t = Math.max(next + rng.int(20, 120), called ? callDay + 16 : 0 - 10_000);
+      t = Math.max(next + rng.int(30, 140), called ? callDay + 16 : 0 - 10_000);
     }
     const events: ScenarioPatient["events"] = [];
     const span = Math.max(1, -Math.max(regDay, HISTORY)) / 365;
-    for (const [type, h] of Object.entries(PARAMS.events)) {
+    for (const [type, h0] of Object.entries(PARAMS.events)) {
+      const h = type === "admission" ? h0 : h0 * (isComplicated ? PARAMS.complicatedEventFactor : PARAMS.otherEventFactor);
       if ((type === "foot_ulcer_new" || type === "amputation_minor") && !hasGlu) continue;
       if (rng.chance(h * span)) {
         const day = rng.int(Math.max(regDay, HISTORY), deathDay ?? -1);
@@ -337,10 +357,10 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
     };
     const reviews: ScenarioPatient["reviews"] = [];
     const sex = female ? "female" : "male";
-    if (rng.chance(PARAMS.kidneyReview)) {
+    if (kidneyG) {
       const d = recentVisitDay();
       if (d != null) {
-        const g = rng.weighted(PARAMS.kidneyG);
+        const g = kidneyG;
         const acr = rng.chance(0.5);
         reviews.push({
           component: "kidney",
@@ -361,7 +381,7 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
           day: d,
           examined: true,
           method: "dilated_fundoscopy",
-          retinopathy_grade: rng.chance(PARAMS.retinopathy)
+          retinopathy_grade: rng.chance(isComplicated ? PARAMS.retinopathy * 3 : PARAMS.retinopathy * 0.15)
             ? "mild_npdr"
             : "no_apparent_retinopathy",
           macular_oedema: "absent",
@@ -410,10 +430,14 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
         ? { missed_appointment_day: calls[0]!.day, days_overdue_at_day_0: 0, calls }
         : undefined,
     };
+    if (isComplicated) complicated.add(p.key);
     out.push(p);
   }
   // Core-module registrations: added on a registration day within each chosen person's history.
-  const pool = out.filter((p) => !p.events.some((e) => e.type === "death"));
+  const alive = out.filter((p) => !p.events.some((e) => e.type === "death"));
+  // Core-module registrations (themselves complications) go first to persons already complicated.
+  const pref = alive.filter((p) => complicated.has(p.key));
+  const pool = pref.length >= extra.length ? pref : alive;
   for (const code of extra) {
     const p = pool[Math.floor(rng.next() * pool.length)]!;
     if (p.registrations.some((r) => r.condition === code)) continue;

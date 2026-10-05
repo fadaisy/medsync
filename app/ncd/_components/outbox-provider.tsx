@@ -9,13 +9,14 @@ import { useRouter } from "next/navigation";
 import { CheckIcon, CloudOffIcon, RefreshCwIcon } from "lucide-react";
 
 import { ONLINE_ONLY } from "@/lib/ncdreg/commands/schema";
+import { purgeOnSignOut, saveSnapshot } from "@/lib/ncdreg/offline/cache";
 import { Outbox } from "@/lib/ncdreg/offline/outbox";
 import { openStore } from "@/lib/ncdreg/offline/store";
-import { runCommand } from "../actions";
+import { offlineSnapshotAction, runCommand } from "../actions";
 
 type Submit = <T extends CommandType>(type: T, payload: Record<string, unknown>) => Promise<CommandResult | { ok: true; queued: true }>;
 type Sync = { online: boolean; waiting: number; lastSync: string | null; notes: Note[] };
-const Ctx = createContext<{ submit: Submit; sync: Sync } | null>(null);
+const Ctx = createContext<{ submit: Submit; sync: Sync; signOut: () => Promise<{ purged: boolean; waiting: number }> } | null>(null);
 
 const PERMANENT = new Set(["invalid", "forbidden", "not_found", "conflict", "interlock", "needs_confirmation", "duplicates"]);
 
@@ -28,6 +29,7 @@ const PERMANENT = new Set(["invalid", "forbidden", "not_found", "conflict", "int
 export function OutboxProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const box = useRef<Outbox | null>(null);
+  const dbRef = useRef<IDBDatabase | null>(null);
   const [sync, setSync] = useState<Sync>({ online: true, waiting: 0, lastSync: null, notes: [] });
 
   const send = useCallback(async (c: QueuedCommand) => {
@@ -48,6 +50,11 @@ export function OutboxProvider({ children }: { children: ReactNode }) {
     const r = await b.flush();
     await refresh();
     if (r.sent) router.refresh();
+    // Refresh the offline read cache once the outbox is drained (replaced whole, encrypted).
+    if (dbRef.current && !(await b.waiting()))
+      await offlineSnapshotAction()
+        .then((s) => saveSnapshot(dbRef.current!, s))
+        .catch(() => undefined);
   }, [refresh, router]);
 
   useEffect(() => {
@@ -55,7 +62,10 @@ export function OutboxProvider({ children }: { children: ReactNode }) {
     openStore()
       .then((db) => {
         if (!alive) return;
+        dbRef.current = db;
         box.current = new Outbox(db, send);
+        // The offline shell, cached by a worker scoped to /ncd (nothing clinical in its cache).
+        navigator.serviceWorker?.register("/ncd-sw.js", { scope: "/ncd", updateViaCache: "none" }).catch(() => undefined);
         void flush();
       })
       .catch(() => undefined);
@@ -95,7 +105,12 @@ export function OutboxProvider({ children }: { children: ReactNode }) {
     [refresh, router],
   );
 
-  return <Ctx.Provider value={{ submit, sync }}>{children}</Ctx.Provider>;
+  const signOut = useCallback(async () => {
+    if (!dbRef.current) return { purged: true, waiting: 0 };
+    return purgeOnSignOut(dbRef.current);
+  }, []);
+
+  return <Ctx.Provider value={{ submit, sync, signOut }}>{children}</Ctx.Provider>;
 }
 
 export function useOutbox() {
@@ -122,6 +137,28 @@ export function SyncState() {
       <Icon className="size-3.5" aria-hidden />
       {text}
       {sync.notes.length ? <span className="text-ink-800 font-medium">· {sync.notes.length} not saved, see notes</span> : null}
+    </span>
+  );
+}
+
+/** Sign out: purge the device cache first, but never while entries are still waiting to be sent. */
+export function SignOutButton() {
+  const { signOut } = useOutbox();
+  const [msg, setMsg] = useState<string | null>(null);
+  return (
+    <span className="inline-flex flex-col">
+      <button
+        type="button"
+        className="text-muted-foreground hover:text-foreground text-[12px] underline-offset-4 hover:underline"
+        onClick={async () => {
+          const r = await signOut();
+          if (!r.purged) return setMsg(`${r.waiting} ${r.waiting === 1 ? "entry is" : "entries are"} not sent yet. Reconnect before signing out.`);
+          window.location.href = "/sign-out";
+        }}
+      >
+        Sign out
+      </button>
+      {msg ? <span role="alert" className="text-ink-800 text-[11px]">{msg}</span> : null}
     </span>
   );
 }

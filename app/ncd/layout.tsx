@@ -10,10 +10,10 @@ import { sidebarCounts } from "@/lib/ncdreg/read/counts";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { NcdNavItem } from "./_components/nav-item";
 import { NoticeBanner } from "./_components/notice-banner";
-import { OutboxProvider } from "./_components/outbox-provider";
+import { OutboxProvider, SignOutButton } from "./_components/outbox-provider";
 import { NAV } from "./_lib/nav";
 
-export const metadata: Metadata = { title: "NCD registry", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "NCD registry", robots: { index: false, follow: false }, manifest: "/ncd/manifest.webmanifest" };
 
 /** NCDSync shell (§11.3): sidebar in three groups shown by capability, one banner region, the content. */
 export default async function NcdLayout({ children }: { children: ReactNode }) {
@@ -45,6 +45,7 @@ export default async function NcdLayout({ children }: { children: ReactNode }) {
             <Avatar name={fullName} hue="sky" size="md" />
             <div className="min-w-0 flex-1">
               <p className="text-label text-foreground truncate">{fullName}</p>
+              <SignOutButton />
               <p className="text-muted-foreground truncate text-[11px]">{ctx.roles.map((r) => r.replace(/_/g, " ")).join(", ")}</p>
             </div>
           </div>
@@ -54,9 +55,7 @@ export default async function NcdLayout({ children }: { children: ReactNode }) {
             <Link href="/ncd" className="font-display text-body-m font-semibold">
               NCD registry
             </Link>
-            <Link href="/sign-out" className="text-muted-foreground text-[12px] underline-offset-4 hover:underline">
-              Sign out
-            </Link>
+            <SignOutButton />
           </header>
           <NoticeBanner status={status} canManageDemo={can(ctx, "demo_data_manage")} />
           <main className="min-w-0 flex-1">{children}</main>

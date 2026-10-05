@@ -1,0 +1,152 @@
+{
+  "_note": "H1: indicator code \u2192 DHIS2 data element and category option combo identifiers. Shipped EMPTY on purpose: identifiers come from the Ministry of Health health information division (SIGNOFF-REGISTER S14). The DHIS2 export refuses to run while any required identifier is empty. Never invent one.",
+  "version": "dhis2-map-0.1-draft",
+  "dataSet": "",
+  "orgUnit": "",
+  "mappings": [
+    {
+      "indicator": "C01",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C02",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C03",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C04",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C05",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C06",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C07",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C08",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C09",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C10",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C11",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C12",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C13",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C14",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "C15",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H01",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H02",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H03",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H04",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H05",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H06",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H09",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H10",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    },
+    {
+      "indicator": "H11",
+      "part": "num",
+      "dataElement": "",
+      "categoryOptionCombo": ""
+    }
+  ]
+}
