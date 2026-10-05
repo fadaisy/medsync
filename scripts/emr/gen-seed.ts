@@ -296,43 +296,7 @@ function buildSql(src: SeedSources): string {
     concepts.map((c) => conceptRow(src, c)),
   );
 
-  const testSql = insert(
-    "test_catalogue",
-    [
-      "id",
-      "hospital_id",
-      "code",
-      "display",
-      "kind",
-      "components",
-      "specimen_type",
-      "container",
-      "fasting_required",
-      "ionising",
-      "default_units",
-      "in_house",
-      "capability_id",
-      "turnaround_target_minutes",
-      "active",
-    ],
-    tests.map((t: Json) => [
-      lit(uuidV5(`test_catalogue:${t.id}`)),
-      "NULL",
-      lit(t.id),
-      lit(t.display),
-      lit(t.kind),
-      arr(t.panelComponents),
-      lit(t.specimenType),
-      lit(t.container),
-      bool(t.fasting_required),
-      bool(IONISING_TESTS.has(t.id)),
-      jsonb(t.defaultUnits),
-      bool(t.in_house),
-      lit(t.capability_id),
-      t.turnaround_target_minutes == null ? "NULL" : String(t.turnaround_target_minutes),
-      bool(t.active),
-    ]),
-  );
+  const testSql = insert("test_catalogue", TEST_CATALOGUE_COLS, tests.map(testRow));
 
   // source keeps the ICD-11 verification status and page, since the table has one code column, not jsonb.
   // symptom_level follows the terms file's own rule: "…, cause not yet known" terms.
@@ -373,6 +337,42 @@ function buildSql(src: SeedSources): string {
     termSql,
   ].join("\n");
 }
+
+// ─── test_catalogue rows (0072, and the menu additions of later addenda) ──
+const TEST_CATALOGUE_COLS = [
+  "id",
+  "hospital_id",
+  "code",
+  "display",
+  "kind",
+  "components",
+  "specimen_type",
+  "container",
+  "fasting_required",
+  "ionising",
+  "default_units",
+  "in_house",
+  "capability_id",
+  "turnaround_target_minutes",
+  "active",
+];
+const testRow = (t: Json) => [
+  lit(uuidV5(`test_catalogue:${t.id}`)),
+  "NULL",
+  lit(t.id),
+  lit(t.display),
+  lit(t.kind),
+  arr(t.panelComponents),
+  lit(t.specimenType),
+  lit(t.container),
+  bool(t.fasting_required),
+  bool(IONISING_TESTS.has(t.id)),
+  jsonb(t.defaultUnits),
+  bool(t.in_house),
+  lit(t.capability_id),
+  t.turnaround_target_minutes == null ? "NULL" : String(t.turnaround_target_minutes),
+  bool(t.active),
+];
 
 // ─── 0082, 0083: the CFC addenda ─────────────────────────────────────
 function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string {
@@ -484,6 +484,7 @@ function buildTermsAddendumSql(src: SeedSources): string {
 function buildV15Extra(src: SeedSources): string {
   const add = src.v15;
   const terms = [...add.termsAdd].sort(byId((t: Json) => t.id));
+  const tests = [...(add.testsAdd ?? [])].sort(byId((t: Json) => t.id));
   const links = Object.entries(add.termConcepts as Record<string, string>).sort(([a], [b]) =>
     a < b ? -1 : 1,
   );
@@ -507,6 +508,8 @@ function buildV15Extra(src: SeedSources): string {
         "NULL",
       ]),
     ),
+    "-- ─── test_catalogue (the default menu; no reference ranges, no turnaround numbers) ─",
+    insert("test_catalogue", TEST_CATALOGUE_COLS, tests.map(testRow)),
     "-- ─── term → condition concept links ─────────────────────────────────",
     links
       .map(
@@ -629,9 +632,7 @@ export const DIAGNOSIS_TERMS_RESTRICTED_FOR_MINORS = ${JSON.stringify(
 }
 
 /** The pure core: data in, file contents out. Nothing is written. */
-export async function generateSeed(
-  root: string = process.cwd(),
-): Promise<{
+export async function generateSeed(root: string = process.cwd()): Promise<{
   sql: string;
   ts: string;
   sql12: string;

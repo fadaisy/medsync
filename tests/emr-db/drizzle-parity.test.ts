@@ -171,7 +171,7 @@ describe.skipIf(!laneOn)("0072 and 0085 seeds on the 0071 registries", () => {
     expect([...(await ids("capabilities"))].sort()).toEqual([...CAPABILITY_IDS].sort());
     const before = await counts(lane);
     // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, uncoded: D-SI-26) plus 0092's 8 (CFC v1.5, uncoded).
-    expect(before).toMatchObject({ test_catalogue: 35, diagnosis_terms: 85 + 187 + 8 });
+    expect(before).toMatchObject({ test_catalogue: 35 + 9, diagnosis_terms: 85 + 187 + 8 });
     const uncoded = await lane.pg.query<{ n: number }>(
       `SELECT count(*)::int AS n FROM public.diagnosis_terms WHERE icd11_code IS NULL AND verified_on IS NULL`,
     );

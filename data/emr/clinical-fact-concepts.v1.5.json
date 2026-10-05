@@ -375,6 +375,163 @@
   "concepts": 10,
   "restricted": 1,
   "termsAdd": 8,
-  "termConcepts": 16
- }
+  "termConcepts": 16,
+  "testsAdd": 9
+ },
+ "testsAdd": [
+  {
+   "defaultUnits": {
+    "obs.glucose": "mmol/L"
+   },
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": "capillary_whole_blood",
+   "container": "capillary_direct",
+   "capability_id": "cap.glucometer",
+   "id": "test.capillary_glucose",
+   "display": "Capillary glucose (meter)",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.glucose"
+   ]
+  },
+  {
+   "defaultUnits": {
+    "obs.glucose": "mmol/L"
+   },
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": true,
+   "specimenType": "venous_plasma",
+   "container": "fluoride_oxalate",
+   "capability_id": "cap.ogtt",
+   "id": "test.ogtt_75g",
+   "display": "Oral glucose tolerance test, 75 g",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.glucose"
+   ]
+  },
+  {
+   "defaultUnits": {
+    "obs.ketones_blood": "mmol/L"
+   },
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": "capillary_whole_blood",
+   "container": "capillary_direct",
+   "capability_id": "cap.blood_ketone_meter",
+   "id": "test.ketones",
+   "display": "Blood ketones (beta-hydroxybutyrate)",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.ketones_blood"
+   ]
+  },
+  {
+   "defaultUnits": {},
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": "venous_whole_blood",
+   "container": null,
+   "capability_id": "cap.blood_gas",
+   "id": "test.blood_gas",
+   "display": "Venous blood gas",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.ph",
+    "obs.bicarbonate"
+   ]
+  },
+  {
+   "defaultUnits": {},
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": "venous_serum",
+   "container": "serum_plain",
+   "capability_id": null,
+   "id": "test.c_peptide",
+   "display": "C-peptide",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.c_peptide"
+   ]
+  },
+  {
+   "defaultUnits": {},
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": "venous_serum",
+   "container": "serum_plain",
+   "capability_id": null,
+   "id": "test.islet_autoantibodies",
+   "display": "Islet autoantibodies (GAD)",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.islet_autoantibody"
+   ]
+  },
+  {
+   "defaultUnits": {},
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": "venous_serum",
+   "container": "serum_plain",
+   "capability_id": null,
+   "id": "test.b12_folate",
+   "display": "Vitamin B12",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.vitamin_b12"
+   ]
+  },
+  {
+   "defaultUnits": {},
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": null,
+   "container": null,
+   "capability_id": "cap.retinal_camera",
+   "id": "test.retinal_photograph",
+   "display": "Retinal photograph or dilated retinal examination",
+   "kind": "procedure",
+   "panelComponents": [
+    "exam.retinopathy_grade",
+    "exam.maculopathy",
+    "exam.retinal_view"
+   ]
+  },
+  {
+   "defaultUnits": {},
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": true,
+   "fasting_required": false,
+   "specimenType": null,
+   "container": null,
+   "capability_id": null,
+   "id": "test.abi",
+   "display": "Ankle-brachial index",
+   "kind": "procedure",
+   "panelComponents": [
+    "obs.abi"
+   ]
+  }
+ ],
+ "testsNote": "Ids follow the diagnosis catalogue where it already names the test (P0-21: test.capillary_glucose, test.ketones, test.blood_gas, test.b12_folate). Held by the pack, not added: test.xray_abdomen (no result concept), test.urine_pcr (no rule reads it yet). Folate has no concept, so test.b12_folate carries B12 only. No reference range, no turnaround number."
 }

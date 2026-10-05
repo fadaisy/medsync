@@ -44,6 +44,19 @@ INSERT INTO public.diagnosis_terms (id, display, synonyms, icd11_code, chronic, 
   ('3bef8047-b1e7-53ff-8d20-8a80f35fd7b8', 'Raised blood glucose on steroid treatment', '{}', NULL, false, false, NULL, NULL, 'standard', 'draft', 'CFC 1.5.0: as typed, not coded (ICD-11 to-code)', NULL)
 ON CONFLICT DO NOTHING;
 
+-- ─── test_catalogue (the default menu; no reference ranges, no turnaround numbers) ─
+INSERT INTO public.test_catalogue (id, hospital_id, code, display, kind, components, specimen_type, container, fasting_required, ionising, default_units, in_house, capability_id, turnaround_target_minutes, active) VALUES
+  ('bf191d30-ba0f-5e33-839c-635c225e3205', NULL, 'test.abi', 'Ankle-brachial index', 'procedure', ARRAY['obs.abi'], NULL, NULL, false, false, '{}'::jsonb, true, NULL, NULL, true),
+  ('972d506f-f818-5928-a63d-4812143635d7', NULL, 'test.b12_folate', 'Vitamin B12', 'lab', ARRAY['obs.vitamin_b12'], 'venous_serum', 'serum_plain', false, false, '{}'::jsonb, true, NULL, NULL, true),
+  ('4b6e4b2f-7aa6-51f4-9174-11d3fe037cda', NULL, 'test.blood_gas', 'Venous blood gas', 'lab', ARRAY['obs.ph', 'obs.bicarbonate'], 'venous_whole_blood', NULL, false, false, '{}'::jsonb, true, 'cap.blood_gas', NULL, true),
+  ('056baf74-f942-5bd1-b334-0c5688e75846', NULL, 'test.c_peptide', 'C-peptide', 'lab', ARRAY['obs.c_peptide'], 'venous_serum', 'serum_plain', false, false, '{}'::jsonb, true, NULL, NULL, true),
+  ('8d2afea4-b519-5e5c-96cc-be4668d1d0b8', NULL, 'test.capillary_glucose', 'Capillary glucose (meter)', 'lab', ARRAY['obs.glucose'], 'capillary_whole_blood', 'capillary_direct', false, false, '{"obs.glucose":"mmol/L"}'::jsonb, true, 'cap.glucometer', NULL, true),
+  ('74c47b91-d9fc-52e2-a6fc-fb0684b6a1b6', NULL, 'test.islet_autoantibodies', 'Islet autoantibodies (GAD)', 'lab', ARRAY['obs.islet_autoantibody'], 'venous_serum', 'serum_plain', false, false, '{}'::jsonb, true, NULL, NULL, true),
+  ('34b714d4-fd47-5f94-b5e2-10ce367ace11', NULL, 'test.ketones', 'Blood ketones (beta-hydroxybutyrate)', 'lab', ARRAY['obs.ketones_blood'], 'capillary_whole_blood', 'capillary_direct', false, false, '{"obs.ketones_blood":"mmol/L"}'::jsonb, true, 'cap.blood_ketone_meter', NULL, true),
+  ('1478e937-7eef-5775-ab4f-7ea366b0f4cc', NULL, 'test.ogtt_75g', 'Oral glucose tolerance test, 75 g', 'lab', ARRAY['obs.glucose'], 'venous_plasma', 'fluoride_oxalate', true, false, '{"obs.glucose":"mmol/L"}'::jsonb, true, 'cap.ogtt', NULL, true),
+  ('a2f6f8a6-517d-5a24-9d58-671e29fdef3a', NULL, 'test.retinal_photograph', 'Retinal photograph or dilated retinal examination', 'procedure', ARRAY['exam.retinopathy_grade', 'exam.maculopathy', 'exam.retinal_view'], NULL, NULL, false, false, '{}'::jsonb, true, 'cap.retinal_camera', NULL, true)
+ON CONFLICT DO NOTHING;
+
 -- ─── term → condition concept links ─────────────────────────────────
 UPDATE public.diagnosis_terms SET concept_id = 'cond.ckd'
   WHERE id = '80aae7a9-847b-5342-9a9d-095ee3971609' AND concept_id IS NULL; -- dx.ckd
