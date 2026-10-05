@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.7-draft",
+  "version": "0.4.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -49,6 +49,18 @@
   ],
   "who_hd_cap_high_symptoms": [
    "REF-DM-DX-OGTT2H-CAP"
+  ],
+  "ucg_fpg_repeat": [
+   "REF-DM-DX-UCG-FPG"
+  ],
+  "ucg_ogtt_repeat": [
+   "REF-DM-DX-UCG-OGTT2H"
+  ],
+  "ucg_hba1c_repeat": [
+   "REF-DM-DX-UCG-HBA1C"
+  ],
+  "ucg_random_symptoms": [
+   "REF-DM-DX-UCG-RBS"
   ],
   "who_ifg": [
    "REF-DM-IH-IFG-WHO",
@@ -104,6 +116,12 @@
   ],
   "remission_fasting_meter_high": [
    "REF-DM-DX-FPG"
+  ],
+  "ucg_gdm_fpg": [
+   "REF-DM-PREG-UCG-FBS"
+  ],
+  "ucg_gdm_2h": [
+   "REF-DM-PREG-UCG-2H"
   ],
   "lada": [
    "REF-DM-CLS-T1-AGE"
@@ -858,6 +876,10 @@
   ],
   "acu_insulin_sick_review_signs": [
    "REF-DM-ACU-KETONE-RISK"
+  ],
+  "sus_preg_ucg": [
+   "REF-DM-PREG-UCG-BMI",
+   "REF-DM-PREG-UCG-AGE"
   ],
   "tgt_hba1c_general_relaxed_applies": [
    "REF-DM-HYPO-IAH",

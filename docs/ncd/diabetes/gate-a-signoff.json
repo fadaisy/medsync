@@ -146,7 +146,7 @@
   },
   "D-DM-28": {
    "title": "A meter reading in pregnancy",
-   "decision": "Refer on it: any reading of 11.1 or more, or a fasting reading of 7.0 or more, today; a fasting reading of 5.1 to 6.9, for a laboratory glucose. Diagnose gestational diabetes on plasma glucose only.",
+   "decision": "Refer on it: any reading of 11.1 or more, or a fasting reading of 7.0 or more, today; a fasting reading of 5.1 to 6.9, for a laboratory glucose. Diagnose gestational diabetes on plasma glucose only. Default: WHO 2013 (P0-26).",
    "source": "pack recommendation"
   },
   "D-DM-29": {
@@ -323,7 +323,7 @@
   },
   "P0-26": {
    "ruling": "UCG GDM thresholds vs WHO 2013",
-   "decision": "CSO choice: the national text (UCG) or WHO 2013"
+   "decision": "WHO 2013 is the default gestational diabetes set; UCG 2023's set is computed and shown alongside (CSO, 2026-10-05)"
   },
   "P0-27": {
    "ruling": "UCG's two BP targets (120/80, < 130/80)",

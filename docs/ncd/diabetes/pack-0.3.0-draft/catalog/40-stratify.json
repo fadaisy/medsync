@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.7-draft",
+  "version": "0.4.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2140,13 +2140,13 @@
      "display": "At target",
      "tone": "normal",
      "from": 3.9,
-     "to": 9.0
+     "to": 10.0
     },
     {
      "code": "above_target",
      "display": "Above target",
      "tone": "intermediate",
-     "from": 9.0
+     "from": 10.0
     }
    ],
    "citation": {
@@ -2174,7 +2174,7 @@
     "family": "DM-STR-CTRL",
     "refs": [
      "REF-DM-HYPO-L1",
-     "REF-DM-CTRL-PPG-SURROGATE"
+     "REF-DM-CTRL-PPG-UCG"
     ],
     "status": "new",
     "review": [
@@ -2189,7 +2189,8 @@
     "appliesTo": {
      "pregnancy": "not_pregnant"
     },
-    "forTarget": "tgt_ppg_surrogate"
+    "forTarget": "tgt_ppg_surrogate",
+    "signed": "D-DM-13 signed at GATE A 2026-10-05"
    },
    "note": "WHO's surrogate where HbA1c is unavailable or unreliable. A value below 3.9 mmol/L is shown as LOW, never as 'at target'. WHO's clinical target is 'at or below' this value and its programme indicator is 'below' it; the band uses 'below' until D-DM-13 is decided. Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules."
   },
@@ -2406,13 +2407,13 @@
      "display": "At target",
      "tone": "normal",
      "from": 3.9,
-     "to": 9.0
+     "to": 10.0
     },
     {
      "code": "above_target",
      "display": "Above target",
      "tone": "intermediate",
-     "from": 9.0
+     "from": 10.0
     }
    ],
    "citation": {
@@ -2446,7 +2447,7 @@
     "family": "DM-STR-CTRL",
     "refs": [
      "REF-DM-HYPO-L1",
-     "REF-DM-CTRL-PPG-SURROGATE"
+     "REF-DM-CTRL-PPG-UCG"
     ],
     "status": "new",
     "review": [
@@ -2460,7 +2461,8 @@
     "appliesTo": {
      "pregnancy": "not_pregnant"
     },
-    "forTarget": "tgt_ppg_surrogate"
+    "forTarget": "tgt_ppg_surrogate",
+    "signed": "D-DM-13 signed at GATE A 2026-10-05"
    }
   },
   {
@@ -4579,7 +4581,7 @@
    "id": "tgt_ppg_surrogate",
    "measure": "postprandial_pg",
    "tier": "general",
-   "display": "Glucose after a meal below 9.0 mmol/L where HbA1c is unavailable or unreliable",
+   "display": "Glucose after a meal below 10.0 mmol/L (UCG 2023)",
    "when": {
     "id": "tgt_ppg",
     "label": "Confirmed diabetes",
@@ -4683,8 +4685,8 @@
     }
    },
    "upper": {
-    "ref": "REF-DM-CTRL-PPG-SURROGATE",
-    "value": 9.0,
+    "ref": "REF-DM-CTRL-PPG-UCG",
+    "value": 10.0,
     "unit": "mmol/L"
    },
    "x": {
@@ -4829,6 +4831,7 @@
       }
      }
     ],
+    "signed": "D-DM-13 signed at GATE A 2026-10-05",
     "restrictedClasses": []
    }
   },

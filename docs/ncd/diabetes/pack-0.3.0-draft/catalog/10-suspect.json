@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.7-draft",
+  "version": "0.4.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1101,6 +1101,7 @@
     "enabled": false,
     "enabledBy": "D-DM-05",
     "enabledNote": "ADA's universal testing from 35: off unless the CSO turns it on.",
+    "signed": "D-DM-05 signed at GATE A 2026-10-05: stays off",
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
@@ -2256,6 +2257,7 @@
     "enabled": false,
     "enabledBy": "D-DM-12",
     "enabledNote": "WHO makes no universal recommendation to test in pregnancy: off until the CSO decides.",
+    "signed": "D-DM-12 signed at GATE A 2026-10-05: stays off",
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
@@ -3643,6 +3645,198 @@
     ],
     "restrictedClasses": [],
     "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-UCG",
+   "display": "Pregnant, with a risk factor for gestational diabetes (UCG 2023): test for it (a 75 g OGTT where the site can run one; otherwise a fasting glucose)",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "sus_preg_ucg",
+    "label": "Pregnant, with any of: BMI above 35, age above 40, gestational diabetes before, diabetes in a first-degree relative, a previous baby over 4 kg or an unexplained third-trimester death, polyhydramnios, glucose in the urine, a baby large for dates",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "bmi",
+      "op": ">",
+      "value": 35,
+      "unit": "kg/m2"
+     },
+     {
+      "feature": "age_years",
+      "op": ">",
+      "value": 40,
+      "unit": "years"
+     },
+     {
+      "feature": "prior_gdm",
+      "op": "present"
+     },
+     {
+      "feature": "fh_diabetes_first_degree",
+      "op": "present"
+     },
+     {
+      "feature": "prior_macrosomia_or_stillbirth",
+      "op": "present"
+     },
+     {
+      "feature": "polyhydramnios",
+      "op": "present"
+     },
+     {
+      "feature": "glycosuria",
+      "op": "present"
+     },
+     {
+      "feature": "fetus_large_for_dates",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2023",
+     "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UCG-GDM-01",
+      "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-UCG-BMI"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_1h_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Diabetes before the pregnancy, not yet recorded (the OGTT will show it)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "GDM in previous pregnancy ~ Family history (8 first degree relatives) of diabetes ~ Previous unexplained third trimester death, macrosomic baby (weight >4 kg) ~ Polyhydramnios ~ Glycosuria ~ Foetus large for gestational age",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-GDM-02",
+     "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "notes": "UCG 2023 16.2.5 lists these as 'risk factors (and indication for screening)'. A universal 24-28-week OGTT (DM-SUS-PREG-01) stays off unless a site opts in (D-DM-12).",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PREG",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ogtt",
+     "tier": "routine"
+    },
+    "signed": "D-DM-12 signed at GATE A 2026-10-05",
+    "notWhen": [
+     {
+      "id": "sus_preg_ucg_known",
+      "label": "Diabetes or gestational diabetes already recorded in this pregnancy",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-GDM-01",
+        "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UCG-BMI"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
    }
   }
  ],

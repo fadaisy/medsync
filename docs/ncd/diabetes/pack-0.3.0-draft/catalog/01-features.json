@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.7-draft",
+  "version": "0.4.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,7 +13,7 @@
  "counts": {
   "reuse": 50,
   "reconcile": 45,
-  "new": 99
+  "new": 104
  },
  "features": [
   {
@@ -2687,6 +2687,56 @@
    "x": {
     "status": "new",
     "note": "Lifts the variant caveats when the method is documented as unaffected (NGSP; eighth review, T16)."
+   }
+  },
+  {
+   "code": "fh_diabetes_first_degree",
+   "display": "Diabetes in a parent, brother or sister",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "prior_macrosomia_or_stillbirth",
+   "display": "A previous baby over 4 kg, or an unexplained third-trimester death",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "polyhydramnios",
+   "display": "Polyhydramnios in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "glycosuria",
+   "display": "Glucose in the urine in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "fetus_large_for_dates",
+   "display": "The baby is large for gestational age in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "x": {
+    "status": "new"
    }
   }
  ]

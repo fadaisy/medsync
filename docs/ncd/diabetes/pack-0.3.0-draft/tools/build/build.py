@@ -11,11 +11,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_decisions, k_grid
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_signed, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_signed_vignettes, k_decisions, k_grid
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
-PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.7-draft", "generated": "2026-10-05", "condition": "diabetes",
+PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.4.0-draft", "generated": "2026-10-05", "condition": "diabetes",
         "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)", "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
         "briefingCommit": "8e45d34"}
 errors, warnings = [], []
@@ -381,10 +381,10 @@ def run_vignette(v):
         if isinstance(a["change"], dict) and "criterion" in a["change"]:
             c = a["change"]["criterion"]; res["criteria"][c["id"]] = guarded(c, ev_crit(c, vals, site))
     def met_ignoring_pregnancy(sid):     # fourth review, J04: an unanswered pregnancy question never hides a referral
-        cs = next(c for c in REG["diagnosis"] if c["id"] == sid)
+        cs = next(c for c in REG["diagnosis"] + REG["diagnosis_pending"] if c["id"] == sid)
         d = OR([guarded(c, ev_crit(c, vals, site), dx=True) for c in cs["anyOf"]])
         return d == MET and not suppressed(cs)
-    met_now = res["diagnosis"].get("who_hearts_d_2020") == MET or (ps == "unknown" and met_ignoring_pregnancy("who_hearts_d_2020"))
+    met_now = any(res["diagnosis"].get(sid) == MET or (ps == "unknown" and met_ignoring_pregnancy(sid)) for sid in ("who_hearts_d_2020", "ug_ucg_2023"))      # GATE A: either set
     def gate(rw):
         return {"always": True, "established": est, "not_established": not est, "established_or_met": est or met_now, "newly_met": (not est) and met_now}[rw]
     def fire(item, kind, state):
@@ -523,6 +523,8 @@ def check_vignettes():
             elif k not in r["fired"] and k not in r["dark"]: E(p, f"{k} should fire (state {r['states'].get(k)})")
         for k in ex.get("silent", []):
             if k in r["fired"] or k in r["dark"]: E(p, f"{k} should stay silent")
+        for k in ex.get("fires_or_site_gated", []):
+            if k not in r["fired"] and r["states"].get(k) != "unavailable_here": E(p, f"{k} is switched on by GATE A and should fire (state {r['states'].get(k)})")
         for k in ex.get("dark", []):
             if k not in r["dark"]: E(p, f"{k} should be met but dark (off until its decision); fired={k in r['fired']} state={r['states'].get(k)}")
         for k in ex.get("withheld", []):

@@ -7087,8 +7087,13 @@
    "from_memory": false,
    "conflicts": null,
    "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
-   "usedByRefs": [],
-   "citedDirectly": false
+   "usedByRefs": [
+    "REF-DM-DX-UCG-FPG",
+    "REF-DM-DX-UCG-OGTT2H",
+    "REF-DM-DX-UCG-HBA1C",
+    "REF-DM-DX-UCG-RBS"
+   ],
+   "citedDirectly": true
   },
   {
    "id": "UCG-DM-02",
@@ -7294,8 +7299,10 @@
    "from_memory": false,
    "conflicts": null,
    "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
-   "usedByRefs": [],
-   "citedDirectly": false
+   "usedByRefs": [
+    "REF-DM-CTRL-PPG-UCG"
+   ],
+   "citedDirectly": true
   },
   {
    "id": "UCG-DM-11",
@@ -7639,8 +7646,11 @@
    "from_memory": false,
    "conflicts": null,
    "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
-   "usedByRefs": [],
-   "citedDirectly": false
+   "usedByRefs": [
+    "REF-DM-PREG-UCG-BMI",
+    "REF-DM-PREG-UCG-AGE"
+   ],
+   "citedDirectly": true
   },
   {
    "id": "UCG-GDM-02",
@@ -7663,7 +7673,7 @@
    "conflicts": null,
    "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
    "usedByRefs": [],
-   "citedDirectly": false
+   "citedDirectly": true
   },
   {
    "id": "UCG-GDM-03",
@@ -7685,8 +7695,11 @@
    "from_memory": false,
    "conflicts": null,
    "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
-   "usedByRefs": [],
-   "citedDirectly": false
+   "usedByRefs": [
+    "REF-DM-PREG-UCG-FBS",
+    "REF-DM-PREG-UCG-2H"
+   ],
+   "citedDirectly": true
   },
   {
    "id": "UCG-DR-01",

@@ -1,23 +1,23 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.7-draft",
+ "version": "0.4.0-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
- "count": 342,
+ "count": 351,
  "verification": {
   "confirmed": 225,
   "confirmed_with_note": 95,
   "not_found": 8,
   "could_not_open": 2,
   "wrong_attribution": 1,
-  "not_rechecked": 11
+  "not_rechecked": 20
  },
  "counts": {
-  "withValue": 195,
+  "withValue": 204,
   "needsCsoInput": 18,
   "withConflict": 39,
-  "usedByARule": 123
+  "usedByARule": 131
  },
  "entries": [
   {
@@ -11082,6 +11082,292 @@
      "acu_preg_organ",
      "acu_preg_organ_nobp"
     ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UCG-FPG",
+   "text": "UCG 2023: fasting blood sugar above this value (confirmed by a repeat) is a diagnostic criterion",
+   "value": 7.0,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "8.1.3, PDF p. 537 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "1 Fasting blood sugar >7.0 mmol/L (126 mg/dl) 2 Two-hour blood sugar after 75mg of glucose >11.1 mmol/L (200 mg/dl) 3 HbA1c >6.5% 4 In a patient with classical symptoms of hyperglycaemia: Random Blood Sugar >11.1 mmol/L (200 mg/dl) Diagnostic criteria",
+    "claims": [
+     "UCG-DM-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ucg_fpg_repeat"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UCG-OGTT2H",
+   "text": "UCG 2023: two-hour blood sugar after 75 g above this value (confirmed by a repeat) is a diagnostic criterion",
+   "value": 11.1,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "8.1.3, PDF p. 537 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "1 Fasting blood sugar >7.0 mmol/L (126 mg/dl) 2 Two-hour blood sugar after 75mg of glucose >11.1 mmol/L (200 mg/dl) 3 HbA1c >6.5% 4 In a patient with classical symptoms of hyperglycaemia: Random Blood Sugar >11.1 mmol/L (200 mg/dl) Diagnostic criteria",
+    "claims": [
+     "UCG-DM-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ucg_ogtt_repeat"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UCG-HBA1C",
+   "text": "UCG 2023: HbA1c above this value (confirmed by a repeat) is a diagnostic criterion",
+   "value": 6.5,
+   "unit": "%",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "8.1.3, PDF p. 537 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "1 Fasting blood sugar >7.0 mmol/L (126 mg/dl) 2 Two-hour blood sugar after 75mg of glucose >11.1 mmol/L (200 mg/dl) 3 HbA1c >6.5% 4 In a patient with classical symptoms of hyperglycaemia: Random Blood Sugar >11.1 mmol/L (200 mg/dl) Diagnostic criteria",
+    "claims": [
+     "UCG-DM-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ucg_hba1c_repeat"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UCG-RBS",
+   "text": "UCG 2023: random blood sugar above this value with classical symptoms is a diagnostic criterion",
+   "value": 11.1,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "8.1.3, PDF p. 537 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "1 Fasting blood sugar >7.0 mmol/L (126 mg/dl) 2 Two-hour blood sugar after 75mg of glucose >11.1 mmol/L (200 mg/dl) 3 HbA1c >6.5% 4 In a patient with classical symptoms of hyperglycaemia: Random Blood Sugar >11.1 mmol/L (200 mg/dl) Diagnostic criteria",
+    "claims": [
+     "UCG-DM-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ucg_random_symptoms"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UCG-FBS",
+   "text": "UCG 2023: in pregnancy, fasting blood sugar above this value is gestational diabetes",
+   "value": 5.6,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Diagnostic criteria for gestational diabetes Fasting blood sugar >5.6 mmol/L or Plasma glucose >7.8 mmol/L 2 hours after 75 g glucose tol erance test",
+    "claims": [
+     "UCG-GDM-03"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ucg_gdm_fpg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UCG-2H",
+   "text": "UCG 2023: in pregnancy, plasma glucose above this value 2 hours after 75 g is gestational diabetes",
+   "value": 7.8,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Diagnostic criteria for gestational diabetes Fasting blood sugar >5.6 mmol/L or Plasma glucose >7.8 mmol/L 2 hours after 75 g glucose tol erance test",
+    "claims": [
+     "UCG-GDM-03"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ucg_gdm_2h"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UCG-BMI",
+   "text": "UCG 2023: a body-mass index above this value is an indication to screen for gestational diabetes",
+   "value": 35,
+   "unit": "kg/m2",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+    "claims": [
+     "UCG-GDM-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "sus_preg_ucg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UCG-AGE",
+   "text": "UCG 2023: an age above this value is an indication to screen for gestational diabetes",
+   "value": 40,
+   "unit": "years",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+    "claims": [
+     "UCG-GDM-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "sus_preg_ucg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-CTRL-PPG-UCG",
+   "text": "UCG 2023: postprandial sugar target, below this value",
+   "value": 10.0,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "control",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "8.1.3, PDF p. 539 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Treatment targets - Fasting blood sugar <7 mmol/l - Postprandial sugar <10 mmol/l - HbA1c <7% (7.5 % for elderly)",
+    "claims": [
+     "UCG-DM-10"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
    }
   }
  ]

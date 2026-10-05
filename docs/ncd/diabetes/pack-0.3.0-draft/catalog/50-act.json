@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.7-draft",
+  "version": "0.4.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -3666,7 +3666,7 @@
   },
   {
    "id": "DM-ACT-RX-01",
-   "display": "Type 2 diabetes above target and not on medicine: WHO's first medicine is metformin, with diet and activity",
+   "display": "Type 2 diabetes above target and not on medicine: review treatment. UCG 2023: if sugars are not very high and the person is willing, lifestyle for 3 months first; otherwise, or if that is not enough, metformin, with diet and activity",
    "when": {
     "id": "rx_first",
     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, with HbA1c 7.0% or more or fasting plasma glucose above 7.0 mmol/L",
@@ -3928,16 +3928,17 @@
       "ref": "REF-DM-RX-METFORMIN-STOP-EGFR"
      }
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-02",
-   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: WHO's next step is to add a sulfonylurea (WHO prefers gliclazide; check what this level of care stocks)",
+   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride (check what this level of care stocks); never start glibenclamide",
    "when": {
     "id": "rx_second",
     "label": "Type 2 diabetes recorded, on metformin, not on a sulfonylurea or insulin, above target at review despite taking it",
@@ -4230,9 +4231,10 @@
       "ref": "REF-DM-KID-GFR-G4"
      }
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -4436,9 +4438,10 @@
       "ref": "REF-DM-KID-GFR-G4"
      }
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -4747,9 +4750,10 @@
       }
      }
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -4928,9 +4932,11 @@
      "H21",
      "T10"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20 and D-DM-21",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "requiresCapability": "site.referral",
+    "signed": "D-DM-20, D-DM-21 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5118,9 +5124,11 @@
      "H21",
      "T10"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20 and D-DM-21",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "requiresCapability": "site.referral",
+    "signed": "D-DM-20, D-DM-21 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5295,9 +5303,10 @@
      "H21",
      "T10"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5447,9 +5456,10 @@
      "H21",
      "T10"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5558,9 +5568,10 @@
      "F05",
      "H21"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5701,9 +5712,10 @@
      "H21",
      "T10"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    },
@@ -6083,9 +6095,10 @@
      "H21",
      "T10"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -6355,7 +6368,7 @@
   },
   {
    "id": "DM-ACT-RX-01B",
-   "display": "Type 2 diabetes above target on a fasting meter reading and not on medicine: WHO's first medicine is metformin, with diet and activity",
+   "display": "Type 2 diabetes above target on a fasting meter reading and not on medicine: UCG 2023: lifestyle for 3 months first unless sugars are very high, then metformin",
    "when": {
     "id": "rx_first_meter",
     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, with a fasting capillary glucose above 7.0 mmol/L",
@@ -6571,9 +6584,10 @@
       "ref": "REF-DM-RX-METFORMIN-STOP-EGFR"
      }
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
+    "signed": "D-DM-20 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -7428,7 +7442,7 @@
      "K19",
      "K25"
     ],
-    "enabled": false,
+    "enabled": true,
     "enabledBy": "D-DM-38",
     "notWhen": [
      {
@@ -7569,6 +7583,7 @@
      }
     ],
     "agesOverride": "any",
+    "signed": "D-DM-38 signed at GATE A 2026-10-05",
     "restrictedClasses": [],
     "runWhen": "always"
    }
