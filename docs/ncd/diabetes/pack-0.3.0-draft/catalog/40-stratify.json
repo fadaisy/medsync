@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2876,7 +2876,8 @@
      "F04",
      "H14",
      "J12",
-     "K13"
+     "K13",
+     "L09"
     ],
     "ages": "adult",
     "notWhen": [
@@ -2953,34 +2954,6 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-TARGET"
-       }
-      }
-     },
-     {
-      "id": "tgt_general_older",
-      "label": "Aged 65 or over (the older-adult target applies)",
-      "all": [
-       {
-        "feature": "age_years",
-        "op": ">=",
-        "value": 65,
-        "unit": "years"
-       }
-      ],
-      "citation": {
-       "standard": "ADA",
-       "version": "Standards of Care in Diabetes—2026",
-       "title": "13. Older Adults: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S277–; doi 10.2337/dc26-S013)",
-       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1",
-       "quote": "Screening for early detection of mild cognitive impairment or dementia should be performed for adults 65 years of age or older at the initial visit, annually, and as appropriate. B",
-       "retrieved": "2026-10-03",
-       "csoSigned": false,
-       "x": {
-        "claim": "A4-56",
-        "section": "Recommendations 13.2 and 13.3; Table 13.1",
-        "bodyProposed": "ADA",
-        "verified": true,
-        "ref": "REF-DM-CTRL-OLDER-AGE"
        }
       }
      }
@@ -3115,6 +3088,10 @@
        }
       }
      }
+    ],
+    "supersedes": [
+     "tgt_hba1c_general",
+     "tgt_hba1c_older_healthy"
     ],
     "restrictedClasses": []
    }
@@ -3344,6 +3321,9 @@
        }
       }
      }
+    ],
+    "supersedes": [
+     "tgt_hba1c_general"
     ],
     "restrictedClasses": []
    }
@@ -3648,6 +3628,82 @@
      "F04"
     ],
     "ages": "adult",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "tgt_hba1c_tight",
+   "measure": "hba1c",
+   "tier": "tight",
+   "display": "HbA1c below 6.5%",
+   "when": {
+    "id": "tgt_tight",
+    "label": "A tight target agreed (good health, low risk of lows)",
+    "all": [
+     {
+      "feature": "dm_status",
+      "op": "==",
+      "value": "known"
+     },
+     {
+      "feature": "glycaemic_target_tier",
+      "op": "==",
+      "value": "tight"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Lower A1C goals (e.g., <6.5% [<48 mmol/mol]) may be appropriate for individuals with diabetes with good health and function and low treatment risks (e.g., hypoglycemia) and burdens (see Fig. 6.1). B",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-04",
+      "section": "Recommendation 6.4; Figure 6.1",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-HBA1C-TIGHT"
+     }
+    }
+   },
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). [...] If HbA1c measurement is not available or there is concern over its validity, an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-28",
+     "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 goal box (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "upper": {
+    "ref": "REF-DM-CTRL-HBA1C-TIGHT",
+    "value": 6.5,
+    "unit": "%"
+   },
+   "note": "Only when a tight target has been agreed.",
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TARGET",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "review": [
+     "L09"
+    ],
+    "ages": "adult",
+    "notWhen": [],
+    "supersedes": [
+     "tgt_hba1c_general",
+     "tgt_hba1c_older_healthy"
+    ],
     "restrictedClasses": []
    }
   }

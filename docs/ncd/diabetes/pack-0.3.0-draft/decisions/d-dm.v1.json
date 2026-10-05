@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -9,7 +9,7 @@
   "briefingCommit": "8e45d34"
  },
  "note": "The first option of each decision is the recommendation. Nothing is decided until the CSO fills 'decision', 'signedBy' and 'signedOn'.",
- "count": 40,
+ "count": 41,
  "decisions": [
   {
    "id": "D-DM-01",
@@ -613,6 +613,21 @@
    "why": "The pack will not type a number from memory (N2).",
    "affects": "fpg_control_who, fcap_control_who, bp bands; J10",
    "needsFromCso": "ADA SOC section 13 lower glucose goals for older adults on insulin or a sulfonylurea",
+   "decision": null,
+   "signedBy": null,
+   "signedOn": null
+  },
+  {
+   "id": "D-DM-41",
+   "title": "The acute escalation floor",
+   "question": "The build now fails if any patient in a 4,608-cell grid gets less than the minimum urgency in this table (build.py ACUTE_FLOOR), or more than one interrupt. Sign the table?",
+   "recommended": "Sign it as the acute lane's safety contract: interrupt on a meter HI, blood ketones 3.0 or more in diabetes or with a high glucose, ketones 1.6 to 2.9 with vomiting, Kussmaul breathing or acetone in diabetes, drowsiness with a low, high or unmeasured glucose in diabetes, a glucose below 3.9 on insulin, a sulfonylurea, type 1 or unknown medicines, SGLT2 with vomiting or deep breathing, a sick child with diabetes and no glucose; same day for the intermediate patterns.",
+   "alternatives": [
+    "Amend any row; the build then enforces the amended table."
+   ],
+   "why": "Three review rounds found that patching single rules made other patients silent or doubly interrupted. A table the build enforces stops that.",
+   "affects": "Every acute_route rule",
+   "needsFromCso": null,
    "decision": null,
    "signedBy": null,
    "signedOn": null

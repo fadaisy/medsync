@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -613,7 +613,7 @@
     "notWhen": [
      {
       "id": "symp_01_done",
-      "label": "A glucose is already recorded (the criteria and the other rules now read it)",
+      "label": "A glucose is already recorded (the criteria and the other rules now read it; a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -637,6 +637,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -753,7 +757,7 @@
     "notWhen": [
      {
       "id": "symp_02_done",
-      "label": "A glucose is already recorded (the criteria and the other rules now read it)",
+      "label": "A glucose is already recorded (the criteria and the other rules now read it; a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -777,6 +781,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -2339,7 +2347,7 @@
     "notWhen": [
      {
       "id": "sus_paed_done",
-      "label": "A glucose is already recorded",
+      "label": "A glucose is already recorded (a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -2363,6 +2371,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -2852,7 +2864,8 @@
     },
     "review": [
      "H04",
-     "J05"
+     "J05",
+     "L29"
     ],
     "notWhen": [
      {
@@ -2863,6 +2876,88 @@
         "feature": "dm_status",
         "op": "==",
         "value": "known"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NG18, Bookshelf copy last updated 11 May 2023",
+       "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-31",
+        "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-ACU-PAED-GLU"
+       }
+      }
+     },
+     {
+      "id": "sus_paed_dm_any",
+      "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
        }
       ],
       "citation": {

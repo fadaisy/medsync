@@ -1,7 +1,7 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.2-draft",
+ "version": "0.3.3-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
  "count": 342,
@@ -4272,7 +4272,9 @@
      "acu_hypo_drowsy_r06",
      "acu_hypo_l1_l2",
      "acu_hypo_l2",
-     "acu_hypo_other_l2"
+     "acu_hypo_other_l2",
+     "acu_known_kussmaul_hypo",
+     "acu_paed_known_signs_hypo"
     ]
    }
   },
@@ -4565,7 +4567,9 @@
      "batch": "V3"
     },
     "usedByCriteria": [
+     "acu_bohb_mid",
      "acu_ketones",
+     "acu_ketones_mid",
      "acu_ketones_risk",
      "acu_ketones_risk_vomiting",
      "acu_known_kussmaul_r11",
@@ -5081,6 +5085,7 @@
      "acu_glu15_over18",
      "acu_glu18",
      "acu_ketones_mid",
+     "acu_vomit_high_noket",
      "ref_glu18",
      "ref_glu18_pen",
      "rx_second_glu18",
@@ -5152,8 +5157,11 @@
     "usedByCriteria": [
      "acu_bohb_mid",
      "acu_edka_bohb_normal",
+     "acu_insulin_sick_bohb",
+     "acu_insulin_sick_raised",
      "acu_ketones_mid_bohb_high",
-     "acu_ketones_mid_bohb_normal"
+     "acu_ketones_mid_bohb_normal",
+     "acu_vomit_high_ket"
     ]
    }
   },
@@ -10452,7 +10460,6 @@
      "batch": "V7"
     },
     "usedByCriteria": [
-     "tgt_general_older",
      "tgt_older"
     ]
    }
@@ -10841,7 +10848,10 @@
      "batch": null
     },
     "usedByCriteria": [
-     "acu_preg_bp"
+     "acu_preg_bp",
+     "acu_preg_bp_neg",
+     "acu_preg_bp_prot",
+     "acu_preg_drowsy"
     ]
    }
   },
@@ -10873,7 +10883,10 @@
      "batch": null
     },
     "usedByCriteria": [
-     "acu_preg_bp"
+     "acu_preg_bp",
+     "acu_preg_bp_neg",
+     "acu_preg_bp_prot",
+     "acu_preg_drowsy"
     ]
    }
   },
@@ -10905,6 +10918,8 @@
      "batch": null
     },
     "usedByCriteria": [
+     "27b_severe",
+     "27c_severe",
      "acu_preg_bp_sev",
      "acu_preg_bp_severe"
     ]
@@ -10938,6 +10953,8 @@
      "batch": null
     },
     "usedByCriteria": [
+     "27b_severe",
+     "27c_severe",
      "acu_preg_bp_sev",
      "acu_preg_bp_severe"
     ]
@@ -11036,7 +11053,11 @@
     },
     "usedByCriteria": [
      "acu_preg_bp",
-     "acu_preg_bp_sev"
+     "acu_preg_bp_neg",
+     "acu_preg_bp_prot",
+     "acu_preg_bp_sev",
+     "acu_preg_drowsy",
+     "acu_preg_organ"
     ]
    }
   }

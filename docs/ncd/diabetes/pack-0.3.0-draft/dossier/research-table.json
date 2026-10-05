@@ -1,8 +1,8 @@
 {
  "title": "Research table: every claim gathered, with its source",
  "retrieved": "2026-10-03",
- "count": 844,
- "verified": 753,
+ "count": 846,
+ "verified": 755,
  "note": "Quotes were read through a text-extraction tool and many sources through mirrors: spot-check before signing.",
  "claims": [
   {
@@ -7943,6 +7943,52 @@
    "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
    "quote": "Blood pressure >140/90 present before the pregnancy or starting before 20 weeks.",
+   "retrieved": "2026-10-05",
+   "verified": true,
+   "how_verified": "Read in full from the CSO-supplied PDF's text layer (pypdf); quote checked as a verbatim substring. '³' in a quote is the PDF's mis-encoding of '≥'.",
+   "from_memory": false,
+   "conflicts": null,
+   "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
+   "usedByRefs": [],
+   "citedDirectly": false
+  },
+  {
+   "id": "UCG-CHTN-02",
+   "topic": "Chronic hypertension in pregnancy, target and referral",
+   "claim": "UCG 2023 16.2.3 (Chronic hypertension in pregnancy, target and referral): Aim for BP <140/90 mmHg",
+   "values": {
+    "quote": "Aim for BP <140/90 mmHg"
+   },
+   "population": "As stated in the section",
+   "standard": "UCG",
+   "version": "2023",
+   "document": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+   "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "quote": "Aim for BP <140/90 mmHg",
+   "retrieved": "2026-10-05",
+   "verified": true,
+   "how_verified": "Read in full from the CSO-supplied PDF's text layer (pypdf); quote checked as a verbatim substring. '³' in a quote is the PDF's mis-encoding of '≥'.",
+   "from_memory": false,
+   "conflicts": null,
+   "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
+   "usedByRefs": [],
+   "citedDirectly": true
+  },
+  {
+   "id": "UCG-CHTN-03",
+   "topic": "Chronic hypertension in pregnancy, referral",
+   "claim": "UCG 2023 16.2.3 (Chronic hypertension in pregnancy, referral): If not controlled or any sign of pre eclampsia: refer to hospital",
+   "values": {
+    "quote": "If not controlled or any sign of pre eclampsia: refer to hospital"
+   },
+   "population": "As stated in the section",
+   "standard": "UCG",
+   "version": "2023",
+   "document": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+   "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "quote": "If not controlled or any sign of pre eclampsia: refer to hospital",
    "retrieved": "2026-10-05",
    "verified": true,
    "how_verified": "Read in full from the CSO-supplied PDF's text layer (pypdf); quote checked as a verbatim substring. '³' in a quote is the PDF's mis-encoding of '≥'.",

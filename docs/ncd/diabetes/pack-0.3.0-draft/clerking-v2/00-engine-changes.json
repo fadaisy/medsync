@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -121,7 +121,8 @@
      "Restricted class handling follows D-DM-30."
     ]
    },
-   "why": "Without it the two pregnancy profiles cannot be gated, a pregnant woman with a fasting glucose of 7.0 is offered the wrong diagnosis, and the statin and ACE inhibitor items cannot exclude pregnancy (review G10). Both pregnancy profiles and DDX-PREGNANCY-GLUCOSE are withheld until it exists."
+   "why": "Without it the two pregnancy profiles cannot be gated, a pregnant woman with a fasting glucose of 7.0 is offered the wrong diagnosis, and the statin and ACE inhibitor items cannot exclude pregnancy (review G10). Both pregnancy profiles and DDX-PREGNANCY-GLUCOSE are withheld until it exists.",
+   "recordedScope": "at this encounter (fourth review, J19)"
   },
   {
    "id": "EC-6",
@@ -137,7 +138,8 @@
      "A plausibility range, signed as a reference entry, rejects a mg/dL value typed as mmol/L."
     ]
    },
-   "why": "The two most dangerous meter readings cannot be recorded today, so every rule is silent for the sickest patients at meter-only sites (reviews F25, G17)."
+   "why": "The two most dangerous meter readings cannot be recorded today, so every rule is silent for the sickest patients at meter-only sites (reviews F25, G17).",
+   "recordedScope": "at this encounter (fourth review, J19)"
   },
   {
    "id": "EC-7",
@@ -173,7 +175,8 @@
      "a ketone row on the glucose chart"
     ]
    },
-   "why": "Each was used by the first draft without being declared (review G18). Any that Phase 0 finds already present is struck from this list; any the owner declines removes the rules that depend on it, which the catalogue check then reports."
+   "why": "Each was used by the first draft without being declared (review G18). Any that Phase 0 finds already present is struck from this list; any the owner declines removes the rules that depend on it, which the catalogue check then reports.",
+   "recordedScope": "at this encounter (fourth review, J19)"
   },
   {
    "id": "EC-8",

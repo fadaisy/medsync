@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.3.2-draft",
+ "version": "0.3.3-draft",
  "status": "draft",
  "criteriaSets": [
   "who_hearts_d_2020",
@@ -22,7 +22,7 @@
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
   "DM-ACT-THERAPY": 34,
-  "DM-ACU-ROUTE": 33,
+  "DM-ACU-ROUTE": 38,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -53,7 +53,7 @@
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 33,
+  "acute_route": 38,
   "act": 83
  },
  "rules": [
@@ -1473,7 +1473,7 @@
    "id": "DM-ACU-ROUTE-02",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Ketones 2+ or more (or blood ketones 3.0 or more) with high glucose or known diabetes: ketoacidosis until shown otherwise",
+   "title": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -1482,9 +1482,9 @@
     "obs.ketones_urine",
     "obs.ketones_blood",
     "ncd.dm_status (no CFC concept yet)",
-    "obs.glucose",
+    "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "ncd.dm_type_recorded (no CFC concept yet)"
+    "obs.glucose"
    ],
    "predicate": "catalog.rule:acu_ketones",
    "params": {
@@ -1529,7 +1529,9 @@
     "sx.vomiting",
     "sx.abdominal_pain",
     "sign.kussmaul_breathing",
-    "ncd.acute_illness_current (no CFC concept yet)"
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "sign.dehydration",
+    "ncd.mental_status (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_edka",
    "params": {},
@@ -1561,7 +1563,7 @@
    "id": "DM-ACU-ROUTE-04",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child who is vomiting, in pain, breathing deeply, dry or drowsy, with symptoms of diabetes, a raised glucose, ketones or known diabetes: hospital now",
+   "title": "A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes or a glucose above 11: suspected ketoacidosis. Route now",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -1575,6 +1577,7 @@
     "sign.kussmaul_breathing",
     "sign.dehydration",
     "ncd.mental_status (no CFC concept yet)",
+    "sign.ketotic_breath",
     "sx.polyuria",
     "sx.polydipsia",
     "sx.weight_loss_unintended",
@@ -1694,7 +1697,7 @@
    "id": "DM-ACU-ROUTE-07",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Glucose below 3.9 mmol/L on insulin or a sulfonylurea, or with type 1 diabetes: hypoglycaemia, and it can come back",
+   "title": "Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. On insulin or a sulfonylurea, or if the medicines are not known, it can come back",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -1797,6 +1800,7 @@
     "sx.abdominal_pain",
     "sign.dehydration",
     "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_known_unwell",
@@ -2765,6 +2769,7 @@
    "reads": [
     "ncd.mental_status (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_drowsy_glucose",
@@ -2888,7 +2893,7 @@
    "id": "DM-ACU-ROUTE-24",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Known diabetes (or on insulin or a sulfonylurea) with deep sighing breathing or acetone on the breath: suspected ketoacidosis at any glucose. Route now; glucose and ketones now",
+   "title": "Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose and ketones now",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -2899,9 +2904,11 @@
    "reads": [
     "sign.kussmaul_breathing",
     "sign.ketotic_breath",
+    "sign.dehydration",
+    "ncd.mental_status (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "ncd.dm_type_recorded (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_known_kussmaul",
    "params": {},
@@ -2952,7 +2959,8 @@
    ],
    "predicate": "catalog.rule:acu_ketones_mid",
    "params": {
-    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU"
+    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU",
+    "acu-dka-glu": "REF-DM-ACU-DKA-GLU"
    },
    "minTrust": 1,
    "emits": [
@@ -2983,7 +2991,7 @@
    "id": "DM-ACU-ROUTE-22",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team now and recheck within 2 hours",
+   "title": "Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team today and recheck within 2 hours",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -2991,9 +2999,9 @@
    "reads": [
     "obs.ketones_blood",
     "ncd.dm_status (no CFC concept yet)",
-    "obs.glucose",
+    "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "ncd.dm_type_recorded (no CFC concept yet)"
+    "obs.glucose"
    ],
    "predicate": "catalog.rule:acu_ketones_risk",
    "params": {
@@ -3030,7 +3038,7 @@
    "id": "DM-ACU-ROUTE-23",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1 diabetes or on insulin, with vomiting or abdominal pain and no ketone result: check ketones today, whatever the glucose",
+   "title": "Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -3072,7 +3080,7 @@
    "id": "DM-ACU-ROUTE-25",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child with known diabetes and deep breathing, dehydration or drowsiness: suspected ketoacidosis. Route now",
+   "title": "A child with diabetes and deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis. Route now",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -3081,10 +3089,13 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "sign.kussmaul_breathing",
+    "sign.ketotic_breath",
     "sign.dehydration",
-    "ncd.mental_status (no CFC concept yet)"
+    "ncd.mental_status (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_paed_known_signs",
    "params": {},
@@ -3119,17 +3130,14 @@
    "lane": "acute_route",
    "title": "Glucose below 3.9 mmol/L in diabetes, not on insulin or a sulfonylurea: recheck today and look for another cause",
    "appliesTo": {
-    "ageBands": [
-     "adult",
-     "older_adult"
-    ],
+    "ageBands": null,
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "obs.glucose"
+    "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_hypo_other",
    "params": {
@@ -3164,7 +3172,7 @@
    "id": "DM-ACU-ROUTE-27",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today. Protein from 20 weeks is pre-eclampsia (refer to hospital); before 20 weeks it is chronic hypertension",
+   "title": "Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "pregnant"
@@ -3358,9 +3366,9 @@
     "obs.ketones_blood",
     "sx.vomiting",
     "ncd.dm_status (no CFC concept yet)",
-    "obs.glucose",
+    "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "ncd.dm_type_recorded (no CFC concept yet)"
+    "obs.glucose"
    ],
    "predicate": "catalog.rule:acu_ketones_risk_vomiting",
    "params": {
@@ -3474,8 +3482,7 @@
     "proposal": {
      "kind": "test.order",
      "test": [
-      "test.glucose_capillary",
-      "test.ketones"
+      "test.glucose_capillary"
      ],
      "tier": "now"
     },
@@ -3508,7 +3515,8 @@
    "params": {
     "acu-ketone-low": "REF-DM-ACU-KETONE-LOW",
     "acu-ketone-risk": "REF-DM-ACU-KETONE-RISK",
-    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU"
+    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU",
+    "acu-dka-glu": "REF-DM-ACU-DKA-GLU"
    },
    "minTrust": 1,
    "emits": [
@@ -3528,6 +3536,235 @@
     "proposal": {
      "kind": "test.repeat",
      "test": "test.ketones",
+     "tier": "today"
+    },
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-28B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "ncd.hypertensive_organ_damage (no CFC concept yet)",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_organ",
+   "params": {
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-PE-02"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-28C",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "ncd.mental_status (no CFC concept yet)",
+    "obs.bp_systolic",
+    "obs.bp_diastolic",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_drowsy",
+   "params": {
+    "preg-bp-sbp": "REF-DM-PREG-BP-SBP",
+    "preg-bp-dbp": "REF-DM-PREG-BP-DBP",
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-PE-02"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-27B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "obs.urine_protein_dipstick",
+    "obs.bp_systolic",
+    "obs.bp_diastolic",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_bp_neg",
+   "params": {
+    "preg-bp-sbp": "REF-DM-PREG-BP-SBP",
+    "preg-bp-dbp": "REF-DM-PREG-BP-DBP",
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-CHTN-02"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "review",
+     "to": "antenatal_clinician",
+     "tier": "today"
+    },
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-27C",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Raised blood pressure in pregnancy or after birth with urine protein 1+ or more: pre-eclampsia. Refer to hospital today",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "obs.urine_protein_dipstick",
+    "obs.bp_systolic",
+    "obs.bp_diastolic",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_bp_prot",
+   "params": {
+    "preg-bp-sbp": "REF-DM-PREG-BP-SBP",
+    "preg-bp-dbp": "REF-DM-PREG-BP-DBP",
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.3.7, PDF p. 793 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-PE-03"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "refer",
+     "to": "hospital_obstetrics",
+     "tier": "today"
+    },
+    "urgency": "same_day",
+    "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-34",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Diabetes, vomiting, glucose 18 or more with ketones below the danger range: tablets cannot be kept down. Same-day review",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sx.vomiting",
+    "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_vomit_high_noket",
+   "params": {
+    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+     "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+     "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-48"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "review",
+     "to": "clinician",
      "tier": "today"
     },
     "urgency": "same_day",
@@ -6060,7 +6297,7 @@
    "id": "DM-ACT-REFER-BP-03",
    "family": "DM-ACT-REFER",
    "lane": "act",
-   "title": "Blood pressure above 180 systolic with headache, breathlessness, blurred vision, confusion, vomiting or little urine: refer today",
+   "title": "Blood pressure above 180 systolic with headache, blurred vision or vomiting: refer today. Confusion, breathlessness or little urine is an emergency (rule 29)",
    "appliesTo": {
     "ageBands": [
      "adult",

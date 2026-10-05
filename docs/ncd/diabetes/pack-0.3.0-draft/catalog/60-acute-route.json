@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -199,11 +199,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-02",
-   "display": "Ketones 2+ or more (or blood ketones 3.0 or more) with high glucose or known diabetes: ketoacidosis until shown otherwise",
+   "display": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now",
    "condition": "dka",
    "when": {
     "id": "acu_ketones",
-    "label": "Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with known diabetes, type 1, insulin, a sulfonylurea or an SGLT2 inhibitor, any glucose 11.1 mmol/L or more, or a meter reading HI",
+    "label": "Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI",
     "any": [
      {
       "feature": "urine_ketones",
@@ -229,24 +229,19 @@
        "value": "known"
       },
       {
-       "feature": "glucose_meter_extreme",
-       "op": "==",
-       "value": "hi"
-      },
-      {
-       "feature": "glucose_lowering_therapy",
-       "op": "==",
-       "value": "sglt2_inhibitor"
-      },
-      {
        "feature": "dm_type_recorded",
-       "op": "==",
-       "value": "type_1"
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
       },
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -262,6 +257,31 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       },
       {
        "feature": "capillary_glucose",
@@ -298,6 +318,11 @@
        "op": ">=",
        "value": 11.1,
        "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
       }
      ]
     },
@@ -357,7 +382,10 @@
     },
     "review": [
      "H03",
-     "K01"
+     "K01",
+     "L01",
+     "L04",
+     "L19"
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -369,7 +397,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_edka",
-    "label": "On an SGLT2 inhibitor, with any of: vomiting, abdominal pain, deep rapid breathing, acute illness",
+    "label": "On an SGLT2 inhibitor, with any of: vomiting, abdominal pain, deep rapid breathing, acute illness, dehydration, drowsiness or worse",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
@@ -393,6 +421,19 @@
      {
       "feature": "acute_illness_current",
       "op": "present"
+     },
+     {
+      "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
      }
     ],
     "citation": {
@@ -449,7 +490,8 @@
     },
     "review": [
      "H07",
-     "K02"
+     "K02",
+     "L05"
     ],
     "notWhen": [
      {
@@ -523,11 +565,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-04",
-   "display": "A child who is vomiting, in pain, breathing deeply, dry or drowsy, with symptoms of diabetes, a raised glucose, ketones or known diabetes: hospital now",
+   "display": "A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes or a glucose above 11: suspected ketoacidosis. Route now",
    "condition": "dka",
    "when": {
     "id": "acu_paed",
-    "label": "Any of vomiting, abdominal pain, deep rapid breathing, dehydration, drowsiness or worse; with at least one of: thirst, passing a lot of urine, weight loss, new bed-wetting, any glucose above 11 mmol/L, a meter reading HI",
+    "label": "Any of vomiting, abdominal pain, deep rapid breathing, acetone on the breath, dehydration, drowsiness or worse; with at least one of: thirst, passing a lot of urine, weight loss, new bed-wetting, any glucose above 11 mmol/L, a meter reading HI",
     "any": [
      {
       "feature": "vomiting",
@@ -553,6 +595,10 @@
        "stupor",
        "coma"
       ]
+     },
+     {
+      "feature": "acetone_breath",
+      "op": "present"
      }
     ],
     "atLeast": {
@@ -678,7 +724,9 @@
      "F03",
      "H08",
      "J06",
-     "K09"
+     "K09",
+     "L02",
+     "L16"
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -867,11 +915,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-07",
-   "display": "Glucose below 3.9 mmol/L on insulin or a sulfonylurea, or with type 1 diabetes: hypoglycaemia, and it can come back",
+   "display": "Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. On insulin or a sulfonylurea, or if the medicines are not known, it can come back",
    "condition": "hypoglycaemia",
    "when": {
     "id": "acu_hypo_l1",
-    "label": "Any glucose below 3.9 mmol/L, on insulin or a sulfonylurea, with type 1 diabetes, or with known diabetes",
+    "label": "Any glucose below 3.9 mmol/L in a person with diabetes, unless a recorded medicine list holds no insulin or sulfonylurea and the recorded type is not type 1 (rule 26 applies)",
     "any": [
      {
       "feature": "capillary_glucose",
@@ -942,6 +990,61 @@
        "feature": "dm_status",
        "op": "==",
        "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       }
      ]
     },
@@ -1000,7 +1103,8 @@
      "H18",
      "J08",
      "J09",
-     "K04"
+     "K04",
+     "L11"
     ],
     "notWhen": [
      {
@@ -1371,7 +1475,7 @@
    "condition": "hyperglycaemic_crisis",
    "when": {
     "id": "acu_known_unwell",
-    "label": "Known diabetes, or on insulin or a sulfonylurea; with any of: vomiting, abdominal pain, dehydration",
+    "label": "Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with any of: vomiting, abdominal pain, dehydration",
     "any": [
      {
       "feature": "vomiting",
@@ -1395,9 +1499,19 @@
        "value": "known"
       },
       {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -1413,6 +1527,31 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       }
      ]
     },
@@ -1480,12 +1619,14 @@
      "F02",
      "H07",
      "H18",
-     "J01"
+     "J01",
+     "L01",
+     "L04"
     ],
     "notWhen": [
      {
       "id": "acu_known_unwell_done",
-      "label": "A glucose is already recorded (the other rules then read it)",
+      "label": "A glucose is already recorded (the other rules then read it; a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -1509,6 +1650,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -1732,7 +1877,7 @@
     "notWhen": [
      {
       "id": "acu_paed_glucose_done",
-      "label": "A glucose is already recorded",
+      "label": "A glucose is already recorded (a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -1756,6 +1901,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -2424,7 +2573,7 @@
     "notWhen": [
      {
       "id": "acu_paed_soft_done",
-      "label": "A glucose is already recorded",
+      "label": "A glucose is already recorded (a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -2448,6 +2597,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -2681,7 +2834,7 @@
    "condition": "hypoglycaemia",
    "when": {
     "id": "acu_drowsy_glucose",
-    "label": "Drowsiness or worse, in a person with known diabetes or on insulin or a sulfonylurea",
+    "label": "Drowsiness or worse, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine)",
     "all": [
      {
       "feature": "mental_status",
@@ -2702,9 +2855,19 @@
        "value": "known"
       },
       {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -2720,6 +2883,31 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       }
      ]
     },
@@ -2778,12 +2966,14 @@
     },
     "review": [
      "H07",
-     "H18"
+     "H18",
+     "L01",
+     "L04"
     ],
     "notWhen": [
      {
       "id": "acu_drowsy_done",
-      "label": "A glucose is already recorded",
+      "label": "A glucose is already recorded (a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -2807,6 +2997,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -2834,11 +3028,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-24",
-   "display": "Known diabetes (or on insulin or a sulfonylurea) with deep sighing breathing or acetone on the breath: suspected ketoacidosis at any glucose. Route now; glucose and ketones now",
+   "display": "Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose and ketones now",
    "condition": "dka",
    "when": {
     "id": "acu_known_kussmaul",
-    "label": "Known diabetes, type 1, or on insulin, a sulfonylurea or an SGLT2 inhibitor; with deep rapid breathing or acetone on the breath",
+    "label": "Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with deep rapid breathing, acetone on the breath, dehydration, or drowsiness or worse",
     "any": [
      {
       "feature": "deep_rapid_breathing",
@@ -2847,6 +3041,19 @@
      {
       "feature": "acetone_breath",
       "op": "present"
+     },
+     {
+      "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
      }
     ],
     "atLeast": {
@@ -2858,9 +3065,19 @@
        "value": "known"
       },
       {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -2880,12 +3097,27 @@
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
        "value": "sglt2_inhibitor"
       },
       {
-       "feature": "dm_type_recorded",
+       "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "type_1"
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       }
      ]
     },
@@ -2948,7 +3180,11 @@
     },
     "review": [
      "J01",
-     "K01"
+     "K01",
+     "L01",
+     "L04",
+     "L05",
+     "L18"
     ],
     "notWhen": [
      {
@@ -3049,6 +3285,69 @@
         "ref": "REF-DM-ACU-DKA-BOHB"
        }
       }
+     },
+     {
+      "id": "acu_known_kussmaul_hypo",
+      "label": "Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts; between 3.0 and 3.9 the interrupt is folded behind the hypoglycaemia rule)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "==",
+        "value": "lo"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-14",
+        "section": "Table 6.4 'Classification of hypoglycemia'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-HYPO-L2"
+       }
+      }
      }
     ],
     "restrictedClasses": [],
@@ -3061,7 +3360,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_ketones_mid",
-    "label": "Urine ketones trace or 1+, in known diabetes, type 1, or on insulin, a sulfonylurea or an SGLT2 inhibitor; with vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or a meter reading HI",
+    "label": "Urine ketones trace or 1+, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) or any glucose 11.1 mmol/L or more or a meter reading HI; and vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or HI",
     "all": [
      {
       "feature": "urine_ketones",
@@ -3141,18 +3440,18 @@
       },
       {
        "feature": "dm_type_recorded",
-       "op": "==",
-       "value": "type_1"
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
       },
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "sglt2_inhibitor"
-      },
-      {
-       "feature": "glucose_lowering_therapy",
-       "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -3168,6 +3467,72 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
       }
      ]
     },
@@ -3226,7 +3591,9 @@
     },
     "review": [
      "J03",
-     "K06"
+     "K06",
+     "L01",
+     "L04"
     ],
     "notWhen": [
      {
@@ -3284,6 +3651,49 @@
         "ref": "REF-DM-ACU-KETONE-LOW"
        }
       }
+     },
+     {
+      "id": "acu_ketones_mid_signs",
+      "label": "Deep breathing, acetone, dehydration or drowsiness (an interrupting rule applies)",
+      "any": [
+       {
+        "feature": "deep_rapid_breathing",
+        "op": "present"
+       },
+       {
+        "feature": "acetone_breath",
+        "op": "present"
+       },
+       {
+        "feature": "dehydration",
+        "op": "present"
+       },
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-40",
+        "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-REFER-ALL"
+       }
+      }
      }
     ],
     "restrictedClasses": [],
@@ -3292,11 +3702,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-22",
-   "display": "Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team now and recheck within 2 hours",
+   "display": "Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team today and recheck within 2 hours",
    "condition": "dka",
    "when": {
     "id": "acu_ketones_risk",
-    "label": "Blood ketones 1.6 to below 3.0 mmol/L; in known diabetes, on insulin, a sulfonylurea or an SGLT2 inhibitor, or with any glucose 11.1 mmol/L or more or a meter reading HI",
+    "label": "Blood ketones 1.6 to below 3.0 mmol/L; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI",
     "all": [
      {
       "feature": "bohb",
@@ -3320,24 +3730,19 @@
        "value": "known"
       },
       {
-       "feature": "glucose_meter_extreme",
-       "op": "==",
-       "value": "hi"
-      },
-      {
-       "feature": "glucose_lowering_therapy",
-       "op": "==",
-       "value": "sglt2_inhibitor"
-      },
-      {
        "feature": "dm_type_recorded",
-       "op": "==",
-       "value": "type_1"
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
       },
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -3353,6 +3758,31 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       },
       {
        "feature": "capillary_glucose",
@@ -3389,6 +3819,11 @@
        "op": ">=",
        "value": 11.1,
        "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
       }
      ]
     },
@@ -3446,7 +3881,10 @@
     },
     "review": [
      "J03",
-     "K03"
+     "K03",
+     "L01",
+     "L04",
+     "L20"
     ],
     "notWhen": [
      {
@@ -3482,7 +3920,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-23",
-   "display": "Type 1 diabetes or on insulin, with vomiting or abdominal pain and no ketone result: check ketones today, whatever the glucose",
+   "display": "Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick",
@@ -3566,42 +4004,78 @@
     "review": [
      "J03",
      "K05",
-     "K21"
+     "K21",
+     "L04",
+     "L05"
     ],
     "notWhen": [
      {
-      "id": "acu_insulin_sick_done",
-      "label": "A ketone result is already recorded (rules 02, 21 and 22 read it)",
-      "any": [
-       {
-        "feature": "urine_ketones",
-        "op": "recorded"
-       },
+      "id": "acu_insulin_sick_bohb",
+      "label": "Blood ketones below 0.6 mmol/L (normal); a urine strip does not clear this (it can miss early ketoacidosis)",
+      "all": [
        {
         "feature": "bohb",
-        "op": "recorded"
+        "op": "<",
+        "value": 0.6,
+        "unit": "mmol/L"
        }
       ],
       "citation": {
        "standard": "local",
-       "version": "2022 (Phelan H et al.)",
-       "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
-       "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
-       "quote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] Monitoring blood ketones is preferred over urine ketones.",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
        "retrieved": "2026-10-03",
        "csoSigned": false,
        "x": {
-        "claim": "A9-49",
-        "section": "Executive summary / key principles",
-        "bodyProposed": "ISPAD",
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
         "verified": true,
-        "ref": "REF-DM-ACU-SICKDAY-INSULIN"
+        "ref": "REF-DM-ACU-KETONE-LOW"
        }
       }
      },
      {
-      "id": "acu_insulin_sick_signs",
-      "label": "Deep breathing, acetone on the breath, dehydration or drowsiness (an interrupting rule applies)",
+      "id": "acu_insulin_sick_raised",
+      "label": "Blood ketones 0.6 mmol/L or more, or urine ketones 2+ (the ketone rules read them)",
+      "any": [
+       {
+        "feature": "bohb",
+        "op": ">=",
+        "value": 0.6,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "urine_ketones",
+        "op": "in",
+        "value": [
+         "2plus",
+         "3plus"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-LOW"
+       }
+      }
+     },
+     {
+      "id": "acu_insulin_sick_kussmaul",
+      "label": "Deep breathing or acetone on the breath (rules 24 and 25 interrupt)",
       "any": [
        {
         "feature": "deep_rapid_breathing",
@@ -3610,19 +4084,6 @@
        {
         "feature": "acetone_breath",
         "op": "present"
-       },
-       {
-        "feature": "dehydration",
-        "op": "present"
-       },
-       {
-        "feature": "mental_status",
-        "op": "in",
-        "value": [
-         "drowsy",
-         "stupor",
-         "coma"
-        ]
        }
       ],
       "citation": {
@@ -3649,21 +4110,18 @@
   },
   {
    "id": "DM-ACU-ROUTE-25",
-   "display": "A child with known diabetes and deep breathing, dehydration or drowsiness: suspected ketoacidosis. Route now",
+   "display": "A child with diabetes and deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis. Route now",
    "condition": "dka",
    "when": {
     "id": "acu_paed_known_signs",
-    "label": "A child with known diabetes, with deep rapid breathing, dehydration, or drowsiness or worse",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), with deep rapid breathing, acetone on the breath, dehydration, or drowsiness or worse",
     "any": [
      {
       "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "acetone_breath",
       "op": "present"
      },
      {
@@ -3680,6 +4138,71 @@
       ]
      }
     ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
     "citation": {
      "standard": "local",
      "version": "2022 (Glaser N et al., Pediatr Diabetes 2022;23:835-856); no 2024 ISPAD DKA chapter exists",
@@ -3740,7 +4263,9 @@
     },
     "review": [
      "J06",
-     "K08"
+     "K08",
+     "L02",
+     "L12"
     ],
     "notWhen": [
      {
@@ -3805,6 +4330,69 @@
         "ref": "REF-DM-ACU-PAED-GLU"
        }
       }
+     },
+     {
+      "id": "acu_paed_known_signs_hypo",
+      "label": "Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts; between 3.0 and 3.9 the interrupt is folded behind the hypoglycaemia rule)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "<",
+        "value": 3.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "==",
+        "value": "lo"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-14",
+        "section": "Table 6.4 'Classification of hypoglycemia'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-HYPO-L2"
+       }
+      }
      }
     ],
     "restrictedClasses": [],
@@ -3819,11 +4407,6 @@
     "id": "acu_hypo_other",
     "label": "Known diabetes, a recorded medicine list with no insulin or sulfonylurea, a recorded type that is not type 1, and any glucose below 3.9 mmol/L",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "dm_type_recorded",
       "op": "!=",
@@ -3904,6 +4487,71 @@
       "verified": true,
       "ref": "REF-DM-HYPO-L1"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "posterior": "moderate",
@@ -3933,10 +4581,6 @@
      "verified": true
     }
    },
-   "ageBands": [
-    "adult",
-    "older_adult"
-   ],
    "x": {
     "lane": "acute_route",
     "family": "DM-ACU-ROUTE",
@@ -3947,7 +4591,9 @@
     },
     "review": [
      "J08",
-     "K04"
+     "K04",
+     "L11",
+     "L25"
     ],
     "notWhen": [
      {
@@ -4012,6 +4658,37 @@
         "ref": "REF-DM-HYPO-L2"
        }
       }
+     },
+     {
+      "id": "acu_hypo_other_drowsy",
+      "label": "Drowsiness or worse (rule 31 interrupts)",
+      "all": [
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-14",
+        "section": "Table 6.4 'Classification of hypoglycemia'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-HYPO-L3"
+       }
+      }
      }
     ],
     "restrictedClasses": [],
@@ -4020,7 +4697,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-27",
-   "display": "Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today. Protein from 20 weeks is pre-eclampsia (refer to hospital); before 20 weeks it is chronic hypertension",
+   "display": "Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today",
    "condition": "pre_eclampsia",
    "when": {
     "id": "acu_preg_bp",
@@ -4106,7 +4783,10 @@
     },
     "review": [
      "J15",
-     "K11"
+     "K11",
+     "L13",
+     "L15",
+     "L28"
     ],
     "notWhen": [
      {
@@ -4144,13 +4824,12 @@
       }
      },
      {
-      "id": "acu_preg_bp_neg",
-      "label": "Urine protein recorded negative at this visit (the hypertension pack owns the follow-up)",
-      "all": [
+      "id": "acu_preg_bp_protein_done",
+      "label": "A urine protein result is recorded at this visit (rules 27B and 27C read it)",
+      "any": [
        {
         "feature": "urine_protein_strip",
-        "op": "==",
-        "value": "neg"
+        "op": "recorded"
        }
       ],
       "citation": {
@@ -4171,6 +4850,7 @@
       }
      }
     ],
+    "pregnancyUnknownCounts": true,
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -4262,8 +4942,10 @@
     },
     "review": [
      "J15",
-     "K11"
+     "K11",
+     "L13"
     ],
+    "pregnancyUnknownCounts": true,
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -4431,7 +5113,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_ketones_risk_vomiting",
-    "label": "Blood ketones 1.6 to below 3.0 mmol/L, with vomiting; in known diabetes, type 1, on insulin, a sulfonylurea or an SGLT2 inhibitor, or with any glucose 11.1 mmol/L or more or a meter reading HI",
+    "label": "Blood ketones 1.6 to below 3.0 mmol/L, with vomiting; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI",
     "all": [
      {
       "feature": "bohb",
@@ -4459,24 +5141,19 @@
        "value": "known"
       },
       {
-       "feature": "glucose_meter_extreme",
-       "op": "==",
-       "value": "hi"
-      },
-      {
-       "feature": "glucose_lowering_therapy",
-       "op": "==",
-       "value": "sglt2_inhibitor"
-      },
-      {
        "feature": "dm_type_recorded",
-       "op": "==",
-       "value": "type_1"
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
       },
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -4492,6 +5169,31 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       },
       {
        "feature": "capillary_glucose",
@@ -4528,6 +5230,11 @@
        "op": ">=",
        "value": 11.1,
        "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
       }
      ]
     },
@@ -4583,7 +5290,9 @@
      "tier": "now"
     },
     "review": [
-     "K03"
+     "K03",
+     "L01",
+     "L04"
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -4698,7 +5407,8 @@
      "tier": "now"
     },
     "review": [
-     "K04"
+     "K04",
+     "L07"
     ],
     "notWhen": [
      {
@@ -4766,7 +5476,7 @@
      },
      {
       "id": "acu_hypo_drowsy_r07",
-      "label": "On insulin or a sulfonylurea, type 1, or known diabetes without a medicine list that excludes them (rule 07 interrupts)",
+      "label": "On insulin or a sulfonylurea, or type 1 recorded (rule 07 interrupts)",
       "any": [
        {
         "feature": "glucose_lowering_therapy",
@@ -4822,7 +5532,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_paed_known_sick",
-    "label": "A child with known diabetes, type 1, or on insulin; with vomiting or abdominal pain",
+    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with vomiting or abdominal pain",
     "any": [
      {
       "feature": "vomiting",
@@ -4843,13 +5553,58 @@
       },
       {
        "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "type_1"
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
       },
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
       }
      ]
     },
@@ -4908,18 +5663,18 @@
     "proposal": {
      "kind": "test.order",
      "test": [
-      "test.glucose_capillary",
-      "test.ketones"
+      "test.glucose_capillary"
      ],
      "tier": "now"
     },
     "review": [
-     "K05"
+     "K05",
+     "L22"
     ],
     "notWhen": [
      {
       "id": "acu_paed_known_sick_done",
-      "label": "A glucose is already recorded (the other rules read it)",
+      "label": "A glucose is already recorded (the other rules read it; a meter HI or LO counts)",
       "any": [
        {
         "feature": "capillary_glucose",
@@ -4943,6 +5698,10 @@
        },
        {
         "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
         "op": "recorded"
        }
       ],
@@ -4974,7 +5733,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_bohb_mid",
-    "label": "Blood ketones 0.6 to below 1.6 mmol/L, in known diabetes, type 1, or on insulin, a sulfonylurea or an SGLT2 inhibitor; with vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or a meter reading HI",
+    "label": "Blood ketones 0.6 to below 1.6 mmol/L, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) or any glucose 11.1 mmol/L or more or HI; and vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or HI",
     "all": [
      {
       "feature": "bohb",
@@ -5058,18 +5817,18 @@
       },
       {
        "feature": "dm_type_recorded",
-       "op": "==",
-       "value": "type_1"
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
       },
       {
        "feature": "glucose_lowering_therapy",
        "op": "==",
-       "value": "sglt2_inhibitor"
-      },
-      {
-       "feature": "glucose_lowering_therapy",
-       "op": "==",
-       "value": "insulin"
+       "value": "metformin"
       },
       {
        "feature": "glucose_lowering_therapy",
@@ -5085,6 +5844,72 @@
        "feature": "glucose_lowering_therapy",
        "op": "==",
        "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
       }
      ]
     },
@@ -5138,7 +5963,719 @@
      "tier": "today"
     },
     "review": [
-     "K06"
+     "K06",
+     "L01",
+     "L04"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-28B",
+   "display": "Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now",
+   "condition": "pre_eclampsia",
+   "when": {
+    "id": "acu_preg_organ",
+    "label": "Pregnant or within 6 weeks postpartum, with confusion, seizures, visual loss, breathlessness with crackles, little urine or tearing pain beside a raised pressure",
+    "all": [
+     {
+      "feature": "hypertensive_organ_damage",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "postpartum_weeks",
+       "op": "<=",
+       "value": 6,
+       "unit": "weeks"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2023",
+     "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UCG-PE-02",
+      "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "bp_systolic",
+    "bp_diastolic",
+    "urine_protein_strip"
+   ],
+   "mimicsToExclude": [
+    "Eclampsia (still route)",
+    "Stroke"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-PE-02",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "notes": "UCG 2023 16.3.7: severe pre-eclampsia is 'any degree of hypertension with evidence of organ dysfunction'. The organ-damage finding is defined beside a raised pressure.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "review": [
+     "L03"
+    ],
+    "pregnancyUnknownCounts": true,
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-28C",
+   "display": "Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now",
+   "condition": "pre_eclampsia",
+   "when": {
+    "id": "acu_preg_drowsy",
+    "label": "Pregnant or within 6 weeks postpartum, drowsy or worse, with systolic 140 mmHg or more or diastolic 90 mmHg or more",
+    "all": [
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "bp_systolic",
+      "op": ">=",
+      "value": 140,
+      "unit": "mmHg"
+     },
+     {
+      "feature": "bp_diastolic",
+      "op": ">=",
+      "value": 90,
+      "unit": "mmHg"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "postpartum_weeks",
+       "op": "<=",
+       "value": 6,
+       "unit": "weeks"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2023",
+     "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UCG-PE-01",
+      "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-BP-SBP"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "urine_protein_strip"
+   ],
+   "mimicsToExclude": [
+    "Hypoglycaemia (check glucose)",
+    "Stroke"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-PE-02",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "review": [
+     "L03"
+    ],
+    "pregnancyUnknownCounts": true,
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-27B",
+   "display": "Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90",
+   "condition": "pre_eclampsia",
+   "when": {
+    "id": "acu_preg_bp_neg",
+    "label": "Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, urine protein negative",
+    "all": [
+     {
+      "feature": "urine_protein_strip",
+      "op": "in",
+      "value": [
+       "neg",
+       "trace"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "bp_systolic",
+      "op": ">=",
+      "value": 140,
+      "unit": "mmHg"
+     },
+     {
+      "feature": "bp_diastolic",
+      "op": ">=",
+      "value": 90,
+      "unit": "mmHg"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "postpartum_weeks",
+       "op": "<=",
+       "value": 6,
+       "unit": "weeks"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2023",
+     "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UCG-PE-01",
+      "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-BP-SBP"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "bp_systolic",
+    "bp_diastolic"
+   ],
+   "mimicsToExclude": [
+    "White-coat raised reading (repeat)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "Aim for BP <140/90 mmHg",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-CHTN-02",
+     "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "notes": "UCG 2023 16.2.3: aim for BP below 140/90; 'if not controlled or any sign of pre-eclampsia: refer to hospital'. Trace is not 1+ (UCG's threshold for proteinuria).",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "review",
+     "to": "antenatal_clinician",
+     "tier": "today"
+    },
+    "review": [
+     "L15"
+    ],
+    "pregnancyUnknownCounts": true,
+    "notWhen": [
+     {
+      "id": "27b_severe",
+      "label": "Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts)",
+      "any": [
+       {
+        "feature": "bp_systolic",
+        "op": ">=",
+        "value": 160,
+        "unit": "mmHg"
+       },
+       {
+        "feature": "bp_diastolic",
+        "op": ">=",
+        "value": 110,
+        "unit": "mmHg"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-PE-02",
+        "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-BP-SEVERE-SBP"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-27C",
+   "display": "Raised blood pressure in pregnancy or after birth with urine protein 1+ or more: pre-eclampsia. Refer to hospital today",
+   "condition": "pre_eclampsia",
+   "when": {
+    "id": "acu_preg_bp_prot",
+    "label": "Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, urine protein 1+ or more",
+    "all": [
+     {
+      "feature": "urine_protein_strip",
+      "op": "in",
+      "value": [
+       "1plus",
+       "2plus",
+       "3plus"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "bp_systolic",
+      "op": ">=",
+      "value": 140,
+      "unit": "mmHg"
+     },
+     {
+      "feature": "bp_diastolic",
+      "op": ">=",
+      "value": 90,
+      "unit": "mmHg"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "postpartum_weeks",
+       "op": "<=",
+       "value": 6,
+       "unit": "weeks"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2023",
+     "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UCG-PE-01",
+      "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-BP-SBP"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_protein_strip"
+   ],
+   "mimicsToExclude": [
+    "Urinary infection (still refer)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "Any case of pre-eclampsia has to be referred to hospital",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-PE-03",
+     "section": "16.3.7, PDF p. 793 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "notes": "UCG 2023 16.3.7: 140 to 159 / 90 to 109 with 1+ proteinuria or more is pre-eclampsia, and 'any case of pre-eclampsia has to be referred to hospital'. Before 20 weeks, consider chronic hypertension with proteinuria (still refer).",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "refer",
+     "to": "hospital_obstetrics",
+     "tier": "today"
+    },
+    "review": [
+     "L15"
+    ],
+    "pregnancyUnknownCounts": true,
+    "notWhen": [
+     {
+      "id": "27c_severe",
+      "label": "Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts)",
+      "any": [
+       {
+        "feature": "bp_systolic",
+        "op": ">=",
+        "value": 160,
+        "unit": "mmHg"
+       },
+       {
+        "feature": "bp_diastolic",
+        "op": ">=",
+        "value": 110,
+        "unit": "mmHg"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-PE-02",
+        "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-BP-SEVERE-SBP"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-34",
+   "display": "Diabetes, vomiting, glucose 18 or more with ketones below the danger range: tablets cannot be kept down. Same-day review",
+   "condition": "hhs",
+   "when": {
+    "id": "acu_vomit_high_noket",
+    "label": "Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); vomiting; any glucose 18 mmol/L or more or a meter reading HI",
+    "all": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+     "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+     "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+     "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-48",
+      "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb",
+    "sodium",
+    "urea"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+    "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+    "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+    "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-48",
+     "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "WHO PEN refers glucose of 18 or more; with vomiting the oral treatment cannot work and the hyperosmolar state can develop without ketones. Independent of D-DM-38.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "review",
+     "to": "clinician",
+     "tier": "today"
+    },
+    "review": [
+     "L14"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_vomit_high_ket",
+      "label": "Ketones raised (blood 0.6 mmol/L or more, or urine 2+), or a sign (the ketone and interrupting rules apply)",
+      "any": [
+       {
+        "feature": "bohb",
+        "op": ">=",
+        "value": 0.6,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "urine_ketones",
+        "op": "in",
+        "value": [
+         "2plus",
+         "3plus"
+        ]
+       },
+       {
+        "feature": "deep_rapid_breathing",
+        "op": "present"
+       },
+       {
+        "feature": "acetone_breath",
+        "op": "present"
+       },
+       {
+        "feature": "dehydration",
+        "op": "present"
+       },
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-LOW"
+       }
+      }
+     }
     ],
     "restrictedClasses": [],
     "runWhen": "always"

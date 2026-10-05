@@ -458,6 +458,30 @@
    "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
   },
   {
+   "id": "UCG-CHTN-02",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.2.3",
+   "topic": "Chronic hypertension in pregnancy, target and referral",
+   "pdfPage": 771,
+   "quote": "Aim for BP <140/90 mmHg",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-CHTN-03",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.2.3",
+   "topic": "Chronic hypertension in pregnancy, referral",
+   "pdfPage": 771,
+   "quote": "If not controlled or any sign of pre eclampsia: refer to hospital",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
    "id": "UCG-HIV-02",
    "source": "UG-UCG-2023",
    "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",

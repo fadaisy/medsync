@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -5253,7 +5253,7 @@
   },
   {
    "id": "DM-ACT-REFER-BP-03",
-   "display": "Blood pressure above 180 systolic with headache, breathlessness, blurred vision, confusion, vomiting or little urine: refer today",
+   "display": "Blood pressure above 180 systolic with headache, blurred vision or vomiting: refer today. Confusion, breathlessness or little urine is an emergency (rule 29)",
    "when": {
     "id": "ref_bp_sympt",
     "label": "Symptoms with the raised pressure, and systolic above 180 mmHg",
@@ -5320,7 +5320,8 @@
      "V1",
      "H01",
      "H02",
-     "H38"
+     "H38",
+     "L10"
     ],
     "agesOverride": "any",
     "notWhen": [

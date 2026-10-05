@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.2-draft",
+  "version": "0.3.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -318,6 +318,10 @@
    "K14: a routine step that would fire but for a value under a blocking caveat reports that value as a named gap ('cannot be used for this patient'), instead of staying silent or reading it.",
    "K11/K24: 'child' (pregnancy not possible) is the neonate, infant and child bands; the platform's child band ends before 10 years."
   ],
-  "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17)."
+  "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17).",
+  "interrupt": "One interrupt per event: when several rules with `immediate` urgency are met, the surface interrupts once, with the first in ACUTE_ORDER; the others are shown inside it as further reasons (urgency 'folded'). Low glucose comes first because it kills in minutes (sixth review, L07).",
+  "pregnancyUnknown": "An acute pregnancy rule (`pregnancyUnknownCounts`) treats an unanswered pregnancy question as 'possibly pregnant': it fires, and names 'pregnant' as the gap to close. Missing is never 'not pregnant' when the cost of being wrong is eclampsia (sixth review, L13).",
+  "targets": "A target with `supersedes` replaces the targets it names when both would be proposed; an agreed tier decides. 'Avoid symptoms' proposes no HbA1c target by design (sixth review, L09).",
+  "diabetesContext": "Every acute rule reads 'has diabetes' the same way: known diabetes, a recorded type, or any glucose-lowering medicine (sixth review, L04)."
  }
 }
