@@ -10,7 +10,7 @@ For a Claude Code session picking this repo up without the previous session's lo
 ## Owner rules (settled; don't re-argue)
 
 - **`.env.example` is never staged or committed** (it carries the owner's uncommitted work).
-- **The owner applies migrations and deploys.** Never run `npm run db:migrate` against production, `vercel deploy --prod`, or pushes to `main`. After each build, list the exact migration names and order.
+- **The owner applies migrations and deploys.** Migrations are applied with `npm run db:migrate` **in the folder of the branch that holds them** (a worktree borrows the main checkout's `.env.local`); always tell the owner the exact `cd` (see `AGENTS.md`, Applying migrations). Never run `npm run db:migrate` against production, `vercel deploy --prod`, or pushes to `main`. After each build, list the exact migration names and order.
 - **Never copy or print secrets.** The owner's local `.env.local` in the main folder is production; cloud sessions have no production keys and must not be given them.
 - **No fabricated data** anywhere (patients, ratings, phone numbers, doses).
 - **Migrations are immutable** once written to `supabase/migrations/`; add a new file. GATED migrations carry a header and are owner-applied.

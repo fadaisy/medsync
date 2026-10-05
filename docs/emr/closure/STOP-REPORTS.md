@@ -198,7 +198,9 @@ Last run, 2026-10-03, in the worktree:
 
 ### For the owner
 
-1. **Apply `0091_encounter_closure.sql` (GATED)** after 0090: `npm run db:migrate` from this branch. It only adds
+1. **Apply `0091_encounter_closure.sql` (GATED)** after 0090: `cd ~/Desktop/medsync-closure && npm run db:migrate`
+   (this worktree; it reads the main folder's `.env.local`). From the main folder it would say "No new
+   migrations": that checkout stops at 0081. It only adds
    tables, columns, functions, policies and triggers, so it is safe while `main` is deployed.
 2. **Deploy the Edge Functions** after 0091: `ha-complete-encounter`, `ha-services-hub`, `ha-book-on-behalf`
    (`npx supabase functions deploy <name> --use-api`). Without the new fields each behaves exactly as before.
