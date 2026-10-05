@@ -11,7 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_signed, k_sources, k_ug2026, k_r11, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_signed_vignettes, k_cover_vignettes, k_sources_vignettes, k_ug2026_vignettes, k_r11_vignettes, k_decisions, k_grid
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_signed, k_sources, k_ug2026, k_r11, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_signed_vignettes, k_cover_vignettes, k_sources_vignettes, k_ug2026_vignettes, k_r11_vignettes, k_cover2_vignettes, k_decisions, k_grid
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")

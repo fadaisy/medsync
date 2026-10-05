@@ -74,7 +74,7 @@ Dark items (off until a decision switches them on): ${items.length - on.length};
 
 ${never.length ? `${HEAD}\n${never.map(row).join("\n")}` : "None."}
 
-Every one of them can fire. A synthesiser built a patient who meets each item's trigger and ran it: 49 fired on that patient, and the other two (\`DM-ACT-REFER-TARGET-01\`, \`DM-ACT-RX-03\`) need metformin and a sulfonylurea in the same list, which fires both at both sites when written by hand. They are uncovered, not dead. Go-live item: a vignette for each, so parity guards them (the mutation test covers the acute lane, red flags and blocking caveats only).
+${never.length ? "Each of these can fire on a patient built to meet its trigger; add a vignette for each so parity guards it." : "Every switched-on item fires on at least one synthetic patient (coverage patients DMV-210 onward were added for the items the clinical vignettes missed)."}
 
 ## Fired on more than 20% of patients (${noisy.length})
 

@@ -19,7 +19,7 @@
    "device.bp_cuff_sizes"
   ]
  },
- "count": 209,
+ "count": 260,
  "vignettes": [
   {
    "id": "DMV-01",
@@ -18616,6 +18616,3852 @@
     "interruptActions": [
      "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. Route now; the paediatric DKA pathway gives the fluids"
     ],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-210",
+   "title": "Coverage: Plans to fast for Ramadan: assess risk well before the fast",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "fasting_ramadan_planned": true,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-EDU-07"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-07": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-07": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-211",
+   "title": "Coverage: Could become pregnant: discuss pregnancy planning and which medicines must change first; plan a preg",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "could_conceive": true,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-EDU-08"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-08": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-08": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-212",
+   "title": "Coverage: In the prediabetes range (2026): lose 7% of body weight, 150 minutes of activity a week, and a test ",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "hba1c": 6
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-EDU-10C"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "met",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-10C": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-10C": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-213",
+   "title": "Coverage: ACR above 70 mg/mmol: refer to kidney care",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "urine_acr": 70.5
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-ALB-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-ALB-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-ALB-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-214",
+   "title": "Coverage: Blood pressure above 130/80 on two medicines: at a health centre, routine referral. At hospital leve",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "bp_medicines_count": 2,
+    "bp_systolic": 130.5
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-BP-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-BP-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {
+     "bp_systolic_who_hearts_d": "treat"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-BP-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-215",
+   "title": "Coverage: Blood pressure above 180 systolic with headache or vomiting: refer today. Confusion, visual loss, br",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "hypertensive_symptoms": true,
+    "bp_systolic": 180.5
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-BP-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-BP-03": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {
+     "bp_systolic_who_hearts_d": "treat"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-BP-03": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-216",
+   "title": "Coverage: Foot warmer, swollen or red with intact skin: offload and refer",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "foot_hot_swollen": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-CHARCOT-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-CHARCOT-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-CHARCOT-01": "urgent"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-217",
+   "title": "Coverage: Total cholesterol above 8 mmol/L: routine referral",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "total_cholesterol": 8.5
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-CHOL-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-CHOL-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-CHOL-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-218",
+   "title": "Coverage: A sustained fall in eGFR of more than 20% (more than 30% just after starting an ACE inhibitor, ARB o",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "egfr_fall_percent": 20.5,
+    "ras_or_sglt2_started_recently": false
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-EGFR-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-EGFR-03": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-EGFR-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-219",
+   "title": "Coverage: Vision worse than 6/12, or the retina could not be seen: refer",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "visual_acuity_worse_6_12": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-EYE-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-EYE-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-EYE-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-220",
+   "title": "Coverage: Moderate retinopathy, or macular oedema not involving the centre: refer to an ophthalmologist (routi",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "retinopathy_stage": "moderate_npdr"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-EYE-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-EYE-03": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "met",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {
+     "icdr_retinopathy": "moderate_npdr"
+    },
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-EYE-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-221",
+   "title": "Coverage: Rest pain or a cold, pale or dusky foot, or an ankle-brachial index below 0.4: refer today",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "limb_ischaemia_signs": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-LIMB-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-LIMB-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-LIMB-01": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-222",
+   "title": "Coverage: Foot pulses reduced or absent: routine referral for vascular assessment",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "pedal_pulses": "reduced",
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-PVD-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-REFER-PVD-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-PVD-01": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-223",
+   "title": "Coverage: Above target on two tablets: refer for insulin where this site does not start it",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "glucose_goal_unmet_on_oral": true,
+    "glucose_lowering_therapy": [
+     "metformin",
+     "glibenclamide"
+    ]
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-TARGET-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-REFER-TARGET-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-TARGET-01": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-224",
+   "title": "Coverage: On insulin with HbA1c above 7.5%: refer for review of the insulin",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "hba1c": 8,
+    "dm_type_recorded": "type_2",
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-TARGET-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step",
+     "DM-ACT-REFER-TARGET-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "hba1c_control_general": "above_target"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine",
+     "DM-ACT-REFER-TARGET-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-225",
+   "title": "Coverage: On metformin and a sulfonylurea and still above target: WHO's next step is human insulin, or referra",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin",
+     "glibenclamide"
+    ],
+    "glucose_goal_unmet_on_oral": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-REFER-TARGET-01": "step",
+     "DM-ACT-RX-03": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-TARGET-01": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-RX-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {
+     "DM-ACT-RX-03": [
+      "egfr"
+     ]
+    },
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-226",
+   "title": "Coverage: On a steroid, with diabetes, not on insulin: if the dose is high, the 2026 guideline lists this as a",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "age_years": 50,
+    "sex": "male",
+    "on_glucocorticoid": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-04B"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-RX-04B": "step",
+     "DM-STR-STEROID-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-STR-STEROID-01": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-04B": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-227",
+   "title": "Coverage: Confirmed kidney disease with type 2 diabetes: ADA and KDIGO recommend an SGLT2 inhibitor (or a GLP-",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "dm_type_recorded": "type_2",
+    "kidney_abnormality_3_months": true,
+    "egfr": 59.5,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-05B"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-REFER-EGFR-02": "step",
+     "DM-ACT-RX-05B": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_ckd",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-EGFR-02": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-05B": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-228",
+   "title": "Coverage: Living with HIV, with diabetes, not on a statin: the 2026 guideline starts one at low to moderate ca",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "hiv_on_art": true,
+    "on_statin": false,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-06E"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [
+     "hba1c_hiv_on_art"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-RX-06E": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-06E": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-229",
+   "title": "Coverage: Established cardiovascular disease, peripheral arterial disease included, and not on an antiplatelet",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "cvd_established": true,
+    "on_antiplatelet": false,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-09"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-RX-06D": "step",
+     "DM-ACT-RX-09": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp",
+     "tgt_ldl_ascvd"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-09": "routine",
+     "DM-ACT-RX-06D": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-230",
+   "title": "Coverage: 65 or over on insulin or a sulfonylurea, fasting meter glucose below 5.0 (frail or cognitively impai",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 65,
+    "sex": "male",
+    "capillary_glucose": 4.5,
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "capillary_glucose_context": "fasting",
+    "frailty_or_limited_life_expectancy": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-14BM"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step",
+     "DM-ACT-RX-14BM": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_relaxed",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine",
+     "DM-ACT-RX-14BM": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-231",
+   "title": "Coverage: Cough for more than 2 weeks in a person with diabetes: assess for TB",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "cough_over_2_weeks": true,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-SCREEN-TB-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-SCREEN-TB-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "tb"
+    ],
+    "urgency": {
+     "DM-ACT-SCREEN-TB-01": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-232",
+   "title": "Coverage: Protein on the urine strip: abnormal, pending confirmation. Send a laboratory ratio",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "urine_protein_strip": "1plus",
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-TEST-ACR-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-TEST-ACR-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-TEST-ACR-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-233",
+   "title": "Coverage: HbA1c is due (3 months since the last, after a treatment change)",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "therapy_changed_recently": true,
+    "months_since_hba1c": 3,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-TEST-HBA1C-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-TEST-HBA1C-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-TEST-HBA1C-02": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-234",
+   "title": "Coverage: Young onset with an affected parent and no obesity: consider monogenic diabetes",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "age_at_diagnosis": 34.5,
+    "parent_with_diabetes": true,
+    "bmi": 24.5
+   },
+   "expect": {
+    "fires": [
+     "DM-CLS-MODY-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-CLS-MODY-01": "rule",
+     "DM-CLS-T1-05": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "not_met",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CLS-MODY-01": "routine",
+     "DM-CLS-T1-05": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-235",
+   "title": "Coverage: Pancreatic disease with diabetes: consider a pancreatic cause",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "pancreatitis_history": "acute"
+   },
+   "expect": {
+    "fires": [
+     "DM-CLS-PANC-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-CLS-PANC-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CLS-PANC-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-236",
+   "title": "Coverage: Fatty stools with recurrent upper abdominal pain in a person with diabetes: consider a pancreatic ca",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "steatorrhoea": true,
+    "recurrent_abdominal_pain": true
+   },
+   "expect": {
+    "fires": [
+     "DM-CLS-PANC-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-CLS-PANC-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CLS-PANC-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-237",
+   "title": "Coverage: Recorded as type 2, with two or more features of insulin deficiency: review the type",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "dm_type_recorded": "type_2",
+    "age_at_diagnosis": 34.5,
+    "bmi": 24.5
+   },
+   "expect": {
+    "fires": [
+     "DM-CLS-T1-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-CLS-T1-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "not_met",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CLS-T1-02": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-238",
+   "title": "Coverage: Ketosis at first presentation and the type never settled: review the type",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "ketosis_at_presentation": true
+   },
+   "expect": {
+    "fires": [
+     "DM-CLS-T1-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-CLS-T1-03": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CLS-T1-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-239",
+   "title": "Coverage: Unexplained weight loss in a person with diabetes: check glucose and ketones, and look for TB, HIV a",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "unexplained_weight_loss": true,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-CLS-WTLOSS-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-CLS-WTLOSS-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CLS-WTLOSS-01": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-240",
+   "title": "Coverage: Pregnant with a glucose in the diabetes range: diabetes in pregnancy",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "pregnant": true,
+    "fasting_pg": 7,
+    "gestation_weeks": 14,
+    "could_conceive": true,
+    "pregnancy_possible": true
+   },
+   "expect": {
+    "fires": [
+     "DM-CON-PREG-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "insufficient",
+     "who_2013_diabetes_in_pregnancy": "met",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_pregnancy"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-CON-PREG-01": "rule",
+     "DM-CON-PREG-02": "rule",
+     "DM-SUS-PREG-UCG": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "urgency": {
+     "DM-CON-PREG-01": "same_day",
+     "DM-CON-PREG-02": "same_day",
+     "DM-SUS-PREG-UCG": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-241",
+   "title": "Coverage: A nephrotic picture, red cell casts or rapidly rising albumin: this may not be diabetic kidney disea",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "non_diabetic_kidney_clue": true
+   },
+   "expect": {
+    "fires": [
+     "DM-STR-CKD-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-STR-CKD-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-STR-CKD-01": "urgent"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-242",
+   "title": "Coverage: Atypical neuropathy: refer",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "neuropathy_atypical": true
+   },
+   "expect": {
+    "fires": [
+     "DM-STR-NEURO-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-STR-NEURO-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-STR-NEURO-02": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-243",
+   "title": "Coverage: A postural fall in blood pressure or a fast resting pulse: consider autonomic neuropathy after the c",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "postural_sbp_fall": 20.5,
+    "dm_status": "known"
+   },
+   "expect": {
+    "fires": [
+     "DM-STR-NEURO-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-STR-NEURO-03": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-STR-NEURO-03": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-244",
+   "title": "Coverage: On a second-generation antipsychotic: glucose at baseline and every year",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "on_second_gen_antipsychotic": true,
+    "never_glucose_tested": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-POP-ANTIPSYCH-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-POP-ANTIPSYCH-02": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-RISK-03": "D-DM-05"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "mental_health"
+    ],
+    "urgency": {
+     "DM-SUS-POP-ANTIPSYCH-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-245",
+   "title": "Coverage: On dolutegravir with thirst, polyuria or weight loss: check glucose today. The 2026 diabetes guideli",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "art_regimen": "tdf_3tc_dtg",
+    "polyuria": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-POP-DTG-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-POP-DTG-01": "rule",
+     "DM-SUS-SYMP-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "urgency": {
+     "DM-SUS-SYMP-01": "same_day",
+     "DM-SUS-POP-DTG-01": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-246",
+   "title": "Coverage: After pancreatitis: test for diabetes",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "pancreatitis_history": "acute",
+    "never_glucose_tested": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-POP-PANC-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-POP-PANC-01": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-RISK-03": "D-DM-05"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-POP-PANC-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-247",
+   "title": "Coverage: TB: a random glucose at diagnosis; if it is 6.1 mmol/L or more, a fasting glucose (preferred) or HbA",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "tb_current": true,
+    "never_glucose_tested": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-POP-TB-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-POP-TB-01": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-RISK-03": "D-DM-05"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "tb"
+    ],
+    "urgency": {
+     "DM-SUS-POP-TB-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-248",
+   "title": "Coverage: Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth, with an OGT",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "prior_gdm": true,
+    "postpartum_weeks": 6
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-PREG-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-PREG-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "urgency": {
+     "DM-SUS-PREG-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-249",
+   "title": "Coverage: Borderline glucose before: re-test every year",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "prior_intermediate_hyperglycaemia": true,
+    "never_glucose_tested": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-RISK-04"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-10": "step",
+     "DM-SUS-RISK-04": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-RISK-03": "D-DM-05"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-RISK-04": "routine",
+     "DM-ACT-EDU-10": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-250",
+   "title": "Coverage: Gestational diabetes in the past: test for diabetes at least every 3 years",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "prior_gdm": true,
+    "never_glucose_tested": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-RISK-05"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-RISK-05": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-RISK-03": "D-DM-05"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "urgency": {
+     "DM-SUS-RISK-05": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-251",
+   "title": "Coverage: Blurred vision, recurrent infections, a slow-healing wound or numb, burning feet: test glucose",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "blurred_vision": true
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-SYMP-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-SYMP-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-SYMP-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-252",
+   "title": "Coverage: Dolutegravir with metformin",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "art_regimen": "tdf_3tc_dtg"
+   },
+   "expect": {
+    "fires": [
+     "dolutegravir_with_metformin"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "dolutegravir_with_metformin": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-253",
+   "title": "Coverage: ACE inhibitor and ARB together",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "ras_blocker": "both"
+   },
+   "expect": {
+    "fires": [
+     "dual_ras_blockade"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "dual_ras_blockade": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {},
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-254",
+   "title": "Coverage: Pioglitazone at 60 or over",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 60,
+    "sex": "male",
+    "glucose_lowering_therapy": [
+     "pioglitazone"
+    ]
+   },
+   "expect": {
+    "fires": [
+     "pioglitazone_age_60"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "pioglitazone_age_60": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-255",
+   "title": "Coverage: Pioglitazone in heart failure",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "glucose_lowering_therapy": [
+     "pioglitazone"
+    ],
+    "heart_failure_known": true
+   },
+   "expect": {
+    "fires": [
+     "pioglitazone_heart_failure"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "pioglitazone_heart_failure": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-256",
+   "title": "Coverage: Creatinine up by more than 30% after starting an ACE inhibitor or ARB",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "ras_blocker": "acei",
+    "creatinine_rise_percent_4w": 30.5
+   },
+   "expect": {
+    "fires": [
+     "ras_blocker_creatinine_rise"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "ras_blocker_creatinine_rise": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {},
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-257",
+   "title": "Coverage: ACE inhibitor, ARB or statin in a woman who could conceive",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "could_conceive": true,
+    "ras_blocker": "acei"
+   },
+   "expect": {
+    "fires": [
+     "ras_blocker_or_statin_could_conceive"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "ras_blocker_or_statin_could_conceive": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "urgency": {},
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-258",
+   "title": "Coverage: Pregnancy possible (the platform's answer), on an ACE inhibitor, an ARB or a statin",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "pregnancy_possible": true,
+    "ras_blocker": "acei"
+   },
+   "expect": {
+    "fires": [
+     "ras_blocker_or_statin_pregnancy_possible"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "ras_blocker_or_statin_pregnancy_possible": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {},
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-259",
+   "title": "Coverage: ACE inhibitor or ARB with potassium 5.8",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 58,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "ras_blocker": "acei",
+    "potassium": 5.8
+   },
+   "expect": {
+    "fires": [
+     "ras_blocker_potassium_high"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "ras_blocker_potassium_high": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-260",
+   "title": "Coverage: SGLT2 inhibitor before surgery or a prolonged fast",
+   "covers": [
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "glucose_lowering_therapy": [
+     "sglt2_inhibitor"
+    ],
+    "surgery_or_fasting_planned": true
+   },
+   "expect": {
+    "fires": [
+     "sglt2_before_surgery_or_fast"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-06": "step",
+     "sglt2_before_surgery_or_fast": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-06": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
