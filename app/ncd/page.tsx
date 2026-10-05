@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { facilityStatus } from "@/lib/ncdreg/admin";
@@ -8,6 +9,7 @@ import { todayClinic } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { ClinicTable } from "./_components/clinic-table";
 import { EmptyState, fmtDate, Page, PageTitle } from "./_components/kit";
+import { firstAllowedHref } from "./_lib/nav";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,12 @@ export default async function TodaysClinic({
   searchParams: Promise<{ date?: string }>;
 }) {
   const { ctx } = await requireNcdScope();
+  // Not everyone with an NCD role works the clinic list (a CSO, an auditor): send them to their first screen.
+  if (!can(ctx, "person_search", "demo_write")) {
+    const href = firstAllowedHref((...caps) => can(ctx, ...caps));
+    if (href && href !== "/ncd") redirect(href);
+    notFound();
+  }
   const sp = await searchParams;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(sp.date ?? "") ? sp.date! : ctx.today;
   const [clinic, status] = await Promise.all([todayClinic(ctx, date), facilityStatus(ctx)]);
