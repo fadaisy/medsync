@@ -170,14 +170,19 @@ describe.skipIf(!laneOn)("0072 and 0085 seeds on the 0071 registries", () => {
     expect([...(await ids("drug_class_tags"))].sort()).toEqual(Object.keys(DRUG_CLASS_TAGS).sort());
     expect([...(await ids("capabilities"))].sort()).toEqual([...CAPABILITY_IDS].sort());
     const before = await counts(lane);
-    // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, uncoded: D-SI-26).
-    expect(before).toMatchObject({ test_catalogue: 35, diagnosis_terms: 85 + 187 });
+    // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, uncoded: D-SI-26) plus 0092's 8 (CFC v1.5, uncoded).
+    expect(before).toMatchObject({ test_catalogue: 35, diagnosis_terms: 85 + 187 + 8 });
     const uncoded = await lane.pg.query<{ n: number }>(
       `SELECT count(*)::int AS n FROM public.diagnosis_terms WHERE icd11_code IS NULL AND verified_on IS NULL`,
     );
-    expect(uncoded.rows[0]!.n).toBe(187);
+    expect(uncoded.rows[0]!.n).toBe(187 + 8);
+    const linked = await lane.pg.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM public.diagnosis_terms WHERE concept_id IS NOT NULL`,
+    );
+    expect(linked.rows[0]!.n).toBe(16); // 0092's term → condition links
     await lane.pg.exec(readMigration("0072_emr_reference_seed.sql"));
     await lane.pg.exec(readMigration("0085_ref_dx_terms_v1_1.sql"));
+    await lane.pg.exec(readMigration("0092_cfc_v1_5_ncd_diabetes.sql"));
     expect(await counts(lane)).toEqual(before);
   }, 180_000);
 });

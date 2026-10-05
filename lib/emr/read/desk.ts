@@ -633,9 +633,11 @@ export async function loadDeskFor(
   const chartProblem = new Map(
     payload.summary.problems.map((p) => [rowIdOf(p.id, "conditions"), p]),
   );
+  // The term the clinician picked wins over the concept's registry name: once a term is linked to a
+  // concept (0092), the chart names the problem by its concept, but the desk keeps the clinician's words.
   const conditionName = (c: (typeof rec.conditionRows)[number]) =>
-    chartProblem.get(c.id)?.display ??
     (c.termId ? termName.get(c.termId) : null) ??
+    chartProblem.get(c.id)?.display ??
     safeDecrypt(c.textCiphertext) ??
     "Problem";
   const problems: CarriedProblem[] = carryProblems(rec.conditionRows).map((c) => ({

@@ -22,6 +22,7 @@ export const SEED_SOURCES = {
   v11: "data/emr/clinical-fact-concepts.v1.1.json",
   v12: "data/emr/clinical-fact-concepts.v1.2.json",
   v13: "data/emr/clinical-fact-concepts.v1.3.json",
+  v15: "data/emr/clinical-fact-concepts.v1.5.json",
   tests: "data/emr/test-catalogue.v1.json",
   terms: "data/emr/diagnosis-terms.v1.json",
   terms11: "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json",
@@ -31,6 +32,7 @@ export const SEED_OUTPUTS = {
   sql12: "supabase/migrations/0082_cfc_v1_2_clerking_findings.sql",
   sql13: "supabase/migrations/0083_cfc_v1_3_examination.sql",
   sql85: "supabase/migrations/0085_ref_dx_terms_v1_1.sql",
+  sql15: "supabase/migrations/0092_cfc_v1_5_ncd_diabetes.sql",
   ts: "lib/facts/catalogue.generated.ts",
 } as const;
 
@@ -47,6 +49,12 @@ const ADDENDA = [
     title: "0082 — CFC v1.2: clerking history findings",
   },
   { key: "v13", version: "1.3.0", sql: "sql13", title: "0083 — CFC v1.3: the examination" },
+  {
+    key: "v15",
+    version: "1.5.0",
+    sql: "sql15",
+    title: "0092 — CFC v1.5: NCD diabetes (MS-NCD-DM-PACK-001)",
+  },
 ] as const;
 
 // Fixed namespace for the uuid-keyed registries (test_catalogue, diagnosis_terms have no text key column).
@@ -77,6 +85,7 @@ export function readSeedSources(root: string) {
     v11: read(SEED_SOURCES.v11),
     v12: read(SEED_SOURCES.v12),
     v13: read(SEED_SOURCES.v13),
+    v15: read(SEED_SOURCES.v15),
     tests: read(SEED_SOURCES.tests),
     terms: read(SEED_SOURCES.terms),
     terms11: read(SEED_SOURCES.terms11),
@@ -384,7 +393,7 @@ function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string
 --   clinical_concepts   ${concepts.length} at ${a.version} (${withCode} carry a symptom_catalog code${ext.length ? `; answers added to ${ext.map(([id]) => id).join(", ")}` : ""})
 --
 -- GATED: owner-applied (\`npm run db:migrate\`), after 0076 (symptom_code references symptom_catalog codes
--- 0076 adds) and after ${a.key === "v12" ? "0072" : "0082 (v1.3 reuses v1.2 concepts)"}. Until it runs, signing keeps these findings in the note only
+-- 0076 adds) and after ${a.key === "v12" ? "0072" : a.key === "v13" ? "0082 (v1.3 reuses v1.2 concepts)" : "0083 and 0085 (v1.5 links terms 0085 seeds)"}. Until it runs, signing keeps these findings in the note only
 -- (it charts only concepts present in clinical_concepts).
 `;
   const extSql = ext.map(
@@ -465,6 +474,49 @@ function buildTermsAddendumSql(src: SeedSources): string {
   ].join("\n");
 }
 
+// ─── 0092: v1.5's diagnosis terms (uncoded) and term → concept links ──
+/**
+ * v1.5 adds the diagnosis terms the diabetes pack names (uncoded, as 0085: "as typed, not coded") and
+ * links each pack term to its condition concept, so a diagnosis picked from REF-DX-TERMS becomes a
+ * condition fact an engine can read (Phase 0 Q10). A link is written only where none exists: a re-run,
+ * or a hospital's own link, is never overwritten.
+ */
+function buildV15Extra(src: SeedSources): string {
+  const add = src.v15;
+  const terms = [...add.termsAdd].sort(byId((t: Json) => t.id));
+  const links = Object.entries(add.termConcepts as Record<string, string>).sort(([a], [b]) =>
+    a < b ? -1 : 1,
+  );
+  return [
+    "-- ─── diagnosis_terms (draft, uncoded) ───────────────────────────────",
+    insert(
+      "diagnosis_terms",
+      TERM_COLS,
+      terms.map((t: Json) => [
+        lit(uuidV5(`diagnosis_terms:${t.id}`)),
+        lit(t.display),
+        arr(t.synonyms),
+        "NULL",
+        bool(t.chronic),
+        bool(symptomLevel(t.display)),
+        lit(t.hmis_category_id),
+        lit(t.idsr_class),
+        lit(t.sensitivity),
+        lit(t.status),
+        lit(`CFC ${add.version}: as typed, not coded (ICD-11 ${t.icd11?.status ?? "to-code"})`),
+        "NULL",
+      ]),
+    ),
+    "-- ─── term → condition concept links ─────────────────────────────────",
+    links
+      .map(
+        ([term, concept]) =>
+          `UPDATE public.diagnosis_terms SET concept_id = ${lit(concept)}\n  WHERE id = ${lit(uuidV5(`diagnosis_terms:${term}`))} AND concept_id IS NULL; -- ${term}`,
+      )
+      .join("\n") + "\n",
+  ].join("\n");
+}
+
 // ─── catalogue.generated.ts ──────────────────────────────────────────
 function buildTs(src: SeedSources): string {
   const concepts = registryConcepts(src);
@@ -509,7 +561,10 @@ function buildTs(src: SeedSources): string {
   );
   const caps = src.v1.capabilities.map((c: Json) => c.id).sort();
   const sensitivityRuleIds = src.v11.sensitivityRules.map((r: Json) => r.id);
-  const minorTerms = [...src.terms.conditionalSensitivity.termIds].sort();
+  const minorTerms = [
+    ...src.terms.conditionalSensitivity.termIds,
+    ...(src.v15.restrictedForMinors ?? []),
+  ].sort();
 
   return `// GENERATED — do not edit. Sources: ${SEED_SOURCES.v1}, ${SEED_SOURCES.v11}, ${SEED_SOURCES.v12}, ${SEED_SOURCES.v13},
 // ${SEED_SOURCES.tests}, ${SEED_SOURCES.terms}.
@@ -576,7 +631,14 @@ export const DIAGNOSIS_TERMS_RESTRICTED_FOR_MINORS = ${JSON.stringify(
 /** The pure core: data in, file contents out. Nothing is written. */
 export async function generateSeed(
   root: string = process.cwd(),
-): Promise<{ sql: string; ts: string; sql12: string; sql13: string; sql85: string }> {
+): Promise<{
+  sql: string;
+  ts: string;
+  sql12: string;
+  sql13: string;
+  sql85: string;
+  sql15: string;
+}> {
   const src = readSeedSources(root);
   const tsPath = join(root, SEED_OUTPUTS.ts);
   const config = (await prettier.resolveConfig(tsPath)) ?? {};
@@ -585,17 +647,19 @@ export async function generateSeed(
     sql12: buildAddendumSql(src, ADDENDA[0]),
     sql13: buildAddendumSql(src, ADDENDA[1]),
     sql85: buildTermsAddendumSql(src),
+    sql15: buildAddendumSql(src, ADDENDA[2]) + "\n" + buildV15Extra(src),
     ts: await prettier.format(buildTs(src), { ...config, filepath: tsPath }),
   };
 }
 
 if (process.argv[1]?.endsWith("gen-seed.ts")) {
   const root = process.cwd();
-  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85 }) => {
+  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85, sql15 }) => {
     writeFileSync(join(root, SEED_OUTPUTS.sql), sql);
     writeFileSync(join(root, SEED_OUTPUTS.sql12), sql12);
     writeFileSync(join(root, SEED_OUTPUTS.sql13), sql13);
     writeFileSync(join(root, SEED_OUTPUTS.sql85), sql85);
+    writeFileSync(join(root, SEED_OUTPUTS.sql15), sql15);
     writeFileSync(join(root, SEED_OUTPUTS.ts), ts);
     console.log(`wrote ${Object.values(SEED_OUTPUTS).join(", ")}`);
   });

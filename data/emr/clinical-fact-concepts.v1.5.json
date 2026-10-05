@@ -1,0 +1,380 @@
+{
+ "catalogue": "MS-EMR-CFC",
+ "version": "1.5.0",
+ "extends": "1.3.0",
+ "status": "signed",
+ "signedBy": "Fadhul (owner and CSO)",
+ "signedAt": "2026-10-05",
+ "signature": "docs/ncd/diabetes/gate-a-signoff.json (P0-20, P0-26, D-DM-30 as recommended)",
+ "source": "docs/ncd/diabetes/pack-0.3.0-draft/wiring/cfc-addendum.proposal.json, reconciled in docs/ncd/diabetes/phase-0/concepts-diff.csv",
+ "note": "v1.4 (three history findings) is a separate proposal awaiting signature; v1.5 does not depend on it. Not added, on purpose: engine outputs (CVD risk, KDIGO and IWGDF categories) are not facts (I7); type and year of diagnosis are a condition with onset; targets need a schema change.",
+ "answerExtensions": {
+  "exam.maculopathy": [
+   "non_centre_involving",
+   "centre_involving"
+  ]
+ },
+ "concepts": [
+  {
+   "id": "obs.vitamin_b12",
+   "display": "Vitamin B12",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "pmol/L",
+   "contextRequired": [
+    "specimen"
+   ],
+   "codes": [],
+   "lanes": [
+    "stratify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Metformin over years lowers B12; a neuropathy differential (pack DM-ACT-SCREEN-B12-01)."
+  },
+  {
+   "id": "obs.upcr",
+   "display": "Urine protein:creatinine ratio",
+   "kind": "observation",
+   "group": "kidney",
+   "valueType": "quantity",
+   "canonicalUnit": "mg/mmol",
+   "contextRequired": [
+    "specimen"
+   ],
+   "codes": [],
+   "lanes": [
+    "stratify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "WHO's first fallback where albumin:creatinine (obs.uacr) is unavailable."
+  },
+  {
+   "id": "obs.abi",
+   "display": "Ankle-brachial index",
+   "kind": "observation",
+   "group": "exam",
+   "valueType": "quantity",
+   "canonicalUnit": "{ratio}",
+   "contextRequired": [
+    "laterality"
+   ],
+   "codes": [],
+   "lanes": [
+    "stratify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Per leg. Above 1.3 suggests calcified vessels (pack caveat abi_calcified)."
+  },
+  {
+   "id": "exam.retinal_view",
+   "display": "Retinal view at the last examination",
+   "kind": "observation",
+   "group": "exam",
+   "valueType": "coded",
+   "answers": [
+    "adequate",
+    "inadequate",
+    "not_attempted"
+   ],
+   "contextRequired": [],
+   "contextOptional": [
+    "method"
+   ],
+   "codes": [],
+   "lanes": [
+    "stratify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Separates 'looked and could not see' from 'did not look' (pack DM-ACT-SCREEN-EYE-01)."
+  },
+  {
+   "id": "sign.lipohypertrophy",
+   "display": "Lipohypertrophy at injection sites",
+   "kind": "finding",
+   "group": "sign",
+   "valueType": "presence",
+   "contextRequired": [
+    "elicitedBy"
+   ],
+   "codes": [],
+   "lanes": [
+    "stratify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Injection-site lumps; erratic insulin absorption."
+  },
+  {
+   "id": "sign.foot_hot_swollen",
+   "display": "Foot warmer and swollen compared with the other, skin intact",
+   "kind": "finding",
+   "group": "sign",
+   "valueType": "presence",
+   "contextRequired": [
+    "elicitedBy"
+   ],
+   "contextOptional": [
+    "laterality"
+   ],
+   "codes": [],
+   "lanes": [
+    "stratify",
+    "acute"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Possible active Charcot foot (IWGDF; pack DM-ACT-REFER-CHARCOT-01)."
+  },
+  {
+   "id": "hist.prior_gdm",
+   "display": "Gestational diabetes in a previous pregnancy",
+   "kind": "finding",
+   "group": "history",
+   "valueType": "presence",
+   "contextRequired": [
+    "elicitedBy"
+   ],
+   "codes": [],
+   "lanes": [
+    "suspect"
+   ],
+   "sensitivity": "restricted",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Restricted (sexual and reproductive health, D-DM-30). A UCG 2023 indication to screen in pregnancy (UCG-GDM-02)."
+  },
+  {
+   "id": "soc.food_security",
+   "display": "Food security",
+   "kind": "observation",
+   "group": "social",
+   "valueType": "coded",
+   "answers": [
+    "secure",
+    "not_always_enough"
+   ],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [
+    "stratify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "A hypoglycaemia risk factor on insulin or a sulfonylurea (ADA)."
+  },
+  {
+   "id": "cond.gestational_diabetes",
+   "display": "Gestational diabetes",
+   "kind": "condition",
+   "group": "condition",
+   "valueType": "condition",
+   "contextRequired": [
+    "clinicalStatus",
+    "verificationStatus",
+    "assertedBy",
+    "subjectRelation"
+   ],
+   "contextOptional": [
+    "onset",
+    "abatement",
+    "stage"
+   ],
+   "codes": [],
+   "lanes": [
+    "confirm",
+    "act"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Hyperglycaemia first detected in pregnancy below the diabetes range (WHO 2013 default, P0-26). Diabetes found in pregnancy is cond.dm_in_pregnancy. No code until verified."
+  },
+  {
+   "id": "cond.drug_associated_hyperglycaemia",
+   "display": "Raised blood glucose on a glucose-raising medicine",
+   "kind": "condition",
+   "group": "condition",
+   "valueType": "condition",
+   "contextRequired": [
+    "clinicalStatus",
+    "verificationStatus",
+    "assertedBy",
+    "subjectRelation"
+   ],
+   "contextOptional": [
+    "onset",
+    "abatement"
+   ],
+   "codes": [],
+   "lanes": [
+    "classify"
+   ],
+   "sensitivity": "standard",
+   "phase": "v1.5",
+   "symptomCode": null,
+   "notes": "Steroids and similar; the pack's DM-CLS-DRUG-01. No code until verified."
+  }
+ ],
+ "termsAdd": [
+  {
+   "id": "dx.intermediate_hyperglycaemia",
+   "display": "Intermediate hyperglycaemia (borderline blood sugar)",
+   "chronic": true,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.hyperglycaemia_unconfirmed",
+   "display": "Raised blood glucose, not yet a diagnosis",
+   "chronic": false,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.steroid_induced_hyperglycaemia",
+   "display": "Raised blood glucose on steroid treatment",
+   "chronic": false,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.gestational_diabetes",
+   "display": "Gestational diabetes",
+   "chronic": false,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.diabetes_in_pregnancy",
+   "display": "Diabetes in pregnancy",
+   "chronic": true,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.diabetic_retinopathy",
+   "display": "Diabetic retinopathy",
+   "chronic": true,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.diabetic_kidney_disease",
+   "display": "Diabetic kidney disease",
+   "chronic": true,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  },
+  {
+   "id": "dx.diabetic_neuropathy",
+   "display": "Diabetic neuropathy",
+   "chronic": true,
+   "synonyms": [],
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "hmis_category_id": null,
+   "idsr_class": null,
+   "status": "draft",
+   "icd11": {
+    "code": null,
+    "status": "to-code"
+   }
+  }
+ ],
+ "termConcepts": {
+  "dx.dm_type1": "cond.dm_type1",
+  "dx.dm_type2": "cond.dm_type2",
+  "dx.dm_type_unknown": "cond.dm_unspecified",
+  "dx.dka": "cond.dka",
+  "dx.hhs": "cond.hhs",
+  "dx.hypoglycaemia_dm": "cond.hypoglycaemia_in_dm",
+  "dx.diabetic_foot": "cond.dm_foot_ulcer",
+  "dx.ckd": "cond.ckd",
+  "dx.intermediate_hyperglycaemia": "cond.intermediate_hyperglycaemia",
+  "dx.gestational_diabetes": "cond.gestational_diabetes",
+  "dx.diabetes_in_pregnancy": "cond.dm_in_pregnancy",
+  "dx.diabetic_retinopathy": "cond.dm_retinopathy",
+  "dx.diabetic_kidney_disease": "cond.dm_kidney_disease",
+  "dx.diabetic_neuropathy": "cond.dm_neuropathy",
+  "dx.hyperglycaemia_unconfirmed": "cond.elevated_glucose_unspecified",
+  "dx.steroid_induced_hyperglycaemia": "cond.drug_associated_hyperglycaemia"
+ },
+ "restrictedForMinors": [
+  "dx.gestational_diabetes",
+  "dx.diabetes_in_pregnancy"
+ ],
+ "counts": {
+  "concepts": 10,
+  "restricted": 1,
+  "termsAdd": 8,
+  "termConcepts": 16
+ }
+}
