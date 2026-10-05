@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1666,8 +1666,14 @@
      "restrictedClass": "hiv"
     },
     "review": [
-     "F12"
+     "F12",
+     "K17"
     ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "hiv"
     ],
@@ -1773,8 +1779,14 @@
      "restrictedClass": "hiv"
     },
     "review": [
-     "F39"
+     "F39",
+     "K17"
     ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "today",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "hiv"
     ],
@@ -1864,8 +1876,14 @@
     },
     "review": [
      "F12",
-     "F38"
+     "F38",
+     "K17"
     ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "tb"
     ],
@@ -2021,8 +2039,14 @@
      "restrictedClass": "mental_health"
     },
     "review": [
-     "F30"
+     "F30",
+     "K17"
     ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "mental_health"
     ],
@@ -2524,7 +2548,8 @@
     "review": [
      "F30",
      "F12",
-     "H32"
+     "H32",
+     "K17"
     ],
     "notWhen": [
      {
@@ -2560,6 +2585,11 @@
       }
      }
     ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "mental_health"
     ],
@@ -3078,7 +3108,36 @@
      "tier": "routine"
     },
     "review": [
-     "J17"
+     "J17",
+     "K12"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_fcap_ifg_preg",
+      "label": "Pregnant (the pregnancy rules apply)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2006",
+       "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+       "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+       "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-10",
+        "section": "Summary table of diagnostic criteria (p.1)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-IH-IFG-WHO"
+       }
+      }
+     }
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"

@@ -11,11 +11,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_vignettes, k_r4_vignettes, k_decisions
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_decisions
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
-PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.1-draft", "generated": "2026-10-05", "condition": "diabetes",
+PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.2-draft", "generated": "2026-10-05", "condition": "diabetes",
         "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)", "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
         "briefingCommit": "8e45d34"}
 errors, warnings = [], []
@@ -400,6 +400,8 @@ def run_vignette(v):
         if not gate(s["x"]["runWhen"]) or not ages_ok(s): continue
         held = s["x"]["kind"] in HELD_KINDS and not s["x"].get("lessTreatment")      # fourth review, J11: asking for less treatment reads every value
         st = ev_crit(s["when"], vals, site, blocked_any if held else ())
+        if held and st != MET and ev_crit(s["when"], vals, site) == MET:      # fifth review, K14: the blocked value is a named gap, never read
+            res["gaps"].setdefault(s["id"], []).extend(sorted({p["feature"] for p in preds_of(s["when"])} & blocked_any))
         if st == MET and any(ev_crit(k, vals, site) == MET for k in s.get("contraindications", [])): st = "contraindicated"
         if applies(s["x"]) is None:
             if st == MET and not suppressed(s) and s["x"].get("enabled") is not False: res["withheld"].append(s["id"])     # waits for the pregnancy answer, and says so
@@ -569,7 +571,7 @@ def designb_rules(usage):
         out.append({"id": s["id"], "family": s["x"]["family"], "lane": s["x"]["lane"], "title": s["display"], "appliesTo": {"ageBands": ["adult", "older_adult"], "pregnancy": "any"},
                     "reads": reads([s["when"]] + s.get("contraindications", [])), "predicate": f"catalog.step:{s['when']['id']}", "params": refs_of([s["when"]] + s.get("contraindications", [])),
                     "minTrust": 2, "emits": ["proposal"], "citations": cits(s), "status": "draft",
-                    "x": {"proposal": s["x"].get("proposal"), "kind": s["x"]["kind"], "urgency": s["x"]["urgency"], "requiresPrescribing": s["requiresPrescribing"], "restrictedClasses": s["x"]["restrictedClasses"]}})
+                    "x": {"proposal": s["x"].get("proposal"), "neutralProposal": s["x"].get("neutralProposal"), "kind": s["x"]["kind"], "urgency": s["x"]["urgency"], "requiresPrescribing": s["requiresPrescribing"], "restrictedClasses": s["x"]["restrictedClasses"]}})
     for t in REG["therapyFlags"]:
         out.append({"id": "DM-ACT-FLAG-" + t["id"].upper().replace("_", "-"), "family": "DM-ACT-THERAPY", "lane": "act", "title": t["display"], "appliesTo": {"pregnancy": "any"},
                     "reads": reads([t["when"]]), "predicate": f"catalog.therapyFlag:{t['id']}", "params": refs_of([t["when"]]), "minTrust": 2, "emits": ["flag"], "citations": cits(t), "status": "draft",
@@ -594,7 +596,7 @@ def emit(vresults):
     feats = [copy.deepcopy(f) for f in FEATURES.values()]
     by = lambda items, lane: [i for i in items if i["x"]["lane"] == lane]
     meta = lambda title, extra=None: {"pack": PACK, "file": title, "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.", **(extra or {})}
-    dump("catalog/00-capabilities-sections.json", {**meta("capabilities and sections"), "capabilities": cat["capabilities"], "sections": cat["sections"]})
+    dump("catalog/00-capabilities-sections.json", {**meta("capabilities and sections"), "capabilities": cat["capabilities"], "sections": cat["sections"], "semantics": k_r5.SEMANTICS})
     dump("catalog/01-features.json", {**meta("features", {"counts": dict(collections.Counter(f["x"]["status"] for f in feats))}), "features": feats})
     dump("catalog/10-suspect.json", {**meta("lane: suspect"), "conditions": [c for c in cat["conditions"]], "rules": by(cat["rules"], "suspect"), "management": by(cat["management"], "suspect")})
     dump("catalog/20-confirm.json", {**meta("lane: confirm"), "diagnosis": cat["diagnosis"], "diagnosisPending": cat["diagnosis_pending"],
@@ -657,7 +659,7 @@ def emit(vresults):
          "featureToConcept": cfc_map, "conceptsToPropose": k_wire.CFC_PROPOSE, "qualifiersNeeded": k_wire.CFC_QUALIFIERS, "diagnosisTermToConcept": k_wire.CONDITION_CONCEPTS})
     # review log: every finding of the two reviews with what was done about it
     log = []
-    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json"):
+    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json"):
         for f in json.load(open(os.path.join(lib.ROOT, "review", fname), encoding="utf-8")):
             st, what = k_review.DISPOSITION[f["id"]]
             log.append({"id": f["id"], "review": fname[:2], "severity": f["severity"], "where": f["where"], "finding": f["finding"], "why": f["why"], "reviewerFix": f["fix"], "status": st, "done": what})
@@ -706,6 +708,12 @@ def summary(usage, rules):
          "vignettes": len(k_vignettes.VIGNETTES), "errors": len(errors), "warnings": len(warnings)}
     return s
 
+def check_neutral_proposals():      # fifth review, K17
+    for kind in ("rules", "management"):
+        for it in REG[kind]:
+            p = it["x"].get("proposal") or {}
+            if p.get("restrictedClass") and not it["x"].get("neutralProposal"): E(f"{kind}.{it['id']}", "proposal names a restricted class and has no neutralProposal")
+
 def check_decisions():
     known = {d["id"] for d in k_decisions.D}
     blob = json.dumps([REG, list(REFS.values()), k_clerk.PROFILES, k_clerk.DDX_RULES, k_clerk.PLAN_CARE, k_clerk.EXAM, k_clerk.HISTORY, k_clerk.ENGINE_CHANGES, k_clerk.DX_REFS, k_review.DISPOSITION,
@@ -714,7 +722,7 @@ def check_decisions():
         if d not in known: E("decisions", f"{d} is cited in the pack and is not in the decision list")
 
 if __name__ == "__main__":
-    annotate(); validate(); check_decisions(); vres = check_vignettes()
+    annotate(); validate(); check_neutral_proposals(); check_decisions(); vres = check_vignettes()
     check_only = "--check" in sys.argv
     usage, rules = ({}, []) if check_only else emit(vres)
     s = summary(usage, rules)

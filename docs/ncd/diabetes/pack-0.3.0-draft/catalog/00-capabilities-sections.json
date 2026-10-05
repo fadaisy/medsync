@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -307,5 +307,17 @@
     "status": "new"
    }
   }
- ]
+ ],
+ "semantics": {
+  "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
+  "evaluator": [
+   "J04: 'established_or_met' reads the non-pregnant criteria set as if pregnancy were answered, so an unknown pregnancy never hides a referral.",
+   "J16: an item switched off by `enabled: false` is reported as dark and nowhere else: not in fired steps, urgency, gaps, cautions or the pregnancy-withheld list.",
+   "J11: steps that ask for LESS treatment (`x.lessTreatment`) read every value, even one under a blocking caveat.",
+   "J25: a child (neonate, infant or child band) has pregnancy 'not possible'; no pregnancy question waits on her.",
+   "K14: a routine step that would fire but for a value under a blocking caveat reports that value as a named gap ('cannot be used for this patient'), instead of staying silent or reading it.",
+   "K11/K24: 'child' (pregnancy not possible) is the neonate, infant and child bands; the platform's child band ends before 10 years."
+  ],
+  "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17)."
+ }
 }

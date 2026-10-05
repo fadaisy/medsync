@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,7 +13,7 @@
  "counts": {
   "reuse": 50,
   "reconcile": 45,
-  "new": 97
+  "new": 98
  },
  "features": [
   {
@@ -2664,6 +2664,17 @@
    "parent": "pregnant",
    "x": {
     "status": "new"
+   }
+  },
+  {
+   "code": "hypertensive_organ_damage",
+   "display": "With the raised pressure: confusion, seizures or new loss of vision; breathlessness with crackles; little or no urine; or tearing chest or back pain",
+   "kind": "sign",
+   "valueType": "boolean",
+   "section": "cardiovascular",
+   "x": {
+    "status": "new",
+    "note": "UCG 2023 4.1.6.1's acute life-threatening complications, kept apart from ordinary headache so that it can interrupt (fifth review, K10)."
    }
   }
  ]

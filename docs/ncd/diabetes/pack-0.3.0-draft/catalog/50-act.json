@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -788,9 +788,39 @@
     "ages": "any",
     "review": [
      "H01",
-     "H02"
+     "H02",
+     "K15"
     ],
     "agesOverride": "any",
+    "notWhen": [
+     {
+      "id": "screen_preg_gdm",
+      "label": "Gestational diabetes recorded (diabetes that began in this pregnancy)",
+      "all": [
+       {
+        "feature": "dm_type_recorded",
+        "op": "==",
+        "value": "gestational"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2013",
+       "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+       "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-03",
+        "section": "Chapter 4 Recommendations, 4.3",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-PREG-GDM-FPG"
+       }
+      }
+     }
+    ],
     "restrictedClasses": [],
     "runWhen": "established_or_met"
    }
@@ -4526,9 +4556,10 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "J11"
+     "J11",
+     "K14"
     ],
-    "lessTreatment": true,
+    "lessTreatment": false,
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5614,7 +5645,7 @@
   },
   {
    "id": "DM-ACT-REFER-GLU-02",
-   "display": "Glucose 18 mmol/L or more without ketoacidosis: same-day review by a clinician who can start or change treatment (WHO PEN refers all such patients to hospital)",
+   "display": "Glucose 18 mmol/L or more with ketones below the danger range: same-day review by a clinician who can start or change treatment (WHO PEN refers all such patients to hospital)",
    "when": {
     "id": "ref_glu18_pen",
     "label": "Any glucose 18 mmol/L or more or a meter reading HI, with a ketone result below 2+ (or blood ketones below 3.0 mmol/L)",
@@ -5727,11 +5758,15 @@
      "tier": "today"
     },
     "note": "WHO HEARTS-D refers at this level only when not improving on tablets (DM-ACT-REFER-GLU-01); WHO PEN refers all. D-DM-38 chooses; the recommendation is PEN, because the tablets box is usually blank.",
-    "ages": "adult",
+    "ages": "any",
     "review": [
-     "J14"
+     "J14",
+     "K05",
+     "K07",
+     "K19",
+     "K25"
     ],
-    "enabled": true,
+    "enabled": false,
     "enabledBy": "D-DM-38",
     "notWhen": [
      {
@@ -5759,8 +5794,119 @@
         "ref": "REF-DM-ACT-REFER-SAMEDAY"
        }
       }
+     },
+     {
+      "id": "ref_glu18_pen_ket",
+      "label": "Blood ketones 1.6 mmol/L or more, urine ketones 2+ or more, or deep breathing, acetone, dehydration or drowsiness (an acute rule applies)",
+      "any": [
+       {
+        "feature": "bohb",
+        "op": ">=",
+        "value": 1.6,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "urine_ketones",
+        "op": "in",
+        "value": [
+         "2plus",
+         "3plus"
+        ]
+       },
+       {
+        "feature": "deep_rapid_breathing",
+        "op": "present"
+       },
+       {
+        "feature": "acetone_breath",
+        "op": "present"
+       },
+       {
+        "feature": "dehydration",
+        "op": "present"
+       },
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-RISK"
+       }
+      }
+     },
+     {
+      "id": "ref_glu18_pen_preg",
+      "label": "Pregnant (the pregnancy rules refer today)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-48",
+        "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+       }
+      }
+     },
+     {
+      "id": "ref_glu18_pen_inpt",
+      "label": "Already an inpatient",
+      "all": [
+       {
+        "feature": "care_setting",
+        "op": "==",
+        "value": "inpatient"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-48",
+        "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+       }
+      }
      }
     ],
+    "agesOverride": "any",
     "restrictedClasses": [],
     "runWhen": "always"
    }

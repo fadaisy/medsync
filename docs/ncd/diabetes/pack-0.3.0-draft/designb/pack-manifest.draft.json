@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.3.1-draft",
+ "version": "0.3.2-draft",
  "status": "draft",
  "criteriaSets": [
   "who_hearts_d_2020",
@@ -22,7 +22,7 @@
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
   "DM-ACT-THERAPY": 34,
-  "DM-ACU-ROUTE": 29,
+  "DM-ACU-ROUTE": 33,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -53,7 +53,7 @@
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 29,
+  "acute_route": 33,
   "act": 83
  },
  "rules": [
@@ -995,7 +995,7 @@
    "id": "DM-CLS-T1-01",
    "family": "DM-CLS-T1",
    "lane": "classify",
-   "title": "Ketones now in a person with diabetes: treat as insulin-deficient until shown otherwise",
+   "title": "Ketones 2+ with a raised glucose: features of insulin deficiency. Do not assume type 2; consider type 1 and review the type",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -1482,7 +1482,9 @@
     "obs.ketones_urine",
     "obs.ketones_blood",
     "ncd.dm_status (no CFC concept yet)",
-    "obs.glucose"
+    "obs.glucose",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_ketones",
    "params": {
@@ -1700,7 +1702,8 @@
    "reads": [
     "obs.glucose",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "ncd.dm_type_recorded (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_hypo_l1",
    "params": {
@@ -2897,7 +2900,8 @@
     "sign.kussmaul_breathing",
     "sign.ketotic_breath",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_known_kussmaul",
    "params": {},
@@ -2930,22 +2934,25 @@
    "id": "DM-ACU-ROUTE-21",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Ketones raised but below the emergency range, in diabetes or with a raised glucose: recheck within 2 hours and contact the diabetes team today. Rising, or 2+, is an emergency",
+   "title": "Urine ketones trace or 1+ in diabetes, when unwell or with glucose 18 or more: blood ketones or a repeat strip within 2 hours, and contact the diabetes team today",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
    },
    "reads": [
     "obs.ketones_urine",
-    "obs.ketones_blood",
-    "ncd.dm_status (no CFC concept yet)",
+    "sx.vomiting",
+    "sx.abdominal_pain",
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "sign.dehydration",
     "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_ketones_mid",
    "params": {
-    "acu-ketone-low": "REF-DM-ACU-KETONE-LOW",
-    "acu-dka-glu": "REF-DM-ACU-DKA-GLU"
+    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU"
    },
    "minTrust": 1,
    "emits": [
@@ -2985,7 +2992,8 @@
     "obs.ketones_blood",
     "ncd.dm_status (no CFC concept yet)",
     "obs.glucose",
-    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_ketones_risk",
    "params": {
@@ -3013,7 +3021,7 @@
      "to": "diabetes_team",
      "tier": "now"
     },
-    "urgency": "urgent",
+    "urgency": "same_day",
     "posterior": "high",
     "restrictedClasses": []
    }
@@ -3022,7 +3030,7 @@
    "id": "DM-ACU-ROUTE-23",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1 diabetes or on insulin, with vomiting or abdominal pain and no ketone result: check ketones today, whatever the glucose. Never stop insulin",
+   "title": "Type 1 diabetes or on insulin, with vomiting or abdominal pain and no ketone result: check ketones today, whatever the glucose",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -3119,6 +3127,8 @@
    },
    "reads": [
     "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "obs.glucose"
    ],
    "predicate": "catalog.rule:acu_hypo_other",
@@ -3154,20 +3164,22 @@
    "id": "DM-ACU-ROUTE-27",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Pregnant, with blood pressure 140/90 or more: assess for pre-eclampsia today (urine protein). Any pre-eclampsia is referred to hospital",
+   "title": "Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today. Protein from 20 weeks is pre-eclampsia (refer to hospital); before 20 weeks it is chronic hypertension",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "pregnant"
    },
    "reads": [
-    "ncd.pregnant (no CFC concept yet)",
     "obs.bp_systolic",
-    "obs.bp_diastolic"
+    "obs.bp_diastolic",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_preg_bp",
    "params": {
     "preg-bp-sbp": "REF-DM-PREG-BP-SBP",
-    "preg-bp-dbp": "REF-DM-PREG-BP-DBP"
+    "preg-bp-dbp": "REF-DM-PREG-BP-DBP",
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
    },
    "minTrust": 1,
    "emits": [
@@ -3198,20 +3210,22 @@
    "id": "DM-ACU-ROUTE-28",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Pregnant, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital",
+   "title": "Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "pregnant"
    },
    "reads": [
-    "ncd.pregnant (no CFC concept yet)",
     "obs.bp_systolic",
-    "obs.bp_diastolic"
+    "obs.bp_diastolic",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_preg_bp_sev",
    "params": {
     "preg-bp-severe-sbp": "REF-DM-PREG-BP-SEVERE-SBP",
-    "preg-bp-severe-dbp": "REF-DM-PREG-BP-SEVERE-DBP"
+    "preg-bp-severe-dbp": "REF-DM-PREG-BP-SEVERE-DBP",
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
    },
    "minTrust": 1,
    "emits": [
@@ -3289,7 +3303,7 @@
    "id": "DM-ACU-ROUTE-29",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Blood pressure above 180/110 with drowsiness or worse, chest pain or stroke signs: hypertensive emergency. Route now",
+   "title": "Blood pressure above 180/110 with drowsiness, organ-damage signs, chest pain or stroke signs: hypertensive emergency. Route now",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -3298,7 +3312,8 @@
     "obs.bp_systolic",
     "obs.bp_diastolic",
     "ncd.mental_status (no CFC concept yet)",
-    "ncd.chest_pain_or_stroke_symptoms (no CFC concept yet)"
+    "ncd.chest_pain_or_stroke_symptoms (no CFC concept yet)",
+    "ncd.hypertensive_organ_damage (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_htn_emerg",
    "params": {
@@ -3327,6 +3342,196 @@
     },
     "urgency": "immediate",
     "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-30",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Blood ketones 1.6 to below 3.0 mmol/L with vomiting, in diabetes: ketoacidosis is developing and fluids cannot be kept down. Route now",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.ketones_blood",
+    "sx.vomiting",
+    "ncd.dm_status (no CFC concept yet)",
+    "obs.glucose",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_ketones_risk_vomiting",
+   "params": {
+    "acu-ketone-risk": "REF-DM-ACU-KETONE-RISK",
+    "acu-dka-bohb": "REF-DM-ACU-DKA-BOHB",
+    "acu-dka-glu": "REF-DM-ACU-DKA-GLU"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "section": "When to seek urgent specialist medical review; Table 2",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-50"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-31",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Glucose below 3.9 mmol/L with drowsiness or worse: severe hypoglycaemia until proved otherwise. Route now",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.mental_status (no CFC concept yet)",
+    "obs.glucose"
+   ],
+   "predicate": "catalog.rule:acu_hypo_drowsy",
+   "params": {
+    "hypo-l1": "REF-DM-HYPO-L1"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "section": "Table 6.4 'Classification of hypoglycemia'",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "verifiedOn": "2026-10-03",
+     "claim": "A4-14"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-32",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose and ketones now",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sx.vomiting",
+    "sx.abdominal_pain",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_paed_known_sick",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state (Chapter 11)",
+     "section": "Biochemical criteria for the diagnosis of DKA",
+     "url": "https://www.ispad.org/asset/6DD62EAE-C8CB-4B4A-84E1EFC768505746/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-23"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "test.order",
+     "test": [
+      "test.glucose_capillary",
+      "test.ketones"
+     ],
+     "tier": "now"
+    },
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-21B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Blood ketones 0.6 to below 1.6 mmol/L in diabetes, when unwell or with glucose 18 or more: recheck within 2 hours and contact the diabetes team today",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.ketones_blood",
+    "sx.vomiting",
+    "sx.abdominal_pain",
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "sign.dehydration",
+    "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_bohb_mid",
+   "params": {
+    "acu-ketone-low": "REF-DM-ACU-KETONE-LOW",
+    "acu-ketone-risk": "REF-DM-ACU-KETONE-RISK",
+    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+     "section": "Whole leaflet",
+     "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-51"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "test.repeat",
+     "test": "test.ketones",
+     "tier": "today"
+    },
+    "urgency": "same_day",
+    "posterior": "moderate",
     "restrictedClasses": []
    }
   },
@@ -3366,6 +3571,7 @@
     "proposal": {
      "kind": "reconcile.problem_list"
     },
+    "neutralProposal": null,
     "kind": "reconcile",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3412,6 +3618,7 @@
      "kind": "test.order",
      "test": "test.hba1c"
     },
+    "neutralProposal": null,
     "kind": "test",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3458,6 +3665,7 @@
      "kind": "test.order",
      "test": "test.hba1c"
     },
+    "neutralProposal": null,
     "kind": "test",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3506,6 +3714,7 @@
      "kind": "screening.book",
      "what": "retinal_examination"
     },
+    "neutralProposal": null,
     "kind": "screen",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3555,6 +3764,7 @@
       "test.creatinine"
      ]
     },
+    "neutralProposal": null,
     "kind": "test",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3601,6 +3811,7 @@
      "kind": "screening.book",
      "what": "foot_risk_assessment"
     },
+    "neutralProposal": null,
     "kind": "examine",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3647,6 +3858,7 @@
      "kind": "screening.book",
      "what": "neuropathy_assessment"
     },
+    "neutralProposal": null,
     "kind": "examine",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3693,6 +3905,7 @@
      "kind": "test.order",
      "test": "test.lipid_panel"
     },
+    "neutralProposal": null,
     "kind": "test",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3736,6 +3949,10 @@
      "kind": "test.order",
      "test": "tb_assessment",
      "restrictedClass": "tb"
+    },
+    "neutralProposal": {
+     "kind": "test.order",
+     "code": "programme_review"
     },
     "kind": "test",
     "urgency": "routine",
@@ -3782,6 +3999,7 @@
      "kind": "test.order",
      "test": "test.vitamin_b12"
     },
+    "neutralProposal": null,
     "kind": "test",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -3825,6 +4043,7 @@
      "kind": "refer",
      "to": "antenatal_clinic_specialist"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -3870,6 +4089,7 @@
      "kind": "refer",
      "to": "higher_level"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -3912,6 +4132,7 @@
      "kind": "refer",
      "to": "eye_unit"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -3958,6 +4179,7 @@
      "kind": "refer",
      "to": "higher_level"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -4003,6 +4225,7 @@
      "kind": "refer",
      "to": "kidney_care"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -4048,6 +4271,7 @@
      "kind": "refer",
      "to": "physician"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4092,6 +4316,7 @@
      "kind": "refer",
      "to": "physician"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4136,6 +4361,7 @@
      "kind": "refer",
      "to": "kidney_care"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4184,6 +4410,7 @@
      "kind": "refer",
      "to": "physician"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4228,6 +4455,7 @@
      "kind": "refer",
      "to": "physician"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4271,6 +4499,7 @@
      "kind": "refer",
      "to": "ophthalmology"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "urgent",
     "requiresPrescribing": false,
@@ -4314,6 +4543,7 @@
      "kind": "refer",
      "to": "ophthalmology"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4356,6 +4586,7 @@
      "kind": "refer",
      "to": "foot_service_or_orthopaedics"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "urgent",
     "requiresPrescribing": false,
@@ -4401,6 +4632,7 @@
      "kind": "refer",
      "to": "surgical_or_foot_service"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -4444,6 +4676,7 @@
      "kind": "refer",
      "to": "physician_or_surgeon"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4487,6 +4720,7 @@
      "kind": "refer",
      "to": "diabetes_clinic"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4529,6 +4763,7 @@
      "kind": "education.offer",
      "topic": "self_management"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4571,6 +4806,7 @@
      "kind": "education.offer",
      "topic": "foot_care"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4613,6 +4849,7 @@
      "kind": "education.offer",
      "topic": "hypoglycaemia"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4655,6 +4892,7 @@
      "kind": "education.offer",
      "topic": "sick_day_rules"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4697,6 +4935,7 @@
      "kind": "education.offer",
      "topic": "insulin_storage_and_injection"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4739,6 +4978,7 @@
      "kind": "education.offer",
      "topic": "sglt2_ketoacidosis"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4782,6 +5022,7 @@
      "kind": "education.offer",
      "topic": "fasting"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4825,6 +5066,10 @@
      "kind": "education.offer",
      "topic": "pregnancy_planning",
      "restrictedClass": "sexual_reproductive_health"
+    },
+    "neutralProposal": {
+     "kind": "education.offer",
+     "code": "programme_review"
     },
     "kind": "educate",
     "urgency": "routine",
@@ -4871,6 +5116,7 @@
      "kind": "education.offer",
      "topic": "tobacco_cessation"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4913,6 +5159,7 @@
      "kind": "education.offer",
      "topic": "diabetes_prevention"
     },
+    "neutralProposal": null,
     "kind": "educate",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -4964,6 +5211,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5007,6 +5255,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5050,6 +5299,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5098,6 +5348,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5145,6 +5396,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5194,6 +5446,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5241,6 +5494,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5288,6 +5542,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5334,6 +5589,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5378,6 +5634,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5420,6 +5677,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "same_day",
     "requiresPrescribing": true,
@@ -5467,6 +5725,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5512,6 +5771,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5555,6 +5815,7 @@
      "kind": "refer",
      "to": "surgical_or_foot_service"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -5597,6 +5858,7 @@
      "kind": "refer",
      "to": "higher_level_or_foot_service"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "urgent",
     "requiresPrescribing": false,
@@ -5642,6 +5904,7 @@
      "kind": "refer",
      "to": "surgical_or_vascular_service"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -5692,6 +5955,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5738,6 +6002,7 @@
       "test.creatinine"
      ]
     },
+    "neutralProposal": null,
     "kind": "test",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -5784,6 +6049,7 @@
      "kind": "refer",
      "to": "kidney_care"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -5829,6 +6095,7 @@
      "kind": "refer",
      "to": "higher_level"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,
@@ -5872,6 +6139,7 @@
      "kind": "refer",
      "to": "ophthalmology"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -5918,6 +6186,7 @@
     "proposal": {
      "kind": "therapy.review"
     },
+    "neutralProposal": null,
     "kind": "therapy_review",
     "urgency": "routine",
     "requiresPrescribing": true,
@@ -5965,6 +6234,7 @@
      "kind": "refer",
      "to": "diabetes_clinic"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "routine",
     "requiresPrescribing": false,
@@ -5975,7 +6245,7 @@
    "id": "DM-ACT-REFER-GLU-02",
    "family": "DM-ACT-REFER",
    "lane": "act",
-   "title": "Glucose 18 mmol/L or more without ketoacidosis: same-day review by a clinician who can start or change treatment (WHO PEN refers all such patients to hospital)",
+   "title": "Glucose 18 mmol/L or more with ketones below the danger range: same-day review by a clinician who can start or change treatment (WHO PEN refers all such patients to hospital)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -6013,6 +6283,7 @@
      "to": "clinician_who_can_start_insulin",
      "tier": "today"
     },
+    "neutralProposal": null,
     "kind": "refer",
     "urgency": "same_day",
     "requiresPrescribing": false,

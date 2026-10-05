@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -347,6 +347,9 @@
    "REF-DM-ACU-KETONE-TEST-GLU",
    "REF-DM-ACU-DKA-BOHB"
   ],
+  "ref_glu18_pen_ket": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
   "sus_risk_who": [
    "REF-DM-SUS-AGE-WHO",
    "REF-DM-SUS-BMI",
@@ -450,6 +453,12 @@
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_edka_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_edka_r02": [
+   "REF-DM-ACU-DKA-BOHB"
   ],
   "acu_paed": [
    "REF-DM-ACU-PAED-GLU",
@@ -604,16 +613,18 @@
    "REF-DM-ACU-DKA-BOHB"
   ],
   "acu_ketones_mid": [
-   "REF-DM-ACU-KETONE-LOW",
-   "REF-DM-ACU-DKA-GLU",
-   "REF-DM-ACU-DKA-GLU",
-   "REF-DM-ACU-DKA-GLU",
-   "REF-DM-ACU-DKA-GLU",
-   "REF-DM-ACU-DKA-GLU",
-   "REF-DM-ACU-DKA-GLU"
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
   ],
-  "acu_ketones_mid_up": [
-   "REF-DM-ACU-KETONE-RISK"
+  "acu_ketones_mid_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_ketones_mid_bohb_high": [
+   "REF-DM-ACU-KETONE-LOW"
   ],
   "acu_ketones_risk": [
    "REF-DM-ACU-KETONE-RISK",
@@ -624,6 +635,14 @@
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_paed_known_signs_r04": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
   ],
   "acu_hypo_other": [
    "REF-DM-HYPO-L1",
@@ -643,7 +662,8 @@
   ],
   "acu_preg_bp": [
    "REF-DM-PREG-BP-SBP",
-   "REF-DM-PREG-BP-DBP"
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
   ],
   "acu_preg_bp_severe": [
    "REF-DM-PREG-BP-SEVERE-SBP",
@@ -651,7 +671,8 @@
   ],
   "acu_preg_bp_sev": [
    "REF-DM-PREG-BP-SEVERE-SBP",
-   "REF-DM-PREG-BP-SEVERE-DBP"
+   "REF-DM-PREG-BP-SEVERE-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
   ],
   "sus_fcap_ifg": [
    "REF-DM-IH-IFG-WHO",
@@ -661,8 +682,47 @@
    "REF-DM-ACU-BP-EMERG-SBP",
    "REF-DM-ACU-BP-EMERG-DBP"
   ],
+  "acu_ketones_risk_vomiting": [
+   "REF-DM-ACU-KETONE-RISK",
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_hypo_drowsy": [
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1"
+  ],
+  "acu_hypo_drowsy_r06": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_bohb_mid": [
+   "REF-DM-ACU-KETONE-LOW",
+   "REF-DM-ACU-KETONE-RISK",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
   "tgt_hba1c_general_relaxed_applies": [
    "REF-DM-HYPO-IAH"
+  ],
+  "tgt_general_older": [
+   "REF-DM-CTRL-OLDER-AGE"
   ],
   "tgt_relaxed": [
    "REF-DM-HYPO-IAH"

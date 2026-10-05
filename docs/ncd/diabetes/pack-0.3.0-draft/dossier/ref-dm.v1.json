@@ -1,23 +1,23 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.1-draft",
+ "version": "0.3.2-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
- "count": 341,
+ "count": 342,
  "verification": {
   "confirmed": 225,
   "confirmed_with_note": 95,
   "not_found": 8,
   "could_not_open": 2,
   "wrong_attribution": 1,
-  "not_rechecked": 10
+  "not_rechecked": 11
  },
  "counts": {
-  "withValue": 194,
+  "withValue": 195,
   "needsCsoInput": 18,
   "withConflict": 39,
-  "usedByARule": 122
+  "usedByARule": 123
  },
  "entries": [
   {
@@ -4232,6 +4232,7 @@
      "batch": "V2"
     },
     "usedByCriteria": [
+     "acu_hypo_drowsy",
      "acu_hypo_l1",
      "acu_hypo_other"
     ]
@@ -4268,6 +4269,7 @@
      "batch": "V2"
     },
     "usedByCriteria": [
+     "acu_hypo_drowsy_r06",
      "acu_hypo_l1_l2",
      "acu_hypo_l2",
      "acu_hypo_other_l2"
@@ -4564,8 +4566,8 @@
     },
     "usedByCriteria": [
      "acu_ketones",
-     "acu_ketones_mid",
      "acu_ketones_risk",
+     "acu_ketones_risk_vomiting",
      "acu_known_kussmaul_r11",
      "acu_picture",
      "acu_picture_mild",
@@ -4601,8 +4603,10 @@
      "batch": "V3"
     },
     "usedByCriteria": [
+     "acu_edka_r02",
      "acu_ketones",
      "acu_ketones_risk",
+     "acu_ketones_risk_vomiting",
      "acu_known_kussmaul_r02",
      "acu_paed_glucose_soft",
      "acu_picture_r02",
@@ -5073,8 +5077,10 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "acu_bohb_mid",
      "acu_glu15_over18",
      "acu_glu18",
+     "acu_ketones_mid",
      "ref_glu18",
      "ref_glu18_pen",
      "rx_second_glu18",
@@ -5144,7 +5150,10 @@
      "batch": "V3"
     },
     "usedByCriteria": [
-     "acu_ketones_mid"
+     "acu_bohb_mid",
+     "acu_edka_bohb_normal",
+     "acu_ketones_mid_bohb_high",
+     "acu_ketones_mid_bohb_normal"
     ]
    }
   },
@@ -5178,8 +5187,10 @@
      "batch": "V3"
     },
     "usedByCriteria": [
-     "acu_ketones_mid_up",
-     "acu_ketones_risk"
+     "acu_bohb_mid",
+     "acu_ketones_risk",
+     "acu_ketones_risk_vomiting",
+     "ref_glu18_pen_ket"
     ]
    }
   },
@@ -10441,6 +10452,7 @@
      "batch": "V7"
     },
     "usedByCriteria": [
+     "tgt_general_older",
      "tgt_older"
     ]
    }
@@ -10572,6 +10584,7 @@
     },
     "usedByCriteria": [
      "acu_paed",
+     "acu_paed_known_signs_r04",
      "sus_paed_glucose"
     ]
    }
@@ -10991,6 +11004,39 @@
     },
     "usedByCriteria": [
      "acu_htn_emerg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-PE-POSTPARTUM",
+   "text": "UCG 2023: pre-eclampsia can present as late as this many weeks postpartum",
+   "value": 6,
+   "unit": "weeks",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "usually diag nosed after 20 weeks of gestation and can present as late as 4-6 weeks postpartum",
+    "claims": [
+     "UCG-PE-04"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_preg_bp",
+     "acu_preg_bp_sev"
     ]
    }
   }

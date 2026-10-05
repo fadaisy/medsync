@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -576,7 +576,7 @@
    "id": "D-DM-38",
    "title": "Glucose 18 or more without ketoacidosis",
    "question": "Which WHO rule refers a person with a glucose of 18 mmol/L or more whose ketones are not raised?",
-   "recommended": "WHO PEN: same-day review for everyone at this level (DM-ACT-REFER-GLU-02).",
+   "recommended": "WHO PEN: same-day review for everyone at this level (DM-ACT-REFER-GLU-02). Dark until signed.",
    "alternatives": [
     "WHO HEARTS-D: refer only when not improving on tablets (DM-ACT-REFER-GLU-01 alone)."
    ],

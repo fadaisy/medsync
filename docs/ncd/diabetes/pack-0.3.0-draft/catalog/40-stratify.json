@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.1-draft",
+  "version": "0.3.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2875,7 +2875,8 @@
     "review": [
      "F04",
      "H14",
-     "J12"
+     "J12",
+     "K13"
     ],
     "ages": "adult",
     "notWhen": [
@@ -2954,6 +2955,34 @@
         "ref": "REF-DM-CTRL-HBA1C-TARGET"
        }
       }
+     },
+     {
+      "id": "tgt_general_older",
+      "label": "Aged 65 or over (the older-adult target applies)",
+      "all": [
+       {
+        "feature": "age_years",
+        "op": ">=",
+        "value": 65,
+        "unit": "years"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S277–; doi 10.2337/dc26-S013)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1",
+       "quote": "Screening for early detection of mild cognitive impairment or dementia should be performed for adults 65 years of age or older at the initial visit, annually, and as appropriate. B",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-56",
+        "section": "Recommendations 13.2 and 13.3; Table 13.1",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-OLDER-AGE"
+       }
+      }
      }
     ],
     "restrictedClasses": []
@@ -2966,7 +2995,7 @@
    "display": "HbA1c below 8.0%",
    "when": {
     "id": "tgt_relaxed",
-    "label": "Any of: frailty, serious comorbidity or limited life expectancy; cognitive impairment; a significant low in the last year (needing help, a reading below 3.0, or repeated); impaired awareness of lows (Gold score 4 or more)",
+    "label": "Confirmed diabetes, with a relaxed target agreed, or any of: frailty, serious comorbidity or limited life expectancy; cognitive impairment; a significant low in the last year (needing help, a reading below 3.0, or repeated); impaired awareness of lows (Gold score 4 or more)",
     "all": [
      {
       "feature": "dm_status",
@@ -2997,6 +3026,11 @@
       "op": ">=",
       "value": 4,
       "unit": "score"
+     },
+     {
+      "feature": "glycaemic_target_tier",
+      "op": "==",
+      "value": "relaxed"
      }
     ],
     "citation": {
@@ -3045,7 +3079,8 @@
     "review": [
      "F04",
      "H14",
-     "J12"
+     "J12",
+     "K13"
     ],
     "ages": "adult",
     "notWhen": [
