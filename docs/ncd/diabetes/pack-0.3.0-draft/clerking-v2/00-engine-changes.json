@@ -1,0 +1,362 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.3.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "engineChanges": [
+  {
+   "id": "EC-1",
+   "title": "A result atom in the shared evaluator",
+   "where": "lib/clerking/exam/context.ts evalCond; lib/clerking/impression/facts.ts (new finding ref 'res:<concept>')",
+   "spec": {
+    "atom": {
+     "result": "<CFC concept id>",
+     "qualifiers": "<optional: the fact model's own qualifier keys, e.g. fastingState, challenge, specimen>",
+     "gte_ref|gt_ref|lt_ref|lte_ref": "<REF id>",
+     "max_age_ref": "<REF id, days>",
+     "min_trust": "1..4"
+    },
+    "semantics": [
+     "Reads the latest non-superseded observation fact for the concept THAT MATCHES THE QUALIFIERS, at or before the note time. A later random glucose must not hide an earlier fasting one.",
+     "Qualifier names and values in this pack ('fastingState: fasting', 'challenge: ogtt_75g_2h', 'specimen: capillary') are placeholders. Phase 0 maps them to MS-DATA-CFC-001 section 4.1; no second vocabulary is created.",
+     "HbA1c: the atom is UNKNOWN for a diagnostic rule while a blocking validity caveat holds (pregnancy, HIV on ART, a haemoglobin variant, haemolysis, recent malaria or transfusion, iron or B12 deficiency, eGFR below the reference) or the method is not a certified laboratory method. The matrix still shows the value, marked 'not usable for diagnosis' with the reason; a restricted reason is shown only in views that hold that class.",
+     "TRUE or FALSE only when a fact exists inside max_age and at or above min_trust; otherwise UNKNOWN. Unknown never satisfies an atom and never counts against a diagnosis.",
+     "Both bounds may be given (a band).",
+     "The evidence matrix shows the value, its date, its age in days and the trust badge.",
+     "A restricted concept can never be evidence on a standard diagnosis (existing check.ts rule)."
+    ]
+   },
+   "why": "Gap 3 of the briefing: HbA1c, eGFR, UACR and laboratory glucose cannot be evidence today.",
+   "tests": "Both ways for every rule that uses it; an empty record stays silent; an out-of-window result is unknown, not false."
+  },
+  {
+   "id": "EC-2",
+   "title": "Per-condition detail in Past history",
+   "where": "data/clerking/clerking-history-catalogue.v1.json past_history.condition_details; lib/clerking/answers.ts HistorySchema; compose.ts; a new atom past_detail",
+   "spec": {
+    "answerShape": "past.conditions.<id>.details: { <propertyId>: value }",
+    "atom": {
+     "past_detail": "<condition id>",
+     "property": "<property id>",
+     "equals|any_of|includes_any": "..."
+    },
+    "rules": [
+     "Shown only when the condition is answered yes.",
+     "Uses the existing property kinds (one, many, year, text) and phrase grammar.",
+     "Unanswered properties are absent keys.",
+     "Nothing is charted from these answers: they are note text and evidence refs ('pmh:diabetes#type'). The problem-list proposal carries them as qualifiers for the clinician to confirm."
+    ]
+   },
+   "why": "Gap 2: Past history is a bare yes/no with 'since'."
+  },
+  {
+   "id": "EC-3",
+   "title": "A context qualifier on the glucose vital atom",
+   "where": "lib/clerking/exam/context.ts evalCond (vital atom)",
+   "spec": {
+    "atom": {
+     "vital": "vs.glucose",
+     "context": "random|fasting|two_hours_after_food|two_hours_after_glucose",
+     "gte_ref": "<REF>"
+    },
+    "rules": [
+     "One vocabulary: the values the vital already stores. The laboratory result atom (EC-1) uses the fact model's qualifiers; the two are mapped once, in code, and tested.",
+     "A capillary value is never read against a venous 2-hour threshold: the capillary threshold has its own reference (REF-DX-GLU-2H-DM-CAP)."
+    ]
+   },
+   "why": "vs.glucose already stores a required context. A fasting threshold must not fire on a random value."
+  },
+  {
+   "id": "EC-4",
+   "title": "A signed suggested-care list for the Plan",
+   "where": "data/clerking/plan-care.v1.json (new); lib/clerking/plan/problems.ts",
+   "spec": {
+    "item": {
+     "id": "CARE-…",
+     "problems": [
+      "dx.…"
+     ],
+     "label": "…",
+     "kind": "test|screen|refer|recall|educate|review",
+     "when": "<atoms, optional>",
+     "opens": {
+      "tests": [
+       "test.…"
+      ],
+      "followUp": "…",
+      "disposition": "…"
+     },
+     "requiresPrescribing": "boolean",
+     "source": "<source key>",
+     "refs": [
+      "REF-…"
+     ],
+     "status": "draft"
+    }
+   },
+   "why": "Suggested care is empty until a signed list exists. A ticked item is stored as plan.problems[id].care[itemId] = true, which the schema already allows.",
+   "rules": [
+    "'opens' adds to the basket; it never overwrites a disposition or follow-up the clinician has already set.",
+    "An item with min_age_ref is hidden below that age; an item with max_age_ref is hidden at or above it.",
+    "'due: later' items create a follow-up task, not a test in today's basket.",
+    "refs_dm is provenance for the dossier and is ignored by the clerking sign-off; the references that gate a rule are the REF-EX and REF-DX entries, which are generated from the dossier and never typed twice."
+   ]
+  },
+  {
+   "id": "EC-5",
+   "title": "A pregnancy atom",
+   "where": "lib/clerking/exam/context.ts evalCond; the pregnancy episode in the fact model",
+   "spec": {
+    "atom": {
+     "pregnancy": "current|not_pregnant|unknown"
+    },
+    "rules": [
+     "'unknown' when the patient could be pregnant and nobody has recorded the answer.",
+     "Results offered as evidence on a pregnancy diagnosis are bounded to the current pregnancy episode.",
+     "Restricted class handling follows D-DM-30."
+    ]
+   },
+   "why": "Without it the two pregnancy profiles cannot be gated, a pregnant woman with a fasting glucose of 7.0 is offered the wrong diagnosis, and the statin and ACE inhibitor items cannot exclude pregnancy (review G10). Both pregnancy profiles and DDX-PREGNANCY-GLUCOSE are withheld until it exists."
+  },
+  {
+   "id": "EC-6",
+   "title": "Glucose entry: units, and readings that are not numbers",
+   "where": "vs.glucose in the exam catalogue and the vitals form",
+   "spec": {
+    "fields": {
+     "unit": "mmol/L | mg/dL (converted by the platform, stored in mmol/L with the entered unit kept)",
+     "reads": "number | HI | LO"
+    },
+    "rules": [
+     "HI satisfies every 'at or above' glucose atom; LO satisfies every 'below' atom. No number is invented for either.",
+     "A plausibility range, signed as a reference entry, rejects a mg/dL value typed as mmol/L."
+    ]
+   },
+   "why": "The two most dangerous meter readings cannot be recorded today, so every rule is silent for the sickest patients at meter-only sites (reviews F25, G17)."
+  },
+  {
+   "id": "EC-7",
+   "title": "Smaller evaluator and catalogue additions this pack uses",
+   "where": "see each line",
+   "spec": {
+    "history": [
+     "applies_to: 'past_history' on a flag rule",
+     "shown_when and includes_any on a history property",
+     "a per-condition composer that omits any clause whose property is unanswered"
+    ],
+    "exam": [
+     "the vs.ketones panel and its save path",
+     "panel atoms: {panel, field, gte_ref|lt_ref|any_of} and {panel, recorded}",
+     "medicine atom reading adherence: {medicine, adherence_any}",
+     "two classifiers (ketone_band, dr_review); classifiers live in code, so these are specifications to implement, not data to load",
+     "exam option_sets with options_ref",
+     "token map entries with value_from_option",
+     "the 'undilated' composer rule on fundoscopy"
+    ],
+    "diagnosis": [
+     "setting as a list in a DDX rule",
+     "ask kinds 'panel' and 'past_detail'",
+     "amend operations (EC-8)",
+     "a 'requires' gate on a profile (EC-5)"
+    ],
+    "plan": [
+     "patient age atoms min_age_ref and max_age_ref",
+     "opens.disposition and opens.followUp, add-only",
+     "item keys refs_dm, ncd_step, where_unavailable, due"
+    ],
+    "formulary": [
+     "a ketone row on the glucose chart"
+    ]
+   },
+   "why": "Each was used by the first draft without being declared (review G18). Any that Phase 0 finds already present is struck from this list; any the owner declines removes the rules that depend on it, which the catalogue check then reports."
+  },
+  {
+   "id": "EC-8",
+   "title": "What 'amend' means in a catalogue amendment",
+   "where": "the loader for data/clerking/*.amendment.json (new), or by hand in Phase 2",
+   "spec": {
+    "rules": [
+     "_op 'add' creates a new entry and fails if the id exists.",
+     "_op 'amend' MERGES: listed atoms are appended to suggest_for, suggest_against, ask and tests_to_decide if not already present; scalar fields are changed only where the amendment lists them under '_changes'. Nothing is removed.",
+     "The six diabetes profiles marked 'amend' were written without sight of the live profiles. Phase 0 produces a per-profile diff against the live catalogue for the CSO; nothing is applied blind."
+    ]
+   },
+   "why": "'Replace' would wipe signed content, for example the live dx.ckd profile (review G11)."
+  }
+ ],
+ "sourcesToAdd": {
+  "WHO-HEARTS-D-2020": {
+   "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+   "edition": "2020 (WHO/UCN/NCD/20.1)",
+   "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A2-02"
+  },
+  "WHO-PEN-TRAINING": {
+   "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+   "edition": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+   "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+   "retrieved": "2026-10-03",
+   "claim": "A9-48"
+  },
+  "ADA-SOC-2026": {
+   "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+   "edition": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+   "retrieved": "2026-10-03",
+   "claim": "A3-01"
+  },
+  "ADA-EASD-CRISES-2024": {
+   "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+   "edition": "2024",
+   "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A9-01"
+  },
+  "KDIGO-CKD-2024": {
+   "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+   "edition": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+   "url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A6-03"
+  },
+  "KDIGO-DM-CKD-2022": {
+   "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease",
+   "edition": "2022 (Kidney Int 2022;102(5S):S1-S127)",
+   "url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A6-26"
+  },
+  "IWGDF-2023": {
+   "title": "Practical guidelines on the prevention and management of diabetes-related foot disease (IWGDF 2023 update)",
+   "edition": "2023 update",
+   "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A8-27"
+  },
+  "ICDR-2003": {
+   "title": "Proposed International Clinical Diabetic Retinopathy and Diabetic Macular Edema Disease Severity Scales (Wilkinson CP et al., Ophthalmology 2003;110:1677-1682)",
+   "edition": "ICDR 2003",
+   "url": "https://www.healthvisors.com/wp-content/uploads/2020/06/Wilkinson-ICDR-2003.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A7-04"
+  },
+  "ICO-2017": {
+   "title": "Guidelines on Diabetic Eye Care: The International Council of Ophthalmology Recommendations for Screening, Follow-up, Referral, and Treatment Based on Resource Settings (Wong TY et al., Ophthalmology 2018;125:1608-1622; doi 10.1016/j.ophtha.2018.04.007)",
+   "edition": "2017 update (published 2018)",
+   "url": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A7-16"
+  },
+  "WHO-GDM-2013": {
+   "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+   "edition": "2013",
+   "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+   "retrieved": "2026-10-03",
+   "claim": "A10-03"
+  },
+  "WHO-DIP-2025": {
+   "title": "WHO recommendations on care for women with diabetes during pregnancy",
+   "edition": "2025",
+   "url": "https://www.who.int/publications/i/item/9789240117044",
+   "retrieved": "2026-10-03",
+   "claim": "A10-05"
+  },
+  "TREND-UK-2020": {
+   "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+   "edition": "March 2020",
+   "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A9-51"
+  },
+  "NICE-NG18": {
+   "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+   "edition": "NG18, Bookshelf copy last updated 11 May 2023",
+   "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+   "retrieved": "2026-10-03",
+   "claim": "A9-31"
+  },
+  "UG-EYE-2016": {
+   "title": "Guidelines for Eye Care (Ministry of Health, Republic of Uganda, October 2016)",
+   "edition": "October 2016",
+   "url": "https://library.health.go.ug/file-download/download/public/1282",
+   "retrieved": "2026-10-03",
+   "claim": "A7-62"
+  },
+  "WHO-TB-DM-2025": {
+   "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+   "edition": "2025 (3rd ed. handbook)",
+   "url": "https://tbksp.who.int/en/node/2901",
+   "retrieved": "2026-10-03",
+   "claim": "A10-31"
+  },
+  "WHO-HBA1C-2011": {
+   "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+   "edition": "2011 (WHO/NMH/CHP/CPM/11.1)",
+   "url": "https://www.ncbi.nlm.nih.gov/books/NBK304271/",
+   "retrieved": "2026-10-03",
+   "claim": "A2-06"
+  },
+  "NGSP-2026": {
+   "title": "NGSP: Factors that Interfere with HbA1c Test Results",
+   "edition": "NGSP web page, last updated 23 June 2026 as displayed",
+   "url": "https://ngsp.org/factors.asp",
+   "retrieved": "2026-10-03",
+   "claim": "A11-26"
+  },
+  "ES-INPATIENT-2012": {
+   "title": "Management of Hyperglycemia in Hospitalized Patients in Non-Critical Care Setting: An Endocrine Society Clinical Practice Guideline (Umpierrez GE, et al.)",
+   "edition": "Endocrine Society 2012; J Clin Endocrinol Metab 2012;97(1):16-38",
+   "url": "https://academic.oup.com/jcem/article/97/1/16/2833040",
+   "retrieved": "2026-10-03",
+   "claim": "A11-37"
+  },
+  "ADA-EASD-T1-2021": {
+   "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+   "edition": "ADA/EASD consensus 2021",
+   "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+   "retrieved": "2026-10-03",
+   "claim": "A10-49"
+  },
+  "TORONTO-2010": {
+   "title": "Diabetic Neuropathies: Update on Definitions, Diagnostic Criteria, Estimation of Severity, and Treatments (Tesfaye S, et al., Toronto Diabetic Neuropathy Expert Group). Diabetes Care 2010;33(10):2285-2293",
+   "edition": "Toronto consensus 2010",
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC2945176/fullTextXML",
+   "retrieved": "2026-10-03",
+   "claim": "A8-12"
+  },
+  "EADSG-2019": {
+   "title": "EADSG Guidelines: Insulin Storage and Optimisation of Injection Technique in Diabetes Management",
+   "edition": "East Africa Diabetes Study Group 2019 (Bahendeka S, et al. Diabetes Ther 2019;10(2):341–366)",
+   "url": "https://link.springer.com/article/10.1007/s13300-019-0574-x",
+   "retrieved": "2026-10-03",
+   "claim": "A12-73"
+  },
+  "UG-HIV-2022": {
+   "title": "Consolidated Guidelines for the Prevention and Treatment of HIV and AIDS in Uganda (Ministry of Health, November 2022)",
+   "edition": "November 2022",
+   "url": "https://dsduganda.com/wp-content/uploads/2023/05/Consolidated-HIV-and-AIDS-Guidelines-20230516.pdf",
+   "retrieved": "2026-10-03",
+   "claim": "A1-23"
+  },
+  "CONSENSUS-REMISSION-2021": {
+   "title": "Riddle MC, Cefalu WT, Evans PH, et al. Consensus report: definition and interpretation of remission in type 2 diabetes. Diabetologia 2021;64(11):2359-2366 (co-published Diabetes Care 2021;44(10):2438-2444)",
+   "edition": "International consensus (ADA, Endocrine Society, EASD, Diabetes UK) 2021",
+   "url": "https://link.springer.com/article/10.1007/s00125-021-05542-z",
+   "retrieved": "2026-10-03",
+   "claim": "A10-54"
+  },
+  "WHO-CVD-CHARTS-2019": {
+   "title": "WHO cardiovascular disease risk laboratory-based charts / non-laboratory based charts — Eastern Sub-Saharan Africa",
+   "edition": "2019 charts (PDF on WHO CDN)",
+   "url": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2",
+   "retrieved": "2026-10-03",
+   "claim": "A5-55"
+  }
+ }
+}

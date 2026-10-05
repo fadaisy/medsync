@@ -1,0 +1,3519 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.3.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "lane: confirm",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "diagnosis": [
+  {
+   "id": "who_hearts_d_2020",
+   "standard": "WHO",
+   "version": "2020 (WHO/UCN/NCD/20.1)",
+   "anyOf": [
+    {
+     "id": "who_hd_fpg_symptoms",
+     "label": "Fasting plasma glucose 7.0 mmol/L or more, with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-02",
+       "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-FPG"
+      }
+     }
+    },
+    {
+     "id": "who_hd_fpg_repeat",
+     "label": "Fasting plasma glucose 7.0 mmol/L or more, and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_fcap_symptoms",
+     "label": "Fasting capillary glucose 7.0 mmol/L or more (meter, where no laboratory is available), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "fasting"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-14",
+       "section": "Section 'Diagnostic tests' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-POC-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_fcap_repeat",
+     "label": "Fasting capillary glucose 7.0 mmol/L or more (meter, where no laboratory is available), and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "fasting"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_ogtt_symptoms",
+     "label": "2-hour plasma glucose 11.1 mmol/L or more after 75 g, with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-02",
+       "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H"
+      }
+     }
+    },
+    {
+     "id": "who_hd_ogtt_repeat",
+     "label": "2-hour plasma glucose 11.1 mmol/L or more after 75 g, and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_ogtt_cap_symptoms",
+     "label": "2-hour capillary glucose 12.2 mmol/L or more after 75 g, with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 12.2,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "two_hours_after_glucose"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
+    },
+    {
+     "id": "who_hd_ogtt_cap_repeat",
+     "label": "2-hour capillary glucose 12.2 mmol/L or more after 75 g, and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 12.2,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "==",
+       "value": "two_hours_after_glucose"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_hba1c_symptoms",
+     "label": "HbA1c 6.5% or more, with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 6.5,
+       "unit": "%"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+      "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK304271/",
+      "quote": "HbA1c can be used as a diagnostic test for diabetes providing that stringent quality assurance tests are in place and assays are standardised to criteria aligned to the international reference values [...] An HbA1c of 6.5% is recommended as the cut point for diagnosing diabetes. A value of less than 6.5% does not exclude diabetes diagnosed using glucose tests.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-06",
+       "section": "Chapter 2, boxed recommendation",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-HBA1C"
+      }
+     }
+    },
+    {
+     "id": "who_hd_hba1c_repeat",
+     "label": "HbA1c 6.5% or more, and a second diabetes-range result on a later day",
+     "all": [
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 6.5,
+       "unit": "%"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-04",
+       "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-REPEAT-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_random_symptoms",
+     "label": "Random plasma glucose 11.1 mmol/L or more, with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-02",
+       "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-RANDOM"
+      }
+     }
+    },
+    {
+     "id": "who_hd_random_cap_symptoms",
+     "label": "Capillary glucose 11.1 mmol/L or more (meter; random, or 2 hours after food), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose_context",
+       "op": "in",
+       "value": [
+        "random",
+        "two_hours_after_food"
+       ]
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-14",
+       "section": "Section 'Diagnostic tests' (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-POC-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_hd_cap_high_symptoms",
+     "label": "Any capillary glucose 12.2 mmol/L or more (meter, whatever the timing), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 12.2,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "needsCsoInput": "A pack inference: 12.2 mmol/L is the highest capillary threshold in WHO's table, so a reading at or above it is in the diabetes range whatever its timing. WHO does not state this as a criterion. For CSO signature with D-DM-04.",
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
+    },
+    {
+     "id": "who_hd_cap_hi_symptoms",
+     "label": "A meter reading HI (above the meter's range), with thirst, passing a lot of urine or unexplained weight loss",
+     "all": [
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2020 (WHO/UCN/NCD/20.1)",
+      "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+      "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+      "quote": "Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "needsCsoInput": "A meter's upper limit is above every diagnostic threshold, so HI with symptoms is in the diabetes range. A pack inference, with D-DM-04.",
+      "x": {
+       "claim": "A2-13",
+       "section": "Section 'Diagnostic tests' and Table 3 (p.13)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-DX-OGTT2H-CAP"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-02",
+     "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-CRIT",
+    "note": "The working default for Uganda until the UCG 2023 text is supplied (D-DM-01). A random value never diagnoses without symptoms. The symptom gate uses the three symptoms WHO and ADA both name; HEARTS-D also lists blurred vision and fatigue (D-DM-02).",
+    "verdict": "diabetes",
+    "appliesTo": {
+     "pregnancy": "not_pregnant",
+     "runWhen": "not_established"
+    },
+    "review": [
+     "F13"
+    ]
+   }
+  }
+ ],
+ "diagnosisPending": [
+  {
+   "id": "ug_ucg_2023",
+   "standard": "local",
+   "version": "2023 (not opened); recollection is of the 2016 wording, which 2023 largely carries forward",
+   "anyOf": [],
+   "citation": {
+    "standard": "local",
+    "version": "2023 (not opened); recollection is of the 2016 wording, which 2023 largely carries forward",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions (Ministry of Health, Uganda)",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "needsCsoInput": "Source text was not opened during research; the value is from memory or a secondary source. Confirm against the primary document before signing.",
+    "x": {
+     "claim": "A1-03",
+     "section": "8.1.3 Diabetes Mellitus, Investigations, p. 471 onward",
+     "bodyProposed": "UG-MOH",
+     "verified": false
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-CRIT",
+    "verdict": "diabetes",
+    "appliesTo": {
+     "pregnancy": "not_pregnant",
+     "runWhen": "not_established"
+    },
+    "pending": "UCG 2023 section 8.1.3 (pp. 471 to 478) was not read. No criterion may be written until the pages are supplied. The set exists so the site precedence ['local','WHO','IDF','ADA'] has a slot to fill."
+   }
+  },
+  {
+   "id": "ug_integrated_dm_2026",
+   "standard": "local",
+   "version": "2026",
+   "anyOf": [],
+   "citation": {
+    "standard": "local",
+    "version": "2026",
+    "title": "Integrated Diabetes Management Guidelines for Uganda (comprehensive version)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "INTEGRATED DIABETES MANAGEMENT GUIDELINES FOR UGANDA:",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "needsCsoInput": "Source text was not opened during research; the value is from memory or a secondary source. Confirm against the primary document before signing.",
+    "x": {
+     "claim": "A1-41",
+     "section": "whole document",
+     "bodyProposed": "UG-MOH",
+     "verified": false
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-CRIT",
+    "verdict": "diabetes",
+    "appliesTo": {
+     "pregnancy": "not_pregnant",
+     "runWhen": "not_established"
+    },
+    "pending": "'Integrated Diabetes Management Guidelines for Uganda' (MoH, 2026) is listed in the MoH library and was not opened. If it is in force it supersedes UCG 2023 for diabetes and becomes the default set (D-DM-01)."
+   }
+  },
+  {
+   "id": "who_2006_intermediate",
+   "standard": "WHO",
+   "version": "2006",
+   "anyOf": [
+    {
+     "id": "who_ifg",
+     "label": "Impaired fasting glucose: fasting plasma glucose 6.1 to 6.9 mmol/L",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 6.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": "<",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2006",
+      "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+      "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+      "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-10",
+       "section": "Summary table of diagnostic criteria (p.1)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-IH-IFG-WHO"
+      }
+     }
+    },
+    {
+     "id": "who_igt",
+     "label": "Impaired glucose tolerance: 2-hour plasma glucose 7.8 to 11.0 mmol/L with fasting below 7.0",
+     "all": [
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 7.8,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": "<",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": "<",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2006",
+      "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+      "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+      "quote": "Impaired Glucose Tolerance (IGT) Fasting plasma glucose 2–h plasma glucose* <7.0mmol/l (126mg/dl) and ≥7.8 and <11.1mmol/l (140mg/dl and 200mg/dl)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-09",
+       "section": "Summary table of diagnostic criteria (p.1); Recommendation 3",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-IH-IGT"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2006",
+    "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+    "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+    "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-10",
+     "section": "Summary table of diagnostic criteria (p.1)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-CRIT",
+    "verdict": "intermediate_hyperglycaemia",
+    "appliesTo": {
+     "pregnancy": "not_pregnant",
+     "runWhen": "not_established"
+    },
+    "pending": "Needs CriteriaSet.verdict and appliesTo (S-DM-02); until then the bands live in the interpretation tables only."
+   }
+  },
+  {
+   "id": "ada_2026_prediabetes",
+   "standard": "ADA",
+   "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+   "anyOf": [
+    {
+     "id": "ada_ifg",
+     "label": "Fasting plasma glucose 5.6 to 6.9 mmol/L",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 5.6,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": "<",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+      "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+      "quote": "A1C 5.7–6.4% (39–47 mmol/mol) [...] FPG 100 mg/dL (5.6 mmol/L) to 125 mg/dL (6.9 mmol/L) (IFG) [...] 2-h PG during 75-g OGTT 140 mg/dL (7.8 mmol/L) to 199 mg/dL (11.0 mmol/L) (IGT)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A3-05",
+       "section": "Table 2.2 (Criteria defining prediabetes in nonpregnant individuals)",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-IH-IFG-ADA"
+      }
+     }
+    },
+    {
+     "id": "ada_igt",
+     "label": "2-hour plasma glucose 7.8 to 11.0 mmol/L",
+     "all": [
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 7.8,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": "<",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2006",
+      "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+      "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+      "quote": "Impaired Glucose Tolerance (IGT) Fasting plasma glucose 2–h plasma glucose* <7.0mmol/l (126mg/dl) and ≥7.8 and <11.1mmol/l (140mg/dl and 200mg/dl)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-09",
+       "section": "Summary table of diagnostic criteria (p.1); Recommendation 3",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-IH-IGT"
+      }
+     }
+    },
+    {
+     "id": "ada_a1c_pre",
+     "label": "HbA1c 5.7 to 6.4%",
+     "all": [
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 5.7,
+       "unit": "%"
+      },
+      {
+       "feature": "hba1c",
+       "op": "<",
+       "value": 6.5,
+       "unit": "%"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+      "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+      "quote": "A1C 5.7–6.4% (39–47 mmol/mol) [...] FPG 100 mg/dL (5.6 mmol/L) to 125 mg/dL (6.9 mmol/L) (IFG) [...] 2-h PG during 75-g OGTT 140 mg/dL (7.8 mmol/L) to 199 mg/dL (11.0 mmol/L) (IGT)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A3-05",
+       "section": "Table 2.2 (Criteria defining prediabetes in nonpregnant individuals)",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-IH-HBA1C-ADA"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "A1C 5.7–6.4% (39–47 mmol/mol) [...] FPG 100 mg/dL (5.6 mmol/L) to 125 mg/dL (6.9 mmol/L) (IFG) [...] 2-h PG during 75-g OGTT 140 mg/dL (7.8 mmol/L) to 199 mg/dL (11.0 mmol/L) (IGT)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-05",
+     "section": "Table 2.2 (Criteria defining prediabetes in nonpregnant individuals)",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-CRIT",
+    "verdict": "intermediate_hyperglycaemia",
+    "appliesTo": {
+     "pregnancy": "not_pregnant",
+     "runWhen": "not_established"
+    },
+    "pending": "Needs S-DM-02. WHO defines no HbA1c band below 6.5%."
+   }
+  },
+  {
+   "id": "who_2013_gdm",
+   "standard": "WHO",
+   "version": "2013",
+   "anyOf": [
+    {
+     "id": "gdm_fpg",
+     "label": "Pregnant: fasting plasma glucose 5.1 to 6.9 mmol/L",
+     "all": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 5.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": "<",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2013",
+      "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+      "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-03",
+       "section": "Chapter 4 Recommendations, 4.3",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-PREG-GDM-FPG"
+      }
+     }
+    },
+    {
+     "id": "gdm_1h",
+     "label": "Pregnant: 1-hour plasma glucose 10.0 mmol/L or more after 75 g",
+     "all": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 10.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2013",
+      "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+      "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-03",
+       "section": "Chapter 4 Recommendations, 4.3",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-PREG-GDM-1H"
+      }
+     }
+    },
+    {
+     "id": "gdm_2h",
+     "label": "Pregnant: 2-hour plasma glucose 8.5 to 11.0 mmol/L after 75 g",
+     "all": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 8.5,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": "<",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2013",
+      "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+      "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-03",
+       "section": "Chapter 4 Recommendations, 4.3",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-PREG-GDM-2H"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-03",
+     "section": "Chapter 4 Recommendations, 4.3",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "verdict": "gestational_diabetes",
+    "appliesTo": {
+     "pregnancy": "pregnant",
+     "runWhen": "not_established"
+    },
+    "pending": "Needs S-DM-02. WHO is revising these criteria (REF-DM-PREG-REVISION): version the set, do not overwrite it."
+   }
+  },
+  {
+   "id": "who_2013_diabetes_in_pregnancy",
+   "standard": "WHO",
+   "version": "2013",
+   "anyOf": [
+    {
+     "id": "dip_fpg",
+     "label": "Pregnant: fasting plasma glucose 7.0 mmol/L or more",
+     "all": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2013",
+      "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+      "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-02",
+       "section": "Chapter 4 Recommendations, 4.2",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-PREG-DIP"
+      }
+     }
+    },
+    {
+     "id": "dip_2h",
+     "label": "Pregnant: 2-hour plasma glucose 11.1 mmol/L or more after 75 g",
+     "all": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2013",
+      "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+      "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-02",
+       "section": "Chapter 4 Recommendations, 4.2",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-PREG-DIP"
+      }
+     }
+    },
+    {
+     "id": "dip_random",
+     "label": "Pregnant: random plasma glucose 11.1 mmol/L or more with symptoms",
+     "all": [
+      {
+       "feature": "pregnant",
+       "op": "present"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2013",
+      "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+      "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-02",
+       "section": "Chapter 4 Recommendations, 4.2",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-PREG-DIP"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-02",
+     "section": "Chapter 4 Recommendations, 4.2",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "verdict": "diabetes_in_pregnancy",
+    "appliesTo": {
+     "pregnancy": "pregnant",
+     "runWhen": "not_established"
+    },
+    "pending": "Needs S-DM-02. HbA1c is not in the WHO 2013 list."
+   }
+  },
+  {
+   "id": "consensus_2021_remission",
+   "standard": "ADA",
+   "version": "International consensus (ADA, Endocrine Society, EASD, Diabetes UK) 2021",
+   "anyOf": [
+    {
+     "id": "remission_hba1c",
+     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, HbA1c below 6.5%, off all glucose-lowering medicines for 3 months or more",
+     "all": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "==",
+       "value": "type_2"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "none"
+      },
+      {
+       "feature": "hba1c",
+       "op": "<",
+       "value": 6.5,
+       "unit": "%"
+      },
+      {
+       "feature": "months_off_glucose_lowering",
+       "op": ">=",
+       "value": 3,
+       "unit": "months"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "International consensus (ADA, Endocrine Society, EASD, Diabetes UK) 2021",
+      "title": "Riddle MC, Cefalu WT, Evans PH, et al. Consensus report: definition and interpretation of remission in type 2 diabetes. Diabetologia 2021;64(11):2359-2366 (co-published Diabetes Care 2021;44(10):2438-2444)",
+      "url": "https://link.springer.com/article/10.1007/s00125-021-05542-z",
+      "quote": "HbA1c <48 mmol/mol (<6.5%) measured at least 3 months after cessation of glucose-lowering pharmacotherapy",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A10-54",
+       "section": "Definition",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-CLS-REMISSION-HBA1C"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "International consensus (ADA, Endocrine Society, EASD, Diabetes UK) 2021",
+    "title": "Riddle MC, Cefalu WT, Evans PH, et al. Consensus report: definition and interpretation of remission in type 2 diabetes. Diabetologia 2021;64(11):2359-2366 (co-published Diabetes Care 2021;44(10):2438-2444)",
+    "url": "https://link.springer.com/article/10.1007/s00125-021-05542-z",
+    "quote": "HbA1c <48 mmol/mol (<6.5%) measured at least 3 months after cessation of glucose-lowering pharmacotherapy",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-54",
+     "section": "Definition",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-REMISSION",
+    "verdict": "remission",
+    "appliesTo": {
+     "pregnancy": "not_pregnant",
+     "runWhen": "established"
+    },
+    "pending": "Needs S-DM-02. Clinician-owned state: the engine proposes, never enters it. Complication screening continues in remission (A10-55).",
+    "review": [
+     "F11",
+     "H09"
+    ],
+    "notWhen": [
+     {
+      "id": "remission_glucose_high",
+      "label": "A glucose in the diabetes range now: fasting plasma 7.0 mmol/L or more, or any other reading 11.1 or more",
+      "any": [
+       {
+        "feature": "fasting_pg",
+        "op": ">=",
+        "value": 7.0,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": ">=",
+        "value": 11.1,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": ">=",
+        "value": 11.1,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": ">=",
+        "value": 11.1,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": ">=",
+        "value": 11.1,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "International consensus (ADA, Endocrine Society, EASD, Diabetes UK) 2021",
+       "title": "Riddle MC, Cefalu WT, Evans PH, et al. Consensus report: definition and interpretation of remission in type 2 diabetes. Diabetologia 2021;64(11):2359-2366 (co-published Diabetes Care 2021;44(10):2438-2444)",
+       "url": "https://link.springer.com/article/10.1007/s00125-021-05542-z",
+       "quote": "HbA1c <48 mmol/mol (<6.5%) measured at least 3 months after cessation of glucose-lowering pharmacotherapy",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-54",
+        "section": "Definition",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CLS-REMISSION-HBA1C"
+       }
+      }
+     },
+     {
+      "id": "remission_fasting_meter_high",
+      "label": "A fasting meter reading of 7.0 mmol/L or more",
+      "all": [
+       {
+        "feature": "capillary_glucose_context",
+        "op": "==",
+        "value": "fasting"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": ">=",
+        "value": 7.0,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "International consensus (ADA, Endocrine Society, EASD, Diabetes UK) 2021",
+       "title": "Riddle MC, Cefalu WT, Evans PH, et al. Consensus report: definition and interpretation of remission in type 2 diabetes. Diabetologia 2021;64(11):2359-2366 (co-published Diabetes Care 2021;44(10):2438-2444)",
+       "url": "https://link.springer.com/article/10.1007/s00125-021-05542-z",
+       "quote": "HbA1c <48 mmol/mol (<6.5%) measured at least 3 months after cessation of glucose-lowering pharmacotherapy",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-54",
+        "section": "Definition",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CLS-REMISSION-HBA1C"
+       }
+      }
+     }
+    ],
+    "note": "Never evaluated for type 1 or an unclassified type, or with any glucose-lowering medicine on the list. Haemolysis, recent malaria and a recent transfusion block the HbA1c through the caveat hba1c_red_cell_turnover."
+   }
+  }
+ ],
+ "interpretation": [
+  {
+   "id": "ogtt_1h_idf_2024",
+   "feature": "ogtt_1h_pg",
+   "standard": "IDF",
+   "version": "2024",
+   "bands": [
+    {
+     "code": "normal",
+     "display": "Below the IDF 1-hour cut-point",
+     "tone": "normal",
+     "to": 8.6
+    },
+    {
+     "code": "intermediate",
+     "display": "Intermediate hyperglycaemia (IDF)",
+     "tone": "intermediate",
+     "from": 8.6,
+     "to": 11.6
+    },
+    {
+     "code": "diabetes_range",
+     "display": "Diabetes range (IDF); repeat to confirm",
+     "tone": "diagnostic",
+     "from": 11.6
+    }
+   ],
+   "citation": {
+    "standard": "IDF",
+    "version": "2024",
+    "title": "Bergman M, Manco M, Satman I, et al. International Diabetes Federation Position Statement on the 1-hour post-load plasma glucose for the diagnosis of intermediate hyperglycaemia and type 2 diabetes. Diabetes Res Clin Pract 2024;209:111589",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S0168822724000731",
+    "quote": "People with a 1-h PG ≥ 155 mg/dL (8.6 mmol/L) are considered to have IH and should be prescribed lifestyle intervention and referred to a diabetes prevention program. People with a 1-h PG ≥ 209 mg/dL (11.6 mmol/L) are considered to have T2D and should have a repeat test to confirm the diagnosis of T2D",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-56",
+     "section": "Abstract",
+     "bodyProposed": "IDF",
+     "verified": true
+    }
+   },
+   "note": "IDF only. WHO and ADA do not use a 1-hour value outside pregnancy. Not read in pregnancy, where WHO's gestational 1-hour threshold applies.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-CRIT",
+    "refs": [
+     "REF-DM-IH-OGTT1H-IDF",
+     "REF-DM-DX-OGTT1H-IDF"
+    ],
+    "status": "new",
+    "review": [
+     "F26"
+    ],
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    }
+   }
+  }
+ ],
+ "validityCaveats": [
+  {
+   "id": "hba1c_g6pd",
+   "feature": "hba1c",
+   "label": "G6PD deficiency lowers HbA1c independent of glucose and may mask diabetes",
+   "when": {
+    "id": "g6pd",
+    "label": "G6PD deficiency recorded",
+    "all": [
+     {
+      "feature": "g6pd_deficiency",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "Wheeler E et al. PLoS Med 2017;14(9):e1002383",
+     "title": "Impact of common genetic determinants of Hemoglobin A1c on type 2 diabetes risk and diagnosis in ancestrally diverse populations: A transethnic genome-wide meta-analysis",
+     "url": "https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1002383",
+     "quote": "an absolute decrease in HbA1c of 0.81%-units (95% CI 0.66–0.96) per allele in hemizygous men, and 0.68%-units (95% CI 0.38–0.97) in homozygous women",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-63",
+      "section": "Abstract",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-G6PD"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "local",
+    "version": "Wheeler E et al. PLoS Med 2017;14(9):e1002383",
+    "title": "Impact of common genetic determinants of Hemoglobin A1c on type 2 diabetes risk and diagnosis in ancestrally diverse populations: A transethnic genome-wide meta-analysis",
+    "url": "https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1002383",
+    "quote": "an absolute decrease in HbA1c of 0.81%-units (95% CI 0.66–0.96) per allele in hemizygous men, and 0.68%-units (95% CI 0.38–0.97) in homozygous women",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-63",
+     "section": "Abstract",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "alternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_hiv_on_art",
+   "feature": "hba1c",
+   "label": "HbA1c underestimates glycaemia in people with HIV on ART; diagnose on plasma glucose",
+   "when": {
+    "id": "hiv_art",
+    "label": "Living with HIV, on ART",
+    "all": [
+     {
+      "feature": "hiv_on_art",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "In conditions associated with an altered relationship between A1C and glycemia, such as some hemoglobin variants, pregnancy, glucose-6-phosphate dehydrogenase deficiency, HIV, and conditions that may alter red blood cell turnover, plasma glucose criteria should be used to diagnose diabetes.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-10",
+      "section": "Recommendation 2.4",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-USE-GLUCOSE"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "In conditions associated with an altered relationship between A1C and glycemia, such as some hemoglobin variants, pregnancy, glucose-6-phosphate dehydrogenase deficiency, HIV, and conditions that may alter red blood cell turnover, plasma glucose criteria should be used to diagnose diabetes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-10",
+     "section": "Recommendation 2.4",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "alternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "neutralDisplay": "HbA1c is not reliable for this patient: use glucose",
+    "neutralAlternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c."
+   }
+  },
+  {
+   "id": "hba1c_sickle_cell_disease",
+   "feature": "hba1c",
+   "label": "HbA1c cannot be measured reliably in sickle cell disease",
+   "when": {
+    "id": "scd",
+    "label": "Sickle cell disease",
+    "all": [
+     {
+      "feature": "sickle_cell_disease",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "A1C cannot be measured in individuals with sickle cell disease (HbSS) or other homozygous hemoglobin variants (e.g., HbEE), since these individuals lack HbA. [...] Some hemoglobin variants can interfere with some A1C assays; however, most assays in use in the U.S. are accurate in individuals who are heterozygous for the most common variants.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-12",
+      "section": "Narrative 'Glycemic Assessment by A1C'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-HBSS"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes—2026",
+    "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+    "quote": "A1C cannot be measured in individuals with sickle cell disease (HbSS) or other homozygous hemoglobin variants (e.g., HbEE), since these individuals lack HbA. [...] Some hemoglobin variants can interfere with some A1C assays; however, most assays in use in the U.S. are accurate in individuals who are heterozygous for the most common variants.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A4-12",
+     "section": "Narrative 'Glycemic Assessment by A1C'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "alternative": "Use plasma glucose to diagnose; monitor with glucose readings (fructosamine or glycated albumin where available).",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_variant_trait",
+   "feature": "hba1c",
+   "label": "Sickle cell trait or another haemoglobin variant: interference depends on the assay",
+   "when": {
+    "id": "trait",
+    "label": "Haemoglobin variant trait",
+    "all": [
+     {
+      "feature": "sickle_cell_trait",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "NGSP web page, last updated 23 June 2026 as displayed",
+     "title": "NGSP: Factors that Interfere with HbA1c Test Results",
+     "url": "https://ngsp.org/factors.asp",
+     "quote": "Genetic variants (e.g. HbS trait, HbC trait) ... elevated fetal hemoglobin (HbF) and chemically modified derivatives of hemoglobin (e.g. carbamylated Hb in patients with renal failure) can affect the accuracy of HbA1c measurements.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-27",
+      "section": "Main text and Table 1",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-VARIANT"
+     }
+    }
+   },
+   "direction": "unpredictable",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "local",
+    "version": "NGSP web page, last updated 23 June 2026 as displayed",
+    "title": "NGSP: Factors that Interfere with HbA1c Test Results",
+    "url": "https://ngsp.org/factors.asp",
+    "quote": "Genetic variants (e.g. HbS trait, HbC trait) ... elevated fetal hemoglobin (HbF) and chemically modified derivatives of hemoglobin (e.g. carbamylated Hb in patients with renal failure) can affect the accuracy of HbA1c measurements.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-27",
+     "section": "Main text and Table 1",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "alternative": "Use plasma glucose unless the laboratory confirms its method is free of interference for this variant.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_b12_or_iron_deficiency",
+   "feature": "hba1c",
+   "label": "Iron or vitamin B12 deficiency falsely RAISES HbA1c and may manufacture a diagnosis",
+   "when": {
+    "id": "iron_b12",
+    "label": "Iron or vitamin B12 deficiency",
+    "any": [
+     {
+      "feature": "iron_deficiency",
+      "op": "present"
+     },
+     {
+      "feature": "b12_deficiency",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "NGSP web page, last updated 23 June 2026 as displayed",
+     "title": "NGSP: Factors that Interfere with HbA1c Test Results",
+     "url": "https://ngsp.org/factors.asp",
+     "quote": "Iron deficiency anemia ... is associated with higher HbA1c and higher fructosamine ... Iron replacement therapy lowers both HbA1c and fructosamine concentrations in diabetic and non-diabetic individuals ... HbA1c ... is increased in late pregnancy in nondiabetic individuals owing to iron deficiency",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-28",
+      "section": "Iron deficiency section",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-IRON"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "WHO",
+    "version": "2011",
+    "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK304271/",
+    "quote": "The most common important factors worldwide affecting HbA1c levels are haemoglobinopathies (depending on the assay employed), certain anaemias, and disorders associated with accelerated red cell turnover such as malaria.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-64",
+     "section": "Chapter 2; Annex 'Some of the factors that influence HbA1c and its measurement'",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_haematinic_or_epo",
+   "feature": "hba1c",
+   "label": "Iron, vitamin B12 or erythropoietin treatment lowers HbA1c while new red cells are being made",
+   "when": {
+    "id": "haematinic",
+    "label": "On iron, B12 or erythropoietin",
+    "all": [
+     {
+      "feature": "on_iron_b12_or_epo",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+     "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK304266/",
+     "quote": "Increased HbA1c: iron, vitamin B12 deficiency, decreased erythropoiesis. Decreased HbA1c: administration of erythropoietin, iron, vitamin B12, reticulocytosis, chronic liver disease. ... increased erythrocyte life span: Splenectomy. Decreased HbA1c: decreased erythrocyte life span: haemoglobinopathies, splenomegaly, rheumatoid arthritis or drugs such as antiretrovirals, ribavirin and dapsone.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-30",
+      "section": "Annex 1: Some of the factors that influence HbA1c and its measurement (adapted from Gallagher et al.)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-DRUGS"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "WHO",
+    "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+    "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK304266/",
+    "quote": "Increased HbA1c: iron, vitamin B12 deficiency, decreased erythropoiesis. Decreased HbA1c: administration of erythropoietin, iron, vitamin B12, reticulocytosis, chronic liver disease. ... increased erythrocyte life span: Splenectomy. Decreased HbA1c: decreased erythrocyte life span: haemoglobinopathies, splenomegaly, rheumatoid arthritis or drugs such as antiretrovirals, ribavirin and dapsone.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-30",
+     "section": "Annex 1: Some of the factors that influence HbA1c and its measurement (adapted from Gallagher et al.)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_dapsone_or_spleen",
+   "feature": "hba1c",
+   "label": "Dapsone and an enlarged spleen shorten red-cell life and lower HbA1c",
+   "when": {
+    "id": "dapsone_spleen",
+    "label": "On dapsone, or enlarged spleen",
+    "any": [
+     {
+      "feature": "on_dapsone",
+      "op": "present"
+     },
+     {
+      "feature": "splenomegaly",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+     "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK304266/",
+     "quote": "Increased HbA1c: iron, vitamin B12 deficiency, decreased erythropoiesis. Decreased HbA1c: administration of erythropoietin, iron, vitamin B12, reticulocytosis, chronic liver disease. ... increased erythrocyte life span: Splenectomy. Decreased HbA1c: decreased erythrocyte life span: haemoglobinopathies, splenomegaly, rheumatoid arthritis or drugs such as antiretrovirals, ribavirin and dapsone.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-30",
+      "section": "Annex 1: Some of the factors that influence HbA1c and its measurement (adapted from Gallagher et al.)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-DRUGS"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "WHO",
+    "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+    "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK304266/",
+    "quote": "Increased HbA1c: iron, vitamin B12 deficiency, decreased erythropoiesis. Decreased HbA1c: administration of erythropoietin, iron, vitamin B12, reticulocytosis, chronic liver disease. ... increased erythrocyte life span: Splenectomy. Decreased HbA1c: decreased erythrocyte life span: haemoglobinopathies, splenomegaly, rheumatoid arthritis or drugs such as antiretrovirals, ribavirin and dapsone.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-30",
+     "section": "Annex 1: Some of the factors that influence HbA1c and its measurement (adapted from Gallagher et al.)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_low_egfr",
+   "feature": "hba1c",
+   "label": "HbA1c is less accurate when eGFR is below 30, and reads low on dialysis",
+   "when": {
+    "id": "egfr30",
+    "label": "eGFR below 30, or on dialysis",
+    "any": [
+     {
+      "feature": "egfr",
+      "op": "<",
+      "value": 30,
+      "unit": "mL/min/1.73m2"
+     },
+     {
+      "feature": "on_dialysis",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "KDIGO",
+     "version": "2022 (Kidney Int 2022;102(5S):S1-S127)",
+     "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease",
+     "url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
+     "quote": "Accuracy and precision of HbA1c measurement declines with advanced CKD (G4–G5), particularly among patients treated by dialysis, in whom HbA1c measurements have low reliability.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-37",
+      "section": "Recommendation 2.1.1 (1C); Practice Points 2.1.1, 2.1.2, 2.1.3",
+      "bodyProposed": "KDIGO",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-CKD-EGFR"
+     }
+    }
+   },
+   "direction": "unpredictable",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2022 (Kidney Int 2022;102(5S):S1-S127)",
+    "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease",
+    "url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
+    "quote": "Accuracy and precision of HbA1c measurement declines with advanced CKD (G4–G5), particularly among patients treated by dialysis, in whom HbA1c measurements have low reliability.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-37",
+     "section": "Recommendation 2.1.1 (1C); Practice Points 2.1.1, 2.1.2, 2.1.3",
+     "bodyProposed": "KDIGO",
+     "verified": true
+    }
+   },
+   "alternative": "Use plasma glucose to diagnose and glucose readings to monitor.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_pregnancy",
+   "feature": "hba1c",
+   "label": "Pregnancy changes red-cell turnover and iron status: HbA1c is not used to diagnose hyperglycaemia in pregnancy",
+   "when": {
+    "id": "preg",
+    "label": "Pregnant",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "In conditions associated with an altered relationship between A1C and glycemia, such as some hemoglobin variants, pregnancy, glucose-6-phosphate dehydrogenase deficiency, HIV, and conditions that may alter red blood cell turnover, plasma glucose criteria should be used to diagnose diabetes.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-10",
+      "section": "Recommendation 2.4",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-USE-GLUCOSE"
+     }
+    }
+   },
+   "direction": "unpredictable",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "In conditions associated with an altered relationship between A1C and glycemia, such as some hemoglobin variants, pregnancy, glucose-6-phosphate dehydrogenase deficiency, HIV, and conditions that may alter red blood cell turnover, plasma glucose criteria should be used to diagnose diabetes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-10",
+     "section": "Recommendation 2.4",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "alternative": "Use the 75 g OGTT (fasting, 1-hour and 2-hour plasma glucose).",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "glucose_acute_illness",
+   "feature": "random_pg",
+   "label": "A raised glucose during acute illness may be transitory",
+   "when": {
+    "id": "ill",
+    "label": "Acutely unwell now",
+    "all": [
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+     "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+     "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+     "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-54",
+      "section": "Section 2.2.1",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-STRESS"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+    "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+    "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+    "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-54",
+     "section": "Section 2.2.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Confirm after recovery, unless symptoms of diabetes came before the illness or ketones are raised. Fever and dehydration also cause thirst, so the symptom rule does not protect here.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "glucose_tb_at_diagnosis",
+   "feature": "random_pg",
+   "label": "TB can raise glucose at diagnosis",
+   "when": {
+    "id": "tb",
+    "label": "TB newly diagnosed or on treatment",
+    "all": [
+     {
+      "feature": "tb_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2025 (3rd ed. handbook)",
+     "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+     "url": "https://tbksp.who.int/en/node/2901",
+     "quote": "Glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. … It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-32",
+      "section": "Diabetes chapter 4.1",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-TB-RECHECK"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "2025 (3rd ed. handbook)",
+    "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+    "url": "https://tbksp.who.int/en/node/2901",
+    "quote": "Glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. … It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-32",
+     "section": "Diabetes chapter 4.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Reassess glycaemia after the first month of TB treatment; confirm an asymptomatic positive with a repeat test.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": [
+     "tb"
+    ],
+    "neutralDisplay": "Re-check this glucose in a month",
+    "neutralAlternative": "Re-check glycaemia in a month; confirm an asymptomatic positive with a repeat test."
+   }
+  },
+  {
+   "id": "fasting_glucose_on_steroids",
+   "feature": "fasting_pg",
+   "label": "On steroids a fasting glucose can be normal while afternoon glucose is high",
+   "when": {
+    "id": "steroid",
+    "label": "On recurrent or long-term systemic steroids",
+    "all": [
+     {
+      "feature": "on_glucocorticoid",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "Monitor postprandial or random glucose levels with recurrent or long-term use of glucocorticoids.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-29",
+      "section": "Recommendation 2.18",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-SUS-STEROID"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Monitor postprandial or random glucose levels with recurrent or long-term use of glucocorticoids.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-29",
+     "section": "Recommendation 2.18",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "alternative": "Test glucose after lunch or before the evening meal.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "urine_ketones_low_despite_picture",
+   "feature": "urine_ketones",
+   "label": "Urine ketone strips underestimate ketones early in ketoacidosis",
+   "when": {
+    "id": "ketone_mismatch",
+    "label": "Urine ketones below 2+ with Kussmaul breathing, acetone on the breath or vomiting",
+    "all": [
+     {
+      "feature": "urine_ketones",
+      "op": "in",
+      "value": [
+       "neg",
+       "trace",
+       "1plus"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "acetone_breath",
+      "op": "present"
+     },
+     {
+      "feature": "vomiting",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Reliance on urine ketone testing can underestimate the severity of ketonemia early in the course of DKA because of a lag in the formation of acetoacetate, and conversely overestimate its severity later in the course of DKA when β-hydroxybutyrate is being cleared and converted into acetoacetate",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-14",
+      "section": "Diagnostic criteria narrative - ketosis",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-VAL-URINE-KETONE"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Reliance on urine ketone testing can underestimate the severity of ketonemia early in the course of DKA because of a lag in the formation of acetoacetate, and conversely overestimate its severity later in the course of DKA when β-hydroxybutyrate is being cleared and converted into acetoacetate",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-14",
+     "section": "Diagnostic criteria narrative - ketosis",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "alternative": "Measure blood beta-hydroxybutyrate or a venous gas; if neither is available, treat the clinical picture and refer.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "egfr_overestimate_africa",
+   "feature": "egfr",
+   "label": "Creatinine-based eGFR overestimated kidney function in Ugandan, Malawian and South African adults",
+   "when": {
+    "id": "egfr_60_89",
+    "label": "eGFR 60 to 89",
+    "all": [
+     {
+      "feature": "egfr",
+      "op": ">=",
+      "value": 60,
+      "unit": "mL/min/1.73m2"
+     },
+     {
+      "feature": "egfr",
+      "op": "<",
+      "value": 90,
+      "unit": "mL/min/1.73m2"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2022 (African Research on Kidney Disease (ARK) Consortium - Fabian J, Kalyesubula R, et al. Lancet Glob Health 2022;10(8):e1159-e1169; doi 10.1016/S2214-109X(22)00239-X)",
+     "title": "Measurement of kidney function in Malawi, South Africa, and Uganda: a multicentre cohort study",
+     "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1016/S2214-109X(22)00239-X?fields=title,abstract,externalIds,year,venue,openAccessPdf",
+     "quote": "Among 2578 included participants, creatinine-based equations overestimated kidney function compared with mGFR, worsened by use of ethnicity coefficients. The greatest bias occurred at low kidney function, such that the proportion with GFR of less than 60 mL/min per 1.73 m2 either directly measured or estimated by cystatin C was more than double that estimated from creatinine.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-25",
+      "section": "Abstract - Findings",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-VAL-EGFR-ARK"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "local",
+    "version": "2022 (African Research on Kidney Disease (ARK) Consortium - Fabian J, Kalyesubula R, et al. Lancet Glob Health 2022;10(8):e1159-e1169; doi 10.1016/S2214-109X(22)00239-X)",
+    "title": "Measurement of kidney function in Malawi, South Africa, and Uganda: a multicentre cohort study",
+    "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1016/S2214-109X(22)00239-X?fields=title,abstract,externalIds,year,venue,openAccessPdf",
+    "quote": "Among 2578 included participants, creatinine-based equations overestimated kidney function compared with mGFR, worsened by use of ethnicity coefficients. The greatest bias occurred at low kidney function, such that the proportion with GFR of less than 60 mL/min per 1.73 m2 either directly measured or estimated by cystatin C was more than double that estimated from creatinine.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-25",
+     "section": "Abstract - Findings",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "alternative": "Read it with the urine albumin result and the trend; repeat if it will change treatment. Never apply an ethnicity coefficient.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "egfr_not_steady_state",
+   "feature": "egfr",
+   "label": "eGFR is unreliable while creatinine is changing",
+   "when": {
+    "id": "unsteady",
+    "label": "Creatinine not in steady state (acute kidney injury or a hyperglycaemic crisis)",
+    "all": [
+     {
+      "feature": "creatinine_unstable",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "KDIGO",
+     "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+     "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+     "url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+     "quote": "NOT FOUND in the pages opened. Nearest verified text is Practice Point 1.1.3.2 (single abnormal eGFR may reflect AKI/AKD) - see A6–01 and A6–24.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "Only the steady-state clause was found, as 'source of error'. No sentence naming acute kidney injury, hyperglycaemic crisis or pregnancy was found on the pages read.",
+     "x": {
+      "claim": "A6-65",
+      "section": "not located in the pages opened (Table 8 on p. S179 does not list pregnancy)",
+      "bodyProposed": "KDIGO",
+      "verified": false,
+      "ref": "REF-DM-VAL-EGFR-STEADY"
+     }
+    }
+   },
+   "direction": "unpredictable",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+    "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+    "url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+    "quote": "NOT FOUND in the pages opened. Nearest verified text is Practice Point 1.1.3.2 (single abnormal eGFR may reflect AKI/AKD) - see A6–01 and A6–24.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "needsCsoInput": "Source text was not opened during research; the value is from memory or a secondary source. Confirm against the primary document before signing.",
+    "x": {
+     "claim": "A6-65",
+     "section": "not located in the pages opened (Table 8 on p. S179 does not list pregnancy)",
+     "bodyProposed": "KDIGO",
+     "verified": false
+    }
+   },
+   "alternative": "Repeat once the acute illness has settled before staging kidney disease.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F39",
+     "V4",
+     "F05"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "uacr_transient",
+   "feature": "urine_acr",
+   "label": "Exercise, fever, infection, menstruation and very high glucose or blood pressure raise urine albumin without kidney damage",
+   "when": {
+    "id": "transient",
+    "label": "A transient cause is present",
+    "all": [
+     {
+      "feature": "uacr_transient_cause",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2025 (Diabetes Care 2025;48(Suppl 1):S239-S251) - 2026 edition (Diabetes Care 2026;49(Suppl 1):S246, doi 10.2337/dc26-S011) could NOT be opened (diabetesjournals.org 403; PMC id not found / PMC CAPTCHA)",
+     "title": "11. Chronic Kidney Disease and Risk Management: Standards of Care in Diabetes-2025",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11635029/",
+     "quote": "Exercise within 24 h, infection, fever, heart failure, marked hyperglycemia, menstruation, and marked hypertension may elevate UACR independently of kidney damage.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-13",
+      "section": "Body text 'Assessment of Albuminuria and Estimated Glomerular Filtration Rate'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-VAL-UACR-TRANSIENT"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "ADA",
+    "version": "2025 (Diabetes Care 2025;48(Suppl 1):S239-S251) - 2026 edition (Diabetes Care 2026;49(Suppl 1):S246, doi 10.2337/dc26-S011) could NOT be opened (diabetesjournals.org 403; PMC id not found / PMC CAPTCHA)",
+    "title": "11. Chronic Kidney Disease and Risk Management: Standards of Care in Diabetes-2025",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11635029/",
+    "quote": "Exercise within 24 h, infection, fever, heart failure, marked hyperglycemia, menstruation, and marked hypertension may elevate UACR independently of kidney damage.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-13",
+     "section": "Body text 'Assessment of Albuminuria and Estimated Glomerular Filtration Rate'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "alternative": "Repeat when it has resolved; albuminuria needs 2 of 3 abnormal specimens within 3 to 6 months.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F05"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "fundus_undilated_direct",
+   "feature": "retinopathy_stage",
+   "label": "Direct ophthalmoscopy without dilation misses most retinopathy",
+   "when": {
+    "id": "undilated",
+    "label": "Examined by direct ophthalmoscopy, pupils not dilated",
+    "all": [
+     {
+      "feature": "fundus_method",
+      "op": "==",
+      "value": "undilated_ophthalmoscopy"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO Regional Office for Europe)",
+     "title": "Diabetic retinopathy screening: a short guide. Increase effectiveness, maximize benefits and minimize harm (WHO Regional Office for Europe, 2020; ISBN 9789289055321)",
+     "url": "https://apps.who.int/iris/bitstream/handle/10665/336660/9789289055321-eng.pdf",
+     "quote": "Sensitivity of direct ophthalmoscopy by general practitioners (family doctors) varied between 25% and 66% compared to 43% and 79% for ophthalmologists",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A7-21",
+      "section": "Screening test section, page 14",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-VAL-OPHTHALMOSCOPY"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO Regional Office for Europe)",
+    "title": "Diabetic retinopathy screening: a short guide. Increase effectiveness, maximize benefits and minimize harm (WHO Regional Office for Europe, 2020; ISBN 9789289055321)",
+    "url": "https://apps.who.int/iris/bitstream/handle/10665/336660/9789289055321-eng.pdf",
+    "quote": "Sensitivity of direct ophthalmoscopy by general practitioners (family doctors) varied between 25% and 66% compared to 43% and 79% for ophthalmologists",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A7-21",
+     "section": "Screening test section, page 14",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "A retinal photograph or a dilated examination by a trained examiner. Until then the eyes count as not screened.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-STR-EYE",
+    "status": "new",
+    "review": [
+     "F05"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "abi_calcified",
+   "feature": "abi",
+   "label": "An ankle-brachial index above 1.3 does not exclude arterial disease: calcified arteries raise the reading",
+   "when": {
+    "id": "abi_high",
+    "label": "Ankle-brachial index above 1.3",
+    "all": [
+     {
+      "feature": "abi",
+      "op": ">",
+      "value": 1.3,
+      "unit": "ratio"
+     }
+    ],
+    "citation": {
+     "standard": "IWGDF",
+     "version": "IWGDF/ESVS/SVS 2023",
+     "title": "The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes mellitus and a foot ulcer (2023)",
+     "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+     "quote": "Other research has demonstrated an elevated ABI (>1.3) is associated with both greater likelihood of amputation and worse amputation free survival outcomes and therefore should be recognised as a risk factor for poor DFU outcomes.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A8-39",
+      "section": "Introduction and Rationale for Recommendation 6",
+      "bodyProposed": "IWGDF",
+      "verified": true,
+      "ref": "REF-DM-VAL-ABI-HIGH"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "IWGDF",
+    "version": "IWGDF/ESVS/SVS 2023",
+    "title": "The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes mellitus and a foot ulcer (2023)",
+    "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+    "quote": "Other research has demonstrated an elevated ABI (>1.3) is associated with both greater likelihood of amputation and worse amputation free survival outcomes and therefore should be recognised as a risk factor for poor DFU outcomes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A8-39",
+     "section": "Introduction and Rationale for Recommendation 6",
+     "bodyProposed": "IWGDF",
+     "verified": true
+    }
+   },
+   "alternative": "Toe pressure or pedal Doppler waveforms; refer if there is an ulcer.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-STR-FOOT",
+    "status": "new",
+    "review": [
+     "F05"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "who_chart_non_lab_in_diabetes",
+   "feature": "who_cvd_risk_percent",
+   "label": "The non-laboratory WHO chart has no diabetes input and underestimates risk in people with diabetes",
+   "when": {
+    "id": "nonlab_dm",
+    "label": "Non-laboratory chart used in a person with diabetes",
+    "all": [
+     {
+      "feature": "who_cvd_chart_used",
+      "op": "==",
+      "value": "non_laboratory"
+     },
+     {
+      "feature": "dm_status",
+      "op": "==",
+      "value": "known"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "Nutr Metab Cardiovasc Dis 2024;34(6):1448–1455 (doi 10.1016/j.numecd.2024.01.026)",
+     "title": "Performance of the non-laboratory based 2019 WHO cardiovascular disease risk prediction chart in Eastern Sub-Saharan Africa",
+     "url": "https://www.sciencedirect.com/science/article/pii/S0939475324000462",
+     "quote": "The non-lab-based chart underestimated the CVD risk in 57.6 % of people with diabetes. [...] Lab-based risk estimation is suitable for individuals with diabetes to avoid risk underestimation.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A5-67",
+      "section": "Abstract; Methods",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-CVD-NONLAB-UNDER"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "local",
+    "version": "Nutr Metab Cardiovasc Dis 2024;34(6):1448–1455 (doi 10.1016/j.numecd.2024.01.026)",
+    "title": "Performance of the non-laboratory based 2019 WHO cardiovascular disease risk prediction chart in Eastern Sub-Saharan Africa",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0939475324000462",
+    "quote": "The non-lab-based chart underestimated the CVD risk in 57.6 % of people with diabetes. [...] Lab-based risk estimation is suitable for individuals with diabetes to avoid risk underestimation.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A5-67",
+     "section": "Abstract; Methods",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "alternative": "Use the laboratory chart with total cholesterol. Without it, read the band as a floor; WHO gives a statin to people with type 2 diabetes aged 40 or over whatever the chart says.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-STR-CVD",
+    "status": "new",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "capillary_glucose_acute_illness",
+   "feature": "capillary_glucose",
+   "label": "A raised glucose during acute illness may be transitory",
+   "when": {
+    "id": "ill_capillary_glucose",
+    "label": "Acutely unwell now",
+    "all": [
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+     "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+     "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+     "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-54",
+      "section": "Section 2.2.1",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-STRESS"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+    "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+    "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+    "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-54",
+     "section": "Section 2.2.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Confirm after recovery, unless symptoms of diabetes came before the illness or ketones are raised. Fever and dehydration also cause thirst, so the symptom rule does not protect here.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F28"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "capillary_glucose_tb_at_diagnosis",
+   "feature": "capillary_glucose",
+   "label": "TB can raise glucose at diagnosis",
+   "when": {
+    "id": "tb_capillary_glucose",
+    "label": "TB newly diagnosed or on treatment",
+    "all": [
+     {
+      "feature": "tb_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2025 (3rd ed. handbook)",
+     "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+     "url": "https://tbksp.who.int/en/node/2901",
+     "quote": "Glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. … It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-32",
+      "section": "Diabetes chapter 4.1",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-TB-RECHECK"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "2025 (3rd ed. handbook)",
+    "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+    "url": "https://tbksp.who.int/en/node/2901",
+    "quote": "Glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. … It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-32",
+     "section": "Diabetes chapter 4.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Reassess glycaemia after the first month of TB treatment; confirm an asymptomatic positive with a repeat test.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F28"
+    ],
+    "restrictedClasses": [
+     "tb"
+    ],
+    "neutralDisplay": "Re-check this glucose in a month",
+    "neutralAlternative": "Re-check glycaemia in a month; confirm an asymptomatic positive with a repeat test."
+   }
+  },
+  {
+   "id": "fasting_glucose_acute_illness",
+   "feature": "fasting_pg",
+   "label": "A raised glucose during acute illness may be transitory",
+   "when": {
+    "id": "ill_fasting_glucose",
+    "label": "Acutely unwell now",
+    "all": [
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+     "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+     "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+     "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-54",
+      "section": "Section 2.2.1",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-STRESS"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+    "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+    "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+    "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-54",
+     "section": "Section 2.2.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Confirm after recovery, unless symptoms of diabetes came before the illness or ketones are raised. Fever and dehydration also cause thirst, so the symptom rule does not protect here.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F28"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "fasting_glucose_tb_at_diagnosis",
+   "feature": "fasting_pg",
+   "label": "TB can raise glucose at diagnosis",
+   "when": {
+    "id": "tb_fasting_glucose",
+    "label": "TB newly diagnosed or on treatment",
+    "all": [
+     {
+      "feature": "tb_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2025 (3rd ed. handbook)",
+     "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+     "url": "https://tbksp.who.int/en/node/2901",
+     "quote": "Glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. … It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-32",
+      "section": "Diabetes chapter 4.1",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-TB-RECHECK"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "2025 (3rd ed. handbook)",
+    "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+    "url": "https://tbksp.who.int/en/node/2901",
+    "quote": "Glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. … It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-32",
+     "section": "Diabetes chapter 4.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "Reassess glycaemia after the first month of TB treatment; confirm an asymptomatic positive with a repeat test.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F28"
+    ],
+    "restrictedClasses": [
+     "tb"
+    ],
+    "neutralDisplay": "Re-check this glucose in a month",
+    "neutralAlternative": "Re-check glycaemia in a month; confirm an asymptomatic positive with a repeat test."
+   }
+  },
+  {
+   "id": "egfr_in_pregnancy",
+   "feature": "egfr",
+   "label": "Creatinine-based eGFR equations were not developed for pregnancy",
+   "when": {
+    "id": "egfr_preg",
+    "label": "Pregnant",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "KDIGO",
+     "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+     "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+     "url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+     "quote": "NOT FOUND in the pages opened. Nearest verified text is Practice Point 1.1.3.2 (single abnormal eGFR may reflect AKI/AKD) - see A6–01 and A6–24.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "No sentence on pregnancy was found in the KDIGO pages read. Kept as a warning that does not block, until the CSO supplies a source or removes it.",
+     "x": {
+      "claim": "A6-65",
+      "section": "not located in the pages opened (Table 8 on p. S179 does not list pregnancy)",
+      "bodyProposed": "KDIGO",
+      "verified": false,
+      "ref": "REF-DM-VAL-EGFR-STEADY"
+     }
+    }
+   },
+   "direction": "unpredictable",
+   "blocksDiagnosis": false,
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+    "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+    "url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+    "quote": "NOT FOUND in the pages opened. Nearest verified text is Practice Point 1.1.3.2 (single abnormal eGFR may reflect AKI/AKD) - see A6–01 and A6–24.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "needsCsoInput": "Source text was not opened during research; the value is from memory or a secondary source. Confirm against the primary document before signing.",
+    "x": {
+     "claim": "A6-65",
+     "section": "not located in the pages opened (Table 8 on p. S179 does not list pregnancy)",
+     "bodyProposed": "KDIGO",
+     "verified": false
+    }
+   },
+   "alternative": "Read creatinine itself and the trend, with the antenatal team.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "F39",
+     "V4"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "fundus_undilated_direct_macula",
+   "feature": "macular_oedema",
+   "label": "Direct ophthalmoscopy without dilation cannot exclude macular oedema",
+   "when": {
+    "id": "undilated_macula",
+    "label": "Examined by direct ophthalmoscopy, pupils not dilated",
+    "all": [
+     {
+      "feature": "fundus_method",
+      "op": "==",
+      "value": "undilated_ophthalmoscopy"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO Regional Office for Europe)",
+     "title": "Diabetic retinopathy screening: a short guide. Increase effectiveness, maximize benefits and minimize harm (WHO Regional Office for Europe, 2020; ISBN 9789289055321)",
+     "url": "https://apps.who.int/iris/bitstream/handle/10665/336660/9789289055321-eng.pdf",
+     "quote": "Sensitivity of direct ophthalmoscopy by general practitioners (family doctors) varied between 25% and 66% compared to 43% and 79% for ophthalmologists",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A7-21",
+      "section": "Screening test section, page 14",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-VAL-OPHTHALMOSCOPY"
+     }
+    }
+   },
+   "direction": "masks",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO Regional Office for Europe)",
+    "title": "Diabetic retinopathy screening: a short guide. Increase effectiveness, maximize benefits and minimize harm (WHO Regional Office for Europe, 2020; ISBN 9789289055321)",
+    "url": "https://apps.who.int/iris/bitstream/handle/10665/336660/9789289055321-eng.pdf",
+    "quote": "Sensitivity of direct ophthalmoscopy by general practitioners (family doctors) varied between 25% and 66% compared to 43% and 79% for ophthalmologists",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A7-21",
+     "section": "Screening test section, page 14",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "alternative": "A retinal photograph or a dilated examination by a trained examiner. Until then the eyes count as not screened.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-STR-EYE",
+    "status": "new",
+    "review": [
+     "F05"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "uacr_count_transient",
+   "feature": "uacr_abnormal_count",
+   "label": "A count of abnormal urine albumin results taken during fever, infection, exercise or menstruation does not confirm albuminuria",
+   "when": {
+    "id": "transient_count",
+    "label": "A transient cause is present",
+    "all": [
+     {
+      "feature": "uacr_transient_cause",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2025 (Diabetes Care 2025;48(Suppl 1):S239-S251) - 2026 edition (Diabetes Care 2026;49(Suppl 1):S246, doi 10.2337/dc26-S011) could NOT be opened (diabetesjournals.org 403; PMC id not found / PMC CAPTCHA)",
+     "title": "11. Chronic Kidney Disease and Risk Management: Standards of Care in Diabetes-2025",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11635029/",
+     "quote": "Exercise within 24 h, infection, fever, heart failure, marked hyperglycemia, menstruation, and marked hypertension may elevate UACR independently of kidney damage.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-13",
+      "section": "Body text 'Assessment of Albuminuria and Estimated Glomerular Filtration Rate'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-VAL-UACR-TRANSIENT"
+     }
+    }
+   },
+   "direction": "manufactures",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "ADA",
+    "version": "2025 (Diabetes Care 2025;48(Suppl 1):S239-S251) - 2026 edition (Diabetes Care 2026;49(Suppl 1):S246, doi 10.2337/dc26-S011) could NOT be opened (diabetesjournals.org 403; PMC id not found / PMC CAPTCHA)",
+    "title": "11. Chronic Kidney Disease and Risk Management: Standards of Care in Diabetes-2025",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11635029/",
+    "quote": "Exercise within 24 h, infection, fever, heart failure, marked hyperglycemia, menstruation, and marked hypertension may elevate UACR independently of kidney damage.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-13",
+     "section": "Body text 'Assessment of Albuminuria and Estimated Glomerular Filtration Rate'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "alternative": "Repeat when it has resolved; albuminuria needs 2 of 3 abnormal specimens within 3 to 6 months.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "new",
+    "review": [
+     "H29"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "hba1c_red_cell_turnover",
+   "feature": "hba1c",
+   "label": "Haemolysis, recent malaria or a transfusion in the last 3 months make HbA1c unreliable",
+   "when": {
+    "id": "rbc_turnover",
+    "label": "Haemolysis, current or recent malaria, or a transfusion in the last 3 months",
+    "any": [
+     {
+      "feature": "haemolysis",
+      "op": "present"
+     },
+     {
+      "feature": "malaria_current",
+      "op": "present"
+     },
+     {
+      "feature": "recent_transfusion",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "NGSP web page, last updated 23 June 2026 as displayed",
+     "title": "NGSP: Factors that Interfere with HbA1c Test Results",
+     "url": "https://ngsp.org/factors.asp",
+     "quote": "Any condition that shortens erythrocyte survival or decreases mean erythrocyte age (e.g., recovery from acute blood loss ...) will falsely lower HbA1c test results regardless of the assay method ... HbA1c results from patients with HbSS, HbCC, and HbSC must be interpreted with caution",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-26",
+      "section": "Main text",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-VAL-HBA1C-RBC"
+     }
+    }
+   },
+   "direction": "unpredictable",
+   "blocksDiagnosis": true,
+   "citation": {
+    "standard": "local",
+    "version": "NGSP web page, last updated 23 June 2026 as displayed",
+    "title": "NGSP: Factors that Interfere with HbA1c Test Results",
+    "url": "https://ngsp.org/factors.asp",
+    "quote": "Any condition that shortens erythrocyte survival or decreases mean erythrocyte age (e.g., recovery from acute blood loss ...) will falsely lower HbA1c test results regardless of the assay method ... HbA1c results from patients with HbSS, HbCC, and HbSC must be interpreted with caution",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-26",
+     "section": "Main text",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "alternative": "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-VALID",
+    "status": "reconcile",
+    "review": [
+     "H09"
+    ],
+    "note": "The live catalog almost certainly carries these three already (the features were seen in the briefing). Reconcile, do not duplicate.",
+    "restrictedClasses": []
+   }
+  }
+ ],
+ "rules": [
+  {
+   "id": "DM-CON-PREG-01",
+   "display": "Pregnant with a glucose in the WHO gestational range",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "con_gdm_any",
+    "label": "Pregnant, with any one of: fasting 5.1 mmol/L or more, 1-hour 10.0 or more, 2-hour 8.5 or more",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 5.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 10.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 8.5,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2013",
+     "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+     "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-03",
+      "section": "Chapter 4 Recommendations, 4.3",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-PREG-GDM-FPG"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_1h_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Diabetes in pregnancy (values in the diabetes range)",
+    "A sample taken when not fasting, recorded as fasting"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-03",
+     "section": "Chapter 4 Recommendations, 4.3",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "One value is enough under WHO 2013. If fasting is 7.0 or more, or 2-hour 11.1 or more, this is diabetes in pregnancy and rule DM-CON-PREG-02 outranks this one.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "proposal": {
+     "kind": "refer",
+     "to": "antenatal_clinic",
+     "tier": "today"
+    },
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CON-PREG-02",
+   "display": "Pregnant with a glucose in the diabetes range: diabetes in pregnancy",
+   "condition": "diabetes_in_pregnancy",
+   "when": {
+    "id": "con_dip_any",
+    "label": "Pregnant, with fasting plasma glucose 7.0 mmol/L or more, or 2-hour 11.1 or more (a random 11.1 with symptoms is in the criteria set, and any 11.1 is referred by rule DM-CON-PREG-03)",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2013",
+     "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+     "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-02",
+      "section": "Chapter 4 Recommendations, 4.2",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-PREG-DIP"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "A sample taken when not fasting, recorded as fasting"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-02",
+     "section": "Chapter 4 Recommendations, 4.2",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "rulesOut": [
+    "gestational_diabetes"
+   ],
+   "notes": "WHO 2025: multidisciplinary specialised care, with retinal and kidney assessment when antenatal care starts.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "proposal": {
+     "kind": "refer",
+     "to": "antenatal_clinic_specialist",
+     "tier": "today"
+    },
+    "review": [
+     "F09"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CON-PREG-03",
+   "display": "Pregnant with a glucose of 11.1 mmol/L or more on any sample, meter included: refer today for specialised antenatal care",
+   "condition": "diabetes_in_pregnancy",
+   "when": {
+    "id": "con_preg_any_11",
+    "label": "Pregnant, with any glucose of 11.1 mmol/L or more (plasma or meter, any timing), or a meter reading HI",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2013",
+     "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+     "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "A referral rule, not a diagnosis. WHO 2013 diagnoses diabetes in pregnancy on plasma glucose; no source read here says how to act on a meter value in pregnancy. FIGO 2015 discusses plasma-calibrated meters and was not read for this point. For CSO signature (D-DM-28).",
+     "x": {
+      "claim": "A10-02",
+      "section": "Chapter 4 Recommendations, 4.2",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-PREG-DIP"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "A meter reading taken soon after a sugary drink"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-02",
+     "section": "Chapter 4 Recommendations, 4.2",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "Most antenatal care in Uganda is at health centre III with a meter. The laboratory criteria sets stay 'unavailable' there; this rule makes sure the woman is not left with a routine suggestion.",
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "proposal": {
+     "kind": "refer",
+     "to": "antenatal_clinic_specialist",
+     "tier": "today"
+    },
+    "review": [
+     "F09"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CON-PREG-04",
+   "display": "Pregnant with a fasting meter glucose of 5.1 mmol/L or more: send a laboratory glucose",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "con_preg_fcap",
+    "label": "Pregnant, with a fasting capillary glucose of 5.1 mmol/L or more",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     },
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 5.1,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2013",
+     "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+     "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "WHO's gestational criteria are stated for plasma glucose. Reading a meter value against the fasting threshold only to trigger a laboratory test is this pack's step (D-DM-28).",
+     "x": {
+      "claim": "A10-03",
+      "section": "Chapter 4 Recommendations, 4.3",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-PREG-GDM-FPG"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "urgent",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_1h_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "A sample that was not truly fasting",
+    "Meter error near the threshold (15% is allowed)"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-03",
+     "section": "Chapter 4 Recommendations, 4.3",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "proposal": {
+     "kind": "refer",
+     "to": "laboratory_glucose_or_antenatal_clinic",
+     "tier": "soon"
+    },
+    "review": [
+     "F09",
+     "H44"
+    ],
+    "notWhen": [
+     {
+      "id": "con_preg_fcap_high",
+      "label": "A fasting capillary glucose of 7.0 mmol/L or more (referred today by rule DM-CON-PREG-05)",
+      "all": [
+       {
+        "feature": "capillary_glucose_context",
+        "op": "==",
+        "value": "fasting"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": ">=",
+        "value": 7.0,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2013",
+       "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+       "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-02",
+        "section": "Chapter 4 Recommendations, 4.2",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-PREG-DIP"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CON-PREG-05",
+   "display": "Pregnant with a fasting meter glucose of 7.0 mmol/L or more: refer today for specialised antenatal care",
+   "condition": "diabetes_in_pregnancy",
+   "when": {
+    "id": "con_preg_fcap7",
+    "label": "Pregnant, with a fasting capillary glucose of 7.0 mmol/L or more",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     },
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2013",
+     "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+     "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "A referral rule, not a diagnosis: a fasting plasma glucose at this level is diabetes in pregnancy under WHO 2013, and the meter reading is treated the same way for referral only (D-DM-28).",
+     "x": {
+      "claim": "A10-02",
+      "section": "Chapter 4 Recommendations, 4.2",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-PREG-DIP"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "A sample that was not truly fasting"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-02",
+     "section": "Chapter 4 Recommendations, 4.2",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "proposal": {
+     "kind": "refer",
+     "to": "antenatal_clinic_specialist",
+     "tier": "today"
+    },
+    "review": [
+     "H44"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  }
+ ]
+}

@@ -1,0 +1,386 @@
+[
+ {
+  "ref": "REF-DM-EYE-CONTROLLED-ONLY",
+  "verdict": "confirmed",
+  "foundQuote": "*In cases where diabetes is controlled.",
+  "correctValue": null,
+  "note": "Footnote read beneath both Table 2 and Table 3. The fetch tool reported the asterisk sits in the table title after 'International Classification of Diabetic Retinopathy*', so it qualifies the whole schedule. Same footnote read in ICO's own 2017 guideline (Tables 2a/2b).",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-DME",
+  "verdict": "confirmed",
+  "foundQuote": "no DME, absence of retinal thickening or hard exudates in the macula region; (2) nonecenterinvolving DME, retinal thickening in the macula that does not involve a central subfield zone that is 1 mm in diameter; and (3) center-involving DME, retinal thickening in the macula that involves a central subfield zone that is 1 mm in diameter.",
+  "correctValue": null,
+  "note": "ICO attribution correct. The supporting citation for claim A7-06 (Wilkinson 2003 Table 3) is a DIFFERENT macular oedema scale (absent/present, then mild/moderate/severe by distance from the centre of the macula) with no 1 mm central subfield; it does not support the ICO three-category wording.",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-RECALL-DME-CI",
+  "verdict": "confirmed",
+  "foundQuote": "Center-involving DME | 1 mo | Referral required",
+  "correctValue": null,
+  "note": "Read three times from the Ophthalmology 2018 PDF: the first broad read returned '1-3 months' for Table 3, two narrower character-level re-reads returned '1 mo'. ICO's own 2017 guideline Table 2b (screenretina.ru copy) independently reads 'Central-involved DME | 1 month | Required'. Taken as 1 month; the single divergent read is judged a tool error, but a human glance at Table 3 of the PDF would close it.",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-RECALL-DME-NCI",
+  "verdict": "confirmed",
+  "foundQuote": "Nonecenter-involving DME | 3 mos | Referral not required (referral recommended if laser sources available)",
+  "correctValue": null,
+  "note": "Table 3 (low/intermediate). In Table 2 (high resource) the same row is 'Referral required'. ICO 2017 guideline Table 2b agrees (3 months; referral not required, recommended if laser resources available).",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-RECALL-MODERATE-MAX",
+  "verdict": "confirmed",
+  "foundQuote": "Moderate nonproliferative DR | 6e12 mos | Referral required",
+  "correctValue": null,
+  "note": "Raw PDF text renders the en dash as 'e' (6-12 mos). 12 months is the upper bound of the printed range. High-resource Table 2 differs (3-6 mos).",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-RECALL-NONE-MILD-MAX",
+  "verdict": "confirmed",
+  "foundQuote": "No apparent DR, mild nonproliferative DR, and no DME | Re-examination in 1e2 yrs | Referral not required ... Mild nonproliferative DR | 1e2 yrs | Referral not required",
+  "correctValue": null,
+  "note": "Raw PDF text renders the en dash as 'e' (1-2 yrs). 24 months is the upper bound of '1-2 yrs'; conversion sound. Applies to Table 3 only: in high-resource Table 2 mild NPDR is 6-12 mos.",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-RECALL-PDR",
+  "verdict": "confirmed",
+  "foundQuote": "Proliferative DR | <1 mo | Referral required",
+  "correctValue": null,
+  "note": "Operator is strictly less than 1 month, as the entry says ('under').",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-RECALL-SEVERE",
+  "verdict": "confirmed",
+  "foundQuote": "Severe nonproliferative DR | <3 mos | Referral required",
+  "correctValue": null,
+  "note": "Operator is strictly less than 3 months, as the entry says ('under').",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-REFER-VA",
+  "verdict": "confirmed",
+  "foundQuote": "Minimum referral guidelines are as follows: (1) visual acuity worse than 6/12 (20/40) or symptomatic vision reports; (2) if DR can be classified according to the simplified International Classification of DR (Table 1), they should be referred based on recommendations for management (Tables 2 and 3).",
+  "correctValue": null,
+  "note": "ICO's own 2017 guideline words it 'Visual acuity below 6/12 (20/40) or symptomatic vision complaints'. 'Whatever the grade' is the entry's reading of item (1) being listed independently of grade. The secondary citation for claim A7-46 (WHO short guide, page 7) was NOT found: the fetch of the WHO guide returned no sentence giving a 6/12 visual acuity referral cut-off.",
+  "urlUsed": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-RAPID-FALL",
+  "verdict": "confirmed",
+  "foundQuote": "Retinopathy status should be assessed when glucose-lowering therapies are intensified, such as those using GLP-1 RAs, since rapid reductions in A1C have been shown to be associated with a risk of initial worsening of retinopathy.",
+  "correctValue": null,
+  "note": "Document title read as '12. Retinopathy, Neuropathy, and Foot Care: Standards of Care in Diabetes-2026'. Copy is a third-party host (aotinc.net); the PMC copy (PMC12690181) returned a reCAPTCHA page and the Europe PMC XML a 500 error, so no cross-check against an official host was possible.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-INTERVAL-ADA",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "12.5: If there is no evidence of retinopathy from one or more annual eye exams and glycemic indicators are within the goal range, then screening every 1–2 years may be considered. If any level of diabetic retinopathy is present, subsequent dilated retinal examinations should be repeated at least annually by an ophthalmologist or optometrist. If retinopathy is progressing or sight-threatening, then examinations by an ophthalmologist will be required more frequently. B",
+  "correctValue": null,
+  "note": "12 months is right, but the entry text lacks the condition. 'At least annually' applies when any retinopathy is present; with no retinopathy on one or more annual exams and glycaemia at goal, every 1-2 years may be considered; progressing or sight-threatening retinopathy needs more frequent examination.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-REFER-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "12.9: Promptly refer individuals with any level of diabetic macular edema, moderate or worse nonproliferative diabetic retinopathy (a precursor of proliferative diabetic retinopathy [PDR]), or any PDR to an ophthalmologist who is knowledgeable and experienced in the management of diabetic retinopathy. A",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-START-T1",
+  "verdict": "confirmed",
+  "foundQuote": "12.3: Adults with type 1 diabetes should have an initial dilated and comprehensive eye examination by an ophthalmologist or optometrist 5 years after the onset of diabetes. B ... 12.4: People with type 2 diabetes should have an initial dilated and comprehensive eye examination by an ophthalmologist or optometrist at the time of the diabetes diagnosis. B",
+  "correctValue": null,
+  "note": "Recommendation 12.3 is worded for adults with type 1 diabetes.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-ASYMPTOMATIC",
+  "verdict": "confirmed",
+  "foundQuote": "Up to 50% of diabetic peripheral neuropathy (DPN) cases may be asymptomatic.",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-ATYPICAL",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Electrophysiological testing, magnetic resonance imaging (MRI) scan of the spine, or referral to a neurologist is rarely needed, except in situations where the clinical features are atypical (acute or subacute presentation, non–length dependent, asymmetric, and/or motor involvement) or the diagnosis is unclear.",
+  "correctValue": null,
+  "note": "ADA 2026 says 'motor involvement', not 'motor more than sensory' (that phrase is from the older 2017 ADA position statement wording and is narrower). The ADA sentence also adds 'or the diagnosis is unclear' as a trigger. Entry text should read 'motor involvement' and include the unclear-diagnosis trigger.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-AUTONOMIC",
+  "verdict": "confirmed",
+  "foundQuote": "Screening for symptoms of autonomic neuropathy includes asking about symptoms of orthostatic intolerance (dizziness, lightheadedness, or weakness with standing), syncope, exercise intolerance, constipation, diarrhea, urinary retention, urinary incontinence, or changes in sweat function.",
+  "correctValue": null,
+  "note": "'Yearly' comes from Recommendation 12.19 (E): '...starting at diagnosis of type 2 diabetes and 5 years after the diagnosis of type 1 diabetes, and at least annually thereafter'. Recommendation 12.19's own list differs slightly from the narrative list (orthostatic dizziness, syncope, early satiety, erectile dysfunction, changes in sweating patterns, dry cracked skin).",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-EXCLUSION",
+  "verdict": "confirmed",
+  "foundQuote": "Diabetic neuropathy is a diagnosis of exclusion. Nondiabetic neuropathies may be present in people with diabetes and may be treatable. ... toxins (e.g., alcohol), neurotoxic medications (e.g., chemotherapy), vitamin B12 (especially in those treated chronically with metformin) and other nutritional deficiencies (e.g., acquired copper deficiency after metabolic surgery), hypothyroidism, kidney disease, malignancies (e.g., multiple myeloma, bronchogenic carcinoma), infections (e.g., HIV, hepatitis C), chronic inflammatory demyelinating neuropathy, inherited neuropathies, and vasculitis",
+  "correctValue": null,
+  "note": "All eight causes named in the entry are in the ADA list (the list also has hepatitis C, CIDP, vasculitis and other nutritional deficiencies). The secondary citation for claim A8-07 (Europe PMC XML of PMC6977405) could not be read: the proxy returned HTTP 429 and forbade a retry.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-INTERVAL",
+  "verdict": "confirmed",
+  "foundQuote": "12.17: All people with diabetes should be assessed for diabetic peripheral neuropathy starting at diagnosis of type 2 diabetes and 5 years after the diagnosis of type 1 diabetes and at least annually thereafter. B",
+  "correctValue": null,
+  "note": "'At least annually' = 12 months as a maximum interval; conversion sound.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-OH-DBP",
+  "verdict": "confirmed",
+  "foundQuote": "Advanced disease may be associated with resting tachycardia (>100 bpm) and orthostatic hypotension (a fall in systolic or diastolic blood pressure by >20 mmHg or >10 mmHg, respectively, upon standing without an appropriate increase in heart rate).",
+  "correctValue": null,
+  "note": "Operator is strictly greater than 10 mmHg diastolic, matching the entry. ADA's phrase carries the qualifier 'without an appropriate increase in heart rate' (it is describing neurogenic orthostatic hypotension of advanced cardiovascular autonomic neuropathy). Numbers were returned by the fetch without being supplied in the question.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-OH-SBP",
+  "verdict": "confirmed",
+  "foundQuote": "Advanced disease may be associated with resting tachycardia (>100 bpm) and orthostatic hypotension (a fall in systolic or diastolic blood pressure by >20 mmHg or >10 mmHg, respectively, upon standing without an appropriate increase in heart rate).",
+  "correctValue": null,
+  "note": "Operator is strictly greater than 20 mmHg systolic, matching the entry. Same qualifier as REF-DM-NEU-OH-DBP ('without an appropriate increase in heart rate').",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-PAIN",
+  "verdict": "confirmed",
+  "foundQuote": "Gabapentinoids, serotonin-norepinephrine reuptake inhibitors, tricyclic antidepressants, and sodium channel blockers are recommended as initial pharmacologic treatments for neuropathic pain in diabetes. Combinations of these medications can provide additional relief of neuropathic pain. Opioids, including tramadol and tapentadol, should not be used for neuropathic pain treatment in diabetes given the potential for adverse events except in rare circumstances.",
+  "correctValue": null,
+  "note": "Recommendation number 12.22 and the four classes read. ADA wording on opioids is 'should not be used ... except in rare circumstances'. The per-sentence evidence grades (A, A, B) were not verified: the fetch returned only 'Grade A' for the recommendation and the follow-up read was blocked by the fetch session limit. No doses recorded.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-TACHY",
+  "verdict": "confirmed",
+  "foundQuote": "Advanced disease may be associated with resting tachycardia (>100 bpm) and orthostatic hypotension (a fall in systolic or diastolic blood pressure by >20 mmHg or >10 mmHg, respectively, upon standing without an appropriate increase in heart rate).",
+  "correctValue": null,
+  "note": "Operator is strictly greater than 100 bpm. ADA frames this as a feature of advanced disease ('may be associated with'), i.e. a late sign, not a screening threshold.",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-NEU-TESTS",
+  "verdict": "confirmed",
+  "foundQuote": "12.18: Assessment for distal symmetric polyneuropathy should include a careful history and assessment of either temperature or pinprick sensation (small-fiber function) and vibration sensation using a 128-Hz tuning fork (large-fiber function). All people with diabetes should have annual 10-g monofilament testing to identify feet at risk for ulceration and amputation. B",
+  "correctValue": null,
+  "note": "Secondary citation for claim A8-09 (PMC6977405) could not be read (HTTP 429 from the proxy, retry forbidden).",
+  "urlUsed": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-VAL-OPHTHALMOSCOPY",
+  "verdict": "confirmed",
+  "foundQuote": "the sensitivity of direct ophthalmoscopy by general practitioners (family doctors) varied between 25% and 66% compared to 43% and 79% for ophthalmologists",
+  "correctValue": null,
+  "note": "Title read as 'Diabetic retinopathy screening: a short guide. Increase effectiveness, maximize benefits and minimize harm', WHO Regional Office for Europe, 2020; page 14. The fetch reported the figure is WHO citing a systematic review (Hutchinson et al., 2000), so it is a reported finding, not a WHO-generated estimate. The ICO annex table cited for claim A7-20 says only 'Low sensitivity' with no numbers.",
+  "urlUsed": "https://apps.who.int/iris/bitstream/handle/10665/336660/9789289055321-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INT-0",
+  "verdict": "confirmed",
+  "foundQuote": "0 | Very low | No LOPS and no signs of PAD | Once a year",
+  "correctValue": null,
+  "note": "Table 1 footnote: 'Screening frequency is based on expert opinion, since there is no published evidence to support these intervals'.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INT-1",
+  "verdict": "confirmed",
+  "foundQuote": "1 | Low | LOPS or PAD | Once every 6-12 months",
+  "correctValue": null,
+  "note": "12 is the upper bound of the printed range, as the entry text states. Expert-opinion footnote applies.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INT-2",
+  "verdict": "confirmed",
+  "foundQuote": "2 | Moderate | LOPS + PAD, or LOPS + foot deformity or PAD + foot deformity | Once every 3-6 months",
+  "correctValue": null,
+  "note": "6 is the upper bound of the printed range, as the entry text states. Expert-opinion footnote applies.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INT-3",
+  "verdict": "confirmed",
+  "foundQuote": "3 | High | LOPS or PAD, and one or more of the following: - history of a foot ulcer - a lower-extremity amputation (minor or major) - end-stage renal disease | Once every 1-3 months",
+  "correctValue": null,
+  "note": "3 is the upper bound of the printed range, as the entry text states. Expert-opinion footnote applies.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-IPSWICH",
+  "verdict": "confirmed",
+  "foundQuote": "The examiner lightly sequentially touches with the tip of hers/his index finger the tips of the first, third, and fifth toes of both feet for 1–2 s ... LOPS is likely when light touch is not sensed in ≥ 2 sites",
+  "correctValue": null,
+  "note": "Operator is >= 2 sites. Six sites = first, third and fifth toes of both feet. The sentence positioning it as the fallback when monofilament or tuning fork is unavailable was read in Section 3 ('When monofilament or tuning fork are not available test tactile sensation').",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-IWGDF",
+  "verdict": "confirmed",
+  "foundQuote": "0 Very low: No LOPS and no signs of PAD | 1 Low: LOPS or PAD | 2 Moderate: LOPS + PAD, or LOPS + foot deformity or PAD + foot deformity | 3 High: LOPS or PAD, and one or more of the following: - history of a foot ulcer - a lower-extremity amputation (minor or major) - end-stage renal disease",
+  "correctValue": null,
+  "note": "Category 0 reads 'no signs of PAD'. Category 3 amputation is 'minor or major'.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-LOPS-RULE",
+  "verdict": "confirmed",
+  "foundQuote": "assess with one of the following techniques (see Appendix 1 for details): o Pressure perception: Semmes-Weinstein 10 gram monofilament o Vibration perception: 128 Hz tuning fork o When monofilament or tuning fork are not available test tactile sensation: lightly touch the tips of the toes of the patient with the tip of your index finger for 1–2 seconds",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-MONO",
+  "verdict": "confirmed",
+  "foundQuote": "Test three different sites on both feet ... Repeat this application twice at the same site, but alternate this with at least one 'mock' application in which no filament is applied (a total of three questions per site). ... Protective sensation is: present at each site if the patient correctly answers on two out of three applications; absent with two out of three incorrect answers.",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INF-MIN-CM",
+  "verdict": "confirmed",
+  "foundQuote": "Infected: At least two of these items are present: • Local swelling or induration • Erythema > 0.5 but < 2 cm b around the wound • Local tenderness or pain • Local increased warmth • Purulent discharge And, no other cause of an inflammatory response of the skin (e.g., trauma, gout, acute Charcot neuro-arthropathy, fracture, thrombosis, or venous stasis)",
+  "correctValue": null,
+  "note": "Operator is strictly greater than 0.5 cm. Footnote b: 'in any direction, from the rim of the wound'. The 2023 table prints the sign as '> 0.5 but < 2 cm' in the infected row, while erythema >= 2 cm defines moderate; a rule should treat any erythema > 0.5 cm as a local sign and not exclude erythema of 2 cm or more. At least two local signs are needed and other causes of inflammation must be excluded.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-04-Infection-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INF-MOD-CM",
+  "verdict": "confirmed",
+  "foundQuote": "Infection with no systemic manifestations and involving: • erythema extending ≥ 2 cm b from the wound margin, and/or • tissue deeper than skin and subcutaneous tissues (e.g., tendon, muscle, joint, and bone)",
+  "correctValue": null,
+  "note": "Operator is >= 2 cm; grade 3 / moderate requires no systemic manifestations. Bone involvement adds '(O)'.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-04-Infection-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-INF-SEVERE",
+  "verdict": "confirmed",
+  "foundQuote": "Any foot infection with associated systemic manifestations (of the systemic inflammatory response syndrome [SIRS]), as manifested by ≥ 2 of the following: • temperature, > 38°C or < 36°C • heart rate, > 90 beats/min • respiratory rate, >20 breaths/min, or PaCO2 < 4.3 kPa (32 mmHg) • white blood cell count >12,000/mm³, or < 4G/L, or > 10% immature (band) forms",
+  "correctValue": null,
+  "note": "All four operators match the entry (>38 or <36 C; >90/min; >20/min; abnormal white cell count). The source also allows PaCO2 < 4.3 kPa (32 mmHg) as the respiratory criterion and defines the white cell criterion as >12,000/mm3, or <4 G/L, or >10% immature forms.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-04-Infection-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-ABI-LOW",
+  "verdict": "confirmed",
+  "foundQuote": "No single modality has been shown to be optimal for the diagnosis of PAD, and there is no value above which PAD can be excluded. However, PAD is less likely in the presence of ABI 0.9-1.3; TBI ≥ 0.70; and triphasic or biphasic pedal Doppler waveforms.",
+  "correctValue": null,
+  "note": "Printed as a range '0.9-1.3' with no explicit operators; the entry's 'at or above 0.9 and at or below 1.3' is the natural inclusive reading. Present in Recommendation 2 (Conditional, Low) and Recommendation 4 (Strong, Low). 'Less likely' is not 'excluded', and the source pairs ABI with TBI >= 0.70 and triphasic/biphasic waveforms.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-ISCH-ABI",
+  "verdict": "confirmed",
+  "foundQuote": "Recommendation 13: In a person with diabetes, peripheral artery disease, a foot ulcer, and severe ischaemia i.e. an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg or monophasic or absent pedal Doppler waveforms, urgently consult a vascular specialist regarding possible revascularisation.",
+  "correctValue": null,
+  "note": "Operator strictly less than 0.4. Applies to a person with diabetes, PAD and a foot ulcer. Practical Guidelines agree for ABI: 'In a person with either an ankle pressure <50mm Hg or an ABI <0.4 consider urgent vascular imaging ... and revascularisation.'",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-ISCH-ANKLE",
+  "verdict": "confirmed",
+  "foundQuote": "Recommendation 13: ... severe ischaemia i.e. an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg or monophasic or absent pedal Doppler waveforms, urgently consult a vascular specialist regarding possible revascularisation.",
+  "correctValue": null,
+  "note": "Operator strictly less than 50 mmHg.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-ISCH-TOE",
+  "verdict": "confirmed",
+  "foundQuote": "Recommendation 13: ... severe ischaemia i.e. an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg or monophasic or absent pedal Doppler waveforms, urgently consult a vascular specialist regarding possible revascularisation.",
+  "correctValue": null,
+  "note": "Operator strictly less than 30 mmHg. Not an entry, but worth knowing: the two IWGDF documents differ on the transcutaneous oxygen threshold (PAD guideline Rec 13: <30 mmHg; Practical Guidelines section on restoring perfusion: 'TcpO2 is <25 mmHg').",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-NO-IMPROVE",
+  "verdict": "confirmed",
+  "foundQuote": "Recommendation 15: In a person with diabetes and a foot ulcer, when the wound deteriorates or fails to significantly improve (e.g. a less than 50% reduction in wound area within 4 weeks) despite appropriate infection and glucose control, wound care, and offloading, reassess the vascular status and consult with a vascular specialist regarding possible revascularisation.",
+  "correctValue": null,
+  "note": "The 50% in 4 weeks figure is given as an example ('e.g.'), not a hard cut-off.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-VAL-ABI-HIGH",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Other research has demonstrated an elevated ABI (>1.3) is associated with both greater likelihood of amputation and worse amputation free survival outcomes and therefore should be recognised as a risk factor for poor DFU outcomes. ... Co-existent medial artery calcification (MAC), which is also associated with peripheral neuropathy, is common and can affect the accuracy of non-invasive tests such as the ankle-brachial index (ABI) by causing elevation of ankle and, to a lesser extent, digital pressures. ... there is no value above which PAD can be excluded.",
+  "correctValue": null,
+  "note": "The threshold (>1.3) and 'does not exclude PAD' are supported, but no sentence in this guideline says that an ABI above 1.3 'suggests calcified arteries'. The fetch searched the document for 1.3, 1.4, calcification, calcinosis, incompressible, non-compressible and falsely and found only: (a) Introduction: MAC elevates ankle pressures and affects ABI accuracy (no number); (b) Rec 2/4: no value above which PAD can be excluded; (c) Rec 6 rationale: ABI >1.3 is a risk factor for amputation and poor ulcer outcome. The entry is a synthesis of these three. Suggested wording: 'ABI above 1.3 is an elevated value: it does not exclude PAD (medial artery calcification can raise ankle pressures) and is itself a risk factor for amputation.' A check of the Practical Guidelines for an explicit sentence was blocked by the fetch session limit.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-CHARCOT",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Recommendation 1: Always consider active Charcot neuro-osteoarthropathy in a person with diabetes mellitus, neuropathy and intact skin when there are clinical findings of an increase in temperature, oedema, and/or redness of the foot, compared to the contralateral foot. ... Recommendation 5: Initiate knee high immobilization/offloading promptly while further diagnostic studies are performed to confirm or rule out active Charcot neuro-osteoarthropathy (CNO), when active CNO is suspected. ... An increase in skin temperature of 2° Celsius or 4° Fahrenheit (which is actually 2.2°C) of the involved foot compared to the same location on the uninvolved foot has been used as a diagnostic threshold for active CNO in several publications. ... Although an essential part of the diagnostic evaluation, isolated elevation of foot skin temperature is not sufficient to diagnose or rule out active CNO. ... Different cut-off points have been used, 4oF (which is 2.2oC), 2oC, and 1oC.",
+  "correctValue": null,
+  "note": "Three qualifiers. (1) IWGDF says 'and/or': any one of warmth, oedema or redness is enough to consider Charcot, not all three as 'warm, swollen, red' implies; and the wording is 'always consider', not 'is Charcot until shown otherwise'. (2) 'Refer' is not an IWGDF Charcot recommendation (the fetch found none); it comes from NICE NG19 1.7.3: 'refer the person within 1 working day to the multidisciplinary foot care service for triage within 1 further working day. Offer non-weight-bearing treatment'. (3) 'No skin-temperature threshold is endorsed' is true of IWGDF for DIAGNOSIS, but NICE NG19 1.7.7 does use a number for RESOLUTION: 'Acute Charcot arthropathy is likely to resolve when there is a sustained temperature difference of less than 2 degrees between both feet'.",
+  "urlUsed": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-08-Charcot-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-UG-2016",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "DR management is based on the International Council of Ophthalmology's Diabetic Retinopathy and Diabetic Macula Edema severity scales. ... All diabetic patients should be referred to a secondary or tertiary facility (Retina centre) for proper evaluation and management.",
+  "correctValue": null,
+  "note": "Title read as 'Guidelines for Eye care', Ministry of Health, October 2016; pages 14-15. The referral sentence is verbatim. The document does not use the term 'ICDR': it names 'the International Council of Ophthalmology's Diabetic Retinopathy and Diabetic Macula Edema severity scales', and Table 2 carries the footer 'Copyright @2011 ICEH'. The stage names do match the ICDR scale (no DR; mild, moderate, severe NPDR; PDR), and macular oedema is staged mild/moderate/severe (the 2003 scale), NOT the ICO 2017 centre-involving/non-centre-involving split. Uganda's Table 2 also differs from the ICO low-resource schedule: mild NPDR is 'Refer to retina clinic' with follow-up in 12 months, moderate 6-12 months, severe 'review in 6 months or consider pan retinal laser if follow up is unreliable', PDR 'Urgent referral to retina clinic'. Severe NPDR is printed as 'More than 20 haemorrhages in each quadrant or venous beading in 2 quadrants or Intraretinal microvascular abnormalities (IRMA)'.",
+  "urlUsed": "https://library.health.go.ug/file-download/download/public/1282"
+ },
+ {
+  "ref": "REF-DM-NEU-TORONTO",
+  "verdict": "confirmed",
+  "foundQuote": "2. Probable DSPN: The presence of a combination of symptoms and signs of neuropathy include any two or more of the following: neuropathic symptoms, decreased distal sensation, or unequivocally decreased or absent ankle reflexes.",
+  "correctValue": null,
+  "note": "Article read as Tesfaye S et al., Diabetes Care, October 2010, vol 33 issue 10. Possible DSPN (criterion 1) also read: symptoms OR signs.",
+  "urlUsed": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC2945176/fullTextXML"
+ },
+ {
+  "ref": "REF-DM-EYE-ICDR",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Mild nonproliferative diabetic retinopathy: Microaneurysms only | Moderate nonproliferative diabetic retinopathy: More than just microaneurysms but less than severe nonproliferative diabetic retinopathy | Severe nonproliferative diabetic retinopathy: Any of the following: more than 20 intraretinal hemorrhages in each of 4 quadrants; definite venous beading in 2≥ quadrants; Prominent intraretinal microvascular abnormalities in 1≥ quadrant And no signs of proliferative retinopathy | Proliferative diabetic retinopathy: One or more of the following: neovascularization, vitreous/preretinal hemorrhage",
+  "correctValue": null,
+  "note": "The entry matches Wilkinson 2003 Table 2 on every point checked: ANY of the three; 'more than 20' in each of 4 quadrants; venous beading in 2 or more quadrants ('2+' rendered '2≥' by the text extraction); prominent IRMA in 1 or more; no proliferative signs. Qualifier: the ICO restatement cited for claim A7-10 uses a different operator. ICO Table 1 (both the Ophthalmology 2018 paper and the ICO 2017 guideline) prints 'Moderate nonproliferative DR with any of the following: intraretinal hemorrhages (≥20 in each quadrant); definite venous beading (in ≥2 quadrants); intraretinal microvascular abnormalities (in ≥1 quadrant); and no signs of proliferative retinopathy'. So exactly 20 haemorrhages per quadrant is severe under ICO's table but not under Wilkinson's. The catalogue grades by Wilkinson and schedules by ICO; the boundary case should be decided explicitly.",
+  "urlUsed": "https://www.healthvisors.com/wp-content/uploads/2020/06/Wilkinson-ICDR-2003.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-1DAY",
+  "verdict": "confirmed",
+  "foundQuote": "1.4.2: For all other active diabetic foot problems, refer the person within 1 working day to the multidisciplinary foot care service or foot protection service",
+  "correctValue": null,
+  "note": "Guideline read as NG19, last updated 11 October 2019. The fetch also reported triage within 1 further working day.",
+  "urlUsed": "https://www.nice.org.uk/guidance/ng19/resources/diabetic-foot-problems-prevention-and-management-pdf-1837279828933"
+ },
+ {
+  "ref": "REF-DM-FOOT-URGENT",
+  "verdict": "confirmed",
+  "foundQuote": "1.4.1: If a person has a limb-threatening or life-threatening diabetic foot problem, refer them immediately to acute services and inform the multidisciplinary foot care service",
+  "correctValue": null,
+  "note": "The first sentence of 1.4.1 is verbatim. The four examples were confirmed only in paraphrase (the fetch tool declined to transcribe the bullets and listed them as: ulceration with fever or signs of sepsis, ulceration with limb ischaemia, concern about deep-seated infection, gangrene); a retry was blocked by the fetch session limit and the NICE HTML page returned 403. The WHO citation for claim A2-37 (Diagnosis and Management of Type 2 Diabetes, WHO 2020) was opened and supports urgent same-day referral for 'infected foot ulcer with or without symptoms of systemic infection; gangrene' and 'critical limb ischaemia'.",
+  "urlUsed": "https://www.nice.org.uk/guidance/ng19/resources/diabetic-foot-problems-prevention-and-management-pdf-1837279828933"
+ },
+ {
+  "ref": "REF-DM-EYE-REFER-NOVIEW",
+  "verdict": "confirmed",
+  "foundQuote": "iii. If visual acuity or retinal examination cannot be obtained at the screening examination: refer to ophthalmologist.",
+  "correctValue": null,
+  "note": "Document read as 'ICO Guidelines for Diabetic Eye Care (Updated 2017)', Referral Guidelines item iii. The Ophthalmology 2018 paper says the same and adds an exception: 'patients with less than adequate retinal assessment should be referred unless it is obvious that there is no DR, or at most, only mild NPDR (microaneurysms only)'.",
+  "urlUsed": "https://www.screenretina.ru/download/ICOGuidelinesforDiabeticEyeCare.pdf"
+ }
+]

@@ -1,0 +1,100 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.3.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "summary": {
+  "refs": 335,
+  "refsWithValue": 188,
+  "refsNeedCso": 18,
+  "refsWithConflict": 39,
+  "claims": 802,
+  "claimsVerified": 711,
+  "claimsCited": 431,
+  "features": {
+   "reuse": 50,
+   "reconcile": 45,
+   "new": 97
+  },
+  "catalog": {
+   "capabilities": 25,
+   "sections": 8,
+   "diagnosis": 1,
+   "diagnosis_pending": 7,
+   "classifications": 3,
+   "complications": 2,
+   "complication_amendments": 13,
+   "validityCaveats": 27,
+   "riskModels": 2,
+   "therapyFlags": 19,
+   "interpretation": 11,
+   "orderables": 19,
+   "management": 59,
+   "conditions": 21,
+   "rules": 63,
+   "designb_extra": 23,
+   "targets": 8
+  },
+  "criteria": 284,
+  "designBRules": 195,
+  "designBFamilies": 32,
+  "clerking": {
+   "profiles": 15,
+   "newProfiles": 8,
+   "ddxRules": 12,
+   "dxRefs": 22,
+   "examFlags": 7,
+   "examSuggestions": 7,
+   "historyFlags": 2,
+   "planCare": 44
+  },
+  "recheck": {
+   "confirmed": 225,
+   "confirmed_with_note": 95,
+   "not_found": 8,
+   "could_not_open": 2,
+   "wrong_attribution": 1,
+   "not_rechecked": 4
+  },
+  "beforeReview": {
+   "capabilities": 25,
+   "sections": 8,
+   "diagnosis": 1,
+   "diagnosis_pending": 7,
+   "classifications": 3,
+   "complications": 2,
+   "complication_amendments": 13,
+   "validityCaveats": 19,
+   "riskModels": 2,
+   "therapyFlags": 14,
+   "interpretation": 9,
+   "orderables": 0,
+   "management": 49,
+   "conditions": 15,
+   "rules": 35,
+   "designb_extra": 22,
+   "targets": 8,
+   "vignettes": 34
+  },
+  "review": {
+   "findings": 122,
+   "byStatus": {
+    "fixed": 82,
+    "fixed_in_part": 27,
+    "cso_decision": 3,
+    "phase_0": 10
+   }
+  },
+  "refsUsedByARule": 114,
+  "vignettes": 83,
+  "errors": 0,
+  "warnings": 0
+ },
+ "errors": [],
+ "warnings": []
+}

@@ -1,0 +1,311 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.3.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "capabilities and sections",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "capabilities": [
+  {
+   "code": "device.glucometer",
+   "display": "Capillary glucose meter",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "device.monofilament",
+   "display": "10 g monofilament",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "device.doppler_abi",
+   "display": "Hand-held Doppler for ankle-brachial index",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.glucose",
+   "display": "Laboratory plasma glucose",
+   "tier": "basic_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.hba1c",
+   "display": "HbA1c",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.ketones_blood",
+   "display": "Blood ketone (beta-hydroxybutyrate) meter",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.ketones_urine",
+   "display": "Urine ketone strip",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.blood_gas",
+   "display": "Venous or arterial blood gas",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.electrolytes",
+   "display": "Urea and electrolytes",
+   "tier": "basic_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.creatinine",
+   "display": "Serum creatinine",
+   "tier": "basic_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.urine_acr",
+   "display": "Urine albumin-to-creatinine ratio",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.urine_dipstick",
+   "display": "Urine reagent strip",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "imaging.fundus",
+   "display": "Retinal examination adequate for grading",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.c_peptide",
+   "display": "C-peptide",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.islet_autoantibodies",
+   "display": "Islet autoantibodies",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.ogtt",
+   "display": "75 g oral glucose tolerance test",
+   "tier": "basic_lab",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "lab.lipids",
+   "display": "Lipid profile",
+   "tier": "basic_lab",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "lab.vitamin_b12",
+   "display": "Vitamin B12",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.tuning_fork_128",
+   "display": "128 Hz tuning fork",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.visual_acuity_chart",
+   "display": "Visual acuity chart with pinhole",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.ophthalmoscope",
+   "display": "Direct ophthalmoscope with dilating drops",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.bp_cuff_sizes",
+   "display": "Validated BP device with standard and large cuffs",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "imaging.plain_xray",
+   "display": "Plain X-ray",
+   "tier": "imaging",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "imaging.ultrasound",
+   "display": "Ultrasound",
+   "tier": "imaging",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "lab.urine_pcr",
+   "display": "Urine protein-to-creatinine ratio",
+   "tier": "basic_lab",
+   "x": {
+    "status": "new"
+   }
+  }
+ ],
+ "sections": [
+  {
+   "id": "risk_context",
+   "display": "Who to test",
+   "order": 11,
+   "description": "Reasons to test a person who does not have known diabetes.",
+   "groups": [
+    {
+     "id": "rc_person",
+     "display": "The person",
+     "order": 1
+    },
+    {
+     "id": "rc_medicines",
+     "display": "Medicines",
+     "order": 2
+    },
+    {
+     "id": "rc_conditions",
+     "display": "Other conditions",
+     "order": 3
+    },
+    {
+     "id": "rc_pregnancy",
+     "display": "Pregnancy",
+     "order": 4
+    }
+   ],
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "classification",
+   "display": "Type of diabetes",
+   "order": 12,
+   "description": "What separates the types. Recorded, never inferred from build alone.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "control",
+   "display": "Control and targets",
+   "order": 13,
+   "description": "The measure, its date, and the target agreed with the patient.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "eye",
+   "display": "Eyes",
+   "order": 14,
+   "description": "Visual acuity, retinal view and grade.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "nerves",
+   "display": "Nerves",
+   "order": 15,
+   "description": "Sensation, reflexes and autonomic symptoms.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "cardiovascular",
+   "display": "Heart and vessels",
+   "order": 16,
+   "description": "Blood pressure, lipids, tobacco and cardiovascular risk.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "care_processes",
+   "display": "Checks due",
+   "order": 17,
+   "description": "When each routine check was last done.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "therapy_context",
+   "display": "Treatment context",
+   "order": 18,
+   "description": "What the person takes and what bears on its safety.",
+   "x": {
+    "status": "new"
+   }
+  }
+ ]
+}

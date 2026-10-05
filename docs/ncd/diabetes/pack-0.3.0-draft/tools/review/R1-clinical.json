@@ -1,0 +1,330 @@
+[
+ {
+  "id": "F01",
+  "severity": "critical",
+  "where": "50-act.json therapyFlags (metformin_egfr_30_44); DM-ACT-RX-02; DM-ACT-REFER-EGFR-01; wiring check.metformin_egfr (status 'proposed')",
+  "finding": "There is no therapy flag for a person ALREADY on metformin with eGFR below 30. The only metformin kidney flag is bounded 30 to 44, so the less dangerous band is flagged and the contraindicated band is silent. Walked through the reference evaluator: type 2, on metformin, eGFR 28, above target -> fires DM-ACT-REFER-EGFR-01 and DM-ACT-RX-02 ('add a sulfonylurea'); nothing says anything about the metformin. The only stop check is a formulary-time check in wiring marked 'proposed', which does not run at review of an existing prescription.",
+  "why": "The pack's own REF-DM-RX-METFORMIN-STOP-EGFR quotes WHO ('contraindicated ... eGFR <30') and ADA ('should be stopped once eGFR is <30'). Most Ugandan patients are on long-standing metformin and get a creatinine rarely; the visit where eGFR 28 first appears is exactly when the flag is needed. Lactic acidosis risk; and the system instead proposes stepping treatment up.",
+  "fix": "Add a red therapy flag: glucose_lowering_therapy == metformin AND egfr < REF-DM-RX-METFORMIN-STOP-EGFR, action 'WHO: contraindicated below this eGFR; ADA: stop. Review today with the prescriber' (no dose). Add a golden vignette (metformin, eGFR 28). Until a live v0.1.0 flag is shown to exist, treat it as absent."
+ },
+ {
+  "id": "F02",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-01/02 (whole lane); features mental_status, dehydration, effective_osmolality, sodium, urea (unused)",
+  "finding": "An adult with severe hyperglycaemia and danger signs is not routed unless a ketone result of 2+ or more has been typed in. Evaluator runs: (a) new adult, meter 27, vomiting, deep sighing breathing, drowsy, no ketone result yet -> only DM-ACU-ROUTE-01 'test urine ketones now' and DM-SUS-INCID-01 (routine). (b) 72-year-old known type 2, glucose 38, drowsy, dehydrated, ketones negative (hyperosmolar picture) -> DM-ACU-ROUTE-01 plus DM-ACT-RX-04 'consider insulin'; no triage signal at all. mental_status and dehydration are read by no adult rule; no rule reads the HHS glucose (REF-DM-ACU-HHS-GLU). Urine ketones 'trace/1+' with the full clinical picture also routes nothing (only a non-blocking caveat appears).",
+  "why": "WHO HEARTS-D, quoted in the pack (REF-DM-ACU-REFER-ALL, REF-DM-ACT-REFER-SAMEDAY): 'Refer to hospital all patients with suspected DKA or HHS' and same-day referral for 'suspicion of ketoacidosis or HHS'. Suspicion is clinical; the pack makes routing conditional on a strip result. HHS is ketone-negative by definition, so the one test the lane asks for clears the patient. At a district site with no strips in stock, or a busy triage desk, the sickest hyperglycaemic adult gets a 'test' prompt and nothing else. Breaches rule 8, and rule 4's intent (danger is routed).",
+  "fix": "Add an adult clinical-picture rule mirroring DM-ACU-ROUTE-04: glucose >= 11.1 (any source) or known diabetes, WITH any of vomiting, abdominal pain, deep_rapid_breathing, acetone_breath, dehydration, mental_status in [drowsy, stupor, coma] -> immediate acute_signal 'suspected DKA or HHS: route now; do not wait for ketones'. Add an HHS-range rule on glucose >= REF-DM-ACU-HHS-GLU, or 'HI' on the meter, regardless of ketones. Make DM-ACU-ROUTE-01's text say what to do when ketones are negative but the patient is unwell, or when no strip is available. Add vignettes for both."
+ },
+ {
+  "id": "F03",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-04; 10-suspect.json DM-SUS-PAED-01",
+  "finding": "The child rules stay silent on the child most likely to die. (1) Both rules need an osmotic symptom recorded as present; if thirst/polyuria/weight loss/bed-wetting were simply not asked the left arm is 'insufficient'. Evaluator: 7-year-old, vomiting, deep rapid breathing, dehydrated, drowsy, osmotic history not taken -> NOTHING fires. Same child with a meter glucose of 26 -> only 'Glucose 18 or more: test urine ketones now'; 'hospital now' still does not fire. (2) A known type 1 child who is vomiting with abdominal pain fires no acute rule (ROUTE-04 has no 'known diabetes' arm). (3) The display promises 'dry or drowsy' but mental_status is not in the predicates, and DM-SUS-PAED-01's display promises 'tired' but fatigue is not tested (rule 10).",
+  "why": "In Uganda paediatric DKA presents to a health centre as 'vomiting and fast breathing' and is treated as malaria, gastroenteritis or pneumonia; the pack's own note says so. The history of polyuria is exactly what is missing in a drowsy child brought by a relative. The pack's own note on the rule says NICE sends a child with glucose above 11 mmol/L and these features to hospital immediately; the rule does not read glucose at all. A rule that needs the answer nobody asked cannot protect this child.",
+  "fix": "Rewrite ROUTE-04 as: age band child/adolescent AND at least one of [vomiting, abdominal_pain, deep_rapid_breathing, dehydration, mental_status in drowsy/stupor/coma] AND any of [an osmotic symptom present, capillary_glucose/random_pg >= 11.1, dm_status == known, urine ketones >= 2+ or bohb >= 3.0]. Add a paediatric prompt rule (same_day, 'check capillary glucose now') for vomiting with deep breathing, dehydration or drowsiness when no glucose is recorded. Align both displays with the predicates. Add vignettes: history not taken; known type 1 child vomiting."
+ },
+ {
+  "id": "F04",
+  "severity": "critical",
+  "where": "40-stratify.json targetsProposed (all 8), interpretation (fpg/ppg/bp bands), riskModels hypoglycaemia_risk_ada; 50-act.json therapyFlags (all 14)",
+  "finding": "Under-16s receive adult management content. Targets, control and blood-pressure bands, the hypoglycaemia risk model and therapy flags carry no age band (only 'rules' have ageBands and only management steps are adult-gated). Evaluator, known type 1 child aged 10 on insulin: fires therapy flag hypoglycaemia_needing_help_on_treatment ('re-evaluate the plan, with deintensification or a switch of the causing medicine'); proposes tgt_hba1c_general, tgt_hba1c_relaxed, tgt_fpg_surrogate, tgt_ppg_surrogate and tgt_bp ('below 130/80'); shows BP 124/78 as 'At target' and a fasting glucose of 3.1 as 'At target'.",
+  "why": "Breaches rule 3 (under 16: recognition, classification support and referral only). The adult numbers are wrong for children: 124/78 in a 10-year-old would sit in the hypertensive range on paediatric percentile charts, and adult HbA1c/BP targets and 'deintensify' advice are paediatric specialist decisions.",
+  "fix": "Give targets, interpretation tables, risk models and therapy flags an ageBands (or ages: adult) gate identical to management, and assert it in a vignette ('no target, band or flag under 16'). For under-16s show only the referral step. Also state where the adolescent band ends: if it runs past 16, 16-19-year-olds lose every adult suspect and act rule."
+ },
+ {
+  "id": "F05",
+  "severity": "critical",
+  "where": "20-confirm.json validityCaveats fundus_undilated_direct (and uacr_transient, egfr_not_steady_state, abi_calcified); 40-stratify.json diabetic_retinopathy; vignette DMV-21",
+  "finding": "A caveat marked blocksDiagnosis does not stop a NEGATIVE complication result. DMV-21 (retina 'normal' on undilated direct ophthalmoscopy) is expected and computed as diabetic_retinopathy 'not_met' with stage 'No apparent retinopathy' and 'No macular oedema', while the caveat's own text says 'the eyes count as not screened'. The vignette asserts the unsafe state and the build passes.",
+  "why": "Breaches rule 2: an examination the pack itself calls invalid is being stored as normal. The stage 'none' carries a 24-month recall interval, so a person with sight-threatening retinopathy can be shown as clear for two years. The same hole applies to an ACR taken with fever (transient), an eGFR in AKI or pregnancy, and an ABI above 1.3.",
+  "fix": "When a blocking caveat is in force on a feature, every criterion and stage that reads it must evaluate to 'insufficient' in both directions (met and not_met), and the examination must not reset months_since_eye_screen. Change DMV-21's expectation to diabetic_retinopathy: insufficient, stages: none assigned, and add the same test for uacr_transient."
+ },
+ {
+  "id": "F06",
+  "severity": "critical",
+  "where": "40-stratify.json riskModels hypoglycaemia_risk_ada; 50-act.json DM-ACT-RX-10, DM-ACT-EDU-03, therapyFlag hypoglycaemia_needing_help_on_treatment; feature on_insulin_or_sulfonylurea",
+  "finding": "All hypoglycaemia logic hangs on a separate tick-box, on_insulin_or_sulfonylurea, which the features file says 'the clinician ticks' until a computed formula exists. If it is not ticked every one of these is 'insufficient'. Evaluator: 78-year-old on glibenclamide (in glucose_lowering_therapy), a low needing help in the last year, fasting 3.2 -> the only thing that fires is the generic glibenclamide_age_60 flag. No risk band, no hypo flag, no DM-ACT-RX-10, no hypoglycaemia education.",
+  "why": "The medicine list already says she is on a sulfonylurea; the engine ignores it. A redundant manual field that is rarely filled silences the rules that matter most for the elderly patient on glibenclamide, a leading serious drug harm in diabetes care here.",
+  "fix": "Replace on_insulin_or_sulfonylurea in every predicate with ANY(glucose_lowering_therapy == insulin | glibenclamide | gliclazide | glimepiride), as DM-ACT-RX-11 and sulfonylurea_with_rifampicin already do. Drop the tick-box. Add a vignette without the tick."
+ },
+ {
+  "id": "F07",
+  "severity": "critical",
+  "where": "40-stratify.json interpretation fpg_control_who, ppg_control_who, hba1c_control_*, bp_*_who_hearts_d; 60-acute-route.json (no hypoglycaemia rule)",
+  "finding": "Low values are shown as good. The control bands have an upper edge only: fasting glucose 3.2 (and 3.1 in the child above) evaluates to 'At target' with tone 'normal'; HbA1c of any low value on insulin or glibenclamide is 'At target'; systolic 80 is 'At target'. In the same patient a meter reading of 2.6 fires nothing: no rule in this pack's acute lane reads a low glucose, and the hypoglycaemia entry here is a citation re-verification only.",
+  "why": "A clinician glancing at a green 'At target' beside a fasting glucose of 3.2 in an old woman on glibenclamide is being told to carry on. The pack's own REF-DM-HYPO-L1 (3.9) and REF-DM-HYPO-L2 (3.0) exist and are used by no band or rule. 'Hypoglycaemia is read from the hypoglycaemia table' (the note) does not stop this table mislabelling the same number.",
+  "fix": "Add a lowest band to fpg_control_who and ppg_control_who below REF-DM-HYPO-L1 ('Low: hypoglycaemia range', tone alert) so 'At target' starts at that value. Add an acute_route rule: any glucose below REF-DM-HYPO-L2, or below REF-DM-HYPO-L1 on insulin or a sulfonylurea, or mental_status not alert with a low glucose -> immediate acute_signal (route only, no treatment text). If the live v0.1.0 catalog already routes this, cite it and add a vignette proving it; none of the 34 vignettes contains a low glucose."
+ },
+ {
+  "id": "F08",
+  "severity": "critical",
+  "where": "50-act.json DM-ACT-REFER-FOOT-01, DM-ACT-REFER-PVD-01; feature active_foot_ulcer (read by no rule)",
+  "finding": "A foot ulcer on its own triggers nothing. DM-ACT-REFER-FOOT-01 needs gangrene present or an infection grade recorded; active_foot_ulcer, previous_foot_ulcer and ulcer_area_reduction_4w are read by no rule. Evaluator: 60-year-old known diabetic, active_foot_ulcer true, infection not graded -> only the two education steps fire. Adding pulses 'absent' and infection 'none' gives a ROUTINE vascular referral (DM-ACT-REFER-PVD-01); an ulcer with absent pulses is limb-threatening. The rule's label 'an ulcer with infection' also does not test for an ulcer (rule 10).",
+  "why": "The pack's own quote (REF-DM-FOOT-EVERY-VISIT, WHO HEARTS-D): 'Examine feet for ulcers at every visit. REFER to higher level of care if ulcer present or pulse absent.' The market trader who walks on an ulcer with numb feet does not volunteer infection; the nurse ticks 'ulcer' and moves on. Late referral is how Ugandan patients lose legs.",
+  "fix": "Add: active_foot_ulcer present -> refer to higher level (urgent; same_day if foot_infection_grade in moderate/severe, foot_gangrene, or pedal_pulses in reduced/absent). Make REFER-FOOT-01 read active_foot_ulcer so the label is true. Escalate absent pulses WITH an ulcer to same_day (critical limb ischaemia is on WHO's same-day list). Add the vignette."
+ },
+ {
+  "id": "F09",
+  "severity": "critical",
+  "where": "20-confirm.json who_2013_gdm, who_2013_diabetes_in_pregnancy, DM-CON-PREG-01/02; 10-suspect.json DM-SUS-PREG-01; appliesTo.pregnancy",
+  "finding": "Pregnancy has no district pathway and unknown pregnancy is treated as not pregnant. (1) Every pregnancy criterion reads laboratory plasma glucose only. Evaluator, health centre with a meter: 30 weeks pregnant, meter 13.0 with thirst and polyuria -> DM-SUS-SYMP-01, DM-SUS-INCID-01 (routine) and 'offer a 75 g OGTT' (not available there); both pregnancy sets 'unavailable'; no referral proposed. Fasting meter 6.2 at 30 weeks -> only 'offer an OGTT'. (2) The non-pregnant set applies unless pregnant is recorded TRUE: a 28-year-old woman never asked about pregnancy with HbA1c 6.6 twice is computed as diabetes 'met' on HbA1c, the test the pack blocks in pregnancy. (3) DM-CON-PREG-02's label omits the random-with-symptoms criterion that who_2013_diabetes_in_pregnancy carries.",
+  "why": "Breaches rule 8 (a district site must reach a safe next step) and rule 2 (not asked is being read as 'not pregnant'). Hyperglycaemia at 30 weeks is time-critical for mother and baby; most Ugandan antenatal care happens at HC III with a meter. A woman with a symptomatic glucose of 13 leaves with a routine suggestion.",
+  "fix": "Add a pregnancy district rule: pregnant AND any capillary or plasma glucose in the pack's diabetes range (fasting >= 7.0, or >= 11.1 otherwise) -> same_day referral to specialised antenatal care; pregnant AND fasting capillary >= 5.1 -> refer for laboratory confirmation. Put the question of accepting a plasma-calibrated meter for GDM to the CSO (FIGO 2015 discusses it; do not adopt a number without reading it). For a woman of reproductive age with pregnant not recorded, make the general set 'insufficient: pregnancy status needed' rather than applying it. Add both vignettes."
+ },
+ {
+  "id": "F10",
+  "severity": "critical",
+  "where": "40-stratify.json targetsProposed tgt_hba1c_tb",
+  "finding": "The display string of a target reads 'HbA1c below 8.0% during TB treatment'. A target is the thing most likely to be shown to the patient (agreed target, patient summary, printed plan). The item is tagged restricted class tb and its note says the reason is never shown on a patient-facing surface, but the reason is in the display text itself.",
+  "why": "Breaches rule 7. TB status leaks through the label of an ordinary diabetes target. The tag travels with the rule but cannot redact a string.",
+  "fix": "Change display to 'HbA1c below 8.0%' and hold the reason in a restricted, clinician-only field. Sweep every display/label/action of items tagged with a restricted class for the same pattern."
+ },
+ {
+  "id": "F11",
+  "severity": "critical",
+  "where": "20-confirm.json diagnosisPending consensus_2021_remission (criterion remission_hba1c)",
+  "finding": "The label says 'Known type 2 diabetes, HbA1c below 6.5%, off all glucose-lowering medicines for 3 months or more' but the predicates test only dm_status == known; type is never checked. Evaluator: person recorded as type 1 who has stopped insulin for 3 months, HbA1c 6.3, meter 15 -> remission 'met', and nothing else fires.",
+  "why": "Breaches rule 10 and is unsafe: a type 1 in the honeymoon period, a ketosis-prone patient, or anyone whose HbA1c reads falsely low (haemolysis, malaria, sickle trait, recent transfusion, all common here) and who has run out of insulin is offered the word 'remission'. The consensus definition is for type 2 only.",
+  "fix": "Add dm_type_recorded == type_2 to the criterion, and require a concurrent glucose below the diabetes range where HbA1c validity caveats exist. Never evaluate it when dm_type_recorded is type_1 or unclassified. Add the negative vignette."
+ },
+ {
+  "id": "F12",
+  "severity": "major",
+  "where": "10-suspect.json DM-SUS-RISK-03/04/05, DM-SUS-POP-HIV-01, -ANTIPSYCH-01, -PANC-01; 50-act.json DM-ACT-TEST-HBA1C-01, DM-ACT-SCREEN-EYE/KIDNEY/FOOT/NEURO/LIPID-01",
+  "finding": "Every 'due' rule is written as months_since_X >= N. For a person never tested or never screened the value is missing, so the rule is 'insufficient' and never fires. Evaluator: adult on ART, never had a glucose -> nothing fires; known diabetic never had an eye, kidney, foot or nerve check -> only education fires. The notes defer to Design B, but DM-SUS-RISK-NEVER covers only age-and-weight eligibility and DM-ACT-SCREEN-NEVER covers only eye, kidney and foot: never-tested people on ART, on antipsychotics, after pancreatitis or after GDM, and never-done HbA1c, sensation and lipid checks, are covered by nothing.",
+  "why": "The never-screened are common in Uganda and are the highest-risk group; the rules as written serve only people already in a recall system. This is the 'rule silenced because it depends on a value that is rarely recorded' trap.",
+  "fix": "Give each screening item an explicit 'never done' state the predicate can read (e.g. a boolean X_ever_done, or let the engine treat 'no dated result on record' as a recordable fact distinct from 'not asked'), and write each rule as ANY(never done | months >= N). Add a vignette per lane."
+ },
+ {
+  "id": "F13",
+  "severity": "major",
+  "where": "20-confirm.json who_hearts_d_2020 criteria who_hd_random_cap_symptoms, who_hd_fcap_*, who_hd_ogtt_cap_*",
+  "finding": "Meter criteria require capillary_glucose_context to match exactly. Evaluator: thin 24-year-old, weight loss, meter 22, context not recorded -> diagnosis 'insufficient'; with context 'two_hours_after_food' -> not diagnostic either (that option matches no criterion although a post-meal reading is a random glucose). Meanwhile DM-SUS-INCID-01 fires telling the clinician the value is 'diagnostic with symptoms'.",
+  "why": "A value of 22 exceeds every threshold in the table whatever the timing, and WHO defines random as any time regardless of meals. The system contradicts itself and withholds a diagnosis on the patient who most needs one, at the sites that have only a meter.",
+  "fix": "Add a criterion: capillary_glucose >= REF-DM-DX-OGTT2H-CAP (12.2, the highest meter threshold in the set) with symptoms, any or no context; and let who_hd_random_cap_symptoms accept context in [random, two_hours_after_food]. Add the vignette without a context."
+ },
+ {
+  "id": "F14",
+  "severity": "major",
+  "where": "10-suspect.json (no rule); vignette DMV-02",
+  "finding": "A single diabetes-range fasting glucose, HbA1c or 2-hour value without symptoms fires nothing. DMV-02 (fasting 7.4, no symptoms) expects 'fires: []' and passes; evaluator with HbA1c 7.1 alone also fires nothing. Only a RANDOM value of 11.1 or more has a 'repeat on another day, do not leave it' rule (DM-SUS-INCID-01).",
+  "why": "Rule 5 is honoured (no diagnosis) but the patient is dropped: WHO's instruction, quoted in the pack, is 'repeat the test ... as soon as practicable on a subsequent day'. The expected result of DMV-02 is clinically incomplete even though the build passes.",
+  "fix": "Add DM-SUS-INCID-02: any of fasting_pg >= 7.0, fasting capillary >= 7.0, hba1c >= 6.5 (no caveat in force), ogtt_2h_pg >= 11.1, with repeat_abnormal_result not recorded true -> 'One result in the diabetes range: repeat on another day' (soon). Change DMV-02 to expect it."
+ },
+ {
+  "id": "F15",
+  "severity": "major",
+  "where": "10-suspect.json management DM-SUS-RECON-01",
+  "finding": "The rule can never fire. It needs dm_status != known, but dm_status has one option ('known'): when recorded it equals known (not met), when not recorded the predicate is 'insufficient'.",
+  "why": "A person collecting glibenclamide or insulin with no diabetes on the problem list is exactly who falls outside every 'established' rule (no screening, no hypo logic). The reconciliation rule meant to catch them is dead code.",
+  "fix": "Either add explicit options to dm_status (e.g. not_known) and require them, or write the rule as dm_status absent-or-not-known using a construct the grammar evaluates when the value is missing. Add a vignette."
+ },
+ {
+  "id": "F16",
+  "severity": "major",
+  "where": "30-classify.json DM-CLS-T1-01; 50-act.json DM-ACT-RX-01 contraindication contra_ketosis; vignette DMV-10",
+  "finding": "ketosis_at_presentation is a permanent historical fact used as a current trigger. Evaluator: ketosis-prone type 2, presented in ketosis 8 years ago, came off insulin and stayed well, clinician has recorded type 2, HbA1c 7.8 on no medicine -> DM-CLS-T1-01 fires SAME-DAY ('treat as insulin-deficient until shown otherwise', refer same day) at every visit for life, and DM-ACT-RX-01 is permanently 'contraindicated'. The rule also contradicts the pack's own ketosis_prone_type_2 classification. In DMV-10 the same rule is expected to fire on euglycaemic ketoacidosis from an SGLT2 inhibitor, which its own mimic list names.",
+  "why": "Breaches rule 9 (an urgent rule that fires forever is ignored) and blocks the usual maintenance step for a phenotype that is common in sub-Saharan Africa.",
+  "fix": "Split the rule: ketones 2+ or more NOW -> same_day (unchanged). ketosis_at_presentation alone -> routine type review, and suppress when insulin_stopped_without_relapse is present or a clinician has recorded the type since. Make contra_ketosis read current ketones only. Remove DM-CLS-T1-01 from DMV-10's expected list or reword it for the SGLT2 case."
+ },
+ {
+  "id": "F17",
+  "severity": "major",
+  "where": "30-classify.json DM-CLS-T1-02, DM-CLS-ATYP-01 (urgency routine, runWhen established); 60-acute-route.json DM-ACU-ROUTE-01",
+  "finding": "The newly diagnosed lean young adult is under-called. (1) WHO HEARTS-D's same-day list, quoted in REF-DM-CLS-T1-SAMEDAY, includes 'clinical suspicion of type 1 diabetes in newly diagnosed patient'; the pack makes that same-day only when ketones are 2+ and leaves a 24-year-old with BMI 17, weight loss and glucose 22 (ketones negative or 1+) at 'routine'. (2) Classification rules run only once diabetes is 'established', so nothing says 'do not assume type 2' at the visit where the diagnosis is made. (3) HEARTS-D's severe stratum 'FPG >= 15 mmol/L and symptomatic -> test urine ketones' (REF-DM-ACU-FPG-SEVERE-SYMPT, used by no rule) is not implemented; the ketone prompt starts at 18.",
+  "why": "The classic fatal error in Uganda is the thin young adult labelled type 2, sent home on tablets and returning in ketoacidosis. Urine ketones lag and can be low early.",
+  "fix": "Make DM-CLS-T1-02 same_day when the diagnosis is new (years_since_diagnosis < 1 or diagnosed this encounter) and at least two features are present; run T1-01/T1-02/ATYP-01 as soon as a diagnostic criterion is met, not only after confirmation. Add a ketone-test rule for fasting glucose >= REF-DM-ACU-FPG-SEVERE-SYMPT with symptoms."
+ },
+ {
+  "id": "F18",
+  "severity": "major",
+  "where": "30-classify.json classifications type_1 (t1_cpeptide_low, t1_cpeptide_high)",
+  "finding": "C-peptide below 200 pmol/L 'supports' and 600 or more 'refutes' type 1 with no timing guard. The pack's own REF-DM-CLS-CPEP-TIMING says C-peptide is read only beyond 3 years from diagnosis and not within 2 weeks of a hyperglycaemic emergency; neither is in the predicates or the label. REF-DM-CLS-CPEP-LOW is marked recheck 'not_found', confidence low, needs CSO input (the 200 figure could not be read from the source figure), yet it drives a live criterion.",
+  "why": "Soon after ketoacidosis glucose toxicity suppresses C-peptide in ketosis-prone type 2, which would be 'supported' as type 1; a type 1 in the first years can exceed 600 and be 'refuted', which invites stopping insulin.",
+  "fix": "Add years_since_diagnosis >= 3 (REF-DM-CLS-CPEP-TIMING) to both criteria and say so in the labels; add a 'not within 2 weeks of a hyperglycaemic emergency' input or caveat. Hold t1_cpeptide_low out of the catalog until a person has read the figure."
+ },
+ {
+  "id": "F19",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-RX-04",
+  "finding": "Display says 'Very high glucose or HbA1c, or weight loss with symptoms: ADA says consider insulin whatever the current treatment'; predicates are dm_status == known AND any of HbA1c > 10, any glucose >= 16.7, or unexplained weight loss alone. It fires same-day on people already on insulin, on type 1, and on weight loss alone with no glucose criterion. The source (rec. 9.20) is for adults with TYPE 2 and names symptoms of hyperglycaemia or very high values.",
+  "why": "Rule 10 (display and predicates differ) and rule 9: glucose at or above 16.7 is routine in Ugandan clinics, so a same-day prompt fires on a large share of attendances, including a nonsensical 'consider insulin' on insulin users. Weight loss in a diabetic here is as often TB, HIV or cancer.",
+  "fix": "Require dm_type_recorded in [type_2, unclassified] and glucose_lowering_therapy != insulin; make the weight-loss arm require a concurrent glucose or HbA1c above target, and name TB, HIV and malignancy in the text. Make display and label identical."
+ },
+ {
+  "id": "F20",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-RX-02 (and DM-ACT-RX-01)",
+  "finding": "The sulfonylurea step carries no contraindication or caution. Evaluator: eGFR 28 -> RX-02 'add a sulfonylurea' fires. It also fires at any age, with frailty, food insecurity, irregular meals or a previous severe low. RX-01 fires when eGFR was never measured (the contraindication is 'insufficient', so the step shows as clean) and tests a fixed 7.0 although its display says 'above target': a frail person on the accepted relaxed tier with HbA1c 7.4 is told they are above target.",
+  "why": "WHO's own text (REF-DM-RX-GLIB-AGE quote) warns against glibenclamide 'in patients for whom hypoglycaemia is a concern', and the ADA table quoted for glibenclamide_ckd says other sulfonylureas are started conservatively in kidney disease 'to avoid hypoglycemia'; the pack computes a hypoglycaemia risk band and then ignores it at the step that creates the risk. Missing kidney function is being read as 'no contraindication' (rule 2).",
+  "fix": "RX-02: add cautions shown with the step when hypoglycaemia_risk_ada is high or raised, egfr < 30, food_insecurity or meals_irregular present, age >= 75 or frailty present. RX-01: when egfr is not recorded, show 'kidney function not known' on the step; compare against the accepted target tier, not a fixed 7.0."
+ },
+ {
+  "id": "F21",
+  "severity": "major",
+  "where": "40-stratify.json fpg_control_who, ppg_control_who, tgt_fpg_surrogate; 50-act.json DM-ACT-RX-01",
+  "finding": "The 'district pathway for the control axis' needs a laboratory. fasting_pg requires lab.glucose; a fasting METER reading is read by no control band, target or therapy step. Evaluator at a district site: known type 2, fasting meter 12.4, on metformin or on nothing -> only the two education steps fire; no band, no 'above target', DM-ACT-RX-01 unavailable. Urine protein 2+ on a strip also drives nothing in this pack.",
+  "why": "Rule 8. The pack accepts a fasting meter value for diagnosis (WHO: fasting capillary and venous plasma values are identical) but not for control, so the health centre that can diagnose cannot be told the patient is uncontrolled.",
+  "fix": "Let the control bands, tgt_fpg_surrogate and RX-01 also read capillary_glucose with context fasting (and two_hours_after_food for the post-meal band). Add a district vignette for control. Wire urine_protein_strip positive to 'abnormal, pending confirmation: refer for a laboratory ratio' if the live catalog does not."
+ },
+ {
+  "id": "F22",
+  "severity": "major",
+  "where": "40-stratify.json DM-STR-CKD-01",
+  "finding": "'Kidney disease that does not fit diabetes: refer' (same_day) fires on egfr_fall_percent > 20 with no time window, no 'sustained', and no exclusion for a recent start of an ACE inhibitor, ARB or SGLT2 inhibitor. The source quote (KDIGO) is 'a sustained fall in GFR of >20%, or >30% in those initiating hemodynamically active therapies', and it is a referral criterion for CKD, not a sign of non-diabetic disease. ADA's clue is 'rapidly decreasing eGFR'.",
+  "why": "A 20% fall from baseline over ten years is ordinary diabetic kidney disease; the rule will eventually tell most patients with nephropathy that their disease 'does not fit diabetes' and demand a same-day referral that Uganda's few nephrology units cannot absorb. It also contradicts the creatinine-rise flag, which tolerates 30% after a RAS blocker.",
+  "fix": "Separate the two ideas: (a) non-diabetic clue = nephrotic picture, active sediment, rapidly rising albumin, haematuria, or a rapid fall (define the window with the CSO); (b) KDIGO referral for a sustained fall > 20% (routine, labelled as progression). Exclude the 4 weeks after starting or increasing a RAS blocker."
+ },
+ {
+  "id": "F23",
+  "severity": "major",
+  "where": "50-act.json therapyFlags metformin_during_acute_illness, ras_blocker_or_statin_in_pregnancy; vignette DMV-10",
+  "finding": "Two flags are narrower than their own source. (1) The quote behind metformin_during_acute_illness (A4-64) says 'consider holding metformin AND SGLT2 inhibitors when oral intake cannot be maintained'; the flag covers metformin only. In DMV-10 (SGLT2 inhibitor, vomiting, ketones 3+) the therapy flag raised is about metformin and none concerns the SGLT2 inhibitor. The label also says 'acutely unwell' while the display says 'with poor intake', which is not tested. (2) The pregnancy red flag covers ACE inhibitors, ARBs and statins; a pregnant woman on a sulfonylurea, SGLT2 inhibitor, GLP-1 agonist, DPP-4 inhibitor or pioglitazone is flagged by nothing, although the pack's note cites WHO 2025 'metformin or insulin under specialist care'.",
+  "why": "The medicine that causes euglycaemic ketoacidosis is the one left unflagged during the illness that precipitates it.",
+  "fix": "Add an SGLT2 arm (or a sibling flag) to the acute-illness flag; align its display and label. Add an amber/red flag for pregnant AND glucose_lowering_therapy in [glibenclamide, gliclazide, glimepiride, sglt2_inhibitor, glp1_ra, dpp4_inhibitor, pioglitazone]: 'review today with the antenatal team'."
+ },
+ {
+  "id": "F24",
+  "severity": "major",
+  "where": "50-act.json (no rule); 20-confirm.json consensus_2021_remission; clerking FLAG-EX-INSULIN-STOPPED (draft)",
+  "finding": "Nothing in the catalog recognises a person who needs insulin and is not taking it. There is no feature for insulin omission and no rule on dm_type_recorded == type_1 with insulin absent from glucose_lowering_therapy. Evaluator: type 1 recorded, therapy 'none', meter 15 -> only education fires (and 'remission' is met, see above). The only safeguard is a draft exam-catalogue flag that depends on a medicine-adherence atom the pack itself says is unconfirmed.",
+  "why": "Stock-outs, cost and fasting make stopped insulin a regular event in Ugandan clinics, and insulin omission is one of the commonest precipitants of ketoacidosis. DM-ACT-EDU-04 teaches 'never stop insulin' to those who are on it and says nothing to those who have stopped.",
+  "fix": "Add: dm_type_recorded == type_1 (or ketosis-prone/insulin-deficient flag) AND glucose_lowering_therapy != insulin -> same_day 'Not on insulin: check glucose and ketones now, find out why' (no dose). Add an 'insulin stopped or missed' history item the NCD engine can read."
+ },
+ {
+  "id": "F25",
+  "severity": "major",
+  "where": "60-acute-route.json DM-ACU-ROUTE-01; feature capillary_glucose (unit mmol/L, no range); clerking FLAG-EX-GLU-KETONE-TEST",
+  "finding": "(1) Urgency: every glucose of 18 or more is 'immediate', with or without symptoms, while the exam catalogue raises the same trigger as 'caution'. Readings of 18 or more are common in Ugandan diabetes clinics; an interrupt on each will be dismissed by reflex (rule 9), and the two layers disagree. (2) Units and limits: glucose features take a bare number in mmol/L with no plausibility range. Many meters in circulation here read mg/dL; '126' typed into the field is diagnostic of everything and fires the immediate rule. A meter showing 'HI' or 'LO' cannot be recorded at all, so the two most dangerous readings fire nothing.",
+  "why": "A rule that cries wolf at 18 will not be read at 38; and the sickest patient's reading is unrecordable.",
+  "fix": "Make ROUTE-01 same_day when no symptom is recorded and immediate when any of vomiting, abdominal pain, deep breathing, dehydration, drowsiness is present; align the exam flag. Add a unit selector or a hard plausibility check on glucose entry, and explicit 'HI' / 'LO' options that the acute rules read."
+ },
+ {
+  "id": "F26",
+  "severity": "major",
+  "where": "20-confirm.json interpretation ogtt_1h_idf_2024; vignette DMV-23",
+  "finding": "The IDF 1-hour table (non-pregnant adults) has no 'when' and is applied in pregnancy. DMV-23 (26 weeks, 1-hour 9.2) is computed as 'Intermediate hyperglycaemia (IDF)' although 9.2 is below the WHO gestational 1-hour threshold of 10.0; a 1-hour of 10.5 in pregnancy would show 'intermediate' when it is diagnostic of GDM, and 11.6 would show 'Diabetes range (IDF); repeat to confirm'.",
+  "why": "Two contradictory readings of one number on the same screen, one of them from a standard that does not apply to her.",
+  "fix": "Give the table a not-pregnant condition (and an established == false condition), or add a pregnancy 1-hour table from who_2013_gdm. Assert in DMV-23 that no IDF band is shown."
+ },
+ {
+  "id": "F27",
+  "severity": "major",
+  "where": "30-classify.json DM-CLS-DRUG-01",
+  "finding": "Runs 'always' and proposes diagnosis.reclassify with flag drug_associated on a single glucose of 11.1 or more in anyone on steroids, including people with long-established diabetes. Evaluator: known type 2 for years, now on prednisolone, meter 15 -> 'Hyperglycaemia in a person on steroids: record it as medicine-associated'. The capillary arm ignores context.",
+  "why": "The display is an instruction to relabel, and the commonest steroid patient with a high glucose is a known diabetic whose control has worsened. A drug-associated label implies it will resolve when the steroid stops.",
+  "fix": "Run only when diabetes is not established (or was diagnosed after the steroid began); change the display to 'consider' and keep the label a clinician decision. For established diabetes on steroids fire a monitoring prompt instead (the source: monitor post-meal or random glucose)."
+ },
+ {
+  "id": "F28",
+  "severity": "major",
+  "where": "20-confirm.json validityCaveats glucose_acute_illness, glucose_tb_at_diagnosis (feature: random_pg)",
+  "finding": "The 'raised glucose during acute illness may be transitory' and TB caveats are attached to random_pg only. At a district site the reading is capillary_glucose, and a fasting value is fasting_pg, so neither carries the caveat. An adult with severe malaria or pneumonia, meter 12.5 and 'thirst' is computed as diabetes with no warning shown on the value used.",
+  "why": "WHO (quoted): severe hyperglycaemia under acute stress 'should not in itself be regarded as diagnostic'. Fever and dehydration produce thirst, so the symptom gate does not protect. A lifelong label follows.",
+  "fix": "Attach both caveats to capillary_glucose, random_pg and fasting_pg. Consider making diagnosis 'pending re-test after recovery' when acute_illness_current is present and ketones are not raised."
+ },
+ {
+  "id": "F29",
+  "severity": "major",
+  "where": "50-act.json therapyFlag ras_blocker_potassium_high; 60-acute-route.json DM-ACU-ROUTE-05",
+  "finding": "Potassium 6.0 to 6.4 falls between the two rules. Evaluator: potassium 6.2 on an ACE inhibitor with eGFR 25 -> an amber flag whose action reads 'reduce or stop the ACE inhibitor or ARB only as a last resort'. The pack's own KDIGO quote (A6-60) says: 'Moderate K+ 6.0-6.4: clinically unwell or AKI - assess and treat in hospital; unexpected result - repeat within 24 hours'. The amber wording is KDIGO's advice for chronic hyperkalaemia above 5.5, applied to a level its other table sends to hospital.",
+  "why": "A reassuring 'last resort' message beside a potassium of 6.3 in a patient with an eGFR of 25.",
+  "fix": "Add a band 6.0 to below 6.5: same_day, 'KDIGO: repeat within 24 hours; if unwell or kidney function has fallen, assess in hospital' (route, no treatment). Cap the amber flag's text at below 6.0."
+ },
+ {
+  "id": "F30",
+  "severity": "major",
+  "where": "10-suspect.json DM-SUS-POP-ANTIPSYCH-01",
+  "finding": "The rule requires weeks_since_antipsychotic_start >= 12 AND months_since_glucose_test >= 12. The source (quoted) says screen at baseline, repeat 12 to 16 weeks after starting, then annually. Anyone who had the baseline test the guideline requires has a glucose test within 12 months, so the 12-week re-test, the point of the rule and of its display, can never fire for them; and anyone never tested is silenced by the missing value.",
+  "why": "Olanzapine and clozapine can produce diabetes and ketoacidosis within months; the 12-week check is the one that catches it.",
+  "fix": "Fire when weeks_since_antipsychotic_start >= 12 and no glucose test has been done SINCE the start (needs a weeks-since-test or 'tested since start' input), plus the annual arm and a never-tested arm."
+ },
+ {
+  "id": "F31",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-RX-09",
+  "finding": "'Established cardiovascular disease: antiplatelet treatment is for secondary prevention' fires on cvd_established, which lumps heart attack, angina, stroke, TIA and peripheral artery disease. It does not separate haemorrhagic from ischaemic stroke, names no bleeding caution, and (having no 'on antiplatelet' input) fires at every visit including for people already taking one.",
+  "why": "Haemorrhagic stroke is a larger share of stroke in sub-Saharan Africa than in the populations behind the source, and CT is often unavailable, so 'stroke' in the record frequently means type unknown. A standing prompt toward antiplatelets for that group is unsafe; a prompt that never clears is ignored.",
+  "fix": "Add text 'not after haemorrhagic stroke or where the stroke type is unknown; check bleeding risk', add an on_antiplatelet input with 'absent' semantics like on_statin, and consider splitting stroke out of cvd_established."
+ },
+ {
+  "id": "F32",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-RX-10, therapyFlags glibenclamide_age_60, hypoglycaemia_needing_help_on_treatment; feature hypo_worst_12m",
+  "finding": "RX-10's display says 'A low needing help, or repeated lows' but only needed_help is tested; hypo_worst_12m has no option for a measured level 2 low (below 3.0) or for frequency, though the quoted ADA text says 'one or more episodes of level 2 or 3 hypoglycemia should prompt reevaluation'. An elderly woman on glibenclamide with repeated self-treated lows gets no review prompt (only the age flag). WHO's glibenclamide warning 'in patients for whom hypoglycaemia is a concern' is implemented for age only: under 60 with lows, food insecurity or irregular meals, nothing fires.",
+  "why": "Rule 10, and the quoted threshold for action is not the one coded. Recurrent 'mild' lows on glibenclamide precede the fatal one.",
+  "fix": "Add options to hypo_worst_12m (or a second field) for a measured value below REF-DM-HYPO-L2 and for repeated lows; fire RX-10 on those too. Extend the glibenclamide flag: glibenclamide AND any of hypo_worst_12m != none, food_insecurity, meals_irregular."
+ },
+ {
+  "id": "F33",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-REFER-* (omissions against REF-DM-ACT-REFER-SAMEDAY); feature chest_pain_or_stroke_symptoms (read by no rule)",
+  "finding": "WHO HEARTS-D's same-day list is quoted in the dossier but only partly implemented. Not implemented in the catalog: 'symptoms of heart disease or stroke' (the feature chest_pain_or_stroke_symptoms exists and nothing reads it); 'hypoglycaemia unresolved by treatment'; 'critical limb ischaemia'; 'anuria'.",
+  "why": "Heart attack and stroke are leading causes of death in people with diabetes; the pack created the input for their symptoms and wired it to nothing.",
+  "fix": "Add same_day/immediate referral rules for chest_pain_or_stroke_symptoms present, and for the other listed items, or cite the catalogue that owns each and add a vignette showing it fires."
+ },
+ {
+  "id": "F34",
+  "severity": "major",
+  "where": "40-stratify.json diabetic_retinopathy screeningIntervals; 50-act.json DM-ACT-REFER-EYE-01",
+  "finding": "(1) Mild non-proliferative retinopathy is recalled at 24 months and moderate at 12, the far end of ICO's low-resource ranges ('1-2 yrs', '6-12 mos'). ADA, quoted in the same item, says that if any retinopathy is present examinations are 'at least annually', and the pack's own note says the ICO schedule applies only where diabetes is controlled; no interval reads control. (2) DM-ACT-REFER-EYE-01 is 'urgent' for moderate retinopathy, whose own note says 'at the next 6 to 12 month examination'.",
+  "why": "Most patients with retinopathy in Uganda are above target; giving them the longest permissible interval is the unsafe default. Calling moderate disease 'urgent' while severe and proliferative share the same word blunts the signal (rule 9).",
+  "fix": "Use the near end of each ICO range (12 and 6 months) unless control is at target, or state the control condition in the interval. Split the referral rule: severe, proliferative or centre-involving oedema = urgent; moderate = routine referral."
+ },
+ {
+  "id": "F35",
+  "severity": "minor",
+  "where": "50-act.json DM-ACT-RX-12; 30-classify.json DM-CLS-PANC-01; 10-suspect.json DM-SUS-INCID-01; 40-stratify.json DM-STR-NEURO-03, tgt_hba1c_older_healthy",
+  "finding": "Labels that do not say what the predicates test (rule 10). RX-12: display 'Painful neuropathy', predicates test numbness/burning/tingling with a sign, so a painless numb foot gets a pain-medicine prompt. PANC-01: label 'fatty stools with recurrent upper abdominal pain', predicate is steatorrhoea alone (recurrent_abdominal_pain is unused), which fires on metformin diarrhoea. INCID-01: label 'Random glucose', but the capillary arm ignores context. NEURO-03: label omits 'known diabetes'; 'resting pulse' is any pulse. tgt_hba1c_older_healthy: display says 'healthy older adult', predicate is age 65 or over.",
+  "why": "Each tells the clinician something the engine did not check.",
+  "fix": "RX-12: add a pain input or reword to 'symptomatic neuropathy'. PANC-01: add recurrent_abdominal_pain to an ALL with steatorrhoea. INCID-01: test context == random or reword. NEURO-03 and the target: reword to match."
+ },
+ {
+  "id": "F36",
+  "severity": "minor",
+  "where": "40-stratify.json fpg_control_who, ppg_control_who; 50-act.json DM-ACT-RX-01",
+  "finding": "Boundary error against the quoted source. WHO: 'an FPG value of <=7.0 mmol/L and a postprandial PG value of <=9.0 mmol/L can serve as surrogates'. The bands end 'At target' below 7.0 and below 9.0 (the evaluator uses x < to), and RX-01 treats fasting >= 7.0 as above target, so exactly 7.0 and 9.0 are called above target.",
+  "why": "Contradiction with REF-DM-CTRL-FPG-SURROGATE ('at or below').",
+  "fix": "Make the upper edges inclusive for these two tables, and RX-01 fasting_pg > 7.0."
+ },
+ {
+  "id": "F37",
+  "severity": "minor",
+  "where": "50-act.json therapyFlags metformin_egfr_30_44, ras_blocker_potassium_high, ras_blocker_creatinine_rise",
+  "finding": "Action texts give a direction of dose change without a number: 'ADA says the amount should be reduced', 'reduce or stop the ACE inhibitor'.",
+  "why": "Rule 1 forbids titration anywhere. These are borderline; the CSO should rule.",
+  "fix": "Reword to 'review with the prescriber' and cite the source, or record an explicit CSO exception."
+ },
+ {
+  "id": "F38",
+  "severity": "minor",
+  "where": "10-suspect.json DM-SUS-PREG-02, DM-SUS-PREG-01, DM-SUS-RISK-01, DM-SUS-POP-TB-01, DM-SUS-PAED-01",
+  "finding": "Rules with no stop condition or loose urgency. PREG-02 ('re-test 6 to 12 weeks after the birth') fires at any postpartum_weeks >= 6, for years, and after the test is done. PREG-01 keeps offering an OGTT after one is on record (DMV-23). RISK-01 and POP-TB-01 fire at every visit however recently the person was tested. PAED-01 is 'immediate' for weight loss alone in a child, which in Uganda is usually undernutrition, TB or HIV.",
+  "why": "Noise that trains people to dismiss the lane.",
+  "fix": "Add an upper bound and 'no glucose test since the birth' to PREG-02; suppress PREG-01 when an OGTT value is recorded; add a months_since_glucose_test arm to RISK-01 and TB-01; make PAED-01 same_day for weight loss alone and immediate for the polyuria/thirst/bed-wetting arm."
+ },
+ {
+  "id": "F39",
+  "severity": "minor",
+  "where": "10-suspect.json DM-SUS-POP-DTG-01 (A10-23); 50-act.json dolutegravir_with_metformin (A1-21); 20-confirm.json egfr_not_steady_state (A6-65)",
+  "finding": "Three live items rest on citations marked unverified: the Kampala dolutegravir signal, the Uganda HIV-chapter dolutegravir-metformin interaction, and 'eGFR is not valid in pregnancy' (quote field reads 'NOT FOUND in the pages opened'), which is also a diagnosis-blocking caveat. The dolutegravir-metformin action warns of 'hypoglycaemia', which metformin alone does not cause, and will fire on nearly every person with HIV and diabetes because dolutegravir is first line.",
+  "why": "A CSO cannot sign a rule whose source nobody read; a permanent amber flag on the standard regimen is noise.",
+  "fix": "Read the Uganda Consolidated HIV Guidelines and the Lancet HIV paper before release; mark these items needsCsoInput until then. Reword the interaction action to what the source says once read (no dose)."
+ },
+ {
+  "id": "F40",
+  "severity": "minor",
+  "where": "50-act.json glibenclamide_age_60, DM-ACT-RX-02; feature could_conceive vs pregnant/prior_gdm/pcos",
+  "finding": "Uganda fit. The flag and the step say 'gliclazide preferred', while the pack's own EMHSLU note places gliclazide at tertiary level and glimepiride (with metformin) at primary care and records glibenclamide as deleted in 2023. could_conceive is tagged sexual_reproductive_health but pregnant, gestation_weeks, prior_gdm and pcos are not.",
+  "why": "A district clinician is advised to use a medicine they cannot get; restricted-class tagging is inconsistent (rule 7 intent).",
+  "fix": "Add the EMHSLU level of care to the flag text ('where gliclazide is not available at this level, see EMHSLU') once the list is read; ask the CSO whether pregnancy-related features belong to the restricted class."
+ },
+ {
+  "id": "F41",
+  "severity": "minor",
+  "where": "vignettes/golden-vignettes.json (coverage)",
+  "finding": "The 34 vignettes do not contain: any low glucose; an HHS picture; a foot ulcer; metformin with eGFR below 30; a person off insulin; a never-screened or never-tested person; a pregnant woman at a district site; a known-diabetic child; a meter reading with no context; a remission negative (type 1); a control assessment at a district site. Each of these fails or is silent in the reference evaluator (see findings above). DMV-15 (19-year-old, BMI 17, on no treatment) expects only routine rules.",
+  "why": "The build passes because the dangerous patients are not in the test set.",
+  "fix": "Add one vignette per item with the corrected expectations; treat 'nothing fires' on any of them as a build error."
+ }
+]

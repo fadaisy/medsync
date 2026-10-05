@@ -1,0 +1,1131 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.3.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "catalogue": "MS-EMR-EXAM-CAT-001",
+ "file": "data/clerking/clerking-exam-catalogue.v1.json",
+ "amendment": {
+  "medicine_groups.add": {
+   "sulfonylurea": [
+    "glibenclamide",
+    "gliclazide",
+    "glimepiride",
+    "glipizide"
+   ],
+   "insulin": [
+    "insulin"
+   ],
+   "metformin": [
+    "metformin"
+   ],
+   "sglt2_inhibitor": [
+    "dapagliflozin",
+    "empagliflozin",
+    "canagliflozin"
+   ],
+   "ras_blocker": [
+    "enalapril",
+    "lisinopril",
+    "captopril",
+    "ramipril",
+    "perindopril",
+    "losartan",
+    "valsartan",
+    "telmisartan",
+    "candesartan"
+   ],
+   "statin": [
+    "atorvastatin",
+    "simvastatin",
+    "rosuvastatin"
+   ],
+   "systemic_steroid": [
+    "prednisolone",
+    "prednisone",
+    "dexamethasone",
+    "hydrocortisone",
+    "methylprednisolone"
+   ]
+  },
+  "medicine_groups.rules": [
+   "Membership comes from the formulary's drug class on the recorded medicine wherever the record has one; the name stems above are the fallback for free text and need signed brand stems before they are relied on (review G16).",
+   "systemic_steroid matches oral and injected routes only: a cream, inhaler or eye drop is not a systemic steroid."
+  ],
+  "vital_signs.panels.add": [
+   {
+    "id": "vs.ketones",
+    "label": "Ketones",
+    "on_demand": true,
+    "fields": [
+     {
+      "id": "blood",
+      "label": "Blood ketones",
+      "unit": "mmol/L",
+      "plausible": [
+       0,
+       12
+      ],
+      "concept": "obs.ketones_blood"
+     },
+     {
+      "id": "urine",
+      "label": "Urine ketones",
+      "kind": "one",
+      "options": [
+       {
+        "id": "neg",
+        "label": "Negative"
+       },
+       {
+        "id": "trace",
+        "label": "Trace"
+       },
+       {
+        "id": "1plus",
+        "label": "1+"
+       },
+       {
+        "id": "2plus",
+        "label": "2+"
+       },
+       {
+        "id": "3plus",
+        "label": "3+ or more"
+       }
+      ],
+      "concept": "obs.ketones_urine"
+     }
+    ],
+    "rule": "Either field may be recorded. Saved with the vital set. Offered by SUG-GLU-KETONES; never required."
+   }
+  ],
+  "reference_entries.add": {
+   "REF-EX-GLU-KETONE-TEST": {
+    "value": 18,
+    "unit": "mmol/L",
+    "meaning": "WHO primary care: measure urine ketones when plasma glucose is at or above this value",
+    "source": "WHO-PEN-TRAINING",
+    "status": "draft",
+    "mirrors": "REF-DM-ACU-KETONE-TEST-GLU"
+   },
+   "REF-EX-KETONE-DKA": {
+    "value": 3.0,
+    "unit": "mmol/L",
+    "meaning": "DKA: blood beta-hydroxybutyrate at or above this value",
+    "source": "ADA-EASD-CRISES-2024",
+    "status": "draft",
+    "mirrors": "REF-DM-ACU-DKA-BOHB"
+   },
+   "REF-EX-KETONE-RISK": {
+    "value": 1.6,
+    "unit": "mmol/L",
+    "meaning": "Blood ketones at or above this value (and below 3.0): at risk of DKA, contact the diabetes team as soon as possible",
+    "source": "TREND-UK-2020",
+    "status": "draft",
+    "mirrors": "REF-DM-ACU-KETONE-RISK"
+   },
+   "REF-EX-KETONE-RAISED": {
+    "value": 0.6,
+    "unit": "mmol/L",
+    "meaning": "Blood ketones at or above this value are raised",
+    "source": "TREND-UK-2020",
+    "status": "draft",
+    "mirrors": "REF-DM-ACU-KETONE-LOW"
+   },
+   "REF-EX-DR-RECALL": {
+    "value": {
+     "none": 24,
+     "mild_npdr": 12,
+     "moderate_npdr": 6,
+     "severe_npdr": 3,
+     "pdr": 1,
+     "dme_centre": 1,
+     "dme_non_centre": 3
+    },
+    "unit": "months",
+    "meaning": "Re-examination interval by grade. Mild and moderate use the near end of ICO's range; the far end applies only where control is confirmed at target.",
+    "source": "ICO-2017",
+    "status": "draft",
+    "mirrors": [
+     "REF-DM-EYE-RECALL-NONE-MILD-MAX",
+     "REF-DM-EYE-RECALL-MILD-MIN",
+     "REF-DM-EYE-RECALL-MODERATE-MIN",
+     "REF-DM-EYE-RECALL-SEVERE",
+     "REF-DM-EYE-RECALL-PDR",
+     "REF-DM-EYE-RECALL-DME-CI",
+     "REF-DM-EYE-RECALL-DME-NCI"
+    ]
+   }
+  },
+  "items.add": {
+   "ex.skin.injection_sites": {
+    "id": "ex.skin.injection_sites",
+    "label": "Injection sites",
+    "response": {
+     "type": "state",
+     "negative_label": "No lumps",
+     "positive_label": "Lumps or thickening"
+    },
+    "attributes": [
+     {
+      "id": "where",
+      "label": "Where",
+      "kind": "many",
+      "options": [
+       {
+        "id": "abdomen",
+        "label": "Abdomen"
+       },
+       {
+        "id": "thigh",
+        "label": "Thigh"
+       },
+       {
+        "id": "arm",
+        "label": "Upper arm"
+       },
+       {
+        "id": "buttock",
+        "label": "Buttock"
+       }
+      ]
+     }
+    ],
+    "phrase": {
+     "negative": "no lumps at injection sites",
+     "positive": "lumps or thickening at injection sites"
+    },
+    "sensitivity": "standard",
+    "applies_to_sex": null,
+    "hint": {
+     "text": "Look and feel at every site the patient uses. Insulin injected into a lump is absorbed unpredictably."
+    },
+    "system": "skin",
+    "concept": "sign.lipohypertrophy",
+    "source": "EADSG-2019"
+   },
+   "ex.eyes_ent_neck.visual_acuity": {
+    "id": "ex.eyes_ent_neck.visual_acuity",
+    "label": "Visual acuity",
+    "reconcile": "Add only if no acuity item exists.",
+    "response": {
+     "type": "measured"
+    },
+    "attributes": [
+     {
+      "id": "right",
+      "label": "Right eye",
+      "kind": "one",
+      "options_ref": "snellen"
+     },
+     {
+      "id": "left",
+      "label": "Left eye",
+      "kind": "one",
+      "options_ref": "snellen"
+     },
+     {
+      "id": "pinhole",
+      "label": "With pinhole",
+      "kind": "one",
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes"
+       },
+       {
+        "id": "no",
+        "label": "No"
+       }
+      ]
+     }
+    ],
+    "phrase": {
+     "positive": "visual acuity right {right}, left {left}",
+     "one_eye": "visual acuity {side} {value}"
+    },
+    "system": "eyes_ent_neck",
+    "concept": "obs.visual_acuity",
+    "source": "ICO-2017"
+   }
+  },
+  "items.amend": {
+   "ex.eyes_ent_neck.fundoscopy": {
+    "attributes.add": [
+     {
+      "id": "method",
+      "label": "How",
+      "kind": "one",
+      "options": [
+       {
+        "id": "dilated",
+        "label": "Pupils dilated"
+       },
+       {
+        "id": "undilated",
+        "label": "Not dilated"
+       },
+       {
+        "id": "photograph",
+        "label": "Retinal photograph"
+       }
+      ]
+     },
+     {
+      "id": "view",
+      "label": "View",
+      "kind": "one",
+      "options": [
+       {
+        "id": "adequate",
+        "label": "Adequate to grade"
+       },
+       {
+        "id": "inadequate",
+        "label": "Inadequate"
+       }
+      ],
+      "reconcile": "The live item has 'seen = not_visualised'. Keep one way of saying 'looked and could not see': merge these in Phase 0 and make the classifier read the survivor."
+     },
+     {
+      "id": "dr_grade",
+      "label": "Retinopathy grade (worse eye)",
+      "kind": "one",
+      "shown_when": {
+       "all": [
+        {
+         "attribute": "view",
+         "any_of": [
+          "adequate"
+         ]
+        },
+        {
+         "attribute": "method",
+         "any_of": [
+          "dilated",
+          "photograph"
+         ]
+        }
+       ]
+      },
+      "options": [
+       {
+        "id": "none",
+        "label": "No retinopathy seen"
+       },
+       {
+        "id": "mild_npdr",
+        "label": "Mild: small red dots only"
+       },
+       {
+        "id": "moderate_npdr",
+        "label": "Moderate"
+       },
+       {
+        "id": "severe_npdr",
+        "label": "Severe"
+       },
+       {
+        "id": "pdr",
+        "label": "Proliferative: new vessels or bleeding into the eye"
+       }
+      ],
+      "hint_from": "dossier entry REF-DM-EYE-ICDR",
+      "hint_rule": "The grade definitions are shown from the signed reference entry, in plain words; no threshold is typed into the hint."
+     },
+     {
+      "id": "macula",
+      "label": "Macula",
+      "kind": "one",
+      "shown_when": {
+       "all": [
+        {
+         "attribute": "view",
+         "any_of": [
+          "adequate"
+         ]
+        },
+        {
+         "attribute": "method",
+         "any_of": [
+          "dilated",
+          "photograph"
+         ]
+        }
+       ]
+      },
+      "options": [
+       {
+        "id": "none",
+        "label": "No swelling or hard exudate"
+       },
+       {
+        "id": "non_centre",
+        "label": "Swelling or exudate, centre spared"
+       },
+       {
+        "id": "centre_involving",
+        "label": "Involving the centre"
+       },
+       {
+        "id": "cannot_assess",
+        "label": "Cannot assess"
+       }
+      ]
+     }
+    ],
+    "commit": {
+     "dr_grade": "exam.retinopathy_grade",
+     "macula": "exam.macular_oedema",
+     "view": "exam.retinal_view"
+    },
+    "rule": "A grade can be recorded only on an adequate view through dilated pupils or on a photograph. 'No retinopathy seen' on such a view is a real result and clears the screening prompt. An undilated look that seems normal composes as 'no retinopathy seen (undilated, not a screen)', commits no grade, and leaves the eyes counted as not screened.",
+    "source": "ICDR-2003"
+   },
+   "ex.feet.foot_risk_history": {
+    "note": "No change. IWGDF 2023 re-read (REF-DM-FOOT-IWGDF)."
+   }
+  },
+  "option_sets.add": {
+   "snellen": [
+    {
+     "id": "6_6",
+     "label": "6/6"
+    },
+    {
+     "id": "6_9",
+     "label": "6/9"
+    },
+    {
+     "id": "6_12",
+     "label": "6/12"
+    },
+    {
+     "id": "6_18",
+     "label": "6/18"
+    },
+    {
+     "id": "6_24",
+     "label": "6/24"
+    },
+    {
+     "id": "6_36",
+     "label": "6/36"
+    },
+    {
+     "id": "6_60",
+     "label": "6/60"
+    },
+    {
+     "id": "cf",
+     "label": "CF"
+    },
+    {
+     "id": "hm",
+     "label": "HM"
+    },
+    {
+     "id": "pl",
+     "label": "PL"
+    },
+    {
+     "id": "npl",
+     "label": "NPL"
+    },
+    {
+     "id": "not_tested",
+     "label": "Not tested (no chart)"
+    }
+   ]
+  },
+  "classifiers.add": {
+   "acuity_band": {
+    "label": "Visual acuity",
+    "input": "ex.eyes_ent_neck.visual_acuity",
+    "source": "ICO-2017",
+    "rules": [
+     {
+      "result": "worse_than_6_12",
+      "when": {
+       "any": [
+        {
+         "item": "ex.eyes_ent_neck.visual_acuity",
+         "attribute": "right",
+         "any_of": [
+          "6_18",
+          "6_24",
+          "6_36",
+          "6_60",
+          "cf",
+          "hm",
+          "pl",
+          "npl"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.visual_acuity",
+         "attribute": "left",
+         "any_of": [
+          "6_18",
+          "6_24",
+          "6_36",
+          "6_60",
+          "cf",
+          "hm",
+          "pl",
+          "npl"
+         ]
+        }
+       ]
+      }
+     }
+    ],
+    "note": "Either eye. ICO refers when acuity is worse than 6/12 whatever the retinal grade; the line is the dossier's REF-DM-EYE-REFER-VA."
+   },
+   "ketone_band": {
+    "label": "Ketones",
+    "input": "vs.ketones",
+    "source": "ADA-EASD-CRISES-2024",
+    "rules": [
+     {
+      "result": "high",
+      "when": {
+       "any": [
+        {
+         "panel": "vs.ketones",
+         "field": "blood",
+         "gte_ref": "REF-EX-KETONE-DKA"
+        },
+        {
+         "panel": "vs.ketones",
+         "field": "urine",
+         "any_of": [
+          "2plus",
+          "3plus"
+         ]
+        }
+       ]
+      }
+     },
+     {
+      "result": "moderate",
+      "when": {
+       "panel": "vs.ketones",
+       "field": "blood",
+       "gte_ref": "REF-EX-KETONE-RISK"
+      }
+     },
+     {
+      "result": "raised",
+      "when": {
+       "any": [
+        {
+         "panel": "vs.ketones",
+         "field": "blood",
+         "gte_ref": "REF-EX-KETONE-RAISED"
+        },
+        {
+         "panel": "vs.ketones",
+         "field": "urine",
+         "any_of": [
+          "trace",
+          "1plus"
+         ]
+        }
+       ]
+      }
+     }
+    ],
+    "note": "First match wins. The bands are named as findings (high, moderate, raised), not as diagnoses: a fasting or vomiting person without diabetes can have high ketones. Urine strips lag behind blood ketones: a low strip with a ketoacidotic picture is not reassurance. The urine cut (2+) is the dossier's REF-DM-ACU-DKA-UKET."
+   },
+   "dr_review": {
+    "label": "Retinopathy: next step",
+    "input": "ex.eyes_ent_neck.fundoscopy",
+    "source": "ICO-2017",
+    "rules": [
+     {
+      "result": "refer_within_1_month",
+      "when": {
+       "any": [
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "dr_grade",
+         "any_of": [
+          "pdr"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "macula",
+         "any_of": [
+          "centre_involving"
+         ]
+        }
+       ]
+      }
+     },
+     {
+      "result": "refer_within_3_months",
+      "when": {
+       "item": "ex.eyes_ent_neck.fundoscopy",
+       "attribute": "dr_grade",
+       "any_of": [
+        "severe_npdr"
+       ]
+      }
+     },
+     {
+      "result": "refer_cannot_assess",
+      "when": {
+       "any": [
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "macula",
+         "any_of": [
+          "cannot_assess"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "view",
+         "any_of": [
+          "inadequate"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "seen",
+         "any_of": [
+          "not_visualised"
+         ]
+        },
+        {
+         "classifier": "acuity_band",
+         "any_of": [
+          "worse_than_6_12"
+         ]
+        },
+        {
+         "symptom": "sym.blurred_vision",
+         "answer": "yes"
+        }
+       ]
+      }
+     },
+     {
+      "result": "re_examine_3_months",
+      "when": {
+       "item": "ex.eyes_ent_neck.fundoscopy",
+       "attribute": "macula",
+       "any_of": [
+        "non_centre"
+       ]
+      }
+     },
+     {
+      "result": "refer_routine",
+      "when": {
+       "item": "ex.eyes_ent_neck.fundoscopy",
+       "attribute": "dr_grade",
+       "any_of": [
+        "moderate_npdr"
+       ]
+      }
+     },
+     {
+      "result": "re_examine_by_grade",
+      "when": {
+       "all": [
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "dr_grade",
+         "any_of": [
+          "none",
+          "mild_npdr"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "view",
+         "any_of": [
+          "adequate"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.fundoscopy",
+         "attribute": "method",
+         "any_of": [
+          "dilated",
+          "photograph"
+         ]
+        },
+        {
+         "item": "ex.eyes_ent_neck.visual_acuity",
+         "recorded": true
+        }
+       ]
+      }
+     },
+     {
+      "result": "incomplete",
+      "when": {
+       "item": "ex.eyes_ent_neck.fundoscopy",
+       "attribute": "dr_grade",
+       "any_of": [
+        "none",
+        "mild_npdr"
+       ]
+      }
+     }
+    ],
+    "ref": "REF-EX-DR-RECALL",
+    "note": "First match wins, most urgent first. ICO: refer when acuity is worse than 6/12 or there are visual symptoms, whatever the grade, and when the retina cannot be seen. 're_examine_by_grade' needs an adequate dilated or photographic view AND a recorded acuity; without them the result is 'incomplete', never a reassuring interval. Uganda's Eye Care Guidelines 2016 refer everyone with diabetes to a retina clinic: the CSO chooses between that rule and ICO's (D-DM-14). The acuity classifier is new.",
+    "reconcile": "sym.blurred_vision id; the 'recorded' atom on an item"
+   }
+  },
+  "flag_rules.add": [
+   {
+    "id": "FLAG-EX-KETONES-HIGH-DM",
+    "level": "urgent",
+    "badge": "Ketones {ketones}",
+    "reason": "High ketones with diabetes or a raised glucose: possible ketoacidosis. Venous gas or bicarbonate and senior review now, or refer now where there is no gas",
+    "when": {
+     "all": [
+      {
+       "classifier": "ketone_band",
+       "any_of": [
+        "high"
+       ]
+      },
+      {
+       "any": [
+        {
+         "vital": "vs.glucose",
+         "gte_ref": "REF-EX-GLU-HIGH"
+        },
+        {
+         "past_condition": "diabetes",
+         "answer": "yes"
+        },
+        {
+         "medicine_group": "insulin"
+        },
+        {
+         "medicine_group": "sulfonylurea"
+        },
+        {
+         "medicine_group": "metformin"
+        },
+        {
+         "medicine_group": "sglt2_inhibitor"
+        },
+        {
+         "finding": {
+          "item": "ex.respiratory.breathing_pattern",
+          "is": "kussmaul"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "source": "ADA-EASD-CRISES-2024",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-DKA-BOHB",
+     "REF-DM-ACU-DKA-UKET",
+     "REF-DM-ACU-DKA-GLU"
+    ],
+    "reconcile": "breathing_pattern finding shape"
+   },
+   {
+    "id": "FLAG-EX-KETONES-HIGH",
+    "level": "caution",
+    "badge": "Ketones {ketones}",
+    "reason": "High ketones without known diabetes or a raised glucose: fasting, vomiting, alcohol and pregnancy do this too. Check the glucose",
+    "when": {
+     "classifier": "ketone_band",
+     "any_of": [
+      "high"
+     ]
+    },
+    "source": "ADA-EASD-CRISES-2024",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-DKA-UKET"
+    ],
+    "note": "Same badge text as the urgent flag, so the two merge and the higher level wins."
+   },
+   {
+    "id": "FLAG-EX-KETONES-RISK",
+    "level": "caution",
+    "badge": "Ketones {ketones}",
+    "reason": "Raised ketones: at risk of ketoacidosis. Recheck and look for the cause",
+    "when": {
+     "classifier": "ketone_band",
+     "any_of": [
+      "moderate"
+     ]
+    },
+    "source": "TREND-UK-2020",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-KETONE-RISK"
+    ]
+   },
+   {
+    "id": "FLAG-EX-GLU-KETONE-TEST",
+    "level": "caution",
+    "badge": "Glucose {glucose}: test ketones",
+    "reason": "Glucose 18 mmol/L or more: test urine ketones today. No strip here: refer if the patient is unwell, dry or drowsy",
+    "when": {
+     "all": [
+      {
+       "vital": "vs.glucose",
+       "gte_ref": "REF-EX-GLU-KETONE-TEST"
+      },
+      {
+       "not": {
+        "panel": "vs.ketones",
+        "recorded": true
+       }
+      }
+     ]
+    },
+    "source": "WHO-PEN-TRAINING",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-KETONE-TEST-GLU"
+    ],
+    "note": "Clears once a ketone result is recorded. 'recorded' on a panel may need adding to evalCond."
+   },
+   {
+    "id": "FLAG-EX-INSULIN-STOPPED",
+    "level": "urgent",
+    "badge": "Medicine stopped: insulin",
+    "reason": "Insulin stopped in a person who depends on it or is unwell: risk of ketoacidosis. Check glucose and ketones now",
+    "when": {
+     "all": [
+      {
+       "medicine": "insulin",
+       "adherence_any": [
+        "stopped"
+       ]
+      },
+      {
+       "any": [
+        {
+         "past_detail": "diabetes",
+         "property": "type",
+         "equals": "type_1"
+        },
+        {
+         "past_detail": "diabetes",
+         "property": "insulin_from_start",
+         "equals": "yes"
+        },
+        {
+         "vital": "vs.glucose",
+         "gte_ref": "REF-EX-GLU-HIGH"
+        },
+        {
+         "symptom": "sym.vomiting",
+         "answer": "yes"
+        },
+        {
+         "classifier": "ketone_band",
+         "any_of": [
+          "high",
+          "moderate",
+          "raised"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "source": "ADA-SOC-2026",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-SICKDAY-INSULIN",
+     "REF-DM-ACU-PRECIPITANTS"
+    ],
+    "needs": [
+     "EC-2",
+     "EC-7 (medicine atom reading adherence)"
+    ],
+    "note": "The existing FLAG-MED-ADHERENCE already raises a caution for any stopped medicine, insulin included. This one raises it to urgent only where stopping is dangerous; its badge must match the existing flag's badge text so the two merge (set in Phase 0)."
+   },
+   {
+    "id": "FLAG-EX-SGLT2-UNWELL",
+    "level": "urgent",
+    "badge": "SGLT2 inhibitor and vomiting",
+    "reason": "On an SGLT2 inhibitor with vomiting or abdominal pain: ketoacidosis can occur with a normal glucose. Check ketones now",
+    "when": {
+     "all": [
+      {
+       "medicine_group": "sglt2_inhibitor"
+      },
+      {
+       "any": [
+        {
+         "symptom": "sym.vomiting",
+         "answer": "yes"
+        },
+        {
+         "symptom": "sym.abdominal_pain",
+         "answer": "yes"
+        },
+        {
+         "finding": {
+          "item": "ex.respiratory.breathing_pattern",
+          "is": "kussmaul"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "source": "ADA-EASD-CRISES-2024",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-EDKA"
+    ],
+    "reconcile": "sym.vomiting, sym.abdominal_pain and the breathing_pattern finding shape"
+   },
+   {
+    "id": "FLAG-EX-DR-SIGHT",
+    "level": "caution",
+    "badge": "Retinopathy needs referral",
+    "reason": "Refer to an ophthalmologist: within 1 month for new vessels or swelling at the centre of the macula, within 3 months for severe retinopathy",
+    "when": {
+     "classifier": "dr_review",
+     "any_of": [
+      "refer_within_1_month",
+      "refer_within_3_months"
+     ]
+    },
+    "source": "ICO-2017",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-EYE-RECALL-PDR",
+     "REF-DM-EYE-RECALL-SEVERE"
+    ]
+   }
+  ],
+  "suggestion_rules.add": [
+   {
+    "id": "SUG-PMH-DIABETES",
+    "when": {
+     "past_condition": "diabetes",
+     "answer": "yes"
+    },
+    "targets": [
+     "vs.glucose",
+     "vs.bp",
+     "vs.weight",
+     "vs.waist",
+     "ex.feet",
+     "ex.eyes_ent_neck.visual_acuity",
+     "ex.eyes_ent_neck.fundoscopy"
+    ],
+    "why": "Known diabetes: glucose, blood pressure, weight and feet at every review; eyes when due",
+    "source": "WHO-HEARTS-D-2020",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACT-EVERY-VISIT",
+     "REF-DM-FOOT-EVERY-VISIT"
+    ],
+    "note": "SUG-POLYURIA's past-diabetes branch is NOT removed: it offers hydration, breathing pattern and odour, which this rule does not. If the two chips duplicate a target, the suggester's existing de-duplication handles it."
+   },
+   {
+    "id": "SUG-DM-UNWELL",
+    "when": {
+     "all": [
+      {
+       "past_condition": "diabetes",
+       "answer": "yes"
+      },
+      {
+       "any": [
+        {
+         "symptom": "sym.vomiting",
+         "answer": "yes"
+        },
+        {
+         "symptom": "sym.abdominal_pain",
+         "answer": "yes"
+        },
+        {
+         "symptom": "sym.confusion",
+         "answer": "yes"
+        }
+       ]
+      }
+     ]
+    },
+    "targets": [
+     "vs.glucose",
+     "vs.ketones",
+     "ex.general.hydration",
+     "ex.respiratory.breathing_pattern",
+     "ex.general.odour"
+    ],
+    "why": "Diabetes and unwell: glucose, ketones, hydration and breathing",
+    "source": "ADA-EASD-CRISES-2024",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-REFER-ALL"
+    ],
+    "reconcile": "sym.vomiting, sym.abdominal_pain, sym.confusion ids"
+   },
+   {
+    "id": "SUG-DM-INSULIN-SITES",
+    "when": {
+     "medicine_group": "insulin"
+    },
+    "targets": [
+     "ex.skin.injection_sites"
+    ],
+    "why": "On insulin: check the injection sites",
+    "source": "EADSG-2019",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACT-EDU-INJECTION"
+    ]
+   },
+   {
+    "id": "SUG-DM-POSTURAL",
+    "when": {
+     "all": [
+      {
+       "past_condition": "diabetes",
+       "answer": "yes"
+      },
+      {
+       "symptom": "sym.dizziness",
+       "answer": "yes"
+      }
+     ]
+    },
+    "targets": [
+     "vs.postural"
+    ],
+    "why": "Diabetes with dizziness: lying and standing blood pressure",
+    "source": "ADA-SOC-2026",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-NEU-OH-SBP"
+    ],
+    "reconcile": "sym.dizziness id"
+   },
+   {
+    "id": "SUG-DM-NEURO",
+    "when": {
+     "all": [
+      {
+       "past_condition": "diabetes",
+       "answer": "yes"
+      },
+      {
+       "symptom": "sym.numbness",
+       "answer": "yes"
+      }
+     ]
+    },
+    "targets": [
+     "ex.feet.monofilament",
+     "ex.feet.vibration_128",
+     "ex.feet.ipswich_touch",
+     "ex.nervous.reflexes"
+    ],
+    "why": "Diabetes with numb or burning feet: sensation and ankle reflexes",
+    "source": "ADA-SOC-2026",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-NEU-TESTS"
+    ],
+    "reconcile": "sym.numbness and ex.nervous.reflexes ids"
+   },
+   {
+    "id": "SUG-GLU-KETONES",
+    "when": {
+     "vital": "vs.glucose",
+     "gte_ref": "REF-EX-GLU-KETONE-TEST"
+    },
+    "targets": [
+     "vs.ketones",
+     "ex.general.hydration",
+     "ex.respiratory.breathing_pattern",
+     "ex.general.odour"
+    ],
+    "why": "Glucose 18 mmol/L or more: ketones, hydration and breathing",
+    "source": "WHO-PEN-TRAINING",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-KETONE-TEST-GLU"
+    ]
+   },
+   {
+    "id": "SUG-SGLT2-KETONES",
+    "when": {
+     "all": [
+      {
+       "medicine_group": "sglt2_inhibitor"
+      },
+      {
+       "any": [
+        {
+         "symptom": "sym.vomiting",
+         "answer": "yes"
+        },
+        {
+         "symptom": "sym.abdominal_pain",
+         "answer": "yes"
+        }
+       ]
+      }
+     ]
+    },
+    "targets": [
+     "vs.ketones",
+     "vs.glucose",
+     "ex.respiratory.breathing_pattern"
+    ],
+    "why": "On an SGLT2 inhibitor and unwell: ketones even if glucose is normal",
+    "source": "ADA-EASD-CRISES-2024",
+    "status": "draft",
+    "refs_dm": [
+     "REF-DM-ACU-EDKA"
+    ]
+   }
+  ],
+  "token_map.add": {
+   "items": {
+    "ex.skin.injection_sites": "sign.lipohypertrophy",
+    "ex.eyes_ent_neck.visual_acuity": "obs.visual_acuity"
+   },
+   "options": [
+    {
+     "item": "ex.eyes_ent_neck.fundoscopy",
+     "attribute": "dr_grade",
+     "concept": "exam.retinopathy_grade",
+     "value_from_option": true
+    },
+    {
+     "item": "ex.eyes_ent_neck.fundoscopy",
+     "attribute": "macula",
+     "concept": "exam.macular_oedema",
+     "value_from_option": true,
+     "reconcile": "exam.maculopathy already exists: extend it or map to it; do not create a second macula concept"
+    }
+   ]
+  }
+ }
+}

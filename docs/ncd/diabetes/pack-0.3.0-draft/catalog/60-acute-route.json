@@ -1,0 +1,2818 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.3.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "lane: acute_route",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "rules": [
+  {
+   "id": "DM-ACU-ROUTE-01",
+   "display": "Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today",
+   "condition": "dka",
+   "when": {
+    "id": "acu_glu18",
+    "label": "Glucose 18 mmol/L or more, or a meter reading HI",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+     "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+     "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+     "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-48",
+      "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Hyperosmolar hyperglycaemic state",
+    "Uncomplicated severe hyperglycaemia"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+    "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+    "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+    "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-48",
+     "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "WHO primary-care protocol. Ketones 2+ or more: refer now. Ketones negative but the patient is unwell, dry or drowsy, or no strip is available: refer; a negative strip does not exclude a hyperosmolar state. Same-day, not an interrupt, when the patient is well: readings of 18 or more are common, and an interrupt on every one would be dismissed. With vomiting, pain, deep breathing, dehydration or drowsiness rule 11 interrupts.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones_urine",
+     "tier": "today"
+    },
+    "review": [
+     "F02",
+     "F25",
+     "H20"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_glu18_done",
+      "label": "A ketone result is already recorded",
+      "any": [
+       {
+        "feature": "urine_ketones",
+        "op": "recorded"
+       },
+       {
+        "feature": "bohb",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-48",
+        "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-02",
+   "display": "Ketones 2+ or more (or blood ketones 3.0 or more) with high glucose or known diabetes: ketoacidosis until shown otherwise",
+   "condition": "dka",
+   "when": {
+    "id": "acu_ketones",
+    "label": "Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with any glucose 11.1 mmol/L or more, a meter reading HI, or known diabetes",
+    "any": [
+     {
+      "feature": "urine_ketones",
+      "op": "in",
+      "value": [
+       "2plus",
+       "3plus"
+      ]
+     },
+     {
+      "feature": "bohb",
+      "op": ">=",
+      "value": 3.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-01",
+      "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-DKA-BOHB"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "venous_ph",
+    "bicarbonate",
+    "sodium",
+    "urea"
+   ],
+   "mimicsToExclude": [
+    "Starvation ketosis",
+    "Alcoholic ketoacidosis",
+    "Ketosis of pregnancy",
+    "Captopril or valproate (false-positive strip)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-01",
+     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Two OR-groups are conjoined by putting the second in atLeast with n = 1. Ketosis with a glucose below 11.1 in a person not known to have diabetes does not fire this rule; on an SGLT2 inhibitor rule 03 covers it. No blood gas at this site: refer on ketones and the clinical picture; do not wait.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "H03"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-03",
+   "display": "On an SGLT2 inhibitor and vomiting, in pain or breathing deeply: check ketones even if glucose is normal",
+   "condition": "dka",
+   "when": {
+    "id": "acu_edka",
+    "label": "On an SGLT2 inhibitor, with any of: vomiting, abdominal pain, deep rapid breathing, acute illness",
+    "all": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "sglt2_inhibitor"
+     }
+    ],
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Approximately 10% of patients with DKA present with euglycemic DKA, which is defined as plasma glucose levels <200 mg/dL [11.1 mmol/L] in the presence of ketosis and metabolic acidosis. [...] can be caused by a variety of factors, including exogenous insulin injection, reduced food intake, pregnancy, or impaired gluconeogenesis due to alcohol use, liver failure, and/or SGLT2 inhibitor therapy.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-05",
+      "section": "Diagnostic criteria narrative - euglycemic DKA",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-EDKA"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "immediate",
+   "confirmWith": [
+    "bohb",
+    "urine_ketones",
+    "venous_ph",
+    "bicarbonate"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis",
+    "Urinary or genital infection (also commoner on this medicine)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Approximately 10% of patients with DKA present with euglycemic DKA, which is defined as plasma glucose levels <200 mg/dL [11.1 mmol/L] in the presence of ketosis and metabolic acidosis. [...] can be caused by a variety of factors, including exogenous insulin injection, reduced food intake, pregnancy, or impaired gluconeogenesis due to alcohol use, liver failure, and/or SGLT2 inhibitor therapy.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-05",
+     "section": "Diagnostic criteria narrative - euglycemic DKA",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "The live catalog already carries euglycaemic rules; reconcile rather than duplicate. Glucose may be below 11.1 mmol/L.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "H07"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_edka_done",
+      "label": "A ketone result is already recorded (rule 02 reads it)",
+      "any": [
+       {
+        "feature": "urine_ketones",
+        "op": "recorded"
+       },
+       {
+        "feature": "bohb",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "EASD",
+       "version": "2024",
+       "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+       "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+       "quote": "Approximately 10% of patients with DKA present with euglycemic DKA, which is defined as plasma glucose levels <200 mg/dL [11.1 mmol/L] in the presence of ketosis and metabolic acidosis. [...] can be caused by a variety of factors, including exogenous insulin injection, reduced food intake, pregnancy, or impaired gluconeogenesis due to alcohol use, liver failure, and/or SGLT2 inhibitor therapy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-05",
+        "section": "Diagnostic criteria narrative - euglycemic DKA",
+        "bodyProposed": "ADA-EASD-CONSENSUS",
+        "verified": true,
+        "ref": "REF-DM-ACU-EDKA"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-04",
+   "display": "A child who is vomiting, in pain, breathing deeply, dry or drowsy, with symptoms of diabetes, a raised glucose, ketones or known diabetes: hospital now",
+   "condition": "dka",
+   "when": {
+    "id": "acu_paed",
+    "label": "Any of vomiting, abdominal pain, deep rapid breathing, dehydration, drowsiness or worse; with at least one of: thirst, passing a lot of urine, weight loss, new bed-wetting, any glucose above 11 mmol/L, a meter reading HI, known diabetes",
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      },
+      {
+       "feature": "secondary_enuresis",
+       "op": "present"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      },
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">",
+       "value": 11,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">",
+       "value": 11,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">",
+       "value": 11,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">",
+       "value": 11,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">",
+       "value": 11,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">",
+       "value": 11,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "NG18, Bookshelf copy last updated 11 May 2023",
+     "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+     "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-31",
+      "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+      "bodyProposed": "NICE",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Malaria",
+    "Gastroenteritis",
+    "Pneumonia",
+    "Urinary tract infection",
+    "Acute abdomen"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "NG18, Bookshelf copy last updated 11 May 2023",
+    "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+    "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-31",
+     "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+     "bodyProposed": "NICE",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "NICE: glucose above 11 mmol/L with these features goes immediately to a hospital with paediatric facilities; in a child with KNOWN diabetes suspect ketoacidosis even if the glucose is normal. The history of thirst is often missing in a drowsy child brought by a relative, so a glucose, ketones or known diabetes stands in for it. Recognition and referral only: no fluid or insulin content is carried for children. Ketones alone do not fire this rule: a vomiting child who has not eaten has ketones without diabetes. Ketones with no glucose on record fire rule 18, which asks for the glucose.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F03",
+     "H08"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-05",
+   "display": "Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring",
+   "condition": "hyperkalaemia_severe",
+   "when": {
+    "id": "acu_k",
+    "label": "Potassium 6.5 mmol/L or more",
+    "all": [
+     {
+      "feature": "potassium",
+      "op": ">=",
+      "value": 6.5,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "KDIGO",
+     "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+     "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+     "url": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/",
+     "quote": "Moderate K+ 6.0–6.4 mmol/l: Clinically unwell or AKI - Assess and treat in hospital; Unexpected result - Repeat within 24 hours. Severe K+ ≥6.5 mmol/l: Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-60",
+      "section": "Table 28 (Suggested action in the event of moderate and severe hyperkalemia), page S227",
+      "bodyProposed": "KDIGO",
+      "verified": true,
+      "ref": "REF-DM-KID-K-SEVERE"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "potassium"
+   ],
+   "mimicsToExclude": [
+    "Haemolysed sample",
+    "Delayed sample"
+   ],
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+    "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+    "url": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/",
+    "quote": "Moderate K+ 6.0–6.4 mmol/l: Clinically unwell or AKI - Assess and treat in hospital; Unexpected result - Repeat within 24 hours. Severe K+ ≥6.5 mmol/l: Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-60",
+     "section": "Table 28 (Suggested action in the event of moderate and severe hyperkalemia), page S227",
+     "bodyProposed": "KDIGO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-06",
+   "display": "Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now",
+   "condition": "hypoglycaemia",
+   "when": {
+    "id": "acu_hypo_l2",
+    "label": "Any glucose below 3.0 mmol/L, a meter reading LO, or a low not resolving after treatment",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 3.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": "<",
+      "value": 3.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": "<",
+      "value": 3.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": "<",
+      "value": 3.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": "<",
+      "value": 3.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": "<",
+      "value": 3.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "lo"
+     },
+     {
+      "feature": "hypoglycaemia_not_resolving",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-14",
+      "section": "Table 6.4 'Classification of hypoglycemia'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-HYPO-L2"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "Sepsis",
+    "Severe malaria",
+    "Alcohol",
+    "Adrenal insufficiency",
+    "Liver failure"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes—2026",
+    "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+    "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A4-14",
+     "section": "Table 6.4 'Classification of hypoglycemia'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "notes": "Route only: the treatment is owned by the acute pathway. In a person not on insulin or a sulfonylurea this is not diabetes hypoglycaemia and the general differential applies. WHO lists a low unresolved by treatment for same-day referral.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F07",
+     "F33"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-07",
+   "display": "Glucose below 3.9 mmol/L in a person with diabetes, or on insulin or a sulfonylurea: hypoglycaemia, and it can come back",
+   "condition": "hypoglycaemia",
+   "when": {
+    "id": "acu_hypo_l1",
+    "label": "Any glucose below 3.9 mmol/L in a person on insulin or a sulfonylurea, with type 1 diabetes, or with known diabetes",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 3.9,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": "<",
+      "value": 3.9,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": "<",
+      "value": 3.9,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": "<",
+      "value": 3.9,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": "<",
+      "value": 3.9,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": "<",
+      "value": 3.9,
+      "unit": "mmol/L"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "==",
+       "value": "type_1"
+      },
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-14",
+      "section": "Table 6.4 'Classification of hypoglycemia'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-HYPO-L1"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "A meter error (repeat the reading)",
+    "Sepsis",
+    "Alcohol"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes—2026",
+    "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+    "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A4-14",
+     "section": "Table 6.4 'Classification of hypoglycemia'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "notes": "Route only. A fasting value in this range is never shown as 'at target'. Ask what changed: a missed meal, hard work, alcohol, a new medicine, falling kidney function.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F07",
+     "H18"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-11",
+   "display": "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones",
+   "condition": "hyperglycaemic_crisis",
+   "when": {
+    "id": "acu_picture",
+    "label": "Any glucose 11.1 mmol/L or more (or a meter reading HI), with any of: deep rapid breathing, acetone on the breath, dehydration, drowsiness or worse",
+    "any": [
+     {
+      "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "acetone_breath",
+      "op": "present"
+     },
+     {
+      "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-40",
+      "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACU-REFER-ALL"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb",
+    "venous_ph",
+    "bicarbonate",
+    "sodium",
+    "urea"
+   ],
+   "mimicsToExclude": [
+    "Sepsis",
+    "Severe malaria",
+    "Gastroenteritis",
+    "Acute abdomen",
+    "Stroke"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-40",
+     "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "WHO: refer to hospital all patients with SUSPECTED ketoacidosis or hyperosmolar state. Suspicion is clinical. A hyperosmolar state is ketone-negative by definition, so a negative strip clears nobody; a trace or 1+ strip with this picture is still routed. Vomiting or abdominal pain alone with a raised glucose is rule 19: same day, not an interrupt, because both are everyday findings.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F02",
+     "H07"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_picture_hhs",
+      "label": "Glucose 33.3 mmol/L or more or a meter reading HI (rule 14 interrupts for this patient)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": ">=",
+        "value": 33.3,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": ">=",
+        "value": 33.3,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": ">=",
+        "value": 33.3,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": ">=",
+        "value": 33.3,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": ">=",
+        "value": 33.3,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": ">=",
+        "value": 33.3,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "==",
+        "value": "hi"
+       }
+      ],
+      "citation": {
+       "standard": "EASD",
+       "version": "2024",
+       "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+       "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+       "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-07",
+        "section": "Figure 2B - The diagnosis criteria of HHS",
+        "bodyProposed": "ADA-EASD-CONSENSUS",
+        "verified": true,
+        "ref": "REF-DM-ACU-HHS-GLU"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-13",
+   "display": "Diabetes (or on insulin or a sulfonylurea) and vomiting, abdominal pain, deep breathing or dehydration, with no glucose on record: capillary glucose today, and ketones if it is raised",
+   "condition": "hyperglycaemic_crisis",
+   "when": {
+    "id": "acu_known_unwell",
+    "label": "Known diabetes, or on insulin or a sulfonylurea; with any of: vomiting, abdominal pain, deep rapid breathing, acetone on the breath, dehydration",
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "acetone_breath",
+      "op": "present"
+     },
+     {
+      "feature": "dehydration",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "A pack rule built from ADA's intercurrent-illness guidance (monitor glucose more often) and WHO's 'refer all suspected' rule. No source states it in these words: for CSO signature (D-DM-37).",
+     "x": {
+      "claim": "A4-64",
+      "section": "Narrative 'Intercurrent Illness'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-RX-SICKDAY-HOLD"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis",
+    "Malaria",
+    "Hypoglycaemia (check the glucose before assuming it is high)"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes—2026",
+    "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+    "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A4-64",
+     "section": "Narrative 'Intercurrent Illness'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Clears as soon as a glucose is recorded. On an SGLT2 inhibitor ketoacidosis can occur with a normal glucose (rule 03).",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": [
+      "test.glucose_capillary"
+     ],
+     "tier": "today"
+    },
+    "review": [
+     "F02",
+     "H07",
+     "H18"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_known_unwell_done",
+      "label": "A glucose is already recorded (the other rules then read it)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-64",
+        "section": "Narrative 'Intercurrent Illness'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-RX-SICKDAY-HOLD"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-14",
+   "display": "Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones",
+   "condition": "hhs",
+   "when": {
+    "id": "acu_hhs_glu",
+    "label": "Any glucose 33.3 mmol/L or more, or a meter reading HI",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 33.3,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 33.3,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 33.3,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 33.3,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 33.3,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 33.3,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-07",
+      "section": "Figure 2B - The diagnosis criteria of HHS",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-HHS-GLU"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "sodium",
+    "urea",
+    "effective_osmolality",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Ketoacidosis (the two overlap in more than a third of crises)",
+    "A meter error (repeat, and send a laboratory glucose)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-07",
+     "section": "Figure 2B - The diagnosis criteria of HHS",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Negative or weak ketones do not clear the patient: that is the definition of the hyperosmolar state. Typical patient: older, type 2, drowsy and very dry, often with an infection.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F02",
+     "F25"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-15",
+   "display": "A child who is breathing deeply or drowsy: capillary glucose now",
+   "condition": "dka",
+   "when": {
+    "id": "acu_paed_glucose",
+    "label": "A child with deep rapid breathing, or drowsiness or worse",
+    "any": [
+     {
+      "feature": "deep_rapid_breathing",
+      "op": "present"
+     },
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2022 (Virmani A et al.)",
+     "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Management of the child, adolescent, and young adult with diabetes in limited resource settings (Chapter 25)",
+     "url": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/",
+     "quote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/ recurrent infections.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-32",
+      "section": "Diagnosis / DKA",
+      "bodyProposed": "ISPAD",
+      "verified": true,
+      "ref": "REF-DM-SUS-PAED-MIMIC"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Malaria",
+    "Pneumonia",
+    "Gastroenteritis",
+    "Sepsis"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2022 (Virmani A et al.)",
+    "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Management of the child, adolescent, and young adult with diabetes in limited resource settings (Chapter 25)",
+    "url": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/",
+    "quote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/ recurrent infections.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-32",
+     "section": "Diagnosis / DKA",
+     "bodyProposed": "ISPAD",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "In limited-resource settings ketoacidosis in a child is taken for malaria, pneumonia or gastroenteritis. The test takes a minute and also finds hypoglycaemia. It does not wait for a history of thirst or polyuria.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.glucose_capillary",
+     "tier": "now"
+    },
+    "review": [
+     "F03",
+     "H08"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_paed_glucose_done",
+      "label": "A glucose is already recorded",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2022 (Virmani A et al.)",
+       "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Management of the child, adolescent, and young adult with diabetes in limited resource settings (Chapter 25)",
+       "url": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/",
+       "quote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/ recurrent infections.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-32",
+        "section": "Diagnosis / DKA",
+        "bodyProposed": "ISPAD",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-MIMIC"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-09",
+   "display": "Type 1 diabetes and no insulin on the medicine list: confirm they are taking it. If not, check glucose and ketones today and find out why",
+   "condition": "dka",
+   "when": {
+    "id": "acu_t1_no_insulin",
+    "label": "Type 1 diabetes recorded",
+    "all": [
+     {
+      "feature": "dm_type_recorded",
+      "op": "==",
+      "value": "type_1"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2018 (ISBN 978-92-4-155028-4)",
+     "title": "Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK532235/",
+     "quote": "Use human insulin to manage blood glucose in adults with type 1 diabetes, and in adults with type 2 diabetes for whom insulin is indicated (strong recommendation, low-quality evidence).",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-44",
+      "section": "Executive summary, Recommendation 4",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-RX-INSULIN-T1"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "A record that is out of date (confirm with the patient)"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "the most frequent causes are infection, particularly urinary tract infections and pneumonia, and the omission of insulin therapy. [...] Other acute conditions that may precipitate DKA include stroke, alcohol and substance use, pancreatitis, pulmonary embolism, myocardial infarction, and trauma.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-09",
+     "section": "Precipitating causes; Table 1 - Precipitating causes of DKA in adults by region",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Fires when the medicine list is blank as well as when it shows no insulin: a blank list is not evidence that the person is on insulin. Becomes an interrupt through rules 02 and 11 once ketones or the clinical picture are present.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": [
+      "test.glucose_capillary",
+      "test.ketones_urine"
+     ],
+     "tier": "today"
+    },
+    "review": [
+     "F24",
+     "H18",
+     "H22"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_t1_on_insulin",
+      "label": "Insulin is among the current medicines",
+      "all": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2018 (ISBN 978-92-4-155028-4)",
+       "title": "Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK532235/",
+       "quote": "Use human insulin to manage blood glucose in adults with type 1 diabetes, and in adults with type 2 diabetes for whom insulin is indicated (strong recommendation, low-quality evidence).",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-44",
+        "section": "Executive summary, Recommendation 4",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-RX-INSULIN-T1"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-10",
+   "display": "Insulin stopped, missed or run out: check glucose and ketones today",
+   "condition": "dka",
+   "when": {
+    "id": "acu_insulin_omitted",
+    "label": "Insulin stopped, missed or run out",
+    "all": [
+     {
+      "feature": "insulin_omitted",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "the most frequent causes are infection, particularly urinary tract infections and pneumonia, and the omission of insulin therapy. [...] Other acute conditions that may precipitate DKA include stroke, alcohol and substance use, pancreatitis, pulmonary embolism, myocardial infarction, and trauma.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-09",
+      "section": "Precipitating causes; Table 1 - Precipitating causes of DKA in adults by region",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true,
+      "ref": "REF-DM-ACU-PRECIPITANTS"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Insulin stopped on medical advice in type 2 diabetes"
+   ],
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "the most frequent causes are infection, particularly urinary tract infections and pneumonia, and the omission of insulin therapy. [...] Other acute conditions that may precipitate DKA include stroke, alcohol and substance use, pancreatitis, pulmonary embolism, myocardial infarction, and trauma.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-09",
+     "section": "Precipitating causes; Table 1 - Precipitating causes of DKA in adults by region",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "notes": "Fires whatever the recorded type: many people on insulin from diagnosis are recorded as type 2 or unclassified.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": [
+      "test.glucose_capillary",
+      "test.ketones_urine"
+     ],
+     "tier": "today"
+    },
+    "review": [
+     "F24"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-08",
+   "display": "Glucose 15 mmol/L or more with thirst, polyuria or weight loss: test urine ketones today",
+   "condition": "dka",
+   "when": {
+    "id": "acu_glu15_sympt",
+    "label": "Fasting or random plasma glucose, or any meter reading, 15 mmol/L or more, with thirst, passing a lot of urine or unexplained weight loss",
+    "any": [
+     {
+      "feature": "polyuria",
+      "op": "present"
+     },
+     {
+      "feature": "polydipsia",
+      "op": "present"
+     },
+     {
+      "feature": "unexplained_weight_loss",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 15,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 15,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 15,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "FPG ≥7 mmol/L and <18 mmol/L or RPG ≥11.1 mmol/L [...] FPG ≥15 mmol/L and SYMPTOMATIC or FPG/RPG >18 mmol/L, regardless of symptoms [...] TEST urine ketones [...] Urine ketones ≥2+ [...] REFER to higher level of care",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-22",
+      "section": "Fig. 1 (p.16) and Fig. 2 'Type 2 diabetes management protocol derived from WHO-PEN' (p.25)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACU-FPG-SEVERE-SYMPT"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Uncomplicated severe hyperglycaemia"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "FPG ≥7 mmol/L and <18 mmol/L or RPG ≥11.1 mmol/L [...] FPG ≥15 mmol/L and SYMPTOMATIC or FPG/RPG >18 mmol/L, regardless of symptoms [...] TEST urine ketones [...] Urine ketones ≥2+ [...] REFER to higher level of care",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-22",
+     "section": "Fig. 1 (p.16) and Fig. 2 'Type 2 diabetes management protocol derived from WHO-PEN' (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "WHO HEARTS-D's severe stratum is a FASTING plasma glucose of 15 or more with symptoms. Extending it to any meter reading is this pack's widening, on the safe side, for sites with no laboratory.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones_urine",
+     "tier": "today"
+    },
+    "review": [
+     "F17",
+     "H28",
+     "H20"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_glu15_over18",
+      "label": "Glucose 18 mmol/L or more (rule 01 already asks for ketones)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": ">=",
+        "value": 18,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": ">=",
+        "value": 18,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": ">=",
+        "value": 18,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": ">=",
+        "value": 18,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": ">=",
+        "value": 18,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": ">=",
+        "value": 18,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-48",
+        "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+       }
+      }
+     },
+     {
+      "id": "acu_glu15_ketones_done",
+      "label": "A ketone result is already recorded",
+      "any": [
+       {
+        "feature": "urine_ketones",
+        "op": "recorded"
+       },
+       {
+        "feature": "bohb",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-48",
+        "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-16",
+   "display": "Potassium 6.0 to 6.4 mmol/L: repeat within 24 hours; if unwell or kidney function has fallen, assess in hospital",
+   "condition": "hyperkalaemia_moderate",
+   "when": {
+    "id": "acu_k_moderate",
+    "label": "Potassium 6.0 to 6.4 mmol/L",
+    "all": [
+     {
+      "feature": "potassium",
+      "op": ">=",
+      "value": 6.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "potassium",
+      "op": "<",
+      "value": 6.5,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "KDIGO",
+     "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+     "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+     "url": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/",
+     "quote": "Moderate K+ 6.0–6.4 mmol/l: Clinically unwell or AKI - Assess and treat in hospital; Unexpected result - Repeat within 24 hours. Severe K+ ≥6.5 mmol/l: Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-60",
+      "section": "Table 28 (Suggested action in the event of moderate and severe hyperkalemia), page S227",
+      "bodyProposed": "KDIGO",
+      "verified": true,
+      "ref": "REF-DM-KID-K-MODERATE"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "potassium",
+    "egfr"
+   ],
+   "mimicsToExclude": [
+    "Haemolysed sample",
+    "Delayed sample"
+   ],
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+    "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+    "url": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/",
+    "quote": "Moderate K+ 6.0–6.4 mmol/l: Clinically unwell or AKI - Assess and treat in hospital; Unexpected result - Repeat within 24 hours. Severe K+ ≥6.5 mmol/l: Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-60",
+     "section": "Table 28 (Suggested action in the event of moderate and severe hyperkalemia), page S227",
+     "bodyProposed": "KDIGO",
+     "verified": true
+    }
+   },
+   "notes": "KDIGO 2024 Table 28, which reproduces UK guidance (Think Kidneys). Route only: no treatment text.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage",
+     "tier": "today"
+    },
+    "review": [
+     "F29"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-17",
+   "display": "Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now",
+   "condition": "acute_cardiovascular_event",
+   "when": {
+    "id": "acu_cvd",
+    "label": "Chest pain, or sudden weakness, speech or facial change",
+    "all": [
+     {
+      "feature": "chest_pain_or_stroke_symptoms",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-37",
+      "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACT-REFER-SAMEDAY"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose",
+    "bp_systolic",
+    "pulse"
+   ],
+   "mimicsToExclude": [
+    "Hypoglycaemia (check the glucose: a low can mimic a stroke)",
+    "Musculoskeletal chest pain",
+    "Bell's palsy"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-37",
+     "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "WHO HEARTS-D lists symptoms of heart disease or stroke for same-day referral. The general emergency pathway owns the patient; this rule makes sure a diabetes review does not carry on past it.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "acute_signal",
+     "to": "triage"
+    },
+    "review": [
+     "F33"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-18",
+   "display": "A child who is dehydrated, or has ketones in the urine, with no glucose on record: capillary glucose today",
+   "condition": "dka",
+   "when": {
+    "id": "acu_paed_glucose_soft",
+    "label": "A child with dehydration, urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more",
+    "any": [
+     {
+      "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "urine_ketones",
+      "op": "in",
+      "value": [
+       "2plus",
+       "3plus"
+      ]
+     },
+     {
+      "feature": "bohb",
+      "op": ">=",
+      "value": 3.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2022 (Virmani A et al.)",
+     "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Management of the child, adolescent, and young adult with diabetes in limited resource settings (Chapter 25)",
+     "url": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/",
+     "quote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/ recurrent infections.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-32",
+      "section": "Diagnosis / DKA",
+      "bodyProposed": "ISPAD",
+      "verified": true,
+      "ref": "REF-DM-SUS-PAED-MIMIC"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis",
+    "Starvation ketosis (a child who has not eaten)",
+    "Malaria"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2022 (Virmani A et al.)",
+    "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Management of the child, adolescent, and young adult with diabetes in limited resource settings (Chapter 25)",
+    "url": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/",
+    "quote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/ recurrent infections.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-32",
+     "section": "Diagnosis / DKA",
+     "bodyProposed": "ISPAD",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "Dehydration from diarrhoea and ketones from not eating are everyday findings, so this is a same-day test and not an interrupt. It clears when a glucose is recorded.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.glucose_capillary",
+     "tier": "today"
+    },
+    "review": [
+     "H08"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_paed_soft_done",
+      "label": "A glucose is already recorded",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2022 (Virmani A et al.)",
+       "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Management of the child, adolescent, and young adult with diabetes in limited resource settings (Chapter 25)",
+       "url": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/",
+       "quote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/ recurrent infections.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-32",
+        "section": "Diagnosis / DKA",
+        "bodyProposed": "ISPAD",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-MIMIC"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-19",
+   "display": "Raised glucose with vomiting or abdominal pain: test ketones today. A second sign or ketones of 2+ makes it an emergency",
+   "condition": "hyperglycaemic_crisis",
+   "when": {
+    "id": "acu_picture_mild",
+    "label": "Any glucose 11.1 mmol/L or more (or a meter reading HI), with vomiting or abdominal pain",
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-40",
+      "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACU-REFER-ALL"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis",
+    "Peptic ulcer disease",
+    "Malaria",
+    "Metformin side effects"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-40",
+     "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Glucose above 11.1 and abdominal pain are both common in a diabetes clinic. The rule asks for the one test that separates them and clears when it is done. No strip here and the patient looks unwell: refer.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones_urine",
+     "tier": "today"
+    },
+    "review": [
+     "H07"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_mild_signs",
+      "label": "Deep breathing, acetone on the breath, dehydration or drowsiness (rule 11 or 14 interrupts)",
+      "any": [
+       {
+        "feature": "deep_rapid_breathing",
+        "op": "present"
+       },
+       {
+        "feature": "acetone_breath",
+        "op": "present"
+       },
+       {
+        "feature": "dehydration",
+        "op": "present"
+       },
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-40",
+        "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-REFER-ALL"
+       }
+      }
+     },
+     {
+      "id": "acu_mild_ketones_done",
+      "label": "A ketone result is already recorded",
+      "any": [
+       {
+        "feature": "urine_ketones",
+        "op": "recorded"
+       },
+       {
+        "feature": "bohb",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+       "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+       "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+       "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-48",
+        "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-20",
+   "display": "Drowsy or unresponsive with diabetes, or on insulin or a sulfonylurea, and no glucose on record: capillary glucose now",
+   "condition": "hypoglycaemia",
+   "when": {
+    "id": "acu_drowsy_glucose",
+    "label": "Drowsiness or worse, in a person with known diabetes or on insulin or a sulfonylurea",
+    "all": [
+     {
+      "feature": "mental_status",
+      "op": "in",
+      "value": [
+       "drowsy",
+       "stupor",
+       "coma"
+      ]
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-14",
+      "section": "Table 6.4 'Classification of hypoglycemia'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-HYPO-L3"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "Stroke",
+    "Sepsis",
+    "Head injury",
+    "Alcohol",
+    "Hyperosmolar state or ketoacidosis"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes—2026",
+    "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+    "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A4-14",
+     "section": "Table 6.4 'Classification of hypoglycemia'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "notes": "The one bedside test that cannot wait: this picture is a low glucose until a reading says otherwise. It does not need 'known diabetes' to be recorded if the medicine list shows insulin or a sulfonylurea. Clears when a glucose is recorded.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.glucose_capillary",
+     "tier": "now"
+    },
+    "review": [
+     "H07",
+     "H18"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_drowsy_done",
+      "label": "A glucose is already recorded",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-14",
+        "section": "Table 6.4 'Classification of hypoglycemia'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-HYPO-L3"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  }
+ ],
+ "interpretation": [
+  {
+   "id": "bohb_bands",
+   "feature": "bohb",
+   "standard": "local",
+   "version": "March 2020",
+   "bands": [
+    {
+     "code": "normal",
+     "display": "Normal",
+     "tone": "normal",
+     "to": 0.6
+    },
+    {
+     "code": "raised",
+     "display": "Raised: test again in 2 hours",
+     "tone": "intermediate",
+     "from": 0.6,
+     "to": 1.6
+    },
+    {
+     "code": "at_risk",
+     "display": "At risk of DKA: seek advice as soon as possible",
+     "tone": "intermediate",
+     "from": 1.6,
+     "to": 3.0
+    },
+    {
+     "code": "dka_range",
+     "display": "Ketone criterion for DKA met",
+     "tone": "diagnostic",
+     "from": 3.0,
+     "alert": {
+      "title": "Ketones 3.0 mmol/L or more",
+      "action": "Assess for diabetic ketoacidosis now: venous gas or bicarbonate, and urgent senior review."
+     }
+    }
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "March 2020",
+    "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+    "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+    "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-51",
+     "section": "Whole leaflet",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "note": "Lower bands are the Trend UK sick-day bands (a patient leaflet, not a guideline); the 3.0 boundary is the 2024 consensus criterion. The validator's rule that a diagnostic band must match a diagnostic criterion was written for glucose tables: check it accepts this one, or widen it.",
+   "toneLabels": {
+    "normal": "Normal",
+    "intermediate": "Raised",
+    "diagnostic": "DKA range"
+   },
+   "toneColors": {
+    "intermediate": "amber"
+   },
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "refs": [
+     "REF-DM-ACU-KETONE-LOW",
+     "REF-DM-ACU-KETONE-RISK",
+     "REF-DM-ACU-DKA-BOHB"
+    ],
+    "status": "new"
+   }
+  }
+ ],
+ "complicationAmendments": [
+  {
+   "target": "dka",
+   "kind": "citation.reverify",
+   "change": {
+    "what": "2024 consensus criteria re-read: glucose 11.1 or known diabetes; ketones 3.0 or urine 2+; pH below 7.3 and/or bicarbonate below 18. Severity table recorded.",
+    "refs": [
+     "REF-DM-ACU-DKA-GLU",
+     "REF-DM-ACU-DKA-BOHB",
+     "REF-DM-ACU-DKA-UKET",
+     "REF-DM-ACU-DKA-PH",
+     "REF-DM-ACU-DKA-HCO3",
+     "REF-DM-ACU-DKA-SEV-PH",
+     "REF-DM-ACU-DKA-MOD-PH",
+     "REF-DM-ACU-DKA-SEV-HCO3",
+     "REF-DM-ACU-DKA-MOD-HCO3",
+     "REF-DM-ACU-DKA-SEV-BOHB"
+    ],
+    "conflict": "WHO HEARTS-D Table 5 prints 13.9 mmol/L; JBDS uses bicarbonate below 15. The consensus is the criteria set in force; the others are recorded."
+   },
+   "citations": [
+    {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-01",
+      "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true
+     }
+    },
+    {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Mild: β-Hydroxybutyrate 3.0–6.0 mmol/L; pH >7.25 to <7.30 or bicarbonate 15–18 mmol/L; Alert. Moderate: β-Hydroxybutyrate 3.0–6.0 mmol/L; pH 7.0–7.25, bicarbonate 10 to <15 mmol/L; Alert/drowsy. Severe: β-Hydroxybutyrate >6.0 mmol/L; pH <7.0, bicarbonate <10 mmol/L; Stupor/coma. Not all variables need to be fulfilled to be defined as either mild, moderate, or severe",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-04",
+      "section": "Table 2 - DKA classification and suggested level of care by severity: mild, moderate, or severe",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true
+     }
+    },
+    {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-40",
+      "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+      "bodyProposed": "WHO",
+      "verified": true
+     }
+    },
+    {
+     "standard": "local",
+     "version": "JBDS 02, revised March 2023",
+     "title": "The Management of Diabetic Ketoacidosis in Adults (JBDS 02)",
+     "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+     "quote": "All of these must be present to make the diagnosis: The 'D' – a blood glucose concentration of >11.0 mmol/L or known to have diabetes mellitus; The 'K' – a capillary or blood ketone concentration of >3.0 mmol/L or significant ketonuria (2+ or more on standard urine sticks); The 'A' – a bicarbonate concentration of <15.0 mmol/L and/or venous pH <7.3",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-19",
+      "section": "Diagnosis of DKA (p.10); single-page treatment pathway (p.9)",
+      "bodyProposed": "JBDS",
+      "verified": true
+     }
+    }
+   ],
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE"
+   }
+  },
+  {
+   "target": "hhs",
+   "kind": "citation.reverify",
+   "change": {
+    "what": "Glucose 33.3 or more; effective osmolality above 300 or total above 320; ketones below 3.0; pH 7.3 or more and bicarbonate 15 or more.",
+    "refs": [
+     "REF-DM-ACU-HHS-GLU",
+     "REF-DM-ACU-HHS-OSM-EFF",
+     "REF-DM-ACU-HHS-OSM-TOTAL",
+     "REF-DM-ACU-HHS-HCO3"
+    ]
+   },
+   "citations": [
+    {
+     "standard": "EASD",
+     "version": "2024",
+     "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-07",
+      "section": "Figure 2B - The diagnosis criteria of HHS",
+      "bodyProposed": "ADA-EASD-CONSENSUS",
+      "verified": true
+     }
+    }
+   ],
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE"
+   }
+  },
+  {
+   "target": "hypoglycaemia",
+   "kind": "citation.reverify",
+   "change": {
+    "what": "Level 1 below 3.9, level 2 below 3.0, level 3 by need for help. WHO writes 'at or below 3.9' and gives 2.8 for intravenous glucose. Malaria's 2.2 is a different threshold for a different disease.",
+    "refs": [
+     "REF-DM-HYPO-L1",
+     "REF-DM-HYPO-L2",
+     "REF-DM-HYPO-L3",
+     "REF-DM-HYPO-WHO-IV",
+     "REF-DM-HYPO-MALARIA"
+    ],
+    "decision": "D-DM-24"
+   },
+   "citations": [
+    {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-14",
+      "section": "Table 6.4 'Classification of hypoglycemia'",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    },
+    {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Severe hypoglycaemia is defined as hypoglycaemia, during which the patient is unable to self-treat [...] It is most frequently defined at plasma glucose of ≤3.9 mmol/L (70 mg/dL) [...] Unconscious patients, those with plasma glucose ≤2.8 mmol/L (50 mg/dL) and those unable to ingest [...] should be given hypertonic glucose (dextrose) intravenously",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-39",
+      "section": "Section 'Hypoglycaemia' (pp.18-19); Fig. 2 acute complications panel (p.25)",
+      "bodyProposed": "WHO",
+      "verified": true
+     }
+    },
+    {
+     "standard": "WHO",
+     "version": "Guidelines for the treatment of malaria, 3rd edition, 2015 (later WHO consolidated malaria guidelines not opened)",
+     "title": "Guidelines for the Treatment of Malaria. 3rd edition. Chapter 7: Treatment of severe malaria",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK294445/",
+     "quote": "Blood or plasma glucose < 2.2 mmol/L (< 40 mg/dL) [...] the threshold for intervention is < 3 mmol/L for children < 5 years and < 2.2 mmol/L for older children and adults [...] Hypoglycaemia should be expected, and it is often recurrent if the patient is receiving quinine.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-46",
+      "section": "7 - Treatment of severe malaria (definitions; pregnancy; supportive care)",
+      "bodyProposed": "WHO",
+      "verified": true
+     }
+    }
+   ],
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE"
+   }
+  }
+ ]
+}
