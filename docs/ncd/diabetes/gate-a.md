@@ -551,9 +551,9 @@ Declining one turns dark every item that needs it; the evaluator then reports th
 
 | | |
 |---|---|
-| Decisions D-DM-01..42 | |
-| Phase 0 rulings P0-01..28 | |
-| Schema / engine changes | |
-| Signed by (CSO) | |
-| Second reviewer (four-eyes, D-NCD-17) | |
-| Date | |
+| Decisions D-DM-01..42 | Accepted as recommended (updated recommendation where given); see `gate-a-signoff.json` |
+| Phase 0 rulings P0-01..28 | Accepted as recommended |
+| Schema / engine changes | Accepted (S-DM-11 not needed; S-DM-03 out of scope); EC-1..8 accepted |
+| Signed by (CSO) | Fadhul, in session, authorising the shadow build only |
+| Second reviewer (four-eyes, D-NCD-17) | Outstanding: required before clinical go-live |
+| Date | 2026-10-05 |
