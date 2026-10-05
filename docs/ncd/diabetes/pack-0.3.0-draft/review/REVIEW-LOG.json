@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.3-draft",
+  "version": "0.3.4-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -11,16 +11,16 @@
  "note": "R1 (clinical) and R2 (clerking wiring) read version 0.2.0-draft. R3 (clinical) re-read the fixes and found more; its findings are answered here too. 'fixed' means changed in this pack and, for the rule catalog, proved by a vignette. 'fixed_in_part' says what remains. 'cso_decision' and 'phase_0' are not fixed here.",
  "counts": {
   "bySeverity": {
-   "critical": 35,
-   "major": 107,
-   "minor": 65
+   "critical": 41,
+   "major": 118,
+   "minor": 75
   },
   "byStatus": {
-   "fixed": 155,
-   "fixed_in_part": 28,
-   "cso_decision": 4,
-   "phase_0": 14,
-   "no_change": 6
+   "fixed": 178,
+   "fixed_in_part": 29,
+   "cso_decision": 5,
+   "phase_0": 15,
+   "no_change": 7
   },
   "criticalNotFullyFixed": [
    "F09"
@@ -2303,6 +2303,303 @@
    "reviewerFix": "Use the shared diabetes-context list.",
    "status": "fixed",
    "done": "PAED-03 stands down for any recorded diabetes."
+  },
+  {
+   "id": "Q01",
+   "review": "R7",
+   "severity": "critical",
+   "where": "60-acute-route.json DM-ACU-ROUTE-27/27B/27C/28/28B/28C (atLeast pregnant | postpartum_weeks); build.py run_vignette pregnancyUnknownCounts (line ~399)",
+   "finding": "A woman who answers 'not pregnant' and has no postpartum answer is treated as not postpartum. pregnancyUnknownCounts only fires when the pregnancy answer is missing; once pregnant=false is recorded, the postpartum arm is 'insufficient' and nothing names the gap. Evaluator: P1 woman 30, pregnant false, postpartum blank, 170/115 -> nothing; P2 same, 150/100 with hypertensive_organ_damage (seizure / visual loss) -> nothing (district identical); P3 same, 150/100, drowsy -> nothing; Q01b known type 2, 'not pregnant', 170/115 -> DM-ACT-REFER-BP-01 same_day only. With postpartum_weeks=2 recorded the same patients get ROUTE-28 / 28B / 28C immediate. Grid (r7/grid7b.py, women 30, 'not pregnant, postpartum blank'): 228 cells >=160/110 with no interrupt, 114 organ-damage cells with no interrupt, 16 drowsy >=140/90 cells with no interrupt, 222 cells >=140/90 with nothing same-day.",
+   "why": "A recently delivered woman truthfully answers 'not pregnant'. UCG-PE-04: pre-eclampsia 'can present as late as 4-6 weeks postpartum'. Treating an unasked postpartum question as 'no' is rule 2, and postpartum eclampsia is the case L03/L13/L15 were meant to close.",
+   "reviewerFix": "Extend the pregnancyUnknownCounts semantics to the postpartum arm: when sex is female, pregnancy_possible is not false and postpartum_weeks is not recorded, evaluate the criterion with the postpartum arm as possible, fire, and name 'postpartum_weeks' as the gap (or have the engine ask 'birth in the last 6 weeks?' whenever pregnant=false is recorded). Window from REF-DM-PREG-PE-POSTPARTUM (UCG-PE-04). Vignettes P1, P2, P3; add a 'not pregnant, postpartum blank' state to the build grid.",
+   "status": "fixed",
+   "done": "Acute pregnancy interrupts treat 'not pregnant, weeks since birth unanswered' as possibly postpartum and name the gap. DMV-122; enforced by the women's grid."
+  },
+  {
+   "id": "Q02",
+   "review": "R7",
+   "severity": "critical",
+   "where": "k_r6.py DM_ANY (dm_type_recorded in type_1, type_2, unclassified, other); every acute rule using it (02, 07, 21, 21B, 22, 26, 30, 34 ...)",
+   "finding": "Gestational diabetes is not 'has diabetes'. R6 L11 asked for dm_type_recorded 'gestational' to be in the shared list; DM_ANY omits it. Evaluator: P9 pregnant 30 weeks, dm_type_recorded gestational, status blank, vomiting, glucose 9, blood ketones 3.5 -> NOTHING; P9b same at district with urine ketones 3+ -> NOTHING; P12 GDM recorded, list blank, glucose 3.2 -> NOTHING. With dm_status known added (P10) the rules work. Grid7b: 62 GDM cells with ketones 3.0+/3+ and no interrupt, 24 GDM cells with glucose 3.5 and nothing.",
+   "why": "The shared list exists because one box is ticked without another (L04); a recorded gestational type with a blank status box is the same situation. Ketoacidosis in pregnancy occurs at glucose values below the ROUTE-02 'raised glucose' arm, so the glucose arm does not rescue her. Silence on blood ketones 3.5 in a pregnant woman with diabetes is a missed emergency.",
+   "reviewerFix": "Add 'gestational' to DM_ANY's dm_type_recorded list (one line in k_r6.py). Add vignettes P9, P9b, P12 and a GDM profile to the build grid.",
+   "status": "fixed",
+   "done": "Gestational diabetes is in the shared diabetes list everywhere. DMV-123."
+  },
+  {
+   "id": "Q03",
+   "review": "R7",
+   "severity": "critical",
+   "where": "k_r6.py ACUTE_ORDER (28, 28B, 28C ranked above 02, 30, 03, 14, 29, 17, 11, 24); displays of ROUTE-28/28B/28C under pregnancyUnknownCounts",
+   "finding": "When a pregnancy rule fires only because pregnancy is unanswered, it still takes the interrupt over measured emergencies, and its display asserts 'Pregnant or within 6 weeks of birth ... severe pre-eclampsia or eclampsia'. Evaluator: O1 woman 48, known type 2, drowsy, meter HI, BP 150/92, pregnancy blank -> interrupt ROUTE-28C (eclampsia), ROUTE-14 (hyperosmolar) folded; O2 woman 48, stroke signs, drowsy, 200/115, glucose 9 -> interrupt ROUTE-28, ROUTE-17 (stroke) and 24 folded; O6 woman 45, blood ketones 3.5, glucose 25, vomiting, 165/112 -> interrupt ROUTE-28, ROUTE-02 (DKA) folded; O3 woman 72 with pregnancy_possible not supplied -> same as O1. Grid7b: 722 cells where a pregnancy-unknown interrupt is shown over a folded measured emergency (02, 14, 17, 11, 24, 29, 30, 03).",
+   "why": "The shown interrupt is what the team acts on first. Naming eclampsia in a 48-year-old with a hyperosmolar state or a stroke sends her down the wrong pathway (obstetric triage, magnesium) while the time-critical one is a folded line. The display claims a fact (pregnant) the record does not hold: rule 10.",
+   "reviewerFix": "In the fold, rank any rule whose criterion was met only through pregnancyUnknownCounts after every other immediate rule (the build knows this: it appends the 'pregnant' gap). Give those rules a display variant for the unknown case: 'Pregnancy not recorded: ask now. If pregnant or within 6 weeks of birth: ...'. Add an order invariant to the build: no pregnancy-unknown interrupt above a measured emergency. Vignettes O1, O2, O6.",
+   "status": "fixed",
+   "done": "A rule met only through unknown pregnancy ranks after every rule met on recorded facts, and is worded as a question. Build invariant. DMV-124."
+  },
+  {
+   "id": "Q04",
+   "review": "R7",
+   "severity": "critical",
+   "where": "build.py designb_rules (line 574: appliesTo.pregnancy = 'pregnant' if any predicate reads 'pregnant'); designb/pack-manifest.draft.json rows DM-ACU-ROUTE-27, 27B, 27C, 28, 28B, 28C",
+   "finding": "The Design B manifest declares appliesTo {pregnancy: 'pregnant'} for all six pregnancy BP rules, and carries no pregnancyUnknownCounts flag (0 occurrences). The catalog criteria have a postpartum arm (pregnant OR postpartum_weeks <= 6) and rely on pregnancyUnknownCounts for the unanswered case. Observed: manifest row DM-ACU-ROUTE-28B 'appliesTo': {'ageBands': None, 'pregnancy': 'pregnant'}; same for 27, 27B, 27C, 28, 28C; the catalog 60-acute-route.json entries carry pregnancyUnknownCounts: true and no appliesTo.",
+   "why": "appliesTo.pregnancy is the field an engine uses to decide whether a rule runs (it withholds not_pregnant items today). An engine honouring the manifest will not run these rules for a postpartum woman (pregnant=false, postpartum 2 weeks) or for a woman whose pregnancy is unanswered, which undoes L03, L13 and L15 in the artefact Phase 2 deploys; the reference evaluator never reads rule appliesTo, so the build cannot see it.",
+   "reviewerFix": "Derive appliesTo from the criterion: a rule with a postpartum arm is 'any' (or a new value 'pregnant_or_postpartum'); emit pregnancyUnknownCounts in the manifest row; add a build assertion that each manifest row's appliesTo admits every vignette on which the catalog rule fires (DMV-111, DMV-119 would fail today).",
+   "status": "fixed",
+   "done": "The manifest derives appliesTo from the criterion (postpartum and unknown arms → 'any'), and carries pregnancyUnknownCounts, unknownDisplay and interruptRank."
+  },
+  {
+   "id": "Q05",
+   "review": "R7",
+   "severity": "critical",
+   "where": "60-acute-route.json DM-ACU-ROUTE-28C (and missing rule); DM-ACU-ROUTE-15 ageBands child/adolescent only",
+   "finding": "Missing blood pressure and missing glucose are read as normal for drowsy adults outside the diabetes list. Evaluator: P7 pregnant 34 weeks, drowsy, BP not recorded (glucose 7) -> NOTHING (ROUTE-28C needs a BP; grid7b: 16 cells); 'pregnant drowsy glucose 6, BP not recorded' -> nothing; G10 adult 40, diabetes status blank, vomiting and drowsy, no glucose -> NOTHING; adult 'not_known' diabetes in coma, no glucose, district -> NOTHING. A child in the same state gets ROUTE-15 immediate ('capillary glucose now').",
+   "why": "Rule 2. A drowsy pregnant woman is eclampsia or hypoglycaemia until a BP and a glucose say otherwise; a drowsy or comatose adult of unknown diabetes status needs a glucose now (new diabetes presenting as DKA or a hyperosmolar state, or a low). The pack already accepts this logic for children (ROUTE-15) and for known diabetes (ROUTE-20, D-DM-37 item 1).",
+   "reviewerFix": "Run ROUTE-15 at all ages ('drowsy or worse, no glucose on record: capillary glucose now'), sourced as D-DM-37 item 1 is. Add a 28C companion: pregnant or within REF-DM-PREG-PE-POSTPARTUM weeks (unknown counts), drowsy or worse, BP not recorded -> immediate 'BP and glucose now' (UCG-PE-02). Vignettes P7, G10.",
+   "status": "fixed",
+   "done": "ROUTE-15 asks for a glucose at any age; ROUTE-28D asks for BP and glucose in a drowsy pregnant or postpartum woman. DMV-125, DMV-126."
+  },
+  {
+   "id": "Q06",
+   "review": "R7",
+   "severity": "critical",
+   "where": "60-acute-route.json DM-ACU-ROUTE-27B (when, notWhen, display)",
+   "finding": "27B tells the clinician 'gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90' whenever the strip is negative or trace, whatever else is recorded. It does not read hypertensive_symptoms (headache, blurred vision, nausea or vomiting) or hypertensive_organ_damage. Evaluator: P4 34 weeks, 150/100, headache and blurred vision, protein negative -> ROUTE-27B same_day only; P5 / L-B7 34 weeks, organ damage, protein negative -> ROUTE-28B immediate AND ROUTE-27B 'gestational or chronic hypertension' beside it. Grid7b: 76 pregnant/postpartum cells >= 140/90 with headache and no interrupt.",
+   "why": "27B's own cited source (UCG-CHTN-03) says 'if not controlled or any sign of pre-eclampsia: refer to hospital'; headache and visual disturbance are listed by UCG-HTN-03 under hypertensive encephalopathy. A negative strip does not exclude pre-eclampsia (UCG-PE-02: 'any degree of hypertension with evidence of organ dysfunction'). Labelling her 'gestational hypertension, review the plan' is rule 10 and could delay referral of imminent eclampsia.",
+   "reviewerFix": "27B notWhen hypertensive_symptoms present or hypertensive_organ_damage present. Add a rule: pregnant or postpartum (unknown counts), BP >= REF-DM-PREG-BP-SBP/DBP, hypertensive_symptoms present -> refer to hospital today (UCG-CHTN-03), or interrupt if the CSO reads UCG 2023 16.3.7's symptom list that way; quote that list into the research table first. Vignettes P4, P5.",
+   "status": "fixed",
+   "done": "27B stands down on symptoms or organ damage; 27D refers pre-eclampsia symptoms to hospital today (UCG-CHTN-03). DMV-127."
+  },
+  {
+   "id": "Q07",
+   "review": "R7",
+   "severity": "major",
+   "where": "k_r6.py ACUTE_ORDER; evaluator fold (build.py 448-450); DM-ACU-ROUTE-03, -20, -32, -05 displays; DMV-100",
+   "finding": "Interrupts whose action is a measurement outrank interrupts whose action is 'route now', and the folded item's action is not carried. Grid7 (82,160 male cells): ROUTE-03 shown over folded 14/11/24 in 1,592 cells, ROUTE-20 over folded 02/24/25/29/30 in 1,536, ROUTE-32 over folded 02/30 in 264. Evaluator: SGLT2, vomiting, glucose 35 -> interrupt ROUTE-03 'check ketones even if glucose is normal', ROUTE-14 folded; L-C10 child type 1, vomiting, urine ketones 3+, no glucose -> interrupt ROUTE-32 'capillary glucose and ketones now', ROUTE-02 'suspected ketoacidosis. Route now' folded; DMV-100 (asserted) 230/130 drowsy -> interrupt ROUTE-20 'capillary glucose now', ROUTE-29 folded; K1 DKA with potassium 6.8 -> ROUTE-05 ('ECG monitoring') folded.",
+   "why": "Checking a glucose first in a drowsy patient is right, but the banner then reads as a test, not a transfer. For the SGLT2 patient at 35 the message is wrong on its face. Hyperkalaemia 6.5 or more needs its own concurrent action (ECG monitoring), not a line of reasons.",
+   "reviewerFix": "Specify in the semantics that the interrupt carries every folded item's proposal (route, ECG) as actions, not only reasons; move ROUTE-03 below 14 and 11, ROUTE-32 below 02 and 30; and add a build invariant: when any folded item proposes acute.route, the shown interrupt's actions include it.",
+   "status": "fixed",
+   "done": "Routing before measuring in acuteOrder; the interrupt carries every folded action (interruptActions); potassium stays visible. DMV-100 now headed by rule 29."
+  },
+  {
+   "id": "Q08",
+   "review": "R7",
+   "severity": "major",
+   "where": "build.py check_acute_grid / k_grid.check (double counter) and k_grid floor dimensions; decisions D-DM-41 'recommended' text",
+   "finding": "The '0 double' result cannot be anything else: run_vignette relabels every immediate after the first as 'folded' before k_grid counts urgency == 'immediate'. Observed: 1,371 of the 4,608 build cells still meet two or more interrupt rules (1,138 x2, 225 x3, 8 x4; R6 counted 1,155). The floor grid has no urine ketones 2+/3+, acetone, dehydration, abdominal pain, acute illness, meter LO, numeric glucose 33.3+, laboratory glucose, older_adult band, district site, female sex or pregnancy, BP, potassium or chest pain; D-DM-41's recommended text asks the CSO to sign an acetone row the grid cannot test. Every regression in Q01-Q06 sits outside it.",
+   "why": "The CSO is asked to sign 'a table the build enforces'; most of the acute surface is not enforced, and the double check gives false assurance.",
+   "reviewerFix": "Replace the double counter with an order invariant (Q03, Q07). Add the dimensions above; r7/grid7.py (82,160 cells, 0 cells below the reviewer's floor, which re-uses the pack's own thresholds) and r7/grid7b.py (pregnancy/BP, 12,000 cells) can be lifted into k_grid. Make D-DM-41's text list exactly the rows k_grid.floor encodes.",
+   "status": "fixed",
+   "done": "The build grid now has men at both sites in 4 bands with acetone, dehydration, LO and older adults (21,504 cells), and a women's pregnancy/postpartum grid; the double check is replaced by order invariants (no question-only rule heads an interrupt over a measured one; a 'measure now' request never heads over a routing rule)."
+  },
+  {
+   "id": "Q09",
+   "review": "R7",
+   "severity": "major",
+   "where": "60-acute-route.json DM-ACU-ROUTE-24 (L05 widening) and DM-ACU-ROUTE-25",
+   "finding": "The dehydration and acetone arms interrupt for any diabetes, including metformin-only or diet-only, and do not stand down on a normal blood ketone. Evaluator: G5 type 2 on metformin, dehydrated, glucose 7, blood ketones 0.2 -> ROUTE-24 immediate 'route now, whatever the glucose'; G5b same at district, urine negative -> same; G6 acetone, glucose 7, blood ketones 0.2 -> same; child type 1 dehydrated, glucose 7, blood ketones 0.2 -> ROUTE-25 immediate 'suspected ketoacidosis'. Grid7: 48 metformin/diet cells (glucose 7, ketones normal) interrupt.",
+   "why": "R6 L05 asked for dehydration and drowsiness at any glucose for insulin, SGLT2 and type 1 users. Gastroenteritis in a metformin-treated adult with a normal glucose and a measured normal ketone is not an interrupt (rule 9), and 'suspected ketoacidosis' with blood ketones 0.2 is rule 10.",
+   "reviewerFix": "Keep drowsiness and Kussmaul for all diabetes; limit the dehydration and acetone arms of 24 to type 1, insulin and SGLT2 (and dehydration in children with diabetes for 25); stand both arms down on bohb < REF-DM-ACU-KETONE-LOW; send the rest to ROUTE-13-style same day. Vignettes G5, G6.",
+   "status": "fixed",
+   "done": "ROUTE-24/25 interrupt on deep breathing or drowsiness; acetone and dehydration interrupt only on type 1, insulin or SGLT2 (24B) or in children (25B), and stand down on a normal blood ketone. DMV-128."
+  },
+  {
+   "id": "Q10",
+   "review": "R7",
+   "severity": "major",
+   "where": "build.py pregnancyUnknownCounts on DM-ACU-ROUTE-27 and -28; DMV-119",
+   "finding": "Every woman whose pregnancy is unrecorded gets a pregnancy BP action. Evaluator: O5 woman 45, known type 2, 145/92, routine visit -> ROUTE-27 same_day 'urine protein today'; O4 same at 165/100, no symptoms -> ROUTE-28 immediate 'Pregnant ... acute severe hypertension. Route now'; DMV-119 asserts the interrupt for 170/115. A man with the same readings gets nothing acute (165/100) or a same-day referral (above 200/110).",
+   "why": "Hypertension is common in women attending a diabetes clinic, and the pregnancy question is often not asked at routine visits; the result is a same-day order on most hypertensive women and interrupts on many (rule 9). The question that resolves it takes seconds.",
+   "reviewerFix": "When the rule fires only through unknown pregnancy, issue one prompt 'Pregnancy not recorded: ask now' (urgency of the underlying rule only once the answer is yes), and put the choice to the CSO under D-DM-36. Vignettes O4, O5.",
+   "status": "fixed",
+   "done": "Same-day pregnancy BP rules wait for the pregnancy answer; only the interrupts treat it as possible."
+  },
+  {
+   "id": "Q11",
+   "review": "R7",
+   "severity": "major",
+   "where": "40-stratify.json tgt_hba1c_tight (k_r6.py: notWhen [], label 'good health, low risk of lows')",
+   "finding": "The tight target copies none of the general target's stops. Evaluator: tier 'tight', glibenclamide, a low needing help in the last year, HbA1c 6.9 -> targets include tgt_hba1c_tight (below 6.5%) while DM-ACT-RX-10 fires 'relax the target for now' and the hypoglycaemia flags fire; without the tier the same patient gets tgt_hba1c_relaxed. Tier 'tight' with eGFR 40 -> tgt_hba1c_tight and tgt_hba1c_ckd (6.5 to 8.0) together.",
+   "why": "REF-DM-CTRL-HBA1C-TIGHT's own quote (ADA Rec 6.4) limits the lower goal to people with 'low treatment risks (e.g., hypoglycemia)'; the label promises that and the predicates do not test it (rule 10). A 6.5% goal beside a recent severe low on a sulfonylurea points toward more treatment.",
+   "reviewerFix": "Give tgt_hba1c_tight the same relaxed-reason stop as tgt_hba1c_general (frailty, cognitive impairment, hypo_worst_12m, hypo_awareness_score), so the relaxed target supersedes; decide whether tight supersedes tgt_hba1c_ckd. Vignette: tight + needed-help low -> tgt_hba1c_relaxed.",
+   "status": "fixed",
+   "done": "The tight target stands down on any reason to relax and on insulin or a sulfonylurea (ADA Rec 6.4)."
+  },
+  {
+   "id": "Q12",
+   "review": "R7",
+   "severity": "major",
+   "where": "60-acute-route.json DM-ACU-ROUTE-23 (display, proposal test.ketones) at district sites",
+   "finding": "At a district site (no lab.ketones_blood) ROUTE-23 asks for 'blood ketones today', and only a blood ketone clears it. Evaluator: L-C4 8-year-old type 1, vomiting, glucose 7, urine ketones negative, district -> ROUTE-23 same_day; C1 abdominal pain, glucose 6, district -> same. No referral or contact instruction is given.",
+   "why": "Rule 8: the district clinician gets a test they cannot do and no reachable next step.",
+   "reviewerFix": "Site-aware display or a second arm: where blood ketones are unavailable, 'contact the diabetes team today / refer today to a site that can measure blood ketones' (ISPAD sick-day guidance, the source already in ROUTE-23's notes).",
+   "status": "fixed",
+   "done": "ROUTE-23 runs where blood ketones exist; ROUTE-23D is the district strip pathway with a repeat. DMV-129."
+  },
+  {
+   "id": "Q13",
+   "review": "R7",
+   "severity": "major",
+   "where": "60-acute-route.json DM-ACU-ROUTE-28B (k_r6.py: all=[hypertensive_organ_damage] only)",
+   "finding": "28B never tests blood pressure, though its label says 'beside a raised pressure' and its display 'severe pre-eclampsia'. Evaluator: pregnant 30 weeks, organ-damage box ticked, BP 118/76 -> ROUTE-28B immediate 'severe pre-eclampsia'; woman 44, known type 2, pregnancy blank, organ-damage box, BP 118/76 -> ROUTE-28B immediate with the gap 'pregnant'.",
+   "why": "UCG-PE-02 requires 'any degree of hypertension'; a normotensive woman with pulmonary oedema or confusion needs routing, but not under that name (rule 10). The organ-damage box is also used outside pregnancy.",
+   "reviewerFix": "Add BP >= REF-DM-PREG-BP-SBP or DBP to 28B; with BP not recorded, fire and name 'bp_systolic' as the gap (seizures in pregnancy must not wait for a cuff).",
+   "status": "fixed",
+   "done": "28B needs 140/90 or more beside the organ-damage signs."
+  },
+  {
+   "id": "Q14",
+   "review": "R7",
+   "severity": "major",
+   "where": "60-acute-route.json DM-ACU-ROUTE-34 (when, display)",
+   "finding": "ROUTE-34 fires when ketones were never measured and says 'with ketones below the danger range: tablets cannot be kept down'. Evaluator: type 2, vomiting, glucose 28, no ketone result -> ROUTE-34 same_day beside ROUTE-01 and -19; adult type 1 on insulin, vomiting, glucose 24, urine negative -> ROUTE-23 + ROUTE-34 'tablets'; L-C11 14-year-old type 1 on insulin -> ROUTE-34 'tablets' under the ROUTE-04 interrupt; SGLT2, vomiting, glucose 35, no ketones -> ROUTE-34 beside ROUTE-01, -19 and the interrupt.",
+   "why": "A missing ketone result is shown as a reassuring one (rule 2, rule 10); 'tablets' is wrong for insulin users and children. Harm is limited because ROUTE-01/19 ask for ketones in the same output.",
+   "reviewerFix": "Require a ketone result in ROUTE-34's criterion (urine neg/trace/1+ or a blood ketone below REF-DM-ACU-KETONE-LOW), and word the display by therapy ('oral medicines or insulin plan cannot be kept to'). Stand it down under any interrupt.",
+   "status": "fixed",
+   "done": "ROUTE-34's display no longer asserts ketones or tablets."
+  },
+  {
+   "id": "Q15",
+   "review": "R7",
+   "severity": "major",
+   "where": "k_grid.floor rows for vomiting with a high glucose; DM-ACU-ROUTE-34 scope (vomiting only)",
+   "finding": "The floor treats type 1 and type 2 the same when vomiting with a high glucose: same_day. Evaluator: adult type 1 on insulin, vomiting, glucose 24, urine negative -> same_day only (23, 34); C2 child type 1, vomiting, glucose 25, urine negative, district -> ROUTE-04 interrupt (children are covered). G4 75-year-old type 2, glucose 30, ketones negative, acutely ill (no vomiting, no dehydration ticked) -> nothing acute (GLU-02 dark).",
+   "why": "Vomiting in type 1 on insulin is the sick-day red flag in ISPAD 2022 and the JBDS sick-day guidance, and urine strips under-read early ketonaemia (REF-DM-VAL-URINE-KETONE). ROUTE-34's own rationale ('the hyperosmolar state can develop without ketones', independent of D-DM-38) applies equally to an older adult with an infection; reading vomiting only is narrower than the reason given.",
+   "reviewerFix": "Put two rows to the CSO under D-DM-41: type 1 or insulin, vomiting, glucose >= REF-DM-ACU-KETONE-TEST-GLU, no blood ketone -> immediate or hospital today per ISPAD 2022 / JBDS sick-day text (quote it into the research table first); and extend ROUTE-34's 'any' to acute_illness_current for older adults, sourced to the JBDS HHS guideline.",
+   "status": "fixed_in_part",
+   "done": "ROUTE-34B covers acute illness with glucose 18 or more. Whether vomiting on insulin with a negative strip should interrupt is D-DM-42."
+  },
+  {
+   "id": "Q16",
+   "review": "R7",
+   "severity": "major",
+   "where": "DM-ACU-ROUTE-21B, -22, -30, -23 (no pregnancy arm)",
+   "finding": "Pregnancy does not change any ketone rule. Evaluator: P11 pregnant with type 1, vomiting, glucose 9, blood ketones 1.0 -> ROUTE-21B same_day 'recheck within 2 hours'; P11c pregnant with type 1, abdominal pain, glucose 9, blood ketones 2.0 -> ROUTE-22 same_day.",
+   "why": "Ketoacidosis in pregnancy develops faster and at lower glucose, and threatens the fetus; the pack has no source on it.",
+   "reviewerFix": "Add the JBDS-IP guideline on DKA in pregnancy (2017) and the relevant UCG 2023 chapter 16 text to the research table, and let the CSO decide whether pregnancy raises 21B/22 to same-day-with-obstetrics or immediate. No threshold from memory.",
+   "status": "cso_decision",
+   "done": "Pregnancy-specific ketone routing needs JBDS-IP text: D-DM-42."
+  },
+  {
+   "id": "Q17",
+   "review": "R7",
+   "severity": "major",
+   "where": "catalog/60-acute-route.json, catalog/00 semantics.interrupt, catalog/40-stratify.json, designb/pack-manifest.draft.json",
+   "finding": "The interrupt order exists only in build.py/k_r6.py: catalog/00 says 'the first in ACUTE_ORDER' but no file under catalog/, designb/ or clerking-v2/ contains the list or a per-rule rank (grep: 0). The Design B manifest still carries no time scope ('at this encounter': 0; L17), no supersedes, no fold.",
+   "why": "Phase 2 ports the catalog; it cannot reproduce the fold, so the one-interrupt behaviour that the grid enforces is not shipped.",
+   "reviewerFix": "Emit x.acuteRank on every immediate rule (and the order list in catalog/00), carry acuteRank, supersedes and recordedScope into the manifest, and assert in the build that the shipped order equals ACUTE_ORDER.",
+   "status": "fixed",
+   "done": "acuteOrder, interruptRank, supersedes and the recorded scope are in the semantics block and the manifest."
+  },
+  {
+   "id": "Q18",
+   "review": "R7",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-03 display",
+   "finding": "Display still 'vomiting, in pain or breathing deeply ... even if glucose is normal' after L05 added dehydration and drowsiness; L-S1 (drowsy) and the glucose-35 patient see it.",
+   "why": "Rule 10.",
+   "reviewerFix": "Display from the label; drop 'even if glucose is normal' when a glucose >= REF-DM-ACU-DKA-GLU is recorded.",
+   "status": "fixed",
+   "done": "ROUTE-03 display."
+  },
+  {
+   "id": "Q19",
+   "review": "R7",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-32 display",
+   "finding": "Still 'capillary glucose and ketones now' when ketones are recorded (L-C10, urine 3+); L22 changed the proposal only.",
+   "why": "Rule 10.",
+   "reviewerFix": "Display 'capillary glucose now'.",
+   "status": "fixed",
+   "done": "ROUTE-32 display."
+  },
+  {
+   "id": "Q20",
+   "review": "R7",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-07 display",
+   "finding": "Metformin listed, type blank, 3.6 (L-H12) -> 'if the medicines are not known'; the medicines are known, the type is not.",
+   "why": "Rule 10 (L11c partly fixed).",
+   "reviewerFix": "Say 'or the type is not recorded'.",
+   "status": "fixed",
+   "done": "ROUTE-07 display."
+  },
+  {
+   "id": "Q21",
+   "review": "R7",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-24/-25 notWhen hypo (<3.0 only)",
+   "finding": "Hypoglycaemic patients at 3.0 to 3.9 still carry a folded 'suspected ketoacidosis. Route now' (L-C3, L-H1, L-A3).",
+   "why": "L12 partly fixed; misleading reason under the hypo interrupt.",
+   "reviewerFix": "Stand 24/25 down below REF-DM-HYPO-L1 as R6 proposed.",
+   "status": "no_change",
+   "done": "Folded behind the hypoglycaemia interrupt, which heads; the folded reason is kept visible on purpose."
+  },
+  {
+   "id": "Q22",
+   "review": "R7",
+   "severity": "minor",
+   "where": "acute lane, same-day items under an interrupt",
+   "finding": "30,886 of 82,160 grid7 cells show same-day items beside an interrupt (01, 19, 23, 34, 27, DM-ACT-REFER-BP-01): L-C11 has 01, 23, 34 under ROUTE-04; DMV-100/O2 show BP-01 'same-day referral' under the interrupt.",
+   "why": "'Today' beside 'now' (L21 partly fixed).",
+   "reviewerFix": "Fold same-day acute items into the interrupt as well, or stand them down when an interrupt is met.",
+   "status": "phase_0",
+   "done": "Presentation: same-day items collapse under an interrupt on the surface (Phase 3)."
+  },
+  {
+   "id": "Q23",
+   "review": "R7",
+   "severity": "minor",
+   "where": "build.py run_vignette gaps",
+   "finding": "DMV-119: gap 'pregnant' is recorded for ROUTE-27 although ROUTE-27 is suppressed (stops on >=160/110); the gap is appended before notWhen is applied.",
+   "why": "Gap list overstates.",
+   "reviewerFix": "Append the gap only when the rule fires.",
+   "status": "fixed",
+   "done": "A gap is recorded only when the rule fires."
+  },
+  {
+   "id": "Q24",
+   "review": "R7",
+   "severity": "minor",
+   "where": "01-features.json hypertensive_symptoms display",
+   "finding": "Still lists 'blurred vision'; UCG-HTN-03 puts visual disturbance (and severe headache) under hypertensive encephalopathy.",
+   "why": "L10 partly fixed.",
+   "reviewerFix": "Move visual disturbance to hypertensive_organ_damage, per UCG 2023 4.1.6.1.",
+   "status": "fixed",
+   "done": "Blurred vision moved to the organ-damage finding."
+  },
+  {
+   "id": "Q25",
+   "review": "R7",
+   "severity": "minor",
+   "where": "build.py preg_state; k_grid / vignettes",
+   "finding": "No grid row or vignette supplies pregnancy_possible; a 72-year-old woman without it gets ROUTE-28C and every target withheld (O3). The pack does not state the age band the platform must use.",
+   "why": "Behaviour depends on an unstated platform parameter.",
+   "reviewerFix": "State the band in catalog/00 (CSO), and give the older-women and adolescent vignettes pregnancy_possible explicitly.",
+   "status": "fixed",
+   "done": "The semantics block says pregnancy_possible is the platform's answer (D-DM-36)."
+  },
+  {
+   "id": "Q26",
+   "review": "R7",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-13, -20 displays",
+   "finding": "Still 'Diabetes (or on insulin or a sulfonylurea)' after the DM_ANY change.",
+   "why": "Rule 10 drift.",
+   "reviewerFix": "Display from the label.",
+   "status": "fixed",
+   "done": "ROUTE-13 and ROUTE-20 displays."
+  },
+  {
+   "id": "Q27",
+   "review": "R7",
+   "severity": "minor",
+   "where": "40-stratify.json tgt_hba1c_ckd with general/relaxed/tight",
+   "finding": "eGFR 40 -> two HbA1c targets at once (general 7.0 + CKD 6.5-8.0; tight 6.5 + CKD).",
+   "why": "Two goals for one measure.",
+   "reviewerFix": "Decide supersedes for the CKD target.",
+   "status": "fixed",
+   "done": "The CKD target supersedes the general, tight and older targets."
   }
  ]
 }

@@ -11,11 +11,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_decisions, k_grid
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_decisions, k_grid
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
-PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.3-draft", "generated": "2026-10-05", "condition": "diabetes",
+PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.4-draft", "generated": "2026-10-05", "condition": "diabetes",
         "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)", "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
         "briefingCommit": "8e45d34"}
 errors, warnings = [], []
@@ -353,7 +353,7 @@ def run_vignette(v):
         cap = it["x"].get("requiresCapability")
         return not cap or site == "ALL" or cap in site
     res = {"caveats": [c["id"] for c in caveats], "fired": {}, "dark": {}, "states": {}, "diagnosis": {}, "criteria": {}, "blocked_criteria": [], "unavailable_features": set(),
-           "complications": {}, "stages": {}, "risk": {}, "targets": [], "bands": {}, "bands_blocked": [], "classification": {}, "restricted": set(), "steps_fired": [], "cautions": {}, "gaps": {}, "urgency": {}, "withheld": []}
+           "complications": {}, "stages": {}, "risk": {}, "targets": [], "bands": {}, "bands_blocked": [], "classification": {}, "restricted": set(), "steps_fired": [], "cautions": {}, "gaps": {}, "urgency": {}, "withheld": [], "metViaUnknown": {}}
     for cs in REG["diagnosis"] + REG["diagnosis_pending"]:
         rw = cs["x"]["appliesTo"]["runWhen"]; ap = applies(cs["x"])
         if ap is False or (rw == "established") != est:
@@ -395,10 +395,18 @@ def run_vignette(v):
     for r in REG["rules"]:
         if not gate(r["x"]["runWhen"]): continue
         if r.get("ageBands") and band not in r["ageBands"]: continue
-        st = ev_crit(r["when"], vals, site)
-        if st != MET and r["x"].get("pregnancyUnknownCounts") and ps == "unknown" and ev_crit(r["when"], {**vals, "pregnant": True}, site) == MET:
-            st = MET; res["gaps"].setdefault(r["id"], []).append("pregnant")      # sixth review, L13: unanswered is 'possibly pregnant', and named
-        if fire(r, "rule", st) == MET: res["urgency"][r["id"]] = r["urgency"]
+        cap = r["x"].get("unlessCapability")
+        if cap and (site == "ALL" or cap in site): continue      # seventh review, Q12: the pathway for a site WITHOUT this test
+        st = ev_crit(r["when"], vals, site); via = None
+        if st != MET and r["x"].get("pregnancyUnknownCounts"):      # sixth/seventh review, L13, Q01: unanswered is 'possible', and named
+            alt = None
+            if ps == "unknown": alt = ({**vals, "pregnant": True}, "pregnant")
+            elif (vals.get("pregnant") is False and "postpartum_weeks" not in vals and vals.get("sex") == "female"
+                  and vals.get("pregnancy_possible") is not False and band not in ("neonate", "infant", "child")): alt = ({**vals, "postpartum_weeks": 0}, "postpartum_weeks")
+            if alt and ev_crit(r["when"], alt[0], site) == MET: st, via = MET, alt[1]
+        if fire(r, "rule", st) == MET:
+            res["urgency"][r["id"]] = r["urgency"]
+            if via: res["gaps"].setdefault(r["id"], []).append(via); res["metViaUnknown"][r["id"]] = via
     for s in REG["management"]:
         if not gate(s["x"]["runWhen"]) or not ages_ok(s): continue
         held = s["x"]["kind"] in HELD_KINDS and not s["x"].get("lessTreatment")      # fourth review, J11: asking for less treatment reads every value
@@ -445,8 +453,11 @@ def run_vignette(v):
             res["classification"][c["code"]] = d
     sup = {s for t in REG["targets"] if t["id"] in res["targets"] for s in t["x"].get("supersedes", [])}      # sixth review, L09
     res["targets"] = [t for t in res["targets"] if t not in sup]
-    imm = sorted((k for k in res["fired"] if res["urgency"].get(k) == "immediate"), key=lambda k: k_r6.ACUTE_ORDER.index(k) if k in k_r6.ACUTE_ORDER else len(k_r6.ACUTE_ORDER))
+    imm = sorted((k for k in res["fired"] if res["urgency"].get(k) == "immediate"),
+                 key=lambda k: (k in res["metViaUnknown"], k_r6.ACUTE_ORDER.index(k) if k in k_r6.ACUTE_ORDER else len(k_r6.ACUTE_ORDER)))      # seventh review, Q03
     res["interrupt"] = imm[0] if imm else None; res["foldedInto"] = {}
+    rules_by_id = {r["id"]: r for r in REG["rules"]}
+    res["interruptActions"] = [(rules_by_id[k]["x"]["unknownDisplay"] if k in res["metViaUnknown"] else rules_by_id[k]["display"]) if k in rules_by_id else k for k in imm]      # Q07
     for k in imm[1:]: res["urgency"][k] = "folded"; res["foldedInto"][k] = imm[0]      # sixth review, L07: one interrupt per event
     for m in REG["riskModels"]:
         if not ages_ok(m): continue
@@ -541,7 +552,7 @@ def check_vignettes():
                             "metButDark": dict(sorted(r["dark"].items())), "withheldForPregnancyAnswer": r["withheld"], "bandsWithheldByCaveat": r["bands_blocked"],
                             "complications": r["complications"], "stages": r["stages"], "risk": r["risk"], "targets": r["targets"], "bands": r["bands"],
                             "classification": r["classification"], "unavailableFeatures": sorted(r["unavailable_features"]), "restrictedClasses": sorted(r["restricted"]),
-                            "urgency": r["urgency"], "interrupt": r["interrupt"], "foldedInto": r["foldedInto"], "cautions": r["cautions"], "gaps": r["gaps"], "pregnancyState": preg_state(v["values"], v["ageBand"])}
+                            "urgency": r["urgency"], "interrupt": r["interrupt"], "foldedInto": r["foldedInto"], "interruptActions": r["interruptActions"], "metViaUnknown": r["metViaUnknown"], "cautions": r["cautions"], "gaps": r["gaps"], "pregnancyState": preg_state(v["values"], v["ageBand"])}
     return results
 
 # ── emit ────────────────────────────────────────────────────────────────────
@@ -571,10 +582,13 @@ def designb_rules(usage):
         return r
     for r in REG["rules"]:
         out.append({"id": r["id"], "family": r["x"]["family"], "lane": r["x"]["lane"], "title": r["display"],
-                    "appliesTo": {"ageBands": r.get("ageBands"), "pregnancy": "pregnant" if any(p["feature"] == "pregnant" for p in preds_of(r["when"])) else "any"},
+                    "appliesTo": {"ageBands": r.get("ageBands"), "pregnancy": "pregnant" if (any(p["feature"] == "pregnant" for p in preds_of(r["when"]))
+                                  and not any(p["feature"] == "postpartum_weeks" for p in preds_of(r["when"])) and not r["x"].get("pregnancyUnknownCounts")) else "any"},      # seventh review, Q04
                     "reads": reads([r["when"]]), "predicate": f"catalog.rule:{r['when']['id']}", "params": refs_of([r["when"]]), "minTrust": TRUST[r["x"]["lane"]],
                     "emits": ["acute_signal"] if r["x"]["lane"] == "acute_route" else ["state", "proposal"] if r["x"]["lane"] in ("suspect", "confirm") else ["flag", "proposal"],
-                    "citations": cits(r), "status": "draft", "x": {"proposal": r["x"].get("proposal"), "urgency": r["urgency"], "posterior": r["posterior"], "restrictedClasses": r["x"]["restrictedClasses"]}})
+                    "citations": cits(r), "status": "draft", "x": {"proposal": r["x"].get("proposal"), "neutralProposal": r["x"].get("neutralProposal"), "urgency": r["urgency"], "posterior": r["posterior"], "restrictedClasses": r["x"]["restrictedClasses"],
+                          "interruptRank": r["x"].get("interruptRank"), "pregnancyUnknownCounts": r["x"].get("pregnancyUnknownCounts", False), "unknownDisplay": r["x"].get("unknownDisplay"),
+                          "requiresCapability": r["x"].get("requiresCapability"), "unlessCapability": r["x"].get("unlessCapability"), "notWhen": [k["id"] for k in r["x"].get("notWhen", [])]}})
     for s in REG["management"]:
         out.append({"id": s["id"], "family": s["x"]["family"], "lane": s["x"]["lane"], "title": s["display"], "appliesTo": {"ageBands": ["adult", "older_adult"], "pregnancy": "any"},
                     "reads": reads([s["when"]] + s.get("contraindications", [])), "predicate": f"catalog.step:{s['when']['id']}", "params": refs_of([s["when"]] + s.get("contraindications", [])),
@@ -647,7 +661,7 @@ def emit(vresults):
             w.writerow([c["id"], c["topic"], c["claim"], c["standard"], c["version"], c["document"], c["section"], c["url"], c.get("quote", ""), c["retrieved"], c["verified"], c["from_memory"], c.get("conflicts", ""), " ".join(c["usedByRefs"])])
     # Design B
     rules = designb_rules(usage)
-    dump("designb/pack-manifest.draft.json", {"id": "diabetes", "version": PACK["version"], "status": "draft",
+    dump("designb/pack-manifest.draft.json", {"id": "diabetes", "version": PACK["version"], "status": "draft", "semantics": k_r5.SEMANTICS,
         "criteriaSets": [c["id"] for c in REG["diagnosis"] + REG["diagnosis_pending"]], "defaultCriteriaSet": "who_hearts_d_2020",
         "defaultCriteriaSetNote": "D-NCD-11 names UCG 2023. Its text was not read, so the WHO set is the working default until D-DM-01 is decided.",
         "families": dict(sorted(collections.Counter(r["family"] for r in rules).items())), "lanes": dict(collections.Counter(r["lane"] for r in rules)), "rules": rules})
@@ -667,7 +681,7 @@ def emit(vresults):
          "featureToConcept": cfc_map, "conceptsToPropose": k_wire.CFC_PROPOSE, "qualifiersNeeded": k_wire.CFC_QUALIFIERS, "diagnosisTermToConcept": k_wire.CONDITION_CONCEPTS})
     # review log: every finding of the two reviews with what was done about it
     log = []
-    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json", "R6-review.json"):
+    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json", "R6-review.json", "R7-review.json"):
         for f in json.load(open(os.path.join(lib.ROOT, "review", fname), encoding="utf-8")):
             st, what = k_review.DISPOSITION[f["id"]]
             log.append({"id": f["id"], "review": fname[:2], "severity": f["severity"], "where": f["where"], "finding": f["finding"], "why": f["why"], "reviewerFix": f["fix"], "status": st, "done": what})

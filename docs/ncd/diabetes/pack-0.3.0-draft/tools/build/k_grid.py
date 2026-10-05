@@ -18,25 +18,29 @@ PROFILES = {
     "ins_nostatus": ({"glucose_lowering_therapy": ["insulin"]}, True),
     "T1_nostatus": ({"dm_type_recorded": "type_1"}, True),
 }
-STATES = {"well": {}, "vomit": {"vomiting": True}, "kussmaul": {"deep_rapid_breathing": True}, "drowsy": {"mental_status": "drowsy"}}
-GLUCOSE = {"none": {}, "3.5": {"capillary_glucose": 3.5}, "7": {"capillary_glucose": 7.0}, "15": {"capillary_glucose": 15.0}, "28": {"capillary_glucose": 28.0}, "HI": {"glucose_meter_extreme": "hi"}}
+STATES = {"well": {}, "vomit": {"vomiting": True}, "kussmaul": {"deep_rapid_breathing": True}, "drowsy": {"mental_status": "drowsy"},
+          "acetone": {"acetone_breath": True}, "dehydrated": {"dehydration": True}}
+GLUCOSE = {"none": {}, "3.5": {"capillary_glucose": 3.5}, "7": {"capillary_glucose": 7.0}, "15": {"capillary_glucose": 15.0}, "28": {"capillary_glucose": 28.0},
+           "HI": {"glucose_meter_extreme": "hi"}, "LO": {"glucose_meter_extreme": "lo"}}
 KETONES = {"none": {}, "u_neg": {"urine_ketones": "neg"}, "u_trace": {"urine_ketones": "trace"}, "u_1+": {"urine_ketones": "1plus"},
            "b0.3": {"bohb": 0.3}, "b1.0": {"bohb": 1.0}, "b2.0": {"bohb": 2.0}, "b3.5": {"bohb": 3.5}}
-BANDS = {"adult": 45, "child": 8, "adolescent": 14}
+SITES = ("referral", "district")
+BANDS = {"adult": 45, "child": 8, "adolescent": 14, "older_adult": 72}
+INSULINISH = {"T1_ins", "ins_nostatus", "T1_nostatus", "SGLT2"}
 INSULIN_OR_SU_OR_UNKNOWN = {"T2_SU", "T1_ins", "ins_nostatus", "T1_nostatus", "blanklist"}
 HIGH = {"15", "28", "HI"}
 FULLY_RECORDED = {"T2_metf", "T2_SU", "T1_ins", "SGLT2"}
 
 def floor(band, prof, state, glu, ket):
-    """ACUTE_FLOOR: the minimum urgency for one patient pattern ('immediate', 'same_day' or None)."""
-    dm, child = prof != "noinfo", band != "adult"
-    if (glu == "HI"
+    """ACUTE_FLOOR for men: the minimum urgency for one pattern ('immediate', 'same_day' or None)."""
+    dm, child = prof != "noinfo", band in ("child", "adolescent")
+    if (glu in ("HI", "LO")
             or (ket == "b3.5" and (dm or glu in HIGH))
             or (ket == "b2.0" and state == "vomit" and (dm or glu in HIGH))
-            or (state == "kussmaul" and (dm or glu in HIGH or (child and glu == "none")))
-            or (state == "drowsy" and (glu == "3.5" or glu in HIGH or (glu == "none" and (dm or child))))
+            or (state in ("kussmaul", "drowsy") and (dm or glu in HIGH or glu == "none" or (state == "drowsy" and glu == "3.5")))
+            or (state in ("acetone", "dehydrated") and (glu in HIGH or ((prof in INSULINISH or (child and dm)) and ket != "b0.3")))
             or (glu == "3.5" and prof in INSULIN_OR_SU_OR_UNKNOWN)
-            or (prof == "SGLT2" and state in ("vomit", "kussmaul") and ket != "b0.3")
+            or (prof == "SGLT2" and state in ("vomit", "kussmaul", "dehydrated", "drowsy") and ket != "b0.3")
             or (child and dm and state == "vomit" and glu == "none")):
         return "immediate"
     if ((state == "vomit" and glu in HIGH and ket in ("none", "u_trace", "u_1+", "b1.0"))
@@ -48,21 +52,58 @@ def floor(band, prof, state, glu, ket):
         return "same_day"
     return None
 
+# Women of 30 with no diabetes: pregnancy and postpartum blood pressure (seventh review, Q01, Q05, Q06, Q10).
+PREG = {"pregnant": {"pregnant": True, "gestation_weeks": 30}, "pp2": {"pregnant": False, "postpartum_weeks": 2}, "unknown": {},
+        "notpreg_ppblank": {"pregnant": False}, "notpreg_notpp": {"pregnant": False, "postpartum_weeks": 30}}
+BP = {"none": {}, "145/95": {"bp_systolic": 145, "bp_diastolic": 95}, "165/112": {"bp_systolic": 165, "bp_diastolic": 112}}
+SYM = {"none": {}, "organ": {"hypertensive_organ_damage": True}, "drowsy": {"mental_status": "drowsy"}, "headache": {"hypertensive_symptoms": True}}
+PROTEIN = {"none": {}, "neg": {"urine_protein_strip": "neg"}, "1+": {"urine_protein_strip": "1plus"}}
+POSSIBLE = {"pregnant", "pp2", "unknown", "notpreg_ppblank"}
+PREG_RULES = {"DM-ACU-ROUTE-27", "DM-ACU-ROUTE-27B", "DM-ACU-ROUTE-27C", "DM-ACU-ROUTE-27D", "DM-ACU-ROUTE-28", "DM-ACU-ROUTE-28B", "DM-ACU-ROUTE-28C", "DM-ACU-ROUTE-28D"}
+
+def women_floor(preg, bp, sym):
+    if sym == "drowsy" and bp == "none": return "immediate"                 # glucose now (15) or BP and glucose now (28D)
+    if preg in POSSIBLE and (bp == "165/112" or (bp == "145/95" and sym in ("organ", "drowsy"))): return "immediate"
+    if preg in ("pregnant", "pp2") and bp == "145/95": return "same_day"
+    return None
+
 RANK = {None: 0, "urgent": 1, "same_day": 2, "immediate": 3}
 
+def _order(r, cell, E, measure):
+    imm = [k for k in r["fired"] if r["urgency"].get(k) in ("immediate", "folded")]
+    head = r.get("interrupt")
+    if head and head in r["metViaUnknown"] and any(k not in r["metViaUnknown"] for k in imm):
+        E(cell, f"an interrupt met only through an unanswered pregnancy question heads one met on recorded facts: {head} over {imm}"); return 1
+    if head and head in measure and any(k not in measure and k not in r["metViaUnknown"] for k in imm):      # a question-only rule ranks last, below a request
+        E(cell, f"a 'measure now' request heads a routing interrupt: {head} over {imm}"); return 1
+    return 0
+
 def check(run_vignette, E):
-    """Run the grid; report each failing cell through E(path, message). Returns counts."""
-    silent = double = noisy = 0
-    for (band, age), (prof, (pv, est)), (state, sv), (glu, gv), (ket, kv) in itertools.product(BANDS.items(), PROFILES.items(), STATES.items(), GLUCOSE.items(), KETONES.items()):
-        r = run_vignette({"id": "GRID", "site": "referral", "established": est, "ageBand": band, "values": {"sex": "male", "age_years": age, **pv, **sv, **gv, **kv}})
-        urg = [r["urgency"].get(k) for k in r["fired"]]
-        top = max([RANK.get(u, 0) for u in urg] + [0])
-        cell = f"grid.{band}.{prof}.{state}.glu={glu}.ket={ket}"
+    """Run both grids; report each failing cell through E(path, message). Returns counts."""
+    import k_r7
+    measure = k_r7.MEASURE_REQUESTS
+    out = {"men": 0, "women": 0, "silent": 0, "noisy": 0, "order": 0}
+    n0 = len(E.__self__) if hasattr(E, "__self__") else None
+    for site, (band, age), (prof, (pv, est)), (state, sv), (glu, gv), (ket, kv) in itertools.product(SITES, BANDS.items(), PROFILES.items(), STATES.items(), GLUCOSE.items(), KETONES.items()):
+        r = run_vignette({"id": "GRID", "site": site, "established": est, "ageBand": band, "values": {"sex": "male", "age_years": age, **pv, **sv, **gv, **kv}})
+        out["men"] += 1
+        top = max([RANK.get(r["urgency"].get(k), 3 if r["urgency"].get(k) == "folded" else 0) for k in r["fired"]] + [0])
+        cell = f"grid.{site}.{band}.{prof}.{state}.glu={glu}.ket={ket}"
         need = floor(band, prof, state, glu, ket)
         if need and top < RANK[need]:
-            silent += 1; E(cell, f"below the escalation floor: needs {need}, got {sorted(k for k in r['fired'] if r['urgency'].get(k) in ('same_day', 'immediate', 'urgent'))}")
-        if urg.count("immediate") > 1:
-            double += 1; E(cell, f"more than one interrupt: {sorted(k for k in r['fired'] if r['urgency'].get(k) == 'immediate')}")
+            out["silent"] += 1; E(cell, f"below the escalation floor: needs {need}, got {sorted(k for k in r['fired'] if RANK.get(r['urgency'].get(k), 0) >= 1)}")
         if prof in FULLY_RECORDED and state == "well" and glu in ("none", "7", "15") and ket in ("none", "u_neg", "u_trace", "b0.3") and top >= RANK["same_day"]:
-            noisy += 1; E(cell, f"noise on an ordinary well patient: {sorted(k for k in r['fired'] if RANK.get(r['urgency'].get(k), 0) >= 2)}")
-    return {"cells": len(BANDS) * len(PROFILES) * len(STATES) * len(GLUCOSE) * len(KETONES), "silent": silent, "double": double, "noisy": noisy}
+            out["noisy"] += 1; E(cell, f"noise on an ordinary well patient: {sorted(k for k in r['fired'] if RANK.get(r['urgency'].get(k), 0) >= 2)}")
+        out["order"] += _order(r, cell, E, measure)
+    for (preg, pv), (bp, bv), (sym, yv), (prot, tv) in itertools.product(PREG.items(), BP.items(), SYM.items(), PROTEIN.items()):
+        r = run_vignette({"id": "GRID", "site": "referral", "established": False, "ageBand": "adult", "values": {"sex": "female", "age_years": 30, **pv, **bv, **yv, **tv}})
+        out["women"] += 1
+        top = max([RANK.get(r["urgency"].get(k), 3 if r["urgency"].get(k) == "folded" else 0) for k in r["fired"]] + [0])
+        cell = f"grid.women.{preg}.bp={bp}.{sym}.protein={prot}"
+        need = women_floor(preg, bp, sym)
+        if need and top < RANK[need]:
+            out["silent"] += 1; E(cell, f"below the escalation floor: needs {need}, got {sorted(r['fired'])}")
+        if preg in ("notpreg_notpp", "unknown") and sym == "none" and bp == "145/95" and any(k in PREG_RULES for k in r["fired"]):
+            out["noisy"] += 1; E(cell, f"a pregnancy rule fires where pregnancy is excluded or only unanswered at a same-day level: {sorted(k for k in r['fired'] if k in PREG_RULES)}")
+        out["order"] += _order(r, cell, E, measure)
+    return out

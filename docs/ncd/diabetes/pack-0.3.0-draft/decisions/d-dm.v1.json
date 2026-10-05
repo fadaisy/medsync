@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.3-draft",
+  "version": "0.3.4-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -9,7 +9,7 @@
   "briefingCommit": "8e45d34"
  },
  "note": "The first option of each decision is the recommendation. Nothing is decided until the CSO fills 'decision', 'signedBy' and 'signedOn'.",
- "count": 41,
+ "count": 42,
  "decisions": [
   {
    "id": "D-DM-01",
@@ -620,7 +620,7 @@
   {
    "id": "D-DM-41",
    "title": "The acute escalation floor",
-   "question": "The build now fails if any patient in a 4,608-cell grid gets less than the minimum urgency in this table (build.py ACUTE_FLOOR), or more than one interrupt. Sign the table?",
+   "question": "The build now fails if any patient in a grid of men (21,504 cells) and women (300 cells) across sites, bands, profiles, states, glucose, ketones, pregnancy and blood pressure gets less than the minimum urgency in this table (build.py ACUTE_FLOOR), or more than one interrupt. Sign the table?",
    "recommended": "Sign it as the acute lane's safety contract: interrupt on a meter HI, blood ketones 3.0 or more in diabetes or with a high glucose, ketones 1.6 to 2.9 with vomiting, Kussmaul breathing or acetone in diabetes, drowsiness with a low, high or unmeasured glucose in diabetes, a glucose below 3.9 on insulin, a sulfonylurea, type 1 or unknown medicines, SGLT2 with vomiting or deep breathing, a sick child with diabetes and no glucose; same day for the intermediate patterns.",
    "alternatives": [
     "Amend any row; the build then enforces the amended table."
@@ -628,6 +628,21 @@
    "why": "Three review rounds found that patching single rules made other patients silent or doubly interrupted. A table the build enforces stops that.",
    "affects": "Every acute_route rule",
    "needsFromCso": null,
+   "decision": null,
+   "signedBy": null,
+   "signedOn": null
+  },
+  {
+   "id": "D-DM-42",
+   "title": "Vomiting with a high glucose on insulin; ketoacidosis in pregnancy",
+   "question": "Should an adult on insulin, vomiting, with glucose 18 or more and only a negative urine strip, be an interrupt rather than same-day? Should pregnancy lower the ketone thresholds for routing?",
+   "recommended": "Supply ISPAD 2022 and JBDS sick-day and JBDS-IP (DKA in pregnancy) text; until then keep same-day with 'repeat the strip in 2 hours' and say so.",
+   "alternatives": [
+    "Interrupt now on the floor's current wording."
+   ],
+   "why": "The seventh review judged both patterns under-escalated; the pack will not add a threshold it has not read (N2).",
+   "affects": "DM-ACU-ROUTE-34, ROUTE-23D, ROUTE-22, ACUTE_FLOOR",
+   "needsFromCso": "ISPAD 2022 sick-day chapter, JBDS sick-day rules, JBDS-IP DKA in pregnancy",
    "decision": null,
    "signedBy": null,
    "signedOn": null

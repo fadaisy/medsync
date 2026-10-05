@@ -7996,7 +7996,7 @@
    "conflicts": null,
    "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing.",
    "usedByRefs": [],
-   "citedDirectly": false
+   "citedDirectly": true
   },
   {
    "id": "UCG-HIV-02",

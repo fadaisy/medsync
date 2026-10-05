@@ -1,0 +1,56 @@
+cells 82160
+ 32224  cells_with_folded_items
+    48  noise:N1 metformin/diet, dehydration or acetone only, glucose 7, ketones normal -> interrupt
+  1592  order:DM-ACU-ROUTE-03
+  1536  order:DM-ACU-ROUTE-20
+   264  order:DM-ACU-ROUTE-32
+ 30886  same_day_items_beside_an_interrupt
+
+# N1 metformin/diet, dehydration or acetone only, glucose 7, ketones normal -> interrupt
+    ('referral.adult.T2_metf.acetone.g=c7.k=u_neg', 'DM-ACU-ROUTE-24')
+    ('referral.adult.T2_metf.acetone.g=c7.k=b0.3', 'DM-ACU-ROUTE-24')
+    ('referral.adult.T2_metf.dehydr.g=c7.k=u_neg', 'DM-ACU-ROUTE-24')
+
+# Q test-request interrupt DM-ACU-ROUTE-20 over folded routing ['DM-ACU-ROUTE-24']
+    referral.adult.T2_metf.drowsy.g=none.k=none
+    referral.adult.T2_metf.drowsy.g=none.k=u_neg
+
+# Q test-request interrupt DM-ACU-ROUTE-20 over folded routing ['DM-ACU-ROUTE-02']
+    referral.adult.T2_metf.drowsy.g=none.k=u_2
+    referral.adult.T2_metf.drowsy.g=none.k=u_3
+
+# Q test-request interrupt DM-ACU-ROUTE-20 over folded routing ['DM-ACU-ROUTE-24', 'DM-ACU-ROUTE-30']
+    referral.adult.T2_metf.vomit+drowsy.g=none.k=b2.0
+    referral.adult.T2_diet.vomit+drowsy.g=none.k=b2.0
+
+# Q test-request interrupt DM-ACU-ROUTE-03 over folded routing ['DM-ACU-ROUTE-14']
+    referral.adult.SGLT2.vomit.g=c35.k=none
+    referral.adult.SGLT2.vomit.g=c35.k=u_neg
+
+# Q test-request interrupt DM-ACU-ROUTE-03 over folded routing ['DM-ACU-ROUTE-24']
+    referral.adult.SGLT2.kussmaul.g=none.k=none
+    referral.adult.SGLT2.kussmaul.g=none.k=u_neg
+
+# Q test-request interrupt DM-ACU-ROUTE-03 over folded routing ['DM-ACU-ROUTE-11']
+    referral.adult.SGLT2.kussmaul.g=c15.k=none
+    referral.adult.SGLT2.kussmaul.g=c15.k=u_neg
+
+# Q test-request interrupt DM-ACU-ROUTE-32 over folded routing ['DM-ACU-ROUTE-02']
+    referral.child.T2_metf.vomit.g=none.k=u_2
+    referral.child.T2_metf.vomit.g=none.k=u_3
+
+# Q test-request interrupt DM-ACU-ROUTE-32 over folded routing ['DM-ACU-ROUTE-30']
+    referral.child.T2_metf.vomit.g=none.k=b2.0
+    referral.child.T2_diet.vomit.g=none.k=b2.0
+
+# Q test-request interrupt DM-ACU-ROUTE-20 over folded routing ['DM-ACU-ROUTE-25']
+    referral.child.T2_metf.drowsy.g=none.k=none
+    referral.child.T2_metf.drowsy.g=none.k=u_neg
+
+# Q test-request interrupt DM-ACU-ROUTE-20 over folded routing ['DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-25']
+    referral.child.T2_metf.drowsy.g=none.k=u_2
+    referral.child.T2_metf.drowsy.g=none.k=u_3
+
+# Q test-request interrupt DM-ACU-ROUTE-20 over folded routing ['DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-30']
+    referral.child.T2_metf.vomit+drowsy.g=none.k=b2.0
+    referral.child.T2_diet.vomit+drowsy.g=none.k=b2.0

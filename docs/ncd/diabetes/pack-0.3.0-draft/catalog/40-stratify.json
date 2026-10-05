@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.3-draft",
+  "version": "0.3.4-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -3400,7 +3400,8 @@
     },
     "review": [
      "V4",
-     "F04"
+     "F04",
+     "Q27"
     ],
     "notWhen": [
      {
@@ -3431,6 +3432,11 @@
      }
     ],
     "ages": "adult",
+    "supersedes": [
+     "tgt_hba1c_general",
+     "tgt_hba1c_tight",
+     "tgt_hba1c_older_healthy"
+    ],
     "restrictedClasses": []
    }
   },
@@ -3638,7 +3644,7 @@
    "display": "HbA1c below 6.5%",
    "when": {
     "id": "tgt_tight",
-    "label": "A tight target agreed (good health, low risk of lows)",
+    "label": "A tight target agreed",
     "all": [
      {
       "feature": "dm_status",
@@ -3696,10 +3702,99 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "L09"
+     "L09",
+     "Q11"
     ],
     "ages": "adult",
-    "notWhen": [],
+    "notWhen": [
+     {
+      "id": "tgt_hba1c_general_relaxed_applies",
+      "label": "A reason to relax the target is recorded (the relaxed target is proposed instead; Gold score 4 or more counts)",
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       },
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       },
+       {
+        "feature": "hypo_awareness_score",
+        "op": ">=",
+        "value": 4,
+        "unit": "score"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_tight_su_ins",
+      "label": "On insulin or a sulfonylurea (ADA: a lower goal only where treatment carries little risk of lows)",
+      "any": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Lower A1C goals (e.g., <6.5% [<48 mmol/mol]) may be appropriate for individuals with diabetes with good health and function and low treatment risks (e.g., hypoglycemia) and burdens (see Fig. 6.1). B",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-04",
+        "section": "Recommendation 6.4; Figure 6.1",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-TIGHT"
+       }
+      }
+     }
+    ],
     "supersedes": [
      "tgt_hba1c_general",
      "tgt_hba1c_older_healthy"

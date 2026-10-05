@@ -1,0 +1,227 @@
+
+## DM-ACU-ROUTE-01 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  LABEL: Glucose 18 mmol/L or more, or a meter reading HI
+  WHEN: any:GLU>=18, glucose_meter_extreme==hi
+  NOT: acu_glu18_done | A ketone result is already recorded | any:urine_ketonesrecorded, bohbrecorded
+  NOT: acu_glu18_signs | Deep breathing, acetone on the breath, dehydration or drowsiness (an interrupting rule applies) | any:deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma']
+
+## DM-ACU-ROUTE-02 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  LABEL: Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI
+  WHEN: any:urine_ketonesin['2plus', '3plus'], bohb>=3.0 | atLeast1:DM_ANY, GLU>=11.1, glucose_meter_extreme==hi
+
+## DM-ACU-ROUTE-03 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: On an SGLT2 inhibitor and vomiting, in pain or breathing deeply: check ketones even if glucose is normal
+  LABEL: On an SGLT2 inhibitor, with any of: vomiting, abdominal pain, deep rapid breathing, acute illness, dehydration, drowsiness or worse
+  WHEN: all:glucose_lowering_therapy==sglt2_inhibitor | any:vomitingpresent, abdominal_painpresent, deep_rapid_breathingpresent, acute_illness_currentpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma']
+  NOT: acu_edka_bohb_normal | Blood ketones below 0.6 mmol/L (normal) | all:bohb<0.6
+  NOT: acu_edka_r02 | Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more (rule 02 interrupts) | any:urine_ketonesin['2plus', '3plus'], bohb>=3.0
+
+## DM-ACU-ROUTE-04 [immediate] ages=['child', 'adolescent'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes or a glucose above 11: suspected ketoacidosis. Route now
+  LABEL: Any of vomiting, abdominal pain, deep rapid breathing, acetone on the breath, dehydration, drowsiness or worse; with at least one of: thirst, passing a lot of urine, weight loss, new bed-wetting, any glucose above 11 mmol/L, a meter reading HI
+  WHEN: any:vomitingpresent, abdominal_painpresent, deep_rapid_breathingpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma'], acetone_breathpresent | atLeast1:polyuriapresent, polydipsiapresent, unexplained_weight_losspresent, secondary_enuresispresent, glucose_meter_extreme==hi, GLU>11
+
+## DM-ACU-ROUTE-05 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring
+  LABEL: Potassium 6.5 mmol/L or more
+  WHEN: all:potassium>=6.5
+
+## DM-ACU-ROUTE-06 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now
+  LABEL: Any glucose below 3.0 mmol/L, a meter reading LO, or a low not resolving after treatment
+  WHEN: any:GLU<3.0, glucose_meter_extreme==lo, hypoglycaemia_not_resolvingpresent
+
+## DM-ACU-ROUTE-07 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. On insulin or a sulfonylurea, or if the medicines are not known, it can come back
+  LABEL: Any glucose below 3.9 mmol/L in a person with diabetes, unless a recorded medicine list holds no insulin or sulfonylurea and the recorded type is not type 1 (rule 26 applies)
+  WHEN: any:GLU<3.9 | atLeast1:glucose_lowering_therapy==insulin, glucose_lowering_therapy==glibenclamide, glucose_lowering_therapy==gliclazide, glucose_lowering_therapy==glimepiride, dm_type_recorded==type_1, DM_ANY
+  NOT: acu_hypo_l1_l2 | Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts) | any:GLU<3.0, glucose_meter_extreme==lo
+  NOT: acu_hypo_l1_list_clear | A recorded medicine list with no insulin or sulfonylurea, and a recorded type that is not type 1 (rule 26 applies) | all:glucose_lowering_therapy!=insulin, glucose_lowering_therapy!=glibenclamide, glucose_lowering_therapy!=gliclazide, glucose_lowering_therapy!=glimepiride, dm_type_recorded!=type_1
+
+## DM-ACU-ROUTE-11 [immediate] ages=['adult', 'older_adult'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones
+  LABEL: Any glucose 11.1 mmol/L or more (or a meter reading HI), with any of: deep rapid breathing, acetone on the breath, dehydration, drowsiness or worse
+  WHEN: any:deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma'] | atLeast1:GLU>=11.1, glucose_meter_extreme==hi
+  NOT: acu_picture_hhs | Glucose 33.3 mmol/L or more or a meter reading HI (rule 14 interrupts for this patient) | any:GLU>=33.3, glucose_meter_extreme==hi
+  NOT: acu_picture_r02 | Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more (rule 02 interrupts) | any:urine_ketonesin['2plus', '3plus'], bohb>=3.0
+
+## DM-ACU-ROUTE-13 [same_day] ages=['adult', 'older_adult'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Diabetes (or on insulin or a sulfonylurea) and vomiting, abdominal pain or dehydration, with no glucose on record: capillary glucose today, and ketones if it is raised
+  LABEL: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with any of: vomiting, abdominal pain, dehydration
+  WHEN: any:vomitingpresent, abdominal_painpresent, dehydrationpresent | atLeast1:DM_ANY
+  NOT: acu_known_unwell_done | A glucose is already recorded (the other rules then read it; a meter HI or LO counts) | any:capillary_glucoserecorded, random_pgrecorded, fasting_pgrecorded, postprandial_pgrecorded, ogtt_1h_pgrecorded, ogtt_2h_pgrecorded, glucose_meter_extremerecorded
+
+## DM-ACU-ROUTE-14 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  LABEL: Any glucose 33.3 mmol/L or more, or a meter reading HI
+  WHEN: any:GLU>=33.3, glucose_meter_extreme==hi
+
+## DM-ACU-ROUTE-15 [immediate] ages=['child', 'adolescent'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: A child who is breathing deeply or drowsy: capillary glucose now
+  LABEL: A child with deep rapid breathing, or drowsiness or worse
+  WHEN: any:deep_rapid_breathingpresent, mental_statusin['drowsy', 'stupor', 'coma']
+  NOT: acu_paed_glucose_done | A glucose is already recorded (a meter HI or LO counts) | any:capillary_glucoserecorded, random_pgrecorded, fasting_pgrecorded, postprandial_pgrecorded, ogtt_1h_pgrecorded, ogtt_2h_pgrecorded, glucose_meter_extremerecorded
+  NOT: acu_paed_glucose_known | Known diabetes (rule 25 interrupts) | all:dm_status==known
+
+## DM-ACU-ROUTE-09 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Type 1 diabetes and no insulin on the medicine list: confirm they are taking it. If not, check glucose and ketones today and find out why
+  LABEL: Type 1 diabetes recorded
+  WHEN: all:dm_type_recorded==type_1
+  NOT: acu_t1_on_insulin | Insulin is among the current medicines | all:glucose_lowering_therapy==insulin
+
+## DM-ACU-ROUTE-10 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Insulin stopped, missed or run out: check glucose and ketones today
+  LABEL: Insulin stopped, missed or run out
+  WHEN: all:insulin_omittedpresent
+
+## DM-ACU-ROUTE-08 [same_day] ages=['adult', 'older_adult'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose 15 mmol/L or more with thirst, polyuria or weight loss: test urine ketones today
+  LABEL: Fasting or random plasma glucose, or any meter reading, 15 mmol/L or more, with thirst, passing a lot of urine or unexplained weight loss
+  WHEN: any:polyuriapresent, polydipsiapresent, unexplained_weight_losspresent | atLeast1:fasting_pg>=15, random_pg>=15, capillary_glucose>=15
+  NOT: acu_glu15_over18 | Glucose 18 mmol/L or more (rule 01 already asks for ketones) | any:GLU>=18
+  NOT: acu_glu15_ketones_done | A ketone result is already recorded | any:urine_ketonesrecorded, bohbrecorded
+
+## DM-ACU-ROUTE-16 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Potassium 6.0 to 6.4 mmol/L: repeat within 24 hours; if unwell or kidney function has fallen, assess in hospital
+  LABEL: Potassium 6.0 to 6.4 mmol/L
+  WHEN: all:potassium>=6.0, potassium<6.5
+
+## DM-ACU-ROUTE-17 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now
+  LABEL: Chest pain, or sudden weakness, speech or facial change
+  WHEN: all:chest_pain_or_stroke_symptomspresent
+
+## DM-ACU-ROUTE-18 [same_day] ages=['child', 'adolescent'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: A child who is dehydrated, or has ketones in the urine, with no glucose on record: capillary glucose today
+  LABEL: A child with dehydration, urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more
+  WHEN: any:dehydrationpresent, urine_ketonesin['2plus', '3plus'], bohb>=3.0
+  NOT: acu_paed_soft_done | A glucose is already recorded (a meter HI or LO counts) | any:capillary_glucoserecorded, random_pgrecorded, fasting_pgrecorded, postprandial_pgrecorded, ogtt_1h_pgrecorded, ogtt_2h_pgrecorded, glucose_meter_extremerecorded
+
+## DM-ACU-ROUTE-19 [same_day] ages=['adult', 'older_adult'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Raised glucose with vomiting or abdominal pain: test ketones today. A second sign or ketones of 2+ makes it an emergency
+  LABEL: Any glucose 11.1 mmol/L or more (or a meter reading HI), with vomiting or abdominal pain
+  WHEN: any:vomitingpresent, abdominal_painpresent | atLeast1:GLU>=11.1, glucose_meter_extreme==hi
+  NOT: acu_mild_signs | Deep breathing, acetone on the breath, dehydration or drowsiness (rule 11 or 14 interrupts) | any:deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma']
+  NOT: acu_mild_ketones_done | A ketone result is already recorded | any:urine_ketonesrecorded, bohbrecorded
+
+## DM-ACU-ROUTE-20 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Drowsy or unresponsive with diabetes, or on insulin or a sulfonylurea, and no glucose on record: capillary glucose now
+  LABEL: Drowsiness or worse, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine)
+  WHEN: all:mental_statusin['drowsy', 'stupor', 'coma'] | atLeast1:DM_ANY
+  NOT: acu_drowsy_done | A glucose is already recorded (a meter HI or LO counts) | any:capillary_glucoserecorded, random_pgrecorded, fasting_pgrecorded, postprandial_pgrecorded, ogtt_1h_pgrecorded, ogtt_2h_pgrecorded, glucose_meter_extremerecorded
+
+## DM-ACU-ROUTE-24 [immediate] ages=['adult', 'older_adult'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose and ketones now
+  LABEL: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with deep rapid breathing, acetone on the breath, dehydration, or drowsiness or worse
+  WHEN: any:deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma'] | atLeast1:DM_ANY
+  NOT: acu_known_kussmaul_r11 | Any glucose 11.1 mmol/L or more or a meter reading HI (rule 11 interrupts for this patient) | any:GLU>=11.1, glucose_meter_extreme==hi
+  NOT: acu_known_kussmaul_r02 | Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more (rule 02 interrupts) | any:urine_ketonesin['2plus', '3plus'], bohb>=3.0
+  NOT: acu_known_kussmaul_hypo | Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts; between 3.0 and 3.9 the interrupt is folded behind the hypoglycaemia rule) | any:GLU<3.0, glucose_meter_extreme==lo
+
+## DM-ACU-ROUTE-21 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Urine ketones trace or 1+ in diabetes, when unwell or with glucose 18 or more: blood ketones or a repeat strip within 2 hours, and contact the diabetes team today
+  LABEL: Urine ketones trace or 1+, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) or any glucose 11.1 mmol/L or more or a meter reading HI; and vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or HI
+  WHEN: all:urine_ketonesin['trace', '1plus'] | any:vomitingpresent, abdominal_painpresent, acute_illness_currentpresent, dehydrationpresent, GLU>=18, glucose_meter_extreme==hi | atLeast1:DM_ANY, GLU>=11.1, glucose_meter_extreme==hi
+  NOT: acu_ketones_mid_bohb_normal | Blood ketones below 0.6 mmol/L (normal) | all:bohb<0.6
+  NOT: acu_ketones_mid_bohb_high | Blood ketones 0.6 mmol/L or more (rules 21B, 22, 30 and 02 read the blood value) | all:bohb>=0.6
+  NOT: acu_ketones_mid_signs | Deep breathing, acetone, dehydration or drowsiness (an interrupting rule applies) | any:deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma']
+
+## DM-ACU-ROUTE-22 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team today and recheck within 2 hours
+  LABEL: Blood ketones 1.6 to below 3.0 mmol/L; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI
+  WHEN: all:bohb>=1.6, bohb<3.0 | atLeast1:DM_ANY, GLU>=11.1, glucose_meter_extreme==hi
+  NOT: acu_ketones_risk_vomit | Vomiting (rule 30 interrupts) | all:vomitingpresent
+
+## DM-ACU-ROUTE-23 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose
+  LABEL: Type 1 diabetes recorded, or on insulin; with vomiting or abdominal pain
+  WHEN: any:vomitingpresent, abdominal_painpresent | atLeast1:dm_type_recorded==type_1, glucose_lowering_therapy==insulin
+  NOT: acu_insulin_sick_bohb | Blood ketones below 0.6 mmol/L (normal); a urine strip does not clear this (it can miss early ketoacidosis) | all:bohb<0.6
+  NOT: acu_insulin_sick_raised | Blood ketones 0.6 mmol/L or more, or urine ketones 2+ (the ketone rules read them) | any:bohb>=0.6, urine_ketonesin['2plus', '3plus']
+  NOT: acu_insulin_sick_kussmaul | Deep breathing or acetone on the breath (rules 24 and 25 interrupt) | any:deep_rapid_breathingpresent, acetone_breathpresent
+
+## DM-ACU-ROUTE-25 [immediate] ages=['child', 'adolescent'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: A child with diabetes and deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis. Route now
+  LABEL: A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), with deep rapid breathing, acetone on the breath, dehydration, or drowsiness or worse
+  WHEN: any:deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma'] | atLeast1:DM_ANY
+  NOT: acu_paed_known_signs_r04 | Any glucose above 11 mmol/L or a meter reading HI (rule 04 interrupts) | any:GLU>11, glucose_meter_extreme==hi
+  NOT: acu_paed_known_signs_hypo | Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts; between 3.0 and 3.9 the interrupt is folded behind the hypoglycaemia rule) | any:GLU<3.0, glucose_meter_extreme==lo
+
+## DM-ACU-ROUTE-26 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose below 3.9 mmol/L in diabetes, not on insulin or a sulfonylurea: recheck today and look for another cause
+  LABEL: Known diabetes, a recorded medicine list with no insulin or sulfonylurea, a recorded type that is not type 1, and any glucose below 3.9 mmol/L
+  WHEN: all:dm_type_recorded!=type_1, glucose_lowering_therapy!=insulin, glucose_lowering_therapy!=glibenclamide, glucose_lowering_therapy!=gliclazide, glucose_lowering_therapy!=glimepiride | any:GLU<3.9 | atLeast1:DM_ANY
+  NOT: acu_hypo_other_l2 | Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts) | any:GLU<3.0, glucose_meter_extreme==lo
+  NOT: acu_hypo_other_drowsy | Drowsiness or worse (rule 31 interrupts) | all:mental_statusin['drowsy', 'stupor', 'coma']
+
+## DM-ACU-ROUTE-27 [same_day] ages=None runWhen=always pUnk=True cap=None enabled=None
+  DISPLAY: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today
+  LABEL: Pregnant or within 6 weeks postpartum, with systolic 140 mmHg or more or diastolic 90 mmHg or more
+  WHEN: any:bp_systolic>=140, bp_diastolic>=90 | atLeast1:pregnantpresent, postpartum_weeks<=6
+  NOT: acu_preg_bp_severe | Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts) | any:bp_systolic>=160, bp_diastolic>=110
+  NOT: acu_preg_bp_protein_done | A urine protein result is recorded at this visit (rules 27B and 27C read it) | any:urine_protein_striprecorded
+
+## DM-ACU-ROUTE-28 [immediate] ages=None runWhen=always pUnk=True cap=None enabled=None
+  DISPLAY: Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital
+  LABEL: Pregnant or within 6 weeks postpartum, with systolic 160 mmHg or more or diastolic 110 mmHg or more
+  WHEN: any:bp_systolic>=160, bp_diastolic>=110 | atLeast1:pregnantpresent, postpartum_weeks<=6
+
+## DM-ACU-ROUTE-29 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Blood pressure above 180/110 with drowsiness, organ-damage signs, chest pain or stroke signs: hypertensive emergency. Route now
+  LABEL: Systolic above 180 mmHg or diastolic above 110 mmHg, with drowsiness or worse, chest pain or stroke signs, or signs of acute organ damage (confusion, seizures, visual loss, pulmonary oedema, little urine, tearing pain)
+  WHEN: any:bp_systolic>180, bp_diastolic>110 | atLeast1:mental_statusin['drowsy', 'stupor', 'coma'], chest_pain_or_stroke_symptomspresent, hypertensive_organ_damagepresent
+  NOT: acu_htn_emerg_r17 | Chest pain, or sudden weakness, speech or facial change (rule 17 interrupts) | all:chest_pain_or_stroke_symptomspresent
+  NOT: acu_htn_emerg_r28 | Pregnant (rule 28 interrupts) | all:pregnantpresent
+
+## DM-ACU-ROUTE-30 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Blood ketones 1.6 to below 3.0 mmol/L with vomiting, in diabetes: ketoacidosis is developing and fluids cannot be kept down. Route now
+  LABEL: Blood ketones 1.6 to below 3.0 mmol/L, with vomiting; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI
+  WHEN: all:bohb>=1.6, bohb<3.0, vomitingpresent | atLeast1:DM_ANY, GLU>=11.1, glucose_meter_extreme==hi
+
+## DM-ACU-ROUTE-31 [immediate] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Glucose below 3.9 mmol/L with drowsiness or worse: severe hypoglycaemia until proved otherwise. Route now
+  LABEL: Any glucose below 3.9 mmol/L, with drowsiness or worse
+  WHEN: all:mental_statusin['drowsy', 'stupor', 'coma'] | any:GLU<3.9
+  NOT: acu_hypo_drowsy_r06 | Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts) | any:GLU<3.0, glucose_meter_extreme==lo
+  NOT: acu_hypo_drowsy_r07 | On insulin or a sulfonylurea, or type 1 recorded (rule 07 interrupts) | any:glucose_lowering_therapy==insulin, glucose_lowering_therapy==glibenclamide, glucose_lowering_therapy==gliclazide, glucose_lowering_therapy==glimepiride, dm_type_recorded==type_1
+
+## DM-ACU-ROUTE-32 [immediate] ages=['child', 'adolescent'] runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose and ketones now
+  LABEL: A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with vomiting or abdominal pain
+  WHEN: any:vomitingpresent, abdominal_painpresent | atLeast1:DM_ANY
+  NOT: acu_paed_known_sick_done | A glucose is already recorded (the other rules read it; a meter HI or LO counts) | any:capillary_glucoserecorded, random_pgrecorded, fasting_pgrecorded, postprandial_pgrecorded, ogtt_1h_pgrecorded, ogtt_2h_pgrecorded, glucose_meter_extremerecorded
+
+## DM-ACU-ROUTE-21B [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Blood ketones 0.6 to below 1.6 mmol/L in diabetes, when unwell or with glucose 18 or more: recheck within 2 hours and contact the diabetes team today
+  LABEL: Blood ketones 0.6 to below 1.6 mmol/L, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) or any glucose 11.1 mmol/L or more or HI; and vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or HI
+  WHEN: all:bohb>=0.6, bohb<1.6 | any:vomitingpresent, abdominal_painpresent, acute_illness_currentpresent, dehydrationpresent, GLU>=18, glucose_meter_extreme==hi | atLeast1:DM_ANY, GLU>=11.1, glucose_meter_extreme==hi
+
+## DM-ACU-ROUTE-28B [immediate] ages=None runWhen=always pUnk=True cap=None enabled=None
+  DISPLAY: Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now
+  LABEL: Pregnant or within 6 weeks postpartum, with confusion, seizures, visual loss, breathlessness with crackles, little urine or tearing pain beside a raised pressure
+  WHEN: all:hypertensive_organ_damagepresent | atLeast1:pregnantpresent, postpartum_weeks<=6
+
+## DM-ACU-ROUTE-28C [immediate] ages=None runWhen=always pUnk=True cap=None enabled=None
+  DISPLAY: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now
+  LABEL: Pregnant or within 6 weeks postpartum, drowsy or worse, with systolic 140 mmHg or more or diastolic 90 mmHg or more
+  WHEN: all:mental_statusin['drowsy', 'stupor', 'coma'] | any:bp_systolic>=140, bp_diastolic>=90 | atLeast1:pregnantpresent, postpartum_weeks<=6
+
+## DM-ACU-ROUTE-27B [same_day] ages=None runWhen=always pUnk=True cap=None enabled=None
+  DISPLAY: Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90
+  LABEL: Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, urine protein negative
+  WHEN: all:urine_protein_stripin['neg', 'trace'] | any:bp_systolic>=140, bp_diastolic>=90 | atLeast1:pregnantpresent, postpartum_weeks<=6
+  NOT: 27b_severe | Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts) | any:bp_systolic>=160, bp_diastolic>=110
+
+## DM-ACU-ROUTE-27C [same_day] ages=None runWhen=always pUnk=True cap=None enabled=None
+  DISPLAY: Raised blood pressure in pregnancy or after birth with urine protein 1+ or more: pre-eclampsia. Refer to hospital today
+  LABEL: Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, urine protein 1+ or more
+  WHEN: all:urine_protein_stripin['1plus', '2plus', '3plus'] | any:bp_systolic>=140, bp_diastolic>=90 | atLeast1:pregnantpresent, postpartum_weeks<=6
+  NOT: 27c_severe | Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts) | any:bp_systolic>=160, bp_diastolic>=110
+
+## DM-ACU-ROUTE-34 [same_day] ages=None runWhen=always pUnk=None cap=None enabled=None
+  DISPLAY: Diabetes, vomiting, glucose 18 or more with ketones below the danger range: tablets cannot be kept down. Same-day review
+  LABEL: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); vomiting; any glucose 18 mmol/L or more or a meter reading HI
+  WHEN: all:vomitingpresent | any:GLU>=18, glucose_meter_extreme==hi | atLeast1:DM_ANY
+  NOT: acu_vomit_high_ket | Ketones raised (blood 0.6 mmol/L or more, or urine 2+), or a sign (the ketone and interrupting rules apply) | any:bohb>=0.6, urine_ketonesin['2plus', '3plus'], deep_rapid_breathingpresent, acetone_breathpresent, dehydrationpresent, mental_statusin['drowsy', 'stupor', 'coma']

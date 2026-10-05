@@ -1,7 +1,48 @@
 {
  "id": "diabetes",
- "version": "0.3.3-draft",
+ "version": "0.3.4-draft",
  "status": "draft",
+ "semantics": {
+  "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
+  "evaluator": [
+   "J04: 'established_or_met' reads the non-pregnant criteria set as if pregnancy were answered, so an unknown pregnancy never hides a referral.",
+   "J16: an item switched off by `enabled: false` is reported as dark and nowhere else: not in fired steps, urgency, gaps, cautions or the pregnancy-withheld list.",
+   "J11: steps that ask for LESS treatment (`x.lessTreatment`) read every value, even one under a blocking caveat.",
+   "J25: a child (neonate, infant or child band) has pregnancy 'not possible'; no pregnancy question waits on her.",
+   "K14: a routine step that would fire but for a value under a blocking caveat reports that value as a named gap ('cannot be used for this patient'), instead of staying silent or reading it.",
+   "K11/K24: 'child' (pregnancy not possible) is the neonate, infant and child bands; the platform's child band ends before 10 years."
+  ],
+  "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17).",
+  "interrupt": "One interrupt per event: when several `immediate` rules are met, the surface interrupts once, headed by the first in `acuteOrder` (low glucose, then measured emergencies, then the clinical picture, then 'measure now' requests); a rule met only because pregnancy or a recent birth is unrecorded comes after every rule met on recorded facts. The interrupt carries every folded rule's action (`interruptActions`), so nothing is lost (seventh review, Q03, Q07).",
+  "pregnancyUnknown": "Acute pregnancy interrupts (`pregnancyUnknownCounts`: rules 28, 28B, 28C) treat an unanswered pregnancy question, or a 'not pregnant' answer with the weeks since birth unanswered, as possible; they fire with `unknownDisplay` (ask now, then the action) and name the gap. Same-day pregnancy rules wait for the answer (seventh review, Q01, Q10). `pregnancy_possible` is the platform's answer (D-DM-36).",
+  "targets": "A target with `supersedes` replaces the targets it names when both would be proposed; an agreed tier decides. 'Avoid symptoms' proposes no HbA1c target by design (sixth review, L09).",
+  "diabetesContext": "Every acute rule reads 'has diabetes' the same way: known diabetes, a recorded type, or any glucose-lowering medicine (sixth review, L04).",
+  "acuteOrder": [
+   "DM-ACU-ROUTE-06",
+   "DM-ACU-ROUTE-31",
+   "DM-ACU-ROUTE-07",
+   "DM-ACU-ROUTE-28",
+   "DM-ACU-ROUTE-28B",
+   "DM-ACU-ROUTE-28C",
+   "DM-ACU-ROUTE-04",
+   "DM-ACU-ROUTE-25",
+   "DM-ACU-ROUTE-25B",
+   "DM-ACU-ROUTE-02",
+   "DM-ACU-ROUTE-30",
+   "DM-ACU-ROUTE-14",
+   "DM-ACU-ROUTE-11",
+   "DM-ACU-ROUTE-29",
+   "DM-ACU-ROUTE-17",
+   "DM-ACU-ROUTE-24",
+   "DM-ACU-ROUTE-24B",
+   "DM-ACU-ROUTE-03",
+   "DM-ACU-ROUTE-05",
+   "DM-ACU-ROUTE-20",
+   "DM-ACU-ROUTE-32",
+   "DM-ACU-ROUTE-15",
+   "DM-ACU-ROUTE-28D"
+  ]
+ },
  "criteriaSets": [
   "who_hearts_d_2020",
   "ug_ucg_2023",
@@ -22,7 +63,7 @@
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
   "DM-ACT-THERAPY": 34,
-  "DM-ACU-ROUTE": 38,
+  "DM-ACU-ROUTE": 44,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -53,7 +94,7 @@
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 38,
+  "acute_route": 44,
   "act": 83
  },
  "rules": [
@@ -97,9 +138,18 @@
      "test": "glucose_random_or_fasting",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "symp_01_done"
+    ]
    }
   },
   {
@@ -143,9 +193,18 @@
      "test": "glucose_fasting",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "symp_02_done"
+    ]
    }
   },
   {
@@ -193,9 +252,16 @@
      "test": "glucose_fasting",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -244,9 +310,16 @@
      "test": "glucose_fasting",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": "lab.glucose",
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -292,9 +365,16 @@
      "test": "glucose_fasting",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -339,9 +419,16 @@
      "test": "glucose_fasting",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -386,9 +473,16 @@
      "test": "ogtt_75g",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -429,9 +523,18 @@
      "test": "ogtt_75g",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_pp_done"
+    ]
    }
   },
   {
@@ -474,9 +577,18 @@
      "test": "glucose_fasting",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "incid_01_preg"
+    ]
    }
   },
   {
@@ -520,9 +632,16 @@
      "test": "hba1c_if_valid_else_fasting_glucose_after_recovery",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -568,11 +687,22 @@
      "tier": "routine",
      "restrictedClass": "hiv"
     },
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "urgency": "routine",
     "posterior": "low",
     "restrictedClasses": [
      "hiv"
-    ]
+    ],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -617,11 +747,22 @@
      "tier": "today",
      "restrictedClass": "hiv"
     },
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "today",
+     "code": "programme_review"
+    },
     "urgency": "same_day",
     "posterior": "moderate",
     "restrictedClasses": [
      "hiv"
-    ]
+    ],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -667,11 +808,22 @@
      "tier": "routine",
      "restrictedClass": "tb"
     },
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "urgency": "routine",
     "posterior": "low",
     "restrictedClasses": [
      "tb"
-    ]
+    ],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -712,9 +864,16 @@
      "test": "glucose_after_meal",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -760,11 +919,22 @@
      "tier": "routine",
      "restrictedClass": "mental_health"
     },
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "urgency": "routine",
     "posterior": "low",
     "restrictedClasses": [
      "mental_health"
-    ]
+    ],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -809,9 +979,16 @@
      "test": "glucose_fasting",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -852,9 +1029,18 @@
      "test": "ogtt_75g",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_preg_done"
+    ]
    }
   },
   {
@@ -897,9 +1083,16 @@
      "to": "antenatal_clinic",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -941,9 +1134,16 @@
      "to": "antenatal_clinic_specialist",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -986,9 +1186,18 @@
      "test": "glucose_capillary",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_paed_done"
+    ]
    }
   },
   {
@@ -1029,9 +1238,18 @@
      "review": "type",
      "refer": "same_day"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "cls_ketosis_sglt2"
+    ]
    }
   },
   {
@@ -1079,9 +1297,16 @@
      "kind": "diagnosis.reclassify",
      "review": "type"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1126,9 +1351,16 @@
      "to": "diabetes_specialist",
      "flag": "atypical_phenotype"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1166,9 +1398,16 @@
      "kind": "diagnosis.reclassify",
      "review": "type"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1213,9 +1452,16 @@
      "kind": "refer",
      "to": "diabetes_specialist"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1256,9 +1502,16 @@
      "flag": "drug_associated",
      "note": "A flag for the clinician; the engine does not relabel."
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1301,9 +1554,16 @@
      "kind": "test.order",
      "test": "vitamin_b12_if_on_metformin"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1340,9 +1600,16 @@
      "kind": "refer",
      "to": "physician_or_neurology"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1383,9 +1650,16 @@
    "status": "draft",
    "x": {
     "proposal": null,
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1423,9 +1697,16 @@
      "kind": "refer",
      "to": "kidney_care"
     },
+    "neutralProposal": null,
     "urgency": "urgent",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1464,9 +1745,19 @@
      "test": "test.ketones_urine",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_glu18_done",
+     "acu_glu18_signs"
+    ]
    }
   },
   {
@@ -1510,16 +1801,23 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 10,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
    "id": "DM-ACU-ROUTE-03",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "On an SGLT2 inhibitor and vomiting, in pain or breathing deeply: check ketones even if glucose is normal",
+   "title": "On an SGLT2 inhibitor and unwell (vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -1554,9 +1852,19 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 18,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_edka_bohb_normal",
+     "acu_edka_r02"
+    ]
    }
   },
   {
@@ -1607,9 +1915,16 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 7,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1647,9 +1962,16 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 19,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1688,16 +2010,23 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 1,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
    "id": "DM-ACU-ROUTE-07",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. On insulin or a sulfonylurea, or if the medicines are not known, it can come back",
+   "title": "Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. Treat now; on insulin or a sulfonylurea, or if the medicines or type are not recorded, it can come back",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -1731,9 +2060,19 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 3,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_hypo_l1_l2",
+     "acu_hypo_l1_list_clear"
+    ]
    }
   },
   {
@@ -1778,16 +2117,26 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 13,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_picture_hhs",
+     "acu_picture_r02"
+    ]
    }
   },
   {
    "id": "DM-ACU-ROUTE-13",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes (or on insulin or a sulfonylurea) and vomiting, abdominal pain or dehydration, with no glucose on record: capillary glucose today, and ketones if it is raised",
+   "title": "Diabetes with vomiting, abdominal pain or dehydration, and no glucose on record: capillary glucose today, and ketones if it is raised",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -1827,9 +2176,18 @@
      ],
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_known_unwell_done"
+    ]
    }
   },
   {
@@ -1867,21 +2225,25 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 12,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
    "id": "DM-ACU-ROUTE-15",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child who is breathing deeply or drowsy: capillary glucose now",
+   "title": "Deep breathing or drowsiness, with no glucose on record: capillary glucose now",
    "appliesTo": {
-    "ageBands": [
-     "child",
-     "adolescent"
-    ],
+    "ageBands": null,
     "pregnancy": "any"
    },
    "reads": [
@@ -1910,9 +2272,19 @@
      "test": "test.glucose_capillary",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 22,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_paed_glucose_done",
+     "acu_glucose_now_dm"
+    ]
    }
   },
   {
@@ -1953,9 +2325,16 @@
      "test": "test.glucose_capillary",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -1997,9 +2376,16 @@
      "to": "antenatal_clinic_specialist",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2041,9 +2427,18 @@
      "to": "laboratory_glucose_or_antenatal_clinic",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "urgent",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "con_preg_fcap_high"
+    ]
    }
   },
   {
@@ -2083,9 +2478,18 @@
      ],
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_t1_on_insulin"
+    ]
    }
   },
   {
@@ -2125,9 +2529,16 @@
      ],
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2173,10 +2584,23 @@
      "tier": "routine",
      "restrictedClass": "mental_health"
     },
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
     "urgency": "routine",
     "posterior": "low",
     "restrictedClasses": [
      "mental_health"
+    ],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_antipsychotic_12w_owns"
     ]
    }
   },
@@ -2223,9 +2647,19 @@
      "test": "same_test_or_glucose_if_hba1c_invalid",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_single_repeated",
+     "incid_02_preg"
+    ]
    }
   },
   {
@@ -2262,9 +2696,18 @@
      "kind": "diagnosis.reclassify",
      "review": "type"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "cls_ketosis_settled"
+    ]
    }
   },
   {
@@ -2313,9 +2756,19 @@
      "tier": "today",
      "then": "review the type the same day"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "cls_t1_typed",
+     "cls_t1_on_insulin"
+    ]
    }
   },
   {
@@ -2364,9 +2817,16 @@
      "tier": "now",
      "then": "refer the same day if type 1 is suspected"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2411,9 +2871,19 @@
      "test": "test.ketones_urine",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_glu15_over18",
+     "acu_glu15_ketones_done"
+    ]
    }
   },
   {
@@ -2451,9 +2921,16 @@
      "kind": "monitoring.propose",
      "what": "glucose_after_meals"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2495,9 +2972,16 @@
      ],
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2535,9 +3019,16 @@
      "kind": "test.order",
      "test": "pancreas_imaging"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2577,9 +3068,16 @@
      "to": "triage",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2615,9 +3113,16 @@
      "kind": "acute_signal",
      "to": "triage"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 15,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -2660,9 +3165,19 @@
      "to": "paediatric_or_diabetes_team",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_paed_known",
+     "sus_paed_dm_any"
+    ]
    }
   },
   {
@@ -2706,9 +3221,18 @@
      "test": "test.glucose_capillary",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_paed_soft_done"
+    ]
    }
   },
   {
@@ -2752,16 +3276,26 @@
      "test": "test.ketones_urine",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_mild_signs",
+     "acu_mild_ketones_done"
+    ]
    }
   },
   {
    "id": "DM-ACU-ROUTE-20",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Drowsy or unresponsive with diabetes, or on insulin or a sulfonylurea, and no glucose on record: capillary glucose now",
+   "title": "Diabetes and drowsy or worse, with no glucose on record: capillary glucose now",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -2794,9 +3328,18 @@
      "test": "test.glucose_capillary",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 20,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_drowsy_done"
+    ]
    }
   },
   {
@@ -2840,9 +3383,19 @@
      "test": "glucose_capillary_fasting",
      "tier": "soon"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_fmeter_repeated",
+     "sus_fmeter_preg"
+    ]
    }
   },
   {
@@ -2884,16 +3437,23 @@
      "to": "antenatal_clinic_specialist",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
    "id": "DM-ACU-ROUTE-24",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose and ketones now",
+   "title": "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -2903,8 +3463,6 @@
    },
    "reads": [
     "sign.kussmaul_breathing",
-    "sign.ketotic_breath",
-    "sign.dehydration",
     "ncd.mental_status (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
@@ -2932,9 +3490,20 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 16,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_known_kussmaul_r11",
+     "acu_known_kussmaul_r02",
+     "acu_known_kussmaul_hypo"
+    ]
    }
   },
   {
@@ -2982,9 +3551,20 @@
      "test": "test.ketones",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_ketones_mid_bohb_normal",
+     "acu_ketones_mid_bohb_high",
+     "acu_ketones_mid_signs"
+    ]
    }
   },
   {
@@ -3029,9 +3609,18 @@
      "to": "diabetes_team",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_ketones_risk_vomit"
+    ]
    }
   },
   {
@@ -3071,16 +3660,27 @@
      "test": "test.ketones",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": "lab.ketones_blood",
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_insulin_sick_bohb",
+     "acu_insulin_sick_raised",
+     "acu_insulin_sick_kussmaul"
+    ]
    }
   },
   {
    "id": "DM-ACU-ROUTE-25",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child with diabetes and deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis. Route now",
+   "title": "A child with diabetes and deep breathing or drowsiness: suspected ketoacidosis. Route now",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -3090,8 +3690,6 @@
    },
    "reads": [
     "sign.kussmaul_breathing",
-    "sign.ketotic_breath",
-    "sign.dehydration",
     "ncd.mental_status (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
@@ -3119,9 +3717,19 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 8,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_paed_known_signs_r04",
+     "acu_paed_known_signs_hypo"
+    ]
    }
   },
   {
@@ -3163,9 +3771,19 @@
      "test": "test.glucose_capillary",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_hypo_other_l2",
+     "acu_hypo_other_drowsy"
+    ]
    }
   },
   {
@@ -3175,7 +3793,7 @@
    "title": "Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "obs.bp_systolic",
@@ -3209,9 +3827,20 @@
      "test": "test.urinalysis_dipstick",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_preg_bp_severe",
+     "acu_preg_bp_protein_done",
+     "-27_sympt"
+    ]
    }
   },
   {
@@ -3221,7 +3850,7 @@
    "title": "Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "obs.bp_systolic",
@@ -3255,9 +3884,16 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 4,
+    "pregnancyUnknownCounts": true,
+    "unknownDisplay": "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital",
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -3302,9 +3938,18 @@
      "test": "test.glucose_fasting",
      "tier": "routine"
     },
+    "neutralProposal": null,
     "urgency": "routine",
     "posterior": "low",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_fcap_ifg_preg"
+    ]
    }
   },
   {
@@ -3348,9 +3993,19 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 14,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_htn_emerg_r17",
+     "acu_htn_emerg_r28"
+    ]
    }
   },
   {
@@ -3396,9 +4051,16 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 11,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -3438,16 +4100,26 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 2,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_hypo_drowsy_r06",
+     "acu_hypo_drowsy_r07"
+    ]
    }
   },
   {
    "id": "DM-ACU-ROUTE-32",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose and ketones now",
+   "title": "A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose now",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -3486,9 +4158,18 @@
      ],
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 21,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_paed_known_sick_done"
+    ]
    }
   },
   {
@@ -3538,9 +4219,16 @@
      "test": "test.ketones",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -3550,15 +4238,19 @@
    "title": "Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "ncd.hypertensive_organ_damage (no CFC concept yet)",
+    "obs.bp_systolic",
+    "obs.bp_diastolic",
     "ncd.pregnant (no CFC concept yet)",
     "ncd.postpartum_weeks (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:acu_preg_organ",
    "params": {
+    "preg-bp-sbp": "REF-DM-PREG-BP-SBP",
+    "preg-bp-dbp": "REF-DM-PREG-BP-DBP",
     "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
    },
    "minTrust": 1,
@@ -3581,9 +4273,16 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 5,
+    "pregnancyUnknownCounts": true,
+    "unknownDisplay": "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now",
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -3593,7 +4292,7 @@
    "title": "Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "ncd.mental_status (no CFC concept yet)",
@@ -3628,9 +4327,16 @@
      "to": "triage",
      "tier": "now"
     },
+    "neutralProposal": null,
     "urgency": "immediate",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": 6,
+    "pregnancyUnknownCounts": true,
+    "unknownDisplay": "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now",
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -3640,7 +4346,7 @@
    "title": "Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "obs.urine_protein_dipstick",
@@ -3675,9 +4381,19 @@
      "to": "antenatal_clinician",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "27b_severe",
+     "acu_preg_bp_neg_sympt"
+    ]
    }
   },
   {
@@ -3687,7 +4403,7 @@
    "title": "Raised blood pressure in pregnancy or after birth with urine protein 1+ or more: pre-eclampsia. Refer to hospital today",
    "appliesTo": {
     "ageBands": null,
-    "pregnancy": "pregnant"
+    "pregnancy": "any"
    },
    "reads": [
     "obs.urine_protein_dipstick",
@@ -3722,16 +4438,26 @@
      "to": "hospital_obstetrics",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "high",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "27c_severe",
+     "27c_sympt"
+    ]
    }
   },
   {
    "id": "DM-ACU-ROUTE-34",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes, vomiting, glucose 18 or more with ketones below the danger range: tablets cannot be kept down. Same-day review",
+   "title": "Diabetes, vomiting, glucose 18 or more: medicines may not be kept down and the hyperosmolar state can develop. Same-day review; test ketones if not done",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -3767,9 +4493,344 @@
      "to": "clinician",
      "tier": "today"
     },
+    "neutralProposal": null,
     "urgency": "same_day",
     "posterior": "moderate",
-    "restrictedClasses": []
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_vomit_high_ket"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-28D",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Pregnant or within 6 weeks of birth and drowsy, with no blood pressure recorded: blood pressure and glucose now",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.mental_status (no CFC concept yet)",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_drowsy_nobp",
+   "params": {
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-PE-02"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "test.order",
+     "test": [
+      "bp",
+      "test.glucose_capillary"
+     ],
+     "tier": "now"
+    },
+    "neutralProposal": null,
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": 23,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_preg_drowsy_bp_done"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-27D",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Raised blood pressure in pregnancy or after birth with headache or vomiting: signs of pre-eclampsia. Refer to hospital today",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.hypertensive_symptoms (no CFC concept yet)",
+    "obs.bp_systolic",
+    "obs.bp_diastolic",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_bp_sympt",
+   "params": {
+    "preg-bp-sbp": "REF-DM-PREG-BP-SBP",
+    "preg-bp-dbp": "REF-DM-PREG-BP-DBP",
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-CHTN-03"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "refer",
+     "to": "hospital_obstetrics",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_preg_bp_sympt_sev"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-24B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Type 1, insulin or an SGLT2 inhibitor, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sign.ketotic_breath",
+    "sign.dehydration",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_t1_acetone",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+     "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-01"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "neutralProposal": null,
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": 17,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_t1_acetone_bohb_normal"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-25B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "A child with diabetes and acetone on the breath or dehydration: suspected ketoacidosis. Route now",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sign.ketotic_breath",
+    "sign.dehydration",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_paed_acetone",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state (Chapter 11)",
+     "section": "Biochemical criteria for the diagnosis of DKA",
+     "url": "https://www.ispad.org/asset/6DD62EAE-C8CB-4B4A-84E1EFC768505746/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-23"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "neutralProposal": null,
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": 9,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_paed_acetone_bohb_normal",
+     "acu_paed_acetone_r04"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-23D",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now, repeat in 2 hours, and refer if vomiting continues or ketones rise",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sx.vomiting",
+    "sx.abdominal_pain",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_insulin_sick_district",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "section": "Executive summary / key principles",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-49"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones_urine",
+     "tier": "now"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": "lab.ketones_blood",
+    "notWhen": [
+     "acu_insulin_sick_district_raised"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-34B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Diabetes, acutely unwell, glucose 18 or more: same-day review (the hyperosmolar state can develop without vomiting)",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_ill_high",
+   "params": {
+    "acu-ketone-test-glu": "REF-DM-ACU-KETONE-TEST-GLU"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+     "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+     "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-48"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "review",
+     "to": "clinician",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_ill_high_vomit"
+    ]
    }
   },
   {

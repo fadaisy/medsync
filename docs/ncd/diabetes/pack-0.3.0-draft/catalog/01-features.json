@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.3-draft",
+  "version": "0.3.4-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2634,7 +2634,7 @@
   },
   {
    "code": "hypertensive_symptoms",
-   "display": "With the raised pressure: headache, blurred vision, nausea or vomiting",
+   "display": "With the raised pressure: headache, nausea or vomiting",
    "kind": "symptom",
    "valueType": "boolean",
    "section": "cardiovascular",
@@ -2669,7 +2669,7 @@
   },
   {
    "code": "hypertensive_organ_damage",
-   "display": "With the raised pressure: confusion, seizures or new loss of vision; breathlessness with crackles; little or no urine; or tearing chest or back pain",
+   "display": "With the raised pressure: confusion, seizures, blurred or lost vision; breathlessness with crackles; little or no urine; or tearing chest or back pain",
    "kind": "sign",
    "valueType": "boolean",
    "section": "cardiovascular",

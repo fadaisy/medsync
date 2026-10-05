@@ -6,6 +6,9 @@ The prompt requires a fresh independent read of the pack, fixed and re-read unti
 |---|---|---|---|---|---|---|---|
 | R4 | 0.3.0-draft (the hand-over) | 31 | 4 | 16 | 3 | 0.3.1-draft | 100 |
 | R5 | 0.3.1-draft | 25 | 5 | 12 | 3 | 0.3.2-draft | 113 |
+| R6 | 0.3.2-draft (with a 4,608-patient interrupt grid) | 29 | 5 | 12 | 2 (3 had always been there) | 0.3.3-draft | 121 |
+
+**Why the fixes kept breaking things, and what changed.** In R4, R5 and R6 about a third of the criticals came from the previous round's patches: each fix changed one rule, and the rules disagreed on who 'has diabetes', on whether a meter HI counts as a glucose, and on which rule interrupts. After R6 the structure changed instead: one shared definition of diabetes for every acute rule; one interrupt per event, chosen by a declared order with the rest folded inside it; and the reviewer's 4,608-patient grid with a minimum-urgency table (D-DM-41) made a **failing build check**. At 0.3.3-draft the grid shows 0 patients below the floor, 0 double interrupts and 0 noisy ordinary visits, and a regression now fails the build instead of waiting for a reviewer.
 
 **What the rounds changed, in clinical terms**
 - Ketones: every band now has an owner. Normal blood ketones (below 0.6) or a negative strip clear a prompt; trace/1+ or 0.6–1.5 when unwell asks for a recheck and the diabetes team today; 1.6–2.9 is same day, and an interrupt with vomiting; 2+ or 3.0 and above interrupts in anyone with diabetes, whatever box was ticked (insulin, a sulfonylurea, an SGLT2 inhibitor or type 1 count as diabetes). On an SGLT2 inhibitor a urine strip never stands the ketoacidosis interrupt down.
