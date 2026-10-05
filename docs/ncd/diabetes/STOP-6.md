@@ -50,6 +50,8 @@ Without a `.env.local` this worktree needs `SKIP_ENV_VALIDATION=1` for 15 test f
 - Sources review signed (`sources-review.md`): C-peptide, EMHSLU 2023 levels, insulin storage, DKA in pregnancy.
 - The 2026 Uganda diabetes guideline (summarised) read in full and signed item by item (`ug2026-vs-pack.md`, `ug2026-signoff.json`): pack 0.5.0-draft. Narrower implementations are listed in the sign-off.
 
+- Reference sign-off page (private; share it with the second reviewer when named): https://claude.ai/artifact/272PEc4BTBHqojFGQPgiBb. Signatures live in its database (`signoffs/<REF>~<viewer>`, status signed / query / value); Claude reads them back and writes the signed status into the pack.
+
 ## For the owner
 
 1. **Apply** 0092 after 0083 and 0085 (gated, additive; re-running it adds nothing). Flags stay off.
