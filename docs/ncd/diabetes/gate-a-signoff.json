@@ -21,8 +21,8 @@
   },
   "D-DM-03": {
    "title": "Random glucose of 11 or 11.1 in HIV care",
-   "decision": "Screen on UCG's risk factors at every site; a universal 24–28-week OGTT only at sites that choose it.",
-   "source": "updated recommendation"
+   "decision": "11.1 mmol/L everywhere (WHO and ADA).",
+   "source": "pack recommendation"
   },
   "D-DM-04": {
    "title": "A glucose meter for diagnosis and for control",
@@ -66,8 +66,8 @@
   },
   "D-DM-12": {
    "title": "Testing in pregnancy",
-   "decision": "Yes, at 24 weeks or more, at sites that can run one (FIGO). Elsewhere it stays off and the meter referral rules apply.",
-   "source": "pack recommendation"
+   "decision": "Screen on UCG's risk factors at every site; a universal 24–28-week OGTT only at sites that choose it.",
+   "source": "updated recommendation"
   },
   "D-DM-13": {
    "title": "Exactly at the target",
@@ -76,18 +76,18 @@
   },
   "D-DM-14": {
    "title": "Eyes: how often, and who is referred",
-   "decision": "A lipid profile at diagnosis where the site can run one (UCG); the yearly prompt off where it cannot.",
-   "source": "updated recommendation"
+   "decision": "No retinopathy: every 2 years (WHO). Mild or moderate: 12 and 6 months unless control is confirmed at target. Refer by grade (ICO): urgent for severe, proliferative or centre-involving disease; routine for moderate. Grade by ICDR ('more than 20' haemorrhages).",
+   "source": "pack recommendation"
   },
   "D-DM-15": {
    "title": "Lipid testing at district sites",
-   "decision": "Off where the site has no lipid profile; on where it has. The statin prompt in type 2 diabetes at 40 or over does not depend on it.",
-   "source": "pack recommendation"
+   "decision": "A lipid profile at diagnosis where the site can run one (UCG); the yearly prompt off where it cannot.",
+   "source": "updated recommendation"
   },
   "D-DM-16": {
    "title": "'Kidney failure' as a hypoglycaemia risk",
-   "decision": "Treatment-review steps on as review prompts with no dose, following UCG's ladder (lifestyle, metformin, glimepiride, basal insulin).",
-   "source": "updated recommendation"
+   "decision": "Below 30 for 'high'; below 60 for 'raised'.",
+   "source": "pack recommendation"
   },
   "D-DM-17": {
    "title": "An ACR of exactly 30 mg/mmol",
@@ -106,18 +106,18 @@
   },
   "D-DM-20": {
    "title": "Treatment suggestions in version 1",
-   "decision": "Tests, screening, referral, education, targets and safety flags: on. Treatment review steps: on as review prompts with no dose, once you have read them against UCG 2023 section 8.1.3; dark until then.",
-   "source": "pack recommendation"
+   "decision": "Treatment-review steps on as review prompts with no dose, following UCG's ladder (lifestyle, metformin, glimepiride, basal insulin).",
+   "source": "updated recommendation"
   },
   "D-DM-21": {
    "title": "SGLT2 inhibitors and GLP-1 agonists for heart and kidney protection",
-   "decision": "Recognise glibenclamide and flag it in the pack's three situations; never propose it; name glimepiride (UCG) as the sulfonylurea when a step names one.",
-   "source": "updated recommendation"
+   "decision": "At referral sites only, as 'refer for consideration'. Off at district sites.",
+   "source": "pack recommendation"
   },
   "D-DM-22": {
    "title": "Glibenclamide, and which sulfonylurea at which level",
-   "decision": "Recognise it (patients still take it), flag it at 60 or over, with reduced kidney function and where lows are a concern, and never propose it. Name the sulfonylurea per level of care only after the EMHSLU 2023 endocrine pages are read.",
-   "source": "pack recommendation"
+   "decision": "Recognise glibenclamide and flag it in the pack's three situations; never propose it; name glimepiride (UCG) as the sulfonylurea when a step names one.",
+   "source": "updated recommendation"
   },
   "D-DM-23": {
    "title": "Blood pressure threshold in diabetes",
@@ -126,8 +126,8 @@
   },
   "D-DM-24": {
    "title": "A glucose of exactly 3.9 or 3.0",
-   "decision": "Show both: UCG 2023 as the national set, WHO 2013 alongside; refer on a meter as the pack recommends; P0-26 chooses the default.",
-   "source": "updated recommendation"
+   "decision": "ADA's levels, as the live catalog uses: below 3.9 is level 1, below 3.0 is level 2.",
+   "source": "pack recommendation"
   },
   "D-DM-25": {
    "title": "'Above 7.8' in hospital",
@@ -146,13 +146,13 @@
   },
   "D-DM-28": {
    "title": "A meter reading in pregnancy",
-   "decision": "Refer on it: any reading of 11.1 or more, or a fasting reading of 7.0 or more, today; a fasting reading of 5.1 to 6.9, for a laboratory glucose. Diagnose gestational diabetes on plasma glucose only. Default: WHO 2013 (P0-26).",
-   "source": "pack recommendation"
+   "decision": "Show both: UCG 2023 as the national set, WHO 2013 alongside; refer on a meter as the pack recommends; P0-26 chooses the default.",
+   "source": "updated recommendation"
   },
   "D-DM-29": {
    "title": "A raised glucose during acute illness or at TB diagnosis",
-   "decision": "16, by numeric age in the evaluation context, independent of the display band (P0-01).",
-   "source": "updated recommendation"
+   "decision": "Warn beside the value and let the criteria run; the clinician decides. Re-test after recovery (TB: after the first month).",
+   "source": "pack recommendation"
   },
   "D-DM-30": {
    "title": "Which pregnancy facts are a restricted class",
@@ -166,18 +166,18 @@
   },
   "D-DM-32": {
    "title": "Where 'adult' starts",
-   "decision": "16, and the platform's adolescent band ends there, so 16 to 19-year-olds get the adult rules.",
-   "source": "pack recommendation"
+   "decision": "16, by numeric age in the evaluation context, independent of the display band (P0-01).",
+   "source": "updated recommendation"
   },
   "D-DM-33": {
    "title": "Dolutegravir and glucose",
-   "decision": "Follow UCG: lifestyle first for 3 months unless sugars are very high; the 'very high' arm dark until a number is signed (P0-28).",
-   "source": "updated recommendation"
+   "decision": "Propose a glucose test; show UCG's words with their source; never propose an ART change; say 'discuss with the ART clinic'. Show the dolutegravir-metformin warning once, to be acknowledged, not at every visit.",
+   "source": "pack recommendation"
   },
   "D-DM-34": {
    "title": "When metformin starts",
-   "decision": "When a measure is above target and the person is on no medicine, alongside lifestyle advice (HEARTS-D Fig. 2, the WHO PEN protocol).",
-   "source": "pack recommendation"
+   "decision": "Follow UCG: lifestyle first for 3 months unless sugars are very high; the 'very high' arm dark until a number is signed (P0-28).",
+   "source": "updated recommendation"
   },
   "D-DM-35": {
    "title": "Type 1 as must-not-miss on the clerking desk",
@@ -372,5 +372,6 @@
   ],
   "ec8": "Merge-only for lists; scalar changes only through explicit _changes signed per field (P0-17)"
  },
- "designB": "Phase 4 skipped (owner's choice 2026-10-05); the manifest stays as the seam."
+ "designB": "Phase 4 skipped (owner's choice 2026-10-05); the manifest stays as the seam.",
+ "correction": "2026-10-05: seven updated recommendations had been filed under the wrong decision ids in this record (D-DM-03, 14, 16, 21, 24, 29, 33 carried those of D-DM-12, 15, 20, 22, 28, 32, 34). Every decision is now copied from gate-a.md, the document signed; no decision changed. The built content already followed gate-a.md."
 }
