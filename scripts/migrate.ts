@@ -13,6 +13,8 @@
  * tracked in `public._medsync_migrations`, wrapped in a transaction per file.
  *
  * Run via `npm run db:migrate`.
+ *   npm run db:migrate -- --dry-run      list what would run, apply nothing
+ *   npm run db:migrate -- 0092 0083      apply only the files whose names start with these
  */
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -30,7 +32,16 @@ if (!url) {
   process.exit(1);
 }
 
+const args = process.argv.slice(2);
+const DRY_RUN = args.includes("--dry-run");
+const ONLY = args.filter((a) => !a.startsWith("--"));
+
 const MIGRATIONS_DIR = "./supabase/migrations";
+const unknown = ONLY.filter((p) => !readdirSync(MIGRATIONS_DIR).some((f) => f.startsWith(p)));
+if (unknown.length) {
+  console.error(`No migration in ${MIGRATIONS_DIR} starts with: ${unknown.join(", ")}`);
+  process.exit(1);
+}
 const TRACK_TABLE = "_medsync_migrations";
 
 const client = postgres(url, { prepare: false, max: 1 });
@@ -48,7 +59,19 @@ async function main() {
 
   const files = readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith(".sql"))
+    .filter((f) => !ONLY.length || ONLY.some((p) => f.startsWith(p)))
     .sort();
+
+  if (DRY_RUN) {
+    const pending = files.filter((f) => !appliedNames.has(f));
+    console.log(
+      pending.length
+        ? `Would apply:\n${pending.map((f) => `  ${f}`).join("\n")}`
+        : "Nothing pending.",
+    );
+    await client.end();
+    return;
+  }
 
   let appliedCount = 0;
   for (const file of files) {
