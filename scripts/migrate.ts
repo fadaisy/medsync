@@ -155,7 +155,9 @@ async function main() {
     const todo = selectPending(plan, files, args.only);
     if (args.dryRun) {
       console.log(
-        todo.length ? `Would apply:\n${todo.map((f) => `  ${f}`).join("\n")}` : "Nothing pending.",
+        todo.length
+          ? `Would apply:\n${todo.map((f) => `  ${f}`).join("\n")}`
+          : nothingNewWords(plan, process.cwd(), git("branch", "--show-current")).join("\n"),
       );
       await client.end();
       return;
