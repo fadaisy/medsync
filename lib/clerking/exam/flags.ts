@@ -3,9 +3,10 @@ import type { ExamFlagRule } from "./catalogue";
 import type { ClassifierResult, ExamSignoff } from "./classifiers";
 import type { DerivedReader, ExamContext } from "./context";
 
+import { lcFirst } from "../flags";
 import { entryOf, readAttr } from "./answers";
 import { classifyAll, footFacts } from "./classifiers";
-import { evalCond } from "./context";
+import { evalCond, medicinesMatching } from "./context";
 import { acvpuOf, amts, gcsTotal, mrcNumber } from "./scores";
 
 /**
@@ -120,6 +121,12 @@ function tokens(
             if (cell[side] === "absent") out.push(`${SIDE_WORD[side]} ${lc(row)}`);
       return list(out);
     },
+    // ponytail: the first stopped medicine names the badge; a second one keeps its own caution badge.
+    medicine: () => {
+      const a = trueAtoms(rule.when, x, derived).find((c) => "medicine" in c);
+      const m = a && medicinesMatching(x, String(a.medicine), a.adherence_any)[0];
+      return m ? lcFirst(m.name) : String(a?.medicine ?? "");
+    },
     crt: () => String(x.exam.entries["ex.cardiovascular.capillary_refill"]?.attrs?.time ?? ""),
     peritonism_sign: () => cap(findingWords(x, rule, derived)),
     cauda_sign: () => cap(findingWords(x, rule, derived)),
@@ -156,7 +163,19 @@ function tokens(
       return vals.map((z) => zones.find((q) => q.id === z)?.label ?? z).join(", ");
     },
     stage: () => optionWords(x, { item: "ex.skin.pressure_injury", attribute: "stage" }).join(", "),
-    glucose: () => (v.glucose === null ? "" : String(v.glucose)),
+    glucose: () => (v.glucose === null ? (v.glucoseReads ?? "") : String(v.glucose)),
+    ketones: () => {
+      const k = x.exam.panels?.ketones;
+      if (k?.blood !== undefined) return `${k.blood} mmol/L`;
+      return k?.urine
+        ? ((x.cat.data.vital_signs.panels as { id: string; fields?: unknown[] }[])
+            .find((pn) => pn.id === "vs.ketones")
+            ?.fields?.flatMap(
+              (f) => (f as { options?: { id: string; label: string }[] }).options ?? [],
+            )
+            .find((o) => o.id === k.urine)?.label ?? k.urine)
+        : "";
+    },
     bp: () => (v.sbp === null ? "" : `${v.sbp}/${v.dbp ?? "?"}`),
   };
   return Object.fromEntries(Object.entries(t).map(([k, f]) => [k, f()]));
@@ -191,7 +210,9 @@ export function ruleTarget(
       where: `Examination: ${place.system.name}`,
     };
   const s = JSON.stringify(rule.when);
-  if (/"vital"|"panel"|hypoglycaemia|orthostatic/.test(s))
+  if (/dr_review|acuity_band/.test(s))
+    return { system: "eyes_ent_neck", part: "eyes", where: "Examination: Eyes, ENT and neck" };
+  if (/"vital"|"panel"|hypoglycaemia|orthostatic|ketone_band/.test(s))
     return { system: "vitals", where: "Vital signs" };
   if (/gcs|acvpu|consciousness|orientation/.test(s))
     return { system: "general", part: "consciousness", where: "Examination: General" };

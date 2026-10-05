@@ -1,0 +1,193 @@
+pack_code,pack_tag,live_code,status,option_map,notes
+dm_status,reuse,dm_status,option_mismatch,known→known;not_known→none,"live options known|evaluating|none (""No known diabetes""); pack not_known ≈ live none; live adds evaluating (""Being evaluated"") which pack rules never read. features.ts dm_status"
+polyuria,reuse,polyuria,same,,
+polydipsia,reuse,polydipsia,same,,
+polyphagia,reuse,polyphagia,same,,
+unexplained_weight_loss,reuse,unexplained_weight_loss,same,,
+fatigue,reuse,fatigue,same,,
+slow_healing_wound,reuse,slow_healing_wound,same,,
+vomiting,reuse,vomiting,same,,
+abdominal_pain,reuse,abdominal_pain,same,,
+capillary_glucose,reuse,capillary_glucose,same,,live kind=measurement (pack investigation); live has altUnit mg/dL factor 18.0182 (pack F25 conversion already exists for display)
+random_pg,reuse,random_pg,same,,
+hba1c,reuse,hba1c,same,,
+bohb,reuse,bohb,same,,
+urine_ketones,reuse,urine_ketones,same,,
+venous_ph,reuse,venous_ph,same,,
+bicarbonate,reuse,bicarbonate,same,,"capability differs: live requires lab.blood_gas, pack lab.electrolytes -> at the district profile (no blood_gas) live reads it unavailable"
+sodium,reuse,sodium,same,,
+urea,reuse,urea,same,,
+effective_osmolality,reuse,effective_osmolality,same,,live kind=measurement (pack investigation); live also has total_osmolality
+mental_status,reuse,mental_status,same,,"options identical (alert|drowsy|stupor|coma). No ""confused"" option; confusion lives in altered_mental_state (boolean) and disorientation (boolean) - pack note asks to add or map"
+deep_rapid_breathing,reuse,deep_rapid_breathing,same,,
+acetone_breath,reuse,acetone_breath,same,,
+dehydration,reuse,dehydration,same,,
+egfr,reuse,egfr,same,,
+urine_acr,reuse,urine_acr,same,,
+urine_protein_strip,reuse,urine_protein_strip,same,,
+kidney_abnormality_3_months,reuse,kidney_abnormality_3_months,same,,
+glucose_lowering_therapy,reuse,glucose_lowering_therapy,option_mismatch,metformin→metformin;glibenclamide→sulfonylurea+sulfonylurea_agent==glibenclamide;gliclazide→sulfonylurea+sulfonylurea_agent==gliclazide;glimepiride→sulfonylurea+sulfonylurea_agent==glimepiride;insulin→insulin;sglt2_inhibitor→sglt2;pioglitazone→tzd (class only; no agent field);dpp4_inhibitor→dpp4;glp1_ra→glp1;none→none,"multi_select in both. Live options none|metformin|sulfonylurea|dpp4|sglt2|tzd|agi|glp1|insulin|other|unknown; sulfonylurea agent is a separate single_select sulfonylurea_agent (glibenclamide|gliclazide|glimepiride|glipizide|other|unknown) shown when ==sulfonylurea. Live-only: agi, other, unknown, glipizide. Pack ""any sulfonylurea"" (3 == preds) collapses to ==sulfonylurea. optionDetail carries a dose string that predicates never read (evaluate.ts:151)"
+hiv_on_art,reuse,hiv_on_art,same,,
+art_regimen,reuse,art_regimen,same,,
+haemolysis,reuse,haemolysis,same,,
+malaria_current,reuse,malaria_current,same,,
+recent_transfusion,reuse,recent_transfusion,same,,
+bp_systolic,reuse,bp_systolic,same,,
+bp_diastolic,reuse,bp_diastolic,same,,
+pulse,reuse,pulse,unit_mismatch,,"unit string: pack ""/min"", live ""bpm"" (validate.ts unit-equality check fails on any predicate that declares a unit)"
+respiratory_rate,reuse,respiratory_rate,unit_mismatch,,"unit string: pack ""/min"", live ""breaths/min"""
+temperature,reuse,temperature,unit_mismatch,,"unit string: pack ""Cel"" (UCUM), live ""°C"""
+weight_kg,reuse,weight_kg,same,,
+height_cm,reuse,height_cm,same,,
+waist_cm,reuse,waist_cm,same,,
+bmi,reuse,bmi,unit_mismatch,,"unit string: pack ""kg/m2"", live ""kg/m²""; live computes it (computed.formula bmi)"
+pedal_pulses,reuse,pedal_pulses,same,,
+monofilament_10g,reuse,monofilament_10g,same,,
+retinopathy_stage,reuse,retinopathy_stage,same,,pack requires imaging.fundus; live has no requires (bedside ophthalmoscopy counts) - capability gating differs
+foot_deformity,reuse,foot_deformity,same,,
+active_foot_ulcer,reuse,active_foot_ulcer,same,,
+foot_infection_grade,reuse,foot_infection_grade,same,,
+acanthosis_nigricans,reuse,acanthosis_nigricans,same,,
+peripheral_oedema,reuse,peripheral_oedema,same,,
+age_years,reconcile,,absent,,No numeric age in the NCD context. EvalContext carries only ageBand (evaluate.ts:197); ageBandFromDob computes years then discards them (age.ts:35-44). lib/emr has ageYears (computeAgeYears) outside lib/ncd. Predicates on age_years cannot be evaluated today
+sex,reconcile,sex,option_mismatch,female→female;male→male,"live adds ""other"" displayed ""Other or not recorded"" - an option that means not recorded (conflicts with N14); pack preg_state treats only male as not-pregnant"
+pregnant,reconcile,pregnant,same,,
+gestation_weeks,reconcile,,absent,,live lnmp (date) derives gestation for DISPLAY only (schema.ts:404-413 derives; never in the eval context). No gestation value a predicate can read
+fasting_pg,reconcile,fpg,renamed,,same meaning/unit/capability (lab.glucose)
+ogtt_2h_pg,reconcile,ogtt_2h,renamed,,live requires lab.glucose; pack lab.ogtt (capability not declared in live)
+ogtt_1h_pg,reconcile,,absent,,
+capillary_glucose_context,reconcile,,absent,,EC-3; live capillary_glucose has no fasting/random qualifier
+repeat_abnormal_result,reconcile,second_sample_confirms,renamed,,"live ""Confirmed on a second sample (separate day, same method)"" - live adds SAME METHOD; pack allows any diabetes-range result on a later day"
+blurred_vision,reconcile,visual_symptoms,renamed,,"live ""Vision problems"" is broader; fluctuating blur is visual_pattern==fluctuating (child)"
+recurrent_infections,reconcile,recurrent_infections,same,,"live display ""Repeated thrush, boils or skin infections"" - no urinary infections (live bladder_features recurrent_uti is separate)"
+foot_numbness_burning,reconcile,peripheral_neuropathic_symptoms,renamed,,"live ""Burning, tingling, shooting pain or numbness in the feet"""
+sudden_vision_loss,reconcile,visual_pattern,option_mismatch,"true→visual_pattern==sudden_loss (or recent_deterioration for ""deterioration"")",live multi_select child of visual_symptoms; pack boolean covers loss OR deterioration
+chest_pain_or_stroke_symptoms,reconcile,chest_pain|focal_neurological_deficit,option_mismatch,true→chest_pain present OR focal_neurological_deficit present,pack boolean = OR of two live booleans; both already carry live dangerSigns
+orthostatic_dizziness,reconcile,postural_dizziness,renamed,,
+acute_illness_current,reconcile,intercurrent_illness,renamed,,"live ""Current infection or other illness""; pack adds vomiting/not eating in the display"
+first_degree_relative_diabetes,reconcile,family_history_diabetes,renamed,,"live ""Diabetes in the family"" is broader than first-degree; a predicate on it over-includes"
+hypertension_known,reconcile,,absent,,
+smoking_current,reconcile,,absent,,lifestyle_modification==smoking_cessation is not tobacco use
+age_at_diagnosis,reconcile,age_at_onset,renamed,,"years, number"
+years_since_diagnosis,reconcile,dm_duration,unit_mismatch,,live valueType duration (unit years); pack number. Live evaluator normalises durations only when the predicate carries a DurationUnit (evaluate.ts:288-295); build.py has no duration support
+ketosis_at_presentation,reconcile,ketosis_at_presentation,same,,
+c_peptide,reconcile,c_peptide,unit_mismatch,<200 pmol/L→low (approx; unsigned);>=600 pmol/L→high (approx),"live is single_select low|normal|high (""Fasting C-peptide""), pack is number pmol/L random C-peptide. Both pack C-peptide criteria are held out anyway (x.heldOut)"
+islet_autoantibodies,reconcile,islet_autoantibodies,same,,
+sickle_cell_disease,reconcile,haemoglobin_variant,option_mismatch,true→hbss,live has no HbSC option (hbc = HbC); pack includes HbSC
+sickle_cell_trait,reconcile,haemoglobin_variant,option_mismatch,true→hbs_trait|hbc|hbe|thalassaemia,live also has none|unknown; unknown drives the live warn caveat hba1c_variant_status_unknown
+iron_deficiency,reconcile,iron_deficiency,same,,
+on_dialysis,reconcile,on_dialysis,same,,
+previous_foot_ulcer,reconcile,prior_foot_ulcer,renamed,,
+previous_amputation,reconcile,prior_amputation,renamed,,
+end_stage_kidney_disease,reconcile,esrd,renamed,,"pack display adds ""or dialysis""; live dialysis is on_dialysis"
+vibration_128hz,reconcile,vibration_128hz,option_mismatch,present→none;absent_one→hallux;absent_both→hallux,"live options are by SITE (none=felt at both halluces|hallux|malleolus|tibial_tuberosity), pack by SIDE; live cannot say one vs both feet. Pack requires device.tuning_fork_128 (capability absent in live)"
+ipswich_sites_missed,reconcile,lops_ipswich,unit_mismatch,>=2 sites→present;<2→absent,live single_select present|absent; pack counts sites (number)
+foot_hot_swollen,reconcile,charcot_presentation,renamed,,"live ""Red, hot, swollen foot with no ulcer"" (symptom); exam counterpart foot_temperature_asymmetry"
+foot_gangrene,reconcile,gangrene_type,option_mismatch,true→dry|wet;false→none,live gangrene_type is a child of foot_infection_or_gangrene
+potassium,reconcile,,absent,,
+haematuria_strip,reconcile,,absent,,
+total_cholesterol,reconcile,,absent,,
+ldl_cholesterol,reconcile,,absent,,
+triglycerides,reconcile,,absent,,
+heart_failure_known,reconcile,,absent,,
+cough_over_2_weeks,reconcile,,absent,,
+injection_site_lumps,reconcile,lipodystrophy_type,option_mismatch,true→lipohypertrophy|both,"live lipodystrophy (boolean, shown when on insulin) + child lipodystrophy_type"
+alcohol_harmful,reconcile,,absent,,only as an option of neuropathy_other_causes / hypo_precipitant
+care_setting,new,,absent,,
+prior_gdm,new,,absent,,
+postpartum_weeks,new,,absent,,
+prior_intermediate_hyperglycaemia,new,,absent,,
+months_since_glucose_test,new,,absent,,needs formula registry (S-DM-05); live FORMULAS has only bmi (evaluate.ts:433)
+on_glucocorticoid,new,,absent,,"partial: drug_change_non_diabetes==steroid records a RECENT start (child of new_or_changed_drug), not long-term use"
+on_second_gen_antipsychotic,new,,absent,,"partial: drug_change_non_diabetes==antipsychotic (any generation, recent start only)"
+weeks_since_antipsychotic_start,new,,absent,,
+months_since_art_start_or_switch,new,,absent,,"partial: drug_change_non_diabetes==arv (recent, no duration)"
+tb_current,new,,absent,,partial: illness_type==tb (child of intercurrent_illness) or drug_change_non_diabetes==tb_treatment
+pancreatitis_history,new,,absent,,
+cvd_established,new,,absent,,
+pcos,new,pcos_features,renamed,,"live is a sign (""Irregular periods with hirsutism, acne..."") not a diagnosis"
+physically_inactive,new,,absent,,
+secondary_enuresis,new,bedwetting_new_onset,renamed,,
+g6pd_deficiency,new,,absent,,partial: haemolysis_cause==g6pd only when haemolysis is recorded
+b12_deficiency,new,,absent,,only as neuropathy_other_causes==b12
+on_dapsone,new,,absent,,
+on_iron_b12_or_epo,new,,absent,,partial: erythropoietin (EPO only)
+splenomegaly,new,,absent,,partial: haemolysis_clinical_signs==splenomegaly (child of haemolysis)
+uacr_transient_cause,new,,absent,,
+creatinine_unstable,new,,absent,,
+fundus_method,new,,absent,,
+insulin_stopped_without_relapse,new,insulin_withdrawn_later,renamed,,"live ""Later did not require insulin"""
+parent_with_diabetes,new,,absent,,family_history_diabetes is broader; family_diabetes_successive_generations is different
+childhood_undernutrition,new,,absent,,
+steatorrhoea,new,,absent,,
+recurrent_abdominal_pain,new,,absent,,
+pancreatic_calcification,new,,absent,,
+glucose_at_presentation,new,,absent,,
+months_off_glucose_lowering,new,,absent,,
+postprandial_pg,new,,absent,,needs EC-3 (capillary_glucose context) or a new feature
+glycaemic_target_tier,new,,absent,,
+months_since_hba1c,new,,absent,,
+months_since_any_control_measure,new,,absent,,
+therapy_changed_recently,new,,absent,,partial: new_or_changed_drug (any medicine) + drug_change_kind
+hypo_worst_12m,new,,absent,,"partial: hypoglycaemia_episode, hypoglycaemia_requiring_assistance (level 3, history), needed_third_party_help (acute section); no 12-month window, no ""measured below 3"""
+hypo_awareness_score,new,impaired_hypo_awareness,unit_mismatch,score>=4→true (Gold; unsigned),live boolean; pack Gold score 1-7
+frailty_or_limited_life_expectancy,new,frailty,renamed,,live ageBands [older_adult]; no limited-life-expectancy notion
+cognitive_impairment,new,cognitive_impairment,same,,"live kind=sign, ageBands [older_adult] (exam-age-specific.ts) so it is not rendered/recordable under 65; display ""affecting self-management"""
+food_insecurity,new,,absent,,
+uacr_abnormal_count,new,,absent,,
+egfr_fall_percent,new,,absent,,
+creatinine_rise_percent_4w,new,,absent,,
+nephrotic_or_active_sediment,new,,absent,,
+months_since_kidney_screen,new,,absent,,
+macular_oedema,new,diabetic_maculopathy+maculopathy_centre_involved,option_mismatch,none→diabetic_maculopathy=false;non_centre→maculopathy_centre_involved==noncentral;centre_involving→maculopathy_centre_involved==central,live has cannot_tell; pack requires imaging.fundus
+visual_acuity_worse_6_12,new,visual_acuity_right|visual_acuity_left,unit_mismatch,true→either denominator >12,"live numbers (Snellen denominator at 6 m), per eye; no pinhole flag"
+retina_view,new,fundus_view_obscured,option_mismatch,adequate→false;inadequate→true;not_attempted→(not recorded),live boolean
+months_since_eye_screen,new,last_retinal_exam,unit_mismatch,<12→within_1_year;12-24→1_to_2_years;>24→over_2_years,"live categorical, child of visual_symptoms (only asked when vision complaint present)"
+pinprick_feet,new,small_fibre_sensation,option_mismatch,normal→none;reduced→one_foot|both_feet,
+ankle_reflexes,new,ankle_reflexes,option_mismatch,present→none;reduced_or_absent→one_side|both_sides,live none=present on both sides; one_side; both_sides (absent after reinforcement)
+neuropathy_atypical,new,,absent,,"partial: non_length_dependent_sensory_loss, neuropathy_onset==acute, neuropathy_motor_involvement"
+postural_sbp_fall,new,,absent,,derivable: bp_systolic (latest) - bp_systolic_standing; live postural_hypotension boolean encodes >=20/>=10
+postural_dbp_fall,new,,absent,,derivable: bp_diastolic - bp_diastolic_standing
+autonomic_symptoms,new,autonomic_symptom_screen,renamed,,"live ""Dizziness on standing, gut, bladder or sexual problems"" - pack lists fainting/sweating"
+months_since_neuropathy_screen,new,,absent,,
+abi,new,abi,same,,
+months_since_foot_risk_assessment,new,,absent,,
+ulcer_area_reduction_4w,new,,absent,,live ulcer_area_cm2 is a single value
+bp_raised_two_occasions,new,,absent,,bp_systolic/bp_diastolic are series but the evaluator reads only the latest reading (evaluate.ts:203-207)
+bp_medicines_count,new,,absent,,
+on_statin,new,,absent,,
+ras_blocker,new,,absent,,
+who_cvd_risk_percent,new,,absent,,S-DM-03 chart lookup
+who_cvd_chart_used,new,,absent,,
+months_since_lipids,new,,absent,,
+overt_nephropathy,new,,absent,,
+on_rifampicin,new,,absent,,partial: drug_change_non_diabetes==tb_treatment
+surgery_or_fasting_planned,new,,absent,,
+could_conceive,new,,absent,,"no NCD feature; lib/emr/chart.ts:479-495 prompts ""Pregnancy status not recorded"" from REF-PREG-AGE (pending_cso) + female sex, outside lib/ncd"
+fasting_ramadan_planned,new,,absent,,
+glucose_goal_unmet_on_oral,new,,absent,,
+meals_irregular,new,,absent,,partial: hypo_precipitant==missed_meal
+months_since_dental,new,,absent,,
+non_diabetic_kidney_clue,new,,absent,,
+ogtt_normal,new,,absent,,derivable from ogtt_2h < 7.8
+dm_type_recorded,reconcile,,absent,,live type is COMPUTED by classify() (assess.ts:563); no clinician-recorded type feature
+glucose_meter_extreme,new,,absent,,EC-6
+pregnancy_possible,new,,absent,,see could_conceive; REF-PREG-AGE pending
+never_glucose_tested,new,,absent,,
+never_hba1c,new,,absent,,
+never_eye_screen,new,last_retinal_exam,option_mismatch,true→never,only asked under visual_symptoms
+never_kidney_screen,new,,absent,,
+never_foot_assessment,new,,absent,,
+never_neuropathy_screen,new,,absent,,
+never_lipids,new,,absent,,
+insulin_omitted,new,treatment_omission,renamed,,"live ""Missed or stopped diabetes treatment"" is broader (any diabetes treatment); also drug_change_from==insulin & drug_change_kind==stopped (live flag insulin_stopped)"
+hypoglycaemia_not_resolving,new,,absent,,
+on_antiplatelet,new,,absent,,
+haemorrhagic_or_unknown_stroke,new,,absent,,
+glucose_test_since_antipsychotic_start,new,,absent,,
+ras_or_sglt2_started_recently,new,,absent,,
+limb_ischaemia_signs,new,ischaemic_foot_signs|leg_pain_character,option_mismatch,"true→ischaemic_foot_signs in [cool_foot,elevation_pallor,dependent_rubor] OR leg_pain_character==at_rest",no single live feature
+anuria,new,reduced_urine_output,renamed,,"live ""Passing much less urine, or none"" is broader than anuria"
+hypertensive_symptoms,new,,absent,,
+glucose_tested_since_birth,new,,absent,,
+ogtt_done_this_pregnancy,new,,absent,,

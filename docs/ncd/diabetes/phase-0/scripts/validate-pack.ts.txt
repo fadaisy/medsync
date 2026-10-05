@@ -1,0 +1,81 @@
+// Q7: assemble the pack's catalog JSON into NcdCatalog shape (x keys stripped) and run the live validator.
+import { readFileSync, writeFileSync } from "node:fs";
+import type { NcdCatalog } from "@/lib/ncd/catalog/schema";
+import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
+import { validateCatalog, type ValidationIssue } from "@/lib/ncd/catalog/validate";
+
+const DIR = "/Users/airm1/Desktop/medsync-ncd/docs/ncd/diabetes/pack-0.3.0-draft/catalog/";
+const load = (f: string) => JSON.parse(readFileSync(DIR + f, "utf8"));
+const strip = (o: any): any =>
+  Array.isArray(o) ? o.map(strip) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).filter(([k]) => k !== "x").map(([k, v]) => [k, strip(v)])) : o;
+const [c00, c01, c10, c20, c30, c40, c50, c60] = ["00-capabilities-sections.json", "01-features.json", "10-suspect.json", "20-confirm.json", "30-classify.json", "40-stratify.json", "50-act.json", "60-acute-route.json"].map(load);
+
+const pack = strip({
+  capabilities: c00.capabilities, sections: c00.sections, features: c01.features,
+  diagnosis: c20.diagnosis, diagnosisPending: c20.diagnosisPending, classifications: c30.classifications,
+  complications: c40.complications, validityCaveats: c20.validityCaveats, riskModels: c40.riskModels,
+  therapyFlags: c50.therapyFlags, interpretation: [...c20.interpretation, ...c40.interpretation, ...c60.interpretation],
+  orderables: c50.orderables, management: [...c10.management, ...c50.management], conditions: c10.conditions,
+  rules: [...c10.rules, ...c20.rules, ...c30.rules, ...c40.rules, ...c60.rules],
+  amendments: [...c40.complicationAmendments, ...c60.complicationAmendments],
+});
+
+// Renames from feature-map.csv (status=renamed), applied only in variant C.
+const RENAMED: Record<string, string> = Object.fromEntries(
+  readFileSync("/Users/airm1/Desktop/medsync-ncd/docs/ncd/diabetes/phase-0/feature-map.csv", "utf8").trim().split("\n").slice(1)
+    .map((l) => l.split(",")).filter((r) => r[3] === "renamed").map((r) => [r[0], r[2]]),
+);
+const rename = (o: any): any =>
+  Array.isArray(o) ? o.map(rename) : o && typeof o === "object"
+    ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, (k === "feature" || k === "parent") && typeof v === "string" && RENAMED[v] ? RENAMED[v]
+        : ["confirmWith", "screenedBy", "discriminators", "requires", "fills", "from"].includes(k) && Array.isArray(v) ? v.map((x: any) => (typeof x === "string" && RENAMED[x]) || x) : rename(v)]))
+    : o;
+
+function standalone(): NcdCatalog {
+  return { id: "diabetes", display: "Diabetes (pack 0.3.0-draft)", version: "0.3.0-draft", capabilities: pack.capabilities, sections: pack.sections,
+    features: pack.features, diagnosis: pack.diagnosis, classifications: pack.classifications, complications: pack.complications,
+    validityCaveats: pack.validityCaveats, riskModels: pack.riskModels, therapyFlags: pack.therapyFlags, interpretation: pack.interpretation,
+    orderables: pack.orderables, management: pack.management, conditions: pack.conditions, rules: pack.rules } as NcdCatalog;
+}
+/** Live catalog + pack appended. Same-code features, capabilities and sections keep the LIVE definition (repo wins). */
+function merged(renamed: boolean): NcdCatalog {
+  const P = renamed ? rename(pack) : pack;
+  const L = DIABETES_CATALOG;
+  const byCode = <T extends { code?: string; id?: string }>(live: T[], add: T[], key: (t: T) => string) => [...live, ...add.filter((a) => !live.some((l) => key(l) === key(a)))];
+  const feats = byCode(L.features, P.features.filter((f: any) => !(renamed && RENAMED[f.code])), (f: any) => f.code);
+  const comps = structuredClone(L.complications);
+  for (const a of P.amendments) if (a.kind === "establishedBy.add") comps.find((c) => c.code === a.target)?.establishedBy.push(a.change.criterion);
+  return { ...L, version: "0.3.0-draft+0.1.0",
+    capabilities: byCode(L.capabilities, P.capabilities, (c: any) => c.code), sections: byCode(L.sections, P.sections, (s: any) => s.id), features: feats,
+    diagnosis: [...L.diagnosis, ...P.diagnosis], classifications: [...(L.classifications ?? []), ...P.classifications],
+    complications: [...comps, ...P.complications], validityCaveats: [...(L.validityCaveats ?? []), ...P.validityCaveats], riskModels: P.riskModels,
+    therapyFlags: [...(L.therapyFlags ?? []), ...P.therapyFlags], interpretation: [...(L.interpretation ?? []), ...P.interpretation],
+    orderables: [...(L.orderables ?? []), ...P.orderables], management: P.management, conditions: [...(L.conditions ?? []), ...P.conditions],
+    rules: [...(L.rules ?? []), ...P.rules] } as NcdCatalog;
+}
+const norm = (m: string) => m.replace(/"[^"]*"/g, '"…"').replace(/\b\d+(\.\d+)?\b/g, "N").replace(/\([^)]*\)$/, "(…)");
+function report(name: string, cat: NcdCatalog) {
+  const issues = validateCatalog(cat);
+  const errs = issues.filter((i) => i.severity === "error");
+  const groups = new Map<string, ValidationIssue[]>();
+  for (const e of errs) groups.set(norm(e.message), [...(groups.get(norm(e.message)) ?? []), e]);
+  const warns = new Map<string, number>();
+  for (const w of issues.filter((i) => i.severity === "warning")) warns.set(norm(w.message), (warns.get(norm(w.message)) ?? 0) + 1);
+  return { name, errors: errs.length, warnings: issues.length - errs.length,
+    groups: [...groups.entries()].sort((a, b) => b[1].length - a[1].length).map(([msg, es]) => ({ msg, count: es.length, examples: es.slice(0, 6).map((e) => `${e.path}: ${e.message}`) })),
+    warningGroups: Object.fromEntries(warns), all: errs.map((e) => `${e.path}: ${e.message}`) };
+}
+const pendingSets = strip(c20.diagnosisPending);
+const out = [
+  report("live DIABETES_CATALOG v0.1.0 (baseline)", DIABETES_CATALOG),
+  report("A. pack standalone", standalone()),
+  report("A2. pack standalone + 7 pending criteria sets", { ...standalone(), diagnosis: [...pack.diagnosis, ...pendingSets] } as NcdCatalog),
+  report("B. live + pack merged (pack codes as written)", merged(false)),
+  report("C. live + pack merged, renamed features mapped to live codes", merged(true)),
+];
+writeFileSync("/private/tmp/claude-501/ncd-p0/validate-out.json", JSON.stringify(out, null, 1));
+for (const r of out) {
+  console.log(`\n### ${r.name}: ${r.errors} errors, ${r.warnings} warnings`);
+  for (const g of r.groups) console.log(`  [${g.count}] ${g.msg}\n      e.g. ${g.examples.slice(0, 3).join("\n           ")}`);
+  console.log("  warnings:", JSON.stringify(r.warningGroups));
+}

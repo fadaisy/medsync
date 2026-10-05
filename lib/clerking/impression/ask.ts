@@ -146,6 +146,16 @@ export function answered(t: AskTarget, x: ExamContext): boolean {
     }
     case "classifier":
       return (x.results?.get(t.id) as { status?: string } | undefined)?.status === "result";
+    case "panel": {
+      const k = x.exam.panels?.ketones;
+      return t.id === "vs.ketones" ? k?.blood !== undefined || !!k?.urine : true;
+    }
+    case "past_detail": {
+      // Moot unless the condition is a yes; answered once the property is.
+      const [cond, prop] = t.id.split(".");
+      const e = h.past.conditions[cond!];
+      return e?.answer !== "yes" || e.details?.[prop!] !== undefined;
+    }
   }
 }
 
@@ -162,7 +172,9 @@ const refOfTarget = (t: AskTarget): string | null =>
             ? `soc:${t.id}`
             : t.kind === "exam_item"
               ? `ex:${t.id}`
-              : null;
+              : t.kind === "past_detail"
+                ? `pmh:${t.id.replace(".", "#")}`
+                : null;
 
 function describe(
   t: AskTarget,
@@ -217,6 +229,23 @@ function describe(
     case "classifier": {
       const c = (x.cat.data.classifiers as Record<string, { label?: string }>)[t.id];
       return { label: c?.label ?? t.id, step: "07", mode: "navigate" };
+    }
+    case "panel": {
+      const pn = (x.cat.data.vital_signs.panels as { id: string; label?: string }[]).find(
+        (p) => p.id === t.id,
+      );
+      return { label: pn?.label ?? t.id, step: "07", mode: "navigate" };
+    }
+    case "past_detail": {
+      const [cond, prop] = t.id.split(".");
+      const d = (
+        hcat.data.past_history as {
+          condition_details?: Record<string, { properties: { id: string; label: string }[] }>;
+        }
+      ).condition_details?.[cond!];
+      const c = hcat.data.past_history.conditions.find((p) => p.id === cond);
+      const p = d?.properties.find((q) => q.id === prop);
+      return c && p ? { label: `${c.label}: ${lc(p.label)}`, step: "04", mode: "navigate" } : null;
     }
   }
 }

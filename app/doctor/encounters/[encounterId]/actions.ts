@@ -12,8 +12,8 @@ import { isOpen } from "@/lib/emr/encounter";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { ncdClerkshipLive } from "@/lib/encounter/feature";
 import { resolveEncounterAccess } from "@/lib/encounter/scope";
-import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
 import { saveNcdDraft } from "@/lib/ncd/draft";
+import { ncdCatalog } from "@/lib/ncd/pack/capture";
 
 export type SaveDraftResult = { ok: true; at: number } | { ok: false; error: string };
 
@@ -72,7 +72,7 @@ export async function saveNcdDraftAction(
       });
   if (!access.allowed) return { ok: false, error: "That encounter is not yours to write to." };
 
-  const saved = await saveNcdDraft(encounterId, scope.userId, DIABETES_CATALOG, values);
+  const saved = await saveNcdDraft(encounterId, scope.userId, ncdCatalog(), values);
   return saved
     ? { ok: true, at: Date.now() }
     : { ok: false, error: "Draft autosave is not switched on for this deployment." };

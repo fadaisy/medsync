@@ -94,6 +94,13 @@ export const PanelsSchema = z.object({
     })
     .optional(),
   westHaven: z.enum(["I", "II", "III", "IV"]).optional(),
+  /** The ketone panel (EC-7): either field may be recorded; never required. */
+  ketones: z
+    .object({
+      blood: z.number().min(0).max(12).optional(),
+      urine: z.enum(["neg", "trace", "1plus", "2plus", "3plus"]).optional(),
+    })
+    .optional(),
 });
 export type Panels = z.infer<typeof PanelsSchema>;
 
@@ -113,7 +120,10 @@ export const VitalsDraftSchema = z.object({
   site: z.enum(["axillary", "oral", "tympanic", "rectal", "temporal"]).optional(),
   glucose: text(8).optional(),
   glucoseUnit: z.enum(["mmol/L", "mg/dL"]).optional(),
-  glucoseContext: z.enum(["random", "fasting", "two_hours_after_food"]).optional(),
+  /** "HI" or "LO" in `glucose` is a meter reading outside its range (EC-6). */
+  glucoseContext: z
+    .enum(["random", "fasting", "two_hours_after_food", "two_hours_after_glucose"])
+    .optional(),
   weight: text(8).optional(),
   weightMethod: z.enum(["measured", "estimated", "stated"]).optional(),
   height: text(8).optional(),

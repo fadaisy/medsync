@@ -1,0 +1,15 @@
+from h import *
+M={"sex":"male"}; F={"sex":"female"}
+run({"age_years":45,**M,"polyuria":True,"capillary_glucose":15.0},site="district",est=False,tag="district symptomatic meter 15")
+run({"age_years":51,**M,"fasting_pg":7.3,"hba1c":7.1,"hba1c_point_of_care":True},est=False,tag="DMV-172 POC")
+run({"age_years":51,**M,"fasting_pg":7.4,"hba1c":6.9},est=False,tag="fpg 7.4 + lab hba1c, POC unanswered")
+run({"age_years":40,**M,"weakness":True,"fasting_pg":7.0},est=False,tag="weakness + fasting 7.0")
+run({"age_years":40,**M,"weakness":True,"random_pg":11.1},est=False,tag="weakness + random 11.1")
+run({"age_years":28,**F,"pregnant":True,"gestation_weeks":28,"fasting_pg":5.8},est=False,tag="pregnant 28w fasting 5.8 (GDM)")
+run({"age_years":28,**F,"pregnant":True,"gestation_weeks":14,"hba1c":5.9},est=False,tag="pregnant 14w hba1c 5.9")
+run({"age_years":28,**F,"fasting_pg":5.8},est=False,tag="woman fasting 5.8 preg unknown")
+run({"age_years":15,**F,"pregnant":True,"gestation_weeks":14,"dm_status":"known","dm_type_recorded":"type_1","glucose_lowering_therapy":["insulin"],"on_antiplatelet":False},band="adolescent",tag="15y pregnant T1 14w")
+run({"age_years":30,**F,"pregnant":True,"gestation_weeks":34,"dm_status":"known","dm_type_recorded":"type_2","glucose_lowering_therapy":["insulin"],"on_antiplatelet":False},tag="pregnant T2 34w")
+run({"age_years":30,**F,"pregnant":True,"gestation_weeks":16,"bmi":37},est=False,tag="DMV-148 16w BMI37 nothing tested")
+run({"age_years":30,**F,"pregnant":True,"bmi":37},est=False,tag="pregnant, gestation unrecorded BMI37")
+run({"age_years":30,**F,"pregnant":True},est=False,tag="pregnant, gestation unrecorded")

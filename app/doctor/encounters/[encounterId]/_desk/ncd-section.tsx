@@ -1,8 +1,9 @@
 "use client";
 
 import type { PulledVitals } from "../_components/ncd-capture";
-import type { AgeBand } from "@/lib/ncd/catalog/schema";
+import type { AgeBand, NcdCatalog } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
+import type { DiabetesPack } from "@/lib/ncd/pack/types";
 
 import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { NcdClerkship } from "../_components/ncd-clerkship";
@@ -11,6 +12,14 @@ export interface NcdSeed {
   initialValues: CaptureMap;
   ageBand?: AgeBand;
   pulled?: PulledVitals;
+  /** NCD_DM_PACK_LIVE: the pack's form (the v0.1.0 form plus its own questions) and its lean data. */
+  catalog?: NcdCatalog;
+  pack?: {
+    data: DiabetesPack;
+    fields: string[];
+    ageYears?: number | null;
+    careSetting?: "outpatient" | "emergency" | "inpatient" | null;
+  };
 }
 
 /**
@@ -29,7 +38,8 @@ export default function NcdSection({
 }) {
   return (
     <NcdClerkship
-      catalog={DIABETES_CATALOG}
+      catalog={seed.catalog ?? DIABETES_CATALOG}
+      pack={seed.pack}
       site={REFERRAL_SITE}
       siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
       initialValues={seed.initialValues}

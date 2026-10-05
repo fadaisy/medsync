@@ -1,0 +1,386 @@
+##### PREGNANCY / POSTPARTUM
+
+=== P1 answered 'not pregnant', postpartum blank, 170/115 [refe, est=False, adult]
+  INTERRUPT: None folded: {}
+
+=== P2 not pregnant, pp blank, 150/100, organ damage (seizure) [refe, est=False, adult]
+  INTERRUPT: None folded: {}
+
+=== P3 not pregnant, pp blank, 150/100 drowsy [refe, est=False, adult]
+  INTERRUPT: None folded: {}
+
+=== P3b 2w pp 150/100 drowsy [refe, est=False, adult]
+  rule same_day  DM-ACU-ROUTE-27: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today
+  rule immediate DM-ACU-ROUTE-28C: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until
+  INTERRUPT: DM-ACU-ROUTE-28C folded: {}
+
+=== P4 34w 150/100 headache+blurred vision, protein neg [refe, est=False, adult]
+  rule same_day  DM-ACU-ROUTE-27B: Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review t
+  INTERRUPT: None folded: {}
+  dark: {'DM-SUS-PREG-01': 'D-DM-12'}
+  caveats: ['hba1c_pregnancy']
+
+=== P4b same, no strip [refe, est=False, adult]
+  rule same_day  DM-ACU-ROUTE-27: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today
+  INTERRUPT: None folded: {}
+  dark: {'DM-SUS-PREG-01': 'D-DM-12'}
+  caveats: ['hba1c_pregnancy']
+
+=== P5 34w organ damage protein neg (27B beside 28B?) [refe, est=False, adult]
+  rule immediate DM-ACU-ROUTE-28B: Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the
+  rule same_day  DM-ACU-ROUTE-27B: Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review t
+  INTERRUPT: DM-ACU-ROUTE-28B folded: {}
+  dark: {'DM-SUS-PREG-01': 'D-DM-12'}
+  caveats: ['hba1c_pregnancy']
+
+=== P6 34w organ damage, BP not recorded [refe, est=False, adult]
+  rule immediate DM-ACU-ROUTE-28B: Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the
+  INTERRUPT: DM-ACU-ROUTE-28B folded: {}
+  dark: {'DM-SUS-PREG-01': 'D-DM-12'}
+  caveats: ['hba1c_pregnancy']
+
+=== P7 34w drowsy, BP not recorded [refe, est=False, adult]
+  INTERRUPT: None folded: {}
+  dark: {'DM-SUS-PREG-01': 'D-DM-12'}
+  caveats: ['hba1c_pregnancy']
+
+=== P8 34w coma 150/100 district [dist, est=False, adult]
+  rule same_day  DM-ACU-ROUTE-27: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today
+  rule immediate DM-ACU-ROUTE-28C: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until
+  INTERRUPT: DM-ACU-ROUTE-28C folded: {}
+  dark: {'DM-SUS-PREG-01': 'D-DM-12'}
+  caveats: ['hba1c_pregnancy']
+
+=== P9 GDM recorded, status blank, vomiting, glu 9, bohb 3.5 [refe, est=True, adult]
+  INTERRUPT: None folded: {}
+  caveats: ['hba1c_pregnancy']
+
+=== P9b GDM recorded, district, vomiting glu9 urine 3+ [dist, est=True, adult]
+  INTERRUPT: None folded: {}
+  caveats: ['hba1c_pregnancy']
+
+=== P10 GDM known, vomiting glu9 bohb 1.0 [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-21B: Blood ketones 0.6 to below 1.6 mmol/L in diabetes, when unwell or with glucose 18 or more: recheck within 2 hours and co
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  caveats: ['hba1c_pregnancy']
+
+=== P11 T1 pregnant vomiting glu9 bohb1.0 [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-21B: Blood ketones 0.6 to below 1.6 mmol/L in diabetes, when unwell or with glucose 18 or more: recheck within 2 hours and co
+  step same_day  DM-ACT-SCREEN-PREG-01: Pregnant with pre-existing diabetes: retinal and kidney assessment now, and specialised antenatal care
+  (+5 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03', 'DM-ACT-EDU-04', 'DM-ACT-EDU-05'])
+  INTERRUPT: None folded: {}
+  caveats: ['hba1c_pregnancy']
+
+=== P11b T1 pregnant NOT vomiting? (vomiting) bohb 2.0 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-30: Blood ketones 1.6 to below 3.0 mmol/L with vomiting, in diabetes: ketoacidosis is developing and fluids cannot be kept d
+  step same_day  DM-ACT-SCREEN-PREG-01: Pregnant with pre-existing diabetes: retinal and kidney assessment now, and specialised antenatal care
+  (+5 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03', 'DM-ACT-EDU-04', 'DM-ACT-EDU-05'])
+  INTERRUPT: DM-ACU-ROUTE-30 folded: {}
+  caveats: ['hba1c_pregnancy']
+
+=== P11c T1 pregnant abdo pain glu9 bohb 2.0 [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-22: Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabete
+  step same_day  DM-ACT-SCREEN-PREG-01: Pregnant with pre-existing diabetes: retinal and kidney assessment now, and specialised antenatal care
+  (+5 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03', 'DM-ACT-EDU-04', 'DM-ACT-EDU-05'])
+  INTERRUPT: None folded: {}
+  caveats: ['hba1c_pregnancy']
+
+=== P12 GDM recorded, list blank, 3.2 [refe, est=True, adult]
+  INTERRUPT: None folded: {}
+  caveats: ['hba1c_pregnancy']
+##### OLDER WOMEN, PREGNANCY UNANSWERED
+
+=== O1 48F T2 drowsy meter HI 150/92 preg blank [refe, est=True, adult]
+  rule folded    DM-ACU-ROUTE-14: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  rule same_day  DM-ACU-ROUTE-27: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today  gaps=['pregnant']
+  rule immediate DM-ACU-ROUTE-28C: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until  gaps=['pregnant']
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-28C folded: {'DM-ACU-ROUTE-14': 'DM-ACU-ROUTE-28C'}
+  withheld: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  gaps: {'consensus_2021_remission': ['pregnant'], 'DM-ACU-ROUTE-27': ['pregnant'], 'DM-ACU-ROUTE-28C': ['pregnant']}
+
+=== O2 48F T2 stroke signs drowsy 200/115 glu 9 [refe, est=True, adult]
+  rule folded    DM-ACU-ROUTE-17: Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now
+  rule folded    DM-ACU-ROUTE-24: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose
+  rule immediate DM-ACU-ROUTE-28: Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to  gaps=['pregnant']
+  rule folded    DM-ACU-ROUTE-28C: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until  gaps=['pregnant']
+  step same_day  DM-ACT-REFER-BP-01: Systolic above 200 or diastolic above 110 mmHg in diabetes: same-day referral
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-28 folded: {'DM-ACU-ROUTE-28C': 'DM-ACU-ROUTE-28', 'DM-ACU-ROUTE-17': 'DM-ACU-ROUTE-28', 'DM-ACU-ROUTE-24': 'DM-ACU-ROUTE-28'}
+  withheld: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  gaps: {'consensus_2021_remission': ['pregnant'], 'DM-ACU-ROUTE-27': ['pregnant'], 'DM-ACU-ROUTE-28': ['pregnant'], 'DM-ACU-ROUTE-28C': ['pregnant']}
+
+=== O3 72F T2 drowsy glu 40 150/90 (pregnancy_possible absent) [refe, est=True, older_adult]
+  rule folded    DM-ACU-ROUTE-14: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  rule same_day  DM-ACU-ROUTE-27: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today  gaps=['pregnant']
+  rule immediate DM-ACU-ROUTE-28C: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until  gaps=['pregnant']
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-28C folded: {'DM-ACU-ROUTE-14': 'DM-ACU-ROUTE-28C'}
+  withheld: ['tgt_hba1c_general', 'tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  gaps: {'consensus_2021_remission': ['pregnant'], 'DM-ACU-ROUTE-27': ['pregnant'], 'DM-ACU-ROUTE-28C': ['pregnant']}
+
+=== O3b same with pregnancy_possible False [refe, est=True, older_adult]
+  rule immediate DM-ACU-ROUTE-14: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-14 folded: {}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== O4 45F T2 165/100 asymptomatic preg blank [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-28: Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to  gaps=['pregnant']
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-28 folded: {}
+  withheld: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  gaps: {'consensus_2021_remission': ['pregnant'], 'DM-ACU-ROUTE-27': ['pregnant'], 'DM-ACU-ROUTE-28': ['pregnant']}
+
+=== O5 45F T2 145/92 routine visit preg blank [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-27: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today  gaps=['pregnant']
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  withheld: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  gaps: {'consensus_2021_remission': ['pregnant'], 'DM-ACU-ROUTE-27': ['pregnant']}
+
+=== O6 45F DKA + 165/112 preg blank [refe, est=True, adult]
+  rule folded    DM-ACU-ROUTE-02: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  rule immediate DM-ACU-ROUTE-28: Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to  gaps=['pregnant']
+  step same_day  DM-ACT-REFER-BP-01: Systolic above 200 or diastolic above 110 mmHg in diabetes: same-day referral
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-28 folded: {'DM-ACU-ROUTE-02': 'DM-ACU-ROUTE-28'}
+  withheld: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  gaps: {'consensus_2021_remission': ['pregnant'], 'DM-ACU-ROUTE-27': ['pregnant'], 'DM-ACU-ROUTE-28': ['pregnant']}
+##### HYPO / LAB GLUCOSE / LO
+
+=== H1 SU, lab fasting 3.4 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-07: Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. On insulin or a sulfonylurea, or if the medicines are not known, it
+  thera flag      glibenclamide_age_60: Glibenclamide at 60 or over
+  (+3 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03'])
+  INTERRUPT: DM-ACU-ROUTE-07 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== H2 SU lab random 2.6 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-06: Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now
+  thera flag      glibenclamide_age_60: Glibenclamide at 60 or over
+  (+3 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03'])
+  INTERRUPT: DM-ACU-ROUTE-06 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== H3 no info meter LO [refe, est=False, adult]
+  rule immediate DM-ACU-ROUTE-06: Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now
+  INTERRUPT: DM-ACU-ROUTE-06 folded: {}
+
+=== H4 80 SU drowsy glu 4.2 [refe, est=True, older_adult]
+  rule immediate DM-ACU-ROUTE-24: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose
+  thera flag      glibenclamide_age_60: Glibenclamide at 60 or over
+  (+3 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03'])
+  INTERRUPT: DM-ACU-ROUTE-24 folded: {}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== H5 80 SU glu 4.2 alert [refe, est=True, older_adult]
+  thera flag      glibenclamide_age_60: Glibenclamide at 60 or over
+  (+3 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03'])
+  INTERRUPT: None folded: {}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== H6 SU hypo not resolving, no glucose [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-06: Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now
+  thera flag      glibenclamide_age_60: Glibenclamide at 60 or over
+  (+3 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03'])
+  INTERRUPT: DM-ACU-ROUTE-06 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== H7 metformin 3.5 vomiting unwell [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-26: Glucose below 3.9 mmol/L in diabetes, not on insulin or a sulfonylurea: recheck today and look for another cause
+  thera flag      metformin_during_acute_illness: Metformin during acute illness
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  caveats: ['capillary_glucose_acute_illness']
+
+=== H8 diet only 3.5 [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-26: Glucose below 3.9 mmol/L in diabetes, not on insulin or a sulfonylurea: recheck today and look for another cause
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+##### HYPERGLYCAEMIA LAB / DEHYDRATION / ACETONE / OLDER
+
+=== G1 75 T2 lab random 35, well [refe, est=True, older_adult]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule immediate DM-ACU-ROUTE-14: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-14 folded: {}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G2 75 T2 lab random 25 dehydrated [refe, est=True, older_adult]
+  rule immediate DM-ACU-ROUTE-11: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosm
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-11 folded: {}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G2b same capillary district [dist, est=True, older_adult]
+  rule immediate DM-ACU-ROUTE-11: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosm
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-11 folded: {}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G3 75 T2 glu 25 ketones neg well [refe, est=True, older_adult]
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  dark: {'DM-ACT-REFER-GLU-02': 'D-DM-38'}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G4 75 T2 glu 30 ketones neg acute illness (pneumonia) [refe, est=True, older_adult]
+  thera flag      metformin_during_acute_illness: Metformin during acute illness
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  dark: {'DM-ACT-REFER-GLU-02': 'D-DM-38'}
+  targets: ['tgt_hba1c_older_healthy', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  caveats: ['capillary_glucose_acute_illness']
+
+=== G4b 75 no DM info glu 30 acute illness [refe, est=False, older_adult]
+  rule routine   DM-SUS-INCID-01: Glucose 11.1 mmol/L or more on a random sample or a meter: diagnostic with symptoms; without them, repeat on another day
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  INTERRUPT: None folded: {}
+  caveats: ['capillary_glucose_acute_illness']
+
+=== G5 T2 metformin dehydrated glu 7 bohb 0.2 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-24: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-24 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G5b same district urine neg [dist, est=True, adult]
+  rule immediate DM-ACU-ROUTE-24: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-24 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G6 T2 acetone glu 7 bohb 0.2 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-24: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-24 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G7 no info acetone glu 14 [refe, est=False, adult]
+  rule routine   DM-SUS-INCID-01: Glucose 11.1 mmol/L or more on a random sample or a meter: diagnostic with symptoms; without them, repeat on another day
+  rule immediate DM-ACU-ROUTE-11: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosm
+  INTERRUPT: DM-ACU-ROUTE-11 folded: {}
+
+=== G8 no info abdo pain glu 14 urine 3+ district [dist, est=False, adult]
+  rule routine   DM-SUS-INCID-01: Glucose 11.1 mmol/L or more on a random sample or a meter: diagnostic with symptoms; without them, repeat on another day
+  rule same_day  DM-CLS-T1-01: Ketones 2+ with a raised glucose: features of insulin deficiency. Do not assume type 2; consider type 1 and review the t
+  rule immediate DM-ACU-ROUTE-02: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  INTERRUPT: DM-ACU-ROUTE-02 folded: {}
+
+=== G9 no info vomiting+drowsy glu 14 [refe, est=False, adult]
+  rule routine   DM-SUS-INCID-01: Glucose 11.1 mmol/L or more on a random sample or a meter: diagnostic with symptoms; without them, repeat on another day
+  rule immediate DM-ACU-ROUTE-11: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosm
+  INTERRUPT: DM-ACU-ROUTE-11 folded: {}
+
+=== G10 no info vomiting+drowsy no glucose [refe, est=False, adult]
+  INTERRUPT: None folded: {}
+
+=== G11 T2 vomiting+dehydrated glu 22 urine 1+ [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-11: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosm
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-11 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+  caveats: ['urine_ketones_low_despite_picture']
+
+=== G12 T2 abdo pain glu 22 urine neg [refe, est=True, adult]
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  dark: {'DM-ACT-REFER-GLU-02': 'D-DM-38'}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== G12b T2 abdo pain glu 22 no ketones [refe, est=True, adult]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule same_day  DM-ACU-ROUTE-19: Raised glucose with vomiting or abdominal pain: test ketones today. A second sign or ketones of 2+ makes it an emergency
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: None folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+##### POTASSIUM / CHEST PAIN
+
+=== K1 DKA + K 6.8 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-02: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  rule folded    DM-ACU-ROUTE-05: Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring
+  (+5 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03', 'DM-ACT-EDU-04', 'DM-ACT-EDU-05'])
+  INTERRUPT: DM-ACU-ROUTE-02 folded: {'DM-ACU-ROUTE-05': 'DM-ACU-ROUTE-02'}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== K2 T1 drowsy no glucose, K 6.8 [refe, est=True, adult]
+  rule folded    DM-ACU-ROUTE-05: Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring
+  rule immediate DM-ACU-ROUTE-20: Drowsy or unresponsive with diabetes, or on insulin or a sulfonylurea, and no glucose on record: capillary glucose now
+  rule folded    DM-ACU-ROUTE-24: Diabetes with deep breathing, acetone on the breath, dehydration or drowsiness: route now, whatever the glucose. Glucose
+  (+5 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03', 'DM-ACT-EDU-04', 'DM-ACT-EDU-05'])
+  INTERRUPT: DM-ACU-ROUTE-20 folded: {'DM-ACU-ROUTE-24': 'DM-ACU-ROUTE-20', 'DM-ACU-ROUTE-05': 'DM-ACU-ROUTE-20'}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== K3 DKA + K 2.9 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-02: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  (+5 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03', 'DM-ACT-EDU-04', 'DM-ACT-EDU-05'])
+  INTERRUPT: DM-ACU-ROUTE-02 folded: {}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== CP1 SU, stroke signs, glu 3.5 [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-07: Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. On insulin or a sulfonylurea, or if the medicines are not known, it
+  rule folded    DM-ACU-ROUTE-17: Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now
+  (+3 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02', 'DM-ACT-EDU-03'])
+  INTERRUPT: DM-ACU-ROUTE-07 folded: {'DM-ACU-ROUTE-17': 'DM-ACU-ROUTE-07'}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+
+=== CP2 chest pain + DKA [refe, est=True, adult]
+  rule immediate DM-ACU-ROUTE-02: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  rule folded    DM-ACU-ROUTE-17: Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now
+  (+2 routine: ['DM-ACT-EDU-01', 'DM-ACT-EDU-02'])
+  INTERRUPT: DM-ACU-ROUTE-02 folded: {'DM-ACU-ROUTE-17': 'DM-ACU-ROUTE-02'}
+  targets: ['tgt_hba1c_general', 'tgt_fpg_surrogate', 'tgt_ppg_surrogate', 'tgt_bp']
+##### CHILDREN
+
+=== C1 child T1 abdo pain glu 6 district [dist, est=True, child]
+  rule same_day  DM-ACU-ROUTE-23: Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early 
+  INTERRUPT: None folded: {}
+
+=== C2 child T1 vomiting glu 25 urine neg district [dist, est=True, child]
+  rule immediate DM-ACU-ROUTE-04: A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes
+  rule same_day  DM-ACU-ROUTE-23: Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early 
+  rule same_day  DM-ACU-ROUTE-34: Diabetes, vomiting, glucose 18 or more with ketones below the danger range: tablets cannot be kept down. Same-day review
+  INTERRUPT: DM-ACU-ROUTE-04 folded: {}
+  dark: {'DM-ACT-REFER-GLU-02': 'D-DM-38'}
+  caveats: ['urine_ketones_low_despite_picture']
+
+=== C3 child T1 glu 25 urine 1+ well [refe, est=True, child]
+  rule same_day  DM-ACU-ROUTE-21: Urine ketones trace or 1+ in diabetes, when unwell or with glucose 18 or more: blood ketones or a repeat strip within 2 
+  INTERRUPT: None folded: {}
+  dark: {'DM-ACT-REFER-GLU-02': 'D-DM-38'}
+
+=== C4 14y insulin omitted glu 22 urine 1+ [refe, est=True, adolescent]
+  rule same_day  DM-ACU-ROUTE-10: Insulin stopped, missed or run out: check glucose and ketones today
+  rule same_day  DM-ACU-ROUTE-21: Urine ketones trace or 1+ in diabetes, when unwell or with glucose 18 or more: blood ketones or a repeat strip within 2 
+  INTERRUPT: None folded: {}
+  dark: {'DM-ACT-REFER-GLU-02': 'D-DM-38'}
+
+=== C5 new child thirst+polyuria glu 22 well [refe, est=False, child]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule same_day  DM-SUS-PAED-03: A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms
+  INTERRUPT: None folded: {}
+
+=== C5b same district [dist, est=False, child]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule same_day  DM-SUS-PAED-03: A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms
+  INTERRUPT: None folded: {}
+
+=== C5c lab random 22 [refe, est=False, child]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule same_day  DM-SUS-PAED-03: A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms
+  INTERRUPT: None folded: {}
+
+=== C6 new child vomiting glu 22 [refe, est=False, child]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule immediate DM-ACU-ROUTE-04: A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes
+  rule same_day  DM-SUS-PAED-03: A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms
+  INTERRUPT: DM-ACU-ROUTE-04 folded: {}
+
+=== C7 3y polyuria glu 22 [refe, est=False, child]
+  rule same_day  DM-ACU-ROUTE-01: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  rule same_day  DM-SUS-PAED-03: A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms
+  INTERRUPT: None folded: {}

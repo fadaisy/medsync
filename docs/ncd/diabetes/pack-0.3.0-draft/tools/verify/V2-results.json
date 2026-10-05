@@ -1,0 +1,426 @@
+[
+ {
+  "ref": "REF-DM-VAL-CAP-POSTLOAD",
+  "verdict": "confirmed",
+  "foundQuote": "The glucose concentrations during an OGTT in capillary (fingerstick) blood are significantly higher than those in venous blood (mean of 1.7 mmol/L or 30 mg/dL), equivalent to 20% to 25%. ... In contrast, the mean difference in fasting samples is only 0.1 mmol/L (2 mg/dL)",
+  "correctValue": null,
+  "note": "Value, unit and direction (capillary higher than venous) confirmed; context is \"during an OGTT\". Source also gives the difference as 20% to 25%.",
+  "urlUsed": "https://academic.oup.com/clinchem/article/69/8/808/7226551"
+ },
+ {
+  "ref": "REF-DM-VAL-FPG-CV",
+  "verdict": "confirmed",
+  "foundQuote": "Analysis of 685 adults from NHANES III where mean within-person variability of FPG measured 2to 4 weeks apart was 5.7% (95% CI, 5.3%–6.1%).",
+  "correctValue": null,
+  "note": "5.7% confirmed (NHANES III, 685 adults, 2–4 weeks apart; \"2to 4\" is as the fetch tool returned it). Same passage gives other estimates: within- and between-subject CVs of 4.8% to 6.1% and 7.5% to 7.8%, and a further NHANES III analysis with within-person CV 8.3% at about 5.1 mmol/L, so 5.7% is one of several figures. Analytical goals read: imprecision ≤2.4%, bias ≤2.1%, total error ≤6.1%.",
+  "urlUsed": "https://academic.oup.com/clinchem/article/69/8/808/7226551"
+ },
+ {
+  "ref": "REF-DM-VAL-GLYCOLYSIS",
+  "verdict": "confirmed",
+  "foundQuote": "The rate of glycolysis—reported to average 5% to 7% (approximately 0.6 mmol/L; 10 mg/dL) per hour (64)—varies with the glucose concentration, temperature, white blood cell count, and other factors.",
+  "correctValue": null,
+  "note": "Value and unit confirmed. The source states the rate primarily as 5% to 7% per hour, with 0.6 mmol/L (10 mg/dL) as the approximate absolute figure, and says it varies with glucose concentration, temperature and white cell count; context is whole blood ex vivo (\"Glucose concentrations decrease ex vivo in whole blood\"). Also read: ice-water slurry immediately after collection with plasma separated within 30 min. The executive summary (other claim URL, 69/8/777) was not opened.",
+  "urlUsed": "https://academic.oup.com/clinchem/article/69/8/808/7226551"
+ },
+ {
+  "ref": "REF-DM-VAL-METER",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "ISO 15197:2013 (home-use): 95% within 15 mg/dL at <100 mg/dL; 95% within 15% at ≥100 mg/dL; 99% within zones A/B of consensus error grid. Footnote: \"To convert mg/dL to mmol/L, multiply by 0.0555 or divide by 18. Concentrations: 12 mg/dL = 0.67 mmol/L; 15 mg/dL = 0.83 mmol/L; 75 mg/dL = 4.16 mmol/L; 100 mg/dL = 5.56 mmol/L.\"",
+  "correctValue": null,
+  "note": "Confirmed in Table 6 of the laboratory guideline (\"Comparison of selected accuracy standards for glucose meters\") and cross-read in ADA 2026 Section 7 Table 7.1 (\"95% within 15% for BG ≥100 mg/dL; 95% within 15 mg/dL for BG <100 mg/dL; 99% in A or B region of consensus error grid\", mg/dL only). Operators match the entry (15% at or above 100 mg/dL; 15 mg/dL = 0.83 mmol/L below it). Notes: (1) the guideline footnote converts 100 mg/dL to 5.56 mmol/L, the entry uses 5.55 (both are roundings of 5.555); (2) this is the home-use (ISO) criterion as summarised by ADLM/ADA and ADA, not read from the ISO standard itself; the FDA hospital-use criterion is tighter (95% within 12 mg/dL below 75 mg/dL or 12% at or above it); (3) the entry omits the 99% consensus-error-grid criterion. ADA Section 16 names no ISO figure: it says only that hospital monitoring should use FDA-approved hospital-calibrated POC systems.",
+  "urlUsed": "https://academic.oup.com/clinchem/article/69/8/808/7226551"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-IRON",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Iron deficiency anemia, a major public health problem in developing countries, is associated with higher HbA1c and higher fructosamine. ... Iron replacement therapy lowers both HbA1c and fructosamine concentrations in diabetic and non-diabetic individuals. ... HbA1c, but not glycated albumin, is increased in late pregnancy in nondiabetic individuals owing to iron deficiency.",
+  "correctValue": null,
+  "note": "Iron part confirmed on the NGSP page (displayed \"Updated 06/23/2026\"). Attribution problem for the bracketed part: vitamin B12 is NOT mentioned on the NGSP page. The B12 statement is supported instead by WHO 2011 Annex 1 (https://www.ncbi.nlm.nih.gov/books/NBK304266/), Erythropoiesis row: Increased HbA1c \"iron, vitamin B12 deficiency, decreased erythropoiesis\"; Decreased HbA1c \"administration of erythropoietin, iron, vitamin B12, reticulocytosis, chronic liver disease\". Cite WHO 2011 Annex 1 for B12, not NGSP. NGSP wording is \"associated with higher HbA1c\" (it does not use \"falsely\").",
+  "urlUsed": "https://ngsp.org/factors.asp"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-RBC",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Any condition that shortens erythrocyte survival or decreases mean erythrocyte age (e.g., recovery from acute blood loss, hemolytic anemia) will falsely lower HbA1c test results regardless of the assay method used [2]. ... HbA1c results from patients with HbSS, HbCC, and HbSC must be interpreted with caution given the pathological processes, including anemia, increased red cell turnover, and transfusion requirements, that adversely impact HbA1c as a marker of long-term glycemic control.",
+  "correctValue": null,
+  "note": "The principle (shortened red-cell survival falsely lowers HbA1c regardless of assay method) is confirmed, with NGSP examples \"recovery from acute blood loss, hemolytic anemia\". But the entry's list goes beyond what the sources say: (1) transfusion: NGSP gives no direction; it appears only as a reason for caution in HbSS/HbCC/HbSC; (2) HbSS and HbSC: NGSP says \"must be interpreted with caution\", direction not stated (and ADA 2026 Section 6 says A1C cannot be measured at all in HbSS); (3) malaria: not mentioned on the NGSP page. Malaria appears in WHO 2011 (https://www.ncbi.nlm.nih.gov/books/NBK304271/): \"The most common important factors worldwide affecting HbA1c levels are haemoglobinopathies (depending on the assay employed), certain anaemias, and disorders associated with accelerated red cell turnover such as malaria\", again without a stated direction. WHO 2011 Annex 1 lists under Decreased HbA1c \"decreased erythrocyte life span: haemoglobinopathies, splenomegaly, rheumatoid arthritis or drugs\"; malaria and transfusion are not in that table. Reword so that transfusion, HbSS/HbSC and malaria are \"unreliable, interpret with caution / use glucose\" rather than \"falsely lowers\".",
+  "urlUsed": "https://ngsp.org/factors.asp"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-VARIANT",
+  "verdict": "confirmed",
+  "foundQuote": "Genetic variants (e.g. HbS trait, HbC trait), elevated fetal hemoglobin (HbF) and chemically modified derivatives of hemoglobin can affect the accuracy of HbA1c measurements. ... The effects vary depending on the specific Hb variant or derivative and the specific HbA1c method.",
+  "correctValue": null,
+  "note": "NGSP page, displayed \"Updated 06/23/2026\". Method-specific interference confirmed; the page table shows yes/no interference by method and variant. ngsp.org/interf.asp and the ADA Section 2 narrative (other claim URLs) not separately opened for this item.",
+  "urlUsed": "https://ngsp.org/factors.asp"
+ },
+ {
+  "ref": "REF-DM-IH-RETEST",
+  "verdict": "confirmed",
+  "foundQuote": "In people with prediabetes, monitor for the development of diabetes at least annually; modify frequency of testing based on individual risk assessment. E",
+  "correctValue": null,
+  "note": "Recommendation 3.1 (grade E). \"At least annually\" = at most 12 months apart; conversion sound. Section 2 Table 2.5 also read: \"People with prediabetes ... should be tested yearly\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690170/"
+ },
+ {
+  "ref": "REF-DM-NEU-B12",
+  "verdict": "confirmed",
+  "foundQuote": "Consider periodic assessment of vitamin B12 levels in individuals receiving long-term metformin therapy, especially in those with anemia or peripheral neuropathy. B",
+  "correctValue": null,
+  "note": "Recommendation 3.10 (grade B). It sits in the prevention section (metformin for diabetes prevention) but is worded for all individuals on long-term metformin. Section 9/13 (other claim URL) not opened. Note that Section 4 Table 4.1 qualifies the B12 check as \"if taking metformin for >5 years\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690170/"
+ },
+ {
+  "ref": "REF-DM-ACT-SMBG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "7.11 People who are taking insulin and using BGM should be encouraged to check their blood glucose levels when appropriate based on their insulin therapy. ... 7.13 Although BGM in people on noninsulin therapies has not consistently shown clinically significant reductions in A1C levels, it may be helpful when modifying meal plans, physical activity plans, and/or medications (particularly medications that can cause hypoglycemia) in conjunction with a treatment adjustment program.",
+  "correctValue": null,
+  "note": "ADA part confirmed (Rec 7.11 grade B, Rec 7.13 grade E). Qualifier the entry lacks: Rec 7.13 continues that BGM \"may be helpful\" in people on noninsulin therapies when modifying meal plans, activity or medications, particularly medications that can cause hypoglycemia, so the entry should not read as \"no role outside insulin\". WHO half: the HEARTS-D PDF (https://www.knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf) was opened; the fetch tool reported reading about 35 pages and found no statement on self-monitoring of blood glucose (it covers HbA1c, fasting and postprandial glucose monitoring by the facility). A negative finding from a PDF read through the fetch tool is weaker than a positive one.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690173/"
+ },
+ {
+  "ref": "REF-DM-CTRL-HBA1C-TIGHT",
+  "verdict": "confirmed",
+  "foundQuote": "Lower A1C goals (e.g., <6.5% [<48 mmol/mol]) may be appropriate for individuals with diabetes with good health and function and low treatment risks",
+  "correctValue": null,
+  "note": "Recommendation 6.4. Source frames <6.5% as an example (\"e.g.\"). Related goals read in the same article: Rec 6.3a \"An A1C goal of <7% (<53 mmol/mol) is appropriate for many nonpregnant adults without severe hypoglycemia or hypoglycemia affecting health or quality of life. A\"; Table 6.3 A1C row \"<7.0% (<53 mmol/mol)\"; Rec 6.5 (less stringent goals) has NO number in the recommendation text. The 8% figure appears only in narrative (\"Less stringent goals (e.g., A1C up to 8% [64 mmol/mol]) may be recommended for individuals with complex health status and/or limited life expectancy\") and the Figure 6.1 legend (\"Older adults with comorbidities may have less stringent goals, such as A1C less than 8 percent\"). Note the narrative wording is \"up to 8%\", the legend \"less than 8 percent\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-CTRL-PPG-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "Preprandial capillary plasma glucose 80–130 mg/dL (4.4–7.2 mmol/L); Peak postprandial capillary plasma glucose <180 mg/dL (<10.0 mmol/L); \"Postprandial glucose measurements should be made 1–2 h after the beginning of the meal\"",
+  "correctValue": null,
+  "note": "Table 6.3; operator \"<\" and both units confirmed; timing footnote confirmed. Table values were returned by the fetch tool as table cells.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-CTRL-PRE-HIGH-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "Preprandial capillary plasma glucose 80–130 mg/dL (4.4–7.2 mmol/L); Peak postprandial capillary plasma glucose <180 mg/dL (<10.0 mmol/L); \"Postprandial glucose measurements should be made 1–2 h after the beginning of the meal\"",
+  "correctValue": null,
+  "note": "Table 6.3; range 80–130 mg/dL (4.4–7.2 mmol/L), upper bound 7.2 mmol/L.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-CTRL-PRE-LOW-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "Preprandial capillary plasma glucose 80–130 mg/dL (4.4–7.2 mmol/L); Peak postprandial capillary plasma glucose <180 mg/dL (<10.0 mmol/L); \"Postprandial glucose measurements should be made 1–2 h after the beginning of the meal\"",
+  "correctValue": null,
+  "note": "Table 6.3; range 80–130 mg/dL (4.4–7.2 mmol/L), lower bound 4.4 mmol/L.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-DEINTENSIFY",
+  "verdict": "confirmed",
+  "foundQuote": "6.19 One or more episodes of level 2 or 3 hypoglycemia should prompt reevaluation of the treatment plan, including deintensifying or switching diabetes medications if appropriate. B",
+  "correctValue": null,
+  "note": "Recommendation 6.19. Source says \"if appropriate\". Recs 6.6/6.7 (second claim) not separately read.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-L1",
+  "verdict": "confirmed",
+  "foundQuote": "Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L)",
+  "correctValue": null,
+  "note": "Table 6.4, Level 1. Operators confirmed: strictly below 3.9 mmol/L and at or above 3.0 mmol/L. Read in the 2026 edition; the 2025 PDF copy and the Springer page listed as other claim URLs were not opened.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-L2",
+  "verdict": "confirmed",
+  "foundQuote": "Glucose <54 mg/dL (<3.0 mmol/L)",
+  "correctValue": null,
+  "note": "Table 6.4, Level 2. Operator is strictly \"<\": a reading of exactly 3.0 mmol/L is level 1, not level 2.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-L3",
+  "verdict": "confirmed",
+  "foundQuote": "A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level",
+  "correctValue": null,
+  "note": "Table 6.4, Level 3; adapted from Agiostratidou et al. The WHO HEARTS-D PDF listed as another claim URL was not opened.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-REVIEW",
+  "verdict": "confirmed",
+  "foundQuote": "6.10 Review history of hypoglycemia at every clinical encounter for all individuals at risk for hypoglycemia, and evaluate hypoglycemic events as indicated. C ... 6.11 Screen individuals at risk for hypoglycemia for impaired hypoglycemia awareness at least annually and when clinically appropriate. E",
+  "correctValue": null,
+  "note": "Recommendations 6.10 and 6.11.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-RISK",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Major: Recent (within past 3–6 months) level 2 or 3 hypoglycemia; Intensive insulin therapy; Impaired hypoglycemia awareness; Kidney failure; Cognitive impairment or dementia; History of metabolic surgery; Food insecurity; ... fasting for religious/cultural reasons. Other: basal insulin therapy; \"Age ≥75 years\"; \"Chronic kidney disease (eGFR <60 mL/min/1.73 m2 or albuminuria)\"; \"Alcohol or substance use disorder\"",
+  "correctValue": null,
+  "note": "Table 6.5. Three wording points. (1) The source row is \"Alcohol or substance use disorder\", i.e. a use disorder, not alcohol use in general; the entry just says \"alcohol\". (2) The table title names \"insulin, sulfonylureas, or meglitinides\"; the entry omits meglitinides. (3) The entry is a selection: it leaves out history of metabolic surgery, low-income status, housing insecurity and underinsurance among major factors, and many \"other\" factors (multiple recent level 1 episodes, female sex, high glycemic variability, polypharmacy, cardiovascular disease, neuropathy, retinopathy, depression, severe mental illness, gastroparesis, β-blocker therapy, low health literacy). The fetch tool returned the rows as a list, with only the quoted fragments verbatim; fasting is printed as \"for religious or cultural reasons\" per the recorded quote.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-HYPO-RISK-AGE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Age ≥75 years ... † Accounting for treatment plan and diabetes subtype, the oldest individuals (aged ≥75 years) have the highest risk for hypoglycemia in type 2 diabetes; younger individuals with type 1 diabetes are also at very high risk.",
+  "correctValue": null,
+  "note": "Table 6.5, \"Other risk factors\" column (not a major risk factor); value and operator (≥75) confirmed. Qualifier the entry lacks: the footnote ties the ≥75 threshold to type 2 diabetes and says younger people with type 1 diabetes are also at very high risk, so age <75 must not be read as low risk in type 1. Table title also covers meglitinides.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-GLUCAGON",
+  "verdict": "confirmed",
+  "foundQuote": "6.16 Glucagon should be prescribed for all individuals taking insulin or at high risk for hypoglycemia. A",
+  "correctValue": null,
+  "note": "Recommendation 6.16. Source verb is \"prescribed\"; the entry says \"available\". No dose recorded.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-SICKDAY-HOLD",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "ADA: \"Specifically, clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury.\" KDIGO 2024: \"patients receive guidance to temporarily stop the following medications: sulfonylureas, ACEi, diuretics/direct renin inhibitors, metformin, ARBs, NSAIDs, and SGLT2i (often described with the acronym SADMANS).\" ... \"However, there is a paucity of evidence to support sick day rules to prevent AKI or other clinically relevant outcomes. Instead, data suggest potential harm if people make mistakes in recognizing dehydrating illness.\"",
+  "correctValue": null,
+  "note": "ADA half confirmed in the Section 6 \"Intercurrent Illness\" narrative (narrative text, not a graded recommendation). KDIGO half confirmed in substance, read from a third-party flipbook copy of the KDIGO 2024 CKD guideline (https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/136/), not from kdigo.org. KDIGO's actual wording is \"a paucity of evidence\" and \"potential harm\"; \"does not endorse\" is the entry's paraphrase. KDIGO also gives Practice Point 4.3.2 (if medications are discontinued during acute illness, communicate a clear plan of when to restart) and 4.3.3 (consider planned discontinuation in the 48–72 hours prior to elective surgery or during acute management of adverse effects), so it is not a flat rejection of stopping medicines. The SADMANS brochure URL was not opened.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-HBSS",
+  "verdict": "confirmed",
+  "foundQuote": "A1C cannot be measured in individuals with sickle cell disease (HbSS) or other homozygous hemoglobin variants (e.g., HbEE), since these individuals lack HbA.",
+  "correctValue": null,
+  "note": "Section 6 A1C narrative. The Clinical Chemistry executive summary listed as another claim URL was not used for this item.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic"
+ },
+ {
+  "ref": "REF-DM-SUS-HOSP-GLU",
+  "verdict": "confirmed",
+  "foundQuote": "Hyperglycemia in hospitalized individuals is defined as any blood glucose level >140 mg/dL (>7.8 mmol/L) based on the threshold for an abnormal glucose level. ... Perform an A1C test on all people with diabetes or hyperglycemia (random blood glucose >140 mg/dL [>7.8 mmol/L]) at the time of admission to the hospital if no A1C test result is available from the prior 3 months. B",
+  "correctValue": null,
+  "note": "Rec 16.1 and the definitions narrative. Operator is strictly \">\" in both places: exactly 7.8 mmol/L (140 mg/dL) is not above the threshold. The follow-up the source attaches to this threshold is an admission A1C test (Rec 16.1). The Endocrine Society 2012 page and the 2025 PDF listed as other claim URLs were not opened.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690180/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-HOSP-HBA1C-LOOKBACK",
+  "verdict": "confirmed",
+  "foundQuote": "Perform an A1C test on all people with diabetes or hyperglycemia (random blood glucose >140 mg/dL [>7.8 mmol/L]) at the time of admission to the hospital if no A1C test result is available from the prior 3 months. B",
+  "correctValue": null,
+  "note": "Rec 16.1. Applies to all people with diabetes as well as those with hyperglycaemia. Also read: \"An admission A1C value ≥6.5% (≥48 mmol/mol) suggests that the onset of diabetes preceded hospitalization.\"",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690180/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CLS-AB-ORDER",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and/or zinc transporter 8 (ZnT8) where these tests are available. In individuals who have not been treated with insulin, antibodies against insulin may also be useful. In those diagnosed at <35 years of age who have no clinical features of type 2 diabetes or monogenic diabetes, a negative result does not change the diagnosis of type 1 diabetes, since 5–10% of people with type 1 diabetes do not have antibodies.",
+  "correctValue": null,
+  "note": "Figure 2.1 legend footnote 2, present as text. Qualifier the entry lacks: \"a negative result does not change the diagnosis\" is limited to people diagnosed at <35 years with no clinical features of type 2 or monogenic diabetes; it is not a general statement that a negative result never excludes type 1. Rec 2.10 also read (\"Standardized islet autoantibody tests are recommended for classification of diabetes in adults who have phenotypic risk factors that overlap with those for type 1 diabetes\"). Whole legend was read as text. It opens \"Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations\" and ends \"Reprinted and adapted from Holt et al.\": the figure is the ADA/EASD type 1 consensus flowchart reprinted in the ADA Standards, and its thresholds were derived in White European populations, which matters for use in Uganda. The Springer copy of Holt et al. (other claim URL) was refused by the fetch proxy (rate limit) and not read.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CLS-CPEP-HIGH",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "A C-peptide test is only indicated in people receiving insulin treatment. A random sample (with concurrent glucose) within 5 h of eating can replace a formal C-peptide stimulation test in the context of classification. If the result is ≥600 pmol/L (≥1.8 ng/mL), the circumstances of testing do not matter. If the result is <600 pmol/L (<1.8 ng/mL) and the concurrent glucose is <4 mmol/L (<70 mg/dL) or the person may have been fasting, consider repeating the test. ... Do not test C-peptide within 2 weeks of a hyperglycemic emergency. ... C-peptide values 200–600 pmol/L (0.6–1.8 ng/mL) are usually consistent with type 1 diabetes or maturity-onset diabetes of the young but may occur in insulin-treated type 2 diabetes, particularly in people with normal or low BMI or after long duration.",
+  "correctValue": null,
+  "note": "READ AS TEXT (Figure 2.1 legend footnotes 4 and 9): \"≥600 pmol/L (≥1.8 ng/mL)\"; \"<600 pmol/L (<1.8 ng/mL)\"; \"<80 pmol/L [<0.24 ng/mL]\"; \"200–600 pmol/L (0.6–1.8 ng/mL)\". The number 200 appears as text only as the lower end of the 200–600 range. NOT PRESENT AS TEXT: any statement that a C-peptide at or above 600 pmol/L \"strongly suggests\" or indicates type 2 diabetes, and any standalone \"<200 pmol/L = type 1\" statement. Those meanings sit only in the flowchart boxes inside the figure image, which I could not read (the figure page returned a CAPTCHA and the article page carries no separate image description). So the value, unit and the ≥ operator are verified as printed, but ≥600 is printed for \"the circumstances of testing do not matter\"; the classification meaning the entry gives it, and whether the image box uses >600 or ≥600, are unverified. A human should read the figure image before a rule fires on this value. Qualifiers the entry lacks: C-peptide is only indicated in people receiving insulin treatment; do not test within 2 weeks of a hyperglycemic emergency; if insulin treated, measure before insulin discontinuation. One early fetch reply rendered the footnote as \">600\"; two targeted re-reads returned \"≥600\". Whole legend was read as text. It opens \"Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations\" and ends \"Reprinted and adapted from Holt et al.\": the figure is the ADA/EASD type 1 consensus flowchart reprinted in the ADA Standards, and its thresholds were derived in White European populations, which matters for use in Uganda. The Springer copy of Holt et al. (other claim URL) was refused by the fetch proxy (rate limit) and not read.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CLS-CPEP-VLOW",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Results showing very low levels (e.g., <80 pmol/L [<0.24 ng/mL]) do not need to be repeated.",
+  "correctValue": null,
+  "note": "Value, operator and unit confirmed as text in Figure 2.1 legend footnote 4. Source frames <80 pmol/L as an example (\"e.g.\") of a very low level. Whole legend was read as text. It opens \"Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations\" and ends \"Reprinted and adapted from Holt et al.\": the figure is the ADA/EASD type 1 consensus flowchart reprinted in the ADA Standards, and its thresholds were derived in White European populations, which matters for use in Uganda. The Springer copy of Holt et al. (other claim URL) was refused by the fetch proxy (rate limit) and not read.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CLS-MODY-HBA1C",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Monogenic diabetes is suggested by the presence of one or more of the following features: A1C <58 mmol/mol (<7.5%) at diagnosis, one parent with diabetes, features of a specific monogenic cause (e.g., renal cysts, partial lipodystrophy, maternally inherited deafness, and severe insulin resistance in the absence of obesity), and monogenic diabetes prediction model probability >5%",
+  "correctValue": null,
+  "note": "Figure 2.1 legend footnote 3, present as text; value, operator and unit confirmed. The source says \"one or more of the following features\": A1C <7.5% at diagnosis is a feature on its own. The entry wording \"below this value, with one parent affected or other specific features\" reads as if the A1C must be combined with another feature; it should say \"any one or more of\". Whole legend was read as text. It opens \"Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations\" and ends \"Reprinted and adapted from Holt et al.\": the figure is the ADA/EASD type 1 consensus flowchart reprinted in the ADA Standards, and its thresholds were derived in White European populations, which matters for use in Uganda. The Springer copy of Holt et al. (other claim URL) was refused by the fetch proxy (rate limit) and not read.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-DX-CONFIRM-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "In the absence of unequivocal hyperglycemia, diagnosis requires two abnormal results from different tests, which may be obtained at the same time or the same test at two different time points.",
+  "correctValue": null,
+  "note": "Table 2.1 footnote read as text. The fetch tool returned the sentence without the parenthetical \"(e.g., A1C and FPG)\" that the recorded quote carries; meaning unchanged. Table 2.1 thresholds also read: A1C >=6.5% (>=48 mmol/mol); FPG >=126 mg/dL (>=7.0 mmol/L); 2-h PG >=200 mg/dL (>=11.1 mmol/L); random PG >=200 mg/dL (>=11.1 mmol/L) with classic symptoms or crises.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-DX-DISCORDANT",
+  "verdict": "confirmed",
+  "foundQuote": "the test result that is above the diagnostic cut point should be repeated, with careful consideration of factors that may affect measured A1C or glucose levels. ... The diagnosis is made based on the confirmatory screening test.",
+  "correctValue": null,
+  "note": "Both sentences returned from the \"Confirming the Diagnosis\" narrative.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-DX-NEAR-THRESHOLD-MAX",
+  "verdict": "confirmed",
+  "foundQuote": "Test results close to the diagnostic threshold should prompt the health care professional to educate the individual about the onset of possible symptoms of hyperglycemia and to repeat the test in 3–6 months.",
+  "correctValue": null,
+  "note": "Source gives a 3–6 month window; 6 is the upper bound. Narrative text, not a graded recommendation.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-DX-NEAR-THRESHOLD-MIN",
+  "verdict": "confirmed",
+  "foundQuote": "Test results close to the diagnostic threshold should prompt the health care professional to educate the individual about the onset of possible symptoms of hyperglycemia and to repeat the test in 3–6 months.",
+  "correctValue": null,
+  "note": "Source gives a 3–6 month window; 3 is the lower bound. Narrative text, not a graded recommendation.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-IH-HBA1C-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "A1C 5.7–6.4% (39–47 mmol/mol)",
+  "correctValue": null,
+  "note": "Table 2.2 read as text. Lower bound is inclusive (range 5.7–6.4%).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-IH-IFG-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "100 mg/dL (5.6 mmol/L) to 125 mg/dL (6.9 mmol/L)",
+  "correctValue": null,
+  "note": "Table 2.2 FPG (IFG) row read as text. Lower bound inclusive. 2-h PG (IGT) row also read: 140 mg/dL (7.8 mmol/L) to 199 mg/dL (11.0 mmol/L).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-AGE-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "screening should begin at age 35 years",
+  "correctValue": null,
+  "note": "Recommendation 2.12b; Table 2.5 also reads \"For all other people, testing should begin at age 35 years\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-ANTIPSYCH-WEEKS",
+  "verdict": "confirmed",
+  "foundQuote": "Screen for prediabetes and diabetes at baseline and repeat 12–16 weeks after medication initiation or sooner, if clinically indicated, and annually thereafter",
+  "correctValue": null,
+  "note": "Recommendation 2.16b. Source gives a 12–16 week window \"or sooner, if clinically indicated\"; 12 is the lower bound of the window, as the entry text states.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-ANTIPSYCHOTIC",
+  "verdict": "confirmed",
+  "foundQuote": "Screen for prediabetes and diabetes at baseline and repeat 12–16 weeks after medication initiation or sooner, if clinically indicated, and annually thereafter",
+  "correctValue": null,
+  "note": "Recommendation 2.16b.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-DRUGS",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+  "correctValue": null,
+  "note": "Content confirmed in Recommendation 2.16a (full sentence read; the list ends at \"some HIV medications\"). The quote stored against this entry (quoteRecorded) is the antipsychotic sentence from Rec 2.16b, not this one: replace it with the 2.16a sentence.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-HIV-ADA",
+  "verdict": "confirmed",
+  "foundQuote": "before starting antiretroviral therapy, at the time of switching antiretroviral therapy, and 3–6 months after starting or switching antiretroviral therapy ... FPG should be checked annually",
+  "correctValue": null,
+  "note": "Recommendation 2.17; test named is FPG.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-PANCREATITIS",
+  "verdict": "confirmed",
+  "foundQuote": "Screen people for diabetes within 3–6 months following an episode of acute pancreatitis and annually thereafter. Screening for diabetes is recommended annually for people with chronic pancreatitis",
+  "correctValue": null,
+  "note": "Recommendation 2.23.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-STEROID",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Monitor postprandial or random glucose levels with recurrent or long-term use of glucocorticoids",
+  "correctValue": null,
+  "note": "Recommendation 2.18 confirmed. The words \"not fasting\" in the entry are an inference; the recommendation as returned does not say fasting glucose should not be used.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-USE-GLUCOSE",
+  "verdict": "confirmed",
+  "foundQuote": "In conditions associated with an altered relationship between A1C and glycemia, such as some hemoglobin variants, ... pregnancy, glucose-6-phosphate dehydrogenase deficiency, HIV, and conditions that may alter red blood cell turnover ... plasma glucose criteria should be used to diagnose diabetes",
+  "correctValue": null,
+  "note": "Recommendation 2.4. HIV is explicitly in the list; wording is \"some hemoglobin variants\". Quote assembled from three fragments returned by the fetch tool across two fetches.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-DX-FAST-MIN-H",
+  "verdict": "confirmed",
+  "foundQuote": "no caloric intake for at least 8 h",
+  "correctValue": null,
+  "note": "Table 2.1 footnote, read as text in ADA 2026 Section 2. Not separately re-read in the ADLM/ADA laboratory guideline.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-RESCREEN",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "repeat screening recommended at a minimum of 3-year intervals (Rec 2.12c); testing should be repeated at a minimum of 3-year intervals (Table 2.5)",
+  "correctValue": null,
+  "note": "Number confirmed (3 years = 36 months). The source wording is \"at a minimum of 3-year intervals\", which the entry reads as \"at most 36 months apart\" (i.e. at least every 3 years). That is the usual reading but the source does not literally say \"at most\"; the recorded quote also continues \"sooner with symptoms or change in risk\". A rule must not treat 36 months as a floor before which testing is blocked.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-RISK-FACTORS-ADA",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "BMI ≥25 kg/m2 or ≥23 kg/m2 in individuals of Asian ancestry ... High-risk race, ethnicity, and ancestry (e.g., African American, Latino, Native American, Asian American) ... Hypertension (≥130/80 mmHg or on therapy) ... HDL cholesterol <35 mg/dL or triglyceride level >250 mg/dL ... Other clinical conditions associated with insulin resistance (e.g., severe obesity, acanthosis nigricans, metabolic dysfunction-associated steatotic liver disease)",
+  "correctValue": null,
+  "note": "The list is from Table 2.5 item 1 but the entry is incomplete: it omits \"High-risk race, ethnicity, and ancestry (e.g., African American, Latino, Native American, Asian American)\" and the MASLD example. It also drops the numeric qualifiers: hypertension ≥130/80 mmHg or on therapy; HDL <35 mg/dL; triglycerides >250 mg/dL; BMI ≥25 kg/m2 (≥23 Asian ancestry). The first-degree relative, cardiovascular disease, polycystic ovary syndrome and physical inactivity rows were returned by the fetch tool as a list rather than verbatim. Rec 2.12a read: \"adults of any age with overweight or obesity who have one or more risk factors\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-SUS-GDM-RETEST-MAX",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "People who were diagnosed with GDM should have testing at least every 1–3 years",
+  "correctValue": null,
+  "note": "Number confirmed from Table 2.5 (read via ?report=reader). Source gives a 1–3 year range; 36 months is its outer limit. The word \"lifelong\" in the entry is NOT in Section 2: a search of the article text for \"lifelong\" returned only one unrelated sentence (lifelong insulin after immune checkpoint inhibitor diabetes). If \"lifelong\" is kept it needs its own citation (the GDM follow-up recommendation elsewhere in the Standards, not read here).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-ACT-DENTAL",
+  "verdict": "confirmed",
+  "foundQuote": "People with diabetes should be referred for a dental exam at least once per year. E",
+  "correctValue": null,
+  "note": "Recommendation 4.15 (grade E). \"At least once per year\" = 12 months; conversion sound. Source wording is \"referred for a dental exam\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690184/"
+ },
+ {
+  "ref": "REF-DM-ACT-TABLE41",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Vitamin B12 if taking metformin for >5 years ... Liver function tests (i.e., FIB-4) ... Spot urinary albumin-to-creatinine ratio ... Serum creatinine and estimated glomerular filtration rate ... Thyroid-stimulating hormone in people with type 1 diabetes ... Serum potassium levels in people treated with ACE inhibitors, ARBs, or diuretics",
+  "correctValue": null,
+  "note": "Items confirmed in Table 4.1, but the entry drops a qualifier: the row reads \"Vitamin B12 if taking metformin for >5 years\", not simply \"if on metformin\". Other differences: liver row is \"Liver function tests (i.e., FIB-4)\"; A1C row is conditional (\"if the results are not available within the past 3 months or if earlier assessment is necessary\"); the entry omits celiac disease screening in type 1 diabetes, CBC with platelets, and calcium/vitamin D/phosphorous as appropriate. Footnotes: ‡ \"May also need to be checked after initiation or dose changes of medications\"; § \"May be needed more frequently in people with diabetes with known chronic kidney disease.\" I could not reliably read which visit columns are ticked.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690184/"
+ },
+ {
+  "ref": "REF-DM-ACT-VACCINES",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Table 4.3 title: \"Highly recommended immunizations for people with diabetes (from the Advisory Committee on Immunization Practices and Centers for Disease Control and Prevention)\". First-column rows: COVID-19; Hepatitis B; Influenza; Pneumonia (PPSV23 [Pneumovax]); PCV20 or PCV15; RSV; Tetanus, diphtheria, pertussis (Tdap); Zoster. Hepatitis B: \"Adults with diabetes aged <60 years; for adults aged ≥60 years, hepatitis B vaccine may be\"",
+  "correctValue": null,
+  "note": "Two points. (1) Count: the table has 8 rows as returned; it is \"seven\" only if the two pneumococcal rows (PPSV23 and PCV20/PCV15) are counted as one vaccine. State it as \"seven diseases (eight rows)\" or list them. (2) Attribution: the table is the ADA reprinting US ACIP/CDC recommendations (\"from the Advisory Committee on Immunization Practices and Centers for Disease Control and Prevention\"), so it is a US schedule carried by ADA, not an ADA-original recommendation. Uganda half read in the UNICEF/MoH guide (https://www.unicef.org/uganda/media/2816/file/...routine%20immunisation%20in%20Uganda.pdf): schedule is infant vaccines, \"Tetanus Diptheria (TD1-TD5)\" for women of childbearing age 15-49 years, and HPV for girls at 10 years; no influenza, adult pneumococcal, adult hepatitis B, zoster, RSV or COVID-19 vaccine appears. That guide is not dated in what I read and may not reflect the current national schedule or non-routine adult campaigns; treat the Uganda statement as \"per that guide\".",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690184/"
+ },
+ {
+  "ref": "REF-DM-ACT-DSMES",
+  "verdict": "confirmed",
+  "foundQuote": "Provide DSMES at diagnosis, annually and/or when not meeting treatment goals, when complicating factors develop (e.g., medical, functional, and psychosocial), and when transitions in life and care occur. E",
+  "correctValue": null,
+  "note": "Recommendation 5.2 (grade E). Source says \"annually and/or when not meeting treatment goals\", \"complicating factors\" (the entry says \"complications\"), and \"transitions in life and care\". Rec 5.1 also read.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-WEIGHT",
+  "verdict": "confirmed",
+  "foundQuote": "Provide an overweight or obesity treatment plan based on their nutrition, physical activity, and behavioral health status for all people with overweight or obesity, aiming for at least 5–7% weight loss. A",
+  "correctValue": null,
+  "note": "Recommendation 5.12 (grade A). Source states \"at least 5–7%\"; 5 is the lower figure of that range. Section 8 (other claim URL, Recs 8.4/8.5) not opened.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/"
+ }
+]

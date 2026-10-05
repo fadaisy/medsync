@@ -3,6 +3,7 @@
 import type { PulledVitals } from "./ncd-capture";
 import type { AgeBand, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
+import type { DiabetesPack } from "@/lib/ncd/pack/types";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIcon,
@@ -14,8 +15,11 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 
+import { toPackInput } from "@/lib/ncd/pack/live";
+import { buildPackView } from "@/lib/ncd/pack/view";
 import { buildProfile } from "@/lib/ncd/profile";
 import { NcdCapture, NcdSectionRail, sectionProgress } from "./ncd-capture";
+import { NcdPackView } from "./ncd-pack-view";
 import { NcdProfileView } from "./ncd-profile";
 
 type SaveState =
@@ -104,6 +108,7 @@ export function NcdClerkship({
   siteOptions,
   pulled,
   ageBand,
+  pack,
 }: {
   catalog: NcdCatalog;
   site: SiteProfile;
@@ -130,6 +135,16 @@ export function NcdClerkship({
    * silently narrows the examination.
    */
   ageBand?: AgeBand;
+  /**
+   * The diabetes pack, when it is live (NCD_DM_PACK_LIVE): its lean data, the fields the form adds, and what the
+   * encounter knows that the form does not ask. Absent keeps the v0.1.0 verdicts.
+   */
+  pack?: {
+    data: DiabetesPack;
+    fields: string[];
+    ageYears?: number | null;
+    careSetting?: "outpatient" | "emergency" | "inpatient" | null;
+  };
 }) {
   const [values, setValues] = useState<CaptureMap>(initialValues ?? {});
   const [activeSite, setActiveSite] = useState<SiteProfile>(site);
@@ -140,6 +155,22 @@ export function NcdClerkship({
   const profile = useMemo(
     () => buildProfile({ catalog, values, site: activeSite, established, ageBand }),
     [catalog, values, activeSite, established, ageBand],
+  );
+  const packView = useMemo(
+    () =>
+      pack
+        ? buildPackView(
+            pack.data,
+            toPackInput(values, {
+              ageYears: pack.ageYears,
+              careSetting: pack.careSetting,
+              site: activeSite.id === "referral" ? "referral" : activeSite.available,
+              established: !!established,
+              packFields: pack.fields,
+            }),
+          )
+        : null,
+    [pack, values, activeSite, established],
   );
   const progress = useMemo(
     () => sectionProgress(catalog, activeSite, values),
@@ -269,7 +300,11 @@ export function NcdClerkship({
 
         {/* Profile — never leaves the screen. */}
         <div className="min-h-0 lg:overflow-y-auto lg:pr-1">
-          <NcdProfileView profile={profile} />
+          {packView ? (
+            <NcdPackView view={packView} profile={profile} />
+          ) : (
+            <NcdProfileView profile={profile} />
+          )}
         </div>
       </div>
     </div>

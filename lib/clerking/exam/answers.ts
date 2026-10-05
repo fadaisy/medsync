@@ -1,7 +1,7 @@
 import type { ExamAttribute, ExamCatalogue, ExamItem, MirrorTarget, OptionRef } from "./catalogue";
 import type { AttrValue, Blocks, ExamDraft, ExamEntry, NotExamined } from "./payload";
 
-import { appliesToSex } from "./catalogue";
+import { appliesToSex, shownWhenParts } from "./catalogue";
 
 /**
  * The examination answer model (PROMPT-CLERKING-EXAM-V2 §7 answers.ts). Pure and immutable: every
@@ -37,11 +37,15 @@ export function visibleAttributes(
       ? (item.response.options.find((o) => o.id === entry?.choice)?.attributes ?? [])
       : (item.attributes ?? []);
   const attrs = entry?.attrs ?? {};
+  // A normal finding shows only the attributes recorded on any state (EC-7).
+  const normal = entry?.state === "negative" && item.response.type !== "choice";
   return list.filter((a) => {
-    if (!appliesToSex(a, sex)) return false;
+    if (!appliesToSex(a, sex) || (normal && !a.any_state)) return false;
     if (!a.shown_when) return true;
-    const v = attrs[a.shown_when.attribute];
-    return a.shown_when.any_of.some((o) => (Array.isArray(v) ? v.includes(o) : v === o));
+    return shownWhenParts(a.shown_when).every((sw) => {
+      const v = attrs[sw.attribute];
+      return sw.any_of.some((o) => (Array.isArray(v) ? v.includes(o) : v === o));
+    });
   });
 }
 
@@ -81,7 +85,7 @@ export function setState(
   if (!item || item.response.type === "link") return d;
   const cur = d.entries[itemId];
   if (cur?.state === state) return put(d, itemId, undefined);
-  if (state === "negative") return put(d, itemId, { state });
+  // Normal keeps only what is recorded on any state (how the fundus was looked at, EC-7).
   return put(d, itemId, prune(item, { state, ...(cur?.attrs ? { attrs: cur.attrs } : {}) }));
 }
 
@@ -235,7 +239,10 @@ export function setAttr(
     const hi = a.max ?? a.range?.[1] ?? Infinity;
     attrs[attributeId] = Math.min(hi, Math.max(lo, value));
   }
-  const state: EntryState = item.response.type === "choice" ? base.state : "positive";
+  const state: EntryState =
+    item.response.type === "choice" || (a.any_state && cur?.state === "negative")
+      ? base.state
+      : "positive";
   return put(d, itemId, prune(item, { ...base, state, attrs }));
 }
 

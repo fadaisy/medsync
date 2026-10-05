@@ -1,0 +1,41 @@
+{
+ "gate": "2026 Uganda diabetes guideline (summarised version, MoH June 2026) against the pack: UG-01 to UG-46 (docs/ncd/diabetes/ug2026-vs-pack.md)",
+ "signedBy": "Fadhul (owner and Clinical Safety Officer)",
+ "signedOn": "2026-10-05",
+ "mode": "Accept all recommendations as given (the session's reply 'okay' to 'accept all recommendations, or name the ones you'd change').",
+ "follow2026": "Every UG item whose recommendation is to follow the 2026 guideline, as worded in ug2026-vs-pack.md, including the parts written as a narrower or rule-in-only version of 2026 (UG-03, UG-04, UG-05, UG-08, UG-15, UG-16, UG-19, UG-20, UG-21, UG-22, UG-24, UG-27, UG-40, UG-41, UG-46).",
+ "keepPack": [
+  "UG-14",
+  "UG-22 (insulin after two agents)",
+  "UG-32 (triage thresholds)",
+  "UG-37 (D-DM-33 stands; the 2026 sentence shown)",
+  "UG-46 (BP <130/80)"
+ ],
+ "scope": {
+  "UG-13": "Obstetric and neonatal content belongs to the antenatal/neonatal pathway, not the diabetes pack."
+ },
+ "supersedes": [
+  "D-DM-01 (default set: the 2026 guideline)",
+  "D-DM-02 (symptoms, for the default set)",
+  "D-DM-12 (universal screening in pregnancy)",
+  "D-DM-14 (mild NPDR 24-month option)",
+  "D-DM-22 (name glimepiride: by phenotype now; never glibenclamide stays)",
+  "D-DM-34 and P0-28 (lifestyle-first period)",
+  "P0-26 (UCG gestational set alongside: retired)"
+ ],
+ "alsoApplied": "D-DM-40 (sources-review §4): the 2026 guideline sets no older-adult floor, so ADA 2026 Table 13.2 applies as signed.",
+ "authorises": "The shadow build, as GATE A. Not clinical use.",
+ "raiseWithMoH": "The internal inconsistencies listed under 'Also noted' in ug2026-vs-pack.md; UG-21 (EMHSLU vs 2026 levels of care); UG-37 (dolutegravir).",
+ "applied": "Pack 0.5.0-draft (tools/build/k_ug2026.py; claims research/A15-ug2026.json; patients DMV-170 to DMV-197), 2026-10-05.",
+ "implementedNarrower": {
+  "UG-17, UG-28, UG-29": "Under 16 the pack shows recognition and referral only (D-DM-32, P0-01), so the child content is one referral-style check (DM-ACT-REFER-PAED-T1-01), not prompts or targets.",
+  "UG-09": "Pregnancy targets added (fasting <5.3, 2-hour <6.7); the 1-hour <7.8 is in the wording (no 1-hour field); no pregnancy control bands yet.",
+  "UG-20": "Triggers widened to overweight, hypertension and albuminuria; dyslipidaemia, hyperuricaemia and a >20% risk not added (no field or no defined number). Referral sites only (D-DM-21).",
+  "UG-22": "Thresholds and operators as 2026; the high-dose-steroid trigger added; 'HbA1c >=10% twice in 6-12 months' and 'contraindication to oral agents' not added (no field).",
+  "UG-24": "Class choice, loop diuretics and beta-blockers are in RX-07's wording, not flags (no medicine-class fields).",
+  "UG-26": "LDL <1.8 target in ASCVD; the <2.6 target and the 4-12-week lipid re-check are wording only.",
+  "UG-34": "Premixed insulin and sliding scale are in the flag's wording (no field).",
+  "UG-36": "Six-monthly screening on ART; 'before ART starts' not added (no field for HIV without ART).",
+  "UG-04": "Point-of-care HbA1c cannot diagnose in the 2026 set (unrecorded method reads insufficient, asking the question); the venous confirmation is a conditional prompt at sites with a laboratory."
+ }
+}

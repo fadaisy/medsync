@@ -4,6 +4,7 @@ import type { Cond, DxLive, DxProfile } from "./catalogue";
 import type { Finding, FindingRef, Viewer } from "./facts";
 
 import { evalCond } from "../exam/context";
+import { derivedReader } from "../exam/flags";
 import { onBoard } from "./board";
 import { refsOf } from "./catalogue";
 import { atomRef, canSee, gate, recordedFindings, syntheticFinding } from "./facts";
@@ -29,15 +30,23 @@ export interface EvidenceInput {
  *  viewer cannot see never fire (SI9, SI10). */
 export function atomTrue(c: Cond, i: Pick<EvidenceInput, "x" | "live" | "viewer">): boolean {
   if (refsOf(c).some((r) => !i.live.ref(r))) return false;
-  return evalCond(gate(c, i.x, i.viewer), i.x);
+  // Derived facts (IWGDF loss of protective sensation, PAD) as the examination reads them (EC-7).
+  return evalCond(gate(c, i.x, i.viewer), i.x, derivedReader(i.x));
 }
 
 /** The suggested marks of one profile: finding ref → sign. "For" wins where both would mark. */
 export function suggestedFor(
   p: DxProfile,
-  i: Pick<EvidenceInput, "x" | "live" | "viewer">,
+  i0: Pick<EvidenceInput, "x" | "live" | "viewer">,
 ): Map<FindingRef, "for" | "against"> {
   const m = new Map<FindingRef, "for" | "against">();
+  if (p.requires && !atomTrue(p.requires, i0)) return m;
+  // EC-5: results offered as evidence on a pregnancy diagnosis come from this pregnancy only.
+  const since = i0.x.patient.pregnancySince;
+  const i =
+    p.requires && "pregnancy" in p.requires
+      ? { ...i0, x: { ...i0.x, facts: i0.x.facts?.filter((f) => !!since && f.at >= since) } }
+      : i0;
   for (const e of p.suggest_against)
     if (atomTrue(e.atom, i)) {
       const r = atomRef(e.atom);

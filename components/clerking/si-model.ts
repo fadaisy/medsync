@@ -154,6 +154,8 @@ const ASK_PREFIX: Record<string, string> = {
   exam_item: "ex",
   vital: "vs",
   classifier: "cl",
+  panel: "pn",
+  past_detail: "pmh",
 };
 
 export function deriveSi(i: SiInput): SiView | null {
@@ -167,10 +169,16 @@ export function deriveSi(i: SiInput): SiView | null {
           cat: i.ecat,
           history: { cat: i.cat, answers: i.history, linked: i.linked },
           exam: emptyExam(i.ecat.version),
-          patient: { ageYears: k.ageYears, sex: k.sex, pregnant: k.exam.pregnant },
-          settings: { outbreakMode: k.outbreakMode },
-          medicines: k.medicines.map((m) => ({ name: m.name })),
+          patient: {
+            ageYears: k.ageYears,
+            sex: k.sex,
+            pregnant: k.exam.pregnant,
+            pregnancySince: k.exam.pregnancySince ?? null,
+          },
+          settings: { outbreakMode: k.outbreakMode, encounterType: k.encounterType ?? null },
+          medicines: k.medicines.map((m) => ({ name: m.name, adherence: m.adherence })),
           vitals: { ...NO_VITALS, ...k.exam.latest },
+          ...(k.facts ? { facts: k.facts, now: new Date().toISOString() } : {}),
           news2Latest: i.news2,
         }
       : null);
@@ -207,7 +215,9 @@ export function deriveSi(i: SiInput): SiView | null {
     }
     for (const t of col.row.profile?.ask ?? [])
       named.add(
-        t.kind === "red_flag" ? `sym:${t.symptom}#${t.red_flag}` : `${ASK_PREFIX[t.kind]}:${t.id}`,
+        t.kind === "red_flag"
+          ? `sym:${t.symptom}#${t.red_flag}`
+          : `${ASK_PREFIX[t.kind]}:${t.kind === "past_detail" ? t.id.replace(".", "#") : t.id}`,
       );
   }
 

@@ -513,7 +513,11 @@ export function ItemRow(p: RowProps) {
         </p>
       ) : null}
       {r.type === "measured" ||
-      (e && e.state !== "not_examined" && (e.state === "positive" || r.type === "choice")) ? (
+      (e &&
+        e.state !== "not_examined" &&
+        (e.state === "positive" ||
+          r.type === "choice" ||
+          A.visibleAttributes(item, e, p.sex).length > 0)) ? (
         <>
           <div className="max-sm:hidden">
             <AttributeBox {...p} />

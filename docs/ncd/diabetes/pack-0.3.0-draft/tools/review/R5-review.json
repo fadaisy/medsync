@@ -1,0 +1,202 @@
+[
+ {
+  "id": "K01",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-21 notWhen acu_ketones_mid_up (J03) x DM-ACU-ROUTE-02 atLeast; DM-ACU-ROUTE-24 atLeast",
+  "finding": "Ketones in the DKA range reach nothing when the person is on insulin or an SGLT2 inhibitor (or has type 1 recorded) but 'known diabetes' is not ticked and the glucose is below 11.1. ROUTE-21's notWhen hands bohb >= 1.6 / urine 2+ to 'rules 22 and 02', but ROUTE-02's context is only known diabetes, HI or glucose >= 11.1 (no insulin, sulfonylurea, SGLT2 or type 1), and ROUTE-22 stops at 3.0. Evaluator (ketgrid.py, adv.py): insulin on the list, status blank, glucose 7, bohb 3.5 or urine 3+, with or without vomiting -> NOTHING. A13 insulin, vomiting, glucose 8, urine 3+ -> nothing (ROUTE-13 and ROUTE-23 suppressed). A12b SGLT2 inhibitor, vomiting, deep breathing, glucose 9, bohb 4.2 -> only the therapy flag sglt2_during_acute_illness (ROUTE-03 and ROUTE-21 suppressed; ROUTE-24 needs known diabetes or insulin/SU). Type 1 recorded, status blank, glucose 7, bohb 3.5 -> only ROUTE-09 same_day.",
+  "why": "Euglycaemic ketoacidosis on an SGLT2 inhibitor and partly treated DKA on insulin are exactly the low-glucose presentations. The pack elsewhere accepts the medicine list as evidence of diabetes (ROUTE-13, -20, -21, -22), so a hand-off to a rule with a narrower context silences the most dangerous result (rule 4).",
+  "fix": "Give ROUTE-02 the same context as ROUTE-21/22 (known diabetes, type 1 recorded, insulin, sulfonylurea, SGLT2 inhibitor, HI or glucose >= REF-DM-ACU-DKA-GLU), per the 2024 hyperglycaemic-crises consensus already behind REF-DM-ACU-DKA-BOHB (prior diabetes qualifies at any glucose). Add the SGLT2 inhibitor and type 1 to ROUTE-24's atLeast. Build check: every notWhen that says 'rule NN applies' must imply rule NN's criterion. Vignettes: SGLT2, status blank, glucose 9, bohb 4.2 -> ROUTE-02 immediate; insulin, glucose 8, urine 3+ -> ROUTE-02."
+ },
+ {
+  "id": "K02",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-03 notWhen acu_edka_done (unchanged by J03); vignette DMV-88",
+  "finding": "On an SGLT2 inhibitor with vomiting and abdominal pain, any urine strip still clears the interrupt; R4's fix ('clear ROUTE-03 only on a blood ketone below the raised band') was not applied. Evaluator: A11 SGLT2, vomiting + pain, glucose 9, urine ketones NEG -> only the therapy flag and caveat urine_ketones_low_despite_picture; nothing routes. A12 same with deep breathing and urine trace, status blank -> ROUTE-21 same_day only. DMV-88 (vomiting + pain, glucose 9, urine trace) asserts ROUTE-21 same_day as correct.",
+  "why": "The pack's own REF-DM-VAL-URINE-KETONE says strips underestimate ketonaemia early in DKA, and its caveat fires on these very patients. A negative or trace strip in SGLT2-associated ketoacidosis is not reassurance; the interrupt is downgraded or removed by the least reliable test.",
+  "fix": "ROUTE-03 notWhen: bohb < REF-DM-ACU-KETONE-LOW only. With only a urine result, keep the rule (immediate, or same_day 'blood ketones or blood gas now' if the CSO prefers, under D-DM-37), citing REF-DM-VAL-URINE-KETONE and the SGLT2 euglycaemic-DKA source already in ROUTE-03's citation. Change DMV-88 to expect ROUTE-03; add the urine-negative twin."
+ },
+ {
+  "id": "K03",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-22 urgency 'urgent' (J03); DM-ACU-ROUTE-23; vignette DMV-86",
+  "finding": "Urgency is inverted: blood ketones 1.6-2.9 ('at risk of DKA', display 'contact the diabetes team now', proposal tier 'now') carry urgency 'urgent', which in this pack means within a window and not today (k_act.py note on EYE: \"'urgent' here means inside those windows, not today\"; CHARCOT 'urgent' = 1 working day), while the milder 0.6-1.5 band (ROUTE-21) is same_day. Vomiting never escalates. Evaluator: DMV-86 / J03a type 1, glucose 22, vomiting, bohb 2.4 -> ROUTE-22 urgent and DM-ACT-REFER-GLU-02 same_day 'Glucose 18 or more WITHOUT ketoacidosis'; nothing higher. ketgrid: known type 2, vomiting, bohb 2.0 or 2.9 -> ROUTE-22 urgent only; bohb 1.5 -> same_day. DMV-86 asserts 'urgent'.",
+  "why": "Any queue or worklist ordered by urgency puts the sicker patient behind the less sick one. ROUTE-23's own reference, REF-DM-ACU-SICKDAY-INSULIN, says 'seek urgent advice if ketones persist or the person is vomiting'; a vomiting person on insulin with bohb 2.4 is one step from DKA and the only reassuring-sounding text on screen says 'without ketoacidosis'.",
+  "fix": "ROUTE-22: urgency at least same_day (matching its 'now' tier); add an arm or companion rule: bohb >= REF-DM-ACU-KETONE-RISK (or urine 1+ in insulin/SGLT2 users) WITH vomiting -> immediate, sourced to REF-DM-ACU-SICKDAY-INSULIN / ISPAD sick-day guidance (CSO signature under D-DM-37). State the urgency order in the pack README. Fix DMV-86's expectation."
+ },
+ {
+  "id": "K04",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-26 (new, J08) and DM-ACU-ROUTE-07 (KNOWN() arm removed); DM-ACU-ROUTE-20 notWhen",
+  "finding": "Regression from J08. (a) ROUTE-26 reads a blank medicine list as 'not on insulin or a sulfonylurea': its notWhen (ISU) is insufficient, so it does not suppress, and its display asserts the negative. Evaluator A09: known diabetes, medicine list blank, glucose 3.4 -> ROUTE-26 same_day 'not on insulin or a sulfonylurea: recheck today'; before J08 the KNOWN() arm of ROUTE-07 interrupted. (b) Altered consciousness is ignored: A10 known diabetes, list blank, DROWSY, glucose 3.5 -> ROUTE-26 same_day only (ROUTE-20 suppressed because a glucose is recorded); A10b metformin only, COMA, glucose 3.5 -> ROUTE-26 same_day only.",
+  "why": "Breaches rule 2 (missing data treated as negative) and rule 4. A low glucose with drowsiness or coma is level 3 hypoglycaemia by ADA's definition (altered mental state needing help), an emergency whatever the medicine list.",
+  "fix": "ROUTE-26: fire only when glucose_lowering_therapy is recorded and contains none of insulin/sulfonylureas (use '!=' predicates on a recorded list, so a blank list leaves ROUTE-07's immediate arm in force); restore KNOWN() to ROUTE-07 for a blank list. Add an arm to ROUTE-06 or a new immediate rule: any glucose < REF-DM-HYPO-L1 with mental_status drowsy/stupor/coma (ADA level 3 definition, the claim behind REF-DM-HYPO-L1/L2). Vignettes A09, A10, A10b."
+ },
+ {
+  "id": "K05",
+  "severity": "critical",
+  "where": "60-acute-route.json DM-ACU-ROUTE-23, -13 (adult only), -04 (J06); 50-act.json DM-ACT-REFER-GLU-02 (ages)",
+  "finding": "A child on insulin who is vomiting is never asked for a glucose, and J06's 'keep immediate when nothing is measured' was not done. Evaluator: J06c 12-year-old type 1, abdominal pain, nothing measured -> only ROUTE-23 same_day 'check ketones today'. A14 10-year-old type 1, vomiting, urine ketones neg, NO glucose -> NOTHING (ROUTE-23 cleared by the strip; ROUTE-13 is adult-only; ROUTE-15/18 need deep breathing, drowsiness or dehydration). A15 10-year-old type 1, glucose 25, ketones neg -> NOTHING: PAED-03 silenced by J05, ROUTE-01 cleared, and REFER-GLU-02 (declared ages='any' in k_r4.py) is evaluated adult-only because annotate() overwrites ages with agesOverride or 'adult'.",
+  "why": "A vomiting child on insulin is at risk of both DKA and hypoglycaemia; the one-minute meter test is the first step in NICE NG18 (measure glucose and ketones when DKA is suspected in a child with known diabetes) and ISPAD sick-day guidance. Referral is permitted under 16 (rule 3), so silence is not a scope constraint.",
+  "fix": "Give ROUTE-13 a child arm (or extend ROUTE-23's proposal to glucose AND ketones, tier now for children) that clears only on a glucose recorded; per NICE NG18 rec 1.4 (REF behind ROUTE-04 notes) make it immediate when nothing is measured, as R4 asked. Set REFER-GLU-02 agesOverride 'any' (or add a child arm 'refer to the child's diabetes team today'). Vignettes J06c, A14, A15."
+ },
+ {
+  "id": "K06",
+  "severity": "major",
+  "where": "60-acute-route.json DM-ACU-ROUTE-21 (new, J03)",
+  "finding": "Fires on ordinary clinic patients and ignores a normal blood ketone. Evaluator: R1b well type 2 on metformin, HbA1c 6.8, fasting meter 6.5, urine ketones TRACE on the clinic dipstick -> ROUTE-21 same_day 'recheck within 2 hours and contact the diabetes team today'. R1c same patient on an SGLT2 inhibitor -> same. A17 urine trace with bohb 0.3 -> ROUTE-21 still fires, although its note says it 'clears only on ... blood ketones below 0.6'.",
+  "why": "Trace ketonuria on a fasting morning urine and on SGLT2 inhibitors is common; the combi-strip used for protein and glucose reports it. Rule 9: a same-day 'contact the diabetes team' on a large share of well patients will be dismissed, and with it the real sick-day signal. The blood ketone is the better test; letting the strip override it contradicts the rule's own note.",
+  "fix": "Require illness for the urine arm (vomiting, abdominal pain, acute_illness_current) or a glucose >= REF-DM-ACU-KETONE-TEST-GLU; notWhen bohb < REF-DM-ACU-KETONE-LOW. Source: Trend UK / ISPAD bands are sick-day guidance (A9-50, A9-51). Add the well-patient vignette as max_fired."
+ },
+ {
+  "id": "K07",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-REFER-GLU-02 (new, J14) display and when",
+  "finding": "'Without ketoacidosis' is claimed but only 'urine below 2+ OR bohb below 3.0' is tested. Evaluator: A18 glucose 20, urine neg, bohb 3.5 -> ROUTE-02 immediate AND GLU-02 same_day 'without ketoacidosis'. A19 glucose 20, urine 1+, deep breathing -> ROUTE-11 immediate AND GLU-02 'without ketoacidosis'. DMV-86 bohb 2.4 + vomiting -> GLU-02 'without ketoacidosis' beside ROUTE-22.",
+  "why": "Rule 10. A same-day 'no ketoacidosis' message next to an interrupt for ketoacidosis contradicts it, and DKA is a clinical/biochemical diagnosis (pH, bicarbonate) the predicates do not test.",
+  "fix": "notWhen ROUTE-02's criterion (any urine 2+ or bohb >= REF-DM-ACU-DKA-BOHB), bohb >= REF-DM-ACU-KETONE-RISK, and SIGNS(); display 'Glucose 18 or more with a ketone result below 2+'."
+ },
+ {
+  "id": "K08",
+  "severity": "major",
+  "where": "60-acute-route.json DM-ACU-ROUTE-29 vs -17 and -28; DM-ACU-ROUTE-25 vs -04 and -15; DM-ACU-ROUTE-01 in children",
+  "finding": "New rules bring back double interrupts for one event. Evaluator: A04 BP 230/130 + chest pain -> ROUTE-17 immediate AND ROUTE-29 immediate. A05 pregnant 170/115, drowsy -> ROUTE-28 immediate AND ROUTE-29 immediate. A06 15-year-old type 1, Kussmaul, no glucose -> ROUTE-15 immediate AND ROUTE-25 immediate. A06b same with glucose 22 -> ROUTE-04 immediate AND ROUTE-25 immediate, plus ROUTE-01 same_day 'test urine ketones today' for a child already being routed. A01c / A19 -> ROUTE-11 immediate plus ROUTE-21 same_day.",
+  "why": "Rule 9 and J09's stated principle (one interrupt per event); the clinician receives two interrupts with different wording for one patient.",
+  "fix": "ROUTE-29 notWhen ROUTE-17's criterion and ROUTE-28's criterion; ROUTE-25 notWhen ROUTE-04's criterion; ROUTE-15 notWhen ROUTE-25's; ROUTE-01, -21, -22 notWhen any interrupting rule's criterion. Add a build check that no vignette yields two 'immediate' items from the same condition family."
+ },
+ {
+  "id": "K09",
+  "severity": "major",
+  "where": "60-acute-route.json DM-ACU-ROUTE-04 display and when.label (J06)",
+  "finding": "J06 removed dm_status from the criterion but the display still reads '... with symptoms of diabetes, a raised glucose, ketones or known diabetes: hospital now' and when.label ends 'known diabetes'; there is no ketone predicate at all. Evaluator: J06a known type 1 child with abdominal pain -> ROUTE-04 not met, contrary to the label.",
+  "why": "Rule 10. A clinician reading the rule list believes a child with known diabetes and vomiting is interrupted; the pack now gives a same-day ketone test instead (and nothing at all once a strip is negative, K05).",
+  "fix": "Relabel to the predicates (symptoms, glucose above 11 or HI), or restore the arms the label names with the escalation R4 proposed."
+ },
+ {
+  "id": "K10",
+  "severity": "major",
+  "where": "60-acute-route.json DM-ACU-ROUTE-29 (new, J18); 01-features.json hypertensive_symptoms",
+  "finding": "J18 is partly fixed. ROUTE-29 reads only drowsiness or chest pain/stroke signs; UCG-HTN-03 (the rule's own claim) lists hypertensive encephalopathy (severe headache, confusion, seizures, visual disturbance), pulmonary oedema and acute kidney failure. hypertensive_symptoms, which DM-ACT-REFER-BP-03's display says covers breathlessness, confusion and little urine, still never routes. Evaluator: J18a / DMV-90 known type 2, BP 230/130, hypertensive_symptoms true -> REFER-BP-01 same_day only. A03 185/112 headache -> BP-01 same_day only.",
+  "why": "The feature the clinician is most likely to tick for pulmonary oedema or encephalopathy is the one that does not interrupt; UCG treats these as emergencies.",
+  "fix": "Split hypertensive_symptoms per UCG-HTN-03's list (confusion/seizures/visual disturbance, breathlessness, reduced urine output vs headache alone) and add the organ-damage items to ROUTE-29's atLeast. The urgency without organ damage stays D-DM-39."
+ },
+ {
+  "id": "K11",
+  "severity": "major",
+  "where": "60-acute-route.json DM-ACU-ROUTE-27 and -28 (new, J15)",
+  "finding": "(a) At 12 weeks the rule says 'assess for pre-eclampsia' and assigns condition pre_eclampsia (A02: 12 weeks, 142/92 -> ROUTE-27 same_day; A02b known chronic hypertension -> same). gestation_weeks is recorded but unused. (b) Postpartum is not covered: A02c 2 weeks postpartum, 165/112, headache, prior GDM -> nothing. (c) The prompt never clears: B03 pregnant 142/92 with urine protein NEG recorded -> ROUTE-27 still 'assess ... today (urine protein)'.",
+  "why": "UCG-CHTN-01: BP >140/90 before 20 weeks is chronic hypertension; UCG-PE-04: pre-eclampsia is usually diagnosed after 20 weeks and can present 4-6 weeks postpartum. Mislabelling at 12 weeks is rule 10; missing postpartum severe hypertension is a recognised maternal-death pathway in a woman the pack is already following (DM-SUS-PREG-02).",
+  "fix": "Label by gestation (chronic hypertension in pregnancy below 20 weeks, still referred for specialised antenatal care; pre-eclampsia assessment from 20 weeks) using gestation_weeks and UCG-CHTN-01/PE-04. Add a postpartum arm on postpartum_weeks within UCG-PE-04's window for the severe threshold. ROUTE-27: once urine_protein_strip is recorded, change to the result (refer if 1+ or more, UCG-PE-01/03) rather than repeating the test request."
+ },
+ {
+  "id": "K12",
+  "severity": "major",
+  "where": "10-suspect.json DM-SUS-INCID-04 (new, J17)",
+  "finding": "No pregnancy stop: A16 pregnant 26 weeks, fasting meter 6.3 -> INCID-04 routine 'repeat fasting on another day, and offer a 2-hour OGTT' beside DM-CON-PREG-04 urgent 'send a laboratory glucose'. INCID-01 and INCID-03 both carry notWhen pregnant; INCID-04 does not.",
+  "why": "In pregnancy a fasting value of 6.3 is in the WHO 2013 gestational range; 'repeat on another day' contradicts the pregnancy rule and could delay care.",
+  "fix": "Add notWhen pregnant (as INCID-03's sus_fmeter_preg)."
+ },
+ {
+  "id": "K13",
+  "severity": "major",
+  "where": "40-stratify.json targets tgt_hba1c_relaxed, tgt_hba1c_general, tgt_hba1c_older_healthy (J12); vignette DMV-96",
+  "finding": "J12 is partly fixed. (a) With a relaxed tier agreed, no HbA1c target is proposed at all: J12a / DMV-96 tier relaxed, HbA1c 7.6 -> targets fpg/ppg/bp only; R4 asked for tgt_hba1c_relaxed to apply when tier == relaxed, and DMV-96 asserts only the absences, locking in the gap. (b) With no tier recorded an older adult still gets two HbA1c targets: J12c 72-year-old, HbA1c 7.3 -> tgt_hba1c_general AND tgt_hba1c_older_healthy; J10b and DMV-100 the same.",
+  "why": "The agreed target is the one thing the clinician needs on screen; two different numbers side by side is the contradiction R4 reported.",
+  "fix": "Add 'glycaemic_target_tier == relaxed' as an arm of tgt_hba1c_relaxed's when; when no tier is recorded, show older-healthy as an alternative to the general target (one target), per R4 J12. DMV-96: expect tgt_hba1c_relaxed."
+ },
+ {
+  "id": "K14",
+  "severity": "major",
+  "where": "build/build.py run_vignette held / x.lessTreatment (J11); 50-act.json DM-ACT-RX-11",
+  "finding": "The J11 fix reads an HbA1c the pack has declared invalid and states a conclusion from it. Evaluator: B01 80-year-old, frail, gliclazide, recent transfusion (caveat hba1c_red_cell_turnover), HbA1c 6.4, fasting plasma 14 -> RX-11 fires 'HbA1c below 7.0%: likely overtreated'. B01b eGFR 22, HbA1c 6.4, meter 16 -> same.",
+  "why": "These caveats make HbA1c falsely low; the display tells the clinician the patient is overtreated while the glucose says otherwise (rule 10). R4 offered the safer alternative: an arm stating the HbA1c is not valid, with a gap.",
+  "fix": "Drop the blanket exemption; give RX-11 an arm for 'HbA1c blocked by a caveat' whose display says the HbA1c cannot be used and asks for glucose or hypoglycaemia history (needsBeforeActing), and keep the existing arm on a valid HbA1c only."
+ },
+ {
+  "id": "K15",
+  "severity": "major",
+  "where": "50-act.json DM-ACT-SCREEN-PREG-01",
+  "finding": "Fires on gestational diabetes. Evaluator: R3 routine pregnant woman with GDM on diet (dm_status known, dm_type_recorded gestational, fasting meter 5.0) -> SCREEN-PREG-01 same_day 'Pregnant with PRE-EXISTING diabetes: retinal and kidney assessment now'. The criterion is only dm_status known & pregnant.",
+  "why": "Rule 10 and rule 9: the mandated routine GDM visit gets a same-day referral for an eye and kidney work-up that applies to pre-existing diabetes (WHO 2025 recs cited by the step), not GDM.",
+  "fix": "Add notWhen dm_type_recorded == gestational (or require dm_type_recorded in type_1/type_2/other)."
+ },
+ {
+  "id": "K16",
+  "severity": "major",
+  "where": "k_r4.py RECORDED_RULE (J19); catalog 10-suspect.json and 60-acute-route.json ('op': 'recorded', 52 uses); clerking-v2/00-engine-changes.json",
+  "finding": "J19 is not fixed. The definition 'recorded means at this encounter' is a Python string that nothing reads or emits: grep finds it only in k_r4.py and the review logs; no catalog file, Design B manifest, README or engine-change entry carries it, and the engine-change spec still lists '{panel, recorded}' with no time scope.",
+  "why": "Every 'already recorded' stop (SYMP-01/02 after J02, ROUTE-01/03/13/15/18/19/20/23, PAED-01) can be satisfied by an old value, silencing the coma, ketone and symptom prompts.",
+  "fix": "Emit the definition into the catalog grammar (00-capabilities-sections.json or the README) and as an EC entry in 00-engine-changes.json with the window decided under D-DM-08; add a vignette field for value age so the evaluator can test it."
+ },
+ {
+  "id": "K17",
+  "severity": "major",
+  "where": "designb/pack-manifest.draft.json; build.py designb_rules (J20)",
+  "finding": "J20 is partly fixed. neutralProposal exists only in the pack's x for DM-ACT-SCREEN-TB-01 and DM-ACT-EDU-08; the Design B manifest the engine consumes still carries proposal test 'tb_assessment' and topic 'pregnancy_planning' (grep: 2 hits, 0 neutralProposal), because designb_rules copies x.proposal only. No build check scans proposal strings; the README does not state which fields a patient-facing surface may show.",
+  "why": "Rule 7: the restricted class rides into the engine's proposal code unchanged.",
+  "fix": "Export neutralProposal in designb_rules; extend annotate()'s leak check to proposal values; add the patient-visible-fields statement to the README."
+ },
+ {
+  "id": "K18",
+  "severity": "minor",
+  "where": "30-classify.json DM-CLS-T1-01 (J22)",
+  "finding": "Display 'Ketones now in a person with diabetes' but the criterion no longer tests diabetes. Evaluator (ketgrid): no diabetes, glucose 14, urine 3+ -> T1-01 same_day.",
+  "why": "Rule 10.",
+  "fix": "Display 'Ketones 2+ with a glucose of 11.1 or more: treat as insulin-deficient until shown otherwise'."
+ },
+ {
+  "id": "K19",
+  "severity": "minor",
+  "where": "50-act.json DM-ACT-REFER-GLU-02 x.enabled",
+  "finding": "Switched on (enabled True, enabledBy D-DM-38) while D-DM-38 is unsigned; every other decision-gated item is dark until signed. Evaluator: DMV-97 fires.",
+  "why": "Governance consistency.",
+  "fix": "Leave it on only if the CSO accepts D-DM-38 at signature; otherwise dark like the rest."
+ },
+ {
+  "id": "K20",
+  "severity": "minor",
+  "where": "60-acute-route.json DM-ACU-ROUTE-25 (new, J06)",
+  "finding": "Dehydration arm interrupts 'suspected ketoacidosis' with ketones measured normal. Evaluator B02: child type 1 with diarrhoea, dehydrated, glucose 7, bohb 0.2 -> ROUTE-25 immediate.",
+  "why": "Rule 9; the J06 complaint in a new form.",
+  "fix": "notWhen bohb < REF-DM-ACU-KETONE-LOW and glucose recorded below REF-DM-ACU-PAED-GLU for the dehydration-only arm (same_day instead)."
+ },
+ {
+  "id": "K21",
+  "severity": "minor",
+  "where": "60-acute-route.json DM-ACU-ROUTE-23 display (new)",
+  "finding": "'Never stop insulin' is management advice shown for children (ageBands None). Evaluator: J06c 12-year-old -> ROUTE-23 fires with that text.",
+  "why": "Letter of rule 3 (under 16: recognition and referral only).",
+  "fix": "For child bands, display the referral/test only; keep the sick-day sentence for adults."
+ },
+ {
+  "id": "K22",
+  "severity": "minor",
+  "where": "60-acute-route.json DM-ACU-ROUTE-24 (new, J01)",
+  "finding": "Acetone on the breath alone interrupts at a normal glucose. Evaluator B10: type 2 on metformin, acetone breath, glucose 8 -> ROUTE-24 immediate 'suspected ketoacidosis'.",
+  "why": "A subjective, often unreliable sign; rule 9.",
+  "fix": "Immediate on deep rapid breathing; acetone breath alone -> same_day ketone test (CSO, D-DM-37)."
+ },
+ {
+  "id": "K23",
+  "severity": "minor",
+  "where": "k_r4_vignettes.py DMV-92, DMV-98",
+  "finding": "DMV-92 is a 10-year-old banded 'adolescent'; DMV-98 is titled 'with gestational diabetes' but records no glucose.",
+  "why": "Vignettes should test what they say.",
+  "fix": "Band DMV-92 'child'; add the GDM glucose to DMV-98 or retitle."
+ },
+ {
+  "id": "K24",
+  "severity": "minor",
+  "where": "build/build.py preg_state (J25)",
+  "finding": "The 'child' band is treated as never pregnant; the pack does not state the band's upper age (none found in tools/build), so whether girls of 10-12 fall in it was not verifiable.",
+  "why": "Adolescent pregnancy is common in Uganda; the exemption must stop below menarche.",
+  "fix": "State the child band's upper age beside preg_state (D-DM-32 source)."
+ },
+ {
+  "id": "K25",
+  "severity": "minor",
+  "where": "50-act.json DM-ACT-REFER-GLU-02 vs DM-CON-PREG-03; inpatients",
+  "finding": "Duplicate same-day referrals: B07 pregnant, meter 19, ketones neg -> CON-PREG-03 and GLU-02; B06 inpatient on steroids, 19 -> GLU-02 'WHO PEN refers all such patients to hospital' for a person already in hospital.",
+  "why": "Rule 9 noise.",
+  "fix": "GLU-02 notWhen pregnant and notWhen care_setting == inpatient."
+ }
+]

@@ -117,8 +117,15 @@ export function parseVitalsDraft(cat: ExamCatalogue, v: VitalsDraft | undefined)
   values.rr = take("rr", parseDecimal(v.rr), v.rr);
   values.spo2 = take("spo2", parseDecimal(v.spo2), v.spo2);
   values.temp = take("temp", parseDecimal(v.temp), v.temp);
-  const g = parseDecimal(v.glucose);
-  values.glucose = take("glucose", g === null ? null : glucoseMmol(g, v.glucoseUnit), v.glucose);
+  // A meter's HI or LO (EC-6) is a reading, not a number: nothing is invented for it.
+  const meter = /^\s*(hi|lo)\s*$/i.exec(v.glucose ?? "");
+  if (meter) values.glucoseReads = meter[1]!.toUpperCase() as "HI" | "LO";
+  else {
+    const g = parseDecimal(v.glucose);
+    values.glucose = take("glucose", g === null ? null : glucoseMmol(g, v.glucoseUnit), v.glucose);
+  }
+  if (values.glucose !== null || values.glucoseReads)
+    values.glucoseContext = v.glucoseContext ?? null;
   values.weight = take("weight", parseDecimal(v.weight), v.weight);
   values.height = take("height", parseDecimal(v.height), v.height);
   values.waist = take("waist", parseDecimal(v.waist), v.waist);
@@ -129,8 +136,21 @@ export function parseVitalsDraft(cat: ExamCatalogue, v: VitalsDraft | undefined)
 export function mergeVitals(saved: VitalValues, draft: VitalValues): VitalValues {
   const out = { ...saved };
   for (const k of Object.keys(draft) as (keyof VitalValues)[])
-    if (draft[k] !== null) out[k] = draft[k];
+    if (draft[k] !== null && draft[k] !== undefined) (out as Record<string, unknown>)[k] = draft[k];
+  // A typed glucose brings its own context and HI/LO: the saved ones described another reading.
+  if (draft.glucose !== null || draft.glucoseReads) {
+    out.glucose = draft.glucose;
+    out.glucoseReads = draft.glucoseReads ?? null;
+    out.glucoseContext = draft.glucoseContext ?? null;
+  }
   return out;
+}
+
+/** What stays in the "Now" column after a set is saved: a meter's HI or LO, which is not charted
+ *  as a number (EC-6), so the note and the rules keep it at this encounter. */
+export function draftAfterSave(v: VitalsDraft | undefined): VitalsDraft | undefined {
+  if (!v || !/^\s*(hi|lo)\s*$/i.test(v.glucose ?? "")) return undefined;
+  return { glucose: v.glucose, glucoseContext: v.glucoseContext };
 }
 
 /** Air or oxygen, from General (E3: NEWS2 never asks it separately). */
@@ -187,7 +207,7 @@ export interface VitalLine {
   value: { type: "quantity"; value: number; unit: string } | { type: "coded"; code: string };
   context: Record<string, unknown>;
   fastingState?: "fasting" | "non_fasting" | "unknown";
-  challenge?: "meal";
+  challenge?: "meal" | "ogtt_75g";
   challengeMinutes?: number;
   specimen?: string;
   pointOfCare?: boolean;
@@ -224,10 +244,11 @@ export function saveLines(cat: ExamCatalogue, d: ExamDraft, readingSetId: string
   const acvpu = acvpuOf(d.blocks.consciousness);
   if (!oxygen) missing.push("air or oxygen (General, attachments)");
   if (!acvpu) missing.push("consciousness (General)");
-  if (x.glucose !== null && !v.glucoseContext) missing.push("the glucose context");
+  if ((x.glucose !== null || x.glucoseReads) && !v.glucoseContext)
+    missing.push("the glucose context");
   if (parsed.implausible.length) missing.push(`a confirm tap for ${parsed.implausible.join(", ")}`);
   if (Object.keys(parsed.errors).length) missing.push("numbers in every typed field");
-  const any = Object.values(x).some((n) => n !== null);
+  const any = Object.values(x).some((n) => typeof n === "number");
   if (!any) missing.push("at least one value");
   if (missing.length) return { ok: false, missing };
 
@@ -306,7 +327,9 @@ export function saveLines(cat: ExamCatalogue, d: ExamDraft, readingSetId: string
       fastingState: ctx === "fasting" ? "fasting" : "non_fasting",
       ...(ctx === "two_hours_after_food"
         ? { challenge: "meal" as const, challengeMinutes: 120 }
-        : {}),
+        : ctx === "two_hours_after_glucose"
+          ? { challenge: "ogtt_75g" as const, challengeMinutes: 120 }
+          : {}),
     });
   }
   const how = (m: VitalsDraft["weightMethod"]) => (m === "stated" ? "reported" : (m ?? "measured"));

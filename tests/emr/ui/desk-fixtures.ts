@@ -73,6 +73,7 @@ function base(
       patientUserId: P,
       state: "in_progress",
       open: true,
+      encounterType: "opd",
       typeWord: "Outpatient visit",
       startedAt: "2026-09-20T08:30:00.000Z",
       triageRecordId: uuid(),

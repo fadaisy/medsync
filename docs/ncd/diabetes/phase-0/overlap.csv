@@ -1,0 +1,200 @@
+pack_id,kind,live_id,relation,which_is_safer,notes
+DM-SUS-SYMP-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-SYMP-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-RISK-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-RISK-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-RISK-03,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-RISK-04,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-RISK-05,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-PREG-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-INCID-01,rule,criteria who_random_symptomatic (diagnosis.ts),different,pack,live diagnoses only on random_pg (lab); capillary not a diagnostic input
+DM-SUS-POP-HIV-01,rule,,pack_only,n/a,"live hiv_art_diabetes_at_regimen_change is aetiology, not screening"
+DM-SUS-POP-DTG-01,rule,hiv_art_diabetes_at_regimen_change (rules-aetiology.ts:368),different,pack,live needs a glucose already raised
+DM-SUS-POP-TB-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-POP-ANTIPSYCH-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-POP-PANC-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-PREG-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-PAED-01,rule,dangerSign bedwetting_new_onset (symptoms.ts:347),different,equal,"live amber ""test for diabetes today"" on new bedwetting alone"
+DM-SUS-PAED-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-POP-ANTIPSYCH-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-INCID-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-PAED-03,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-INCID-03,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-SUS-RECON-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+who_hearts_d_2020,criteriaSet,criteria set who_2019 (diagnosis.ts),different,CSO,"live WHO set: random+symptoms, FPG/OGTT/HbA1c + second_sample_confirms. Pack adds symptom route for FPG/OGTT/HbA1c, capillary (meter) criteria, capillary 12.2, HI"
+consensus_2021_remission,criteriaSet,,pack_only,n/a,live diagnose() runs one set per site (preferredCriteria); no verdict field (S-DM-02)
+ogtt_1h_idf_2024,interpretation,,pack_only,n/a,no live control table; live shows ONE interpretation table per feature (assess.ts:267-278)
+hba1c_g6pd,validityCaveat,,pack_only,n/a,live records G6PD only as haemolysis_cause
+hba1c_hiv_on_art,validityCaveat,hba1c_hiv_art (validity.ts:172),different,CSO,"same predicate (hiv_on_art present), both block. Direction live UNPREDICTABLE vs pack MASKS; under N8 masks lets an abnormal HbA1c stand outside diagnosis"
+hba1c_sickle_cell_disease,validityCaveat,hba1c_haemoglobin_variant (validity.ts:98),different,live,live covers hbss in the variant caveat as UNPREDICTABLE (blocks both ways); pack says MASKS
+hba1c_variant_trait,validityCaveat,hba1c_haemoglobin_variant (validity.ts:98),same,equal,both unpredictable+block; live also has hba1c_variant_status_unknown (warn)
+hba1c_b12_or_iron_deficiency,validityCaveat,hba1c_iron_deficiency (validity.ts:76),different,pack,"same direction (manufactures, block); pack adds B12 deficiency"
+hba1c_haematinic_or_epo,validityCaveat,hba1c_erythropoietin (validity.ts:157),different,pack,both masks+block; pack adds iron/B12 treatment
+hba1c_dapsone_or_spleen,validityCaveat,,pack_only,n/a,
+hba1c_low_egfr,validityCaveat,hba1c_dialysis (validity.ts:210),different,pack,"live: dialysis, MASKS; pack: eGFR<30 OR dialysis, UNPREDICTABLE"
+hba1c_pregnancy,validityCaveat,hba1c_pregnancy (validity.ts:188),same,equal,"SAME ID and predicate (pregnant present), unpredictable+block. Duplicate id is NOT caught by the live validator"
+glucose_acute_illness,validityCaveat,,pack_only,n/a,warn only
+glucose_tb_at_diagnosis,validityCaveat,,pack_only,n/a,warn only
+fasting_glucose_on_steroids,validityCaveat,,pack_only,n/a,warn only
+urine_ketones_low_despite_picture,validityCaveat,,pack_only,n/a,live has euglycaemic-DKA rules but no ketone-strip masking caveat
+egfr_overestimate_africa,validityCaveat,,pack_only,n/a,warn only
+egfr_not_steady_state,validityCaveat,,pack_only,n/a,
+uacr_transient,validityCaveat,,pack_only,n/a,"live DKD needs kidney_abnormality_3_months + requiresConfirmation, which partly covers it"
+fundus_undilated_direct,validityCaveat,,pack_only,n/a,"live fundus_view_obscured is ""could not see"", not ""undilated look""; no live retinopathy complication"
+abi_calcified,validityCaveat,,pack_only,n/a,live foot rules read abi<0.9/<0.4 with no >1.3 caveat
+who_chart_non_lab_in_diabetes,validityCaveat,,pack_only,n/a,
+capillary_glucose_acute_illness,validityCaveat,,pack_only,n/a,
+capillary_glucose_tb_at_diagnosis,validityCaveat,,pack_only,n/a,
+fasting_glucose_acute_illness,validityCaveat,,pack_only,n/a,
+fasting_glucose_tb_at_diagnosis,validityCaveat,,pack_only,n/a,
+egfr_in_pregnancy,validityCaveat,,pack_only,n/a,
+fundus_undilated_direct_macula,validityCaveat,,pack_only,n/a,
+uacr_count_transient,validityCaveat,,pack_only,n/a,
+hba1c_red_cell_turnover,validityCaveat,hba1c_shortened_rbc_survival (validity.ts:56),different,pack,same predicate (haemolysis|malaria_current|recent_transfusion); live MASKS vs pack UNPREDICTABLE (pack blocks both directions)
+DM-CON-PREG-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CON-PREG-03,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CON-PREG-04,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CON-PREG-05,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+type_1,classification,classification type_1 (diagnosis.ts),different,equal,"live: antibodies positive OR c_peptide==low; pack: antibodies only (C-peptide held out). Live classify() has no per-class not_met, so neverNotMet is already the live behaviour"
+DM-CLS-T1-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-T1-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-ATYP-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-PANC-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-DRUG-01,rule,glucocorticoid_hyperglycaemia_no_prior_diabetes (rules-aetiology.ts:285),different,equal,live needs a RECENT steroid start (new_or_changed_drug)
+DM-CLS-T1-03,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-T1-05,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-T1-04,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-WTLOSS-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+DM-CLS-PANC-02,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+diabetic_retinopathy,complication,feature retinopathy_stage + dangerSigns only,pack_only,n/a,"live has NO retinopathy complication (5 complications: dka, hhs, hypoglycaemia, diabetic_kidney_disease, diabetic_foot)"
+diabetic_kidney_disease:establishedBy.add,complicationAmendment,dkd_albuminuria (complications.ts:219ff),different,CSO,live: ACR>=3 + kidney_abnormality_3_months + requiresConfirmation; pack: ACR>=3 + uacr_abnormal_count>=2 (absent)
+diabetic_kidney_disease:staging.boundary,complicationAmendment,kdigo_albuminuria A3 (complications.ts:331),same,equal,live already has A3 = ACR>=30 (D-DM-17 recommendation)
+diabetic_kidney_disease:screening.start,complicationAmendment,,pack_only,n/a,"live interval 12 months, no start rule"
+diabetic_kidney_disease:monitoring.grid,complicationAmendment,,pack_only,n/a,needs S-DM-04
+diabetic_kidney_disease:staging.dipstick,complicationAmendment,kdigo_dipstick_fallback (complications.ts:374),different,pack,"live STAGES from a strip (trace→A2_strip, 1+..3+→A3_strip); pack: a positive strip is ""abnormal pending confirmation"", never a category"
+diabetic_foot:citation.reverify,complicationAmendment,iwgdf_risk (complications.ts:419ff),same,equal,live intervals 12/6/3/1 months = lower bounds of IWGDF
+diabetic_foot:rule.conflict,complicationAmendment,"lops, lops_ipswich",different,CSO,live LOPS = monofilament (lops) or Ipswich; vibration does not count (D-DM-18)
+diabetic_foot:screenedBy.add,complicationAmendment,screenedBy lops_ipswich,different,pack,pack adds ipswich_sites_missed (live lops_ipswich) and vibration_128hz
+diabetic_foot:rule.thresholds,complicationAmendment,limb_threatening_ischaemia (rules-foot.ts:1578),different,pack,live has ABI<0.4 urgent; no ABI>1.3 caveat
+diabetic_foot:rule.note,complicationAmendment,charcot_* rules (rules-foot.ts:1150-1362),different,pack,live needs neuropathy evidence + asymmetry; no 2-degree threshold anywhere in live
+who_cvd_2019_eastern_ssa,riskModel,,pack_only,n/a,live catalog has no riskModels; engine never evaluates RiskModel
+hypoglycaemia_risk_ada,riskModel,,pack_only,n/a,live catalog has no riskModels; engine never evaluates RiskModel
+hba1c_control_general,interpretation,,pack_only,n/a,no live control table; live shows ONE interpretation table per feature (assess.ts:267-278)
+hba1c_control_relaxed,interpretation,,pack_only,n/a,no live control table; live shows ONE interpretation table per feature (assess.ts:267-278)
+hba1c_control_tight,interpretation,,pack_only,n/a,no live control table; live shows ONE interpretation table per feature (assess.ts:267-278)
+fpg_control_who,interpretation,fpg_who (interpretation.ts:144),different,live,"live fpg_who is a DIAGNOSTIC scale; pack control table puts the <3.9 band in tone ""diagnostic"" (live tone for low glucose is ""low""). Live interpretations() shows ONE table per feature"
+ppg_control_who,interpretation,,pack_only,n/a,no live control table; live shows ONE interpretation table per feature (assess.ts:267-278)
+bp_systolic_who_hearts_d,interpretation,bp_systolic_ada (interpretation.ts),different,equal,"same 130 edge; live ADA has a 150 ""prompt"" band"
+bp_diastolic_who_hearts_d,interpretation,bp_diastolic_ada (interpretation.ts),different,equal,same 80 edge
+fcap_control_who,interpretation,capillary_hypo (interpretation.ts:257),different,live,"same 3.9 low edge; pack tone ""diagnostic"" for low"
+pcap_control_who,interpretation,capillary_hypo (interpretation.ts:257),different,live,as above
+DM-STR-NEURO-03,rule,"conditions autonomic_neuropathy via discriminates (postural_hypotension, resting_tachycardia)",different,equal,live ranks it in the differential; pack is a rule
+DM-STR-CKD-01,rule,"ndkd_* rules (rules-aetiology.ts:520,592)",different,equal,live reads retinopathy/ACR>=30; pack reads nephrotic/casts/rising albumin (absent features)
+DM-STR-STEROID-01,rule,,pack_only,n/a,no live suspect/confirm/classify/stratify rule
+tgt_hba1c_general,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_hba1c_relaxed,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_hba1c_tb,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_hba1c_older_healthy,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_hba1c_ckd,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_fpg_surrogate,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_ppg_surrogate,target,,pack_only,n/a,no target construct in schema (S-DM-06)
+tgt_bp,target,bp_systolic_ada/bp_diastolic_ada,different,equal,"live has an at_target band, no target construct"
+DM-ACT-TEST-HBA1C-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-SCREEN-EYE-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-SCREEN-KIDNEY-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-SCREEN-FOOT-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-SCREEN-NEURO-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-SCREEN-LIPID-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-SCREEN-PREG-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-GLU-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-VISION-01,management,dangerSign visual_pattern==sudden_loss (complication-symptoms.ts:1031),different,equal,"live red ""emergency review by an ophthalmologist"""
+DM-ACT-REFER-BP-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-EGFR-01,management,dangerSign reduced_urine_output (complication-symptoms.ts:1272),different,pack,live covers anuria (amber same-day) but not eGFR<30
+DM-ACT-REFER-EGFR-02,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-ALB-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-ALB-02,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-BP-02,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-CHOL-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-EYE-01,management,"dangerSigns retinopathy_stage (exam-eyes.ts:473), diabetic_maculopathy (:575)",different,equal,"live amber ""refer promptly"" for moderate+; no urgent/routine split"
+DM-ACT-REFER-EYE-02,management,dangerSign fundus_view_obscured (exam-eyes.ts:418),different,equal,visual acuity half absent in live
+DM-ACT-REFER-CHARCOT-01,management,charcot_active_suspected (rules-foot.ts:1150); dangerSign charcot_presentation,different,equal,
+DM-ACT-REFER-FOOT-01,management,"dangerSigns foot_infection_or_gangrene, foot_ulcer_or_inflammation; foot rules",different,equal,
+DM-ACT-REFER-PVD-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-TARGET-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-EDU-03,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-02,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-03,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-04,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-05,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-05B,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-06,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-07,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-08,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-09,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-RX-10,management,dangerSign hypoglycaemia_requiring_assistance,different,CSO,"live wording ""reduce"" (D-DM-31)"
+DM-ACT-RX-12,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-FOOT-03,management,dangerSign foot_infection_grade; wet_gangrene_of_the_foot,different,equal,
+DM-ACT-REFER-FOOT-02,management,dangerSign foot_ulcer_or_inflammation (complication-symptoms.ts:545),different,equal,
+DM-ACT-REFER-LIMB-01,management,limb_threatening_ischaemia (rules-foot.ts:1578); dangerSign leg_ischaemic_symptoms,different,equal,
+DM-ACT-RX-01B,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-TEST-ACR-01,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-EGFR-03,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-BP-03,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-EYE-03,management,dangerSign retinopathy_stage (exam-eyes.ts:473),different,equal,
+DM-ACT-RX-11B,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+DM-ACT-REFER-TARGET-02,management,,pack_only,n/a,live DIABETES_CATALOG has no management steps and no engine path evaluates ManagementStep (index.ts:62-92; assess.ts has none)
+metformin_egfr_30_44,therapyFlag,,pack_only,n/a,live has only the <30 flag
+glibenclamide_age_60,therapyFlag,glibenclamide_in_use (therapy-flags.ts:140),different,live,"live fires on ANY glibenclamide (sulfonylurea_agent==glibenclamide) and says ""consider switching to gliclazide""; pack narrows to age>=60 and needs age_years (absent in live)"
+glibenclamide_ckd,therapyFlag,glibenclamide_in_use (therapy-flags.ts:140),different,live,live action already cites ADA CKD; pack adds eGFR<60 gate
+pioglitazone_heart_failure,therapyFlag,,pack_only,n/a,needs heart_failure_known (absent); live option is tzd
+dual_ras_blockade,therapyFlag,,pack_only,n/a,needs ras_blocker (absent)
+ras_blocker_or_statin_in_pregnancy,therapyFlag,,pack_only,n/a,needs ras_blocker/on_statin (absent)
+ras_blocker_or_statin_could_conceive,therapyFlag,,pack_only,n/a,needs could_conceive (absent); restricted class
+ras_blocker_creatinine_rise,therapyFlag,,pack_only,n/a,
+ras_blocker_potassium_high,therapyFlag,,pack_only,n/a,no potassium feature in live
+sulfonylurea_with_rifampicin,therapyFlag,,pack_only,n/a,needs on_rifampicin (absent)
+sglt2_before_surgery_or_fast,therapyFlag,,pack_only,n/a,
+metformin_during_acute_illness,therapyFlag,,pack_only,n/a,acute_illness_current maps to live intercurrent_illness
+hypoglycaemia_needing_help_on_treatment,therapyFlag,dangerSign hypoglycaemia_requiring_assistance (complication-symptoms.ts:250); rule severe_hypoglycaemia_reported_history (rules-acute.ts:1395),different,CSO,"live is RED and fires without a medicine gate; its action says ""reduce the insulin or sulfonylurea"" (complication-symptoms.ts:261), a direction word D-DM-31 forbids. Pack is amber, gated on insulin/SU, wording compliant"
+dolutegravir_with_metformin,therapyFlag,,pack_only,n/a,restricted class (HIV)
+metformin_egfr_below_30,therapyFlag,metformin_low_egfr (therapy-flags.ts:117),different,pack,"SAME predicate (metformin & egfr<30). Severity live AMBER vs pack RED; live action ""Stop metformin"", pack ""contraindicated ... review today with the prescriber"""
+glibenclamide_hypoglycaemia_concern,therapyFlag,glibenclamide_in_use (therapy-flags.ts:140),different,live,pack gate uses hypo_worst_12m/food_insecurity/meals_irregular (all absent in live)
+sglt2_during_acute_illness,therapyFlag,sglt2_during_acute_illness (therapy-flags.ts:69),different,live,"SAME ID. Live: sglt2 AND (intercurrent_illness OR vomiting), action ""Stop ... check ketones even if the glucose is normal"". Pack: sglt2_inhibitor (not a live option) AND acute_illness_current only, action ""consider holding"". Duplicate id trips validator"
+other_glucose_lowering_in_pregnancy,therapyFlag,,pack_only,n/a,
+ras_blocker_potassium_6_or_more,therapyFlag,,pack_only,n/a,
+DM-ACU-ROUTE-01,rule,,pack_only,n/a,live dka_district_ketone_strip needs ketones already 2+ AND glucose >18; nothing asks for the ketone test
+DM-ACU-ROUTE-02,rule,dka_district_ketone_strip (rules-acute.ts:714); dka_ketonaemia_with_acidosis (rules-acute.ts:632),different,pack,"live fires on ketones+acidosis, or strip 2+ with glucose >18; pack on ketones (2+ / BOHB>=3) with glucose >=11.1 or known diabetes, no gas needed"
+DM-ACU-ROUTE-03,rule,sglt2_during_acute_illness flag (therapy-flags.ts:69); euglycaemic_dka_sglt2 (rules-acute.ts:1033),different,equal,live flag already says check ketones; live rule needs ketones
+DM-ACU-ROUTE-04,rule,dka_suspected_adolescent (rules-acute.ts:767),different,pack,live needs 2 of 6 signs + glucose>=11/known; pack 1 sign + symptom/glucose>11/known. Live adolescent = 10-19
+DM-ACU-ROUTE-05,rule,,pack_only,n/a,no potassium feature
+DM-ACU-ROUTE-06,rule,complication hypoglycaemia/hypo_level2 (complications.ts:188); hypoglycaemia_level2_measured (rules-acute.ts:1284),different,pack,"same threshold <3.0; live reads capillary_glucose and random_pg only; pack adds fasting/post-meal/OGTT fields, meter LO and not-resolving"
+DM-ACU-ROUTE-07,rule,hypo_level1 (complications.ts:197); hypoglycaemia_level1_measured (rules-acute.ts:1313),different,live,"live fires on <3.9 in ANYONE, and the acute interlock raises the RED hypoglycaemia emergency on level 1 (complications.ts:176-215); pack gates on diabetes/insulin/SU"
+DM-ACU-ROUTE-11,rule,"dka_suspected_adult (rules-acute.ts:573); hyperglycaemia_with_impaired_consciousness (rules-acute.ts:1497); dangerSigns deep_rapid_breathing (symptoms.ts:674), altered_mental_state (symptoms.ts:604)",different,equal,live DKA rule needs 2 signs; live single-sign danger signs fire red without glucose
+DM-ACU-ROUTE-13,rule,dangerSign vomiting (symptoms.ts:487),different,CSO,live fires RED on vomiting with known diabetes or hyperglycaemic symptoms; pack N13 says vomiting/abdominal pain alone never interrupts (same_day)
+DM-ACU-ROUTE-14,rule,hhs_suspected_bedside (rules-acute.ts:1117); complication hhs (complications.ts:128),different,pack,live needs >=33.3 plus a dehydration/cognitive sign and no Kussmaul/acetone; pack fires on >=33.3 or HI alone
+DM-ACU-ROUTE-15,rule,"dangerSigns deep_rapid_breathing, altered_mental_state",different,live,live fires at every age
+DM-ACU-ROUTE-09,rule,,pack_only,n/a,needs dm_type_recorded (absent)
+DM-ACU-ROUTE-10,rule,insulin_stopped flag (therapy-flags.ts:100),different,pack,live needs drug_change_from==insulin & kind stopped; pack insulin_omitted ≈ live treatment_omission (any diabetes treatment)
+DM-ACU-ROUTE-08,rule,,pack_only,n/a,
+DM-ACU-ROUTE-16,rule,,pack_only,n/a,
+DM-ACU-ROUTE-17,rule,"dangerSigns chest_pain (complication-symptoms.ts:1171, amber), focal_neurological_deficit (:1256, red)",different,pack,pack immediate for chest pain; live chest pain is amber
+DM-ACU-ROUTE-18,rule,,pack_only,n/a,
+DM-ACU-ROUTE-19,rule,dangerSign vomiting (symptoms.ts:487); dka_suspected_adult,different,CSO,live louder (red) than pack (same_day)
+DM-ACU-ROUTE-20,rule,dangerSign altered_mental_state (symptoms.ts:604),different,equal,"live fires on the boolean altered_mental_state, not mental_status==drowsy; pack reads mental_status"
+dka:citation.reverify,complicationAmendment,dka (complications.ts:31),same,equal,live ketones (BOHB>=3 or strip 2+) + pH<7.3/HCO3<18; severity table matches
+hhs:citation.reverify,complicationAmendment,hhs (complications.ts:128),different,pack,live establishedBy reads random_pg only and omits pH>=7.3 and the urine-strip (<2+) alternative
+hypoglycaemia:citation.reverify,complicationAmendment,hypoglycaemia (complications.ts:176),same,equal,levels <3.9/<3.0/needed help = D-DM-24
+ketosis_prone_type_2,classification,classification ketosis_prone_type_2,different,pack,live: ketosis + insulin_withdrawn_later; pack adds antibodies negative. Duplicate code not caught by the validator
+,therapyFlag,insulin_stopped (therapy-flags.ts:100),live_only,n/a,"pack equivalent is a rule (DM-ACU-ROUTE-10), not a flag"
+,therapyFlag,sulfonylurea_with_insulin (therapy-flags.ts:158),live_only,n/a,no pack counterpart
+,therapyFlag,sulfonylurea_without_warning (therapy-flags.ts:190),live_only,n/a,pack folds impaired awareness into the hypoglycaemia risk model
+,validityCaveat,hba1c_variant_status_unknown (validity.ts:127),live_only,n/a,warn when variant status not known
+,validityCaveat,hba1c_anaemia (validity.ts:142),live_only,n/a,"unpredictable, blocks; pack has no anaemia caveat"
+,validityCaveat,abacavir_lowers_hba1c (validity.ts:235),live_only,n/a,"masks, warn"
+,rule,euglycaemic_dka_* (rules-acute.ts:940-1110),live_only,n/a,pack has only DM-ACU-ROUTE-03 for SGLT2
+,rule,mixed_dka_hhs_suspected (rules-acute.ts:1230),live_only,n/a,
+,rule,"cerebral_oedema_* (rules-acute.ts:1583,1638)",live_only,n/a,in-treatment monitoring; pack excludes acute pathway
+,rule,"severe_dka_adult/adolescent (rules-acute.ts:832,884)",live_only,n/a,
+,rule,hypoglycaemia_unawareness_neuroglycopenia_first (rules-acute.ts),live_only,n/a,
+,rule,foot sepsis/osteomyelitis/necrotising rules (rules-foot.ts),live_only,n/a,pack has referral steps only

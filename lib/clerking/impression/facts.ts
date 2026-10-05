@@ -81,6 +81,11 @@ export function atomRef(c: Cond): FindingRef | null {
   if ("symptom" in c)
     return "red_flag" in c ? `sym:${c.symptom}#${c.red_flag}` : `sym:${c.symptom}`;
   if ("past_condition" in c) return `pmh:${c.past_condition}`;
+  if ("past_detail" in c) return `pmh:${c.past_detail}#${c.property}`;
+  if ("result" in c) return `res:${c.result}`;
+  if ("pregnancy" in c) return "pt:pregnancy";
+  if ("medicine_group" in c) return `mg:${c.medicine_group}`;
+  if ("derived" in c) return `dv:${c.derived}`;
   if ("family_condition" in c) return `fh:${c.family_condition}`;
   if ("medicine" in c) return `med:${c.medicine}`;
   if ("social" in c) return `soc:${c.social}`;
@@ -106,8 +111,10 @@ export function refClass(ref: FindingRef, x: ExamContext): RestrictedClass | nul
     const f = rf ? s?.red_flags.find((r) => r.id === rf) : undefined;
     return classOf(f?.sensitivity) ?? classOf(s?.sensitivity);
   }
-  if (kind === "pmh")
-    return classOf(hcat.data.past_history.conditions.find((c) => c.id === rest)?.sensitivity);
+  if (kind === "pmh") {
+    const id = rest.split("#")[0];
+    return classOf(hcat.data.past_history.conditions.find((c) => c.id === id)?.sensitivity);
+  }
   if (kind === "med")
     return classOf(
       (hcat.data.medicines.quick_picks as readonly { id: string; sensitivity?: string }[]).find(
@@ -385,6 +392,8 @@ const cap = (s: string) => {
 export function syntheticFinding(ref: FindingRef, x: ExamContext): Finding | null {
   const [kind, rest] = split(ref);
   const base = { ref, step: "07" as StepTag, positive: true, cls: null };
+  if (kind === "pt" && rest === "pregnancy")
+    return x.patient.pregnant ? { ...base, step: "01", kind: "patient", text: "Pregnant" } : null;
   if (kind === "pt")
     return rest === "age"
       ? x.patient.ageYears === null
@@ -409,9 +418,97 @@ export function syntheticFinding(ref: FindingRef, x: ExamContext): Finding | nul
       kind: "exam",
       text: rest === "pulses" ? "Peripheral pulses" : rest === "reflex" ? "Reflexes" : "Power",
     };
-  if (kind === "pn")
+  if (kind === "pn") {
+    const k = x.exam.panels?.ketones;
+    if (rest === "vs.ketones")
+      return {
+        ...base,
+        kind: "vital",
+        text: `Ketones${k?.blood !== undefined ? ` blood ${k.blood} mmol/L` : ""}${k?.urine ? ` urine ${k.urine.replace("plus", "+")}` : ""}`,
+      };
     return { ...base, kind: "exam", text: rest === "vs.both_arms" ? "BP in both arms" : rest };
+  }
+  if (kind === "res") return resultFinding(base, rest, x);
+  if (kind === "pmh" && rest.includes("#")) {
+    const [cond, prop] = rest.split("#");
+    const def = (
+      x.history.cat.data.past_history as {
+        condition_details?: Record<
+          string,
+          { label: string; properties: { id: string; label: string }[] }
+        >;
+      }
+    ).condition_details?.[cond!];
+    const v = x.history.answers.past.conditions[cond!]?.details?.[prop!];
+    const p = def?.properties.find((q) => q.id === prop);
+    if (!p || v === undefined) return null;
+    const c = x.history.cat.data.past_history.conditions.find((q) => q.id === cond);
+    return {
+      ...base,
+      step: "04",
+      kind: "past",
+      text: `${c?.label ?? cond}, ${lc(p.label)}: ${detailWords(x, cond!, prop!, v)}`,
+    };
+  }
+  if (kind === "mg") {
+    const g = x.cat.data.medicine_groups?.[rest];
+    return g ? { ...base, step: "04", kind: "medicine", text: g.label } : null;
+  }
+  if (kind === "dv")
+    return {
+      ...base,
+      step: "07",
+      kind: "exam",
+      text:
+        rest === "iwgdf_risk.lops" ? "Loss of protective sensation" : "Peripheral arterial disease",
+    };
   return null;
+}
+
+/** The words of a past-history detail answer (EC-2). */
+export function detailWords(x: ExamContext, cond: string, prop: string, v: unknown): string {
+  const def = (
+    x.history.cat.data.past_history as {
+      condition_details?: Record<
+        string,
+        { properties: { id: string; options?: Opt[]; options_ref?: string }[] }
+      >;
+    }
+  ).condition_details?.[cond]?.properties.find((q) => q.id === prop);
+  const opts =
+    def?.options ?? (def?.options_ref ? x.history.cat.data.option_sets[def.options_ref] : []) ?? [];
+  const word = (id: unknown) => lc(opts.find((o) => o.id === id)?.label ?? String(id));
+  return Array.isArray(v) ? v.map(word).join(", ") : word(v);
+}
+type Opt = { id: string; label: string };
+
+/** A result's display: the concept, the newest value, its date, age in days and trust (EC-1). */
+const RESULT_WORDS: Record<string, [string, string]> = {
+  "obs.glucose": ["Glucose", " mmol/L"],
+  "obs.hba1c": ["HbA1c", "%"],
+  "obs.uacr": ["Urine ACR", " mg/mmol"],
+  "derived.egfr": ["eGFR", " mL/min/1.73 m²"],
+  "obs.bicarbonate": ["Bicarbonate", " mmol/L"],
+  "obs.ph": ["pH", ""],
+  "derived.osmolality_effective": ["Effective osmolality", " mOsm/kg"],
+};
+
+function resultFinding(base: Omit<Finding, "kind" | "text">, concept: string, x: ExamContext) {
+  const f = [...(x.facts ?? [])]
+    .filter((r) => r.concept === concept)
+    .sort((a, b) => (a.at < b.at ? 1 : -1))[0];
+  if (!f) return null;
+  const [label, unit] = RESULT_WORDS[concept] ?? [concept, ""];
+  const days =
+    x.now && !Number.isNaN(Date.parse(x.now))
+      ? Math.max(0, Math.floor((Date.parse(x.now) - Date.parse(f.at)) / 86_400_000))
+      : null;
+  const when = `${f.at.slice(0, 10)}${days !== null ? `, ${days} days ago` : ""}`;
+  return {
+    ...base,
+    kind: "vital" as const,
+    text: `${label} ${f.comparator ?? ""}${f.value}${unit} (${when}, trust ${f.trust})`,
+  };
 }
 
 /** A score with its value, as the examination writes it ("GCS 14/15", "AMTS 7/10"). */

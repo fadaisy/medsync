@@ -1,4 +1,4 @@
-import type { Complaint, History, HistoryHeader, SymptomEntry } from "./answers";
+import type { Complaint, History, HistoryHeader, PropValue, SymptomEntry } from "./answers";
 import type { Catalogue, Option, PatientSex, Symptom } from "./catalogue";
 import type { Linked } from "./linkage";
 
@@ -303,6 +303,8 @@ export function compose(i: ComposeInput): Block[] {
     .filter((c) => h.past.conditions[c.id]?.answer === "yes")
     .map((c) => {
       const s = labelOf(since, h.past.conditions[c.id]?.since);
+      const d = conditionDetails(cat, c.id, h.past.conditions[c.id]?.details);
+      if (d) return `${lc(d)}${s ? `, known for ${lc(s)}` : ""}`;
       return `${lc(c.label)}${s ? ` (${lc(s)})` : ""}`;
     });
   const pn = conds.filter((c) => h.past.conditions[c.id]?.answer === "no").map((c) => lc(c.label));
@@ -468,3 +470,32 @@ export const SECTION_BLOCK: Record<string, BlockKey> = {
   impression: "impression",
   plan: "plan",
 };
+
+/** One condition's details (EC-2) by the catalogue's composer template: a clause whose property is
+ *  unanswered is left out with its punctuation; nothing answered, nothing written. */
+export function conditionDetails(
+  cat: Catalogue,
+  conditionId: string,
+  details: Record<string, PropValue> | undefined,
+): string | null {
+  const def = cat.details(conditionId);
+  if (!def || !details || !Object.keys(details).length) return null;
+  const GAP = "\u0000";
+  const text = def.composer.replace(/\{([a-z0-9_]+)\}/g, (_, id: string) => {
+    const p = def.properties.find((q) => q.id === id);
+    const v = details[id];
+    if (!p || v === undefined) return GAP;
+    const word = (x: string | number) => lc(labelOf(p.options, String(x)) ?? String(x));
+    const words = Array.isArray(v) ? list(v.map(word)) : word(v);
+    return `${p.phrase?.pre ?? ""}${words}${p.phrase?.post ?? ""}`;
+  });
+  const out = text
+    .replace(/\s*\(\u0000\)/g, "")
+    .replace(/[,;]\s*\u0000/g, "")
+    .replace(/\u0000\s*[,;]\s*/g, "")
+    .replace(/\s*\u0000/g, "")
+    .replace(/\s+([,;.])/g, "$1")
+    .replace(/\.$/, "")
+    .trim();
+  return out;
+}

@@ -182,6 +182,18 @@ describe.skipIf(!laneOn)("clerking examination v2 (PGlite lane)", () => {
     expect(k.exam.catalogueUrl).toMatch(/^\/api\/clerking\/exam-catalogue\?v=[0-9a-f]{16}$/);
   });
 
+  it("the glucose keeps its context, and the result atom reads the set's glucose (EC-1, EC-3)", async () => {
+    const k = (await loadDeskFor(mo, enc, { database: lane.db, clerkingV2: true }))!.payload
+      .clerking!;
+    expect(k.exam.latest.glucoseContext).toBe("two_hours_after_food");
+    expect(k.facts).toBeDefined();
+    expect(k.facts!.find((f) => f.concept === "obs.glucose")).toMatchObject({
+      value: 6.1,
+      challenge: { type: "meal", minutes: 120 },
+      pointOfCare: true,
+    });
+  });
+
   it("ACVPU C is written as obs.avpu new_confusion (CFC v1.3, 0083) and reads back as C", async () => {
     const set = saveLines(ecat, examDraft("C"), "set-2");
     if (!set.ok) throw new Error("not ok");

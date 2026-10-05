@@ -1,0 +1,224 @@
+## DM-ACU-ROUTE-01 same_day None rank None pUC None cap None unless None en None
+  when: Glucose 18 mmol/L or more, or a meter reading HI | ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi]
+  display: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  notWhen: A ketone result is already recorded | ANY[urine_ketones recorded; bohb recorded]
+  notWhen: Deep breathing, acetone on the breath, dehydration or drowsiness (an interrupting rule applies) | ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  proposal: {'kind': 'test.order', 'test': 'test.ketones_urine', 'tier': 'today'}
+## DM-ACU-ROUTE-02 immediate None rank 10 pUC None cap None unless None en None
+  when: Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI | ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-03 immediate None rank 18 pUC None cap None unless None en None
+  when: On an SGLT2 inhibitor, with any of: vomiting, abdominal pain, deep rapid breathing, acute illness, dehydration, drowsiness or worse | ALL[glucose_lowering_therapy == sglt2_inhibitor] & ANY[vomiting present; abdominal_pain present; deep_rapid_breathing present; acute_illness_current present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  display: On an SGLT2 inhibitor and unwell (vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now
+  notWhen: Blood ketones below 0.6 mmol/L (normal) | ALL[bohb < 0.6]
+  notWhen: Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more (rule 02 interrupts) | ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-04 immediate ['child', 'adolescent'] rank 7 pUC None cap None unless None en None
+  when: Any of vomiting, abdominal pain, deep rapid breathing, acetone on the breath, dehydration, drowsiness or worse; with at least one of: thirst, passing a lot of urine, weight loss, new bed-wetting, any glucose above 11 mmol/L, a meter reading HI | ANY[vomiting present; abdominal_pain present; deep_rapid_breathing present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']; acetone_breath present] & ATLEAST1[polyuria present; polydipsia present; unexplained_weight_loss present; secondary_enuresis present; glucose_meter_extreme == hi; capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11]
+  display: A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes or a glucose above 11: suspected ketoacidosis. Route now
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-05 immediate None rank 19 pUC None cap None unless None en None
+  when: Potassium 6.5 mmol/L or more | ALL[potassium >= 6.5]
+  display: Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-06 immediate None rank 1 pUC None cap None unless None en None
+  when: Any glucose below 3.0 mmol/L, a meter reading LO, or a low not resolving after treatment | ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo; hypoglycaemia_not_resolving present]
+  display: Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-07 immediate None rank 3 pUC None cap None unless None en None
+  when: Any glucose below 3.9 mmol/L in a person with diabetes, unless a recorded medicine list holds no insulin or sulfonylurea and the recorded type is not type 1 (rule 26 applies) | ANY[capillary_glucose < 3.9; random_pg < 3.9; fasting_pg < 3.9; postprandial_pg < 3.9; ogtt_1h_pg < 3.9; ogtt_2h_pg < 3.9] & ATLEAST1[glucose_lowering_therapy == insulin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; dm_type_recorded == type_1; dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. Treat now; on insulin or a sulfonylurea, or if the medicines or type are not recorded, it can come back
+  notWhen: Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts) | ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  notWhen: A recorded medicine list with no insulin or sulfonylurea, and a recorded type that is not type 1 (rule 26 applies) | ALL[glucose_lowering_therapy != insulin; glucose_lowering_therapy != glibenclamide; glucose_lowering_therapy != gliclazide; glucose_lowering_therapy != glimepiride; dm_type_recorded != type_1]
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-11 immediate ['adult', 'older_adult'] rank 13 pUC None cap None unless None en None
+  when: Any glucose 11.1 mmol/L or more (or a meter reading HI), with any of: deep rapid breathing, acetone on the breath, dehydration, drowsiness or worse | ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones
+  notWhen: Glucose 33.3 mmol/L or more or a meter reading HI (rule 14 interrupts for this patient) | ANY[capillary_glucose >= 33.3; random_pg >= 33.3; fasting_pg >= 33.3; postprandial_pg >= 33.3; ogtt_1h_pg >= 33.3; ogtt_2h_pg >= 33.3; glucose_meter_extreme == hi]
+  notWhen: Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more (rule 02 interrupts) | ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-13 same_day ['adult', 'older_adult'] rank None pUC None cap None unless None en None
+  when: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with any of: vomiting, abdominal pain, dehydration | ANY[vomiting present; abdominal_pain present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Diabetes with vomiting, abdominal pain or dehydration, and no glucose on record: capillary glucose today, and ketones if it is raised
+  notWhen: A glucose is already recorded (the other rules then read it; a meter HI or LO counts) | ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+  proposal: {'kind': 'test.order', 'test': ['test.glucose_capillary'], 'tier': 'today'}
+## DM-ACU-ROUTE-14 immediate None rank 12 pUC None cap None unless None en None
+  when: Any glucose 33.3 mmol/L or more, or a meter reading HI | ANY[capillary_glucose >= 33.3; random_pg >= 33.3; fasting_pg >= 33.3; postprandial_pg >= 33.3; ogtt_1h_pg >= 33.3; ogtt_2h_pg >= 33.3; glucose_meter_extreme == hi]
+  display: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-15 immediate None rank 22 pUC None cap None unless None en None
+  when: Deep rapid breathing, or drowsiness or worse, at any age | ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']]
+  display: Deep breathing or drowsiness, with no glucose on record: capillary glucose now
+  notWhen: A glucose is already recorded (a meter HI or LO counts) | ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+  notWhen: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) (rules 20, 24 and 25 own this patient) | ANY[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  proposal: {'kind': 'test.order', 'test': 'test.glucose_capillary', 'tier': 'now'}
+## DM-ACU-ROUTE-09 same_day None rank None pUC None cap None unless None en None
+  when: Type 1 diabetes recorded | ALL[dm_type_recorded == type_1]
+  display: Type 1 diabetes and no insulin on the medicine list: confirm they are taking it. If not, check glucose and ketones today and find out why
+  notWhen: Insulin is among the current medicines | ALL[glucose_lowering_therapy == insulin]
+  proposal: {'kind': 'test.order', 'test': ['test.glucose_capillary', 'test.ketones_urine'], 'tier': 'today'}
+## DM-ACU-ROUTE-10 same_day None rank None pUC None cap None unless None en None
+  when: Insulin stopped, missed or run out | ALL[insulin_omitted present]
+  display: Insulin stopped, missed or run out: check glucose and ketones today
+  proposal: {'kind': 'test.order', 'test': ['test.glucose_capillary', 'test.ketones_urine'], 'tier': 'today'}
+## DM-ACU-ROUTE-08 same_day ['adult', 'older_adult'] rank None pUC None cap None unless None en None
+  when: Fasting or random plasma glucose, or any meter reading, 15 mmol/L or more, with thirst, passing a lot of urine or unexplained weight loss | ANY[polyuria present; polydipsia present; unexplained_weight_loss present] & ATLEAST1[fasting_pg >= 15; random_pg >= 15; capillary_glucose >= 15]
+  display: Glucose 15 mmol/L or more with thirst, polyuria or weight loss: test urine ketones today
+  notWhen: Glucose 18 mmol/L or more (rule 01 already asks for ketones) | ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18]
+  notWhen: A ketone result is already recorded | ANY[urine_ketones recorded; bohb recorded]
+  proposal: {'kind': 'test.order', 'test': 'test.ketones_urine', 'tier': 'today'}
+## DM-ACU-ROUTE-16 same_day None rank None pUC None cap None unless None en None
+  when: Potassium 6.0 to 6.4 mmol/L | ALL[potassium >= 6.0; potassium < 6.5]
+  display: Potassium 6.0 to 6.4 mmol/L: repeat within 24 hours; if unwell or kidney function has fallen, assess in hospital
+  proposal: {'kind': 'acute_signal', 'to': 'triage', 'tier': 'today'}
+## DM-ACU-ROUTE-17 immediate None rank 15 pUC None cap None unless None en None
+  when: Chest pain, or sudden weakness, speech or facial change | ALL[chest_pain_or_stroke_symptoms present]
+  display: Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now
+  proposal: {'kind': 'acute_signal', 'to': 'triage'}
+## DM-ACU-ROUTE-18 same_day ['child', 'adolescent'] rank None pUC None cap None unless None en None
+  when: A child with dehydration, urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more | ANY[dehydration present; urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+  display: A child who is dehydrated, or has ketones in the urine, with no glucose on record: capillary glucose today
+  notWhen: A glucose is already recorded (a meter HI or LO counts) | ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+  proposal: {'kind': 'test.order', 'test': 'test.glucose_capillary', 'tier': 'today'}
+## DM-ACU-ROUTE-19 same_day ['adult', 'older_adult'] rank None pUC None cap None unless None en None
+  when: Any glucose 11.1 mmol/L or more (or a meter reading HI), with vomiting or abdominal pain | ANY[vomiting present; abdominal_pain present] & ATLEAST1[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Raised glucose with vomiting or abdominal pain: test ketones today. A second sign or ketones of 2+ makes it an emergency
+  notWhen: Deep breathing, acetone on the breath, dehydration or drowsiness (rule 11 or 14 interrupts) | ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  notWhen: A ketone result is already recorded | ANY[urine_ketones recorded; bohb recorded]
+  proposal: {'kind': 'test.order', 'test': 'test.ketones_urine', 'tier': 'today'}
+## DM-ACU-ROUTE-20 immediate None rank 20 pUC None cap None unless None en None
+  when: Drowsiness or worse, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) | ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Diabetes and drowsy or worse, with no glucose on record: capillary glucose now
+  notWhen: A glucose is already recorded (a meter HI or LO counts) | ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+  proposal: {'kind': 'test.order', 'test': 'test.glucose_capillary', 'tier': 'now'}
+## DM-ACU-ROUTE-24 immediate ['adult', 'older_adult'] rank 16 pUC None cap None unless None en None
+  when: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with deep rapid breathing, or drowsiness or worse | ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now
+  notWhen: Any glucose 11.1 mmol/L or more or a meter reading HI (rule 11 interrupts for this patient) | ANY[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  notWhen: Urine ketones 2+ or more, or blood ketones 3.0 mmol/L or more (rule 02 interrupts) | ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+  notWhen: Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts; between 3.0 and 3.9 the interrupt is folded behind the hypoglycaemia rule) | ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-21 same_day None rank None pUC None cap None unless None en None
+  when: Urine ketones trace or 1+, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) or any glucose 11.1 mmol/L or more or a meter reading HI; and vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or HI | ALL[urine_ketones in ['trace', '1plus']] & ANY[vomiting present; abdominal_pain present; acute_illness_current present; dehydration present; capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Urine ketones trace or 1+ in diabetes, when unwell or with glucose 18 or more: blood ketones or a repeat strip within 2 hours, and contact the diabetes team today
+  notWhen: Blood ketones below 0.6 mmol/L (normal) | ALL[bohb < 0.6]
+  notWhen: Blood ketones 0.6 mmol/L or more (rules 21B, 22, 30 and 02 read the blood value) | ALL[bohb >= 0.6]
+  notWhen: Deep breathing, acetone, dehydration or drowsiness (an interrupting rule applies) | ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  proposal: {'kind': 'test.repeat', 'test': 'test.ketones', 'tier': 'today'}
+## DM-ACU-ROUTE-22 same_day None rank None pUC None cap None unless None en None
+  when: Blood ketones 1.6 to below 3.0 mmol/L; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI | ALL[bohb >= 1.6; bohb < 3.0] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team today and recheck within 2 hours
+  notWhen: Vomiting (rule 30 interrupts) | ALL[vomiting present]
+  proposal: {'kind': 'refer', 'to': 'diabetes_team', 'tier': 'now'}
+## DM-ACU-ROUTE-23 same_day None rank None pUC None cap lab.ketones_blood unless None en None
+  when: Type 1 diabetes recorded, or on insulin; with vomiting or abdominal pain | ANY[vomiting present; abdominal_pain present] & ATLEAST1[dm_type_recorded == type_1; glucose_lowering_therapy == insulin]
+  display: Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose
+  notWhen: Blood ketones below 0.6 mmol/L (normal); a urine strip does not clear this (it can miss early ketoacidosis) | ALL[bohb < 0.6]
+  notWhen: Blood ketones 0.6 mmol/L or more, or urine ketones 2+ (the ketone rules read them) | ANY[bohb >= 0.6; urine_ketones in ['2plus', '3plus']]
+  notWhen: Deep breathing or acetone on the breath (rules 24 and 25 interrupt) | ANY[deep_rapid_breathing present; acetone_breath present]
+  proposal: {'kind': 'test.order', 'test': 'test.ketones', 'tier': 'today'}
+## DM-ACU-ROUTE-25 immediate ['child', 'adolescent'] rank 8 pUC None cap None unless None en None
+  when: A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), with deep rapid breathing, or drowsiness or worse | ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: A child with diabetes and deep breathing or drowsiness: suspected ketoacidosis. Route now
+  notWhen: Any glucose above 11 mmol/L or a meter reading HI (rule 04 interrupts) | ANY[capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11; glucose_meter_extreme == hi]
+  notWhen: Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts; between 3.0 and 3.9 the interrupt is folded behind the hypoglycaemia rule) | ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-26 same_day None rank None pUC None cap None unless None en None
+  when: Known diabetes, a recorded medicine list with no insulin or sulfonylurea, a recorded type that is not type 1, and any glucose below 3.9 mmol/L | ALL[dm_type_recorded != type_1; glucose_lowering_therapy != insulin; glucose_lowering_therapy != glibenclamide; glucose_lowering_therapy != gliclazide; glucose_lowering_therapy != glimepiride] & ANY[capillary_glucose < 3.9; random_pg < 3.9; fasting_pg < 3.9; postprandial_pg < 3.9; ogtt_1h_pg < 3.9; ogtt_2h_pg < 3.9] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Glucose below 3.9 mmol/L in diabetes, not on insulin or a sulfonylurea: recheck today and look for another cause
+  notWhen: Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts) | ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  notWhen: Drowsiness or worse (rule 31 interrupts) | ALL[mental_status in ['drowsy', 'stupor', 'coma']]
+  proposal: {'kind': 'test.repeat', 'test': 'test.glucose_capillary', 'tier': 'today'}
+## DM-ACU-ROUTE-27 same_day None rank None pUC None cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, with systolic 140 mmHg or more or diastolic 90 mmHg or more | ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today
+  notWhen: Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts) | ANY[bp_systolic >= 160; bp_diastolic >= 110]
+  notWhen: A urine protein result is recorded at this visit (rules 27B and 27C read it) | ANY[urine_protein_strip recorded]
+  notWhen: Headache, vomiting or organ-damage signs (rules 27D and 28B) | ANY[hypertensive_symptoms present; hypertensive_organ_damage present]
+  proposal: {'kind': 'test.order', 'test': 'test.urinalysis_dipstick', 'tier': 'today'}
+## DM-ACU-ROUTE-28 immediate None rank 4 pUC True cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, with systolic 160 mmHg or more or diastolic 110 mmHg or more | ANY[bp_systolic >= 160; bp_diastolic >= 110] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-29 immediate None rank 14 pUC None cap None unless None en None
+  when: Systolic above 180 mmHg or diastolic above 110 mmHg, with drowsiness or worse, chest pain or stroke signs, or signs of acute organ damage (confusion, seizures, visual loss, pulmonary oedema, little urine, tearing pain) | ANY[bp_systolic > 180; bp_diastolic > 110] & ATLEAST1[mental_status in ['drowsy', 'stupor', 'coma']; chest_pain_or_stroke_symptoms present; hypertensive_organ_damage present]
+  display: Blood pressure above 180/110 with drowsiness, organ-damage signs, chest pain or stroke signs: hypertensive emergency. Route now
+  notWhen: Chest pain, or sudden weakness, speech or facial change (rule 17 interrupts) | ALL[chest_pain_or_stroke_symptoms present]
+  notWhen: Pregnant (rule 28 interrupts) | ALL[pregnant present]
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-30 immediate None rank 11 pUC None cap None unless None en None
+  when: Blood ketones 1.6 to below 3.0 mmol/L, with vomiting; with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), any glucose 11.1 mmol/L or more, or a meter reading HI | ALL[bohb >= 1.6; bohb < 3.0; vomiting present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Blood ketones 1.6 to below 3.0 mmol/L with vomiting, in diabetes: ketoacidosis is developing and fluids cannot be kept down. Route now
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-31 immediate None rank 2 pUC None cap None unless None en None
+  when: Any glucose below 3.9 mmol/L, with drowsiness or worse | ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ANY[capillary_glucose < 3.9; random_pg < 3.9; fasting_pg < 3.9; postprandial_pg < 3.9; ogtt_1h_pg < 3.9; ogtt_2h_pg < 3.9]
+  display: Glucose below 3.9 mmol/L with drowsiness or worse: severe hypoglycaemia until proved otherwise. Route now
+  notWhen: Any glucose below 3.0 mmol/L or a meter reading LO (rule 06 interrupts) | ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  notWhen: On insulin or a sulfonylurea, or type 1 recorded (rule 07 interrupts) | ANY[glucose_lowering_therapy == insulin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; dm_type_recorded == type_1]
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-32 immediate ['child', 'adolescent'] rank 21 pUC None cap None unless None en None
+  when: A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with vomiting or abdominal pain | ANY[vomiting present; abdominal_pain present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose now
+  notWhen: A glucose is already recorded (the other rules read it; a meter HI or LO counts) | ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+  proposal: {'kind': 'test.order', 'test': ['test.glucose_capillary'], 'tier': 'now'}
+## DM-ACU-ROUTE-21B same_day None rank None pUC None cap None unless None en None
+  when: Blood ketones 0.6 to below 1.6 mmol/L, with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine) or any glucose 11.1 mmol/L or more or HI; and vomiting, abdominal pain, acute illness, dehydration, any glucose 18 mmol/L or more, or HI | ALL[bohb >= 0.6; bohb < 1.6] & ANY[vomiting present; abdominal_pain present; acute_illness_current present; dehydration present; capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  display: Blood ketones 0.6 to below 1.6 mmol/L in diabetes, when unwell or with glucose 18 or more: recheck within 2 hours and contact the diabetes team today
+  proposal: {'kind': 'test.repeat', 'test': 'test.ketones', 'tier': 'today'}
+## DM-ACU-ROUTE-28B immediate None rank 5 pUC True cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, with confusion, seizures, visual loss, breathlessness with crackles, little urine or tearing pain | ALL[hypertensive_organ_damage present] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-28C immediate None rank 6 pUC True cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, drowsy or worse, with systolic 140 mmHg or more or diastolic 90 mmHg or more | ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-27B same_day None rank None pUC None cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, urine protein negative | ALL[urine_protein_strip in ['neg', 'trace']] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90
+  notWhen: Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts) | ANY[bp_systolic >= 160; bp_diastolic >= 110]
+  notWhen: Headache, vomiting or organ-damage signs (rules 27D and 28B) | ANY[hypertensive_symptoms present; hypertensive_organ_damage present]
+  proposal: {'kind': 'review', 'to': 'antenatal_clinician', 'tier': 'today'}
+## DM-ACU-ROUTE-27C same_day None rank None pUC None cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, urine protein 1+ or more | ALL[urine_protein_strip in ['1plus', '2plus', '3plus']] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Raised blood pressure in pregnancy or after birth with urine protein 1+ or more: pre-eclampsia. Refer to hospital today
+  notWhen: Systolic 160 mmHg or more or diastolic 110 mmHg or more (rule 28 interrupts) | ANY[bp_systolic >= 160; bp_diastolic >= 110]
+  notWhen: Headache, vomiting or organ-damage signs (rules 27D and 28B) | ANY[hypertensive_symptoms present; hypertensive_organ_damage present]
+  proposal: {'kind': 'refer', 'to': 'hospital_obstetrics', 'tier': 'today'}
+## DM-ACU-ROUTE-34 same_day None rank None pUC None cap None unless None en None
+  when: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); vomiting; any glucose 18 mmol/L or more or a meter reading HI | ALL[vomiting present] & ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Diabetes, vomiting, glucose 18 or more: medicines may not be kept down and the hyperosmolar state can develop. Same-day review; test ketones if not done
+  notWhen: Ketones raised (blood 0.6 mmol/L or more, or urine 2+), or a sign (the ketone and interrupting rules apply) | ANY[bohb >= 0.6; urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  proposal: {'kind': 'review', 'to': 'clinician', 'tier': 'today'}
+## DM-ACU-ROUTE-28D immediate None rank 23 pUC None cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, drowsy or worse | ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Pregnant or within 6 weeks of birth and drowsy, with no blood pressure recorded: blood pressure and glucose now
+  notWhen: A blood pressure is recorded at this visit (rules 28 and 28C read it) | ANY[bp_systolic recorded; bp_diastolic recorded]
+  proposal: {'kind': 'test.order', 'test': ['bp', 'test.glucose_capillary'], 'tier': 'now'}
+## DM-ACU-ROUTE-27D same_day None rank None pUC None cap None unless None en None
+  when: Pregnant or within 6 weeks postpartum, systolic 140 mmHg or more or diastolic 90 mmHg or more, with headache, nausea or vomiting | ALL[hypertensive_symptoms present] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  display: Raised blood pressure in pregnancy or after birth with headache or vomiting: signs of pre-eclampsia. Refer to hospital today
+  notWhen: Systolic 160 mmHg or more or diastolic 110 mmHg or more, or organ-damage signs (rules 28 and 28B interrupt) | ANY[bp_systolic >= 160; bp_diastolic >= 110; hypertensive_organ_damage present]
+  proposal: {'kind': 'refer', 'to': 'hospital_obstetrics', 'tier': 'today'}
+## DM-ACU-ROUTE-24B immediate ['adult', 'older_adult'] rank 17 pUC None cap None unless None en None
+  when: Type 1 recorded, or on insulin or an SGLT2 inhibitor; with acetone on the breath or dehydration | ANY[acetone_breath present; dehydration present] & ATLEAST1[dm_type_recorded == type_1; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor]
+  display: Type 1, insulin or an SGLT2 inhibitor, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now
+  notWhen: Blood ketones below 0.6 mmol/L (normal) | ALL[bohb < 0.6]
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-25B immediate ['child', 'adolescent'] rank 9 pUC None cap None unless None en None
+  when: A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), with acetone on the breath or dehydration | ANY[acetone_breath present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: A child with diabetes and acetone on the breath or dehydration: suspected ketoacidosis. Route now
+  notWhen: Blood ketones below 0.6 mmol/L (normal) | ALL[bohb < 0.6]
+  notWhen: Any glucose above 11 mmol/L or a meter reading HI (rule 04 interrupts) | ANY[capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11; glucose_meter_extreme == hi]
+  proposal: {'kind': 'acute.route', 'to': 'triage', 'tier': 'now'}
+## DM-ACU-ROUTE-23D same_day None rank None pUC None cap None unless lab.ketones_blood en None
+  when: Type 1 recorded, or on insulin; with vomiting or abdominal pain | ANY[vomiting present; abdominal_pain present] & ATLEAST1[dm_type_recorded == type_1; glucose_lowering_therapy == insulin]
+  display: Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now, repeat in 2 hours, and refer if vomiting continues or ketones rise
+  notWhen: Urine ketones 2+ or a sign (the ketoacidosis rules interrupt) | ANY[urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  proposal: {'kind': 'test.order', 'test': 'test.ketones_urine', 'tier': 'now'}
+## DM-ACU-ROUTE-34B same_day None rank None pUC None cap None unless None en None
+  when: Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); acutely unwell; any glucose 18 mmol/L or more or a meter reading HI | ALL[acute_illness_current present] & ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  display: Diabetes, acutely unwell, glucose 18 or more: same-day review (the hyperosmolar state can develop without vomiting)
+  notWhen: Vomiting, raised ketones or a sign (rule 34 or an interrupting rule applies) | ANY[vomiting present; bohb >= 0.6; urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  proposal: {'kind': 'review', 'to': 'clinician', 'tier': 'today'}

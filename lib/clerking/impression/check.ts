@@ -2,6 +2,7 @@ import type { Catalogue } from "../catalogue";
 import type { ExamCatalogue } from "../exam/catalogue";
 import type { AskTarget, Cond, DxCatalogue, DxProfile, RestrictedClass } from "./catalogue";
 
+import { RESULT_CONCEPTS } from "../exam/context";
 import { RESTRICTED_CLASSES } from "./catalogue";
 
 /**
@@ -98,6 +99,26 @@ export function dxCatalogueProblems(i: CheckInput): CheckResult {
     for (const r of JSON.stringify(c).matchAll(/"result":"([a-z0-9_]+)"/g)) ids.add(r[1]!);
     return ids;
   };
+  // EC-2: past-history details (condition → property → option ids; a year has none).
+  const details = (cat.data.past_history as { condition_details?: unknown }).condition_details as
+    | Record<
+        string,
+        { properties: { id: string; options?: { id: string }[]; options_ref?: string }[] }
+      >
+    | undefined;
+  const detailOptions = (cond: string, prop: string): Set<string> | null => {
+    const p = details?.[cond]?.properties.find((x) => x.id === prop);
+    if (!p) return null;
+    const opts = p.options ?? (p.options_ref ? cat.data.option_sets[p.options_ref] : []) ?? [];
+    return new Set(opts.map((o) => o.id));
+  };
+  const panels = (exam.data.vital_signs.panels ?? []) as {
+    id: string;
+    fields?: (string | { id: string; options?: { id: string }[] })[];
+  }[];
+  const glucoseContexts = new Set(
+    exam.data.vital_signs.fields.find((f) => f.id === "vs.glucose")?.qualifiers?.context ?? [],
+  );
   const grids = {
     power: new Set(exam.grids.power.map((r) => r.movement)),
     reflex: new Set(exam.grids.reflexes.map((r) => r.reflex)),
@@ -190,14 +211,54 @@ export function dxCatalogueProblems(i: CheckInput): CheckResult {
         problems.push(`${where}: unknown score ${c.score}`);
     } else if ("vital" in c) {
       if (!VITALS.has(String(c.vital))) problems.push(`${where}: unknown vital ${c.vital}`);
+      if ("context" in c && (c.vital !== "vs.glucose" || !glucoseContexts.has(String(c.context))))
+        problems.push(`${where}: unknown context ${c.vital}(${c.context})`);
     } else if ("grid" in c) {
       const g = grids[String(c.grid)];
       if (!g) problems.push(`${where}: unknown grid ${c.grid}`);
       else if (Array.isArray(c.rows))
         for (const r of c.rows as string[])
           if (!g.has(r)) problems.push(`${where}: unknown ${c.grid} row ${r}`);
+    } else if ("result" in c) {
+      if (!(RESULT_CONCEPTS as readonly string[]).includes(String(c.result)))
+        problems.push(`${where}: unknown result concept ${c.result}`);
+      if (!["gte_ref", "gt_ref", "lt_ref", "lte_ref"].some((k) => k in c))
+        problems.push(`${where}: result atom without a limit`);
+    } else if ("pregnancy" in c) {
+      if (!["current", "not_pregnant", "unknown"].includes(String(c.pregnancy)))
+        problems.push(`${where}: unknown pregnancy state ${c.pregnancy}`);
+    } else if ("past_detail" in c) {
+      const opts = detailOptions(String(c.past_detail), String(c.property));
+      if (!opts) problems.push(`${where}: unknown past detail ${c.past_detail}#${c.property}`);
+      else
+        for (const o of [c.equals, ...((c.any_of ?? c.includes_any ?? []) as unknown[])])
+          if (typeof o === "string" && !opts.has(o))
+            problems.push(`${where}: unknown option ${c.past_detail}#${c.property}=${o}`);
+    } else if ("medicine_group" in c) {
+      if (!exam.data.medicine_groups?.[String(c.medicine_group)])
+        problems.push(`${where}: unknown medicine group ${c.medicine_group}`);
+    } else if ("derived" in c) {
+      if (!["iwgdf_risk.lops", "iwgdf_risk.pad"].includes(String(c.derived)))
+        problems.push(`${where}: unknown derived fact ${c.derived}`);
+    } else if ("setting" in c) {
+      const ok = Array.isArray(c.setting)
+        ? c.setting.every((s) => typeof s === "string")
+        : c.setting === "outbreak_mode";
+      if (!ok) problems.push(`${where}: unknown setting ${JSON.stringify(c.setting)}`);
     } else if ("panel" in c) {
-      if (c.panel !== "vs.both_arms") problems.push(`${where}: unknown panel ${c.panel}`);
+      const pn = panels.find((p) => p.id === c.panel);
+      if (!pn || (c.panel !== "vs.both_arms" && c.panel !== "vs.ketones"))
+        problems.push(`${where}: unknown panel ${c.panel}`);
+      else if ("field" in c) {
+        const f = pn.fields?.find((x) => typeof x === "object" && x.id === c.field) as
+          | { options?: { id: string }[] }
+          | undefined;
+        if (!f) problems.push(`${where}: unknown panel field ${c.panel}.${c.field}`);
+        else
+          for (const o of (c.any_of ?? []) as string[])
+            if (!f.options?.some((x) => x.id === o))
+              problems.push(`${where}: unknown option ${c.panel}.${c.field}=${o}`);
+      }
     } else if ("patient" in c) {
       if (!["age_gte", "age_lt", "sex"].includes(String(c.patient)))
         problems.push(`${where}: unknown patient atom ${c.patient}`);
@@ -217,8 +278,8 @@ export function dxCatalogueProblems(i: CheckInput): CheckResult {
       out.push(s?.sensitivity ?? "");
       if ("red_flag" in c)
         out.push(s?.red_flags.find((f) => f.id === c.red_flag)?.sensitivity ?? "");
-    } else if ("past_condition" in c)
-      out.push(past.get(String(c.past_condition))?.sensitivity ?? "");
+    } else if ("past_condition" in c || "past_detail" in c)
+      out.push(past.get(String(c.past_condition ?? c.past_detail))?.sensitivity ?? "");
     else if ("medicine" in c) out.push(picks.get(String(c.medicine))?.sensitivity ?? "");
     else if ("social" in c && c.social === "substances")
       out.push((social.other_substances as { sensitivity?: string })?.sensitivity ?? "");
@@ -260,6 +321,14 @@ export function dxCatalogueProblems(i: CheckInput): CheckResult {
       case "classifier":
         if (!classifiers[a.id]) problems.push(`${where}: unknown classifier ${a.id}`);
         return;
+      case "panel":
+        if (!panels.some((p) => p.id === a.id)) problems.push(`${where}: unknown panel ${a.id}`);
+        return;
+      case "past_detail": {
+        const [cond, prop] = a.id.split(".");
+        if (!detailOptions(cond!, prop!)) problems.push(`${where}: unknown past detail ${a.id}`);
+        return;
+      }
     }
   };
 
@@ -295,6 +364,7 @@ export function dxCatalogueProblems(i: CheckInput): CheckResult {
     for (const a of p.ask) ask(`${w} ask`, a);
     for (const id of p.tests_to_decide) (i.tests.has(id) ? testsExisting : testsProposed).add(id);
     for (const id of p.related) if (!profiles.has(id)) problems.push(`${w}: unknown related ${id}`);
+    if (p.requires) atom(`${w} requires`, p.requires);
     if (p.severity.kind === "named_scale" && !dx.scale(p.severity.id))
       problems.push(`${w}: unknown named scale ${p.severity.id}`);
     if (
@@ -316,8 +386,12 @@ export function dxCatalogueProblems(i: CheckInput): CheckResult {
         problems.push(`${r.id}: must_not_miss_first ${id} not in suggest`);
     if (!sources.has(r.source)) problems.push(`${r.id}: unknown source ${r.source}`);
   }
-  for (const [id, e] of Object.entries(dx.data.reference_entries))
-    if (!sources.has(e.source)) problems.push(`${id}: unknown source ${e.source}`);
+  for (const [id, e] of Object.entries(dx.data.reference_entries)) {
+    // An entry with no source or no value is a product setting awaiting the CSO (D-DM-08).
+    if (e.source === null || e.value === null) {
+      if (e.status !== "needs-cso") problems.push(`${id}: no source or value, not needs-cso`);
+    } else if (!sources.has(e.source)) problems.push(`${id}: unknown source ${e.source}`);
+  }
   const sexRule = dx.data.engine_rules.sex_specific;
   for (const id of [...sexRule.female_only, ...sexRule.male_only])
     if (!profiles.has(id)) problems.push(`sex_specific: unknown diagnosis ${id}`);

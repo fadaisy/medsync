@@ -1,0 +1,304 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "data/prescribing/drug-catalogue.v0.json",
+ "note": "MS-RX-CAT-001 holds classes and generic names only. Every dose stays 'to-verify' until verified from a primary source with a verbatim quote and CSO-signed. This list adds names; it adds no dose.",
+ "incomplete": "These entries name the drug and its class and nothing more. The live entry shape (routes, renal flag, high-alert flag, chart rule, dose skeleton) was not visible. Phase 0 completes each one, and until it does: the kidney check does not run for the new medicines, insulin aspart is not marked high-alert, and glimepiride does not open the glucose chart. The chart rule moves from 'oral_glucose_lowering' to the sulfonylurea class, and the old class is retired explicitly, not left dangling (review G24).",
+ "classes": [
+  {
+   "id": "sulfonylurea",
+   "label": "Sulfonylurea",
+   "split_from": "oral_glucose_lowering",
+   "why": "Hypoglycaemia checks, the rifampicin interaction and the age-60 flag are class-specific."
+  },
+  {
+   "id": "biguanide",
+   "label": "Biguanide",
+   "split_from": "oral_glucose_lowering",
+   "why": "The eGFR checks are metformin-specific."
+  },
+  {
+   "id": "sglt2_inhibitor",
+   "label": "SGLT2 inhibitor",
+   "why": "On the WHO Model List since 2021; dapagliflozin added to EMHSLU 2023."
+  },
+  {
+   "id": "dpp4_inhibitor",
+   "label": "DPP-4 inhibitor",
+   "why": "WHO 2018 alternative where insulin is unsuitable."
+  },
+  {
+   "id": "glp1_receptor_agonist",
+   "label": "GLP-1 receptor agonist",
+   "why": "WHO Model List 2025 (semaglutide) for type 2 diabetes with cardiovascular or kidney disease and BMI 30 or more."
+  },
+  {
+   "id": "thiazolidinedione",
+   "label": "Thiazolidinedione",
+   "why": "WHO 2018 alternative; the heart-failure flag needs the class."
+  }
+ ],
+ "drugs": [
+  {
+   "id": "glimepiride",
+   "generic": "Glimepiride",
+   "class": "sulfonylurea",
+   "source": "A1-31",
+   "emhslu2023": "primary care (secondary source)"
+  },
+  {
+   "id": "gliclazide",
+   "generic": "Gliclazide",
+   "class": "sulfonylurea",
+   "source": "A1-30",
+   "emhslu2023": "added 2023; tertiary (secondary source)",
+   "exists": true
+  },
+  {
+   "id": "glibenclamide",
+   "generic": "Glibenclamide",
+   "class": "sulfonylurea",
+   "source": "A1-29",
+   "emhslu2023": "DELETED in 2023",
+   "exists": true,
+   "flag": "Keep the entry (patients still take it) and set onEmhsluDraft false. See D-DM-22."
+  },
+  {
+   "id": "metformin",
+   "generic": "Metformin",
+   "class": "biguanide",
+   "source": "A2-51",
+   "exists": true
+  },
+  {
+   "id": "dapagliflozin",
+   "generic": "Dapagliflozin",
+   "class": "sglt2_inhibitor",
+   "source": "A1-30",
+   "emhslu2023": "added 2023; tertiary (secondary source)"
+  },
+  {
+   "id": "empagliflozin",
+   "generic": "Empagliflozin",
+   "class": "sglt2_inhibitor",
+   "source": "A2-48",
+   "emhslu2023": "not confirmed"
+  },
+  {
+   "id": "vildagliptin",
+   "generic": "Vildagliptin",
+   "class": "dpp4_inhibitor",
+   "source": "A1-31",
+   "emhslu2023": "tertiary (secondary source)"
+  },
+  {
+   "id": "sitagliptin",
+   "generic": "Sitagliptin",
+   "class": "dpp4_inhibitor",
+   "source": "A1-43",
+   "emhslu2023": "not confirmed"
+  },
+  {
+   "id": "pioglitazone",
+   "generic": "Pioglitazone",
+   "class": "thiazolidinedione",
+   "source": "A1-31",
+   "emhslu2023": "tertiary (secondary source)"
+  },
+  {
+   "id": "semaglutide",
+   "generic": "Semaglutide",
+   "class": "glp1_receptor_agonist",
+   "source": "A2-49",
+   "emhslu2023": "not listed"
+  },
+  {
+   "id": "insulin_aspart",
+   "generic": "Insulin aspart",
+   "class": "insulin",
+   "source": "A1-30",
+   "emhslu2023": "added 2023"
+  },
+  {
+   "id": "insulin_biphasic_aspart",
+   "generic": "Biphasic insulin aspart",
+   "class": "insulin",
+   "source": "A1-30",
+   "emhslu2023": "added 2023"
+  },
+  {
+   "id": "bendroflumethiazide",
+   "generic": "Bendroflumethiazide",
+   "class": "diuretic.thiazide",
+   "source": null,
+   "why": "A history quick pick with no formulary entry (briefing 7.3)."
+  }
+ ],
+ "diagnosisLinks": [
+  {
+   "dx": "dx.dm_type2",
+   "add": [
+    "biguanide",
+    "sulfonylurea",
+    "sglt2_inhibitor",
+    "dpp4_inhibitor",
+    "glp1_receptor_agonist",
+    "thiazolidinedione",
+    "arb"
+   ],
+   "keep": [
+    "insulin",
+    "statin",
+    "acei"
+   ],
+   "note": "No antiplatelet link: it is for secondary prevention only and would show on every type 2 card (review G25)."
+  },
+  {
+   "dx": "dx.diabetic_kidney_disease",
+   "add": [
+    "acei",
+    "arb",
+    "sglt2_inhibitor",
+    "statin"
+   ]
+  },
+  {
+   "dx": "dx.diabetic_neuropathy",
+   "add": [
+    "gabapentinoid",
+    "snri",
+    "tricyclic_antidepressant"
+   ],
+   "status": "hold",
+   "note": "Classes named by ADA. Held: the classes may not exist in the formulary and this pack adds no drugs to them. No opioid link."
+  },
+  {
+   "dx": "dx.gestational_diabetes",
+   "add": [
+    "biguanide",
+    "insulin"
+   ],
+   "note": "WHO 2025: metformin or insulin. Specialist-led."
+  }
+ ],
+ "prescribingChecks": [
+  {
+   "id": "check.metformin_egfr",
+   "outcome": "stop",
+   "when": "metformin and latest eGFR below REF-DM-RX-METFORMIN-STOP-EGFR",
+   "ref": "REF-DM-RX-METFORMIN-STOP-EGFR",
+   "status": "proposed",
+   "note": "The kidney check today reads only the latest creatinine and has no eGFR threshold. This check runs when a prescription is written; the catalog's red therapy flag metformin_egfr_below_30 covers the person already taking it."
+  },
+  {
+   "id": "check.metformin_egfr_start",
+   "outcome": "check",
+   "when": "new metformin prescription and latest eGFR below REF-DM-RX-METFORMIN-NOSTART-EGFR",
+   "ref": "REF-DM-RX-METFORMIN-NOSTART-EGFR",
+   "status": "proposed"
+  },
+  {
+   "id": "check.metformin_no_egfr",
+   "outcome": "check",
+   "when": "metformin and no eGFR in the last 12 months, at a site that has lab.creatinine",
+   "ref": "REF-DM-KID-SCREEN-INTERVAL",
+   "status": "proposed",
+   "note": "Where the site has no creatinine the check would fire for ever: there it is shown once as 'kidney function not known; refer for creatinine'."
+  },
+  {
+   "id": "check.glibenclamide_age",
+   "outcome": "check",
+   "when": "glibenclamide and age at or above REF-DM-RX-GLIB-AGE",
+   "ref": "REF-DM-RX-GLIB-AGE",
+   "status": "proposed"
+  },
+  {
+   "id": "check.ras_pregnancy",
+   "outcome": "stop",
+   "when": "ACE inhibitor or ARB and a current pregnancy fact",
+   "ref": "REF-DM-CVD-PREG-CONTRA",
+   "status": "proposed"
+  },
+  {
+   "id": "check.statin_pregnancy",
+   "outcome": "check",
+   "when": "statin and a current pregnancy fact",
+   "ref": "REF-DM-CVD-PREG-CONTRA",
+   "status": "proposed",
+   "note": "ADA: stopped in most circumstances, not an absolute contraindication."
+  },
+  {
+   "id": "check.glucose_lowering_pregnancy",
+   "outcome": "check",
+   "when": "a sulfonylurea, SGLT2 inhibitor, GLP-1 receptor agonist, DPP-4 inhibitor or pioglitazone and a current pregnancy fact",
+   "ref": "REF-DM-RX-PREG",
+   "status": "proposed"
+  },
+  {
+   "id": "check.dual_ras",
+   "outcome": "stop",
+   "when": "ACE inhibitor and ARB both active",
+   "ref": "REF-DM-CVD-RASI-ALBUMINURIA",
+   "status": "proposed"
+  },
+  {
+   "id": "check.ras_monitoring",
+   "outcome": "note",
+   "when": "new or increased ACE inhibitor or ARB: propose creatinine and potassium in 2 to 4 weeks",
+   "ref": "REF-DM-KID-RASI-CHECK",
+   "status": "proposed"
+  },
+  {
+   "id": "check.sglt2_egfr",
+   "outcome": "check",
+   "when": "new SGLT2 inhibitor and eGFR below REF-DM-RX-SGLT2-EGFR",
+   "ref": "REF-DM-RX-SGLT2-EGFR",
+   "status": "proposed"
+  },
+  {
+   "id": "check.pioglitazone_hf",
+   "outcome": "stop",
+   "when": "pioglitazone and heart failure on the problem list",
+   "ref": "REF-DM-RX-PIO-HF",
+   "status": "proposed"
+  },
+  {
+   "id": "check.sulfonylurea_rifampicin",
+   "outcome": "note",
+   "when": "sulfonylurea and rifampicin both active",
+   "ref": "REF-DM-RX-TB-RIFAMPICIN",
+   "status": "proposed",
+   "restrictedClass": "tb"
+  },
+  {
+   "id": "check.insulin_glucagon",
+   "outcome": "note",
+   "when": "insulin prescribed and no glucagon or hypoglycaemia plan recorded",
+   "ref": "REF-DM-RX-GLUCAGON",
+   "status": "proposed"
+  }
+ ],
+ "chartRules": [
+  {
+   "id": "chart.glucose.sglt2_unwell",
+   "status": "proposed",
+   "when": "SGLT2 inhibitor active and the patient is admitted",
+   "opens": "glucose chart with a ketone row",
+   "ref": "REF-DM-RX-SGLT2-HOLD"
+  },
+  {
+   "id": "chart.glucose.steroid",
+   "status": "proposed",
+   "when": "systemic steroid prescribed to an inpatient",
+   "opens": "glucose chart, readings after lunch or before the evening meal",
+   "ref": "REF-DM-SUS-STEROID"
+  }
+ ]
+}

@@ -1,0 +1,1124 @@
+{
+ "generatedFrom": "MS-NCD-DM-PACK-001 catalog/00-capabilities-sections.json, catalog/01-features.json",
+ "capabilities": [
+  {
+   "code": "lab.ogtt",
+   "display": "75 g oral glucose tolerance test",
+   "tier": "basic_lab"
+  },
+  {
+   "code": "lab.lipids",
+   "display": "Lipid profile",
+   "tier": "basic_lab"
+  },
+  {
+   "code": "imaging.plain_xray",
+   "display": "Plain X-ray",
+   "tier": "imaging"
+  }
+ ],
+ "sections": [
+  {
+   "id": "risk_context",
+   "display": "Who to test",
+   "order": 11,
+   "description": "Reasons to test a person who does not have known diabetes.",
+   "groups": [
+    {
+     "id": "rc_person",
+     "display": "The person",
+     "order": 1
+    },
+    {
+     "id": "rc_medicines",
+     "display": "Medicines",
+     "order": 2
+    },
+    {
+     "id": "rc_conditions",
+     "display": "Other conditions",
+     "order": 3
+    },
+    {
+     "id": "rc_pregnancy",
+     "display": "Pregnancy",
+     "order": 4
+    }
+   ]
+  },
+  {
+   "id": "classification",
+   "display": "Type of diabetes",
+   "order": 12,
+   "description": "What separates the types. Recorded, never inferred from build alone."
+  },
+  {
+   "id": "control",
+   "display": "Control and targets",
+   "order": 13,
+   "description": "The measure, its date, and the target agreed with the patient."
+  },
+  {
+   "id": "eye",
+   "display": "Eyes",
+   "order": 14,
+   "description": "Visual acuity, retinal view and grade."
+  },
+  {
+   "id": "nerves",
+   "display": "Nerves",
+   "order": 15,
+   "description": "Sensation, reflexes and autonomic symptoms."
+  },
+  {
+   "id": "cardiovascular",
+   "display": "Heart and vessels",
+   "order": 16,
+   "description": "Blood pressure, lipids, tobacco and cardiovascular risk."
+  },
+  {
+   "id": "care_processes",
+   "display": "Checks due",
+   "order": 17,
+   "description": "When each routine check was last done."
+  },
+  {
+   "id": "therapy_context",
+   "display": "Treatment context",
+   "order": 18,
+   "description": "What the person takes and what bears on its safety."
+  }
+ ],
+ "features": [
+  {
+   "code": "age_years",
+   "display": "Age",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "years",
+   "section": "status"
+  },
+  {
+   "code": "gestation_weeks",
+   "display": "Gestation",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "weeks",
+   "section": "risk_context",
+   "parent": "pregnant"
+  },
+  {
+   "code": "ogtt_1h_pg",
+   "display": "1-hour plasma glucose (75 g OGTT)",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "requires": "lab.ogtt",
+   "section": "glycaemia"
+  },
+  {
+   "code": "capillary_glucose_context",
+   "display": "When was it taken",
+   "kind": "investigation",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "random",
+     "display": "Random"
+    },
+    {
+     "value": "fasting",
+     "display": "Fasting"
+    },
+    {
+     "value": "two_hours_after_glucose",
+     "display": "2 hours after 75 g glucose"
+    },
+    {
+     "value": "two_hours_after_food",
+     "display": "2 hours after food"
+    }
+   ],
+   "section": "glycaemia",
+   "parent": "capillary_glucose"
+  },
+  {
+   "code": "hypertension_known",
+   "display": "Known hypertension or on treatment for it",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "history"
+  },
+  {
+   "code": "smoking_current",
+   "display": "Currently uses tobacco",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "history"
+  },
+  {
+   "code": "c_peptide_pmol",
+   "display": "C-peptide (random, with glucose)",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "pmol/L",
+   "requires": "lab.c_peptide",
+   "section": "classification"
+  },
+  {
+   "code": "potassium",
+   "display": "Potassium",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "requires": "lab.electrolytes",
+   "section": "kidney"
+  },
+  {
+   "code": "haematuria_strip",
+   "display": "Blood on urine strip",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "requires": "lab.urine_dipstick",
+   "section": "kidney"
+  },
+  {
+   "code": "total_cholesterol",
+   "display": "Total cholesterol",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "requires": "lab.lipids",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "ldl_cholesterol",
+   "display": "LDL cholesterol",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "requires": "lab.lipids",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "triglycerides",
+   "display": "Triglycerides",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "requires": "lab.lipids",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "heart_failure_known",
+   "display": "Known heart failure",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "history"
+  },
+  {
+   "code": "cough_over_2_weeks",
+   "display": "Cough for more than 2 weeks",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "symptoms",
+   "group": "skin_and_healing"
+  },
+  {
+   "code": "alcohol_harmful",
+   "display": "Harmful alcohol use",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "history"
+  },
+  {
+   "code": "care_setting",
+   "display": "Where the patient is being seen",
+   "kind": "history",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "outpatient",
+     "display": "Outpatient"
+    },
+    {
+     "value": "emergency",
+     "display": "Emergency"
+    },
+    {
+     "value": "inpatient",
+     "display": "Inpatient"
+    }
+   ],
+   "section": "risk_context",
+   "group": "rc_person"
+  },
+  {
+   "code": "prior_gdm",
+   "display": "Gestational diabetes in a previous pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_pregnancy",
+   "restrictedClass": "sexual_reproductive_health"
+  },
+  {
+   "code": "postpartum_weeks",
+   "display": "Weeks since the birth",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "weeks",
+   "section": "risk_context",
+   "parent": "prior_gdm"
+  },
+  {
+   "code": "prior_intermediate_hyperglycaemia",
+   "display": "Previously told blood sugar was borderline",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_person"
+  },
+  {
+   "code": "months_since_glucose_test",
+   "display": "Months since the last glucose or HbA1c test",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "risk_context",
+   "group": "rc_person"
+  },
+  {
+   "code": "on_glucocorticoid",
+   "display": "On recurrent or long-term systemic steroids",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_medicines"
+  },
+  {
+   "code": "on_second_gen_antipsychotic",
+   "display": "On a second-generation antipsychotic",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_medicines"
+  },
+  {
+   "code": "weeks_since_antipsychotic_start",
+   "display": "Weeks since it was started",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "weeks",
+   "section": "risk_context",
+   "parent": "on_second_gen_antipsychotic"
+  },
+  {
+   "code": "months_since_art_start_or_switch",
+   "display": "Months since ART was started or switched",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "risk_context",
+   "parent": "hiv_on_art"
+  },
+  {
+   "code": "tb_current",
+   "display": "On treatment for TB, or newly diagnosed",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_conditions"
+  },
+  {
+   "code": "pancreatitis_history",
+   "display": "Pancreatitis",
+   "kind": "history",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "none",
+     "display": "None"
+    },
+    {
+     "value": "acute",
+     "display": "Acute pancreatitis in the past"
+    },
+    {
+     "value": "chronic",
+     "display": "Chronic pancreatitis"
+    }
+   ],
+   "section": "risk_context",
+   "group": "rc_conditions"
+  },
+  {
+   "code": "cvd_established",
+   "display": "Heart attack, angina, stroke, TIA, or peripheral artery disease",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "physically_inactive",
+   "display": "Physically inactive",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_person"
+  },
+  {
+   "code": "g6pd_deficiency",
+   "display": "G6PD deficiency",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "hba1c_validity"
+  },
+  {
+   "code": "b12_deficiency",
+   "display": "Vitamin B12 deficiency",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "hba1c_validity"
+  },
+  {
+   "code": "on_dapsone",
+   "display": "On dapsone",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "hba1c_validity"
+  },
+  {
+   "code": "on_iron_b12_or_epo",
+   "display": "On iron, vitamin B12 or erythropoietin treatment",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "hba1c_validity"
+  },
+  {
+   "code": "splenomegaly",
+   "display": "Enlarged spleen",
+   "kind": "sign",
+   "valueType": "boolean",
+   "section": "hba1c_validity"
+  },
+  {
+   "code": "uacr_transient_cause",
+   "display": "Exercise in the last 24 hours, fever, infection, menstruation, or very high glucose or blood pressure",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "kidney"
+  },
+  {
+   "code": "creatinine_unstable",
+   "display": "Creatinine not in steady state (acute kidney injury or hyperglycaemic crisis)",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "kidney"
+  },
+  {
+   "code": "fundus_method",
+   "display": "How the retina was examined",
+   "kind": "sign",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "photograph",
+     "display": "Retinal photograph"
+    },
+    {
+     "value": "dilated_ophthalmoscopy",
+     "display": "Ophthalmoscopy, pupils dilated"
+    },
+    {
+     "value": "undilated_ophthalmoscopy",
+     "display": "Direct ophthalmoscopy, pupils not dilated"
+    },
+    {
+     "value": "slit_lamp",
+     "display": "Slit-lamp biomicroscopy"
+    }
+   ],
+   "section": "eye"
+  },
+  {
+   "code": "parent_with_diabetes",
+   "display": "A parent has diabetes",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "classification"
+  },
+  {
+   "code": "childhood_undernutrition",
+   "display": "Undernutrition in childhood",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "classification"
+  },
+  {
+   "code": "steatorrhoea",
+   "display": "Pale, fatty stools",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "classification"
+  },
+  {
+   "code": "recurrent_abdominal_pain",
+   "display": "Recurrent upper abdominal pain",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "classification"
+  },
+  {
+   "code": "pancreatic_calcification",
+   "display": "Pancreatic calcification on X-ray or ultrasound",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "requires": "imaging.plain_xray",
+   "section": "classification"
+  },
+  {
+   "code": "glucose_at_presentation",
+   "display": "Glucose at first presentation",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "section": "classification"
+  },
+  {
+   "code": "months_off_glucose_lowering",
+   "display": "Months off all glucose-lowering medicines",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "classification"
+  },
+  {
+   "code": "postprandial_pg",
+   "display": "Glucose 2 hours after a meal",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "requires": "device.glucometer",
+   "section": "control"
+  },
+  {
+   "code": "glycaemic_target_tier",
+   "display": "Target agreed with the patient",
+   "kind": "history",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "general",
+     "display": "General"
+    },
+    {
+     "value": "relaxed",
+     "display": "Relaxed"
+    },
+    {
+     "value": "tight",
+     "display": "Tight"
+    },
+    {
+     "value": "avoid_symptoms",
+     "display": "Avoid lows and symptoms only"
+    }
+   ],
+   "section": "control"
+  },
+  {
+   "code": "months_since_hba1c",
+   "display": "Months since the last HbA1c",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "months_since_any_control_measure",
+   "display": "Months since the last HbA1c or fasting glucose",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "therapy_changed_recently",
+   "display": "Treatment changed since the last measure",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "control"
+  },
+  {
+   "code": "hypo_worst_12m",
+   "display": "Low blood sugar in the last 12 months",
+   "kind": "history",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "none",
+     "display": "None"
+    },
+    {
+     "value": "self_treated",
+     "display": "Once, managed without help"
+    },
+    {
+     "value": "repeated",
+     "display": "More than once, managed without help"
+    },
+    {
+     "value": "measured_below_3",
+     "display": "A reading below 3.0 mmol/L"
+    },
+    {
+     "value": "needed_help",
+     "display": "Needed someone's help"
+    }
+   ],
+   "section": "control"
+  },
+  {
+   "code": "food_insecurity",
+   "display": "Not always enough food at home",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "control"
+  },
+  {
+   "code": "uacr_abnormal_count",
+   "display": "Abnormal ACR results out of the last 3 (within 6 months)",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "results",
+   "section": "kidney"
+  },
+  {
+   "code": "egfr_fall_percent",
+   "display": "Sustained fall in eGFR from baseline (confirmed on a repeat)",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "%",
+   "section": "kidney"
+  },
+  {
+   "code": "creatinine_rise_percent_4w",
+   "display": "Rise in creatinine within 4 weeks of starting or increasing an ACE inhibitor or ARB",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "%",
+   "section": "kidney"
+  },
+  {
+   "code": "nephrotic_or_active_sediment",
+   "display": "Nephrotic picture, or red cell casts on microscopy",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "kidney"
+  },
+  {
+   "code": "months_since_kidney_screen",
+   "display": "Months since urine albumin and creatinine were last checked",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "months_since_eye_screen",
+   "display": "Months since the last retinal examination",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "neuropathy_atypical",
+   "display": "Sudden onset, one-sided, or any weakness",
+   "kind": "sign",
+   "valueType": "boolean",
+   "section": "nerves"
+  },
+  {
+   "code": "postural_sbp_fall",
+   "display": "Fall in systolic pressure on standing",
+   "kind": "measurement",
+   "valueType": "number",
+   "unit": "mmHg",
+   "section": "nerves"
+  },
+  {
+   "code": "postural_dbp_fall",
+   "display": "Fall in diastolic pressure on standing",
+   "kind": "measurement",
+   "valueType": "number",
+   "unit": "mmHg",
+   "section": "nerves"
+  },
+  {
+   "code": "months_since_neuropathy_screen",
+   "display": "Months since sensation was last tested",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "months_since_foot_risk_assessment",
+   "display": "Months since the last foot risk assessment",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "ulcer_area_reduction_4w",
+   "display": "Ulcer area reduction over 4 weeks",
+   "kind": "sign",
+   "valueType": "number",
+   "unit": "%",
+   "section": "foot",
+   "parent": "active_foot_ulcer"
+  },
+  {
+   "code": "bp_raised_two_occasions",
+   "display": "Blood pressure raised on two or more occasions",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "bp_medicines_count",
+   "display": "Number of blood pressure medicines",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "medicines",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "on_statin",
+   "display": "On a statin",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "ras_blocker",
+   "display": "ACE inhibitor or ARB",
+   "kind": "history",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "none",
+     "display": "Neither"
+    },
+    {
+     "value": "acei",
+     "display": "ACE inhibitor"
+    },
+    {
+     "value": "arb",
+     "display": "ARB"
+    },
+    {
+     "value": "both",
+     "display": "Both"
+    }
+   ],
+   "section": "cardiovascular"
+  },
+  {
+   "code": "who_cvd_risk_percent",
+   "display": "WHO 10-year cardiovascular risk",
+   "kind": "measurement",
+   "valueType": "number",
+   "unit": "%",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "who_cvd_chart_used",
+   "display": "Chart used",
+   "kind": "measurement",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "laboratory",
+     "display": "Laboratory"
+    },
+    {
+     "value": "non_laboratory",
+     "display": "Non-laboratory"
+    }
+   ],
+   "section": "cardiovascular"
+  },
+  {
+   "code": "months_since_lipids",
+   "display": "Months since the last lipid profile",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "overt_nephropathy",
+   "display": "Overt diabetic kidney disease",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "on_rifampicin",
+   "display": "On rifampicin",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "therapy_context"
+  },
+  {
+   "code": "surgery_or_fasting_planned",
+   "display": "Surgery or a prolonged fast planned",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "therapy_context"
+  },
+  {
+   "code": "could_conceive",
+   "display": "Could become pregnant",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "therapy_context"
+  },
+  {
+   "code": "fasting_ramadan_planned",
+   "display": "Plans to fast for Ramadan",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "therapy_context"
+  },
+  {
+   "code": "glucose_goal_unmet_on_oral",
+   "display": "Above target at review despite taking the tablets",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "therapy_context"
+  },
+  {
+   "code": "meals_irregular",
+   "display": "Skips meals or does heavy physical work",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "therapy_context"
+  },
+  {
+   "code": "months_since_dental",
+   "display": "Months since the last dental check",
+   "kind": "history",
+   "valueType": "number",
+   "unit": "months",
+   "section": "care_processes"
+  },
+  {
+   "code": "non_diabetic_kidney_clue",
+   "display": "Rapidly rising albumin, nephrotic picture or red cell casts",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "kidney"
+  },
+  {
+   "code": "ogtt_normal",
+   "display": "75 g OGTT within the normal range",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "requires": "lab.ogtt",
+   "section": "glycaemia"
+  },
+  {
+   "code": "dm_type_recorded",
+   "display": "Type of diabetes, as recorded by a clinician",
+   "kind": "history",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "type_1",
+     "display": "Type 1"
+    },
+    {
+     "value": "type_2",
+     "display": "Type 2"
+    },
+    {
+     "value": "unclassified",
+     "display": "Not yet classified"
+    },
+    {
+     "value": "gestational",
+     "display": "Gestational"
+    },
+    {
+     "value": "other",
+     "display": "Other specific type"
+    }
+   ],
+   "section": "status"
+  },
+  {
+   "code": "glucose_meter_extreme",
+   "display": "Meter shows HI or LO instead of a number",
+   "kind": "investigation",
+   "valueType": "single_select",
+   "options": [
+    {
+     "value": "hi",
+     "display": "HI: above the meter's range"
+    },
+    {
+     "value": "lo",
+     "display": "LO: below the meter's range"
+    }
+   ],
+   "requires": "device.glucometer",
+   "section": "glycaemia"
+  },
+  {
+   "code": "pregnancy_possible",
+   "display": "Could be pregnant (computed by the platform from sex and age)",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_pregnancy"
+  },
+  {
+   "code": "never_glucose_tested",
+   "display": "Never had a glucose or HbA1c test",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_person"
+  },
+  {
+   "code": "never_hba1c",
+   "display": "Never had an HbA1c",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "care_processes"
+  },
+  {
+   "code": "never_eye_screen",
+   "display": "Never had a retinal examination",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "care_processes"
+  },
+  {
+   "code": "never_kidney_screen",
+   "display": "Never had urine albumin and creatinine checked",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "care_processes"
+  },
+  {
+   "code": "never_foot_assessment",
+   "display": "Never had a foot risk assessment",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "care_processes"
+  },
+  {
+   "code": "never_neuropathy_screen",
+   "display": "Sensation in the feet never tested",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "care_processes"
+  },
+  {
+   "code": "never_lipids",
+   "display": "Never had a lipid profile",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "care_processes"
+  },
+  {
+   "code": "hypoglycaemia_not_resolving",
+   "display": "Low glucose not resolving after treatment",
+   "kind": "sign",
+   "valueType": "boolean",
+   "section": "acute"
+  },
+  {
+   "code": "on_antiplatelet",
+   "display": "On an antiplatelet medicine",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "haemorrhagic_or_unknown_stroke",
+   "display": "Previous stroke that was a bleed, or of unknown type",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "glucose_test_since_antipsychotic_start",
+   "display": "Glucose tested since the antipsychotic was started",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "parent": "on_second_gen_antipsychotic"
+  },
+  {
+   "code": "ras_or_sglt2_started_recently",
+   "display": "ACE inhibitor, ARB or SGLT2 inhibitor started or increased since the baseline eGFR",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "kidney"
+  },
+  {
+   "code": "hypertensive_symptoms",
+   "display": "With the raised pressure: headache, nausea or vomiting",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "glucose_tested_since_birth",
+   "display": "Glucose tested since the birth",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "parent": "prior_gdm"
+  },
+  {
+   "code": "ogtt_done_this_pregnancy",
+   "display": "A 75 g OGTT has been done in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "parent": "pregnant"
+  },
+  {
+   "code": "hypertensive_organ_damage",
+   "display": "Confusion, seizures, blurred or lost vision; breathlessness with crackles; little or no urine; or tearing chest or back pain (beside a raised pressure, or in pregnancy or after birth)",
+   "kind": "sign",
+   "valueType": "boolean",
+   "section": "cardiovascular"
+  },
+  {
+   "code": "hba1c_method_variant_free",
+   "display": "The laboratory's HbA1c method is not affected by haemoglobin variants (NGSP list)",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "glycaemia"
+  },
+  {
+   "code": "fh_diabetes_first_degree",
+   "display": "Diabetes in a parent, brother or sister",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_person"
+  },
+  {
+   "code": "prior_macrosomia_or_stillbirth",
+   "display": "A previous baby over 4 kg, or an unexplained third-trimester death",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_pregnancy"
+  },
+  {
+   "code": "polyhydramnios",
+   "display": "Polyhydramnios in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_pregnancy"
+  },
+  {
+   "code": "glycosuria",
+   "display": "Glucose in the urine in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_pregnancy"
+  },
+  {
+   "code": "fetus_large_for_dates",
+   "display": "The baby is large for gestational age in this pregnancy",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "risk_context",
+   "group": "rc_pregnancy"
+  },
+  {
+   "code": "hyperglycaemic_emergency_last_2_weeks",
+   "display": "Ketoacidosis or the hyperosmolar state in the last 2 weeks",
+   "kind": "history",
+   "valueType": "boolean",
+   "section": "classification"
+  },
+  {
+   "code": "pruritus",
+   "display": "Itching (pruritus)",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "symptoms",
+   "group": "skin_and_healing"
+  },
+  {
+   "code": "wasting",
+   "display": "Wasting",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "symptoms",
+   "group": "classic"
+  },
+  {
+   "code": "weakness",
+   "display": "Weakness",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "symptoms",
+   "group": "classic"
+  },
+  {
+   "code": "hyperglycaemic_crisis_now",
+   "display": "Ketoacidosis or the hyperosmolar state at this visit",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "symptoms",
+   "group": "crisis"
+  },
+  {
+   "code": "hba1c_point_of_care",
+   "display": "HbA1c measured on a point-of-care machine",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "glycaemia"
+  },
+  {
+   "code": "diarrhoea",
+   "display": "Diarrhoea",
+   "kind": "symptom",
+   "valueType": "boolean",
+   "section": "symptoms",
+   "group": "crisis"
+  },
+  {
+   "code": "months_since_b12",
+   "display": "Months since the last vitamin B12 level",
+   "kind": "investigation",
+   "valueType": "number",
+   "unit": "months",
+   "section": "hba1c_validity"
+  },
+  {
+   "code": "never_b12",
+   "display": "Vitamin B12 never measured",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "hba1c_validity"
+  }
+ ]
+}

@@ -62,11 +62,11 @@ const badges = (h: History, over: Partial<FlagInput> = {}) =>
 /* ─── Catalogue ─────────────────────────────────────────────────── */
 
 describe("catalogue", () => {
-  it("parses: 96 symptoms, 65 families, 13 systems, 75 rules, 19 references", () => {
+  it("parses: 96 symptoms, 65 families, 13 systems, 77 rules, 19 references", () => {
     expect(cat.symptoms).toHaveLength(96);
     expect(Object.keys(cat.data.property_families)).toHaveLength(65);
     expect(cat.data.review_of_systems.systems).toHaveLength(13);
-    expect(cat.data.flag_rules).toHaveLength(75);
+    expect(cat.data.flag_rules).toHaveLength(77); // 75 + the diabetes pack's 2 (Phase 5)
     expect(Object.keys(cat.data.reference_entries)).toHaveLength(19);
   });
   it("every symptom renders a non-empty property editor (96 of 96)", () => {
@@ -135,8 +135,30 @@ describe("catalogue", () => {
       added++;
     }
     expect(added).toBe(48);
+    // MS-NCD-DM-PACK-001 Phase 5 (GATE A 2026-10-05): 04-history.amendment.json by merge.
+    const pack = JSON.parse(
+      readFileSync(
+        "docs/ncd/diabetes/pack-0.3.0-draft/clerking-v2/04-history.amendment.json",
+        "utf8",
+      ),
+    ).amendment;
+    handoff.past_history.condition_details = pack["past_history.condition_details"];
+    Object.assign(handoff.option_sets, pack["option_sets.add"]);
+    for (const m of pack["medicines.quick_picks.add"] as string[])
+      handoff.medicines.quick_picks.push({ id: m, label: m.charAt(0).toUpperCase() + m.slice(1) });
+    for (const { needs: _needs, ...r } of pack["flag_rules.add"]) handoff.flag_rules.push(r);
+    const src = JSON.parse(
+      readFileSync("docs/ncd/diabetes/pack-0.3.0-draft/clerking-v2/00-engine-changes.json", "utf8"),
+    ).sourcesToAdd["ADA-SOC-2026"];
+    handoff.sources["ADA-SOC-2026"] = {
+      title: src.title,
+      verified: false,
+      url: src.url,
+      edition: src.edition,
+      retrieved: src.retrieved,
+    };
     expect(JSON.parse(a.toString("utf8"))).toEqual(handoff);
-    expect(signoff.amendments).toHaveLength(2);
+    expect(signoff.amendments).toHaveLength(3);
     expect(createHash("sha256").update(a).digest("hex")).toBe(signoff.catalogueSha256);
   });
   it("rejects a malformed catalogue", () => {
@@ -336,7 +358,7 @@ function falsify(c: Cond, sym: string, d: Draft): boolean {
   return true; // everything else is false when unanswered
 }
 
-const RECORD = new Set(["medicines", "allergies", "vital_signs"]);
+const RECORD = new Set(["medicines", "allergies", "vital_signs", "past_history"]);
 const target = (r: (typeof cat.data.flag_rules)[number]) => {
   const t = Array.isArray(r.applies_to) ? r.applies_to[0]! : r.applies_to;
   if (t === "any" || t === "family:pain") return "sym.back_pain";
@@ -413,8 +435,34 @@ describe("flag rules: positive and negative, generated from each rule's own cond
     expect(ids({ news2: null })).not.toContain("FLAG-VITALS-3");
   });
 
-  it("covers all 75 rules", () => {
-    expect(symptomRules.length + 6).toBe(75); // 6 record rules: medicines 1, allergies 2, vital signs 3
+  it("past-history detail rules (EC-2): fire on the answer, silent unanswered or on another", () => {
+    const withDetails = (details: Record<string, string>) => {
+      const h = emptyHistory();
+      h.past.conditions.diabetes = { answer: "yes", details };
+      return evaluateFlags(cat, input(h, {})).map((f) => f.ruleId);
+    };
+    expect(withDetails({ lows_12_months: "needed_help" })).toContain("FLAG-DM-LOW-NEEDED-HELP");
+    expect(withDetails({ lows_12_months: "self_treated" })).not.toContain(
+      "FLAG-DM-LOW-NEEDED-HELP",
+    );
+    expect(withDetails({ admitted_for_sugar: "within_1_year" })).toContain(
+      "FLAG-DM-ADMITTED-RECENT",
+    );
+    expect(withDetails({ admitted_for_sugar: "over_1_year" })).not.toContain(
+      "FLAG-DM-ADMITTED-RECENT",
+    );
+    expect(withDetails({})).not.toContain("FLAG-DM-LOW-NEEDED-HELP");
+    // A "no" to diabetes never fires a detail rule, whatever an old answer held.
+    const h = emptyHistory();
+    h.past.conditions.diabetes = { answer: "no", details: { lows_12_months: "needed_help" } };
+    expect(evaluateFlags(cat, input(h, {})).map((f) => f.ruleId)).not.toContain(
+      "FLAG-DM-LOW-NEEDED-HELP",
+    );
+  });
+
+  it("covers all 77 rules", () => {
+    // 8 record rules: medicines 1, allergies 2, vital signs 3, past history 2 (Phase 5)
+    expect(symptomRules.length + 8).toBe(77);
   });
 });
 

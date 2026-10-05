@@ -16,6 +16,7 @@ import {
   complain,
   ecat,
   gcs,
+  ketones,
   negative,
   positive,
   scenario,
@@ -63,7 +64,41 @@ const bmi = (b: number, age = 40) =>
 const waist = (sex: "male" | "female") => (v: number) =>
   withS((s) => (s.vitals.waist = v), { patient: { ageYears: 40, sex, pregnant: null } });
 
+const blood = (v: number) => withS((s) => ketones(s, { blood: v }));
+const ketoneBand = cls((x) => C.ruleClassifier(x, "ketone_band"));
+
 const EDGES: Edge[] = [
+  // The diabetes pack's ketone bands (EC-7), at or above each limit; first match wins.
+  [
+    "REF-EX-KETONE-DKA 3.0 (≥)",
+    blood,
+    ketoneBand,
+    [
+      [2.9, "moderate"],
+      [3, "high"],
+      [3.1, "high"],
+    ],
+  ],
+  [
+    "REF-EX-KETONE-RISK 1.6 (≥)",
+    blood,
+    ketoneBand,
+    [
+      [1.5, "raised"],
+      [1.6, "moderate"],
+      [1.7, "moderate"],
+    ],
+  ],
+  [
+    "REF-EX-KETONE-RAISED 0.6 (≥)",
+    blood,
+    ketoneBand,
+    [
+      [0.5, null],
+      [0.6, "raised"],
+      [0.7, "raised"],
+    ],
+  ],
   [
     "REF-EX-GCS-AIRWAY 8 (≤)",
     (v) => withS((s) => gcs(s, 2, 2, v - 4)),
@@ -677,6 +712,8 @@ describe("reference edges (value − ε, value, value + ε)", () => {
       "REF-EX-OLDER-AGE",
       "REF-EX-PROSTATE-AGE",
       "REF-EX-SPO2-SCORE-SUGGEST",
+      "REF-EX-GLU-KETONE-TEST", // SUG-GLU-KETONES (the pack's flag on it was dropped, P0-23)
+      "REF-EX-DR-RECALL", // dr_review's intervals, read by no rule (provenance for the result)
     ]);
     const untested = Object.keys(ecat.data.reference_entries).filter(
       (r) => !tested.has(r) && !suggestionOnly.has(r) && r !== "REF-EX-GTFCC-COUNT",

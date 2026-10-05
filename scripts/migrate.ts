@@ -18,6 +18,9 @@
  * has no `.env.local` of its own: the main folder's is used, and the run says which file it read (never
  * the value). When nothing is new, it says which branch and which newest migration it looked at, and
  * whether the database already holds migrations this folder does not.
+ *
+ *   npm run db:migrate -- --dry-run      list what would run, apply nothing
+ *   npm run db:migrate -- 0092 0083      apply only the pending files whose names start with these
  */
 
 import { execFileSync } from "node:child_process";
@@ -79,6 +82,26 @@ export function planMigrations(
   };
 }
 
+/** `--dry-run` and file-name prefixes from the command line. */
+export function parseArgs(argv: readonly string[]): { dryRun: boolean; only: string[] } {
+  return { dryRun: argv.includes("--dry-run"), only: argv.filter((a) => !a.startsWith("--")) };
+}
+
+/**
+ * The pending files this run applies: all of them, or only those named by prefix (a gated migration is applied
+ * deliberately). A prefix that names no file in this folder is an error, never a silent "nothing new".
+ */
+export function selectPending(
+  plan: MigrationPlan,
+  files: readonly string[],
+  only: readonly string[],
+): string[] {
+  const unknown = only.filter((p) => !files.some((f) => f.startsWith(p)));
+  if (unknown.length)
+    throw new Error(`No migration in this folder starts with: ${unknown.join(", ")}`);
+  return only.length ? plan.pending.filter((f) => only.some((p) => f.startsWith(p))) : plan.pending;
+}
+
 /** The lines printed when nothing is new: where we looked and what the database has. */
 export function nothingNewWords(
   plan: MigrationPlan,
@@ -93,9 +116,10 @@ export function nothingNewWords(
   ];
   if (plan.appliedElsewhere.length)
     lines.push(
-      `  The database has ${plan.appliedElsewhere.length} migration(s) this folder does not ` +
-        `(newest ${plan.appliedElsewhere.at(-1)}): this folder is behind. To apply a new ` +
-        "migration, run `npm run db:migrate` in the worktree or branch that holds it.",
+      `  The database has ${plan.appliedElsewhere.length} migration(s) this folder does not: this folder is ` +
+        "behind, or they were applied from another branch. To apply a new migration, run " +
+        "`npm run db:migrate` in the worktree or branch that holds it.",
+      ...plan.appliedElsewhere.map((f) => `    ${f}`),
     );
   return lines;
 }
@@ -113,7 +137,7 @@ async function main() {
     console.error("DATABASE_URL required (pooler URL on port 6543).");
     process.exit(1);
   }
-  const client = postgres(url, { prepare: false, max: 1 });
+  const client = postgres(url, { prepare: false, max: 1, onnotice: () => {} });
 
   try {
     await client.unsafe(`
@@ -125,10 +149,22 @@ async function main() {
 
     const applied = await client.unsafe(`SELECT name FROM public.${TRACK_TABLE};`);
     const appliedNames = new Set((applied as unknown as { name: string }[]).map((r) => r.name));
-    const plan = planMigrations(readdirSync(MIGRATIONS_DIR), appliedNames);
+    const files = readdirSync(MIGRATIONS_DIR);
+    const plan = planMigrations(files, appliedNames);
+    const args = parseArgs(process.argv.slice(2));
+    const todo = selectPending(plan, files, args.only);
+    if (args.dryRun) {
+      console.log(
+        todo.length
+          ? `Would apply:\n${todo.map((f) => `  ${f}`).join("\n")}`
+          : nothingNewWords(plan, process.cwd(), git("branch", "--show-current")).join("\n"),
+      );
+      await client.end();
+      return;
+    }
 
     let appliedCount = 0;
-    for (const file of plan.pending) {
+    for (const file of todo) {
       process.stdout.write(`→ ${file} ...`);
       const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
       try {
@@ -145,7 +181,14 @@ async function main() {
       }
     }
 
-    if (appliedCount === 0) {
+    if (appliedCount === 0 && args.only.length) {
+      const done = files.filter(
+        (f) => args.only.some((p) => f.startsWith(p)) && appliedNames.has(f),
+      );
+      console.log(
+        done.length ? `\nAlready applied: ${done.join(", ")}. Nothing to do.` : "\nNothing to do.",
+      );
+    } else if (appliedCount === 0) {
       const words = nothingNewWords(plan, process.cwd(), git("branch", "--show-current"));
       console.log(`\n${words.join("\n")}`);
     } else {

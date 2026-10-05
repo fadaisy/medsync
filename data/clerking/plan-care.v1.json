@@ -1,0 +1,1143 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.4.0-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "id": "MS-EMR-PLAN-CARE-001",
+ "status": "draft",
+ "note": "Unsigned: the Plan shows no suggested care until the CSO signs this list.",
+ "items": [
+  {
+   "id": "CARE-DM-PAED-REFER",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown",
+    "dx.dka"
+   ],
+   "label": "Under 16 with diabetes or suspected diabetes: refer to the paediatric or diabetes team today",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "NICE-NG18",
+   "refs_dm": [
+    "REF-DM-SUS-PAED-SAMEDAY"
+   ],
+   "status": "draft",
+   "due": "today",
+   "opens": {
+    "disposition": "refer"
+   }
+  },
+  {
+   "id": "CARE-DM-CONFIRM",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown",
+    "dx.hyperglycaemia_unconfirmed"
+   ],
+   "label": "If the diagnosis rests on one result without symptoms: repeat on another day, the same test where possible",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-DX-REPEAT-WHO"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "followUp": "within days"
+   },
+   "ncd_step": "DM-SUS-INCID-02"
+  },
+  {
+   "id": "CARE-DKA-KETONES",
+   "problems": [
+    "dx.dka",
+    "dx.dm_type1"
+   ],
+   "label": "Ketones now: blood ketones, or a urine strip where there is no meter",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "ADA-EASD-CRISES-2024",
+   "refs_dm": [
+    "REF-DM-ACU-DKA-BOHB",
+    "REF-DM-ACU-DKA-UKET"
+   ],
+   "status": "draft",
+   "due": "today",
+   "opens": {
+    "tests": [
+     "test.ketones",
+     "test.urinalysis_dipstick"
+    ]
+   },
+   "where_unavailable": {
+    "capability": "lab.ketones_blood",
+    "do": "Urine strip. No strip either: refer on the clinical picture; do not wait."
+   }
+  },
+  {
+   "id": "CARE-DM-KETONES",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Ketones today: glucose 18 mmol/L or more, or on an SGLT2 inhibitor and unwell",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "WHO-PEN-TRAINING",
+   "refs_dm": [
+    "REF-DM-ACU-KETONE-TEST-GLU",
+    "REF-DM-ACU-EDKA"
+   ],
+   "status": "draft",
+   "due": "today",
+   "when": {
+    "any": [
+     {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-EX-GLU-KETONE-TEST"
+     },
+     {
+      "medicine_group": "sglt2_inhibitor"
+     }
+    ]
+   },
+   "opens": {
+    "tests": [
+     "test.urinalysis_dipstick"
+    ]
+   },
+   "ncd_step": "DM-ACU-ROUTE-01",
+   "where_unavailable": {
+    "capability": "lab.ketones_urine",
+    "do": "No strip: refer if the patient is unwell, dry or drowsy."
+   }
+  },
+  {
+   "id": "CARE-DM-HBA1C",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "HbA1c, or fasting and after-meal glucose where HbA1c is unavailable or unreliable",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-CTRL-WINDOW-AT-TARGET",
+    "REF-DM-CTRL-FPG-SURROGATE"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.hba1c"
+    ]
+   },
+   "ncd_step": "DM-ACT-TEST-HBA1C-01",
+   "where_unavailable": {
+    "capability": "lab.hba1c",
+    "do": "Fasting glucose (laboratory or meter) and a meter reading 2 hours after a meal."
+   }
+  },
+  {
+   "id": "CARE-DM-TARGET",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Agree an individual target with the patient",
+   "kind": "review",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-CTRL-HBA1C-TARGET",
+    "REF-DM-CTRL-HBA1C-RELAXED"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "ncd_step": "DM-ACT-TARGET-01",
+   "needs": [
+    "Somewhere to record the agreed target (concept target.hba1c). Until it exists the item is a prompt only."
+   ]
+  },
+  {
+   "id": "CARE-DM-KIDNEY",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Yearly kidney check: urine albumin-to-creatinine ratio and creatinine",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-KID-SCREEN-INTERVAL"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.uacr",
+     "test.creatinine"
+    ]
+   },
+   "ncd_step": "DM-ACT-SCREEN-KIDNEY-01",
+   "where_unavailable": {
+    "capability": "lab.urine_acr",
+    "do": "Urine reagent strip, and creatinine if the laboratory runs it. A positive strip is sent for a laboratory ratio. A NEGATIVE strip does not exclude early kidney disease."
+   }
+  },
+  {
+   "id": "CARE-DM-EYE",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Retinal examination: at diagnosis, then every 2 years if clear",
+   "kind": "screen",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-EYE-INTERVAL-WHO"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.retinal_photograph"
+    ]
+   },
+   "ncd_step": "DM-ACT-SCREEN-EYE-01",
+   "where_unavailable": {
+    "capability": "imaging.fundus",
+    "do": "Visual acuity here; refer for the retinal examination."
+   }
+  },
+  {
+   "id": "CARE-DM-EYE-T1",
+   "problems": [
+    "dx.dm_type1"
+   ],
+   "label": "Retinal examination: from 5 years after onset, then every 2 years if clear",
+   "kind": "screen",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-EYE-START-T1",
+    "REF-DM-EYE-INTERVAL-WHO"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.retinal_photograph"
+    ]
+   },
+   "ncd_step": "DM-ACT-SCREEN-EYE-01",
+   "where_unavailable": {
+    "capability": "imaging.fundus",
+    "do": "Visual acuity here; refer for the retinal examination."
+   }
+  },
+  {
+   "id": "CARE-DM-FOOT-LOOK",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Look at both feet today for ulcers",
+   "kind": "screen",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-FOOT-EVERY-VISIT"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE"
+  },
+  {
+   "id": "CARE-DM-FOOT",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Foot risk assessment: yearly at low risk, sooner by risk category",
+   "kind": "screen",
+   "requiresPrescribing": false,
+   "source": "IWGDF-2023",
+   "refs_dm": [
+    "REF-DM-FOOT-INT-0",
+    "REF-DM-FOOT-INT-1",
+    "REF-DM-FOOT-INT-2",
+    "REF-DM-FOOT-INT-3"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "ncd_step": "DM-ACT-SCREEN-FOOT-01",
+   "where_unavailable": {
+    "capability": "device.monofilament",
+    "do": "The Ipswich touch test and foot pulses."
+   },
+   "needs": [
+    "The interval shown comes from the exam classifier iwgdf_risk and the four reference entries; the label states no single interval."
+   ]
+  },
+  {
+   "id": "CARE-DM-BP-MEASURE",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Measure blood pressure today",
+   "kind": "screen",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-ACT-EVERY-VISIT"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE"
+  },
+  {
+   "id": "CARE-DM-BP-REVIEW",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Blood pressure at or above 130/80 on two occasions: review blood pressure treatment",
+   "kind": "review",
+   "requiresPrescribing": true,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-CVD-BP-SBP",
+    "REF-DM-CVD-BP-DBP"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "not": {
+     "pregnancy": "current"
+    }
+   },
+   "ncd_step": "DM-ACT-RX-07",
+   "needs": [
+    "EC-5"
+   ]
+  },
+  {
+   "id": "CARE-DM-STATIN",
+   "problems": [
+    "dx.dm_type2"
+   ],
+   "label": "Statin review: type 2 diabetes at 40 or over (not in pregnancy)",
+   "kind": "review",
+   "requiresPrescribing": true,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-CVD-STATIN-AGE",
+    "REF-DM-CVD-PREG-CONTRA"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "all": [
+     {
+      "patient": {
+       "age_gte_ref": "REF-DX-DM-STATIN-AGE"
+      }
+     },
+     {
+      "not": {
+       "pregnancy": "current"
+      }
+     }
+    ]
+   },
+   "ncd_step": "DM-ACT-RX-06",
+   "needs": [
+    "EC-5"
+   ]
+  },
+  {
+   "id": "CARE-DM-LIPIDS",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Lipid profile",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-CVD-LIPID-INTERVAL"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.lipid_panel"
+    ]
+   },
+   "ncd_step": "DM-ACT-SCREEN-LIPID-01",
+   "where_unavailable": {
+    "capability": "lab.lipids",
+    "do": "The statin decision in type 2 diabetes at 40 or over does not wait for a lipid profile (WHO)."
+   }
+  },
+  {
+   "id": "CARE-DM-CVD-RISK",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Cardiovascular risk: WHO chart for Eastern Sub-Saharan Africa (laboratory chart in diabetes)",
+   "kind": "review",
+   "requiresPrescribing": false,
+   "source": "WHO-CVD-CHARTS-2019",
+   "refs_dm": [
+    "REF-DM-CVD-CHART",
+    "REF-DM-CVD-NONLAB-UNDER",
+    "REF-DM-CVD-NOT-VALIDATED"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "where_unavailable": {
+    "capability": "lab.lipids",
+    "do": "The non-laboratory chart has no diabetes input: read its band as a floor, and say so."
+   }
+  },
+  {
+   "id": "CARE-DM-MEDS-REVIEW",
+   "problems": [
+    "dx.dm_type2"
+   ],
+   "label": "Review glucose-lowering treatment against the WHO ladder",
+   "kind": "review",
+   "requiresPrescribing": true,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-RX-LADDER-WHO"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "not": {
+     "pregnancy": "current"
+    }
+   },
+   "ncd_step": "DM-ACT-RX-01..03",
+   "needs": [
+    "EC-5"
+   ]
+  },
+  {
+   "id": "CARE-DM-HYPO-ASK",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown",
+    "dx.hypoglycaemia_dm"
+   ],
+   "label": "Ask about low blood sugar since the last visit",
+   "kind": "review",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-HYPO-REVIEW"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "any": [
+     {
+      "medicine_group": "insulin"
+     },
+     {
+      "medicine_group": "sulfonylurea"
+     },
+     {
+      "plan_basket_class": "insulin"
+     },
+     {
+      "plan_basket_class": "sulfonylurea"
+     }
+    ]
+   },
+   "needs": [
+    "EC-7 (an atom that reads the Plan basket, so teaching appears when the medicine is first prescribed)"
+   ]
+  },
+  {
+   "id": "CARE-DM-HYPO-REVIEW",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown",
+    "dx.hypoglycaemia_dm"
+   ],
+   "label": "After a low needing help, a reading below 3.0 or repeated lows: review the treatment and relax the target for now",
+   "kind": "review",
+   "requiresPrescribing": true,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-HYPO-DEINTENSIFY"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "ncd_step": "DM-ACT-RX-10"
+  },
+  {
+   "id": "CARE-HYPO-BEFORE-HOME",
+   "problems": [
+    "dx.hypoglycaemia_dm"
+   ],
+   "label": "Before the patient goes home after a low: find the cause, and plan for it coming back on a sulfonylurea or long-acting insulin",
+   "kind": "review",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-HYPO-DEINTENSIFY"
+   ],
+   "status": "needs-cso",
+   "due": "today",
+   "needs": [
+    "Wording from UCG 2023 section 1.1.6 or another signed source: no source read for this pack states the observation period after a sulfonylurea low."
+   ]
+  },
+  {
+   "id": "CARE-DM-EDU-CORE",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Counsel: eating, physical activity, tobacco, alcohol, taking medicines",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-ACT-EDU-DIET",
+    "REF-DM-ACT-EDU-PA-MIN"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "ncd_step": "DM-ACT-EDU-01"
+  },
+  {
+   "id": "CARE-DM-EDU-FOOT",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown",
+    "dx.diabetic_foot",
+    "dx.diabetic_neuropathy"
+   ],
+   "label": "Teach foot care: look daily, never barefoot, shoes that fit",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-ACT-EDU-FOOT"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "ncd_step": "DM-ACT-EDU-02"
+  },
+  {
+   "id": "CARE-DM-EDU-HYPO",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type_unknown"
+   ],
+   "label": "On insulin or a sulfonylurea: how to recognise and treat a low",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-ACT-EDU-HYPO"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "any": [
+     {
+      "medicine_group": "insulin"
+     },
+     {
+      "medicine_group": "sulfonylurea"
+     },
+     {
+      "plan_basket_class": "insulin"
+     },
+     {
+      "plan_basket_class": "sulfonylurea"
+     }
+    ]
+   },
+   "ncd_step": "DM-ACT-EDU-03",
+   "needs": [
+    "EC-7 (an atom that reads the Plan basket, so teaching appears when the medicine is first prescribed)"
+   ]
+  },
+  {
+   "id": "CARE-DM-EDU-SICK-DAY",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type_unknown"
+   ],
+   "label": "On insulin: sick-day rules. Never stop insulin",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-ACU-SICKDAY-INSULIN"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "any": [
+     {
+      "medicine_group": "insulin"
+     },
+     {
+      "plan_basket_class": "insulin"
+     }
+    ]
+   },
+   "ncd_step": "DM-ACT-EDU-04",
+   "needs": [
+    "EC-7 (an atom that reads the Plan basket, so teaching appears when the medicine is first prescribed)"
+   ]
+  },
+  {
+   "id": "CARE-DM-EDU-INSULIN",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type_unknown"
+   ],
+   "label": "On insulin: storage and injection sites",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "EADSG-2019",
+   "refs_dm": [
+    "REF-DM-ACT-EDU-INJECTION",
+    "REF-DM-ACT-EDU-INSULIN-STORE"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "any": [
+     {
+      "medicine_group": "insulin"
+     },
+     {
+      "plan_basket_class": "insulin"
+     }
+    ]
+   },
+   "ncd_step": "DM-ACT-EDU-05",
+   "needs": [
+    "EC-7 (an atom that reads the Plan basket, so teaching appears when the medicine is first prescribed)"
+   ]
+  },
+  {
+   "id": "CARE-T1-EDU",
+   "problems": [
+    "dx.dm_type1"
+   ],
+   "label": "Type 1: how to treat a low; sick-day rules (never stop insulin); storage and injection sites",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-ACT-EDU-HYPO",
+    "REF-DM-ACU-SICKDAY-INSULIN",
+    "REF-DM-ACT-EDU-INJECTION"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "ncd_step": "DM-ACT-EDU-03..05",
+   "needs": [
+    "Shown whether or not insulin is on the medicine list yet: a person with type 1 needs it either way."
+   ]
+  },
+  {
+   "id": "CARE-DM-EDU-SGLT2",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "On an SGLT2 inhibitor: the signs of ketoacidosis, and when to stop the tablet",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-RX-SGLT2-HOLD"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "any": [
+     {
+      "medicine_group": "sglt2_inhibitor"
+     },
+     {
+      "plan_basket_class": "sglt2_inhibitor"
+     }
+    ]
+   },
+   "ncd_step": "DM-ACT-EDU-06",
+   "needs": [
+    "EC-7 (an atom that reads the Plan basket, so teaching appears when the medicine is first prescribed)"
+   ]
+  },
+  {
+   "id": "CARE-DM-REVIEW",
+   "problems": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Review in 3 months; 6 months once at target",
+   "kind": "recall",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-ACT-REVIEW-MONTHS",
+    "REF-DM-CTRL-WINDOW-AT-TARGET"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "followUp": "3 months"
+   },
+   "ncd_step": "DM-ACT-RECALL-01"
+  },
+  {
+   "id": "CARE-DM-TYPE1-REFER",
+   "problems": [
+    "dx.dm_type1"
+   ],
+   "label": "Type 1 suspected and not yet under a diabetes team: refer today",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-CLS-T1-SAMEDAY"
+   ],
+   "status": "draft",
+   "due": "today",
+   "opens": {
+    "disposition": "refer"
+   },
+   "ncd_step": "DM-CLS-T1-04"
+  },
+  {
+   "id": "CARE-DKA-REFER",
+   "problems": [
+    "dx.dka",
+    "dx.hhs"
+   ],
+   "label": "Suspected ketoacidosis or hyperosmolar state: senior review now. Admit here if this site treats it; otherwise refer now",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "WHO-HEARTS-D-2020",
+   "refs_dm": [
+    "REF-DM-ACU-REFER-ALL"
+   ],
+   "status": "draft",
+   "due": "today",
+   "opens": {
+    "disposition": "refer"
+   },
+   "needs": [
+    "Capability-aware disposition: 'admit' where the site has the capability, 'refer' where it does not. 'opens' never overwrites a disposition already set."
+   ]
+  },
+  {
+   "id": "CARE-DR-REFER",
+   "problems": [
+    "dx.diabetic_retinopathy"
+   ],
+   "label": "Refer to an ophthalmologist: within 1 month for new vessels or swelling at the centre of the macula; within 3 months for severe retinopathy; routinely for moderate",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "ICO-2017",
+   "refs_dm": [
+    "REF-DM-EYE-RECALL-PDR",
+    "REF-DM-EYE-RECALL-DME-CI",
+    "REF-DM-EYE-RECALL-SEVERE",
+    "REF-DM-EYE-RECALL-MODERATE-MIN"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "classifier": "dr_review",
+    "any_of": [
+     "refer_within_1_month",
+     "refer_within_3_months",
+     "refer_routine"
+    ]
+   },
+   "opens": {
+    "disposition": "refer"
+   },
+   "ncd_step": "DM-ACT-REFER-EYE-01"
+  },
+  {
+   "id": "CARE-DR-REFER-VISION",
+   "problems": [
+    "dx.diabetic_retinopathy",
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "label": "Refer for an eye assessment: vision worse than 6/12, blurred vision, or the retina could not be seen or assessed",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "ICO-2017",
+   "refs_dm": [
+    "REF-DM-EYE-REFER-VA",
+    "REF-DM-EYE-REFER-NOVIEW"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "classifier": "dr_review",
+    "any_of": [
+     "refer_cannot_assess"
+    ]
+   },
+   "opens": {
+    "disposition": "refer"
+   },
+   "ncd_step": "DM-ACT-REFER-EYE-02"
+  },
+  {
+   "id": "CARE-DR-RECHECK",
+   "problems": [
+    "dx.diabetic_retinopathy"
+   ],
+   "label": "Macular swelling sparing the centre: re-examine in 3 months",
+   "kind": "recall",
+   "requiresPrescribing": false,
+   "source": "ICO-2017",
+   "refs_dm": [
+    "REF-DM-EYE-RECALL-DME-NCI"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "classifier": "dr_review",
+    "any_of": [
+     "re_examine_3_months"
+    ]
+   },
+   "opens": {
+    "followUp": "3 months"
+   },
+   "ncd_step": "DM-ACT-REFER-EYE-03"
+  },
+  {
+   "id": "CARE-DKD-EARLY-REPEAT",
+   "problems": [
+    "dx.diabetic_kidney_disease",
+    "dx.ckd"
+   ],
+   "label": "A first low eGFR: repeat creatinine early to exclude acute kidney injury",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "KDIGO-CKD-2024",
+   "refs_dm": [
+    "REF-DM-KID-AKI"
+   ],
+   "status": "needs-cso",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.creatinine"
+    ]
+   },
+   "needs": [
+    "The interval for the early repeat has no reference entry in this pack. Sources to read: NICE NG203, KDIGO 2024."
+   ]
+  },
+  {
+   "id": "CARE-DKD-CONFIRM",
+   "problems": [
+    "dx.diabetic_kidney_disease",
+    "dx.ckd"
+   ],
+   "label": "Before staging: repeat urine albumin (2 of 3 within 3 to 6 months) and creatinine at 3 months",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "KDIGO-CKD-2024",
+   "refs_dm": [
+    "REF-DM-KID-UACR-CONFIRM",
+    "REF-DM-KID-PERSIST"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.uacr",
+     "test.creatinine"
+    ],
+    "followUp": "3 months"
+   },
+   "where_unavailable": {
+    "capability": "lab.urine_acr",
+    "do": "Repeat the urine strip when any fever or infection has settled, and refer for a laboratory ratio."
+   }
+  },
+  {
+   "id": "CARE-DKD-RASI",
+   "problems": [
+    "dx.diabetic_kidney_disease"
+   ],
+   "label": "Confirmed albuminuria with raised blood pressure (not in pregnancy): ACE inhibitor or ARB review",
+   "kind": "review",
+   "requiresPrescribing": true,
+   "source": "KDIGO-DM-CKD-2022",
+   "refs_dm": [
+    "REF-DM-CVD-RASI-ALBUMINURIA",
+    "REF-DM-CVD-PREG-CONTRA"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "when": {
+    "not": {
+     "pregnancy": "current"
+    }
+   },
+   "ncd_step": "DM-ACT-RX-08",
+   "needs": [
+    "EC-5"
+   ]
+  },
+  {
+   "id": "CARE-DKD-RASI-CHECK",
+   "problems": [
+    "dx.diabetic_kidney_disease"
+   ],
+   "label": "Creatinine and potassium 2 to 4 weeks after starting or changing an ACE inhibitor or ARB",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "KDIGO-DM-CKD-2022",
+   "refs_dm": [
+    "REF-DM-KID-RASI-CHECK"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.urea_electrolytes",
+     "test.creatinine"
+    ]
+   }
+  },
+  {
+   "id": "CARE-DKD-REFER",
+   "problems": [
+    "dx.diabetic_kidney_disease",
+    "dx.ckd"
+   ],
+   "label": "Refer: eGFR below 30, a sustained fall, or features of another kidney disease",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "KDIGO-CKD-2024",
+   "refs_dm": [
+    "REF-DM-KID-REFER-EGFR",
+    "REF-DM-KID-REFER-FALL",
+    "REF-DM-KID-NDKD"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "disposition": "refer"
+   },
+   "ncd_step": "DM-ACT-REFER-EGFR-01"
+  },
+  {
+   "id": "CARE-DPN-EXCLUDE",
+   "problems": [
+    "dx.diabetic_neuropathy"
+   ],
+   "label": "Exclude other causes: vitamin B12 (long-term metformin), alcohol, thyroid",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-NEU-EXCLUSION",
+    "REF-DM-NEU-B12"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.b12_folate",
+     "test.thyroid"
+    ]
+   },
+   "ncd_step": "DM-STR-NEURO-01",
+   "where_unavailable": {
+    "capability": "lab.vitamin_b12",
+    "do": "Refer the sample or the patient; record that the test was unavailable."
+   }
+  },
+  {
+   "id": "CARE-IH-LIFESTYLE",
+   "problems": [
+    "dx.intermediate_hyperglycaemia"
+   ],
+   "label": "Weight and activity advice; re-test in 12 months",
+   "kind": "educate",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-IH-RETEST",
+    "REF-DM-ACT-EDU-WEIGHT",
+    "REF-DM-ACT-EDU-PA-MIN"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "followUp": "12 months"
+   },
+   "ncd_step": "DM-ACT-EDU-10"
+  },
+  {
+   "id": "CARE-GDM-REFER",
+   "problems": [
+    "dx.gestational_diabetes",
+    "dx.diabetes_in_pregnancy"
+   ],
+   "label": "Refer to the antenatal clinic for specialised care",
+   "kind": "refer",
+   "requiresPrescribing": false,
+   "source": "WHO-DIP-2025",
+   "refs_dm": [
+    "REF-DM-PREG-CARE-WHO"
+   ],
+   "status": "draft",
+   "due": "today",
+   "opens": {
+    "disposition": "refer"
+   },
+   "ncd_step": "DM-ACT-SCREEN-PREG-01"
+  },
+  {
+   "id": "CARE-GDM-POSTPARTUM",
+   "problems": [
+    "dx.gestational_diabetes"
+   ],
+   "label": "After the birth: glucose tolerance at 6 to 12 weeks, then at least every 3 years",
+   "kind": "recall",
+   "requiresPrescribing": false,
+   "source": "WHO-DIP-2025",
+   "refs_dm": [
+    "REF-DM-PREG-POSTPARTUM-FROM",
+    "REF-DM-PREG-POSTPARTUM-TO",
+    "REF-DM-SUS-GDM-RETEST-MAX"
+   ],
+   "status": "draft",
+   "due": "later",
+   "ncd_step": "DM-SUS-PREG-02"
+  },
+  {
+   "id": "CARE-HYPERGLYCAEMIA-FOLLOW-UP",
+   "problems": [
+    "dx.hyperglycaemia_unconfirmed"
+   ],
+   "label": "Fasting glucose after recovery (HbA1c now if it is valid for this patient)",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "ES-INPATIENT-2012",
+   "refs_dm": [
+    "REF-DM-SUS-HOSP-GLU",
+    "REF-DM-SUS-STRESS"
+   ],
+   "status": "draft",
+   "due": "later",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "followUp": "after recovery"
+   },
+   "ncd_step": "DM-SUS-INPT-01"
+  },
+  {
+   "id": "CARE-STEROID-GLUCOSE",
+   "problems": [
+    "dx.steroid_induced_hyperglycaemia"
+   ],
+   "label": "On steroids: check glucose after lunch or before the evening meal, not fasting",
+   "kind": "test",
+   "requiresPrescribing": false,
+   "source": "ADA-SOC-2026",
+   "refs_dm": [
+    "REF-DM-SUS-STEROID"
+   ],
+   "status": "draft",
+   "due": "today",
+   "min_age_ref": "REF-DX-ADULT-AGE",
+   "opens": {
+    "tests": [
+     "test.capillary_glucose"
+    ]
+   },
+   "ncd_step": "DM-SUS-POP-STEROID-01"
+  }
+ ]
+}

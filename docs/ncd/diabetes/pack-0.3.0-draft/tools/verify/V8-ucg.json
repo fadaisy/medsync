@@ -1,0 +1,488 @@
+{
+ "status": "FINAL",
+ "summary": "UCG diabetes text NOT obtained from any edition. prescribingcompanion.com reproduces the 2023 UCG but only its infection chapters; the diabetes, hypoglycaemia, hypertension, diabetes-in-pregnancy and retinopathy sections exist only inside the full PDF, of which the fetch tool reads front matter only. The 2026 national diabetes guideline could not be opened.",
+ "pagesTried": [
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/",
+   "outcome": "opened",
+   "note": "Uganda index. Sections: Infections and Infectious Diseases Prescribing; Other Common Clinical Conditions; Animal Health; International Antimicrobial Stewardship & IPC; Intervention Recording/Feedback survey; Other National Resources. Footer text: 'Clinical content in this toolkit is current as of March 31, 2026.' No edition statement on this page."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/about/",
+   "outcome": "opened",
+   "note": "Nothing specific to Uganda or to a UCG edition. Says only: 'This toolkit includes national standard antimicrobial treatment guidelines from countries in the initial cohort'. This explains the scope: the site reproduces ANTIMICROBIAL / infection sections only."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/",
+   "outcome": "opened",
+   "note": "Page states '2023 Uganda Clinical Guidelines'. 18 chapter links: Emergencies and Trauma; Infectious Diseases; HIV/AIDS and STIs; Cardiovascular; Respiratory; Gastrointestinal and Hepatic; Renal and Urinary; Musculoskeletal and Joint; Blood Disorders; Gynecological; Obstetric; Childhood Illnesses; Immunizations; Eye; ENT; Skin; Oral and Dental; Surgery, Radiology and Anaesthesia. There is NO Endocrine and Metabolic Diseases chapter."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/other-common-clinical-conditions/",
+   "outcome": "opened",
+   "note": "Only one link: 'UCG 2023'."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/other-common-clinical-conditions/ucg-2023/",
+   "outcome": "opened",
+   "note": "Only an 'Access this resource' link to the full PDF https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf . Non-infection chapters (including diabetes) are NOT reproduced as web pages."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/emergencies-and-trauma/",
+   "outcome": "opened",
+   "note": "8 pages: Food poisoning, Fractures, Severe burns, Wounds, Head Injuries, Sexual Assault/Rape, Bites and Stings, Poisoning. NO Hypoglycaemia page."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/cardiovascular-diseases/",
+   "outcome": "opened",
+   "note": "3 pages: Rheumatic Fever, Pericarditis, Infective Endocarditis. NO Hypertension page."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/obstetric-conditions/",
+   "outcome": "opened",
+   "note": "4 sub-sections; checked 'Management Of Selected Conditions In Pregnancy' (HIV eMTCT, Malaria in Pregnancy, UTI in Pregnancy) and 'Antenatal Complications' (3 infection/prophylaxis pages). NO Diabetes in Pregnancy page."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/eye-conditions/",
+   "outcome": "opened",
+   "note": "2 sub-sections (Infections and Inflammatory Eye Conditions; Trauma and Injuries). The infections list has 8 pages; NO Diabetic Retinopathy page."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/renal-and-urinary-diseases/",
+   "outcome": "opened",
+   "note": "4 pages (Glomerulonephritis, Acute Cystitis, Acute Pyelonephritis, Prostatitis). Nothing on diabetes."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/skin-diseases/",
+   "outcome": "opened",
+   "note": "9 infection pages; nothing on diabetic foot."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/surgery-radiology-and-anaesthesia/",
+   "outcome": "opened",
+   "note": "Only 'Surgical Antibiotic Prophylaxis'."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/hivaids-and-sexually-transmitted-infections/hiv-infection-and-aids-acquired-immunodeficiency-syndrome/",
+   "outcome": "opened",
+   "note": "UCG HIV chapter as a web page. Contains the only diabetes-related UCG text reachable on this site (dolutegravir and hyperglycaemia; DTG contraindicated in 'known diabetics'; DTG-metformin interaction). See findings."
+  },
+  {
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "outcome": "opened",
+   "note": "Full UCG 2023 PDF, but the fetch tool reads only the front matter: last visible page is roman XLIX; text cuts mid-sentence at 'V: vital medicines are potentially life-saving, and lack'. Table of contents readable; no clinical chapter readable (even 1.1.6 Hypoglycaemia at p. 24 is beyond the cut)."
+  },
+  {
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "outcome": "opened",
+   "note": "Same limitation: last visible page roman XLVI. NOTE: this copy's table of contents has DIFFERENT page numbers from the prescribingcompanion/DSD copy (see finding 'UCG 2023 pagination differs between copies')."
+  },
+  {
+   "url": "https://www.differentiatedservicedelivery.org/wp-content/uploads/UCG-2023-Publication-Final-PDF-Version-1.pdf",
+   "outcome": "opened",
+   "note": "Same limitation: last visible page roman XLIX. TOC and Introduction readable."
+  },
+  {
+   "url": "https://www.health.go.ug",
+   "outcome": "opened",
+   "note": "Home page opened but the fetch tool returned no navigation, search or guideline links (only news captions)."
+  },
+  {
+   "url": "https://www.health.go.ug/cause/uganda-clinical-guidelines-2023/",
+   "outcome": "opened",
+   "note": "Guessed URL; it exists. Offers only 'UCG 2023 Publication (Final PDF Version)', 12 MB PDF download. No web-page text of chapters."
+  },
+  {
+   "url": "https://www.health.go.ug/?s=diabetes",
+   "outcome": "failed",
+   "note": "3 attempts: 'robots.txt fetch failed: Name or service not known' twice, then 'Failed to fetch or parse robots.txt'. The site's search could not be used."
+  },
+  {
+   "url": "https://www.health.go.ug/cause/integrated-diabetes-management-guidelines-for-uganda/",
+   "outcome": "failed",
+   "note": "Guessed URL for the 2026 guideline; 'Failed to fetch or parse robots.txt'. Unknown whether the page exists."
+  },
+  {
+   "url": "https://library.health.go.ug/",
+   "outcome": "opened",
+   "note": "Opened, but the fetch tool returned only one blurb about an RMNCAH-N quality-of-care implementation guide; no navigation, search or links were returned."
+  },
+  {
+   "url": "https://library.health.go.ug/search/node?keys=diabetes",
+   "outcome": "failed",
+   "note": "3 attempts (also with keys=diabetes+management+guidelines): 'robots.txt fetch failed: ReadTimeout' twice, 'Failed to fetch or parse robots.txt' once. Library search could not be used, so the landing page for the 2026 guideline was not located."
+  },
+  {
+   "url": "https://library.health.go.ug/sites/default/files/resources/Uganda%20Clinical%20Guidelines%202023.pdf",
+   "outcome": "failed",
+   "note": "'robots.txt fetch failed: ReadTimeout' (1 attempt; would in any case hit the 50-page limit)."
+  },
+  {
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20(Comprehensive%20Version).pdf",
+   "outcome": "failed",
+   "note": "2026 Integrated Diabetes Management Guidelines, URL form given in the task. 3 attempts, all failed at the robots.txt step (ReadTimeout, 'Failed to fetch or parse robots.txt', ReadTimeout). NOT OPENED."
+  },
+  {
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "outcome": "failed",
+   "note": "Same document, URL form recorded in the worklist. 3 attempts, all failed at the robots.txt step. NOT OPENED."
+  },
+  {
+   "url": "https://docs.google.com/viewer?url=<UCG PDF>&embedded=true",
+   "outcome": "failed",
+   "note": "Tried as a way to get page-level text of the PDF. The viewer page opens, but the per-page text endpoint needs a token that makes the URL longer than the fetch proxy allows ('url exceeds the maximum fetchable length')."
+  },
+  {
+   "url": "https://r.jina.ai/<UCG PDF>",
+   "outcome": "failed",
+   "note": "Blocked by the fetch proxy ('known web proxy/relay service')."
+  },
+  {
+   "url": "https://web.archive.org/cdx/...",
+   "outcome": "failed",
+   "note": "Wayback Machine is blocked for the fetch tool (SITE_BLOCKED), so no archived copy of the library PDF or hidden prescribingcompanion pages could be looked up."
+  },
+  {
+   "url": "search engines via WebFetch (duckduckgo html/lite, bing, brave, mojeek, yahoo, startpage, ecosia, yandex, qwant lite, searx, 4get, marginalia, stract)",
+   "outcome": "failed",
+   "note": "All refused (robots.txt disallow, site blocked, bot check or 404). No way to discover another HTML copy of the UCG diabetes chapter."
+  },
+  {
+   "url": "https://archive.org/advancedsearch.php?q=\"uganda clinical guidelines\"",
+   "outcome": "opened",
+   "note": "No archive.org item holding the UCG (only two unrelated PubMed items)."
+  },
+  {
+   "url": "https://huggingface.co/api/datasets?search=uganda",
+   "outcome": "opened",
+   "note": "Found a third-party dataset 'rubanza/uganda-clinical-guidelines' (130 question/answer rows, no source or edition stated). It is a re-worded derivative, NOT the guideline text. One row is recorded under findings as a lead only."
+  },
+  {
+   "url": "https://api.github.com/search/repositories?q=uganda+clinical+guidelines ; https://api.core.ac.uk/v3/search/works ; https://api.www.documentcloud.org/api/documents/search/",
+   "outcome": "failed",
+   "note": "403 from each."
+  },
+  {
+   "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0326806",
+   "outcome": "opened",
+   "note": "Peer-reviewed secondary source (Bonyani et al., PLoS One 2025) that characterises what UCG 2023 lists for oral glucose-lowering agents. Used as a secondary finding only."
+  },
+  {
+   "url": "Google Drive connector (user's own files; not a web source)",
+   "outcome": "failed",
+   "note": "One title-only search for 'Clinical Guidelines'/'UCG' was attempted in case the PDF was in the user's Drive; the connector returned 'Insufficient scope'. Nothing was read. Project knowledge base was also searched: it holds no UCG text."
+  },
+  {
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?... (Job 2 item)",
+   "outcome": "failed",
+   "note": "HTTP 429 rate limit with an instruction not to retry; not retried. PubMed page for the same paper also returned 429."
+  }
+ ],
+ "editionStated": "The Uganda 'Infections and Infectious Diseases Prescribing' index page states: '2023 Uganda Clinical Guidelines'. The 'Other Common Clinical Conditions' section has a single item labelled 'UCG 2023' linking a PDF whose title page reads 'THE REPUBLIC OF UGANDA / MINISTRY OF HEALTH / Uganda Clinical Guidelines 2023 / National Guidelines for Management of Common Health Conditions'. The site-wide footer says 'Clinical content in this toolkit is current as of March 31, 2026.' The About page names no edition. The individual HIV chapter page itself carries no edition statement. So: the site says it reproduces the 2023 edition, but ONLY the infection/antimicrobial sections are reproduced as web pages; the diabetes chapter is not among them.",
+ "findings": [
+  {
+   "topic": "SUMMARY: UCG diabetes chapter not obtained",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus (and 8.1.4, 1.1.6, 4.1.6, 16.2.5, 20.2.3)",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "None of the requested clinical values (diagnostic criteria, prediabetes, screening, targets, treatment steps and level-of-care codes, cautions, monitoring, referral, DKA/HHS, hypoglycaemia threshold, diabetes in pregnancy, retinopathy) was read from the Uganda Clinical Guidelines, 2016 or 2023. What WAS read from UCG 2023: the table of contents (section numbers and pages), the Introduction's level-of-care sentence and its statement that the diabetes section was expanded, and the HIV chapter's diabetes-related lines."
+  },
+  {
+   "topic": "Edition reproduced by prescribingcompanion.com",
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/",
+   "sectionHeading": "Infections and Infectious Diseases Prescribing (index)",
+   "quote": "2023 Uganda Clinical Guidelines",
+   "values": {
+    "edition": 2023
+   },
+   "levelOfCare": "",
+   "confidence": "read verbatim"
+  },
+  {
+   "topic": "UCG 2023 table of contents: where the diabetes material sits (DSD / prescribingcompanion printing)",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "Table of contents",
+   "quote": "8 ENDOCRINE AND METABOLIC DISEASES .................................466 | 8.1.3 Diabetes Mellitus ...........................................................................................469 | 8.1.4 Diabetic Ketoacidosis and Hyperosmolar Hyperglycaemic State .......................476 | 1.1.6 Hypoglycaemia...............................................................................................24 | 4.1.6 Hypertension ................................................................................................310 | 20.2.3 Diabetic Retinopathy..........................................................................933",
+   "values": {
+    "8 Endocrine and metabolic diseases": 466,
+    "8.1.3 Diabetes Mellitus": 469,
+    "8.1.4 DKA and HHS": 476,
+    "1.1.6 Hypoglycaemia": 24,
+    "4.1.6 Hypertension": 310,
+    "16.2.5 Diabetes in Pregnancy": "page number cut off in this copy's TOC as returned",
+    "20.2.3 Diabetic Retinopathy": 933,
+    "16 Obstetric conditions": 690,
+    "20 Eye conditions": 920
+   },
+   "levelOfCare": "",
+   "confidence": "read verbatim",
+   "note": "Same numbers returned from the differentiatedservicedelivery.org copy (https://www.differentiatedservicedelivery.org/wp-content/uploads/UCG-2023-Publication-Final-PDF-Version-1.pdf)."
+  },
+  {
+   "topic": "UCG 2023 pagination differs between copies",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "sectionHeading": "Table of contents (nms.go.ug copy)",
+   "quote": "",
+   "values": {
+    "8 Endocrine and metabolic diseases": 468,
+    "8.1.3 Diabetes Mellitus": 471,
+    "8.1.4 DKA and HHS": 478,
+    "1.1.6 Hypoglycaemia": 24,
+    "4.1.6 Hypertension": 311,
+    "16.2.5 Diabetes in Pregnancy": 711,
+    "20.2.3 Diabetic Retinopathy": 936
+   },
+   "levelOfCare": "",
+   "confidence": "paraphrased by the fetch tool",
+   "note": "The nms.go.ug copy (file dated 2025/12) paginates the same sections 2-3 pages later than the DSD / prescribingcompanion copy (469 vs 471; 933 vs 936). There appear to be at least two printings of UCG 2023. Any page reference in the catalogue must name the copy. The fetch tool gave these as a list, not as quoted TOC lines."
+  },
+  {
+   "topic": "UCG 2023 Introduction: diabetes section expanded in this edition",
+   "url": "https://www.differentiatedservicedelivery.org/wp-content/uploads/UCG-2023-Publication-Final-PDF-Version-1.pdf",
+   "sectionHeading": "Introduction",
+   "quote": "More attention has been paid to non-communicable chronic diseases; for example, stroke and chronic obstructive pulmonary disease (COPD), and sections on diabetes, hypertension, asthma and mental conditions including diseases of elderly and dementia have been expanded.",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "read verbatim",
+   "note": "Reason not to assume the 2016 diabetes wording carries forward unchanged into 2023."
+  },
+  {
+   "topic": "Level of care codes (UCG 2023 Introduction)",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "sectionHeading": "Introduction, presentation of information",
+   "quote": "HC1-4 refers to health centres of different levels (with HC1 being the community level), H to general hospital, RR to regional referral hospital, and NR to national referral hospital.",
+   "values": {
+    "HC1": "community level",
+    "HC2-HC4": "health centres",
+    "H": "general hospital",
+    "RR": "regional referral hospital",
+    "NR": "national referral hospital"
+   },
+   "levelOfCare": "definition of the codes",
+   "confidence": "read verbatim",
+   "note": "Identical sentence returned from the DSD copy."
+  },
+  {
+   "topic": "UCG 2023 HIV chapter: dolutegravir contraindicated in known diabetics",
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/hivaids-and-sexually-transmitted-infections/hiv-infection-and-aids-acquired-immunodeficiency-syndrome/",
+   "sectionHeading": "3.1 HIV Infection and AIDS: recommended first-line regimens (notes)",
+   "quote": "Contraindications for DTG (use DTG screening tool prior to DTG initiation) including: known diabetics, patients on anticonvulsants (carbamazepine, phenytoin, phenobarbital)",
+   "values": {
+    "DTG contraindication listed": "known diabetics"
+   },
+   "levelOfCare": "",
+   "confidence": "read verbatim",
+   "note": "This is UCG 2023 text as reproduced by prescribingcompanion.com. It conflicts with later evidence and with WHO practice; whether the 2022 HIV guideline keeps it could not be checked (its algorithm pages are beyond the readable part)."
+  },
+  {
+   "topic": "UCG 2023 HIV chapter: dolutegravir hyperglycaemia toxicity row",
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/hivaids-and-sexually-transmitted-infections/hiv-infection-and-aids-acquired-immunodeficiency-syndrome/",
+   "sectionHeading": "3.1 HIV Infection and AIDS: ARV toxicity table, DTG row",
+   "quote": "DTG | 1. Hyperglycaemia 2. Insomnia 3. Hepatotoxicity 4. Hypersensitivity reactions | 1. Excessive drinking/eating, excessive urination ... | Do RBS to confirm hyperglycaemia then substitute with EFV",
+   "values": {
+    "test": "RBS (random blood sugar)",
+    "action": "substitute with EFV"
+   },
+   "levelOfCare": "",
+   "confidence": "read verbatim",
+   "note": "Row returned cell by cell by the fetch tool; '...' marks the non-glucose symptom cells left out here. No glucose threshold is given in this row."
+  },
+  {
+   "topic": "UCG 2023 HIV chapter: dolutegravir and metformin interaction",
+   "url": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/hivaids-and-sexually-transmitted-infections/hiv-infection-and-aids-acquired-immunodeficiency-syndrome/",
+   "sectionHeading": "3.1 HIV Infection and AIDS: important drug interactions",
+   "quote": "DTG increases metformin levels. May increase risk of hypoglycaemia and metabolic acidosis | Close follow-up (routine electrolytes, BUN and Creatinine, Random Blood Sugar tests) recommended",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "read verbatim"
+  },
+  {
+   "topic": "SECONDARY (not UCG text): which oral agents UCG 2023 names",
+   "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0326806",
+   "sectionHeading": "Bonyani A et al. PLoS One 2025;20:e0326806, Discussion",
+   "quote": "the 2023 national clinical guideline lacks some of the OHAs listed in the EMHSLU 2023, mentioning only metformin, glibenclamide, and glimepiride",
+   "values": {
+    "oralAgentsNamedInUCG2023": [
+     "metformin",
+     "glibenclamide",
+     "glimepiride"
+    ]
+   },
+   "levelOfCare": "not stated",
+   "confidence": "read verbatim",
+   "note": "Verbatim from a peer-reviewed paper ABOUT the UCG, not from the UCG. It gives names only: no order, no step, no level-of-care code. Note that glibenclamide is named in UCG 2023 but was deleted from EMHSLU 2023."
+  },
+  {
+   "topic": "LEAD ONLY (third-party re-wording, edition unstated): hypoglycaemia threshold",
+   "url": "https://datasets-server.huggingface.co/rows?dataset=rubanza/uganda-clinical-guidelines&config=default&split=train&offset=0&length=100",
+   "sectionHeading": "Hugging Face dataset 'rubanza/uganda-clinical-guidelines', question/answer row",
+   "quote": "Hypoglycaemia is a clinical condition due to reduced levels of blood sugar (glucose), with symptoms generally occurring when blood glucose is <3.0 mmol/L (55 mg/dl).",
+   "values": {
+    "threshold": "<3.0",
+    "unit": "mmol/L",
+    "altUnit": "55 mg/dl"
+   },
+   "levelOfCare": "",
+   "confidence": "paraphrased by the fetch tool",
+   "note": "NOT a UCG quote. A hobbyist question/answer dataset that names no source document or edition. Recorded only as a pointer to what UCG section 1.1.6 probably says; it must be confirmed against the guideline page before any rule uses it. The same dataset has rows on diabetes and DKA clinical features but no diagnostic thresholds."
+  },
+  {
+   "topic": "Diagnostic criteria for diabetes (tests, thresholds, operators, units, repeat testing, HbA1c)",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus, Investigations",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Prediabetes / impaired glucose tolerance definition",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Who should be tested or screened",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Glycaemic targets (fasting, post-prandial, HbA1c) and blood pressure target",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus, Management; 4.1.6 Hypertension",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Treatment steps for type 2 diabetes (names, order, level-of-care codes)",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus, Management of type 2",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory. Secondary evidence only: a 2025 paper says UCG 2023 mentions only metformin, glibenclamide and glimepiride among oral agents."
+  },
+  {
+   "topic": "Treatment for type 1 diabetes (names, order, level-of-care codes)",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus, Management of type 1",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Cautions and contraindications (metformin and kidney function; glibenclamide in the elderly)",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus, caution boxes",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Follow-up and monitoring schedule (HbA1c, urine protein, creatinine, lipids, eye, foot)",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Referral criteria",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.3 Diabetes Mellitus",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "DKA and HHS: definitions and diagnostic thresholds",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "8.1.4 Diabetic Ketoacidosis and Hyperosmolar Hyperglycaemic State",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Hypoglycaemia: defining glucose threshold",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "1.1.6 Hypoglycaemia (p. 24)",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory. Page 24 of the body falls just after the readable front matter (xlix pages). See the LEAD ONLY finding for an unverified third-party figure."
+  },
+  {
+   "topic": "Hypertension in people with diabetes",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "4.1.6 Hypertension",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Diabetes in pregnancy: screening and diagnostic criteria",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "16.2.5 Diabetes in Pregnancy",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "Diabetic retinopathy",
+   "url": "https://www.prescribingcompanion.com/media/1416/ucg-2023-publication.pdf",
+   "sectionHeading": "20.2.3 Diabetic Retinopathy",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "UCG 2023 text for this section could not be read. prescribingcompanion.com has no page for it (the site reproduces infection sections only) and every PDF copy of UCG 2023 is readable only to front-matter page xlix. No value is recorded. Do not fill this from memory."
+  },
+  {
+   "topic": "2026 Integrated Diabetes Management Guidelines for Uganda (comprehensive version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20(Comprehensive%20Version).pdf",
+   "sectionHeading": "whole document",
+   "quote": "",
+   "values": {},
+   "levelOfCare": "",
+   "confidence": "not found",
+   "note": "Could not be opened: library.health.go.ug failed at the robots.txt step on every attempt (3 on each of the two URL spellings; 3 on the library search). Publication date, content, and whether it replaces the UCG 2023 diabetes section are all UNKNOWN. No copy on another host was found (search engines and the Wayback Machine are closed to the fetch tool)."
+  }
+ ],
+ "whatWouldUnblock": [
+  "A human downloads UCG 2023 and supplies pages for sections 1.1.6, 4.1.6, 8.1.3, 8.1.4, 16.2.5 and 20.2.3 (state which printing: 8.1.3 starts at p. 469 in the DSD/health.go.ug copy and p. 471 in the nms.go.ug copy).",
+  "A human downloads the 2026 Integrated Diabetes Management Guidelines from library.health.go.ug and supplies it.",
+  "Alternatively allow a tool that can read a PDF beyond its first ~50 pages (local download plus text extraction)."
+ ]
+}

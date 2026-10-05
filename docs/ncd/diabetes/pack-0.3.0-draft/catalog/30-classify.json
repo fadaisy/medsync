@@ -1,0 +1,1539 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "lane: classify",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "classifications": [
+  {
+   "code": "type_1",
+   "display": "Type 1 diabetes",
+   "supportedBy": [
+    {
+     "id": "t1_antibody",
+     "label": "Islet autoantibody positive",
+     "all": [
+      {
+       "feature": "islet_autoantibodies",
+       "op": "==",
+       "value": "positive"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+      "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+      "quote": "Standardized islet autoantibody tests are recommended for classification of diabetes in adults who have phenotypic risk factors that overlap with those for type 1 diabetes (e.g., younger age at diagnosis, unintentional weight loss, ketoacidosis, or short time to insulin treatment).",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A3-35",
+       "section": "Recommendation 2.10; Figure 2.1 footnote 2",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-CLS-AB-ORDER"
+      }
+     }
+    },
+    {
+     "id": "t1_cpeptide_low",
+     "label": "Random C-peptide below 200 pmol/L in a person on insulin, with no ketoacidosis or hyperosmolar state in the last 2 weeks, and either under 35 or more than 3 years since diagnosis",
+     "all": [
+      {
+       "feature": "c_peptide",
+       "op": "<",
+       "value": 200,
+       "unit": "pmol/L"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "hyperglycaemic_emergency_last_2_weeks",
+       "op": "absent"
+      }
+     ],
+     "any": [
+      {
+       "feature": "age_years",
+       "op": "<",
+       "value": 35,
+       "unit": "years"
+      },
+      {
+       "feature": "years_since_diagnosis",
+       "op": ">",
+       "value": 3,
+       "unit": "years"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "2026",
+      "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Figure 2.1, adapted from Holt et al. 2021",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+      "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "SRC-ADA26-FIG21",
+       "section": "Fig. 2.1, p. S31 (read as an image and as the PDF's text layer)",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-CLS-CPEP-LOW"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Standardized islet autoantibody tests are recommended for classification of diabetes in adults who have phenotypic risk factors that overlap with those for type 1 diabetes (e.g., younger age at diagnosis, unintentional weight loss, ketoacidosis, or short time to insulin treatment).",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-35",
+     "section": "Recommendation 2.10; Figure 2.1 footnote 2",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "discriminators": [
+    "islet_autoantibodies"
+   ],
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "status": "reconcile",
+    "note": "A NEGATIVE antibody does not refute type 1: about 65% of young clinically diagnosed type 1 in Cameroon, Uganda and South Africa was antibody negative. ADA's statement that a negative result 'does not change the diagnosis' is limited to people diagnosed under 35 with no features of type 2 or monogenic diabetes.",
+    "review": [
+     "F18",
+     "H10"
+    ],
+    "neverNotMet": true,
+    "heldOut": {
+     "why": "Only the high criterion stays out. ADA 2026 Fig. 2.1: 600 pmol/L or more after more than 3 years, antibody negative, aged 35 or over, reads as type 2. The runtime reads supporting criteria only, so a refuting one needs an engine change; its only use would be to argue against type 1, which the pack never acts on (it never proposes stopping insulin).",
+     "criteria": [
+      {
+       "id": "t1_cpeptide_high",
+       "label": "Random C-peptide 600 pmol/L or more",
+       "all": [
+        {
+         "feature": "c_peptide",
+         "op": ">=",
+         "value": 600,
+         "unit": "pmol/L"
+        }
+       ],
+       "citation": {
+        "standard": "ADA",
+        "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+        "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+        "quote": "If the result is ≥600 pmol/L (≥1.8 ng/mL), the circumstances of testing do not matter. If the result is <600 pmol/L (<1.8 ng/mL) and the concurrent glucose is <4 mmol/L (<70 mg/dL) or the person may have been fasting, consider repeating the test. Results showing very low levels (e.g., <80 pmol/L [<0.24 ng/mL]) do not need to be repeated.",
+        "retrieved": "2026-10-03",
+        "csoSigned": false,
+        "needsCsoInput": "600 pmol/L is printed in the figure legend as the level above which 'the circumstances of testing do not matter'. The statement that it strongly suggests type 2 diabetes is inside the flowchart image (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), which could not be read. A person must read the figure before any rule uses it.",
+        "x": {
+         "claim": "A3-36",
+         "section": "Figure 2.1 footnotes 4 and 9 (flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults)",
+         "bodyProposed": "ADA",
+         "verified": true,
+         "ref": "REF-DM-CLS-CPEP-HIGH"
+        }
+       }
+      }
+     ]
+    },
+    "signed": "UG-14 (keep the pack) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "caveat": "ADA 2026 Fig. 2.1 is based on data from White European adults. Ketosis-prone diabetes, common in Africa, can show a low C-peptide soon after ketoacidosis; the 2-week rule guards only part of that.",
+    "ug2026": "2026 diagnoses type 1 on '≥2 islet-cell autoantibodies' (p. 60). Not required here (UG-14, CSO): antibodies are rarely available and often negative in Ugandan type 1; insulin and ketone education never wait on the test.",
+    "sources": [
+     "UG 2026 summarised"
+    ]
+   }
+  },
+  {
+   "code": "slowly_evolving_immune_mediated",
+   "display": "Slowly evolving immune-mediated diabetes of adults (LADA)",
+   "supportedBy": [
+    {
+     "id": "lada",
+     "label": "Islet autoantibody positive, diagnosed after age 35",
+     "all": [
+      {
+       "feature": "islet_autoantibodies",
+       "op": "==",
+       "value": "positive"
+      },
+      {
+       "feature": "age_at_diagnosis",
+       "op": ">",
+       "value": 35,
+       "unit": "years"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2019 (ISBN 978-92-4-151570-2)",
+      "title": "Classification of diabetes mellitus",
+      "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+      "quote": "There are no universally agreed criteria for this subtype of diabetes, but three criteria are often used: positivity for GAD autoantibodies, age older than 35 years at diagnosis, and no need for insulin therapy in the first 6–12 months after diagnosis",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-17",
+       "section": "Hybrid forms of diabetes (pp.15-16)",
+       "bodyProposed": "WHO",
+       "verified": true
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2019 (ISBN 978-92-4-151570-2)",
+    "title": "Classification of diabetes mellitus",
+    "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+    "quote": "There are no universally agreed criteria for this subtype of diabetes, but three criteria are often used: positivity for GAD autoantibodies, age older than 35 years at diagnosis, and no need for insulin therapy in the first 6–12 months after diagnosis",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-17",
+     "section": "Hybrid forms of diabetes (pp.15-16)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "discriminators": [
+    "islet_autoantibodies"
+   ],
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "status": "new",
+    "note": "WHO 2019 hybrid form; no agreed criteria. ADA files it under type 1. Shown as a sub-label of type 1, never as type 2."
+   }
+  },
+  {
+   "code": "ketosis_prone_type_2",
+   "display": "Ketosis-prone type 2 diabetes",
+   "supportedBy": [
+    {
+     "id": "kpd",
+     "label": "Ketosis at presentation, islet autoantibody negative, and came off insulin without relapse",
+     "all": [
+      {
+       "feature": "ketosis_at_presentation",
+       "op": "present"
+      },
+      {
+       "feature": "islet_autoantibodies",
+       "op": "==",
+       "value": "negative"
+      },
+      {
+       "feature": "insulin_stopped_without_relapse",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "WHO",
+      "version": "2019 (ISBN 978-92-4-151570-2)",
+      "title": "Classification of diabetes mellitus",
+      "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+      "quote": "Subsequently similar phenotypes were described in populations in sub-Saharan African. Typically, those affected present with ketosis and evidence of severe insulin deficiency but later go into remission and do not require insulin treatment. Reports suggest that further ketotic episodes occur in 90% of these people within 10 years.",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A2-18",
+       "section": "Hybrid forms of diabetes: ketosis-prone type 2 diabetes (pp.16-17)",
+       "bodyProposed": "WHO",
+       "verified": true,
+       "ref": "REF-DM-CLS-KPD"
+      }
+     }
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2019 (ISBN 978-92-4-151570-2)",
+    "title": "Classification of diabetes mellitus",
+    "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+    "quote": "Subsequently similar phenotypes were described in populations in sub-Saharan African. Typically, those affected present with ketosis and evidence of severe insulin deficiency but later go into remission and do not require insulin treatment. Reports suggest that further ketotic episodes occur in 90% of these people within 10 years.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-18",
+     "section": "Hybrid forms of diabetes: ketosis-prone type 2 diabetes (pp.16-17)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "discriminators": [
+    "islet_autoantibodies",
+    "c_peptide"
+   ],
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "status": "reconcile",
+    "note": "Amends the live entry. Without the antibody result the type stays unclassified; the person keeps ketone and sick-day education either way."
+   }
+  }
+ ],
+ "rules": [
+  {
+   "id": "DM-CLS-T1-01",
+   "display": "Ketones 2+ with a raised glucose: features of insulin deficiency. Do not assume type 2; consider type 1 and review the type",
+   "condition": "insulin_deficient_diabetes",
+   "when": {
+    "id": "cls_ketosis",
+    "label": "Urine ketones 2+ or more now, with any glucose 11.1 mmol/L or more, or a meter reading HI",
+    "all": [
+     {
+      "feature": "urine_ketones",
+      "op": "in",
+      "value": [
+       "2plus",
+       "3plus"
+      ]
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "glucose_meter_extreme",
+       "op": "==",
+       "value": "hi"
+      },
+      {
+       "feature": "capillary_glucose",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "postprandial_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_1h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-37",
+      "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-CLS-T1-SAMEDAY"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "islet_autoantibodies",
+    "c_peptide",
+    "bohb",
+    "venous_ph",
+    "bicarbonate"
+   ],
+   "mimicsToExclude": [
+    "Starvation ketosis",
+    "Alcoholic ketosis",
+    "Ketosis of pregnancy",
+    "SGLT2 inhibitor treatment"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-37",
+     "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "WHO HEARTS-D: clinical suspicion of type 1 in a newly diagnosed patient is a same-day referral. Ketosis is the feature that travels: age and build do not, in Uganda. Acute ketoacidosis is owned by the acute interlock, not by this rule.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "proposal": {
+     "kind": "diagnosis.reclassify",
+     "review": "type",
+     "refer": "same_day"
+    },
+    "review": [
+     "F16",
+     "F17",
+     "H15",
+     "H35",
+     "J22",
+     "K18"
+    ],
+    "notWhen": [
+     {
+      "id": "cls_ketosis_sglt2",
+      "label": "On an SGLT2 inhibitor (ketosis on this medicine is owned by acute rule 03 and says nothing about the type)",
+      "all": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       }
+      ],
+      "citation": {
+       "standard": "EASD",
+       "version": "2024",
+       "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+       "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+       "quote": "Approximately 10% of patients with DKA present with euglycemic DKA, which is defined as plasma glucose levels <200 mg/dL [11.1 mmol/L] in the presence of ketosis and metabolic acidosis. [...] can be caused by a variety of factors, including exogenous insulin injection, reduced food intake, pregnancy, or impaired gluconeogenesis due to alcohol use, liver failure, and/or SGLT2 inhibitor therapy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-05",
+        "section": "Diagnostic criteria narrative - euglycemic DKA",
+        "bodyProposed": "ADA-EASD-CONSENSUS",
+        "verified": true,
+        "ref": "REF-DM-ACU-EDKA"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-CLS-T1-02",
+   "display": "Recorded as type 2, with two or more features of insulin deficiency: review the type",
+   "condition": "insulin_deficient_diabetes",
+   "when": {
+    "id": "cls_t1_features",
+    "label": "Type 2 recorded, with at least two of: diagnosed before age 35, BMI below 25, unexplained weight loss, glucose above 20 mmol/L at presentation",
+    "all": [
+     {
+      "feature": "dm_type_recorded",
+      "op": "==",
+      "value": "type_2"
+     }
+    ],
+    "atLeast": {
+     "n": 2,
+     "of": [
+      {
+       "feature": "age_at_diagnosis",
+       "op": "<",
+       "value": 35,
+       "unit": "years"
+      },
+      {
+       "feature": "bmi",
+       "op": "<",
+       "value": 25,
+       "unit": "kg/m2"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      },
+      {
+       "feature": "glucose_at_presentation",
+       "op": ">",
+       "value": 20,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "ADA",
+     "version": "ADA/EASD consensus 2021",
+     "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+     "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+     "quote": "younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-49",
+      "section": "Diagnosis of type 1 diabetes; Fig. 1 and footnotes",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CLS-T1-AGE"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "urine_ketones",
+    "islet_autoantibodies",
+    "c_peptide"
+   ],
+   "mimicsToExclude": [
+    "Lean type 2 diabetes (a third of Ugandan adults with non-autoimmune diabetes)",
+    "Late presentation of type 2 with weight loss",
+    "HIV, TB or cancer as the cause of weight loss"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "ADA/EASD consensus 2021",
+    "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+    "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+    "quote": "younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-49",
+     "section": "Diagnosis of type 1 diabetes; Fig. 1 and footnotes",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "The count of two is this pack's, not the source's: ADA/EASD says only that no single feature confirms type 1, and its figure is drawn from White European data. This rule asks for urine ketones and a type review; it does not write a type and it does not, on its own, trigger same-day referral (D-DM-10). Where no type is recorded, rule DM-CLS-T1-05 asks the same question the same day.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "proposal": {
+     "kind": "diagnosis.reclassify",
+     "review": "type"
+    },
+    "review": [
+     "H18"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-CLS-ATYP-01",
+   "display": "Lean and young at onset: flag as atypical and ask for specialist review",
+   "condition": "atypical_lean_diabetes",
+   "when": {
+    "id": "cls_atypical",
+    "label": "BMI below 18.5 and diagnosed before age 30",
+    "all": [
+     {
+      "feature": "bmi",
+      "op": "<",
+      "value": 18.5,
+      "unit": "kg/m2"
+     },
+     {
+      "feature": "age_at_diagnosis",
+      "op": "<",
+      "value": 30,
+      "unit": "years"
+     }
+    ],
+    "citation": {
+     "standard": "IDF",
+     "version": "2025",
+     "title": "IDF launches new type 5 diabetes working group (IDF news, 15 April 2025)",
+     "url": "https://idf.org/news/new-type-5-diabetes-working-group/",
+     "quote": "develop formal diagnostic criteria and therapeutic guidelines for a type of diabetes linked to malnutrition",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-45",
+      "section": "News item; and Lancet Glob Health consensus statement",
+      "bodyProposed": "IDF",
+      "verified": true,
+      "ref": "REF-DM-CLS-T5"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "urine_ketones",
+    "islet_autoantibodies",
+    "c_peptide",
+    "pancreatic_calcification"
+   ],
+   "mimicsToExclude": [
+    "Type 1 diabetes",
+    "Fibrocalculous pancreatic diabetes",
+    "HIV or TB wasting",
+    "Malabsorption"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2025 consensus statement (Vellore, Jan 2025; IDF World Diabetes Congress, Apr 2025)",
+    "title": "Wadivkar P, Jebasingh F, Thomas N, et al. Classifying a distinct form of diabetes in lean individuals with a history of undernutrition: an international consensus statement. Lancet Glob Health 2025;13(10):e1771-e1776",
+    "url": "https://www.sciencedirect.com/science/article/pii/S2214109X25002633",
+    "quote": "Since 1955, a form of diabetes in lean, young (BMI <18·5 kg/m2, age <30 years) individuals with a history suggestive of undernutrition from before birth and throughout childhood has been described in the literature.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-44",
+     "section": "Summary; panel of commonly/occasionally reported features",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Never labelled type 5: IDF has not published diagnostic criteria. The flag is 'atypical_phenotype'. Insulin deficiency is likely; a history of childhood undernutrition and absent ketosis strengthen the picture.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-ATYP",
+    "proposal": {
+     "kind": "refer",
+     "to": "diabetes_specialist",
+     "flag": "atypical_phenotype"
+    },
+    "review": [
+     "F17"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established_or_met"
+   }
+  },
+  {
+   "id": "DM-CLS-PANC-01",
+   "display": "Pancreatic disease with diabetes: consider a pancreatic cause",
+   "condition": "pancreatogenic_diabetes",
+   "when": {
+    "id": "cls_panc",
+    "label": "Any of: past acute or chronic pancreatitis, pancreatic calcification on imaging",
+    "any": [
+     {
+      "feature": "pancreatitis_history",
+      "op": "in",
+      "value": [
+       "acute",
+       "chronic"
+      ]
+     },
+     {
+      "feature": "pancreatic_calcification",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "Ewald N, Hardt PD. World J Gastroenterol 2013;19(42):7276-7281",
+     "title": "Diagnosis and treatment of diabetes mellitus in chronic pancreatitis",
+     "url": "https://www.wjgnet.com/1007-9327/full/v19/i42/7276.htm",
+     "quote": "Presence of exocrine pancreatic insufficiency (monoclonal fecal elastase-1 test or direct function tests) … Pathological pancreatic imaging (endoscopic ultrasound, MRI, CT) … Absence of type 1 diabetes mellitus associated autoimmune markers",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-42",
+      "section": "Proposed diagnostic criteria for type 3c diabetes",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-CLS-PANC"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "pancreatic_calcification"
+   ],
+   "mimicsToExclude": [
+    "Type 2 diabetes with unrelated abdominal pain",
+    "Pancreatic cancer (weight loss, back pain, jaundice)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "Ewald N, Hardt PD. World J Gastroenterol 2013;19(42):7276-7281",
+    "title": "Diagnosis and treatment of diabetes mellitus in chronic pancreatitis",
+    "url": "https://www.wjgnet.com/1007-9327/full/v19/i42/7276.htm",
+    "quote": "Presence of exocrine pancreatic insufficiency (monoclonal fecal elastase-1 test or direct function tests) … Pathological pancreatic imaging (endoscopic ultrasound, MRI, CT) … Absence of type 1 diabetes mellitus associated autoimmune markers",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-42",
+     "section": "Proposed diagnostic criteria for type 3c diabetes",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "notes": "Usually misfiled as type 2. Calcification on a plain film or ultrasound in a lean young person points to fibrocalculous pancreatic diabetes, which needs insulin and carries a cancer risk.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-PANC",
+    "proposal": {
+     "kind": "diagnosis.reclassify",
+     "review": "type"
+    },
+    "review": [
+     "F35",
+     "U07"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
+  },
+  {
+   "id": "DM-CLS-MODY-01",
+   "display": "Young onset with an affected parent and no obesity: consider monogenic diabetes",
+   "condition": "monogenic_diabetes",
+   "when": {
+    "id": "cls_mody",
+    "label": "Diagnosed before age 35, a parent with diabetes, and BMI below 25",
+    "all": [
+     {
+      "feature": "age_at_diagnosis",
+      "op": "<",
+      "value": 35,
+      "unit": "years"
+     },
+     {
+      "feature": "parent_with_diabetes",
+      "op": "present"
+     },
+     {
+      "feature": "bmi",
+      "op": "<",
+      "value": 25,
+      "unit": "kg/m2"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "GeneReviews (updated 24 May 2018); Diabetes Genes (Exeter)",
+     "title": "Maturity-Onset Diabetes of the Young Overview (Naylor R, Knight Johnson A, del Gaudio D) - GeneReviews",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK500456/",
+     "quote": "Early-onset diabetes in adolescence or young adulthood (typically age <35 years) … Mild, stable fasting hyperglycemia that does not progress or respond appreciably to pharmacologic therapy … A family history of diabetes consistent with autosomal dominant inheritance",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-53",
+      "section": "Clinical characteristics: when to suspect MODY",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-CLS-MODY"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "islet_autoantibodies",
+    "c_peptide"
+   ],
+   "mimicsToExclude": [
+    "Type 1 diabetes",
+    "Familial type 2 diabetes"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "GeneReviews (updated 24 May 2018); Diabetes Genes (Exeter)",
+    "title": "Maturity-Onset Diabetes of the Young Overview (Naylor R, Knight Johnson A, del Gaudio D) - GeneReviews",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK500456/",
+    "quote": "Early-onset diabetes in adolescence or young adulthood (typically age <35 years) … Mild, stable fasting hyperglycemia that does not progress or respond appreciably to pharmacologic therapy … A family history of diabetes consistent with autosomal dominant inheritance",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-53",
+     "section": "Clinical characteristics: when to suspect MODY",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Genetic testing is not available at most sites; the proposal is specialist review, and the label is never written by the engine.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-ATYP",
+    "proposal": {
+     "kind": "refer",
+     "to": "diabetes_specialist"
+    },
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-CLS-DRUG-01",
+   "display": "A raised glucose in a person on steroids with no diabetes on record: consider medicine-associated hyperglycaemia",
+   "condition": "drug_associated_hyperglycaemia",
+   "when": {
+    "id": "cls_steroid",
+    "label": "On systemic steroids, with glucose 11.1 mmol/L or more or a meter reading HI",
+    "all": [
+     {
+      "feature": "on_glucocorticoid",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "JBDS-IP 08, May 2021",
+     "title": "Management of Hyperglycaemia and Steroid (Glucocorticoid) Therapy. Joint British Diabetes Societies for Inpatient Care (JBDS-IP) guideline 08, revised May 2021",
+     "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Archive/JBDS_08_Steroids_DM_Guideline_FINAL_28052021_Archive.pdf",
+     "quote": "Given the recent hyperglycaemia the use of HbA1c as a screening tool should be delayed until 3 months following steroid cessation.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-39",
+      "section": "pp. 11, 17",
+      "bodyProposed": "OTHER",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "postprandial_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Diabetes that was present before the steroids"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "JBDS-IP 08, May 2021",
+    "title": "Management of Hyperglycaemia and Steroid (Glucocorticoid) Therapy. Joint British Diabetes Societies for Inpatient Care (JBDS-IP) guideline 08, revised May 2021",
+    "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Archive/JBDS_08_Steroids_DM_Guideline_FINAL_28052021_Archive.pdf",
+    "quote": "Given the recent hyperglycaemia the use of HbA1c as a screening tool should be delayed until 3 months following steroid cessation.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-39",
+     "section": "pp. 11, 17",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "notes": "Glucose is monitored until it normalises or a definitive test is done; HbA1c screening waits 3 months after the steroids stop.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-DRUG",
+    "proposal": {
+     "kind": "flag",
+     "flag": "drug_associated",
+     "note": "A flag for the clinician; the engine does not relabel."
+    },
+    "review": [
+     "F27",
+     "J24"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CLS-T1-03",
+   "display": "Ketosis at first presentation and the type never settled: review the type",
+   "condition": "insulin_deficient_diabetes",
+   "when": {
+    "id": "cls_ketosis_past",
+    "label": "Ketosis or ketoacidosis at first presentation",
+    "all": [
+     {
+      "feature": "ketosis_at_presentation",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2019 (ISBN 978-92-4-151570-2)",
+     "title": "Classification of diabetes mellitus",
+     "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+     "quote": "Subsequently similar phenotypes were described in populations in sub-Saharan African. Typically, those affected present with ketosis and evidence of severe insulin deficiency but later go into remission and do not require insulin treatment. Reports suggest that further ketotic episodes occur in 90% of these people within 10 years.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-18",
+      "section": "Hybrid forms of diabetes: ketosis-prone type 2 diabetes (pp.16-17)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-CLS-KPD"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "islet_autoantibodies",
+    "c_peptide",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Ketosis-prone type 2 diabetes (common in sub-Saharan Africa: comes off insulin and stays well)",
+    "Type 1 diabetes"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2019 (ISBN 978-92-4-151570-2)",
+    "title": "Classification of diabetes mellitus",
+    "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+    "quote": "Subsequently similar phenotypes were described in populations in sub-Saharan African. Typically, those affected present with ketosis and evidence of severe insulin deficiency but later go into remission and do not require insulin treatment. Reports suggest that further ketotic episodes occur in 90% of these people within 10 years.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-18",
+     "section": "Hybrid forms of diabetes: ketosis-prone type 2 diabetes (pp.16-17)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "A historical fact, so a routine review and never a same-day rule. Silent once the person has come off insulin and stayed well, or a clinician has recorded the type.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "proposal": {
+     "kind": "diagnosis.reclassify",
+     "review": "type"
+    },
+    "review": [
+     "F16"
+    ],
+    "notWhen": [
+     {
+      "id": "cls_ketosis_settled",
+      "label": "Came off insulin and stayed well, or a clinician has recorded the type",
+      "any": [
+       {
+        "feature": "insulin_stopped_without_relapse",
+        "op": "present"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "gestational",
+         "other"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2019 (ISBN 978-92-4-151570-2)",
+       "title": "Classification of diabetes mellitus",
+       "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+       "quote": "Subsequently similar phenotypes were described in populations in sub-Saharan African. Typically, those affected present with ketosis and evidence of severe insulin deficiency but later go into remission and do not require insulin treatment. Reports suggest that further ketotic episodes occur in 90% of these people within 10 years.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-18",
+        "section": "Hybrid forms of diabetes: ketosis-prone type 2 diabetes (pp.16-17)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CLS-KPD"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-CLS-T1-05",
+   "display": "No type recorded, not on insulin, and two or more features of insulin deficiency: check ketones today",
+   "condition": "insulin_deficient_diabetes",
+   "when": {
+    "id": "cls_t1_unclassified",
+    "label": "At least two of: diagnosed before age 35, BMI below 25, unexplained weight loss, glucose above 20 mmol/L at presentation",
+    "atLeast": {
+     "n": 2,
+     "of": [
+      {
+       "feature": "age_at_diagnosis",
+       "op": "<",
+       "value": 35,
+       "unit": "years"
+      },
+      {
+       "feature": "bmi",
+       "op": "<",
+       "value": 25,
+       "unit": "kg/m2"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      },
+      {
+       "feature": "glucose_at_presentation",
+       "op": ">",
+       "value": 20,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-37",
+      "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-CLS-T1-SAMEDAY"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb",
+    "islet_autoantibodies"
+   ],
+   "mimicsToExclude": [
+    "Lean type 2 diabetes (a third of Ugandan adults with non-autoimmune diabetes)",
+    "HIV, TB or cancer as the cause of weight loss"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-37",
+     "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Fires when the type is blank as well as when it is recorded as unclassified, and when the medicine list is blank: the person nobody has classified is the one at risk. Silent once a clinician records the type or insulin is on the list.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones_urine",
+     "tier": "today",
+     "then": "review the type the same day"
+    },
+    "review": [
+     "F17",
+     "F41",
+     "H18"
+    ],
+    "notWhen": [
+     {
+      "id": "cls_t1_typed",
+      "label": "A clinician has recorded the type",
+      "all": [
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "gestational",
+         "other"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2019 (ISBN 978-92-4-151570-2)",
+       "title": "Classification of diabetes mellitus",
+       "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+       "quote": "This category should be used temporarily when there is not a clear diagnostic category especially close to the time of diagnosis of diabetes [...] Until there is a definite diagnosis of the type of diabetes, a classification of 'unclassified' should be used and attempts to classify the type of diabetes should continue to support appropriate management decisions.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-16",
+        "section": "Table 2 description (p.13) and section 'Unclassified diabetes' (p.23)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CLS-UNCLASSIFIED"
+       }
+      }
+     },
+     {
+      "id": "cls_t1_on_insulin",
+      "label": "Insulin is among the current medicines",
+      "all": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2018 (ISBN 978-92-4-155028-4)",
+       "title": "Guidelines on second- and third-line medicines and type of insulin for the control of blood glucose levels in non-pregnant adults with diabetes mellitus",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK532235/",
+       "quote": "Use human insulin to manage blood glucose in adults with type 1 diabetes, and in adults with type 2 diabetes for whom insulin is indicated (strong recommendation, low-quality evidence).",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-44",
+        "section": "Executive summary, Recommendation 4",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-RX-INSULIN-T1"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-CLS-T1-04",
+   "display": "A glucose in the diabetes range and two or more of: under 35, BMI below 25, unexplained weight loss. Check ketones now and do not assume type 2",
+   "condition": "insulin_deficient_diabetes",
+   "when": {
+    "id": "cls_t1_new",
+    "label": "Any glucose 11.1 mmol/L or more (or a meter reading HI), with at least two of: aged under 35, BMI below 25, unexplained weight loss",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "atLeast": {
+     "n": 2,
+     "of": [
+      {
+       "feature": "age_years",
+       "op": "<",
+       "value": 35,
+       "unit": "years"
+      },
+      {
+       "feature": "bmi",
+       "op": "<",
+       "value": 25,
+       "unit": "kg/m2"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-37",
+      "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-CLS-T1-SAMEDAY"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb",
+    "islet_autoantibodies",
+    "c_peptide"
+   ],
+   "mimicsToExclude": [
+    "Lean type 2 diabetes (a third of Ugandan adults with non-autoimmune diabetes)",
+    "HIV, TB or cancer as the cause of weight loss"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-37",
+     "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "WHO lists 'clinical suspicion of type 1 diabetes in newly diagnosed patient' for same-day referral. The classic fatal error is the thin young adult labelled type 2, sent home on tablets and back in ketoacidosis. The count of two is this pack's (D-DM-10). The rule writes no type. The rule reads the glucose itself, so it does not wait for the criteria set, which may be waiting on the pregnancy answer.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones_urine",
+     "tier": "now",
+     "then": "refer the same day if type 1 is suspected"
+    },
+    "review": [
+     "F17",
+     "H15"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CLS-WTLOSS-01",
+   "display": "Unexplained weight loss in a person with diabetes: check glucose and ketones, and look for TB, HIV and cancer",
+   "condition": "insulin_deficient_diabetes",
+   "when": {
+    "id": "cls_weight_loss",
+    "label": "Known diabetes with unexplained weight loss",
+    "all": [
+     {
+      "feature": "unexplained_weight_loss",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "ADA/EASD consensus 2021",
+     "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+     "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+     "quote": "younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-49",
+      "section": "Diagnosis of type 1 diabetes; Fig. 1 and footnotes",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Tuberculosis",
+    "HIV",
+    "Malignancy",
+    "Thyrotoxicosis",
+    "Malabsorption or pancreatic disease",
+    "Not enough food"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "ADA/EASD consensus 2021",
+    "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+    "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+    "quote": "younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-49",
+     "section": "Diagnosis of type 1 diabetes; Fig. 1 and footnotes",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "notes": "Weight loss in a person with diabetes in Uganda is as often TB, HIV or cancer as insulin deficiency. This rule proposes tests and a review; it never proposes insulin on weight loss alone.",
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-T1",
+    "proposal": {
+     "kind": "test.order",
+     "test": [
+      "test.glucose_capillary",
+      "test.ketones_urine"
+     ],
+     "tier": "today"
+    },
+    "review": [
+     "F19",
+     "U10"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-CLS-PANC-02",
+   "display": "Fatty stools with recurrent upper abdominal pain in a person with diabetes: consider a pancreatic cause",
+   "condition": "pancreatogenic_diabetes",
+   "when": {
+    "id": "cls_panc_symptoms",
+    "label": "Pale, fatty stools together with recurrent upper abdominal pain",
+    "all": [
+     {
+      "feature": "steatorrhoea",
+      "op": "present"
+     },
+     {
+      "feature": "recurrent_abdominal_pain",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "Unnikrishnan R, Mohan V. Acta Diabetol 2015;52:1-9",
+     "title": "Fibrocalculous pancreatic diabetes (FCPD)",
+     "url": "https://link.springer.com/article/10.1007/s00592-014-0685-9",
+     "quote": "The typical patient with FCPD is a lean adolescent or young adult of either sex, presenting with history of recurrent bouts of abdominal pain and steatorrhea. Demonstration of large, discrete pancreatic calculi by plain radiographs or ultrasonography of the abdomen is diagnostic.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-43",
+      "section": "Abstract",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-CLS-FCPD"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "pancreatic_calcification"
+   ],
+   "mimicsToExclude": [
+    "Loose stools from metformin",
+    "Coeliac disease",
+    "Chronic infection"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "Unnikrishnan R, Mohan V. Acta Diabetol 2015;52:1-9",
+    "title": "Fibrocalculous pancreatic diabetes (FCPD)",
+    "url": "https://link.springer.com/article/10.1007/s00592-014-0685-9",
+    "quote": "The typical patient with FCPD is a lean adolescent or young adult of either sex, presenting with history of recurrent bouts of abdominal pain and steatorrhea. Demonstration of large, discrete pancreatic calculi by plain radiographs or ultrasonography of the abdomen is diagnostic.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-43",
+     "section": "Abstract",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "classify",
+    "family": "DM-CLS-PANC",
+    "proposal": {
+     "kind": "test.order",
+     "test": "pancreas_imaging"
+    },
+    "review": [
+     "F35",
+     "U07"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
+  }
+ ]
+}

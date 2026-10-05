@@ -1,0 +1,377 @@
+{
+ "gate": "GATE A (STOP 1), diabetes pack MS-NCD-DM-PACK-001",
+ "packVersion": "0.3.7-draft",
+ "signedBy": "Fadhul (owner and Clinical Safety Officer)",
+ "signedOn": "2026-10-05",
+ "mode": "Accept all recommendations; the updated recommendation where gate-a.md gives one. No exceptions named.",
+ "authorises": "The shadow build (Phases 2, 3, 5, 6): computed and logged, shown to nobody. Not clinical use.",
+ "secondReviewer": null,
+ "secondReviewerNote": "D-NCD-17 four-eyes signing needs a second clinical reviewer before any clinical go-live; not required for the shadow build.",
+ "goLiveItems": "The tenth review's answers (V01–V16) have not been independently re-read; see phase-1/review-rounds.md. One more independent read is required before anything leaves shadow.",
+ "decisions": {
+  "D-DM-01": {
+   "title": "Default criteria set for Uganda",
+   "decision": "UCG 2023 as the default set (`ug_ucg_2023`, filled from UCG-DM-01..03), with WHO HEARTS-D 2020 shown alongside and every difference listed; operators as P0-25.",
+   "source": "updated recommendation"
+  },
+  "D-DM-02": {
+   "title": "Which symptoms let one glucose value diagnose",
+   "decision": "Uganda set: UCG's four classical symptoms. WHO set: WHO/ADA's three. Each set states its own.",
+   "source": "updated recommendation"
+  },
+  "D-DM-03": {
+   "title": "Random glucose of 11 or 11.1 in HIV care",
+   "decision": "11.1 mmol/L everywhere (WHO and ADA).",
+   "source": "pack recommendation"
+  },
+  "D-DM-04": {
+   "title": "A glucose meter for diagnosis and for control",
+   "decision": "Yes, as WHO allows: diagnose on a meter with symptoms or with a repeat on another day; never rule out on a meter value near a threshold; read a fasting or post-meal meter value against WHO's surrogates for control.",
+   "source": "pack recommendation"
+  },
+  "D-DM-05": {
+   "title": "Who is offered a test without symptoms",
+   "decision": "WHO's rule everywhere (40 or over and overweight). ADA's 'overweight with another risk factor' at sites with a laboratory. ADA's 'everyone from 35' off.",
+   "source": "pack recommendation"
+  },
+  "D-DM-06": {
+   "title": "What counts as 'tested and negative'",
+   "decision": "'Full' only with a normal 2-hour OGTT. A normal fasting glucose or HbA1c alone is 'limited', with a re-test date.",
+   "source": "pack recommendation"
+  },
+  "D-DM-07": {
+   "title": "How near is 'near the threshold'",
+   "decision": "Within the fasting glucose's own within-person variation (REF-DM-VAL-FPG-CV) below the threshold.",
+   "source": "pack recommendation"
+  },
+  "D-DM-08": {
+   "title": "Time windows that are product settings",
+   "decision": "You set both. Until you do, the rules that depend on them stay dark (REF-DX-RESULT-AGE-GLUCOSE has no value on purpose).",
+   "source": "pack recommendation"
+  },
+  "D-DM-09": {
+   "title": "Order of the next-best test",
+   "decision": "As written in DM-ACT-TEST-01: symptomatic, a random glucose now; no symptoms with a laboratory, fasting plasma glucose, then an OGTT if it is 6.1 to 6.9; HbA1c only where no caveat holds; no laboratory, a fasting meter reading repeated on another day; pregnant, a 75 g OGTT; on steroids, after a meal.",
+   "source": "pack recommendation"
+  },
+  "D-DM-10": {
+   "title": "Suspecting type 1",
+   "decision": "Two of: under 35, BMI below 25, unexplained weight loss (and, in established diabetes, glucose above 20 at presentation). Same day when the diagnosis is new or the type is unclassified and the person is not on insulin; routine once a clinician has recorded the type.",
+   "source": "pack recommendation"
+  },
+  "D-DM-11": {
+   "title": "C-peptide thresholds",
+   "decision": "Not yet. Keep both criteria held out until a person has read the source figure (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), then restore them with the timing conditions.",
+   "source": "pack recommendation"
+  },
+  "D-DM-12": {
+   "title": "Testing in pregnancy",
+   "decision": "Screen on UCG's risk factors at every site; a universal 24–28-week OGTT only at sites that choose it.",
+   "source": "updated recommendation"
+  },
+  "D-DM-13": {
+   "title": "Exactly at the target",
+   "decision": "Uganda targets from UCG: fasting below 7.0, postprandial below 10.0, HbA1c below 7.0% (7.5% for the elderly, age from REF-DM-CTRL-OLDER-AGE until UCG's 'elderly' is defined). No inclusive edge is then needed.",
+   "source": "updated recommendation"
+  },
+  "D-DM-14": {
+   "title": "Eyes: how often, and who is referred",
+   "decision": "No retinopathy: every 2 years (WHO). Mild or moderate: 12 and 6 months unless control is confirmed at target. Refer by grade (ICO): urgent for severe, proliferative or centre-involving disease; routine for moderate. Grade by ICDR ('more than 20' haemorrhages).",
+   "source": "pack recommendation"
+  },
+  "D-DM-15": {
+   "title": "Lipid testing at district sites",
+   "decision": "A lipid profile at diagnosis where the site can run one (UCG); the yearly prompt off where it cannot.",
+   "source": "updated recommendation"
+  },
+  "D-DM-16": {
+   "title": "'Kidney failure' as a hypoglycaemia risk",
+   "decision": "Below 30 for 'high'; below 60 for 'raised'.",
+   "source": "pack recommendation"
+  },
+  "D-DM-17": {
+   "title": "An ACR of exactly 30 mg/mmol",
+   "decision": "Severely increased (30 or more), as KDIGO's own figures and ADA have it.",
+   "source": "pack recommendation"
+  },
+  "D-DM-18": {
+   "title": "Loss of protective sensation",
+   "decision": "One (IWGDF): monofilament or vibration; light touch where neither tool exists.",
+   "source": "pack recommendation"
+  },
+  "D-DM-19": {
+   "title": "eGFR below 30",
+   "decision": "Same day from primary care (WHO HEARTS-D).",
+   "source": "pack recommendation"
+  },
+  "D-DM-20": {
+   "title": "Treatment suggestions in version 1",
+   "decision": "Treatment-review steps on as review prompts with no dose, following UCG's ladder (lifestyle, metformin, glimepiride, basal insulin).",
+   "source": "updated recommendation"
+  },
+  "D-DM-21": {
+   "title": "SGLT2 inhibitors and GLP-1 agonists for heart and kidney protection",
+   "decision": "At referral sites only, as 'refer for consideration'. Off at district sites.",
+   "source": "pack recommendation"
+  },
+  "D-DM-22": {
+   "title": "Glibenclamide, and which sulfonylurea at which level",
+   "decision": "Recognise glibenclamide and flag it in the pack's three situations; never propose it; name glimepiride (UCG) as the sulfonylurea when a step names one.",
+   "source": "updated recommendation"
+  },
+  "D-DM-23": {
+   "title": "Blood pressure threshold in diabetes",
+   "decision": "Below 130/80 (UCG 4.1.6, matching HEARTS-D); the 120/80 in 8.1.3 recorded as a conflict.",
+   "source": "updated recommendation"
+  },
+  "D-DM-24": {
+   "title": "A glucose of exactly 3.9 or 3.0",
+   "decision": "ADA's levels, as the live catalog uses: below 3.9 is level 1, below 3.0 is level 2.",
+   "source": "pack recommendation"
+  },
+  "D-DM-25": {
+   "title": "'Above 7.8' in hospital",
+   "decision": "Add gt_ref to the vital atom.",
+   "source": "pack recommendation"
+  },
+  "D-DM-26": {
+   "title": "Insulin storage advice",
+   "decision": "Carry only the advice nobody contests (refrigerate unopened insulin, never freeze it, keep a vial in use out of the sun) and say nothing about clay pots until you have read both sources.",
+   "source": "pack recommendation"
+  },
+  "D-DM-27": {
+   "title": "Vaccines",
+   "decision": "No. Uganda's routine schedule has none for this group, and ADA's table is the US schedule.",
+   "source": "pack recommendation"
+  },
+  "D-DM-28": {
+   "title": "A meter reading in pregnancy",
+   "decision": "Show both: UCG 2023 as the national set, WHO 2013 alongside; refer on a meter as the pack recommends; P0-26 chooses the default.",
+   "source": "updated recommendation"
+  },
+  "D-DM-29": {
+   "title": "A raised glucose during acute illness or at TB diagnosis",
+   "decision": "Warn beside the value and let the criteria run; the clinician decides. Re-test after recovery (TB: after the first month).",
+   "source": "pack recommendation"
+  },
+  "D-DM-30": {
+   "title": "Which pregnancy facts are a restricted class",
+   "decision": "'Could become pregnant' and previous gestational diabetes: restricted. Current pregnancy: not restricted, because medicine safety checks must read it everywhere.",
+   "source": "pack recommendation"
+  },
+  "D-DM-31": {
+   "title": "Words about changing a medicine",
+   "decision": "'Contraindicated', 'stop' and 'hold' when the source says so; never 'reduce' or 'increase'. Everything ends 'review with the prescriber'.",
+   "source": "pack recommendation"
+  },
+  "D-DM-32": {
+   "title": "Where 'adult' starts",
+   "decision": "16, by numeric age in the evaluation context, independent of the display band (P0-01).",
+   "source": "updated recommendation"
+  },
+  "D-DM-33": {
+   "title": "Dolutegravir and glucose",
+   "decision": "Propose a glucose test; show UCG's words with their source; never propose an ART change; say 'discuss with the ART clinic'. Show the dolutegravir-metformin warning once, to be acknowledged, not at every visit.",
+   "source": "pack recommendation"
+  },
+  "D-DM-34": {
+   "title": "When metformin starts",
+   "decision": "Follow UCG: lifestyle first for 3 months unless sugars are very high; the 'very high' arm dark until a number is signed (P0-28).",
+   "source": "updated recommendation"
+  },
+  "D-DM-35": {
+   "title": "Type 1 as must-not-miss on the clerking desk",
+   "decision": "Yes: untreated it becomes ketoacidosis.",
+   "source": "pack recommendation"
+  },
+  "D-DM-36": {
+   "title": "Pregnancy not recorded",
+   "decision": "Nothing that applies only outside pregnancy: the non-pregnant criteria set, the targets and the treatment steps wait for the answer. Acute and suspicion rules still run.",
+   "source": "pack recommendation"
+  },
+  "D-DM-37": {
+   "title": "Rules with no sentence to quote",
+   "decision": "Sign all six with their reasons.",
+   "source": "pack recommendation"
+  },
+  "D-DM-38": {
+   "title": "Glucose 18 or more without ketoacidosis",
+   "decision": "WHO PEN: same-day review for everyone at this level (DM-ACT-REFER-GLU-02). Dark until signed.",
+   "source": "pack recommendation"
+  },
+  "D-DM-39": {
+   "title": "Blood pressure above 180/110 without organ damage",
+   "decision": "UCG 2023: admit above 180/110, as the national text says; the hypertension pack will own it.",
+   "source": "pack recommendation"
+  },
+  "D-DM-40": {
+   "title": "Lower limits for older or high-risk people",
+   "decision": "Read ADA Standards of Care section 13 (older adults) for the glucose floor and supply a low BP band from the hypertension pack's source; until then the bands carry no 'at target' below the general range for people on insulin or a sulfonylurea aged 65 or over.",
+   "source": "pack recommendation"
+  },
+  "D-DM-41": {
+   "title": "The acute escalation floor",
+   "decision": "Sign it as the acute lane's contract. Interrupt on: a meter HI or LO; blood ketones 3.0 or more in diabetes or with a high glucose; ketones 1.6–2.9 with vomiting; deep breathing or drowsiness in diabetes, with a high glucose, or with no glucose at all; a glucose of 3.5 with drowsiness, or on insulin, a sulfonylurea, type 1 or unknown medicines; acetone or dehydration on insulin, an SGLT2 inhibitor, type 1, unknown medicines, or in a child with diabetes (unless blood ketones are normal); an SGLT2 inhibitor with vomiting, deep breathing, dehydration or drowsiness; a child with diabetes who is vomiting, in pain or acutely unwell with no glucose; in pregnancy or 6 weeks postpartum (or unanswered) 160/110, or 140/90 with organ damage, drowsiness or headache, or organ damage or drowsiness at any pressure. Same day for the intermediate patterns (ketones 0.6–2.9, vomiting with a high glucose, a low on other medicines, acetone or dehydration in other diabetes until blood ketones are below 0.6, a vomiting or acutely unwell child or insulin-treated adult with diabetes, 140/90 in pregnancy, and an asymptomatic 160/110 with pregnancy unanswered; with headache it interrupts).",
+   "source": "pack recommendation"
+  },
+  "D-DM-42": {
+   "title": "Vomiting with a high glucose on insulin; ketoacidosis in pregnancy",
+   "decision": "Supply ISPAD 2022 and JBDS sick-day and JBDS-IP (DKA in pregnancy) text; until then keep same-day with 'repeat the strip in 2 hours' and say so.",
+   "source": "pack recommendation"
+  }
+ },
+ "phase0Rulings": {
+  "P0-01": {
+   "ruling": "Where adult starts (pack 16; live band 20)",
+   "decision": "Add numeric age to the context; adult rules from 16 by age, independent of the display band"
+  },
+  "P0-02": {
+   "ruling": "Numeric age and \"could be pregnant\" as platform inputs",
+   "decision": "Derive both from demographics (DOB, sex at birth); unknown sex or age ⇒ pregnancy unknown"
+  },
+  "P0-03": {
+   "ruling": "A list holding only \"unknown\" satisfies `!= insulin`",
+   "decision": "Treat `unknown`/blank as insufficient for `!=`"
+  },
+  "P0-04": {
+   "ruling": "`atLeast` over insufficient/unavailable",
+   "decision": "Adopt the reference evaluator's rule (pack semantics), with truth-table tests"
+  },
+  "P0-05": {
+   "ruling": "Blocking caveat in diagnosis: drop the criterion or \"insufficient\"",
+   "decision": "Insufficient by direction (N8)"
+  },
+  "P0-06": {
+   "ruling": "Metformin with eGFR < 30: amber (live) or red (pack)",
+   "decision": "Keep amber (red is for emergencies; I11)"
+  },
+  "P0-07": {
+   "ruling": "Live red emergency for glucose < 3.9 in anyone; red danger sign on vomiting with known diabetes",
+   "decision": "Align to N13 and D-DM-24: interrupt below 3.0 or with a sign; level 1 amber outside treated diabetes"
+  },
+  "P0-08": {
+   "ruling": "Live wording \"reduce the insulin or sulfonylurea\" vs D-DM-31",
+   "decision": "Reword to \"review with the prescriber\""
+  },
+  "P0-09": {
+   "ruling": "Glibenclamide: flag any use (live) or three situations (pack)",
+   "decision": "Pack's three situations plus UCG's glimepiride as named alternative"
+  },
+  "P0-10": {
+   "ruling": "`sglt2_during_acute_illness` (same id, different trigger)",
+   "decision": "Pack's trigger, live id"
+  },
+  "P0-11": {
+   "ruling": "DKD: staging from a strip; confirmation by 3-month flag or 2 of 3 ACRs",
+   "decision": "Keep strip as fallback category only; confirmation 2 of 3 over 3 months (KDIGO)"
+  },
+  "P0-12": {
+   "ruling": "Vibration toward loss of protective sensation",
+   "decision": "Yes (IWGDF, D-DM-18)"
+  },
+  "P0-13": {
+   "ruling": "Live `who_2019` vs pack `who_hearts_d_2020`",
+   "decision": "Replace live WHO set with the pack's (same thresholds, fuller); keep ADA/IDF"
+  },
+  "P0-14": {
+   "ruling": "Low-glucose bands toned `diagnostic`",
+   "decision": "New tone or `low` with an alert; never \"Diabetes range\""
+  },
+  "P0-15": {
+   "ruling": "DKA \"blood ketones < 0.6\" against-atom on a must-not-miss",
+   "decision": "Drop (no signature-worthy source that low ketones exclude DKA in context)"
+  },
+  "P0-16": {
+   "ruling": "Type 1 must-not-miss: reason text; live obese-BMI against-atom",
+   "decision": "Add reason \"untreated it becomes ketoacidosis\"; remove the obese-BMI against-atom"
+  },
+  "P0-17": {
+   "ruling": "EC-8 scalar changes",
+   "decision": "Merge-only for lists; scalars only via explicit `_changes` the CSO signs per field"
+  },
+  "P0-18": {
+   "ruling": "Clerking evaluator two-valued",
+   "decision": "Load nothing using context/pregnancy atoms until EC-3/EC-5; EC-1 gets a three-valued \"unknown\""
+  },
+  "P0-19": {
+   "ruling": "DDX-GLUCOSE-HIGH amend adds steroid hyperglycaemia to every glucose ≥ 11.1",
+   "decision": "Drop (reviewer's reading: an error)"
+  },
+  "P0-20": {
+   "ruling": "Concept ids (3 wrong; GDM one or two concepts; maculopathy/Ipswich answers; `hx.*` vs `hist.*`; addendum v1.4 or v1.5)",
+   "decision": "Fix the 3; two concepts; extend answers; use `hist.*`; v1.5 (v1.4 is pending)"
+  },
+  "P0-21": {
+   "ruling": "Test ids: adopt dx catalogue ids or rename",
+   "decision": "Adopt the live ids"
+  },
+  "P0-22": {
+   "ruling": "`oral_glucose_lowering` split",
+   "decision": "Split by `parent` classes; keep the old id as parent"
+  },
+  "P0-23": {
+   "ruling": "Duplicates (SUG-DM-POSTURAL, DDX-GLUCOSE-VERY-HIGH, FLAG-EX-GLU-KETONE-TEST, REF-DX-GLU-HHS, SUG-* targets)",
+   "decision": "Drop the pack's; keep live ids"
+  },
+  "P0-24": {
+   "ruling": "Nausea alone triggers vomiting rules until CFC v1.4",
+   "decision": "Accept, documented, or sign CFC v1.4 alongside"
+  },
+  "P0-25": {
+   "ruling": "UCG \">\" literal or \"≥\"",
+   "decision": "Literal in `ug_ucg_2023` (it is the text); show both sets side by side"
+  },
+  "P0-26": {
+   "ruling": "UCG GDM thresholds vs WHO 2013",
+   "decision": "WHO 2013 is the default gestational diabetes set; UCG 2023's set is computed and shown alongside (CSO, 2026-10-05)"
+  },
+  "P0-27": {
+   "ruling": "UCG's two BP targets (120/80, < 130/80)",
+   "decision": "< 130/80 (the hypertension chapter's, consistent with HEARTS-D)"
+  },
+  "P0-28": {
+   "ruling": "UCG lifestyle-first (D-DM-34)",
+   "decision": "Follow UCG: lifestyle 3 months unless \"very high\" (no number; dark until a number is signed)"
+  }
+ },
+ "schemaChanges": {
+  "accepted": [
+   "S-DM-01",
+   "S-DM-02",
+   "S-DM-04",
+   "S-DM-05",
+   "S-DM-06",
+   "S-DM-07",
+   "S-DM-08",
+   "S-DM-09",
+   "S-DM-10",
+   "S-DM-12",
+   "S-DM-13",
+   "S-DM-14",
+   "S-DM-15",
+   "S-DM-16",
+   "P0-01/02 numeric age and pregnancy possible"
+  ],
+  "notNeeded": {
+   "S-DM-11": "D-DM-13's updated recommendation (UCG: 'below' for all three) needs no inclusive edge"
+  },
+  "outOfScope": {
+   "S-DM-03": "WHO CVD chart import is a separate checked import (prompt §7)"
+  }
+ },
+ "engineChanges": {
+  "accepted": [
+   "EC-1",
+   "EC-2",
+   "EC-3",
+   "EC-4",
+   "EC-5",
+   "EC-6",
+   "EC-7",
+   "EC-8"
+  ],
+  "ec8": "Merge-only for lists; scalar changes only through explicit _changes signed per field (P0-17)"
+ },
+ "designB": "Phase 4 skipped (owner's choice 2026-10-05); the manifest stays as the seam.",
+ "correction": "2026-10-05: seven updated recommendations had been filed under the wrong decision ids in this record (D-DM-03, 14, 16, 21, 24, 29, 33 carried those of D-DM-12, 15, 20, 22, 28, 32, 34). Every decision is now copied from gate-a.md, the document signed; no decision changed. The built content already followed gate-a.md."
+}

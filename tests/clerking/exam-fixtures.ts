@@ -1,14 +1,21 @@
 import type { Complaint, History } from "@/lib/clerking/answers";
-import type { ExamContext, VitalValues } from "@/lib/clerking/exam/context";
+import type {
+  ExamContext,
+  NumericVital,
+  ResultFact,
+  VitalValues,
+} from "@/lib/clerking/exam/context";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { News2Result } from "@/lib/triage/types";
 
 import { emptyHistory } from "@/lib/clerking/answers";
 import { readAttr, setAttr } from "@/lib/clerking/exam/answers";
+import { shownWhenParts } from "@/lib/clerking/exam/catalogue";
 import { rosierSignId } from "@/lib/clerking/exam/classifiers";
 import { NO_VITALS } from "@/lib/clerking/exam/context";
 import { EXAM_CATALOGUE } from "@/lib/clerking/exam/load";
 import { emptyExam } from "@/lib/clerking/exam/payload";
+import { DX_CATALOGUE } from "@/lib/clerking/impression/load";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { cat } from "./fixtures";
@@ -32,10 +39,16 @@ export interface Scenario {
   history: History;
   patient: ExamContext["patient"];
   vitals: VitalValues;
-  settings: { outbreakMode: boolean };
-  medicines: { name: string; drugClass?: string | null }[];
+  settings: { outbreakMode: boolean; encounterType?: string | null };
+  medicines: { name: string; drugClass?: string | null; adherence?: string | null }[];
   news2Latest: News2Result | null;
+  /** Results on the record (EC-1) and the note's time. */
+  facts?: ResultFact[];
+  now?: string;
 }
+
+/** The note's time in fixtures: results are dated before it. */
+export const NOW = "2026-10-05T10:00:00.000Z";
 
 export function scenario(p: Partial<Scenario> = {}): Scenario {
   return {
@@ -61,6 +74,7 @@ export function toCtx(s: Scenario): ExamContext {
     vitals: s.vitals,
     news2Latest: s.news2Latest,
     latestSetTime: "23:00",
+    ...(s.facts ? { facts: s.facts, now: s.now ?? NOW } : {}),
   };
 }
 
@@ -119,12 +133,10 @@ export function tick(s: Scenario, item: string, attribute: string, option: strin
       },
     };
   }
-  // Make the attribute visible first (its shown_when parent).
-  if (
-    a.shown_when &&
-    !has(readAttr(ecat, s.exam, item, a.shown_when.attribute), a.shown_when.any_of[0]!)
-  )
-    tick(s, item, a.shown_when.attribute, a.shown_when.any_of[0]!);
+  // Make the attribute visible first (its shown_when parents).
+  for (const sw of a.shown_when ? shownWhenParts(a.shown_when) : [])
+    if (!has(readAttr(ecat, s.exam, item, sw.attribute), sw.any_of[0]!))
+      tick(s, item, sw.attribute, sw.any_of[0]!);
   // A read-only mirror (several owners) is set on its first owner.
   const edge = ecat.mirror({ item, attribute, option });
   if (edge?.readOnly) {
@@ -139,11 +151,9 @@ const has = (v: unknown, o: string) => (Array.isArray(v) ? v.includes(o) : v ===
 
 export function setNumber(s: Scenario, item: string, attribute: string, n: number): void {
   const a = ecat.attribute(item, attribute)!;
-  if (
-    a.shown_when &&
-    !has(readAttr(ecat, s.exam, item, a.shown_when.attribute), a.shown_when.any_of[0]!)
-  )
-    tick(s, item, a.shown_when.attribute, a.shown_when.any_of[0]!);
+  for (const sw of a.shown_when ? shownWhenParts(a.shown_when) : [])
+    if (!has(readAttr(ecat, s.exam, item, sw.attribute), sw.any_of[0]!))
+      tick(s, item, sw.attribute, sw.any_of[0]!);
   s.exam = setAttr(ecat, s.exam, item, attribute, n);
 }
 
@@ -254,7 +264,28 @@ const CLASSIFIER: Record<string, Record<string, (s: Scenario) => void>> = {
     level_1: (s) => (s.vitals.glucose = 3.5),
     level_2: (s) => (s.vitals.glucose = 2.6),
   },
+  // The diabetes pack's rule classifiers (EC-7): built from their own first matching rule.
+  ketone_band: {
+    high: (s) => ketones(s, { blood: refNum("REF-EX-KETONE-DKA")! }),
+    moderate: (s) => ketones(s, { blood: refNum("REF-EX-KETONE-RISK")! }),
+    raised: (s) => ketones(s, { blood: refNum("REF-EX-KETONE-RAISED")! }),
+  },
+  acuity_band: {
+    worse_than_6_12: (s) => tick(s, "ex.eyes_ent_neck.visual_acuity", "right", "6_18"),
+  },
+  dr_review: {
+    refer_within_1_month: (s) => tick(s, "ex.eyes_ent_neck.fundoscopy", "dr_grade", "pdr"),
+    refer_within_3_months: (s) => tick(s, "ex.eyes_ent_neck.fundoscopy", "dr_grade", "severe_npdr"),
+    refer_cannot_assess: (s) => tick(s, "ex.eyes_ent_neck.fundoscopy", "view", "inadequate"),
+  },
 };
+
+export function ketones(s: Scenario, k: NonNullable<NonNullable<ExamDraft["panels"]>["ketones"]>) {
+  s.exam = {
+    ...s.exam,
+    panels: { ...s.exam.panels, ketones: { ...s.exam.panels?.ketones, ...k } },
+  };
+}
 
 function confirmAsthma(s: Scenario) {
   s.exam = { ...s.exam, panels: { ...s.exam.panels, asthmaConfirmed: true } };
@@ -284,11 +315,90 @@ function pneumonia(s: Scenario, o: { rr: number; sbp: number; age: number; disor
 /* ─── The solver ──────────────────────────────────────────────────── */
 
 type Cond = Record<string, unknown>;
-const refNum = (id: unknown) => ecat.refNumber(String(id));
+const refNum = (id: unknown) => {
+  const r = String(id);
+  if (!r.startsWith("REF-DX-")) return ecat.refNumber(r);
+  const v = DX_CATALOGUE.refValue(r);
+  return typeof v === "number" ? v : null;
+};
 
 /** Make one atom true. Returns false when the atom is not one the solver knows. */
 function makeTrue(c: Cond, s: Scenario): boolean {
   if ("always" in c) return true;
+  // The diabetes pack's atoms (EC-1, EC-2, EC-5, EC-7).
+  if ("result" in c) {
+    // The value inside every bound, dated a day before the note, at the atom's trust.
+    const lo = refNum(c.gte_ref ?? c.gt_ref);
+    const hi = refNum(c.lt_ref ?? c.lte_ref);
+    const value =
+      lo !== null && hi !== null ? (lo + hi) / 2 : lo !== null ? lo + 0.1 : (hi ?? 0) - 0.1;
+    const q = (c.qualifiers ?? {}) as Record<string, string>;
+    const challenge = q.challenge
+      ? { type: "ogtt_75g", minutes: q.challenge === "ogtt_75g_1h" ? 60 : 120 }
+      : undefined;
+    s.facts = [
+      ...(s.facts ?? []),
+      {
+        concept: String(c.result),
+        value: Math.round(value * 100) / 100,
+        at: "2026-10-04T10:00:00.000Z",
+        trust: (Number(c.min_trust ?? 4) as 1 | 2 | 3 | 4) || 4,
+        ...(q.fastingState ? { fastingState: q.fastingState as "fasting" } : {}),
+        ...(challenge ? { challenge } : {}),
+        ...(q.specimen ? { specimen: q.specimen } : {}),
+        ...(c.result === "obs.hba1c" ? { certification: "ngsp", pointOfCare: false } : {}),
+      },
+    ];
+    if (c.result === "obs.hba1c") s.patient.pregnant = s.patient.sex === "male" ? null : false;
+    return true;
+  }
+  if ("pregnancy" in c) {
+    s.patient.sex = c.pregnancy === "not_pregnant" ? s.patient.sex : "female";
+    s.patient.pregnant =
+      c.pregnancy === "current" ? true : c.pregnancy === "not_pregnant" ? false : null;
+    if (c.pregnancy === "current") s.patient.pregnancySince = "2026-08-01T00:00:00.000Z";
+    return true;
+  }
+  if ("past_detail" in c) {
+    const id = String(c.past_detail);
+    const p = cat.details(id)!.properties.find((q) => q.id === c.property)!;
+    const o = String(
+      c.equals ?? (c.any_of as string[] | undefined)?.[0] ?? (c.includes_any as string[])[0],
+    );
+    const cur = s.history.past.conditions[id];
+    s.history.past.conditions[id] = {
+      answer: "yes",
+      details: { ...cur?.details, [p.id]: p.kind === "many" ? [o] : o },
+    };
+    return true;
+  }
+  if ("medicine" in c) {
+    const p = (cat.data.medicines.quick_picks as { id: string; label: string }[]).find(
+      (q) => q.id === c.medicine,
+    )!;
+    const adherence = (c.adherence_any as string[] | undefined)?.[0] ?? null;
+    if (c.answer === "not_taking") s.history.past.medicinesNone = true;
+    else s.medicines.push({ name: p.label, adherence });
+    return true;
+  }
+  if ("panel" in c && c.panel === "vs.ketones") {
+    if ("recorded" in c) return (ketones(s, { urine: "neg" }), true);
+    if (c.field === "urine") return (ketones(s, { urine: (c.any_of as never[])[0] }), true);
+    const n = "gte_ref" in c ? refNum(c.gte_ref)! : refNum(c.lt_ref)! - 0.1;
+    return (ketones(s, { blood: Math.round(n * 10) / 10 }), true);
+  }
+  if ("item" in c && "recorded" in c) {
+    const item = ecat.item(String(c.item))!;
+    if (item.response.type === "measured") {
+      const a = item.attributes![0]!;
+      tick(s, item.id, a.id, a.options![0]!.id);
+    } else negative(s, item.id);
+    return true;
+  }
+  if ("setting" in c && Array.isArray(c.setting)) {
+    s.settings.encounterType = String(c.setting[0]);
+    return true;
+  }
   if ("symptom" in c) {
     const sym = String(c.symptom);
     if (c.answer === "no") {
@@ -435,8 +545,14 @@ function makeTrue(c: Cond, s: Scenario): boolean {
       "vs.rr": "rr",
       "vs.pulse": "pulse",
       "vs.temp": "temp",
-    }[String(c.vital)] as keyof VitalValues;
-    v[key] = "gte_ref" in c ? refNum(c.gte_ref)! : refNum(c.lt_ref)! - 0.5;
+    }[String(c.vital)] as NumericVital;
+    v[key] =
+      "gte_ref" in c
+        ? refNum(c.gte_ref)!
+        : "gt_ref" in c
+          ? refNum(c.gt_ref)! + 0.1
+          : refNum(c.lt_ref)! - 0.5;
+    if ("context" in c) v.glucoseContext = String(c.context);
     return true;
   }
   if ("panel" in c) {

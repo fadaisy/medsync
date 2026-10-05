@@ -6,9 +6,11 @@ import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clerkshipDrafts } from "@/db/schema/clerkship-drafts";
-import { clerkshipDraftsLive } from "@/lib/encounter/feature";
+import { clerkshipDraftsLive, ncdPackShadowLive } from "@/lib/encounter/feature";
 import { decrypt, encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import { runDiabetesPack } from "@/lib/ncd/pack";
+import { shadowInput, shadowSummary } from "@/lib/ncd/pack/shadow";
 
 /**
  * The in-progress NCD clerkship, autosaved between explicit saves.
@@ -135,9 +137,29 @@ export async function saveNcdDraft(
         target: [clerkshipDrafts.encounterId, clerkshipDrafts.authorId],
         set: { payload, updatedAt: new Date() },
       });
+    logPackShadow(encounterId, values);
     return true;
   } catch (error) {
     logger.warn("ncd.draft.save_failed", { encounterId, error: String(error) });
     return false;
+  }
+}
+
+/**
+ * Shadow run of the diabetes pack on the values just saved (I10): computed and logged as rule ids
+ * and counts, never shown and never stored. A failure is logged and swallowed; it can never touch
+ * the save or the clinician's form.
+ */
+function logPackShadow(encounterId: string, values: CaptureMap): void {
+  try {
+    if (!ncdPackShadowLive()) return;
+    const age =
+      values.age_years?.state === "recorded" && typeof values.age_years.value === "number"
+        ? values.age_years.value
+        : undefined;
+    const result = runDiabetesPack(shadowInput(values, { ageYears: age }));
+    logger.info("ncd.pack.shadow", { encounterId, ...shadowSummary(result) });
+  } catch (error) {
+    logger.warn("ncd.pack.shadow_failed", { encounterId, error: String(error) });
   }
 }

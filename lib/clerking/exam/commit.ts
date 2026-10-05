@@ -33,6 +33,9 @@ export interface ExamCommitLine {
 const MAP = tokenMap as {
   items: Record<string, string>;
   options: { item: string; attribute: string; option: string; concept: string }[];
+  /** EC-7: an attribute whose chosen option is the coded value (`map` renames it to the
+   *  concept's answer). */
+  values?: { item: string; attribute: string; concept: string; map?: Record<string, string> }[];
 };
 /** Items written elsewhere: blocks (below) and vital-sign sets. */
 const NOT_HERE = new Set(["ex.general.consciousness", "ex.nervous.amts", "ex.general.hydration"]);
@@ -159,6 +162,30 @@ export function examCommitLines(
         o.item,
       );
     else if (o.concept === "obs.pain_score" || o.concept === "obs.rass") continue; // below, with their values
+  }
+
+  /* Values from an option (EC-7: the retinopathy grade, the macula, the view). Written only when
+   * the concept exists and has that answer; a hidden attribute was pruned, so an undilated look
+   * commits no grade. */
+  for (const o of MAP.values ?? []) {
+    const def = conceptDef(o.concept);
+    const v = readAttr(ecat, exam, o.item, o.attribute);
+    const e = exam.entries[o.item];
+    if (!def || typeof v !== "string" || !e || e.state === "not_examined") continue;
+    const code = o.map?.[v] ?? v;
+    if (!def.answers?.includes(code)) continue;
+    // ponytail: a concept that needs more context than the item gives (the grade's laterality,
+    // method and scale; the desk grades the worse eye) stays in the note until the form asks it.
+    if (def.contextRequired.some((k) => k !== "elicitedBy")) continue;
+    put(
+      {
+        conceptId: o.concept,
+        value: { type: "coded", code },
+        context: ctx(o.item, { catalogueAttribute: o.attribute }),
+        restricted: restrictedClass(ecat.item(o.item)?.sensitivity),
+      },
+      o.item,
+    );
   }
 
   /* Distress: pain score and RASS */

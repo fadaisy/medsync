@@ -6,7 +6,13 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { envFiles, nothingNewWords, planMigrations } from "@/scripts/migrate";
+import {
+  envFiles,
+  nothingNewWords,
+  parseArgs,
+  planMigrations,
+  selectPending,
+} from "@/scripts/migrate";
 
 const at =
   (...paths: string[]) =>
@@ -45,6 +51,7 @@ describe("planMigrations and the words when nothing is new", () => {
     expect(words).toMatch(/newest migration here: +0081_b\.sql/);
     expect(words).toMatch(/newest applied in the database: 0090_ward_builder\.sql/);
     expect(words).toMatch(/this folder is behind/);
+    expect(words).toMatch(/^ {4}0090_ward_builder\.sql$/m); // every one is named, not only the newest
   });
 
   it("the worktree that holds the new file: it is pending, in order", () => {
@@ -59,5 +66,22 @@ describe("planMigrations and the words when nothing is new", () => {
   it("up to date: no 'behind' line", () => {
     const plan = planMigrations(["0080_a.sql", "0081_b.sql", "0090_ward_builder.sql"], applied);
     expect(nothingNewWords(plan, "/w", null).join("\n")).not.toMatch(/behind/);
+  });
+});
+
+describe("--dry-run and named files", () => {
+  const files = ["0083_a.sql", "0085_b.sql", "0088_c.sql", "0092_d.sql"];
+  const plan = planMigrations(files, new Set(["0083_a.sql"]));
+  it("reads the flag and the prefixes", () => {
+    expect(parseArgs(["--dry-run", "0092"])).toEqual({ dryRun: true, only: ["0092"] });
+    expect(parseArgs([])).toEqual({ dryRun: false, only: [] });
+  });
+  it("applies every pending file by default, or only the named ones", () => {
+    expect(selectPending(plan, files, [])).toEqual(["0085_b.sql", "0088_c.sql", "0092_d.sql"]);
+    expect(selectPending(plan, files, ["0092", "0085"])).toEqual(["0085_b.sql", "0092_d.sql"]);
+    expect(selectPending(plan, files, ["0083"])).toEqual([]); // already applied: nothing to do
+  });
+  it("a prefix that names no file here is an error, never a silent 'nothing new'", () => {
+    expect(() => selectPending(plan, files, ["0099"])).toThrow(/0099/);
   });
 });

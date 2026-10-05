@@ -3,6 +3,7 @@ import type { DxSignoff } from "./catalogue";
 
 import raw from "@/data/clerking/clerking-diagnosis-catalogue.v1.json";
 import signoff from "@/data/clerking/dx-signoff.v1.json";
+import PACK_TERMS from "@/data/emr/clinical-fact-concepts.v1.5.json";
 import BASE_TERMS from "@/data/emr/diagnosis-terms.v1.json";
 import TEST_MENU from "@/data/emr/test-catalogue.v1.json";
 import ADD_TERMS from "@/docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json";
@@ -54,6 +55,11 @@ export const DX_NAMES: Readonly<
     { display: t.display, restricted: t.sensitivity === "restricted", coded: true },
   ]),
   ...ADD_TERMS.terms.map((t) => [
+    t.id,
+    { display: t.display, restricted: t.sensitivity === "restricted", coded: false },
+  ]),
+  // The diabetes pack's terms (CFC v1.5 termsAdd, migration 0092): uncoded, as the addendum's.
+  ...PACK_TERMS.termsAdd.map((t) => [
     t.id,
     { display: t.display, restricted: t.sensitivity === "restricted", coded: false },
   ]),

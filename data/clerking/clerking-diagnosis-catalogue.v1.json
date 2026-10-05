@@ -1,7 +1,7 @@
 {
  "id": "MS-EMR-DX-CAT-001",
  "title": "MedSync clerking diagnosis reasoning catalogue",
- "version": "1.0.1-draft",
+ "version": "1.1.1-draft",
  "status": "signed-gate-a",
  "generated": "2026-09-28",
  "scope": "Adult (15 and over) internal-medicine outpatient, emergency and ward clerking at a Ugandan referral hospital. The reasoning layer for step 09 Impression: what supports or argues against each diagnosis, what has not been asked or examined, which tests would help decide, must-not-miss marking, and differential suggestions. Paediatric, obstetric and surgical-specialty reasoning are later rounds.",
@@ -168,6 +168,50 @@
    ],
    "source": "GCS-AID",
    "status": "draft-unverified"
+  },
+  "icdr_dr": {
+   "label": "Retinopathy (ICDR)",
+   "options": [
+    "no apparent retinopathy",
+    "mild non-proliferative",
+    "moderate non-proliferative",
+    "severe non-proliferative",
+    "proliferative"
+   ],
+   "source": "ICDR-2003",
+   "status": "draft",
+   "ref_dm": "REF-DM-EYE-ICDR"
+  },
+  "kdigo_albuminuria": {
+   "label": "Albuminuria (KDIGO)",
+   "options": [
+    "A1",
+    "A2",
+    "A3"
+   ],
+   "source": "KDIGO-CKD-2024",
+   "status": "draft",
+   "ref_dm": [
+    "REF-DM-KID-ACR-A2",
+    "REF-DM-KID-ACR-A3"
+   ]
+  },
+  "dka_severity": {
+   "label": "DKA severity (2024 consensus)",
+   "options": [
+    "mild",
+    "moderate",
+    "severe"
+   ],
+   "source": "ADA-EASD-CRISES-2024",
+   "status": "draft",
+   "ref_dm": [
+    "REF-DM-ACU-DKA-MOD-PH",
+    "REF-DM-ACU-DKA-SEV-PH",
+    "REF-DM-ACU-DKA-MOD-HCO3",
+    "REF-DM-ACU-DKA-SEV-HCO3",
+    "REF-DM-ACU-DKA-SEV-BOHB"
+   ]
   }
  },
  "reference_entries": {
@@ -277,6 +321,182 @@
    "meaning": "At or above this systolic, intracerebral haemorrhage is weighted in stroke (clinician weighs; never decides).",
    "source": "DRAFT-MEDSYNC",
    "status": "draft"
+  },
+  "REF-DX-GLU-FASTING-DM": {
+   "value": 7.0,
+   "unit": "mmol/L",
+   "meaning": "Fasting plasma glucose at or above this value is in the diabetes range",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-DX-FPG"
+  },
+  "REF-DX-GLU-RANDOM-DM": {
+   "value": 11.1,
+   "unit": "mmol/L",
+   "meaning": "Random plasma glucose at or above this value WITH symptoms is in the diabetes range (WHO: 'to be used only in the presence of symptoms')",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-DX-RANDOM"
+  },
+  "REF-DX-GLU-2H-DM": {
+   "value": 11.1,
+   "unit": "mmol/L",
+   "meaning": "2-hour venous plasma glucose after 75 g at or above this value is in the diabetes range",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-DX-OGTT2H"
+  },
+  "REF-DX-HBA1C-DM": {
+   "value": 6.5,
+   "unit": "%",
+   "meaning": "HbA1c at or above this value is in the diabetes range, where the assay is quality-assured and no validity caveat holds",
+   "source": "WHO-HBA1C-2011",
+   "status": "draft",
+   "mirrors": "REF-DM-DX-HBA1C"
+  },
+  "REF-DX-GLU-FASTING-IFG": {
+   "value": 6.1,
+   "unit": "mmol/L",
+   "meaning": "WHO impaired fasting glucose starts at this fasting plasma glucose",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-IH-IFG-WHO"
+  },
+  "REF-DX-GLU-2H-IGT": {
+   "value": 7.8,
+   "unit": "mmol/L",
+   "meaning": "Impaired glucose tolerance starts at this 2-hour plasma glucose (with fasting below the diabetes threshold)",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-IH-IGT"
+  },
+  "REF-DX-GLU-HOSPITAL": {
+   "value": 7.8,
+   "unit": "mmol/L",
+   "meaning": "In hospital, any glucose above this value is hyperglycaemia and needs follow-up",
+   "source": "ES-INPATIENT-2012",
+   "status": "draft",
+   "mirrors": "REF-DM-SUS-HOSP-GLU"
+  },
+  "REF-DX-BICARB-DKA": {
+   "value": 18,
+   "unit": "mmol/L",
+   "meaning": "DKA: bicarbonate below this value",
+   "source": "ADA-EASD-CRISES-2024",
+   "status": "draft",
+   "mirrors": "REF-DM-ACU-DKA-HCO3"
+  },
+  "REF-DX-PH-DKA": {
+   "value": 7.3,
+   "unit": "pH",
+   "meaning": "DKA: pH below this value",
+   "source": "ADA-EASD-CRISES-2024",
+   "status": "draft",
+   "mirrors": "REF-DM-ACU-DKA-PH"
+  },
+  "REF-DX-OSM-EFF-HHS": {
+   "value": 300,
+   "unit": "mOsm/kg",
+   "meaning": "HHS: effective osmolality (2 x sodium + glucose) above this value",
+   "source": "ADA-EASD-CRISES-2024",
+   "status": "draft",
+   "mirrors": "REF-DM-ACU-HHS-OSM-EFF"
+  },
+  "REF-DX-GLU-2H-DM-CAP": {
+   "value": 12.2,
+   "unit": "mmol/L",
+   "meaning": "2-hour CAPILLARY plasma glucose after 75 g at or above this value is in the diabetes range (WHO only)",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-DX-OGTT2H-CAP"
+  },
+  "REF-DX-EGFR-REDUCED": {
+   "value": 60,
+   "unit": "mL/min/1.73m2",
+   "meaning": "GFR category G2 is at or above this eGFR; below it is G3a or worse (reduced eGFR)",
+   "source": "KDIGO-CKD-2024",
+   "status": "draft",
+   "mirrors": "REF-DM-KID-GFR-G3A"
+  },
+  "REF-DX-UACR-A2": {
+   "value": 3,
+   "unit": "mg/mmol",
+   "meaning": "Albuminuria category A2 (moderately increased) starts at this ACR",
+   "source": "KDIGO-CKD-2024",
+   "status": "draft",
+   "mirrors": "REF-DM-KID-ACR-A2"
+  },
+  "REF-DX-GDM-FASTING": {
+   "value": 5.1,
+   "unit": "mmol/L",
+   "meaning": "WHO 2013: gestational diabetes if fasting plasma glucose is at or above this value (and below the diabetes threshold)",
+   "source": "WHO-GDM-2013",
+   "status": "draft",
+   "mirrors": "REF-DM-PREG-GDM-FPG"
+  },
+  "REF-DX-GDM-1H": {
+   "value": 10.0,
+   "unit": "mmol/L",
+   "meaning": "WHO 2013: gestational diabetes if 1-hour plasma glucose after 75 g is at or above this value",
+   "source": "WHO-GDM-2013",
+   "status": "draft",
+   "mirrors": "REF-DM-PREG-GDM-1H"
+  },
+  "REF-DX-GDM-2H": {
+   "value": 8.5,
+   "unit": "mmol/L",
+   "meaning": "WHO 2013: gestational diabetes if 2-hour plasma glucose after 75 g is at or above this value (and below the diabetes threshold)",
+   "source": "WHO-GDM-2013",
+   "status": "draft",
+   "mirrors": "REF-DM-PREG-GDM-2H"
+  },
+  "REF-DX-RESULT-AGE-GLUCOSE": {
+   "value": 90,
+   "unit": "days",
+   "meaning": "How old a glucose result may be and still count as evidence at this visit",
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "A product parameter, not a guideline number (D-DM-08), signed by the CSO 2026-10-05: 90 days, as for HbA1c."
+  },
+  "REF-DX-ADULT-AGE": {
+   "value": 16,
+   "unit": "years",
+   "meaning": "Below this age the Plan offers recognition and referral only; no adult target, interval or treatment review is shown",
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "MedSync's own rule, signed at GATE A as D-DM-32 (16, by numeric age; P0-01). Matches the age the NCD pack calls 'adult'."
+  },
+  "REF-DX-RESULT-AGE-KIDNEY": {
+   "value": 365,
+   "unit": "days",
+   "meaning": "How old an eGFR or ACR may be and still count for the yearly kidney check",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-KID-SCREEN-INTERVAL"
+  },
+  "REF-DX-DM-STATIN-AGE": {
+   "value": 40,
+   "unit": "years",
+   "meaning": "WHO HEARTS-D: a statin for people with type 2 diabetes at or above this age, 'but only if this does not negatively impact access to glucose-lowering and blood pressure-lowering medication'",
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft",
+   "mirrors": "REF-DM-CVD-STATIN-AGE"
+  },
+  "REF-DX-RESULT-AGE-HBA1C": {
+   "value": 90,
+   "unit": "days",
+   "meaning": "How old an HbA1c may be and still count as evidence at this visit",
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "A product parameter, signed by the CSO 2026-10-05: HbA1c reflects the last two to three months."
+  },
+  "REF-DX-RESULT-AGE-ACUTE": {
+   "value": 1,
+   "unit": "days",
+   "meaning": "How old a bicarbonate, pH or effective osmolality may be and still count: the current episode only",
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "A product parameter, signed by the CSO 2026-10-05: these describe an acute state."
   }
  },
  "sources": {
@@ -423,6 +643,94 @@
    "url": "https://icd.who.int/browse/2025-01/mms/en",
    "verified": false,
    "checked": null
+  },
+  "WHO-HEARTS-D-2020": {
+   "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+   "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "WHO-HBA1C-2011": {
+   "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+   "url": "https://www.ncbi.nlm.nih.gov/books/NBK304271/",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "ADA-SOC-2026": {
+   "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "ADA-EASD-T1-2021": {
+   "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+   "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "ADA-EASD-CRISES-2024": {
+   "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+   "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "KDIGO-DM-CKD-2022": {
+   "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease",
+   "url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "ICDR-2003": {
+   "title": "Proposed International Clinical Diabetic Retinopathy and Diabetic Macular Edema Disease Severity Scales (Wilkinson CP et al., Ophthalmology 2003;110:1677-1682)",
+   "url": "https://www.healthvisors.com/wp-content/uploads/2020/06/Wilkinson-ICDR-2003.pdf",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "ICO-2017": {
+   "title": "Guidelines on Diabetic Eye Care: The International Council of Ophthalmology Recommendations for Screening, Follow-up, Referral, and Treatment Based on Resource Settings (Wong TY et al., Ophthalmology 2018;125:1608-1622; doi 10.1016/j.ophtha.2018.04.007)",
+   "url": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "UG-EYE-2016": {
+   "title": "Guidelines for Eye Care (Ministry of Health, Republic of Uganda, October 2016)",
+   "url": "https://library.health.go.ug/file-download/download/public/1282",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "WHO-GDM-2013": {
+   "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+   "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "WHO-DIP-2025": {
+   "title": "WHO recommendations on care for women with diabetes during pregnancy",
+   "url": "https://www.who.int/publications/i/item/9789240117044",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "ES-INPATIENT-2012": {
+   "title": "Management of Hyperglycemia in Hospitalized Patients in Non-Critical Care Setting: An Endocrine Society Clinical Practice Guideline (Umpierrez GE, et al.)",
+   "url": "https://academic.oup.com/jcem/article/97/1/16/2833040",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "TORONTO-2010": {
+   "title": "Diabetic Neuropathies: Update on Definitions, Diagnostic Criteria, Estimation of Severity, and Treatments (Tesfaye S, et al., Toronto Diabetic Neuropathy Expert Group). Diabetes Care 2010;33(10):2285-2293",
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC2945176/fullTextXML",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "TREND-UK-2020": {
+   "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+   "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+   "verified": false,
+   "checked": "2026-10-03"
+  },
+  "MS-PRODUCT-SETTING": {
+   "title": "MedSync product setting, signed by the CSO",
+   "note": "Not a guideline number: a parameter the CSO sets."
   }
  },
  "source_note": "Sources listed here are new to this catalogue and unverified. Other source ids (NICE-*, WHO-*, UCG-2023, RCP-NEWS2, SSC-2026 and the rest) resolve in MS-EMR-CLERK-CAT-001 or MS-EMR-EXAM-CAT-001, where their verification status is recorded.",
@@ -7329,6 +7637,24 @@
        "diabetic_retinopathy"
       ]
      }
+    },
+    {
+     "text": "res:derived.egfr<REF-DX-EGFR-REDUCED",
+     "atom": {
+      "result": "derived.egfr",
+      "lt_ref": "REF-DX-EGFR-REDUCED",
+      "max_age_ref": "REF-DX-RESULT-AGE-KIDNEY",
+      "min_trust": 3
+     }
+    },
+    {
+     "text": "res:obs.uacr>=REF-DX-UACR-A2",
+     "atom": {
+      "result": "obs.uacr",
+      "gte_ref": "REF-DX-UACR-A2",
+      "max_age_ref": "REF-DX-RESULT-AGE-KIDNEY",
+      "min_trust": 3
+     }
     }
    ],
    "suggest_against": [],
@@ -7381,7 +7707,8 @@
     "dx.hypertension",
     "dx.nephrotic_syndrome",
     "dx.obstructive_uropathy",
-    "dx.hyperkalaemia"
+    "dx.hyperkalaemia",
+    "dx.diabetic_kidney_disease"
    ],
    "note": "Chronicity needs reduced eGFR or kidney damage for over three months, or small kidneys on ultrasound; until then treat a raised creatinine as AKI. Leading Ugandan causes are hypertension, diabetes, HIV-associated nephropathy, glomerulonephritis and herbal nephrotoxins.",
    "sources": [
@@ -9359,6 +9686,82 @@
    ],
    "status": "draft"
   },
+  "dx.diabetes_in_pregnancy": {
+   "id": "dx.diabetes_in_pregnancy",
+   "display_ref": "REF-DX-TERMS",
+   "category": "obstetric",
+   "kind": "disease",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "subacute",
+     "chronic"
+    ],
+    "default": "subacute"
+   },
+   "must_not_miss": true,
+   "must_not_miss_reason": "Raised glucose in pregnancy harms mother and baby; she needs specialist antenatal care now.",
+   "time_critical": false,
+   "severity": {
+    "kind": "none"
+   },
+   "suggest_for": [
+    {
+     "text": "res:obs.glucose(fasting)>=REF-DX-GLU-FASTING-DM",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GLU-FASTING-DM",
+      "min_trust": 3,
+      "qualifiers": {
+       "fastingState": "fasting"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    },
+    {
+     "text": "res:obs.glucose(ogtt_2h)>=REF-DX-GLU-2H-DM",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GLU-2H-DM",
+      "min_trust": 3,
+      "qualifiers": {
+       "challenge": "ogtt_75g_2h"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "exam_item",
+     "id": "ex.eyes_ent_neck.fundoscopy"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.bp"
+    }
+   ],
+   "tests_to_decide": [
+    "test.ogtt_75g",
+    "test.creatinine",
+    "test.uacr"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.gestational_diabetes",
+    "dx.dm_type_unknown"
+   ],
+   "note": "Specialised multidisciplinary care, with retinal and kidney assessment when antenatal care starts (WHO 2025). ACE inhibitors and ARBs are contraindicated; lipid-lowering medicines are, in most circumstances, stopped (ADA).",
+   "sources": [
+    "WHO-GDM-2013",
+    "WHO-DIP-2025"
+   ],
+   "status": "draft",
+   "requires": {
+    "pregnancy": "current"
+   }
+  },
   "dx.diabetic_foot": {
    "id": "dx.diabetic_foot",
    "display_ref": "REF-DX-TERMS",
@@ -9519,6 +9922,292 @@
    "sources": [
     "IWGDF-2023",
     "IWGDF-IDSA-2023"
+   ],
+   "status": "draft"
+  },
+  "dx.diabetic_kidney_disease": {
+   "id": "dx.diabetic_kidney_disease",
+   "display_ref": "REF-DX-TERMS",
+   "category": "renal_urological",
+   "kind": "complication",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "chronic"
+    ],
+    "default": "chronic"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "named_scale",
+    "id": "kdigo_ckd"
+   },
+   "suggest_for": [
+    {
+     "text": "pmh:diabetes",
+     "atom": {
+      "past_condition": "diabetes",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "res:obs.uacr>=REF-DX-UACR-A2",
+     "atom": {
+      "result": "obs.uacr",
+      "gte_ref": "REF-DX-UACR-A2",
+      "max_age_ref": "REF-DX-RESULT-AGE-KIDNEY",
+      "min_trust": 3
+     }
+    },
+    {
+     "text": "res:derived.egfr<REF-DX-EGFR-REDUCED",
+     "atom": {
+      "result": "derived.egfr",
+      "lt_ref": "REF-DX-EGFR-REDUCED",
+      "max_age_ref": "REF-DX-RESULT-AGE-KIDNEY",
+      "min_trust": 3
+     }
+    },
+    {
+     "text": "ex.eyes_ent_neck.fundoscopy.seen=diabetic_retinopathy",
+     "atom": {
+      "item": "ex.eyes_ent_neck.fundoscopy",
+      "attribute": "seen",
+      "includes_any": [
+       "diabetic_retinopathy"
+      ]
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "vital",
+     "id": "vs.bp"
+    },
+    {
+     "kind": "exam_item",
+     "id": "ex.general.oedema"
+    },
+    {
+     "kind": "exam_item",
+     "id": "ex.eyes_ent_neck.fundoscopy"
+    },
+    {
+     "kind": "medicine",
+     "id": "enalapril"
+    }
+   ],
+   "tests_to_decide": [
+    "test.uacr",
+    "test.creatinine",
+    "test.urinalysis_dipstick",
+    "test.urea_electrolytes"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.ckd",
+    "dx.aki",
+    "dx.hypertension"
+   ],
+   "note": "One result is not kidney disease: it needs 3 months and, for albumin, 2 of 3 samples. Exercise, fever, infection, menstruation and very high glucose raise albumin transiently. Creatinine-based eGFR overestimated kidney function in Ugandan adults. Blood on the strip, a nephrotic picture or a fast fall in eGFR points to another cause: refer.",
+   "sources": [
+    "KDIGO-CKD-2024",
+    "KDIGO-DM-CKD-2022",
+    "WHO-HEARTS-D-2020"
+   ],
+   "status": "draft"
+  },
+  "dx.diabetic_neuropathy": {
+   "id": "dx.diabetic_neuropathy",
+   "display_ref": "REF-DX-TERMS",
+   "category": "neurology",
+   "kind": "complication",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "chronic"
+    ],
+    "default": "chronic"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "clinician",
+    "options": [
+     "painless",
+     "painful"
+    ]
+   },
+   "suggest_for": [
+    {
+     "text": "pmh:diabetes",
+     "atom": {
+      "past_condition": "diabetes",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "sym:numbness",
+     "atom": {
+      "symptom": "sym.numbness",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "ex:ex.feet.monofilament",
+     "atom": {
+      "finding": "ex.feet.monofilament",
+      "is": "positive"
+     }
+    },
+    {
+     "text": "ex:ex.feet.vibration_128",
+     "atom": {
+      "finding": "ex.feet.vibration_128",
+      "is": "positive"
+     }
+    },
+    {
+     "text": "ex:ex.feet.ipswich_touch",
+     "atom": {
+      "finding": "ex.feet.ipswich_touch",
+      "is": "positive"
+     }
+    },
+    {
+     "text": "derived:iwgdf_risk.lops",
+     "atom": {
+      "derived": "iwgdf_risk.lops"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "exam_item",
+     "id": "ex.feet.monofilament"
+    },
+    {
+     "kind": "exam_item",
+     "id": "ex.feet.vibration_128"
+    },
+    {
+     "kind": "social",
+     "id": "alcohol"
+    },
+    {
+     "kind": "medicine",
+     "id": "metformin"
+    }
+   ],
+   "tests_to_decide": [
+    "test.b12_folate",
+    "test.thyroid",
+    "test.creatinine"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.diabetic_foot",
+    "dx.dm_type2"
+   ],
+   "note": "A diagnosis of exclusion: vitamin B12 deficiency (long-term metformin), alcohol, medicines, hypothyroidism and kidney disease first. Sudden, one-sided or mainly motor loss is not this: refer. Half of cases have no symptoms.",
+   "sources": [
+    "ADA-SOC-2026",
+    "TORONTO-2010",
+    "IWGDF-2023"
+   ],
+   "status": "draft"
+  },
+  "dx.diabetic_retinopathy": {
+   "id": "dx.diabetic_retinopathy",
+   "display_ref": "REF-DX-TERMS",
+   "category": "ent_eye",
+   "kind": "complication",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "chronic"
+    ],
+    "default": "chronic"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "named_scale",
+    "id": "icdr_dr"
+   },
+   "suggest_for": [
+    {
+     "text": "ex.eyes_ent_neck.fundoscopy.seen=diabetic_retinopathy",
+     "atom": {
+      "item": "ex.eyes_ent_neck.fundoscopy",
+      "attribute": "seen",
+      "includes_any": [
+       "diabetic_retinopathy"
+      ]
+     }
+    },
+    {
+     "text": "pmh:diabetes",
+     "atom": {
+      "past_condition": "diabetes",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "pmh:diabetes#eyes",
+     "atom": {
+      "past_detail": "diabetes",
+      "property": "complications_told",
+      "includes_any": [
+       "eyes"
+      ]
+     }
+    },
+    {
+     "text": "sym:blurred_vision",
+     "atom": {
+      "symptom": "sym.blurred_vision",
+      "answer": "yes"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "exam_item",
+     "id": "ex.eyes_ent_neck.visual_acuity"
+    },
+    {
+     "kind": "exam_item",
+     "id": "ex.eyes_ent_neck.fundoscopy"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.bp"
+    }
+   ],
+   "tests_to_decide": [
+    "test.retinal_photograph",
+    "test.hba1c"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.dm_type2",
+    "dx.dm_type1",
+    "dx.hypertension"
+   ],
+   "note": "No 'against' evidence is listed: a normal undilated direct ophthalmoscopy misses most retinopathy. Vision worse than 6/12 or any visual symptom is referred whatever the grade. A rapid fall in HbA1c can worsen retinopathy at first.",
+   "sources": [
+    "ICDR-2003",
+    "ICO-2017",
+    "WHO-HEARTS-D-2020",
+    "UG-EYE-2016"
    ],
    "status": "draft"
   },
@@ -9847,6 +10536,56 @@
       "medicine": "insulin",
       "answer": "taking"
      }
+    },
+    {
+     "text": "cls:ketone_band=high",
+     "atom": {
+      "classifier": "ketone_band",
+      "any_of": [
+       "high"
+      ]
+     }
+    },
+    {
+     "text": "sym:vomiting",
+     "atom": {
+      "symptom": "sym.nausea_vomiting",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "sym:abdominal_pain",
+     "atom": {
+      "symptom": "sym.abdominal_pain",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "med:sglt2_inhibitor",
+     "atom": {
+      "medicine_group": "sglt2_inhibitor"
+     }
+    },
+    {
+     "text": "res:obs.bicarbonate<REF-DX-BICARB-DKA",
+     "atom": {
+      "result": "obs.bicarbonate",
+      "lt_ref": "REF-DX-BICARB-DKA",
+      "min_trust": 3,
+      "max_age_ref": "REF-DX-RESULT-AGE-ACUTE"
+     }
+    },
+    {
+     "text": "res:obs.ph_venous<REF-DX-PH-DKA",
+     "atom": {
+      "result": "obs.ph",
+      "lt_ref": "REF-DX-PH-DKA",
+      "min_trust": 3,
+      "qualifiers": {
+       "specimen": "venous_whole_blood"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-ACUTE"
+     }
     }
    ],
    "suggest_against": [],
@@ -9883,6 +10622,10 @@
     {
      "kind": "symptom",
      "id": "sym.dysuria"
+    },
+    {
+     "kind": "panel",
+     "id": "vs.ketones"
     }
    ],
    "tests_to_decide": [
@@ -9891,7 +10634,8 @@
     "test.urea_electrolytes",
     "test.capillary_glucose",
     "test.malaria_rdt",
-    "test.urinalysis_dipstick"
+    "test.urinalysis_dipstick",
+    "test.glucose_random"
    ],
    "problem_list": "never",
    "related": [
@@ -9904,7 +10648,9 @@
    "note": "Look for the precipitant: infection including malaria, missed insulin (often cost or supply), or new diabetes. Ketosis-prone type 2 is common in African adults, so DKA does not fix the diabetes type.",
    "sources": [
     "HYPERGLYCAEMIC-CRISIS",
-    "UCG-2023"
+    "UCG-2023",
+    "ADA-EASD-CRISES-2024",
+    "WHO-HEARTS-D-2020"
    ],
    "status": "draft"
   },
@@ -9920,8 +10666,8 @@
     ],
     "default": "chronic"
    },
-   "must_not_miss": false,
-   "must_not_miss_reason": null,
+   "must_not_miss": true,
+   "must_not_miss_reason": "Untreated it becomes ketoacidosis.",
    "time_critical": false,
    "severity": {
     "kind": "none"
@@ -9974,21 +10720,35 @@
        "kussmaul_deep_sighing"
       ]
      }
-    }
-   ],
-   "suggest_against": [
+    },
     {
-     "text": "cls:bmi_who=obese_1|obese_2|obese_3",
+     "text": "cls:ketone_band",
      "atom": {
-      "classifier": "bmi_who",
+      "classifier": "ketone_band",
       "any_of": [
-       "obese_1",
-       "obese_2",
-       "obese_3"
+       "high",
+       "moderate"
       ]
+     }
+    },
+    {
+     "text": "pmh:diabetes#type=type_1",
+     "atom": {
+      "past_detail": "diabetes",
+      "property": "type",
+      "equals": "type_1"
+     }
+    },
+    {
+     "text": "pmh:diabetes#insulin_from_start",
+     "atom": {
+      "past_detail": "diabetes",
+      "property": "insulin_from_start",
+      "equals": "yes"
      }
     }
    ],
+   "suggest_against": [],
    "ask": [
     {
      "kind": "symptom",
@@ -10022,6 +10782,18 @@
     {
      "kind": "vital",
      "id": "vs.bmi"
+    },
+    {
+     "kind": "panel",
+     "id": "vs.ketones"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.weight"
+    },
+    {
+     "kind": "past_detail",
+     "id": "diabetes.insulin_from_start"
     }
    ],
    "tests_to_decide": [
@@ -10029,18 +10801,24 @@
     "test.hba1c",
     "test.ketones",
     "test.urea_electrolytes",
-    "test.urinalysis_dipstick"
+    "test.urinalysis_dipstick",
+    "test.gad_antibodies",
+    "test.c_peptide"
    ],
    "problem_list": "offer_when_final",
    "related": [
     "dx.dka",
     "dx.hypoglycaemia_dm",
-    "dx.dm_type_unknown"
+    "dx.dm_type_unknown",
+    "dx.dm_type2"
    ],
    "note": "Ketosis-prone type 2 and atypical lean diabetes are common in young Ugandan adults, and C-peptide and antibodies are rarely available, so ketosis alone does not make this type 1. Prefer dx.dm_type_unknown until the course (insulin need off treatment) settles the type.",
    "sources": [
     "ADA-SOC-2025",
-    "UCG-2023"
+    "UCG-2023",
+    "WHO-HEARTS-D-2020",
+    "ADA-EASD-T1-2021",
+    "ADA-SOC-2026"
    ],
    "status": "draft"
   },
@@ -10143,9 +10921,28 @@
        "diabetic_retinopathy"
       ]
      }
+    },
+    {
+     "text": "pmh:diabetes#type=type_2",
+     "atom": {
+      "past_detail": "diabetes",
+      "property": "type",
+      "equals": "type_2"
+     }
     }
    ],
-   "suggest_against": [],
+   "suggest_against": [
+    {
+     "text": "cls:ketone_band",
+     "atom": {
+      "classifier": "ketone_band",
+      "any_of": [
+       "high",
+       "moderate"
+      ]
+     }
+    }
+   ],
    "ask": [
     {
      "kind": "family_condition",
@@ -10178,6 +10975,22 @@
     {
      "kind": "exam_item",
      "id": "ex.feet.monofilament"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.bp"
+    },
+    {
+     "kind": "panel",
+     "id": "vs.ketones"
+    },
+    {
+     "kind": "exam_item",
+     "id": "ex.eyes_ent_neck.fundoscopy"
+    },
+    {
+     "kind": "social",
+     "id": "tobacco"
     }
    ],
    "tests_to_decide": [
@@ -10186,7 +10999,8 @@
     "test.glucose_random",
     "test.lipid_panel",
     "test.uacr",
-    "test.creatinine"
+    "test.creatinine",
+    "test.urinalysis_dipstick"
    ],
    "problem_list": "offer_when_final",
    "related": [
@@ -10195,12 +11009,20 @@
     "dx.obesity",
     "dx.dyslipidaemia",
     "dx.hypertension",
-    "dx.dm_type_unknown"
+    "dx.dm_type_unknown",
+    "dx.dm_type1",
+    "dx.ckd",
+    "dx.diabetic_kidney_disease",
+    "dx.diabetic_retinopathy",
+    "dx.diabetic_neuropathy"
    ],
    "note": "A working type label should not reach the problem list: lean type 2 and ketosis-prone type 2 are common in sub-Saharan Africa, so DKA at presentation does not exclude it. Screen for complications (feet, eyes, kidneys) at diagnosis, since many present late.",
    "sources": [
     "ADA-SOC-2025",
-    "UCG-2023"
+    "UCG-2023",
+    "WHO-HEARTS-D-2020",
+    "ADA-SOC-2026",
+    "ADA-EASD-T1-2021"
    ],
    "status": "draft"
   },
@@ -10274,6 +11096,83 @@
       "symptom": "sym.recurrent_infections",
       "answer": "yes"
      }
+    },
+    {
+     "text": "vs.glucose(random)>=REF-DX-GLU-RANDOM-DM",
+     "atom": {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-DX-GLU-RANDOM-DM",
+      "context": "random"
+     }
+    },
+    {
+     "text": "vs.glucose(fasting)>=REF-DX-GLU-FASTING-DM",
+     "atom": {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-DX-GLU-FASTING-DM",
+      "context": "fasting"
+     }
+    },
+    {
+     "text": "vs.glucose(2h after 75 g, meter)>=REF-DX-GLU-2H-DM-CAP",
+     "atom": {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-DX-GLU-2H-DM-CAP",
+      "context": "two_hours_after_glucose"
+     }
+    },
+    {
+     "text": "res:obs.glucose(fasting)>=REF-DX-GLU-FASTING-DM",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GLU-FASTING-DM",
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE",
+      "min_trust": 3,
+      "qualifiers": {
+       "fastingState": "fasting"
+      }
+     }
+    },
+    {
+     "text": "res:obs.glucose(ogtt_2h)>=REF-DX-GLU-2H-DM",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GLU-2H-DM",
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE",
+      "min_trust": 3,
+      "qualifiers": {
+       "challenge": "ogtt_75g_2h"
+      }
+     }
+    },
+    {
+     "text": "res:obs.hba1c>=REF-DX-HBA1C-DM",
+     "atom": {
+      "result": "obs.hba1c",
+      "gte_ref": "REF-DX-HBA1C-DM",
+      "min_trust": 3,
+      "max_age_ref": "REF-DX-RESULT-AGE-HBA1C"
+     }
+    },
+    {
+     "text": "sym:blurred_vision",
+     "atom": {
+      "symptom": "sym.blurred_vision",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "fh:diabetes",
+     "atom": {
+      "family_condition": "diabetes",
+      "answer": "yes"
+     }
+    },
+    {
+     "text": "med:glucose_lowering",
+     "atom": {
+      "medicine_group": "glucose_lowering"
+     }
     }
    ],
    "suggest_against": [],
@@ -10309,6 +11208,18 @@
     {
      "kind": "vital",
      "id": "vs.bmi"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.waist"
+    },
+    {
+     "kind": "panel",
+     "id": "vs.ketones"
+    },
+    {
+     "kind": "exam_item",
+     "id": "ex.feet.monofilament"
     }
    ],
    "tests_to_decide": [
@@ -10316,19 +11227,25 @@
     "test.glucose_fasting",
     "test.glucose_random",
     "test.ketones",
-    "test.urinalysis_dipstick"
+    "test.urinalysis_dipstick",
+    "test.ogtt_75g"
    ],
    "problem_list": "offer",
    "related": [
     "dx.dm_type1",
     "dx.dm_type2",
     "dx.dka",
-    "dx.hhs"
+    "dx.hhs",
+    "dx.hyperglycaemia_unconfirmed",
+    "dx.intermediate_hyperglycaemia"
    ],
    "note": "The preferred label while the type is unclear (young, lean, or ketotic at presentation). A single random glucose of 11.1 mmol/L or more with classic symptoms is diagnostic; without symptoms confirm with a second test.",
    "sources": [
     "ADA-SOC-2025",
-    "UCG-2023"
+    "UCG-2023",
+    "WHO-HEARTS-D-2020",
+    "WHO-HBA1C-2011",
+    "ADA-SOC-2026"
    ],
    "status": "draft"
   },
@@ -12568,6 +13485,92 @@
     "CLINICAL-METHODS"
    ],
    "status": "draft"
+  },
+  "dx.gestational_diabetes": {
+   "id": "dx.gestational_diabetes",
+   "display_ref": "REF-DX-TERMS",
+   "category": "obstetric",
+   "kind": "disease",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "subacute"
+    ],
+    "default": "subacute"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "none"
+   },
+   "suggest_for": [
+    {
+     "text": "res:obs.glucose(fasting)>=REF-DX-GDM-FASTING",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GDM-FASTING",
+      "lt_ref": "REF-DX-GLU-FASTING-DM",
+      "min_trust": 3,
+      "qualifiers": {
+       "fastingState": "fasting"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    },
+    {
+     "text": "res:obs.glucose(ogtt_1h)>=REF-DX-GDM-1H",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GDM-1H",
+      "min_trust": 3,
+      "qualifiers": {
+       "challenge": "ogtt_75g_1h"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    },
+    {
+     "text": "res:obs.glucose(ogtt_2h)>=REF-DX-GDM-2H",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GDM-2H",
+      "lt_ref": "REF-DX-GLU-2H-DM",
+      "min_trust": 3,
+      "qualifiers": {
+       "challenge": "ogtt_75g_2h"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "vital",
+     "id": "vs.bp"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.weight"
+    }
+   ],
+   "tests_to_decide": [
+    "test.ogtt_75g"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.diabetes_in_pregnancy"
+   ],
+   "note": "Offered only in a pregnant patient, on results from this pregnancy. One value is enough under WHO 2013. HbA1c is not used. WHO is revising these criteria (REF-DM-PREG-REVISION): the reference entries are versioned. After the birth, re-test at 6 to 12 weeks and then at least every 3 years.",
+   "sources": [
+    "WHO-GDM-2013",
+    "WHO-DIP-2025"
+   ],
+   "status": "draft",
+   "requires": {
+    "pregnancy": "current"
+   }
   },
   "dx.gi_bleed_unexplained": {
    "id": "dx.gi_bleed_unexplained",
@@ -15017,6 +16020,22 @@
       "past_condition": "diabetes",
       "answer": "yes"
      }
+    },
+    {
+     "text": "ex.general.hydration=dehydrated",
+     "atom": {
+      "finding": "ex.general.hydration",
+      "is": "positive"
+     }
+    },
+    {
+     "text": "res:derived.osmolality_effective>REF-DX-OSM-EFF-HHS",
+     "atom": {
+      "result": "derived.osmolality_effective",
+      "gt_ref": "REF-DX-OSM-EFF-HHS",
+      "min_trust": 3,
+      "max_age_ref": "REF-DX-RESULT-AGE-ACUTE"
+     }
     }
    ],
    "suggest_against": [],
@@ -15052,6 +16071,10 @@
     {
      "kind": "exam_item",
      "id": "ex.cardiovascular.calves"
+    },
+    {
+     "kind": "panel",
+     "id": "vs.ketones"
     }
    ],
    "tests_to_decide": [
@@ -15060,7 +16083,8 @@
     "test.ketones",
     "test.blood_gas",
     "test.urinalysis_dipstick",
-    "test.malaria_rdt"
+    "test.malaria_rdt",
+    "test.glucose_random"
    ],
    "problem_list": "never",
    "related": [
@@ -15074,7 +16098,8 @@
    "note": "Often the first presentation of type 2 diabetes; mixed DKA and HHS is common, so measure ketones even when the picture looks hyperosmolar. Many glucometers read only \"HI\" above their ceiling; calculate osmolality from sodium, urea and glucose.",
    "sources": [
     "HYPERGLYCAEMIC-CRISIS",
-    "UCG-2023"
+    "UCG-2023",
+    "ADA-EASD-CRISES-2024"
    ],
    "status": "draft"
   },
@@ -15830,6 +16855,77 @@
    ],
    "status": "draft"
   },
+  "dx.hyperglycaemia_unconfirmed": {
+   "id": "dx.hyperglycaemia_unconfirmed",
+   "display_ref": "REF-DX-TERMS",
+   "category": "endocrine_metabolic",
+   "kind": "symptom_level",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "acute",
+     "subacute"
+    ],
+    "default": "acute"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "none"
+   },
+   "suggest_for": [
+    {
+     "text": "vs.glucose>REF-DX-GLU-HOSPITAL",
+     "atom": {
+      "vital": "vs.glucose",
+      "gt_ref": "REF-DX-GLU-HOSPITAL"
+     }
+    },
+    {
+     "text": "vs.glucose>=REF-DX-GLU-RANDOM-DM",
+     "atom": {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-DX-GLU-RANDOM-DM",
+      "context": "random"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "symptom",
+     "id": "sym.polyuria"
+    },
+    {
+     "kind": "symptom",
+     "id": "sym.polydipsia"
+    },
+    {
+     "kind": "symptom",
+     "id": "sym.weight_loss"
+    },
+    {
+     "kind": "medicine",
+     "id": "prednisolone"
+    }
+   ],
+   "tests_to_decide": [
+    "test.glucose_fasting",
+    "test.hba1c"
+   ],
+   "problem_list": "never",
+   "related": [
+    "dx.dm_type_unknown",
+    "dx.steroid_induced_hyperglycaemia"
+   ],
+   "note": "A holding label for a raised glucose that is not yet a diagnosis: acute illness, steroids, or one value without symptoms. It carries a follow-up test into the Plan so the result is not lost. Never added to the problem list.",
+   "sources": [
+    "WHO-HEARTS-D-2020",
+    "ES-INPATIENT-2012"
+   ],
+   "status": "draft"
+  },
   "dx.hyperkalaemia": {
    "id": "dx.hyperkalaemia",
    "display_ref": "REF-DX-TERMS",
@@ -16482,6 +17578,23 @@
       "score": "gcs_total",
       "lt_ref": "REF-EX-GCS-FULL"
      }
+    },
+    {
+     "text": "med:glucose_lowering",
+     "atom": {
+      "medicine_group": "glucose_lowering"
+     }
+    },
+    {
+     "text": "pmh:diabetes#lows",
+     "atom": {
+      "past_detail": "diabetes",
+      "property": "lows_12_months",
+      "any_of": [
+       "self_treated",
+       "needed_help"
+      ]
+     }
     }
    ],
    "suggest_against": [],
@@ -16517,12 +17630,17 @@
     {
      "kind": "symptom",
      "id": "sym.excess_sweating"
+    },
+    {
+     "kind": "past_detail",
+     "id": "diabetes.lows_12_months"
     }
    ],
    "tests_to_decide": [
     "test.capillary_glucose",
     "test.glucose_random",
-    "test.urea_electrolytes"
+    "test.urea_electrolytes",
+    "test.creatinine"
    ],
    "problem_list": "never",
    "related": [
@@ -16530,12 +17648,17 @@
     "dx.dm_type2",
     "dx.dm_type_unknown",
     "dx.aki",
-    "dx.ckd"
+    "dx.ckd",
+    "dx.hypoglycaemia_no_dm",
+    "dx.sepsis",
+    "dx.malaria_severe"
    ],
    "note": "Glibenclamide hypoglycaemia is prolonged and recurs, especially with kidney impairment or poor intake, so it needs longer observation than insulin-related episodes. The examination classifier grades levels 1 and 2 from the glucose value; level 3 (needing help from another person) is clinical, with no glucose threshold, so the clinician sets it.",
    "sources": [
     "ADA-SOC-2025",
-    "UCG-2023"
+    "UCG-2023",
+    "ADA-SOC-2026",
+    "WHO-HEARTS-D-2020"
    ],
    "status": "draft"
   },
@@ -17788,6 +18911,85 @@
    "sources": [
     "UCG-2023",
     "UG-IDSR-2021"
+   ],
+   "status": "draft"
+  },
+  "dx.intermediate_hyperglycaemia": {
+   "id": "dx.intermediate_hyperglycaemia",
+   "display_ref": "REF-DX-TERMS",
+   "category": "endocrine_metabolic",
+   "kind": "disease",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "chronic"
+    ],
+    "default": "chronic"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "none"
+   },
+   "suggest_for": [
+    {
+     "text": "res:obs.glucose(fasting) 6.1-6.9",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GLU-FASTING-IFG",
+      "lt_ref": "REF-DX-GLU-FASTING-DM",
+      "min_trust": 3,
+      "qualifiers": {
+       "fastingState": "fasting"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    },
+    {
+     "text": "res:obs.glucose(ogtt_2h) 7.8-11.0",
+     "atom": {
+      "result": "obs.glucose",
+      "gte_ref": "REF-DX-GLU-2H-IGT",
+      "lt_ref": "REF-DX-GLU-2H-DM",
+      "min_trust": 3,
+      "qualifiers": {
+       "challenge": "ogtt_75g_2h"
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "vital",
+     "id": "vs.waist"
+    },
+    {
+     "kind": "vital",
+     "id": "vs.bp"
+    },
+    {
+     "kind": "family_condition",
+     "id": "diabetes"
+    }
+   ],
+   "tests_to_decide": [
+    "test.ogtt_75g",
+    "test.glucose_fasting",
+    "test.lipid_panel"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.dm_type_unknown",
+    "dx.obesity",
+    "dx.hypertension"
+   ],
+   "note": "WHO bands. ADA starts impaired fasting glucose at 5.6 mmol/L and adds HbA1c 5.7 to 6.4%; WHO does neither. A fasting value in this range is followed by an OGTT. Re-test every year.",
+   "sources": [
+    "WHO-HEARTS-D-2020",
+    "ADA-SOC-2026"
    ],
    "status": "draft"
   },
@@ -31545,6 +32747,65 @@
    ],
    "status": "draft"
   },
+  "dx.steroid_induced_hyperglycaemia": {
+   "id": "dx.steroid_induced_hyperglycaemia",
+   "display_ref": "REF-DX-TERMS",
+   "category": "endocrine_metabolic",
+   "kind": "disease",
+   "restricted_class": null,
+   "onset": {
+    "allowed": [
+     "acute",
+     "subacute"
+    ],
+    "default": "subacute"
+   },
+   "must_not_miss": false,
+   "must_not_miss_reason": null,
+   "time_critical": false,
+   "severity": {
+    "kind": "none"
+   },
+   "suggest_for": [
+    {
+     "text": "med:systemic_steroid",
+     "atom": {
+      "medicine_group": "systemic_steroid"
+     }
+    },
+    {
+     "text": "vs.glucose>=REF-DX-GLU-RANDOM-DM",
+     "atom": {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-DX-GLU-RANDOM-DM"
+     }
+    }
+   ],
+   "suggest_against": [],
+   "ask": [
+    {
+     "kind": "vital",
+     "id": "vs.glucose"
+    },
+    {
+     "kind": "medicine",
+     "id": "prednisolone"
+    }
+   ],
+   "tests_to_decide": [
+    "test.glucose_random"
+   ],
+   "problem_list": "offer_when_final",
+   "related": [
+    "dx.dm_type_unknown",
+    "dx.hyperglycaemia_unconfirmed"
+   ],
+   "note": "Test after lunch or before the evening meal: a fasting value can be normal. HbA1c screening waits 3 months after the steroids stop.",
+   "sources": [
+    "ADA-SOC-2026"
+   ],
+   "status": "draft"
+  },
   "dx.sti_genital_ulcer": {
    "id": "dx.sti_genital_ulcer",
    "display_ref": "REF-DX-TERMS",
@@ -39062,7 +40323,8 @@
     "dx.cord_compression",
     "dx.megaloblastic_anaemia",
     "dx.dm_type2",
-    "dx.hiv"
+    "dx.hiv",
+    "dx.diabetic_neuropathy"
    ],
    "must_not_miss_first": [
     "dx.stroke_ischaemic",
@@ -39768,7 +41030,8 @@
     "dx.space_occupying_lesion",
     "dx.stroke_ischaemic",
     "dx.cryptococcal_meningitis",
-    "dx.pre_eclampsia_severe"
+    "dx.pre_eclampsia_severe",
+    "dx.diabetic_retinopathy"
    ],
    "must_not_miss_first": [
     "dx.hypertensive_crisis",
@@ -40134,7 +41397,8 @@
     "dx.hhs",
     "dx.dm_type_unknown",
     "dx.dm_type2",
-    "dx.dm_type1"
+    "dx.dm_type1",
+    "dx.hyperglycaemia_unconfirmed"
    ],
    "must_not_miss_first": [
     "dx.dka",
@@ -41005,6 +42269,252 @@
    "must_not_miss_first": [],
    "source": "UG-IMAM-2016",
    "status": "draft"
+  },
+  {
+   "id": "DDX-KETONES",
+   "when": {
+    "classifier": "ketone_band",
+    "any_of": [
+     "high",
+     "moderate"
+    ]
+   },
+   "why": "Raised ketones",
+   "suggest": [
+    "dx.dka",
+    "dx.dm_type1",
+    "dx.dm_type_unknown"
+   ],
+   "must_not_miss_first": [
+    "dx.dka"
+   ],
+   "source": "ADA-EASD-CRISES-2024",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-SGLT2-UNWELL",
+   "when": {
+    "all": [
+     {
+      "medicine_group": "sglt2_inhibitor"
+     },
+     {
+      "any": [
+       {
+        "symptom": "sym.nausea_vomiting",
+        "answer": "yes"
+       },
+       {
+        "symptom": "sym.abdominal_pain",
+        "answer": "yes"
+       }
+      ]
+     }
+    ]
+   },
+   "why": "On an SGLT2 inhibitor with vomiting or abdominal pain",
+   "suggest": [
+    "dx.dka"
+   ],
+   "must_not_miss_first": [
+    "dx.dka"
+   ],
+   "source": "ADA-EASD-CRISES-2024",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-RESULT-HBA1C",
+   "when": {
+    "result": "obs.hba1c",
+    "gte_ref": "REF-DX-HBA1C-DM",
+    "min_trust": 3,
+    "max_age_ref": "REF-DX-RESULT-AGE-HBA1C"
+   },
+   "why": "HbA1c 6.5% or more",
+   "suggest": [
+    "dx.dm_type_unknown",
+    "dx.dm_type2",
+    "dx.dm_type1"
+   ],
+   "must_not_miss_first": [],
+   "source": "WHO-HBA1C-2011",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-RESULT-GLUCOSE-FASTING",
+   "when": {
+    "result": "obs.glucose",
+    "gte_ref": "REF-DX-GLU-FASTING-DM",
+    "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE",
+    "min_trust": 3,
+    "qualifiers": {
+     "fastingState": "fasting"
+    }
+   },
+   "why": "Fasting glucose 7.0 mmol/L or more",
+   "suggest": [
+    "dx.dm_type_unknown",
+    "dx.dm_type2",
+    "dx.dm_type1"
+   ],
+   "must_not_miss_first": [],
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-RESULT-GLUCOSE-IFG",
+   "when": {
+    "result": "obs.glucose",
+    "gte_ref": "REF-DX-GLU-FASTING-IFG",
+    "lt_ref": "REF-DX-GLU-FASTING-DM",
+    "max_age_ref": "REF-DX-RESULT-AGE-GLUCOSE",
+    "min_trust": 3,
+    "qualifiers": {
+     "fastingState": "fasting"
+    }
+   },
+   "why": "Fasting glucose 6.1 to 6.9 mmol/L",
+   "suggest": [
+    "dx.intermediate_hyperglycaemia"
+   ],
+   "must_not_miss_first": [],
+   "source": "WHO-HEARTS-D-2020",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-RESULT-EGFR",
+   "when": {
+    "result": "derived.egfr",
+    "lt_ref": "REF-DX-EGFR-REDUCED",
+    "max_age_ref": "REF-DX-RESULT-AGE-KIDNEY",
+    "min_trust": 3
+   },
+   "why": "eGFR below 60",
+   "suggest": [
+    "dx.aki",
+    "dx.ckd",
+    "dx.diabetic_kidney_disease"
+   ],
+   "must_not_miss_first": [],
+   "source": "KDIGO-CKD-2024",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-RESULT-UACR",
+   "when": {
+    "result": "obs.uacr",
+    "gte_ref": "REF-DX-UACR-A2",
+    "max_age_ref": "REF-DX-RESULT-AGE-KIDNEY",
+    "min_trust": 3
+   },
+   "why": "Urine albumin-to-creatinine ratio 3 mg/mmol or more",
+   "suggest": [
+    "dx.diabetic_kidney_disease",
+    "dx.ckd",
+    "dx.hypertension"
+   ],
+   "must_not_miss_first": [],
+   "source": "KDIGO-CKD-2024",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-RETINOPATHY",
+   "when": {
+    "item": "ex.eyes_ent_neck.fundoscopy",
+    "attribute": "seen",
+    "includes_any": [
+     "diabetic_retinopathy"
+    ]
+   },
+   "why": "Diabetic retinopathy on fundoscopy",
+   "suggest": [
+    "dx.diabetic_retinopathy",
+    "dx.dm_type_unknown",
+    "dx.hypertension"
+   ],
+   "must_not_miss_first": [],
+   "source": "ICDR-2003",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-GLUCOSE-IN-HOSPITAL",
+   "when": {
+    "all": [
+     {
+      "setting": [
+       "emergency",
+       "inpatient"
+      ]
+     },
+     {
+      "vital": "vs.glucose",
+      "gt_ref": "REF-DX-GLU-HOSPITAL"
+     }
+    ]
+   },
+   "why": "Glucose above 7.8 mmol/L in hospital",
+   "suggest": [
+    "dx.hyperglycaemia_unconfirmed",
+    "dx.dm_type_unknown"
+   ],
+   "must_not_miss_first": [],
+   "source": "ES-INPATIENT-2012",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-STEROID-GLUCOSE",
+   "when": {
+    "all": [
+     {
+      "medicine_group": "systemic_steroid"
+     },
+     {
+      "vital": "vs.glucose",
+      "gte_ref": "REF-DX-GLU-RANDOM-DM"
+     }
+    ]
+   },
+   "why": "On steroids with a glucose of 11.1 mmol/L or more",
+   "suggest": [
+    "dx.steroid_induced_hyperglycaemia",
+    "dx.dm_type_unknown"
+   ],
+   "must_not_miss_first": [],
+   "source": "ADA-SOC-2026",
+   "status": "draft"
+  },
+  {
+   "id": "DDX-PREGNANCY-GLUCOSE",
+   "when": {
+    "all": [
+     {
+      "pregnancy": "current"
+     },
+     {
+      "any": [
+       {
+        "vital": "vs.glucose",
+        "gte_ref": "REF-DX-GDM-FASTING",
+        "context": "fasting"
+       },
+       {
+        "vital": "vs.glucose",
+        "gte_ref": "REF-DX-GLU-RANDOM-DM"
+       }
+      ]
+     }
+    ]
+   },
+   "why": "Pregnant with a raised glucose",
+   "suggest": [
+    "dx.diabetes_in_pregnancy",
+    "dx.gestational_diabetes"
+   ],
+   "must_not_miss_first": [
+    "dx.diabetes_in_pregnancy"
+   ],
+   "source": "WHO-GDM-2013",
+   "status": "draft"
   }
  ],
  "engine_rules": {
@@ -41130,6 +42640,26 @@
     "dx.acute_limb_ischaemia and dx.pad: absent foot pulses from the pulse grid (dorsalis pedis, posterior tibial).",
     "dx.aortic_dissection: inter-arm systolic difference above REF-EX-ARM-DIFF from the both-arms panel.",
     "The inter_arm_difference classifier results are within, repeat and persistent (lib/clerking/exam/classifiers.ts interArm)."
+   ]
+  },
+  {
+   "version": "1.1.0-draft",
+   "date": "2026-10-05",
+   "by": "MS-NCD-DM-PACK-001 Phase 5, signed GATE A 2026-10-05 (docs/ncd/diabetes/gate-a-signoff.json)",
+   "changes": [
+    "Diabetes pack (09-diagnosis.amendment.json) merged: 7 profiles amended by merge, 8 added, 11 differential rules added and 3 amended; dx.dm_type1 must-not-miss (D-DM-35); dropped items in docs/ncd/diabetes/phase-5/amend-diff.md.",
+    "New atoms (engine EC-1, EC-2, EC-3, EC-5, EC-7): result, past_detail, a glucose context, pregnancy, medicine groups, a setting list, the ketone panel; three-valued (P0-18)."
+   ]
+  },
+  {
+   "version": "1.1.1-draft",
+   "date": "2026-10-05",
+   "by": "STOP 5 answers, signed by the CSO 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
+   "changes": [
+    "Result windows: bicarbonate, pH and effective osmolality 1 day (REF-DX-RESULT-AGE-ACUTE); HbA1c 90 days (REF-DX-RESULT-AGE-HBA1C); glucose 90 days (REF-DX-RESULT-AGE-GLUCOSE, D-DM-08); 5 atoms.",
+    "dx.diabetes_in_pregnancy: must-not-miss reason signed.",
+    "REF-DX-ADULT-AGE: signed as D-DM-32 (16).",
+    "Confirmed: the three semantic duplicates dropped in Phase 5 stay dropped."
    ]
   }
  ]

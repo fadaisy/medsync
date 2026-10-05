@@ -1,0 +1,250 @@
+[
+ {
+  "ref": "REF-DM-RX-REASSESS",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "9.14 Medication plan and medication-taking behavior should be reevaluated at regular intervals (e.g., every 3–6 months) and adjusted as needed to incorporate specific factors that affect choice of treatment and ensure achievement of individualized glycemic goals. E | 9.15 Treatment modification (including intensification or deintensification) for adults not meeting individualized treatment goals should not be delayed. A",
+  "correctValue": null,
+  "note": "Both recommendations read in ADA SoC 2026 Section 9 with the numbers 9.14 and 9.15. The 3-6 month interval is given as an example ('e.g.') and is grade E (expert opinion). Rec 9.15 speaks only of 'adults not meeting individualized treatment goals'; the entry's phrase 'or the person is overtreated' is the catalogue's gloss, not ADA wording (deintensification is named, overtreatment is not). Secondary source (ADA/EASD 2022, Springer) not checked: fetch limit reached.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-SGLT2-HOLD",
+  "verdict": "confirmed",
+  "foundQuote": "DKA risk in individuals with insulin deficiency (rare in T2D): discontinue, evaluate, and treat promptly if suspected; be aware of predisposing risk factors and clinical presentations (including euglycemic DKA); mitigate risk with sick-day planning; discontinue before scheduled surgery (e.g., 3–4 days), during critical illness, or during prolonged fasting",
+  "correctValue": null,
+  "note": "Table 9.2 text matches the recorded quote word for word. ADA SoC 2026 Section 6 (PMC12690178, 'Intercurrent Illness') adds: 'Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury.' TREND leaflet not checked: fetch limit reached.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-CTRL-OLDER-AGE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "13.3 Screening for early detection of mild cognitive impairment or dementia should be performed for adults 65 years of age or older at the initial visit, annually, and as appropriate. B",
+  "correctValue": null,
+  "note": "65 with the operator 'or older' (>=65) is verified, but only as the age for cognitive screening in Rec 13.3. In the text that could be read, Section 13 does not define the term 'older adults' by age, and Table 13.2 (glycaemic goals) carries no age cut-off: it is organised by health status. Other mentions of 65 are descriptive ('Over 29% of people over the age of 65 years have diabetes'). A rule that switches a person onto the older-adult A1C goals at age 65 is therefore an inference from the section, not a stated ADA definition. The rule owner should record it as such.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1"
+ },
+ {
+  "ref": "REF-DM-CTRL-OLDER-COMPLEX",
+  "verdict": "confirmed",
+  "foundQuote": "13.7b Older adults with diabetes and intermediate or complex health are clinically heterogeneous with variable life expectancy. Selection of glycemic goals should be individualized and should prioritize avoidance of hypoglycemia, with less stringent goals (such as A1C <8.0% [<64 mmol/mol] and/or TIR 70–180 mg/dL [3.9–10.0 mmol/L] of ≥50% and time below range <70 mg/dL [<3.9 mmol/L] of <1%) for those with significant cognitive and/or functional limitations, frailty, severe comorbidities, and a less favorable risk-to-benefit ratio of diabetes medications. C",
+  "correctValue": null,
+  "note": "Value, operator (<) and unit match; Table 13.2 Complex/intermediate row also reads '<8.0% (<64 mmol/mol)'. Grade C. Small transcription difference in the recorded quote: source has '[<3.9 mmol/L]', recorded quote has '[3.9 mmol/L]'.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1"
+ },
+ {
+  "ref": "REF-DM-CTRL-OLDER-HEALTHY",
+  "verdict": "confirmed",
+  "foundQuote": "13.7a Older adults with diabetes with few and stable coexisting chronic illnesses, and intact cognitive and functional status, should have lower glycemic goals (such as A1C <7.0–7.5% [<53–58 mmol/mol]) and/or time in range [TIR] 70–180 mg/dL [3.9–10.0 mmol/L] of ≥70% and time below range ≤70 mg/dL [≤3.9 mmol/L] of ≤4%) if CGM is used. C",
+  "correctValue": null,
+  "note": "Matches: '<7.0–7.5%'. Table 13.2 Healthy row gives the same. Grade C.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1"
+ },
+ {
+  "ref": "REF-DM-CTRL-OLDER-POOR",
+  "verdict": "confirmed",
+  "foundQuote": "13.7c Older adults with very complex or poor health receive minimal benefit from stringent glycemic goals. Clinicians should focus on avoiding hypoglycemia and symptomatic hyperglycemia. C | Table 13.2, very complex/poor health row: Avoid reliance on A1C; glucose management decisions should be based on avoiding hypoglycemia and symptomatic hyperglycemia",
+  "correctValue": null,
+  "note": "Both the recommendation and the table cell read. The 'do not rely on HbA1c' wording comes from Table 13.2, not from Rec 13.7c itself.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1"
+ },
+ {
+  "ref": "REF-DM-RX-OLDER",
+  "verdict": "confirmed",
+  "foundQuote": "13.13 Select medications with low risk of hypoglycemia in older adults with type 2 diabetes, specifically for those with hypoglycemia risk factors. B | 13.14a Deintensify hypoglycemia-causing medications (e.g., insulin, sulfonylureas, or meglitinides) or switch to a medication class with low hypoglycemia risk for individuals who are at high risk for hypoglycemia, using individualized glycemic goals. B | 13.14c Simplify complex treatment plans (especially insulin) to reduce the risk of hypoglycemia and polypharmacy and to decrease treatment burden. B",
+  "correctValue": null,
+  "note": "All three elements of the entry found with the stated recommendation numbers. Rec 13.14b (grade E) adds deintensification where harms or burdens outweigh benefits.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690186/?a=1"
+ },
+ {
+  "ref": "REF-DM-RX-TB-RIFAMPICIN",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Section 3.3: Rifampicin is a potent hepatic enzyme inducer, increasing the hepatic metabolism of sulfonylurea derivatives and therefore lowering their plasma levels. | The glucose-lowering effect of metformin may be increased by rifampicin (119). | Section 4.2: As the glucose-lowering effect of insulin is not affected by anti-TB medications, some experts recommend initiation of insulin earlier during TB treatment than the WHO protocol (Fig. 4) recommends in order to achieve faster glycaemic control and bacteriological sputum conversion and to prevent drug–drug interactions. | Metformin is the recommended initial glucose-lowering medication for people who do not achieve the desired glycaemic control with diet and physical activity.",
+  "correctValue": null,
+  "note": "All four facts are in the handbook, but split across two pages: sulfonylurea and metformin interactions are in 3.3 (node 2896); 'insulin is not affected' and 'metformin is the recommended initial medication' are in 4.2 (node 2902). The recorded quote omits the insulin sentence. '(loss of control)' is the catalogue's inference: the handbook says only that plasma levels are lowered. The same bullet list also says metformin exposure increases with dolutegravir, relevant to people also on HIV treatment. Neither page shows an edition or year, so 'third edition, 2025' could not be confirmed from the page itself.",
+  "urlUsed": "https://tbksp.who.int/en/node/2896 ; https://tbksp.who.int/en/node/2902"
+ },
+ {
+  "ref": "REF-DM-SUS-TB",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Diabetes testing with biochemical tests should be available to people attending TB care who do not know their diabetes status. | Therefore, as part of the basic clinical package of TB care and aligned with scaling up access to diabetes diagnostic and treatment services, diabetes screening should be offered to people with TB, without incurring additional costs to the person in need. | Where universal diabetes testing for people with TB is not yet available, signs and symptoms of diabetes should be assessed, and BMI should be evaluated in line with WHO guidance for the general population (see Fig. 2). | Adults with TB who have symptoms of diabetes or are > 40 years and are overweight and those who are obese (according to BMI) should be prioritized for diabetes testing, while scaling up diabetes testing services for all people with TB.",
+  "correctValue": null,
+  "note": "Entry matches the handbook. One inconsistency inside the source: the prioritisation sentence says '> 40 years', while the same page restates the general WHO recommendation as 'adults who are ≥ 40 years with a BMI > 25 kg/m2 or anyone with a BMI > 30 kg/m2'. If this ever becomes a rule, the age operator (> 40 versus >= 40) needs a decision; the general-population WHO wording is >= 40. Edition and year are not shown on the page.",
+  "urlUsed": "https://tbksp.who.int/en/node/2901"
+ },
+ {
+  "ref": "REF-DM-SUS-TB-RECHECK",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "If the hyperglycaemia is in fact transient, the treatment may not be continued at later follow-up appointments, according to glycaemic values. It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management. People with TB and newly diagnosed hyperglycaemia should be advised about the importance of reassessment of glycaemic status, and the TB care provider should ensure that testing is offered before TB treatment ends, either at the facility or through referral to a facility where diabetes care is provided.",
+  "correctValue": null,
+  "note": "The '1 month' figure is verbatim in section 4.1: 'It is therefore critical to reassess the glycaemic status after 1 month as part of standard diabetes management.' Earlier in the same passage: 'glucose levels can be elevated at the time of TB diagnosis due to stress or TB infection-related hyperglycaemia. Infection-related hyperglycaemia tends to decrease during TB treatment.' and 'diabetes management should be based on the level of glycaemia, regardless of whether the hyperglycaemia might be transient or not.' Qualifiers the entry lacks: (1) the handbook does not say what the month is counted from (it reads as one month after the hyperglycaemia is found and management starts); (2) the reassessment is framed as part of standard diabetes management, i.e. treatment is started on the glucose level and then reviewed, not withheld for a month; (3) there is a second requirement, that testing is offered before TB treatment ends. The fetch tool declined to reproduce the whole section, so the passage was read in excerpts; the three consecutive sentences above were returned as one block. Edition and year are not shown on the page.",
+  "urlUsed": "https://tbksp.who.int/en/node/2901"
+ },
+ {
+  "ref": "REF-DM-CTRL-TB",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "While glycaemic control to achieve an HbA1c of about 7% is generally recommended, a more lenient HbA1c target (e.g. < 8%) might be assigned to people with diabetes who have markedly elevated glucose levels and TB, which would be more tolerable in the short term to achieve the aim of good, consistent glycaemic control.",
+  "correctValue": null,
+  "note": "Value, operator (<) and 'e.g.' match. Qualifiers the entry lacks: the lenient target 'might be assigned' to people 'who have markedly elevated glucose levels and TB', and it is framed as tolerable 'in the short term'. It is not a blanket target for everyone on TB treatment; the general target stated is 'about 7%'.",
+  "urlUsed": "https://tbksp.who.int/en/node/2902"
+ },
+ {
+  "ref": "REF-DM-ACT-TB-COUGH",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "At a minimum, people with diabetes should be asked about the presence of cough (lasting more than 2 weeks) at the time of diabetes diagnosis, and if possible at each regular check-up for diabetes. | TB patients should be screened for diabetes at the start of TB treatment, where resources for diagnosis are available.",
+  "correctValue": null,
+  "note": "Value (2 weeks) and operator ('more than') confirmed in the 2011 WHO/Union Collaborative Framework (WHO/HTM/TB/2011.15), section B.1. Notes: (1) the source says 'if possible at each regular check-up', the entry drops 'if possible'; (2) the document is joint WHO and The Union, 2011; (3) the 2-week figure rests on the 2011 framework only: section 3.1 of the current WHO operational handbook (node 2894) was opened and, as read, gives no cough-duration threshold (it speaks of 'prolonged cough') and prioritises screening 'when they are first diagnosed with diabetes and when they have uncontrolled glycaemia'.",
+  "urlUsed": "https://theunion.org/sites/default/files/2020-08/collaborative-framework_tb-diabetes.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-LOWCOST",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "9.30 In adults with diabetes and cost-related barriers, consider use of lower-cost medications for glycemic management (i.e., metformin, sulfonylureas, thiazolidinediones, and human insulin) within the context of their risks for hypoglycemia, weight gain, cardiovascular and kidney events, and other adverse effects. E | 9.29 Routinely assess all people with diabetes for financial obstacles that could impede their diabetes management. E",
+  "correctValue": null,
+  "note": "Confirmed in the 2025 edition (Recs 9.29 and 9.30, grade E), which is the edition the entry cites. The 2026 Section 9 on PMC was opened: the fetch reported recommendations 9.1 to 9.23 and no cost-barrier recommendation in the text it could see. That may be truncation of a long page or a real change in the 2026 edition; a second, narrower fetch failed (fetch limit) and diabetesjournals.org returned 403. So it is not established that this recommendation survives in 2026. ADA 2026 Rec 13.15 was read and is only a general statement: 'Consider costs of care and coverage when developing treatment plans to reduce risk of cost-related barriers to taking medication and performing self-management behaviors. B'. It does not list the four medicine classes.",
+  "urlUsed": "https://www.medils.com/static/guide/ADA-Pharmacologic-Approaches-to-Glycemic-Treatment-2025.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-SUGAR",
+  "verdict": "confirmed",
+  "foundQuote": "In both adults and children, WHO recommends reducing the intake of free sugars to less than 10% of total energy intake (strong recommendation) | WHO suggests a further reduction of the intake of free sugars to below 5% of total energy intake (conditional recommendation)",
+  "correctValue": null,
+  "note": "Value, operator ('less than') and attribution (WHO 2015 guideline) match.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK285538/"
+ },
+ {
+  "ref": "REF-DM-CLS-MODY",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Early-onset diabetes in adolescence or young adulthood (typically age <35 years) | Absence of pancreatic islet autoantibodies | Low insulin requirement for treatment (i.e., [dose omitted]) | Lack of significant obesity | Mild, stable fasting hyperglycemia that does not progress or respond appreciably to pharmacologic therapy | A family history of diabetes consistent with autosomal dominant inheritance",
+  "correctValue": null,
+  "note": "GeneReviews (Naylor, Knight Johnson, del Gaudio; last update 24 May 2018) supports <35, no islet autoantibodies, low insulin requirement, lack of significant obesity, mild stable fasting hyperglycaemia and autosomal dominant family history. Two parts of the entry are not GeneReviews wording: (1) 'classically before 25' is not stated there as a general feature (age 25 appears only for HNF1A-MODY: '63% of affected individuals develop diabetes by age 25 years, 78.6% by age 35 years'); it comes from Diabetes Genes (Exeter), which says 'Diabetes often develops before the age of 25'. (2) 'a parent affected in each generation' is a paraphrase: GeneReviews says 'consistent with autosomal dominant inheritance' and 'A three-generation family history should be obtained'; Diabetes Genes says 'Diabetes runs in families from one generation to the next'. GeneReviews also lists 'Onset of diabetes before age 45 years' among features atypical for type 2 diabetes. The low-insulin-requirement bullet contains a dose figure, omitted here.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK500456/ ; https://www.diabetesgenes.org/what-is-mody/"
+ },
+ {
+  "ref": "REF-DM-RX-INSULIN-T1",
+  "verdict": "confirmed",
+  "foundQuote": "Use human insulin to manage blood glucose in adults with type 1 diabetes, and in adults with type 2 diabetes for whom insulin is indicated (strong recommendation, low-quality evidence). | Recommendation 4 covers both short-acting (regular human insulin (RHI) and intermediate-acting human insulin (NPH insulin). | Consider long-acting insulin analogues to manage blood glucose in adults with type 1 or type 2 diabetes who have frequent severe hypoglycaemia with human insulin (weak recommendation, moderate-quality evidence for severe hypoglycaemia).",
+  "correctValue": null,
+  "note": "WHO 2018 Recs 4 and 5 and the remark on insulin types read and match. Rec 5 is a weak recommendation worded 'Consider'. Attribution point for the first sentence of the entry: ADA SoC 2026 Rec 9.1 ('Treat most adults with type 1 diabetes with continuous subcutaneous insulin infusion or multiple daily doses of prandial (injected or inhaled) and basal insulin. A') supports insulin for type 1, but ADA 2026 Rec 9.2 takes the opposite line to WHO on insulin type: 'For most adults with type 1 diabetes, insulin analogs (or inhaled insulin) are preferred over injectable human insulins to minimize hypoglycemia risk. A'. The entry correctly labels the human-insulin standard as WHO's. The ISBN is not shown on the NCBI page.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK532235/"
+ },
+ {
+  "ref": "REF-DM-ACT-PRECONCEPTION",
+  "verdict": "wrong_attribution",
+  "foundQuote": "ADA SoC 2026 Section 10: 10.12 In sexually active individuals of childbearing potential who are not using reliable contraception, avoid ACE inhibitors, ARBs, MRAs, direct renin inhibitors, and neprilysin inhibitors, as they are contraindicated in pregnancy. A | People intending to become pregnant should switch from an ACE inhibitor or ARB, renin inhibitor, MRA, or neplilysin inhibitor to an alternative antihypertensive medication approved for use during pregnancy. | Preconception counseling should be part of the routine care of individuals with diabetes who have childbearing potential.",
+  "correctValue": null,
+  "note": "The cited source does not say this. WHO 2025 (Recs 11-18) covers women who are already pregnant; the chapter page (NBK619436) was read and has no recommendation on pre-pregnancy counselling or on changing medicines before conception. The nearest WHO text is Rec 15: 'For pregnant women with type 2 diabetes who are already receiving glucose-lowering medication, recommend that medications with safety concerns during pregnancy be replaced with insulin and/or metformin', which is during pregnancy, not before it. The recorded quote (Rec 17, metformin or insulin in GDM) is unrelated to the entry. The entry's content is supported by ADA Standards of Care 2026, Section 10 (Rec 10.12 and narrative, PMC12690187), listed under otherClaimUrls. Re-attribute to ADA 2026 Section 10 and replace the quote. Note the ADA passages concern blood pressure and lipid medicines, not glucose-lowering medicines.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK619426/ ; https://www.ncbi.nlm.nih.gov/books/NBK619436/ ; https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-EYE-PREG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "WHO 2025 Rec 23: For pregnant women with type 1 or type 2 diabetes, screen for retinopathy when antenatal care is initiated and provide follow-up based on the risk of retinopathy progressing | Rec 24: For women with GDM, do not routinely screen for retinopathy | ICO 2017, p. 11: Pregnant women with pre-existing diabetes should be offered retinal assessment following their first antenatal clinic appointment and again at 28 weeks if the first assessment is normal. If any DR is present, additional retinal assessment should be performed at 16-20 weeks.",
+  "correctValue": null,
+  "note": "The facts are right and correctly split between WHO 2025 and ICO, but the recorded quote is the wrong one: it is Rec 27 (blood pressure below 130/80 mmHg with impaired renal function) and says nothing about eyes. Replace it with Recs 23 and 24. WHO wording for GDM is 'do not routinely screen', slightly softer than the entry's 'Not needed'. ADA SoC 2026 Section 12 also read: 'Individuals who develop gestational diabetes mellitus do not require eye examinations during pregnancy, since they do not appear to be at increased risk of developing diabetic retinopathy during pregnancy.' ICO also asks for an extra assessment at 16-20 weeks if any retinopathy is present, which the entry omits.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK619426/ ; https://www.screenretina.ru/download/ICOGuidelinesforDiabeticEyeCare.pdf ; https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf"
+ },
+ {
+  "ref": "REF-DM-PREG-CARE-WHO",
+  "verdict": "confirmed",
+  "foundQuote": "Rec 3: For pregnant women with type 1 or type 2 diabetes, deliver multidisciplinary and specialized care provided by health-care providers trained in maternal and diabetes care | Rec 10: For pregnant women with type 1, type 2 or gestational diabetes, individualize glycaemic targets to optimize glycaemic control and improve maternal and neonatal outcomes | Rec 23: For pregnant women with type 1 or type 2 diabetes, screen for retinopathy when antenatal care is initiated and provide follow-up based on the risk of retinopathy progressing | Rec 25: For pregnant women with type 1 or type 2 diabetes, assess renal function when antenatal care is initiated and arrange specialist follow-up for women if impaired renal function is identified",
+  "correctValue": null,
+  "note": "All four elements read in the executive summary. The entry's section label 'Recommendations 3-4' covers only the first element; the others are Recs 10, 23 and 25. No numeric glycaemic target appears in Rec 10, consistent with 'no single number'.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK619426/"
+ },
+ {
+  "ref": "REF-DM-RX-PREG",
+  "verdict": "confirmed",
+  "foundQuote": "Rec 13: For pregnant women with type 2 diabetes who are unable to maintain optimal blood glucose levels with diet and physical activity alone, recommend initiation of metformin or insulin to optimize blood glucose control and outcomes | Rec 15: For pregnant women with type 2 diabetes who are already receiving glucose-lowering medication, recommend that medications with safety concerns during pregnancy be replaced with insulin and/or metformin | Rec 17: For women with GDM who are unable to achieve optimal blood glucose levels with diet and physical activity alone, recommend initiation of metformin or insulin to optimize blood glucose control and outcomes",
+  "correctValue": null,
+  "note": "Matches. The replacement recommendation (Rec 15) is specific to type 2 diabetes already on glucose-lowering medicines.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK619426/"
+ },
+ {
+  "ref": "REF-DM-PREG-POSTPARTUM-FROM",
+  "verdict": "confirmed",
+  "foundQuote": "Due to the increased risk of type 2 diabetes in women who have experienced GDM, follow-up assessment of glucose tolerance is essential 6 to 12 weeks postnatally.",
+  "correctValue": null,
+  "note": "Value and unit match ('6 to 12 weeks postnatally'). The sentence sits in the remarks to Rec 17 (under 'Stopping treatment with glucose-lowering agents'); it is a remark, not a numbered recommendation.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK619436/"
+ },
+ {
+  "ref": "REF-DM-PREG-POSTPARTUM-TO",
+  "verdict": "confirmed",
+  "foundQuote": "Due to the increased risk of type 2 diabetes in women who have experienced GDM, follow-up assessment of glucose tolerance is essential 6 to 12 weeks postnatally.",
+  "correctValue": null,
+  "note": "Value and unit match. Same passage as the FROM entry: remarks to Rec 17, not a numbered recommendation.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK619436/"
+ },
+ {
+  "ref": "REF-DM-DX-OGTT1H-IDF",
+  "verdict": "confirmed",
+  "foundQuote": "People with a 1-h PG ≥ 209 mg/dL (11.6 mmol/L) are considered to have T2D and should have a repeat test to confirm the diagnosis of T2D",
+  "correctValue": null,
+  "note": "Value, operator (>=), unit and attribution (IDF position statement, Bergman et al., Diabetes Res Clin Pract 2024) match; abstract only was read. Minor mg/dL discrepancy between IDF documents: the IDF Global Clinical Practice Recommendations 2025 (p. 25) print 'a 1 h PG ≥11.6 mmol/L (210 mg/dL) for diagnosing T2DM', versus 209 mg/dL in the position statement. The mmol/L value is the same in both. The 2025 document does not restate the repeat-test requirement.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/abs/pii/S0168822724000731"
+ },
+ {
+  "ref": "REF-DM-IH-OGTT1H-IDF",
+  "verdict": "confirmed",
+  "foundQuote": "People with a 1-h PG ≥ 155 mg/dL (8.6 mmol/L) are considered to have IH",
+  "correctValue": null,
+  "note": "Value, operator (>=) and unit match; abstract only was read. IDF Recommendations 2025 (p. 25) agree: 'a 1 h PG ≥8.6 mmol/L (155 mg/dL)'.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/abs/pii/S0168822724000731"
+ },
+ {
+  "ref": "REF-DM-PREG-WINDOW-END",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "the diagnosis of GDM is made using a single-step 75-g OGTT when one or more of the following results are recorded during routine testing specifically between weeks 24 and 28 of pregnancy or at any other time during the course of pregnancy | Table 4: All women between 24 and 28 weeks",
+  "correctValue": null,
+  "note": "28 weeks confirmed in FIGO 2015 (section 5.3.2 and Table 4). The recorded quote ('FIGO adopts and supports the IADPSG/WHO/IDF position...') is present in the article but contains no gestation figure, so it does not support the value: replace it with the sentence above. FIGO adds 'or at any other time during the course of pregnancy', so 24-28 weeks is the routine window, not a limit on when GDM can be diagnosed.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/pii/S0020729215300333"
+ },
+ {
+  "ref": "REF-DM-PREG-WINDOW-START",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "the diagnosis of GDM is made using a single-step 75-g OGTT when one or more of the following results are recorded during routine testing specifically between weeks 24 and 28 of pregnancy or at any other time during the course of pregnancy | Table 4: All women between 24 and 28 weeks",
+  "correctValue": null,
+  "note": "24 weeks confirmed in FIGO 2015 (section 5.3.2 and Table 4). The recorded quote contains no gestation figure: replace it. Because a rule uses this value: FIGO does not make 24 weeks a floor. The same sentence allows diagnosis 'at any other time during the course of pregnancy', and Table 4 lists strategies that test at booking or in the first trimester and again at 24-28 weeks. A rule must not suppress or discount testing before 24 weeks.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/pii/S0020729215300333"
+ },
+ {
+  "ref": "REF-DM-CLS-UG-AB-NEG",
+  "verdict": "confirmed",
+  "foundQuote": "Only 312 (34·9%) of 894 participants were positive for islet autoantibodies | Those without islet autoantibodies (582 [65·1%] of 894)",
+  "correctValue": null,
+  "note": "65.1% is stated explicitly in the article (582 of 894), so it is not only a subtraction from 34.9%. It is a pooled figure across three countries (248 Cameroon, 370 Uganda, 276 South Africa), not a Uganda-only figure, although the ref id contains 'UG'; the entry text states this correctly.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/pii/S2213858725001202"
+ },
+ {
+  "ref": "REF-DM-CLS-T5-AGE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Since 1955, a form of diabetes in lean, young (BMI <18·5 kg/m2, age <30 years) individuals with a history suggestive of undernutrition from before birth and throughout childhood has been described in the literature. | the disease usually diagnosed in the third decade of life",
+  "correctValue": null,
+  "note": "'age <30 years' is verbatim, with the operator <. Two cautions, because a rule uses it. (1) It is a description of what the literature has reported since 1955, not a criterion set by the consensus: age is not an item in the panel 'Features of type 5 diabetes', and the body text says the disease is 'usually diagnosed in the third decade of life'. Treat 30 as a soft prompt, not an exclusion. (2) Attribution: this is an international expert consensus statement (Vellore, January 2025) published in Lancet Glob Health, not an IDF document. IDF's role, per the article: 'type 5 diabetes was proposed as the nomenclature for this distinct form of diabetes, subsequently formalised at the International Diabetes Federation (IDF) World Diabetes Congress in April, 2025', plus the launch of an IDF working group. Labelling the source body as 'IDF' overstates it.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/pii/S2214109X25002633"
+ },
+ {
+  "ref": "REF-DM-CLS-T5-BMI",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Since 1955, a form of diabetes in lean, young (BMI <18·5 kg/m2, age <30 years) individuals with a history suggestive of undernutrition from before birth and throughout childhood has been described in the literature. | Panel, commonly reported features: BMI less than 18·5 kg/m2 for adults | Although this consensus statement proposes cutoffs for BMIs and the diagnosis of undernutrition, more research is required to establish specific cutoff values for diagnosing undernutrition associated with type 5 diabetes.",
+  "correctValue": null,
+  "note": "Value, operator (<) and unit match, and unlike the age figure this one is in the features panel. Qualifiers: the panel item is 'for adults' only; the panel footnote says the cut-offs are proposed and need more research; and the source is an international consensus statement in Lancet Glob Health, not an IDF document (IDF formalised the name and launched a working group).",
+  "urlUsed": "https://www.sciencedirect.com/science/article/pii/S2214109X25002633"
+ },
+ {
+  "ref": "REF-DM-PREG-REVISION",
+  "verdict": "confirmed",
+  "foundQuote": "The updated recommendations set to come out in 2026 will include updates on the 2013 recommendations on the diagnostic criteria and classification of hyperglycaemia first detected during pregnancy. | A Guideline Development Group (GDG) meeting will be held 20–24 October 2026 to review the evidence base on the screening and diagnosis of hyperglycaemia in pregnancy. | New evidence has emerged regarding approaches to screening, diagnosis, and classification, highlighting the need to revisit this guidance.",
+  "correctValue": null,
+  "note": "News item dated 25 September 2026 read; meeting dates and the 2013 reference match. As returned by the fetch, the item says the updated recommendations are 'set to come out in 2026'.",
+  "urlUsed": "https://www.who.int/news/item/25-09-2026-who-to-update-the-recommendations-on-criteria-and-diagnosis-of-hyperglycaemia-in-pregnancy"
+ },
+ {
+  "ref": "REF-DM-CLS-PANC",
+  "verdict": "confirmed",
+  "foundQuote": "Major criteria (must be present): Presence of exocrine pancreatic insufficiency (monoclonal fecal elastase-1 test or direct function tests) | Pathological pancreatic imaging (endoscopic ultrasound, MRI, CT) | Absence of type 1 diabetes mellitus associated autoimmune markers | Type 3c diabetes mellitus patients were mostly misclassified as type 2 diabetes",
+  "correctValue": null,
+  "note": "Ewald and Hardt 2013 criteria and the misclassification statement read. The three items in the entry are the 'major criteria'; the paper also lists minor criteria. Secondary source not verified: ADA SoC 2026 Section 2 (PMC12690183, Rec 2.23) returned a reCAPTCHA page twice and the third attempt hit the fetch limit.",
+  "urlUsed": "https://www.wjgnet.com/1007-9327/full/v19/i42/7276.htm"
+ }
+]

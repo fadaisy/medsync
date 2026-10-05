@@ -25,7 +25,12 @@ const Mirror = z.object({
 });
 export type MirrorTarget = z.infer<typeof Mirror>;
 
-const ShownWhen = z.object({ attribute: z.string(), any_of: z.array(z.string()) });
+const ShownWhenOne = z.object({ attribute: z.string(), any_of: z.array(z.string()) });
+/** One condition, or `all` of several (EC-7: a retinopathy grade needs an adequate view AND a
+ *  dilated or photographic method). */
+const ShownWhen = z.union([ShownWhenOne, z.object({ all: z.array(ShownWhenOne).min(1) })]);
+export type ShownWhenDef = z.infer<typeof ShownWhen>;
+export const shownWhenParts = (s: ShownWhenDef) => ("all" in s ? s.all : [s]);
 
 export interface ExamOption {
   id: string;
@@ -54,8 +59,11 @@ export interface ExamAttribute {
   scale?: string;
   body_map?: string;
   shared_with?: { item: string; attribute: string };
-  shown_when?: z.infer<typeof ShownWhen>;
+  shown_when?: ShownWhenDef;
   applies_to_sex?: "female" | "male" | null;
+  /** Recorded on a normal finding too, and recording it never makes the finding abnormal (how a
+   *  fundus was looked at, and the grade it showed). */
+  any_state?: boolean;
 }
 
 const Option: z.ZodType<ExamOption> = z.lazy(() =>
@@ -93,6 +101,7 @@ const Attribute: z.ZodType<ExamAttribute> = z.lazy(() =>
       shared_with: z.object({ item: z.string(), attribute: z.string() }).optional(),
       shown_when: ShownWhen.optional(),
       applies_to_sex: Sex.optional(),
+      any_state: z.boolean().optional(),
       in_prototype: z.boolean().optional(),
       prototype_id: z.string().optional(),
     })
@@ -268,7 +277,12 @@ const ExamCatalogueSchema = z
     medicine_groups: z
       .record(
         z.string(),
-        z.object({ label: z.string(), drug_class: z.string(), name_stems: z.array(z.string()) }),
+        z.object({
+          label: z.string(),
+          drug_class: z.string(),
+          name_stems: z.array(z.string()),
+          exclude_words: z.array(z.string()).optional(),
+        }),
       )
       .optional(),
   })
@@ -386,12 +400,16 @@ export function parseExamCatalogue(json: unknown): ExamCatalogue {
     for (const group of groups)
       for (const a of group) {
         if (!a.shown_when) continue;
-        const parent = group.find((x) => x.id === a.shown_when!.attribute);
-        if (!parent?.options)
-          throw new Error(`Exam catalogue: ${i.id}:${a.id} shown_when names no attribute`);
-        for (const o of a.shown_when.any_of)
-          if (!parent.options.some((p) => p.id === o))
-            throw new Error(`Exam catalogue: ${i.id}:${a.id} shown_when names unknown option ${o}`);
+        for (const sw of shownWhenParts(a.shown_when)) {
+          const parent = group.find((x) => x.id === sw.attribute);
+          if (!parent?.options)
+            throw new Error(`Exam catalogue: ${i.id}:${a.id} shown_when names no attribute`);
+          for (const o of sw.any_of)
+            if (!parent.options.some((p) => p.id === o))
+              throw new Error(
+                `Exam catalogue: ${i.id}:${a.id} shown_when names unknown option ${o}`,
+              );
+        }
       }
     for (const a of allAttributes(i))
       if (a.shared_with && !optionExists(a.shared_with))
