@@ -33,7 +33,17 @@ export interface History {
   rosDetail: Record<string, SymptomEntry>;
   past: {
     /** `onProblemList`: the clinician confirmed it on the problem list (D-CV-09; display only). */
-    conditions: Record<string, { answer: YesNo; since?: string; onProblemList?: boolean }>;
+    conditions: Record<
+      string,
+      {
+        answer: YesNo;
+        since?: string;
+        onProblemList?: boolean;
+        /** The catalogue's `condition_details` answers (EC-2), reported, never charted. An
+         *  unanswered property is an absent key. */
+        details?: Record<string, PropValue>;
+      }
+    >;
     /** A pick carries its MS-EMR-CLERK-OPS-001 id beside the label; typed words have none. */
     operations?: "none" | { text: string; code?: string; year?: number; where?: string }[];
     transfusions?: "none" | { when?: string; reaction?: string }[];
@@ -269,6 +279,20 @@ export function toggleEntry<E extends { answer: YesNo }>(
   if (next[id]?.answer === answer) delete next[id];
   else next[id] = { answer } as E;
   return next;
+}
+
+/** A `past_detail` atom (EC-2): `{past_detail: condition, property, equals | any_of | includes_any}`.
+ *  Three-valued: null while the condition or the property is unanswered (never "no"). */
+export function pastDetail(h: History, c: Readonly<Record<string, unknown>>): boolean | null {
+  const e = h.past.conditions[String(c.past_detail)];
+  if (!e) return null;
+  if (e.answer === "no") return false;
+  const v = e.details?.[String(c.property)];
+  if (v === undefined) return null;
+  const has = (o: string) => (Array.isArray(v) ? v.includes(o) : v === o);
+  if ("equals" in c) return has(String(c.equals));
+  const list = (c.any_of ?? c.includes_any) as string[] | undefined;
+  return list ? list.some(has) : null;
 }
 
 /** A many-chip list: toggle `id`; an exclusive id ("none") clears the rest and the rest clear it. */

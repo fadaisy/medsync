@@ -1,8 +1,10 @@
 import "server-only";
 
 import type { ClerkingDeskData } from "./desk-data";
+import type { ResultFact } from "./exam/context";
 import type { FlowRow } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
+import type { ObservationFact } from "@/lib/facts/types";
 import type { Acvpu } from "@/lib/triage/types";
 import { and, desc, eq, inArray, notInArray } from "drizzle-orm";
 
@@ -16,6 +18,8 @@ import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
+import { loadFactSnapshot } from "@/lib/facts/loader";
+import { RESULT_CONCEPTS } from "./exam/context";
 import { EXAM_CATALOGUE, EXAM_SIGNOFF } from "./exam/load";
 import { DX_CATALOGUE, DX_SIGNOFF } from "./impression/load";
 import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_SIGNOFF, CLERKING_TOKEN_MAP } from "./load";
@@ -119,9 +123,12 @@ async function latestExamSet(
   };
 }
 
-async function pregnancyOf(db: EmrDb, patientUserId: string): Promise<boolean | null> {
+async function pregnancyOf(
+  db: EmrDb,
+  patientUserId: string,
+): Promise<{ pregnant: boolean | null; since: string | null }> {
   const [p] = await db
-    .select({ state: pregnancyEpisodes.pregnancyState })
+    .select({ state: pregnancyEpisodes.pregnancyState, at: pregnancyEpisodes.effectiveAt })
     .from(pregnancyEpisodes)
     .where(
       and(
@@ -131,11 +138,39 @@ async function pregnancyOf(db: EmrDb, patientUserId: string): Promise<boolean | 
     )
     .orderBy(desc(pregnancyEpisodes.effectiveAt))
     .limit(1);
-  return p?.state === "pregnant"
-    ? true
-    : p?.state === "not_pregnant" || p?.state === "postpartum"
-      ? false
-      : null;
+  const pregnant =
+    p?.state === "pregnant"
+      ? true
+      : p?.state === "not_pregnant" || p?.state === "postpartum"
+        ? false
+        : null;
+  return { pregnant, since: pregnant && p?.at ? new Date(p.at).toISOString() : null };
+}
+
+/** An observation fact as the `result` atom reads it; null when it has no number. */
+export function resultFact(f: ObservationFact): ResultFact | null {
+  if (f.value.type !== "quantity" || !f.interpretable.ok) return null;
+  const c = f.context;
+  const ch = c.challenge;
+  return {
+    concept: f.concept,
+    value: f.value.canonical.value,
+    ...(f.value.comparator ? { comparator: f.value.comparator } : {}),
+    at: "at" in f.effective ? f.effective.at : f.effective.start,
+    trust: f.trust,
+    ...(c.fastingState ? { fastingState: c.fastingState } : {}),
+    ...(ch
+      ? {
+          challenge: {
+            type: ch.type,
+            minutes: "minutesPostLoad" in ch ? ch.minutesPostLoad : ch.minutesPostMeal,
+          },
+        }
+      : {}),
+    ...(c.specimen ? { specimen: c.specimen } : {}),
+    ...(c.pointOfCare !== undefined ? { pointOfCare: c.pointOfCare } : {}),
+    ...(c.certification ? { certification: c.certification } : {}),
+  };
 }
 
 function newest(rows: readonly FlowRow[], conceptId: string) {
@@ -182,6 +217,7 @@ export async function clerkingData(i: {
   database?: EmrDb;
   patientUserId: string;
   encounterId: string;
+  encounterType?: string | null;
   sex: string | null;
   ageYears: number | null;
   rows: readonly FlowRow[];
@@ -211,9 +247,22 @@ export async function clerkingData(i: {
       .sort()
       .at(-1) ?? null;
   const avpuWord = cells.avpu?.value.split(" ")[0]?.toLowerCase().replace(/ /g, "_");
-  const [examSet, pregnant] = await Promise.all([
+  const [examSet, pregnancy, facts] = await Promise.all([
     latestExamSet(owner, i).catch(() => null),
-    pregnancyOf(owner, i.patientUserId).catch(() => null),
+    pregnancyOf(owner, i.patientUserId).catch(() => ({ pregnant: null, since: null })),
+    // Read under RLS as the clinician; a failure leaves every result atom unknown, never false.
+    asClinicalReader(
+      i.scope,
+      (tx) =>
+        loadFactSnapshot(tx, i.patientUserId, {
+          manifest: RESULT_CONCEPTS,
+          purpose: "interactive",
+          perConceptCap: 20,
+        }),
+      i.database,
+    )
+      .then((s) => s.facts.flatMap((f) => (f.kind === "observation" ? (resultFact(f) ?? []) : [])))
+      .catch(() => undefined),
   ]);
 
   const allergy = await loadAllergyInput(owner, i.patientUserId);
@@ -264,6 +313,8 @@ export async function clerkingData(i: {
     catalogueVersion: CLERKING_CATALOGUE.version,
     sex: i.sex === "female" || i.sex === "male" ? i.sex : null,
     ageYears: i.ageYears,
+    encounterType: i.encounterType ?? null,
+    ...(facts ? { facts } : {}),
     vitals: {
       respiratoryRate: numberOf(cells.rr?.value),
       spo2: numberOf(cells.spo2?.value),
@@ -340,9 +391,15 @@ export async function clerkingData(i: {
         weight: numberOf(more.weight?.value),
         height: numberOf(more.height?.value),
         waist: numberOf(more.waist?.value),
+        // The context is known only when the newest glucose is the set's own reading.
+        glucoseContext:
+          examSet?.fields.includes("vs.glucose") && more.glucose?.at === examSet.at
+            ? examSet.glucoseContext
+            : null,
       },
       set: examSet,
-      pregnant,
+      pregnant: pregnancy.pregnant,
+      pregnancySince: pregnancy.since,
     },
     conversionFlags: CLERKING_LEGACY.flags,
     signoff: {

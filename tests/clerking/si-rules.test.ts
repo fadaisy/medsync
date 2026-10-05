@@ -2,6 +2,7 @@ import type { Cond } from "@/lib/clerking/impression/catalogue";
 import { describe, expect, it } from "vitest";
 
 import { EMPTY_IMPRESSION } from "@/lib/clerking/impression/board";
+import { refsOf } from "@/lib/clerking/impression/catalogue";
 import { atomTrue } from "@/lib/clerking/impression/evidence";
 import { suggestions } from "@/lib/clerking/impression/suggest";
 import { scenario } from "./exam-fixtures";
@@ -14,6 +15,9 @@ import { board, ctx, dx, IN, LIVE, solveDx } from "./si-fixtures";
  */
 
 const fresh = () => scenario({ patient: { ageYears: 40, sex: null, pregnant: null } });
+/** Dark by design: it reads a reference with no signed value (REF-DX-RESULT-AGE-GLUCOSE, D-DM-08),
+ *  so it can never fire, even on a record built to make it true. */
+const dark = (c: Cond) => refsOf(c).some((r) => dx.refValue(r) === null);
 const branches = (c: Cond) => ("any" in c ? (c.any as Cond[]).length : 1);
 const leaves = (c: Cond): number =>
   "all" in c
@@ -25,9 +29,23 @@ const leaves = (c: Cond): number =>
         : 1;
 
 describe("differential rules, both ways", () => {
-  it("covers the catalogue's 100 rules", () => expect(dx.rules.length).toBe(100));
+  // 100 + the diabetes pack's 11 (Phase 5); 2 of them dark (D-DM-08).
+  it("covers the catalogue's 111 rules", () => expect(dx.rules.length).toBe(111));
+  it("reports the dark rules", () =>
+    expect(dx.rules.filter((r) => dark(r.when)).map((r) => r.id)).toEqual([
+      "DDX-RESULT-GLUCOSE-FASTING",
+      "DDX-RESULT-GLUCOSE-IFG",
+    ]));
 
   for (const rule of dx.rules) {
+    if (dark(rule.when)) {
+      it(`${rule.id} is dark: silent even on a record built to fire it`, () => {
+        const s = fresh();
+        expect(solveDx(rule.when, s)).toEqual([]);
+        expect(atomTrue(rule.when, { x: ctx(s), ...IN })).toBe(false);
+      });
+      continue;
+    }
     it(`${rule.id} fires on each trigger and suggests its diagnoses`, () => {
       for (let b = 0; b < branches(rule.when); b++) {
         const s = fresh();
@@ -75,7 +93,7 @@ describe("every evidence atom in the catalogue", () => {
         n++;
         const s = fresh();
         const unknown = solveDx(e.atom, s);
-        const ok = !unknown.length && atomTrue(e.atom, { x: ctx(s), ...IN });
+        const ok = !unknown.length && atomTrue(e.atom, { x: ctx(s), ...IN }) !== dark(e.atom);
         // Age and sex are always on the record: only history and examination atoms must be quiet.
         const quiet =
           !atomTrue(e.atom, { x: emptyX, ...IN }) || "not" in e.atom || "patient" in e.atom;
@@ -84,7 +102,7 @@ describe("every evidence atom in the catalogue", () => {
             `${p.id}: ${e.text}${unknown.length ? ` (${unknown.join("; ")})` : ""}${quiet ? "" : " fires unrecorded"}`,
           );
       }
-    expect(n).toBe(1910);
+    expect(n).toBe(1960); // 1910 + the diabetes pack's merge
     expect(failed).toEqual([]);
   });
 });

@@ -25,7 +25,7 @@ export interface TargetPlace {
   part?: string;
   item?: string;
   block?: string;
-  panel?: "postural" | "bothArms" | "peakFlow";
+  panel?: "postural" | "bothArms" | "peakFlow" | "ketones";
   field?: string;
 }
 
@@ -33,6 +33,7 @@ const PANEL: Record<string, TargetPlace["panel"]> = {
   "vs.postural": "postural",
   "vs.both_arms": "bothArms",
   "vs.pef": "peakFlow",
+  "vs.ketones": "ketones",
 };
 
 export function placeOfTarget(x: ExamContext, target: string): TargetPlace | null {
@@ -91,6 +92,7 @@ export function targetDone(x: ExamContext, target: string): boolean {
       return !!p.postural?.lying && !!(p.postural.standing_1min || p.postural.standing_3min);
     if (target === "vs.both_arms") return !!p.bothArms?.right && !!p.bothArms.left;
     if (target === "vs.pef") return !!p.peakFlow?.best;
+    if (target === "vs.ketones") return p.ketones?.blood !== undefined || !!p.ketones?.urine;
     const saved = d.vitalsSavedFields?.includes(target);
     const typed =
       !!d.vitalsDraft && x.vitals[VS_VALUE[target] ?? "sbp"] !== null && draftHas(x, target);

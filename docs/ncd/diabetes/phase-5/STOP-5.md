@@ -1,0 +1,97 @@
+# STOP 5: the clerking desk (Phase 5)
+
+MS-NCD-DM-PACK-001 on `feat/ncd-diabetes-pack`, worktree `medsync-ncd`, 2026-10-05. Signed at GATE A (`docs/ncd/diabetes/gate-a-signoff.json`: EC-1 to EC-8 accepted, P0-15 to P0-24 as ruled). Uncommitted. Everything is behind `CLERKING_V2`: the engines, catalogues and loaders changed here are read only by the v2 desk.
+
+## 1. Engine changes (all accepted, all built)
+
+The evaluator is now **three-valued** (P0-18): `evalTri` returns true, false or null (unknown); `evalCond` is `evalTri === true`. `all` is false on any false, `any` true on any true, `not` keeps unknown. Every new atom is unknown while the record cannot answer it, and an atom the engine does not know is unknown (it was false, so `not` of it was **true**: the fail-open hazard is closed). The older atoms keep their two-valued meaning.
+
+| EC | Built | Where |
+|---|---|---|
+| EC-1 result atom | `{result, qualifiers?, gte/gt/lt/lte_ref (a band with two), max_age_ref?, min_trust?}`: newest fact **matching the qualifiers** at or before the note (a later random glucose never hides an earlier fasting one); none, out of window or below trust → unknown; a comparator value decides only what its bound decides; an unsigned window (`REF-DX-RESULT-AGE-GLUCOSE`, null) keeps it dark. HbA1c is unknown unless NGSP/IFCC-certified, not point-of-care, and no caveat the record can show holds (pregnancy not ruled out, HIV or antiretrovirals, sickle cell disease, a transfusion in the last 3 months). The desk loads the facts through `loadFactSnapshot` under RLS (7 concepts, 20 per concept); a failure leaves every result unknown. Matrix text: value, comparator, date, age in days, trust. | `lib/clerking/exam/context.ts` (`resultAtom`, `hba1cUsable`, `RESULT_CONCEPTS`), `lib/clerking/desk-load.ts` (`resultFact`, the load), `lib/clerking/desk-data.ts`, `lib/clerking/impression/facts.ts` (`res:` ref, `resultFinding`), `components/clerking/{exam/model,si-model}.ts` |
+| EC-2 past-history detail | `past.conditions[id].details` (schema-bounded), `condition_details` in the history catalogue (options_ref resolved, `shown_when` on a property), the editor under a "yes", the composer by the catalogue's template (an unanswered clause left out with its punctuation), the `past_detail` atom (three-valued: unanswered unknown, a "no" false), `applies_to: past_history` flag rules, the `pmh:<cond>#<prop>` ref keeping the condition's restricted class. | `lib/clerking/{answers,payload,catalogue,compose,flags}.ts`, `components/clerking/past-history-body.tsx` |
+| EC-3 glucose context | `VitalValues.glucoseContext`; `{vital: vs.glucose, context}`: unknown with no reading or context, false for another context. A typed glucose brings its own context (never the saved one's). The fourth context `two_hours_after_glucose` (catalogue, payload, card) is charted as `challenge ogtt_75g, 120`. The saved set's context is used only when the newest chart glucose is that set's (tested on PGlite). | `context.ts`, `exam/vitals.ts`, `exam/payload.ts`, `desk-load.ts`, `vitals-card.tsx` |
+| EC-5 pregnancy | `{pregnancy: current \| not_pregnant \| unknown}`; unknown for a woman or an unrecorded sex with no recorded answer (P0-02), never assumed; `requires` on a profile (unknown never opens it); results on a `requires: pregnancy` profile bounded to the open episode (`pregnancySince` from `pregnancy_episodes.effective_at`). | `context.ts` (`pregnancyState`), `impression/{catalogue,suggest,evidence}.ts`, `desk-load.ts` |
+| EC-6 HI and LO | "HI"/"LO" (chips beside the field) parse as `glucoseReads`, no number; HI satisfies every at-or-above glucose atom, LO every below one (LO → hypoglycaemia level 2). Not charted (no device range to write); kept in the "Now" column after a save and written in the note ("glucose HI (above the meter's range, random)"). The plausibility range rejecting mg/dL typed as mmol/L already existed (0.5–50, confirm tap). | `vitals.ts` (`parseVitalsDraft`, `mergeVitals`, `draftAfterSave`), `context.ts` (`glucoseCompare`), `classifiers.ts`, `exam/compose.ts`, `vitals-card.tsx` |
+| EC-7 smaller additions | ketone panel (`panels.ketones` blood/urine, card UI, note line), panel atoms `{panel, field, …}` and `{panel, recorded}`; `{medicine, adherence_any}`; `{item, recorded}`; `setting` as a list (encounter type passed from `lib/emr/read/desk.ts`); classifiers `ketone_band`, `acuity_band`, `dr_review` as catalogue rules, first match (`ruleClassifier`; dr_review reads acuity); compound `shown_when` (`all`); `any_state` attributes (method, view, grade, macula on a **normal** fundus); the undilated composer rule; options_ref expanded at merge (the exam catalogue has no option_sets); token map `values` (value from option); ask kinds `panel`, `past_detail`; onset `subacute`; dx RefEntry null value/source (needs-cso) with `mirrors`, NamedScale `ref_dm`; `medicine_group` and `derived` atoms in the dx catalogue (validated; derived read through the examination's reader); medicine group `exclude_words` (systemic steroid: no cream, inhaler or drops). | `context.ts`, `exam/{catalogue,answers,classifiers,compose,commit,flags,suggest,payload}.ts`, `impression/{catalogue,check,ask,facts,evidence}.ts`, `item-row.tsx`, `vitals-card.tsx`, `details.tsx` |
+| EC-8 amend semantics | By hand, once, in a merge script (not a loader): lists appended and de-duplicated, scalars untouched except the signed (P0-17). Tested: every GATE A item, rule, atom, ask, test, relation and reference still stands; every addition is the pack's. | `docs/ncd/diabetes/phase-5/amend-diff.md`; `tests/clerking/ncd-dm-pack.test.ts` |
+| EC-4 care list | Data only (`data/clerking/plan-care.v1.json`, status `draft`, P0-21 test ids applied), no sign-off file, nothing reads it: the Plan shows no suggested care (today's behaviour, tested). Its engine (when, opens, due, age atoms) waits for the signature. | |
+
+Nothing was declined, so no rule was removed for a missing engine change. What is dark is dark by an unsigned value, and the catalogue check reports it (section 3).
+
+## 2. Amendments merged (counts; detail in `amend-diff.md`)
+
+| Catalogue | Added | Dropped | Signed changes | Pack differences kept out |
+|---|---|---|---|---|
+| History 1.0.0-draft (version kept: the legacy table is pinned to it) | condition_details.diabetes (12 properties), option set last_check, 4 quick picks, 2 flags, 1 source | 1 (the prior-GDM question) | — | — |
+| Examination 1.0.1 → 1.1.0-draft | 7 medicine groups, the ketone panel, 5 references, 2 items, 4 fundoscopy attributes, 3 classifiers, 6 flags, 6 suggestions, 8 sources | 2 (FLAG-EX-GLU-KETONE-TEST, SUG-DM-POSTURAL: P0-23) | vs.glucose context + HI/LO (EC-3/6); FLAG-EX-INSULIN-STOPPED badge "Stopped insulin" (the pack's own note) | — |
+| Exam token map | sign.lipohypertrophy; values for grade, macula, view | obs.visual_acuity (no concept) | — | — |
+| Diagnosis 1.0.1 → 1.1.0-draft | 20 references, 3 named scales, 8 profiles, 11 rules, 3 rule suggestions, 14 sources, 7 profiles amended (72 list items) | 11 (below) | dx.dm_type1 must-not-miss + reason (D-DM-35, P0-16); obese-BMI against removed (P0-16); gt_ref ×2 (D-DM-25) | scalars of 7 profiles (no `_changes`, P0-17) |
+
+Dropped, with reasons: the DKA "ketones < 0.6" against atom (P0-15) and its `REF-DX-KETONE-NORMAL`; the obese-BMI against atom on type 1 (P0-16); DDX-POLYURIA's source change (P0-17); steroid hyperglycaemia on every glucose ≥ 11.1 (P0-19); `DDX-GLUCOSE-VERY-HIGH`, `FLAG-EX-GLU-KETONE-TEST`, `SUG-DM-POSTURAL`, `REF-DX-GLU-HHS` (P0-23); three semantic duplicates Phase 0 named (dka glucose ≥ REF-DX-GLU-RANDOM-DM, dm_type2 `medicine_group metformin`, hypoglycaemia_dm classifier level_1/2); `dx.cataract` from a related list (no profile); the prior-GDM question (needs a sex gate and Phase 6's `hist.prior_gdm`); acuity to `obs.visual_acuity` (no concept). Evidence "against" on a must-not-miss diabetes diagnosis: **none** (tested).
+
+Re-pinned: `catalogue-signoff.v1.json`, `exam-signoff.v1.json`, `dx-signoff.v1.json` (new SHA-256, version, an `amendments` entry "MS-NCD-DM-PACK-001 Phase 5, signed GATE A 2026-10-05 (docs/ncd/diabetes/gate-a-signoff.json)"). `dx-signoff` withholds `REF-DX-RESULT-AGE-GLUCOSE`, `REF-DX-ADULT-AGE` (needs-cso) and `dx.diabetes_in_pregnancy` (must-not-miss with no reason).
+
+## 3. Catalogue check (`npm run -s clerking:catalogue-check`: ok)
+
+```
+catalogue MS-EMR-CLERK-CAT-001 1.0.0-draft (sha256 e0c856807711…)
+symptoms 96, families 65 · review-of-systems groups 13 · red flags 129
+flag rules 77 (44 urgent) · reference entries 19, sources 20
+catalogue MS-EMR-EXAM-CAT-001 1.1.0-draft (sha256 db5f71584bd5…)
+systems 10, parts 41 · answerable items 142, links 9 · attributes 291, options 1008
+by response type choice 5, presence 47, device 4, state 77, classified 1, measured 2, test 6
+scales 17, classifiers 27 · reference entries 37 (27 from opened sources) · sources 61 (51 verified)
+flag rules 93 (56 urgent, 4 restricted) · suggestion rules 53, shared facts 13, mirrors 22
+table MS-EMR-CLERK-LEGACY-001 1.0.0 (sha256 1d466d635410…) · codes 106, concepts 155
+catalogue MS-EMR-DX-CAT-001 1.1.0-draft (sha256 3fef231c06eb…, 898 KB)
+profiles 280 (85 on REF-DX-TERMS, 187 on the v1.1 addendum, 8 on CFC v1.5)
+must-not-miss 91, time-critical 86, restricted 28
+evidence atoms 1835 for / 125 against, ask targets 2322
+differential rules 111, reference entries 34, named scales 13
+tests referenced 101 (35 on the menu, 66 proposed)
+terms: REF-DX-TERMS 85, v1.1 addendum 187, CFC v1.5 8
+dark (withheld REF-DX-RESULT-AGE-GLUCOSE, REF-DX-ADULT-AGE, dx.diabetes_in_pregnancy): profiles 1, rules 2 (DDX-RESULT-GLUCOSE-FASTING, DDX-RESULT-GLUCOSE-IFG), evidence atoms 9
+suggested care 44 items, draft (unsigned: none shown)
+ok
+```
+
+The check now reads the 8 pack terms from Phase 6's `data/emr/clinical-fact-concepts.v1.5.json` `termsAdd` (as does `DX_NAMES`, uncoded until 0092), validates every new atom and ask kind (result concepts, pregnancy states, past details and their options, medicine groups, derived facts, setting lists, the ketone panel's fields and options, glucose contexts, `requires`), allows a null value/source only on a needs-cso entry, reports dark rules, profiles and atoms, and fails if the care list stops being a draft.
+
+## 4. Tests (targeted runs; synthetic data only)
+
+| Run | Result |
+|---|---|
+| `tests/clerking/*` (31 files, two batches) | 914 passed, **2 failed, both from Phase 6 commits** (below) |
+| `tests/clerking/ncd-dm-pack.test.ts` (new) | 42 passed: merge-only for exam and dx; the rulings; Kleene tables, `not unknown`, the two fail-open hazards, empty record silent for every new flag/suggestion/rule (three sexes); result atom (qualifiers, window, trust, comparator, HbA1c caveats, dark window); HI/LO (parse, atoms, LO → level 2, not charted, kept, composed); OGTT challenge; pregnancy gate and episode bounding; past details (three-valued, composer, shown_when, restricted class); ketone_band, acuity_band and every dr_review result both ways; undilated and normal-fundus behaviour; commit lines; badge merging; steroid exclusions; care list unsigned and absent from problem cards; no dose; restricted; flag off |
+| Rule coverage both ways (catalogue-wide, now including every new rule) | `exam-flags` 95 (93 flags fire and miss), `exam-suggest` 55, `si-rules` 223 (111 rules; the 2 dark ones proven silent on a record built to fire them; 1960 evidence atoms made true and quiet when unrecorded), `engines` 119 (77 history flags; the 2 past-history flags both ways) |
+| `exam-classifiers` | ketone reference edges at value − ε, value, value + ε (3.0, 1.6, 0.6) |
+| `tests/emr-db/clerking-exam`, `clerking-v2`, `summary-impression`, `write-plan` (PGlite) | 7, 7, 13, 6 passed; new: the loaded desk carries the set's glucose context and the glucose as a result fact (meal, 120 min, point of care) under RLS |
+| `tests/design/red-reserved`, `clinical-chroma` | 30 passed |
+| eslint, prettier on the 47 changed TS files | clean |
+
+Failing, **not from this phase** (Phase 6 commits on the branch): `plan-step.test.ts` "Show all medicines" expects 182 medicines, the formulary now has 192 (c8c1af1); `legacy-conversion.test.ts` "covers … every finding concept" fails on `hist.prior_gdm` (CFC v1.5, 1d96aaa), a finding concept with no symptom code that the signed legacy table does not list.
+
+## 5. Restricted output and flag off
+
+- No new profile is restricted; no new flag is restricted; no new atom reads a restricted fact on a standard diagnosis (the check). A past detail keeps its condition's class (`pmh:hiv#…` is `hiv`). An HbA1c withheld because of HIV is simply not evidence: no reason text is shown anywhere.
+- `si-patient-facing` extended: a diabetes board with a past detail, ketones and a restricted differential (cryptococcal meningitis, HIV evidence) composes for the patient with no HIV, antiretroviral or cryptococcal text. The source-level test (no patient page or print reads a note or a composer) still passes.
+- Flag off: results are loaded only inside `clerkingData`, which `lib/emr/read/desk.ts` calls only for the v2 template; the examination commit is reached only from a schema-2 note; the existing "CLERKING_V2 off: the v1 desk is unchanged" tests pass.
+
+## 6. Not done, and why
+
+1. **Typecheck and build not run** (8 GB rule): the lead runs `npm run typecheck`. Types were reviewed by hand; the likely spots are `lib/clerking/exam/context.ts` (Tri, panel), `desk-load.ts` (`resultFact`), `impression/facts.ts`.
+2. **Charting** of HI/LO (no device range), the ketone panel (note only), visual acuity (no CFC concept), the retinopathy grade and macula (`exam.retinopathy_grade` and `exam.maculopathy` need laterality, method and grading scale; the desk grades the worse eye). The view and lipohypertrophy are charted once 0092 is applied. No ketone row on the glucose chart (EC-7 formulary line).
+3. **HbA1c caveats the record cannot show** (haemolysis, recent malaria, iron or B12 deficiency, a low eGFR: no signed eGFR limit for this) stay with the clinician; the profile note names them.
+4. **EC-4 engine** (when, opens, due, age atoms): not built while the list is unsigned; the product shows no care.
+5. The prior-GDM question (restricted, women only) is deferred to the next history amendment.
+
+## 7. Decisions for the owner / CSO
+
+1. **Result windows**: bicarbonate, pH, effective osmolality and HbA1c atoms carry no `max_age_ref`, so a years-old DKA bicarbonate counts as evidence today. Sign windows (or accept). The glucose window (D-DM-08) is still unsigned: those rules stay dark.
+2. **`dx.diabetes_in_pregnancy`**: must-not-miss with no reason; withheld until a reason is signed.
+3. **"Could be pregnant"** has no signed age range: every woman (and every unrecorded sex) without a recorded answer is "unknown", which keeps HbA1c and every `not pregnant` item silent for her.
+4. Three Phase 0 semantic duplicates were dropped on Phase 0's evidence, not an explicit P0 ruling (listed in section 2): confirm.
+5. `exclude_words` for the systemic-steroid group and the classifier result wordings were authored here from the signed rule text: confirm.
+6. "Stopped insulin" merges with FLAG-MED-ADHERENCE only when the medicine's name is just "Insulin"; "Insulin glargine" gives a second badge.
+7. Phase 6: the two failing tests above (formulary count, legacy table vs `hist.prior_gdm`).

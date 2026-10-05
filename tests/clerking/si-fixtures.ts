@@ -1,8 +1,9 @@
 import type { Scenario } from "./exam-fixtures";
-import type { ExamContext, VitalValues } from "@/lib/clerking/exam/context";
+import type { ExamContext, NumericVital } from "@/lib/clerking/exam/context";
 import type { RecordedDx } from "@/lib/clerking/impression/board";
 import type { Cond } from "@/lib/clerking/impression/catalogue";
 
+import PACK_TERMS from "@/data/emr/clinical-fact-concepts.v1.5.json";
 import BASE_TERMS from "@/data/emr/diagnosis-terms.v1.json";
 import ADD_TERMS from "@/docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json";
 import { readAttr } from "@/lib/clerking/exam/answers";
@@ -12,7 +13,17 @@ import { dxLive } from "@/lib/clerking/impression/catalogue";
 import { CLINICAL_VIEWER } from "@/lib/clerking/impression/facts";
 import { DX_CATALOGUE, dxTermUuid } from "@/lib/clerking/impression/load";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
-import { ALL_SIGNED, complain, ecat, gcs, positive, scenario, solve, tick } from "./exam-fixtures";
+import {
+  ALL_SIGNED,
+  complain,
+  ecat,
+  gcs,
+  NOW,
+  positive,
+  scenario,
+  solve,
+  tick,
+} from "./exam-fixtures";
 import { cat } from "./fixtures";
 
 /**
@@ -49,6 +60,7 @@ export function ctx(s: Scenario): ExamContext {
     news2Latest: s.news2Latest,
     latestSetTime: "23:00",
     dxRefs: { refValue: (id) => dx.refValue(id) },
+    ...(s.facts ? { facts: s.facts, now: s.now ?? NOW } : {}),
   };
   const { results } = evaluateExamFlags(x0, { ...ALL_SIGNED, withheld: [] });
   const forced = FORCED.get(s);
@@ -60,7 +72,7 @@ export function ctx(s: Scenario): ExamContext {
 }
 
 const dxRef = (id: unknown) => dx.refValue(String(id));
-const VITAL: Record<string, keyof VitalValues> = {
+const VITAL: Record<string, NumericVital> = {
   "vs.glucose": "glucose",
   "vs.spo2": "spo2",
   "vs.rr": "rr",
@@ -172,6 +184,7 @@ function makeTrueDx(c: Cond, s: Scenario): boolean | null {
     const n = val as number;
     const k = VITAL[String(c.vital)]!;
     v[k] = key === "gte_ref" ? n : n - (k === "pulse" || k === "rr" || k === "spo2" ? 1 : 0.5);
+    if ("context" in c) v.glucoseContext = String(c.context);
     return true;
   }
   return null;
@@ -245,7 +258,7 @@ const uuid = () => {
 
 // Display names come from REF-DX-TERMS and the addendum (the catalogue holds none).
 const TERMS_DISPLAY = new Map<string, string>(
-  [...BASE_TERMS.terms, ...ADD_TERMS.terms].map((t) => [t.id, t.display]),
+  [...BASE_TERMS.terms, ...ADD_TERMS.terms, ...PACK_TERMS.termsAdd].map((t) => [t.id, t.display]),
 );
 export const displayOf = (id: string) => TERMS_DISPLAY.get(id) ?? id;
 

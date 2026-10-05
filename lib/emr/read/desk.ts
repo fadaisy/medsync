@@ -714,6 +714,7 @@ export async function loadDeskFor(
           database: opts.database,
           patientUserId: enc.patientUserId,
           encounterId: enc.id,
+          encounterType: enc.encounterType,
           sex: side.profile?.sex ?? null,
           ageYears: computeAgeYears(side.profile?.dob ?? null, now),
           rows: payload.flowsheet.rows,

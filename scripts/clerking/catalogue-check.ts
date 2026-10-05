@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 
 import { parseCatalogue } from "../../lib/clerking/catalogue";
 import { parseExamCatalogue } from "../../lib/clerking/exam/catalogue";
-import { parseDxCatalogue } from "../../lib/clerking/impression/catalogue";
+import { parseDxCatalogue, refsOf } from "../../lib/clerking/impression/catalogue";
 import { dxCatalogueProblems } from "../../lib/clerking/impression/check";
 import { legacyTableProblems, parseLegacyTable } from "../../lib/clerking/legacy";
 
@@ -179,6 +179,15 @@ const baseTerms = readTerms("data/emr/diagnosis-terms.v1.json");
 const addTerms = readTerms(
   "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json",
 );
+// The diabetes pack's 8 terms (MS-NCD-DM-PACK-001), seeded by CFC v1.5's migration 0092.
+const packTerms = (
+  JSON.parse(readFileSync("data/emr/clinical-fact-concepts.v1.5.json", "utf8")) as {
+    termsAdd: Term[];
+  }
+).termsAdd;
+for (const t of packTerms)
+  if ([...baseTerms, ...addTerms].some((b) => b.id === t.id))
+    problems.push(`CFC v1.5 term ${t.id} already in REF-DX-TERMS`);
 for (const t of addTerms)
   if (baseTerms.some((b) => b.id === t.id))
     problems.push(`addendum term ${t.id} already in REF-DX-TERMS`);
@@ -189,7 +198,7 @@ const dxCheck = dxCatalogueProblems({
   dx,
   cat,
   exam,
-  terms: [...baseTerms, ...addTerms],
+  terms: [...baseTerms, ...addTerms, ...packTerms],
   tests: new Set(menu.tests.map((t) => t.id)),
   otherSources: new Set([...Object.keys(cat.data.sources), ...Object.keys(ed.sources)]),
 });
@@ -201,6 +210,25 @@ const onset = summaryRef.reference_entries["REF-SI-ONSET"]?.value;
 if (!onset || !(onset.acute_lt_days < onset.chronic_gt_days))
   problems.push("REF-SI-ONSET missing or inverted");
 const dxProfiles = dx.profiles;
+// Dark by design: what reads a withheld or unsigned reference never fires (reported, not skipped).
+const dxWithheld = new Set(
+  (JSON.parse(readFileSync("data/clerking/dx-signoff.v1.json", "utf8")) as { withheld: string[] })
+    .withheld,
+);
+const darkRules = dx.rules.filter((r) => refsOf(r.when).some((ref) => dxWithheld.has(ref)));
+const darkAtoms = dxProfiles.flatMap((p) =>
+  [...p.suggest_for, ...p.suggest_against]
+    .filter((e) => refsOf(e.atom).some((ref) => dxWithheld.has(ref)))
+    .map((e) => `${p.id} ${e.text}`),
+);
+const withheldProfiles = dxProfiles.filter((p) => dxWithheld.has(p.id)).map((p) => p.id);
+// The suggested-care list (EC-4) stays unsigned: the Plan shows none of it.
+const care = JSON.parse(readFileSync("data/clerking/plan-care.v1.json", "utf8")) as {
+  status: string;
+  items: unknown[];
+};
+if (care.status !== "draft")
+  problems.push(`plan-care.v1.json is ${care.status}: it has no sign-off file`);
 const byCategory = dxProfiles.reduce<Record<string, number>>(
   (m, p) => ((m[p.category] = (m[p.category] ?? 0) + 1), m),
   {},
@@ -208,7 +236,7 @@ const byCategory = dxProfiles.reduce<Record<string, number>>(
 process.stdout.write(
   [
     `catalogue ${dx.data.id} ${dx.version} (sha256 ${dxHash.slice(0, 12)}…, ${Math.round(dxBytes.length / 1024)} KB)`,
-    `profiles ${dxProfiles.length} (${dxProfiles.filter((p) => baseTerms.some((t) => t.id === p.id)).length} on REF-DX-TERMS, ${dxProfiles.filter((p) => addTerms.some((t) => t.id === p.id)).length} on the v1.1 addendum)`,
+    `profiles ${dxProfiles.length} (${dxProfiles.filter((p) => baseTerms.some((t) => t.id === p.id)).length} on REF-DX-TERMS, ${dxProfiles.filter((p) => addTerms.some((t) => t.id === p.id)).length} on the v1.1 addendum, ${dxProfiles.filter((p) => packTerms.some((t) => t.id === p.id)).length} on CFC v1.5)`,
     `by category ${Object.entries(byCategory)
       .sort((a, b) => b[1] - a[1])
       .map(([k, v]) => `${k} ${v}`)
@@ -217,7 +245,9 @@ process.stdout.write(
     `evidence atoms ${dxProfiles.reduce((n, p) => n + p.suggest_for.length, 0)} for / ${dxProfiles.reduce((n, p) => n + p.suggest_against.length, 0)} against, ask targets ${dxProfiles.reduce((n, p) => n + p.ask.length, 0)}`,
     `differential rules ${dx.rules.length}, reference entries ${Object.keys(dx.data.reference_entries).length}, named scales ${Object.keys(dx.data.named_scales).length}`,
     `tests referenced ${dxCheck.testsExisting.size + dxCheck.testsProposed.size} (${dxCheck.testsExisting.size} on the menu, ${dxCheck.testsProposed.size} proposed)`,
-    `terms: REF-DX-TERMS ${baseTerms.length}, v1.1 addendum ${addTerms.length} (ICD-11 verified ${addTerms.filter((t) => (t as { icd11?: { status?: string } }).icd11?.status === "verified").length})`,
+    `terms: REF-DX-TERMS ${baseTerms.length}, v1.1 addendum ${addTerms.length} (ICD-11 verified ${addTerms.filter((t) => (t as { icd11?: { status?: string } }).icd11?.status === "verified").length}), CFC v1.5 ${packTerms.length}`,
+    `dark (withheld ${[...dxWithheld].join(", ") || "none"}): profiles ${withheldProfiles.length}, rules ${darkRules.length} (${darkRules.map((r) => r.id).join(", ")}), evidence atoms ${darkAtoms.length}`,
+    `suggested care ${care.items.length} items, ${care.status} (unsigned: none shown)`,
   ].join("\n") + "\n",
 );
 

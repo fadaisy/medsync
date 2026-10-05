@@ -96,8 +96,10 @@ describe("the table", () => {
     );
     expect(identity).toHaveLength(17);
     for (const [s, t] of identity) expect(table.codes[t]?.yes).toEqual({ set: s });
+    // v1.5 (0092) came after every v1 draft: no v1 complaint can hold its concepts.
     for (const [id, c] of Object.entries(CONCEPTS))
-      if (c.kind === "finding" && !c.symptomCode) expect(table.concepts[id], id).toBeDefined();
+      if (c.kind === "finding" && !c.symptomCode && c.phase !== "v1.5")
+        expect(table.concepts[id], id).toBeDefined();
   });
 
   it("never narrows a combined code silently (D1)", () => {

@@ -35,10 +35,15 @@ const Ask = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("exam_item"), id: z.string() }).strict(),
   z.object({ kind: z.literal("vital"), id: z.string() }).strict(),
   z.object({ kind: z.literal("classifier"), id: z.string() }).strict(),
+  // EC-7: a vital-sign panel (vs.ketones) and a past-history detail ("diabetes.lows_12_months").
+  z.object({ kind: z.literal("panel"), id: z.string() }).strict(),
+  z
+    .object({ kind: z.literal("past_detail"), id: z.string().regex(/^[a-z0-9_]+\.[a-z0-9_]+$/) })
+    .strict(),
 ]);
 export type AskTarget = z.infer<typeof Ask>;
 
-const Onset = z.enum(["acute", "chronic", "acute_on_chronic", "recurrent"]);
+const Onset = z.enum(["acute", "subacute", "chronic", "acute_on_chronic", "recurrent"]);
 export type OnsetId = z.infer<typeof Onset>;
 
 const Severity = z.discriminatedUnion("kind", [
@@ -70,6 +75,9 @@ const Profile = z
     note: z.string(),
     sources: z.array(z.string()),
     status: z.string(),
+    /** A gate (EC-5): the profile is suggested, and its evidence read, only while this holds;
+     *  unknown never opens it. `{ pregnancy: "current" }` bounds its results to the episode. */
+    requires: CondSchema.optional(),
   })
   .strict()
   .refine((p) => !p.must_not_miss || !!p.must_not_miss_reason, {
@@ -92,11 +100,15 @@ export type DdxRule = z.infer<typeof Rule>;
 
 const RefEntry = z
   .object({
-    value: z.union([z.number(), z.record(z.string(), z.number())]),
+    // null: a product setting nobody has signed (D-DM-08); everything that reads it is unknown.
+    value: z.union([z.number(), z.record(z.string(), z.number())]).nullable(),
     unit: z.string(),
     meaning: z.string(),
-    source: z.string(),
+    source: z.string().nullable(),
     status: z.string(),
+    /** The dossier entry this mirrors (provenance; MS-NCD-DM-PACK-001). */
+    mirrors: z.union([z.string(), z.array(z.string())]).optional(),
+    note: z.string().optional(),
   })
   .strict();
 
@@ -107,6 +119,7 @@ const NamedScale = z
     source: z.string(),
     status: z.string(),
     note: z.string().optional(),
+    ref_dm: z.union([z.string(), z.array(z.string())]).optional(),
   })
   .strict();
 export type NamedScaleDef = z.infer<typeof NamedScale>;
@@ -176,7 +189,7 @@ export interface DxCatalogue {
   readonly profiles: readonly DxProfile[];
   readonly rules: readonly DdxRule[];
   /** A REF-DX value: a number, or an object of limits ({ systolic_gte, diastolic_gte }). */
-  refValue(id: string): number | Record<string, number> | undefined;
+  refValue(id: string): number | Record<string, number> | null | undefined;
   refNumber(id: string): number | null;
   scale(id: string): NamedScaleDef | undefined;
   /** Profiles whose `ask` names this target key (see `askKey`). */

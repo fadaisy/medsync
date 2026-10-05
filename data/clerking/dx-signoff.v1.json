@@ -1,7 +1,7 @@
 {
  "catalogue": "MS-EMR-DX-CAT-001",
- "catalogueVersion": "1.0.1-draft",
- "catalogueSha256": "abddf5db2ff8f2a804751f852208b9df018171df5936f466828feb82e968f58a",
+ "catalogueVersion": "1.1.0-draft",
+ "catalogueSha256": "3fef231c06eb520d1b99a9f2a6c7ac377eda6213f552fc1855ddf6e1cb4533e5",
  "signedBy": "Fadhul (owner and CSO)",
  "signedOn": "2026-09-28",
  "gate": "GATE A, Summary and Impression (docs/emr/clerking-v2/summary-impression/gate-a-proposal.md)",
@@ -11,5 +11,16 @@
  "referenceEntries": "all",
  "namedScales": "all",
  "note": "Signed as drafted. To switch a profile, rule, reference entry or named scale off, list its id under 'withheld': a withheld profile keeps working as a record but shows 'Reasoning aids awaiting sign-off'; a rule or evidence atom that reads a withheld reference does not fire.",
- "withheld": []
+ "withheld": [
+  "REF-DX-RESULT-AGE-GLUCOSE",
+  "REF-DX-ADULT-AGE",
+  "dx.diabetes_in_pregnancy"
+ ],
+ "amendments": [
+  {
+   "date": "2026-10-05",
+   "gate": "MS-NCD-DM-PACK-001 Phase 5, signed GATE A 2026-10-05 (docs/ncd/diabetes/gate-a-signoff.json)",
+   "change": "1.0.1-draft → 1.1.0-draft: diabetes pack 09-diagnosis.amendment.json by merge (EC-1, EC-2, EC-5, EC-7, EC-8): 7 profiles amended, 8 added, 11 differential rules added, 3 amended; dx.dm_type1 must-not-miss (D-DM-35, P0-16). Withheld: REF-DX-RESULT-AGE-GLUCOSE and REF-DX-ADULT-AGE (needs-cso, D-DM-08) and dx.diabetes_in_pregnancy (must-not-miss with no reason supplied). Detail: docs/ncd/diabetes/phase-5/amend-diff.md."
+  }
+ ]
 }

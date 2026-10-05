@@ -16,6 +16,7 @@ import { acvpuOf, acvpuSuggestion, gcsText } from "@/lib/clerking/exam/scores";
 import {
   airOrOxygen,
   bmiOf,
+  draftAfterSave,
   isPlausible,
   news2Band,
   parseBp,
@@ -37,7 +38,7 @@ import { Pill, ResultPill } from "./result-pill";
  */
 
 type Num = "bp" | "pulse" | "rr" | "spo2" | "temp" | "glucose" | "weight" | "height" | "waist";
-type PanelId = "postural" | "bothArms" | "peakFlow";
+type PanelId = "postural" | "bothArms" | "peakFlow" | "ketones";
 type Bp = { sbp: number; dbp: number };
 
 export interface VitalsCardProps {
@@ -81,7 +82,10 @@ const ACVPU: Record<string, string> = {
   U: "Unresponsive",
 };
 const OXYGEN: Record<string, string> = { air: "Room air", oxygen: "Supplemental oxygen" };
-const WORDS: Record<string, string> = { two_hours_after_food: "2 hours after food" };
+const WORDS: Record<string, string> = {
+  two_hours_after_food: "2 hours after food",
+  two_hours_after_glucose: "2 hours after 75 g glucose",
+};
 const word = (id: string) =>
   WORDS[id] ?? id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " ");
 const lc = (s: string) =>
@@ -540,7 +544,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
       } else if (done) {
         p.onExam((d) => ({
           ...d,
-          vitalsDraft: undefined,
+          vitalsDraft: draftAfterSave(d.vitalsDraft),
           vitalsSavedAt: new Date().toISOString(),
           vitalsSavedFields: fields,
         }));
@@ -577,6 +581,28 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
     return n > 0 && n <= 1000 ? { value: n } : { error: "Outside the usual range: check it" };
   };
   const pef = pefPercent(v.x);
+  // The ketone panel's fields come from the catalogue (EC-7): blood in mmol/L, urine as a strip.
+  const ketoneFields =
+    (
+      v.ecat.data.vital_signs.panels as {
+        id: string;
+        fields?: {
+          id: string;
+          label: string;
+          plausible?: [number, number];
+          options?: { id: string; label: string }[];
+        }[];
+      }[]
+    ).find((pn) => pn.id === "vs.ketones")?.fields ?? [];
+  const blood = ketoneFields.find((f) => f.id === "blood");
+  const urine = ketoneFields.find((f) => f.id === "urine");
+  const readKetone = (t: string): { value?: number; error?: string } => {
+    if (!t.trim()) return {};
+    const n = parseDecimal(t);
+    if (n === null) return { error: "Type a number" };
+    const [lo, hi] = blood?.plausible ?? [0, 12];
+    return n >= lo && n <= hi ? { value: n } : { error: "Outside the usual range: check it" };
+  };
   const panel = (id: PanelId, title: string, body: ReactNode) => (
     <details open={p.openPanel === id} className="border-border rounded-md border">
       <summary
@@ -816,6 +842,19 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
                     onPick={(u) => setDraft((vd) => ({ ...vd, glucoseUnit: u }))}
                     disabled={off}
                   />
+                  {/* A meter above or below its range (EC-6): recorded as it reads, no number. */}
+                  <span role="group" aria-label="Meter reads" className="flex gap-1.5">
+                    {(["HI", "LO"] as const).map((r) => (
+                      <Chip
+                        key={r}
+                        selected={x.glucoseReads === r}
+                        disabled={off}
+                        onPress={() => setText("glucose", x.glucoseReads === r ? "" : r)}
+                      >
+                        {r}
+                      </Chip>
+                    ))}
+                  </span>
                 </div>
                 <Segmented
                   label="Glucose context"
@@ -828,7 +867,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
                   disabled={off}
                 />
                 {V.glucose?.trim() && !V.glucoseContext ? (
-                  <Caution>Choose random, fasting or 2 hours after food.</Caution>
+                  <Caution>Choose random, fasting or 2 hours after food or glucose.</Caution>
                 ) : null}
                 {checks("glucose")}
               </Row>
@@ -1142,6 +1181,44 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
               <ResultPill r={v.results.get("acute_asthma_severity")} />
             </>,
           )}
+          {blood && urine
+            ? panel(
+                "ketones",
+                "Ketones",
+                <>
+                  <PanelInput
+                    label={blood.label}
+                    unit="mmol/L"
+                    initial={
+                      panels.ketones?.blood !== undefined ? String(panels.ketones.blood) : ""
+                    }
+                    read={readKetone}
+                    onValue={(n) => setPanel("ketones", { blood: n })}
+                    disabled={off}
+                  />
+                  <FieldRow label={urine.label}>
+                    {(urine.options ?? []).map((o) => (
+                      <Chip
+                        key={o.id}
+                        selected={panels.ketones?.urine === o.id}
+                        disabled={off}
+                        onPress={() =>
+                          setPanel("ketones", {
+                            urine:
+                              panels.ketones?.urine === o.id
+                                ? undefined
+                                : (o.id as NonNullable<Panels["ketones"]>["urine"]),
+                          })
+                        }
+                      >
+                        {o.label}
+                      </Chip>
+                    ))}
+                  </FieldRow>
+                  <ResultPill r={v.results.get("ketone_band")} />
+                </>,
+              )
+            : null}
         </div>
       </section>
     </div>

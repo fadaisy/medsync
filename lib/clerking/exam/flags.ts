@@ -156,7 +156,19 @@ function tokens(
       return vals.map((z) => zones.find((q) => q.id === z)?.label ?? z).join(", ");
     },
     stage: () => optionWords(x, { item: "ex.skin.pressure_injury", attribute: "stage" }).join(", "),
-    glucose: () => (v.glucose === null ? "" : String(v.glucose)),
+    glucose: () => (v.glucose === null ? (v.glucoseReads ?? "") : String(v.glucose)),
+    ketones: () => {
+      const k = x.exam.panels?.ketones;
+      if (k?.blood !== undefined) return `${k.blood} mmol/L`;
+      return k?.urine
+        ? ((x.cat.data.vital_signs.panels as { id: string; fields?: unknown[] }[])
+            .find((pn) => pn.id === "vs.ketones")
+            ?.fields?.flatMap(
+              (f) => (f as { options?: { id: string; label: string }[] }).options ?? [],
+            )
+            .find((o) => o.id === k.urine)?.label ?? k.urine)
+        : "";
+    },
     bp: () => (v.sbp === null ? "" : `${v.sbp}/${v.dbp ?? "?"}`),
   };
   return Object.fromEntries(Object.entries(t).map(([k, f]) => [k, f()]));
@@ -191,7 +203,9 @@ export function ruleTarget(
       where: `Examination: ${place.system.name}`,
     };
   const s = JSON.stringify(rule.when);
-  if (/"vital"|"panel"|hypoglycaemia|orthostatic/.test(s))
+  if (/dr_review|acuity_band/.test(s))
+    return { system: "eyes_ent_neck", part: "eyes", where: "Examination: Eyes, ENT and neck" };
+  if (/"vital"|"panel"|hypoglycaemia|orthostatic|ketone_band/.test(s))
     return { system: "vitals", where: "Vital signs" };
   if (/gcs|acvpu|consciousness|orientation/.test(s))
     return { system: "general", part: "consciousness", where: "Examination: General" };

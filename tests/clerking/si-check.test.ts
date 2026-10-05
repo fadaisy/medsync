@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/clerking/clerking-diagnosis-catalogue.v1.json";
+import PACK from "@/data/emr/clinical-fact-concepts.v1.5.json";
 import BASE from "@/data/emr/diagnosis-terms.v1.json";
 import MENU from "@/data/emr/test-catalogue.v1.json";
 import ADD from "@/docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json";
@@ -17,17 +18,18 @@ const input = (c: unknown) => ({
   dx: parseDxCatalogue(c),
   cat,
   exam: ecat,
-  terms: [...BASE.terms, ...ADD.terms],
+  terms: [...BASE.terms, ...ADD.terms, ...PACK.termsAdd],
   tests: new Set(MENU.tests.map((t) => t.id)),
   otherSources: new Set([...Object.keys(cat.data.sources), ...Object.keys(ecat.data.sources)]),
 });
 
 describe("the diagnosis catalogue check", () => {
-  it("passes the signed catalogue, with 35 tests on the menu and 62 proposed", () => {
+  it("passes the signed catalogue, with 35 tests on the menu and 66 proposed", () => {
     const r = dxCatalogueProblems(input(raw));
     expect(r.problems).toEqual([]);
     expect(r.testsExisting.size).toBe(35);
-    expect(r.testsProposed.size).toBe(62);
+    // 62 + the diabetes pack's ogtt_75g, gad_antibodies, c_peptide, retinal_photograph
+    expect(r.testsProposed.size).toBe(66);
   });
 
   it("fails an unknown id, an unknown option and a restricted fact on a standard diagnosis", () => {
@@ -69,6 +71,6 @@ describe("the term map (D-SI-22)", () => {
     for (const id of ["dx.sepsis", "dx.hypothermia_unexplained", "dx.dm_type_unknown"])
       expect(dxTermUuid(id)).toBe(seedUuid(`diagnosis_terms:${id}`));
     expect(uuidV5("x")).toBe(seedUuid("x"));
-    expect(Object.keys(DX_TERM_IDS)).toHaveLength(272);
+    expect(Object.keys(DX_TERM_IDS)).toHaveLength(280); // 272 + the diabetes pack's 8
   });
 });

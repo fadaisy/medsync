@@ -3,7 +3,7 @@ import type { Catalogue, FlagRule, PatientSex, Symptom } from "./catalogue";
 import type { Linked } from "./linkage";
 import type { News2Result } from "@/lib/triage/types";
 
-import { durationDays, durationText, emptyEntry } from "./answers";
+import { durationDays, durationText, emptyEntry, pastDetail } from "./answers";
 import { appliesTo, ASSOCIATED, isRestricted } from "./catalogue";
 import { rosAnswer } from "./linkage";
 
@@ -273,6 +273,9 @@ export function evaluateFlags(cat: Catalogue, input: FlagInput): Flag[] {
 
   for (const r of live) {
     const t = r.applies_to;
+    // EC-7: a past-history detail (EC-2); unanswered never fires.
+    if (t === "past_history" && pastDetail(input.history, r.when as Cond) === true)
+      flags.push(record(r, r.badge, "Past history", "pmh"));
     if (t === "medicines" && "adherence_any" in r.when) {
       const any = r.when.adherence_any as string[];
       for (const m of input.medicines)

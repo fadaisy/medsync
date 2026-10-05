@@ -1,0 +1,386 @@
+# Phase 5: the clerking amendments, merged (per profile, flag and suggestion)
+
+MS-NCD-DM-PACK-001, signed at GATE A on 2026-10-05 (`docs/ncd/diabetes/gate-a-signoff.json`). Applied **by merge** (EC-8, P0-17): lists appended and de-duplicated (canonical JSON), no live item removed, no scalar changed except where a signed decision names it. Ids reconciled to the repo (Phase 0 `clerking-ids.csv`): `sym.vomiting` → `sym.nausea_vomiting` (P0-24), the four test ids (P0-21), the Kussmaul option `kussmaul_deep_sighing`, `{finding: {item, is}}` → `{finding: id, is}`, `obs.ph_venous` → `obs.ph` with `specimen: venous_whole_blood`, `ex.nervous.reflexes` → `ex.nervous/motor`.
+
+Generated from the merge log; every line is one change. **added** = appended, **dropped** = not applied (with the reason), **changed** = a signed scalar change, **kept** = a pack difference deliberately not applied.
+
+| Catalogue | added | dropped | changed | kept |
+|---|---|---|---|---|
+| history | 9 | 1 | 0 | 0 |
+| exam | 42 | 2 | 3 | 1 |
+| exam token map | 2 | 1 | 0 | 0 |
+| diagnosis | 131 | 11 | 3 | 9 |
+| plan care | 1 | 0 | 0 | 0 |
+
+## History (`clerking-history-catalogue.v1.json`, 04-history)
+
+- `condition_details.diabetes`
+  - **added** 12 properties (type, year_diagnosed, treatment, insulin_from_start, complications_told, last_eye_check, last_foot_check, last_kidney_test, lows_12_months, admitted_for_sugar, tests_at_home, regular_clinic) and the composer — EC-2
+- `option_sets.last_check`
+  - **added** 5 options
+- `past_history.questions.gestational_diabetes_before`
+  - **dropped** proposed question — a restricted (sexual_reproductive_health, D-DM-30) question shown to women only: the history catalogue's past conditions have no sex gate, and hist.prior_gdm is seeded by Phase 6's migration 0092. Carried to the next clerking amendment
+- `medicines.quick_picks.gliclazide`
+  - **added** Gliclazide
+- `medicines.quick_picks.glimepiride`
+  - **added** Glimepiride
+- `medicines.quick_picks.dapagliflozin`
+  - **added** Dapagliflozin
+- `medicines.quick_picks.prednisolone`
+  - **added** Prednisolone
+- `FLAG-DM-LOW-NEEDED-HELP`
+  - **added** caution flag, applies_to past_history: {"equals":"needed_help","past_detail":"diabetes","property":"lows_12_months"} — EC-2, EC-7
+- `FLAG-DM-ADMITTED-RECENT`
+  - **added** caution flag, applies_to past_history: {"equals":"within_1_year","past_detail":"diabetes","property":"admitted_for_sugar"} — EC-2, EC-7
+- `ADA-SOC-2026`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+
+## Examination (`clerking-exam-catalogue.v1.json`, 07-exam)
+
+- `medicine_groups.sulfonylurea`
+  - **added** 4 name stems
+- `medicine_groups.insulin`
+  - **added** 1 name stems
+- `medicine_groups.metformin`
+  - **added** 1 name stems
+- `medicine_groups.sglt2_inhibitor`
+  - **added** 3 name stems
+- `medicine_groups.ras_blocker`
+  - **added** 9 name stems
+- `medicine_groups.statin`
+  - **added** 3 name stems
+- `medicine_groups.systemic_steroid`
+  - **added** 5 name stems (+ exclude_words for creams, inhalers and drops: 'systemic_steroid matches oral and injected routes only')
+- `vs.ketones`
+  - **added** panel: blood (mmol/L, plausible 0–12) and urine strip — EC-7
+- `vs.glucose`
+  - **changed** context + two_hours_after_glucose; HI and LO readings — EC-3, EC-6 (accepted at GATE A)
+- `REF-EX-GLU-KETONE-TEST`
+  - **added** reference entry 18 mmol/L
+- `REF-EX-KETONE-DKA`
+  - **added** reference entry 3.0 mmol/L
+- `REF-EX-KETONE-RISK`
+  - **added** reference entry 1.6 mmol/L
+- `REF-EX-KETONE-RAISED`
+  - **added** reference entry 0.6 mmol/L
+- `REF-EX-DR-RECALL`
+  - **added** reference entry {"dme_centre":1,"dme_non_centre":3,"mild_npdr":12,"moderate_npdr":6,"none":24,"pdr":1,"severe_npdr":3} months
+- `option_sets.snellen`
+  - **changed** expanded inline into visual acuity right and left — the examination catalogue has no option_sets; one copy per attribute, no engine change (EC-7 options_ref)
+- `ex.skin.injection_sites`
+  - **added** state item (No lumps / Lumps or thickening) with where; Skin › Inspection — concept sign.lipohypertrophy via the token map
+- `ex.eyes_ent_neck.visual_acuity`
+  - **added** measured item (right, left, pinhole; classifier acuity_band); Eyes, before fundoscopy — no acuity item existed (Phase 0: only cn_ii reduced_acuity)
+- `ex.eyes_ent_neck.fundoscopy.method`
+  - **added** attribute (3 options), recorded on a normal fundus too — EC-7: compound shown_when, any_state; the undilated composer rule
+- `ex.eyes_ent_neck.fundoscopy.view`
+  - **added** attribute (2 options), recorded on a normal fundus too — EC-7: compound shown_when, any_state; the undilated composer rule
+  - **kept** both 'view = inadequate' and the live 'seen = not_visualised' — the pack's reconcile note; dr_review reads both, so neither is lost (merging them is a scalar change nobody signed)
+- `ex.eyes_ent_neck.fundoscopy.dr_grade`
+  - **added** attribute (5 options), recorded on a normal fundus too — EC-7: compound shown_when, any_state; the undilated composer rule
+- `ex.eyes_ent_neck.fundoscopy.macula`
+  - **added** attribute (4 options), recorded on a normal fundus too — EC-7: compound shown_when, any_state; the undilated composer rule
+- `classifier acuity_band`
+  - **added** 1 rules: worse_than_6_12 — EC-7
+- `classifier ketone_band`
+  - **added** 3 rules: high, moderate, raised — EC-7
+- `classifier dr_review`
+  - **added** 7 rules: refer_within_1_month, refer_within_3_months, refer_cannot_assess, re_examine_3_months, refer_routine, re_examine_by_grade, incomplete — EC-7
+- `FLAG-EX-KETONES-HIGH-DM`
+  - **added** urgent flag: {"all":[{"any_of":["high"],"classifier":"ketone_band"},{"any":[{"gte_ref":"REF-EX-GLU-HIGH","vital":"vs.glucose"},{"answer":"yes","past_condition":"diabetes"},{"medicine_group":"insulin"},{"medicine_group":"sulfonylurea"},{"medicine_group":"metformin"},{"medicine_group":"sglt2_inhibitor"},{"attribute":"pattern","includes_any":["kussmaul_deep_sighing"],"item":"ex.respiratory.breathing_pattern"}]}]}
+- `FLAG-EX-KETONES-HIGH`
+  - **added** caution flag: {"any_of":["high"],"classifier":"ketone_band"}
+- `FLAG-EX-KETONES-RISK`
+  - **added** caution flag: {"any_of":["moderate"],"classifier":"ketone_band"}
+- `FLAG-EX-GLU-KETONE-TEST`
+  - **dropped** flag — P0-23: a subset of the live FLAG-EX-GLU-HIGH (11.1 or more: check ketones); a second badge for the same glucose
+- `FLAG-EX-INSULIN-STOPPED`
+  - **changed** badge 'Medicine stopped: insulin' → 'Stopped insulin' — the pack's own note: the badge must match FLAG-MED-ADHERENCE so the two merge (urgent wins)
+  - **added** urgent flag: {"all":[{"adherence_any":["stopped"],"medicine":"insulin"},{"any":[{"equals":"type_1","past_detail":"diabetes","property":"type"},{"equals":"yes","past_detail":"diabetes","property":"insulin_from_start"},{"gte_ref":"REF-EX-GLU-HIGH","vital":"vs.glucose"},{"answer":"yes","symptom":"sym.nausea_vomiting"},{"any_of":["high","moderate","raised"],"classifier":"ketone_band"}]}]}
+- `FLAG-EX-SGLT2-UNWELL`
+  - **added** urgent flag: {"all":[{"medicine_group":"sglt2_inhibitor"},{"any":[{"answer":"yes","symptom":"sym.nausea_vomiting"},{"answer":"yes","symptom":"sym.abdominal_pain"},{"attribute":"pattern","includes_any":["kussmaul_deep_sighing"],"item":"ex.respiratory.breathing_pattern"}]}]}
+- `FLAG-EX-DR-SIGHT`
+  - **added** caution flag: {"any_of":["refer_within_1_month","refer_within_3_months"],"classifier":"dr_review"}
+- `SUG-PMH-DIABETES`
+  - **added** suggestion → vs.glucose, vs.bp, vs.weight, vs.waist, ex.feet, ex.eyes_ent_neck.visual_acuity, ex.eyes_ent_neck.fundoscopy — targets[] → suggest[{target, label}] (live shape); labels from the catalogue
+- `SUG-DM-UNWELL`
+  - **added** suggestion → vs.glucose, vs.ketones, ex.general.hydration, ex.respiratory.breathing_pattern, ex.general.odour — targets[] → suggest[{target, label}] (live shape); labels from the catalogue
+- `SUG-DM-INSULIN-SITES`
+  - **added** suggestion → ex.skin.injection_sites — targets[] → suggest[{target, label}] (live shape); labels from the catalogue
+- `SUG-DM-POSTURAL`
+  - **dropped** suggestion — P0-23: duplicates the live SUG-SYNCOPE (dizziness → lying and standing BP for everyone)
+- `SUG-DM-NEURO`
+  - **added** suggestion → ex.feet.monofilament, ex.feet.vibration_128, ex.feet.ipswich_touch, ex.nervous/motor — targets[] → suggest[{target, label}] (live shape); labels from the catalogue
+- `SUG-GLU-KETONES`
+  - **added** suggestion → vs.ketones, ex.general.hydration, ex.respiratory.breathing_pattern, ex.general.odour — targets[] → suggest[{target, label}] (live shape); labels from the catalogue
+- `SUG-SGLT2-KETONES`
+  - **added** suggestion → vs.ketones, vs.glucose, ex.respiratory.breathing_pattern — targets[] → suggest[{target, label}] (live shape); labels from the catalogue
+- `ADA-EASD-CRISES-2024`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `TREND-UK-2020`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ICO-2017`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `EADSG-2019`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `WHO-PEN-TRAINING`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `WHO-HEARTS-D-2020`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ADA-SOC-2026`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ICDR-2003`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+
+## Examination token map (`exam-token-map.v1.json`)
+
+- `ex.skin.injection_sites`
+  - **added** → sign.lipohypertrophy — CFC v1.5 (Phase 6, migration 0092); charted once seeded
+- `ex.eyes_ent_neck.visual_acuity`
+  - **dropped** → obs.visual_acuity — no such CFC concept (Phase 0; not in v1.5): the acuity stays in the note
+- `values`
+  - **added** dr_grade → exam.retinopathy_grade; macula → exam.maculopathy (extended answers, not a second concept: P0-20); view → exam.retinal_view — EC-7 value_from_option; written only when the concept and the answer exist
+
+## Diagnosis (`clerking-diagnosis-catalogue.v1.json`, 09-diagnosis)
+
+- `REF-DX-GLU-FASTING-DM`
+  - **added** reference entry 7.0 mmol/L
+- `REF-DX-GLU-RANDOM-DM`
+  - **added** reference entry 11.1 mmol/L
+- `REF-DX-GLU-2H-DM`
+  - **added** reference entry 11.1 mmol/L
+- `REF-DX-HBA1C-DM`
+  - **added** reference entry 6.5 %
+- `REF-DX-GLU-FASTING-IFG`
+  - **added** reference entry 6.1 mmol/L
+- `REF-DX-GLU-2H-IGT`
+  - **added** reference entry 7.8 mmol/L
+- `REF-DX-GLU-HOSPITAL`
+  - **added** reference entry 7.8 mmol/L
+- `REF-DX-GLU-HHS`
+  - **dropped** reference entry — P0-23: collides with the live REF-DX-GLU-HHS (same value 33.3); the live entry stands
+- `REF-DX-KETONE-NORMAL`
+  - **dropped** reference entry — read only by the DKA 'against' atom dropped under P0-15; a second id for REF-EX-KETONE-RAISED's 0.6 (N1)
+- `REF-DX-BICARB-DKA`
+  - **added** reference entry 18 mmol/L
+- `REF-DX-PH-DKA`
+  - **added** reference entry 7.3 pH
+- `REF-DX-OSM-EFF-HHS`
+  - **added** reference entry 300 mOsm/kg
+- `REF-DX-GLU-2H-DM-CAP`
+  - **added** reference entry 12.2 mmol/L
+- `REF-DX-EGFR-REDUCED`
+  - **added** reference entry 60 mL/min/1.73m2
+- `REF-DX-UACR-A2`
+  - **added** reference entry 3 mg/mmol
+- `REF-DX-GDM-FASTING`
+  - **added** reference entry 5.1 mmol/L
+- `REF-DX-GDM-1H`
+  - **added** reference entry 10.0 mmol/L
+- `REF-DX-GDM-2H`
+  - **added** reference entry 8.5 mmol/L
+- `REF-DX-RESULT-AGE-GLUCOSE`
+  - **added** reference entry None days (needs-cso: withheld)
+- `REF-DX-ADULT-AGE`
+  - **added** reference entry 16 years (needs-cso: withheld)
+- `REF-DX-RESULT-AGE-KIDNEY`
+  - **added** reference entry 365 days
+- `REF-DX-DM-STATIN-AGE`
+  - **added** reference entry 40 years
+- `named_scale icdr_dr`
+  - **added** 5 options
+- `named_scale kdigo_albuminuria`
+  - **added** 3 options
+- `named_scale dka_severity`
+  - **added** 3 options
+- `REF-DX-TERMS.add`
+  - **kept** 8 terms — seeded by Phase 6 (data/emr/clinical-fact-concepts.v1.5.json termsAdd, migration 0092); the catalogue check reads them there
+- `dx.dm_type_unknown`
+  - **added** suggest_for: vs.glucose(random)>=REF-DX-GLU-RANDOM-DM {"context":"random","gte_ref":"REF-DX-GLU-RANDOM-DM","vital":"vs.glucose"}
+  - **added** suggest_for: vs.glucose(fasting)>=REF-DX-GLU-FASTING-DM {"context":"fasting","gte_ref":"REF-DX-GLU-FASTING-DM","vital":"vs.glucose"}
+  - **added** suggest_for: vs.glucose(2h after 75 g, meter)>=REF-DX-GLU-2H-DM-CAP {"context":"two_hours_after_glucose","gte_ref":"REF-DX-GLU-2H-DM-CAP","vital":"vs.glucose"}
+  - **added** suggest_for: res:obs.glucose(fasting)>=REF-DX-GLU-FASTING-DM {"gte_ref":"REF-DX-GLU-FASTING-DM","max_age_ref":"REF-DX-RESULT-AGE-GLUCOSE","min_trust":3,"qualifiers":{"fastingState":"fasting"},"result":"obs.glucose"}
+  - **added** suggest_for: res:obs.glucose(ogtt_2h)>=REF-DX-GLU-2H-DM {"gte_ref":"REF-DX-GLU-2H-DM","max_age_ref":"REF-DX-RESULT-AGE-GLUCOSE","min_trust":3,"qualifiers":{"challenge":"ogtt_75g_2h"},"result":"obs.glucose"}
+  - **added** suggest_for: res:obs.hba1c>=REF-DX-HBA1C-DM {"gte_ref":"REF-DX-HBA1C-DM","min_trust":3,"result":"obs.hba1c"}
+  - **added** suggest_for: sym:blurred_vision {"answer":"yes","symptom":"sym.blurred_vision"}
+  - **added** suggest_for: fh:diabetes {"answer":"yes","family_condition":"diabetes"}
+  - **added** suggest_for: med:glucose_lowering {"medicine_group":"glucose_lowering"}
+  - **added** ask: {"id":"vs.waist","kind":"vital"}
+  - **added** ask: {"id":"vs.ketones","kind":"panel"}
+  - **added** ask: {"id":"ex.feet.monofilament","kind":"exam_item"}
+  - **added** tests_to_decide: test.ogtt_75g
+  - **added** related: dx.hyperglycaemia_unconfirmed
+  - **added** related: dx.intermediate_hyperglycaemia
+  - **added** sources: WHO-HEARTS-D-2020
+  - **added** sources: WHO-HBA1C-2011
+  - **added** sources: ADA-SOC-2026
+  - **kept** live scalars onset, problem_list, note — P0-17: the pack differs, but no profile carries _changes
+- `dx.dm_type2`
+  - **added** suggest_for: pmh:diabetes#type=type_2 {"equals":"type_2","past_detail":"diabetes","property":"type"}
+  - **dropped** suggest_for: med:metformin {"medicine_group":"metformin"} — semantic duplicate (Phase 0)
+  - **added** suggest_against: cls:ketone_band {"any_of":["high","moderate"],"classifier":"ketone_band"}
+  - **added** ask: {"id":"vs.bp","kind":"vital"}
+  - **added** ask: {"id":"vs.ketones","kind":"panel"}
+  - **added** ask: {"id":"ex.eyes_ent_neck.fundoscopy","kind":"exam_item"}
+  - **added** ask: {"id":"tobacco","kind":"social"}
+  - **added** tests_to_decide: test.urinalysis_dipstick
+  - **added** related: dx.dm_type1
+  - **added** related: dx.ckd
+  - **added** related: dx.diabetic_kidney_disease
+  - **added** related: dx.diabetic_retinopathy
+  - **added** related: dx.diabetic_neuropathy
+  - **added** sources: WHO-HEARTS-D-2020
+  - **added** sources: ADA-SOC-2026
+  - **added** sources: ADA-EASD-T1-2021
+  - **kept** live scalars severity, note — P0-17: the pack differs, but no profile carries _changes
+- `dx.dm_type1`
+  - **added** suggest_for: cls:ketone_band {"any_of":["high","moderate"],"classifier":"ketone_band"}
+  - **added** suggest_for: pmh:diabetes#type=type_1 {"equals":"type_1","past_detail":"diabetes","property":"type"}
+  - **added** suggest_for: pmh:diabetes#insulin_from_start {"equals":"yes","past_detail":"diabetes","property":"insulin_from_start"}
+  - **added** ask: {"id":"vs.ketones","kind":"panel"}
+  - **added** ask: {"id":"vs.weight","kind":"vital"}
+  - **added** ask: {"id":"diabetes.insulin_from_start","kind":"past_detail"}
+  - **added** tests_to_decide: test.gad_antibodies
+  - **added** tests_to_decide: test.c_peptide
+  - **added** related: dx.dm_type2
+  - **added** sources: WHO-HEARTS-D-2020
+  - **added** sources: ADA-EASD-T1-2021
+  - **added** sources: ADA-SOC-2026
+  - **changed** must_not_miss false → true, with the reason 'Untreated it becomes ketoacidosis.' — D-DM-35, P0-16 (signed)
+  - **dropped** suggest_against: cls:bmi_who=obese_1|obese_2|obese_3 {"any_of":["obese_1","obese_2","obese_3"],"classifier":"bmi_who"} — P0-16: removed (no 'against' atom on a must-not-miss diagnosis without a signature)
+  - **kept** live scalars onset, note — P0-17: the pack differs, but no profile carries _changes
+- `dx.dka`
+  - **added** suggest_for: cls:ketone_band=high {"any_of":["high"],"classifier":"ketone_band"}
+  - **dropped** suggest_for: vs.glucose>=REF-DX-GLU-RANDOM-DM {"gte_ref":"REF-DX-GLU-RANDOM-DM","vital":"vs.glucose"} — semantic duplicate (Phase 0)
+  - **added** suggest_for: sym:vomiting {"answer":"yes","symptom":"sym.nausea_vomiting"}
+  - **added** suggest_for: sym:abdominal_pain {"answer":"yes","symptom":"sym.abdominal_pain"}
+  - **added** suggest_for: med:sglt2_inhibitor {"medicine_group":"sglt2_inhibitor"}
+  - **added** suggest_for: res:obs.bicarbonate<REF-DX-BICARB-DKA {"lt_ref":"REF-DX-BICARB-DKA","min_trust":3,"result":"obs.bicarbonate"}
+  - **added** suggest_for: res:obs.ph_venous<REF-DX-PH-DKA {"lt_ref":"REF-DX-PH-DKA","min_trust":3,"qualifiers":{"specimen":"venous_whole_blood"},"result":"obs.ph"}
+  - **dropped** suggest_against: vs.ketones.blood<REF-DX-KETONE-NORMAL {"field":"blood","lt_ref":"REF-DX-KETONE-NORMAL","panel":"vs.ketones"} — P0-15: no signature-worthy source that low ketones exclude DKA in context
+  - **added** ask: {"id":"vs.ketones","kind":"panel"}
+  - **added** tests_to_decide: test.glucose_random
+  - **added** sources: ADA-EASD-CRISES-2024
+  - **added** sources: WHO-HEARTS-D-2020
+  - **kept** live scalars kind, problem_list, severity, note — P0-17: the pack differs, but no profile carries _changes
+- `dx.hhs`
+  - **added** suggest_for: ex.general.hydration=dehydrated {"finding":"ex.general.hydration","is":"positive"}
+  - **added** suggest_for: res:derived.osmolality_effective>REF-DX-OSM-EFF-HHS {"gt_ref":"REF-DX-OSM-EFF-HHS","min_trust":3,"result":"derived.osmolality_effective"}
+  - **added** ask: {"id":"vs.ketones","kind":"panel"}
+  - **added** tests_to_decide: test.glucose_random
+  - **added** sources: ADA-EASD-CRISES-2024
+  - **kept** live scalars kind, onset, problem_list, note — P0-17: the pack differs, but no profile carries _changes
+- `dx.hypoglycaemia_dm`
+  - **dropped** suggest_for: cls:hypoglycaemia_level {"any_of":["level_1","level_2"],"classifier":"hypoglycaemia_level"} — semantic duplicate (Phase 0)
+  - **added** suggest_for: med:glucose_lowering {"medicine_group":"glucose_lowering"}
+  - **added** suggest_for: pmh:diabetes#lows {"any_of":["self_treated","needed_help"],"past_detail":"diabetes","property":"lows_12_months"}
+  - **added** ask: {"id":"diabetes.lows_12_months","kind":"past_detail"}
+  - **added** tests_to_decide: test.creatinine
+  - **added** related: dx.hypoglycaemia_no_dm
+  - **added** related: dx.sepsis
+  - **added** related: dx.malaria_severe
+  - **added** sources: ADA-SOC-2026
+  - **added** sources: WHO-HEARTS-D-2020
+  - **kept** live scalars kind, onset, problem_list, severity, note — P0-17: the pack differs, but no profile carries _changes
+- `dx.intermediate_hyperglycaemia`
+  - **added** profile: 2 for, 0 against, 3 ask, 3 tests
+- `dx.hyperglycaemia_unconfirmed`
+  - **changed** glucose 'above 7.8': gte_ref → gt_ref — D-DM-25 (signed: add gt_ref to the vital atom)
+  - **added** profile: 2 for, 0 against, 4 ask, 2 tests
+- `dx.steroid_induced_hyperglycaemia`
+  - **added** profile: 2 for, 0 against, 2 ask, 1 tests
+- `dx.gestational_diabetes`
+  - **added** profile: 3 for, 0 against, 2 ask, 1 tests; requires {"pregnancy":"current"}
+- `dx.diabetes_in_pregnancy`
+  - **added** profile: 2 for, 0 against, 2 ask, 3 tests; requires {"pregnancy":"current"}
+  - **kept** must_not_miss true, profile withheld in dx-signoff — the pack gives no must_not_miss_reason (the schema needs one) and no decision supplies it
+- `dx.diabetic_retinopathy`
+  - **added** profile: 4 for, 0 against, 3 ask, 2 tests — category reconciled
+  - **dropped** related: dx.cataract — no such profile or term (Phase 0 Q8)
+- `dx.diabetic_kidney_disease`
+  - **added** profile: 4 for, 0 against, 4 ask, 4 tests
+- `dx.diabetic_neuropathy`
+  - **added** profile: 6 for, 0 against, 4 ask, 3 tests — category reconciled
+- `dx.ckd`
+  - **added** suggest_for: res:derived.egfr<REF-DX-EGFR-REDUCED {"lt_ref":"REF-DX-EGFR-REDUCED","max_age_ref":"REF-DX-RESULT-AGE-KIDNEY","min_trust":3,"result":"derived.egfr"}
+  - **added** suggest_for: res:obs.uacr>=REF-DX-UACR-A2 {"gte_ref":"REF-DX-UACR-A2","max_age_ref":"REF-DX-RESULT-AGE-KIDNEY","min_trust":3,"result":"obs.uacr"}
+  - **added** related: dx.diabetic_kidney_disease
+  - **kept** live scalars note — P0-17: the pack differs, but no profile carries _changes
+- `DDX-KETONES`
+  - **added** differential rule → dx.dka, dx.dm_type1, dx.dm_type_unknown: {"any_of":["high","moderate"],"classifier":"ketone_band"}
+- `DDX-GLUCOSE-VERY-HIGH`
+  - **dropped** differential rule — P0-23: subsumed by the live DDX-GLUCOSE-HIGH (11.1 or more → dka, hhs, … with dka and hhs first)
+- `DDX-SGLT2-UNWELL`
+  - **added** differential rule → dx.dka: {"all":[{"medicine_group":"sglt2_inhibitor"},{"any":[{"answer":"yes","symptom":"sym.nausea_vomiting"},{"answer":"yes","symptom":"sym.abdominal_pain"}]}]}
+- `DDX-RESULT-HBA1C`
+  - **added** differential rule → dx.dm_type_unknown, dx.dm_type2, dx.dm_type1: {"gte_ref":"REF-DX-HBA1C-DM","min_trust":3,"result":"obs.hba1c"}
+- `DDX-RESULT-GLUCOSE-FASTING`
+  - **added** differential rule → dx.dm_type_unknown, dx.dm_type2, dx.dm_type1: {"gte_ref":"REF-DX-GLU-FASTING-DM","max_age_ref":"REF-DX-RESULT-AGE-GLUCOSE","min_trust":3,"qualifiers":{"fastingState":"fasting"},"result":"obs.glucose"}
+- `DDX-RESULT-GLUCOSE-IFG`
+  - **added** differential rule → dx.intermediate_hyperglycaemia: {"gte_ref":"REF-DX-GLU-FASTING-IFG","lt_ref":"REF-DX-GLU-FASTING-DM","max_age_ref":"REF-DX-RESULT-AGE-GLUCOSE","min_trust":3,"qualifiers":{"fastingState":"fasting"},"result":"obs.glucose"}
+- `DDX-RESULT-EGFR`
+  - **added** differential rule → dx.aki, dx.ckd, dx.diabetic_kidney_disease: {"lt_ref":"REF-DX-EGFR-REDUCED","max_age_ref":"REF-DX-RESULT-AGE-KIDNEY","min_trust":3,"result":"derived.egfr"}
+- `DDX-RESULT-UACR`
+  - **added** differential rule → dx.diabetic_kidney_disease, dx.ckd, dx.hypertension: {"gte_ref":"REF-DX-UACR-A2","max_age_ref":"REF-DX-RESULT-AGE-KIDNEY","min_trust":3,"result":"obs.uacr"}
+- `DDX-RETINOPATHY`
+  - **added** differential rule → dx.diabetic_retinopathy, dx.dm_type_unknown, dx.hypertension: {"attribute":"seen","includes_any":["diabetic_retinopathy"],"item":"ex.eyes_ent_neck.fundoscopy"}
+- `DDX-GLUCOSE-IN-HOSPITAL`
+  - **changed** glucose 'above 7.8': gte_ref → gt_ref — D-DM-25 (signed)
+  - **added** differential rule → dx.hyperglycaemia_unconfirmed, dx.dm_type_unknown: {"all":[{"setting":["emergency","inpatient"]},{"gt_ref":"REF-DX-GLU-HOSPITAL","vital":"vs.glucose"}]}
+- `DDX-STEROID-GLUCOSE`
+  - **added** differential rule → dx.steroid_induced_hyperglycaemia, dx.dm_type_unknown: {"all":[{"medicine_group":"systemic_steroid"},{"gte_ref":"REF-DX-GLU-RANDOM-DM","vital":"vs.glucose"}]}
+- `DDX-PREGNANCY-GLUCOSE`
+  - **added** differential rule → dx.diabetes_in_pregnancy, dx.gestational_diabetes: {"all":[{"pregnancy":"current"},{"any":[{"context":"fasting","gte_ref":"REF-DX-GDM-FASTING","vital":"vs.glucose"},{"gte_ref":"REF-DX-GLU-RANDOM-DM","vital":"vs.glucose"}]}]}
+- `DDX-NUMBNESS`
+  - **added** suggest: dx.diabetic_neuropathy
+- `DDX-VISION`
+  - **added** suggest: dx.diabetic_retinopathy
+- `DDX-GLUCOSE-HIGH`
+  - **dropped** suggest + dx.steroid_induced_hyperglycaemia — P0-19: every glucose of 11.1 or more, no steroid condition; DDX-STEROID-GLUCOSE covers it
+  - **added** suggest: dx.hyperglycaemia_unconfirmed
+- `DDX-POLYURIA`
+  - **dropped** source ADA-SOC-2025 → WHO-HEARTS-D-2020 — P0-17: a scalar change with no _changes
+- `WHO-HEARTS-D-2020`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `WHO-HBA1C-2011`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ADA-SOC-2026`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ADA-EASD-T1-2021`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ADA-EASD-CRISES-2024`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `KDIGO-DM-CKD-2022`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ICDR-2003`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ICO-2017`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `UG-EYE-2016`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `WHO-GDM-2013`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `WHO-DIP-2025`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `ES-INPATIENT-2012`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `TORONTO-2010`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+- `TREND-UK-2020`
+  - **added** source — sourcesToAdd (00-engine-changes.json); unverified
+
+## Plan care (`data/clerking/plan-care.v1.json`, 10-plan-care)
+
+- `MS-EMR-PLAN-CARE-001`
+  - **added** 44 items, status draft (unsigned: the Plan shows none) — test ids P0-21
+
+## Also applied in the merge (signed decisions)
+
+- `dx.hyperglycaemia_unconfirmed` and `DDX-GLUCOSE-IN-HOSPITAL`: 'above 7.8 in hospital' written with `gt_ref` (D-DM-25: add gt_ref to the vital atom; the atom already supported it).
+- `dx.diabetes_in_pregnancy`: must-not-miss as the pack writes it, with a placeholder reason ('Reason awaiting the CSO…'), and **withheld** in `dx-signoff.v1.json` until the CSO supplies one: the schema requires a reason and no decision gives it.
+- `REF-DX-RESULT-AGE-GLUCOSE` (value null) and `REF-DX-ADULT-AGE` (needs-cso) are **withheld**: every atom that reads them is dark (reported by the catalogue check).
+- New categories reconciled to live ids: `eye` → `ent_eye` (dx.diabetic_retinopathy), `neurological` → `neurology` (dx.diabetic_neuropathy).
+- Classifier result words and tones (`text`, `tone` on each rule of ketone_band, acuity_band, dr_review) are display only; the rules are the pack's.
+- Suggestion labels (`suggest[{target, label}]`, the live shape) come from the catalogue's own item, vital and panel labels; 'Ankle reflexes' for `ex.nervous/motor`.
+- Fundoscopy `method`, `view`, `dr_grade`, `macula` carry `any_state: true` (recorded on a normal fundus; recording them never makes it abnormal). `dr_grade` and `macula` use the compound `shown_when` the pack wrote.
+- The history catalogue's version stays **1.0.0-draft**: the signed legacy conversion table is pinned to it (`lib/clerking/legacy.ts`). Examination and diagnosis go to **1.1.0-draft**.

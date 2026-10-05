@@ -37,7 +37,14 @@ export const HistorySchema = z.object({
   past: z.object({
     conditions: z.record(
       id,
-      z.object({ answer: yn, since: id.optional(), onProblemList: z.boolean().optional() }),
+      z.object({
+        answer: yn,
+        since: id.optional(),
+        onProblemList: z.boolean().optional(),
+        details: z
+          .record(id, z.union([id, z.array(id).max(40), z.number().int().min(1900).max(2100)]))
+          .optional(),
+      }),
     ),
     operations: z
       .union([
@@ -192,7 +199,7 @@ export const ImpressionSchema = z.object({
   meta: z.record(
     uuid,
     z.object({
-      onset: z.enum(["acute", "chronic", "acute_on_chronic", "recurrent"]).optional(),
+      onset: z.enum(["acute", "subacute", "chronic", "acute_on_chronic", "recurrent"]).optional(),
       severity: text(120).optional(),
       reasoning: text(10_000).optional(),
     }),

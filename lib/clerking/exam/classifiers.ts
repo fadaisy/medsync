@@ -628,16 +628,36 @@ export function hypoglycaemia(x: ExamContext): ClassifierResult {
     rules: { result: string; when: Record<string, unknown> }[];
   };
   const label = labelOf(x, id);
-  const g = x.vitals.glucose;
+  // A meter's LO is below every limit (EC-6); HI is above them.
+  const g = x.vitals.glucose ?? x.vitals.glucoseReads ?? null;
   if (g === null) return r(id, label, { status: "none" });
   const hit = def.rules.find((q) => evalCond(q.when, x));
+  const reading = typeof g === "number" ? `glucose ${g} mmol/L` : `glucose ${g} on the meter`;
   return r(id, label, {
     status: hit ? "result" : "none",
     result: hit?.result ?? null,
     text: hit ? (hit.result === "level_2" ? "Level 2 hypoglycaemia" : "Level 1 hypoglycaemia") : "",
-    reason: `glucose ${g} mmol/L`,
+    reason: reading,
     tone: hit?.result === "level_2" ? "strong" : hit ? "caution" : "ok",
-    inputs: [`glucose ${g} mmol/L`],
+    inputs: [reading],
+  });
+}
+
+/** A classifier that is its catalogue rules, first match wins (EC-7: ketone_band, acuity_band,
+ *  dr_review). Each rule carries its own words and tone; a rule named "incomplete" says so. */
+export function ruleClassifier(x: ExamContext, id: string): ClassifierResult {
+  const def = x.cat.data.classifiers[id] as
+    | { rules?: { result: string; when: Record<string, unknown>; text?: string; tone?: Tone }[] }
+    | undefined;
+  const label = labelOf(x, id);
+  const hit = def?.rules?.find((q) => evalCond(q.when, x));
+  if (!hit) return r(id, label, { status: "none" });
+  return r(id, label, {
+    status: hit.result === "incomplete" ? "incomplete" : "result",
+    result: hit.result,
+    text: hit.text ?? hit.result,
+    reason: label,
+    tone: hit.tone ?? "neutral",
   });
 }
 
@@ -973,6 +993,7 @@ export function classifyAll(x: ExamContext, signoff: ExamSignoff): Map<string, C
   const pain = painSeverity(x);
   const agitation = agitationSeverity(x);
   const infection = footInfection(x);
+  const acuity = ruleClassifier(x, "acuity_band");
   const out: ClassifierResult[] = [
     dehydration(x),
     muac(x),
@@ -989,6 +1010,10 @@ export function classifyAll(x: ExamContext, signoff: ExamSignoff): Map<string, C
     asthma(x),
     crb65Result(x),
     hypoglycaemia(x),
+    ruleClassifier(x, "ketone_band"),
+    acuity,
+    // dr_review reads the acuity result.
+    ruleClassifier({ ...x, results: new Map([[acuity.id, acuity]]) }, "dr_review"),
     rosier(x),
     iwgdfRisk(x),
     infection,

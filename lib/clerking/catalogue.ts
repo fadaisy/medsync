@@ -29,6 +29,15 @@ const Prop = z.object({
 });
 type RawProp = z.infer<typeof Prop>;
 
+/** Past-history details per condition (EC-2): shown on a yes; a property may itself be shown only
+ *  when another answer includes an option. */
+const DetailProp = Prop.extend({
+  shown_when: z.object({ property: z.string(), includes_any: z.array(z.string()) }).optional(),
+});
+const ConditionDetails = z
+  .object({ label: z.string(), properties: z.array(DetailProp), composer: z.string() })
+  .passthrough();
+
 const RedFlag = z.object({
   id: z.string(),
   label: z.string(),
@@ -136,6 +145,7 @@ const CatalogueSchema = z
       .object({
         conditions: Labelled,
         since_options_ref: z.string(),
+        condition_details: z.record(z.string(), ConditionDetails).optional(),
         transfusions: z
           .object({
             fields: z.array(
@@ -179,6 +189,16 @@ export interface Property extends Omit<RawProp, "options" | "options_ref"> {
   options: Option[];
 }
 
+export interface DetailProperty extends Property {
+  shown_when?: { property: string; includes_any: string[] };
+}
+
+export interface ConditionDetailsDef {
+  label: string;
+  properties: DetailProperty[];
+  composer: string;
+}
+
 export interface Catalogue {
   data: CatalogueData;
   version: string;
@@ -187,6 +207,8 @@ export interface Catalogue {
   /** Duration (when the symptom has one) comes first and is not in this list. */
   properties: (id: string) => Property[];
   refValue: (id: string) => number | string[] | undefined;
+  /** A past condition's detail properties, options resolved (EC-2). */
+  details: (conditionId: string) => ConditionDetailsDef | undefined;
 }
 
 /** The complaint's "With" row: its associated symptoms, whose ids are symptom ids (linked answers). */
@@ -244,6 +266,15 @@ export function parseCatalogue(json: unknown): Catalogue {
     symptoms: data.symptoms,
     properties,
     refValue: (id) => data.reference_entries[id]?.value,
+    details: (id) => {
+      const d = data.past_history.condition_details?.[id];
+      if (!d) return undefined;
+      return {
+        label: d.label,
+        composer: d.composer,
+        properties: d.properties.map((p) => ({ ...resolve(p), shown_when: p.shown_when })),
+      };
+    },
   };
 }
 

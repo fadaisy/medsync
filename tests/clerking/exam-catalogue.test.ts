@@ -18,22 +18,25 @@ const handoff = JSON.parse(
 );
 
 describe("the examination catalogue", () => {
-  it("is the handed-over catalogue plus the signed GATE A edits, pinned by hash", () => {
-    expect(JSON.parse(runtime.toString("utf8"))).toEqual(applyGateAEdits(handoff));
+  // The handed-over catalogue plus the GATE A edits, and the diabetes pack's merge: that it only
+  // added is tested in ncd-dm-pack.test.ts.
+  it("is pinned by hash, at 1.1.0-draft", () => {
     expect(createHash("sha256").update(runtime).digest("hex")).toBe(signoff.catalogueSha256);
-    expect(ecat.version).toBe("1.0.1-draft");
+    expect(ecat.version).toBe("1.1.0-draft");
+    expect(signoff.catalogueVersion).toBe(ecat.version);
   });
 
   it("has the §6 contents (after GATE A)", () => {
     const answerable = ecat.items.filter((i) => i.response.type !== "link");
     expect(ecat.systems).toHaveLength(10);
     expect(ecat.systems.reduce((n, s) => n + s.parts.length, 0)).toBe(41);
-    expect(answerable).toHaveLength(140);
+    // + the diabetes pack (Phase 5): 2 items, 3 classifiers, 6 flags, 6 suggestions.
+    expect(answerable).toHaveLength(142);
     expect(ecat.items.length - answerable.length).toBe(9);
     expect(Object.keys(ecat.data.scales)).toHaveLength(17);
-    expect(Object.keys(ecat.data.classifiers)).toHaveLength(24);
-    expect(ecat.data.flag_rules).toHaveLength(87); // 84 + SC1 split + SC2's two caution rules
-    expect(ecat.data.suggestion_rules.rules).toHaveLength(47);
+    expect(Object.keys(ecat.data.classifiers)).toHaveLength(27);
+    expect(ecat.data.flag_rules).toHaveLength(93); // 84 + SC1 split + SC2's two caution rules + 6
+    expect(ecat.data.suggestion_rules.rules).toHaveLength(53);
     expect(ecat.data.shared_facts).toHaveLength(13);
     expect(ecat.data.not_examined.reasons).toHaveLength(8);
     expect(ecat.mirrors).toHaveLength(22); // 10 handed over + 12 from TM1
@@ -125,7 +128,7 @@ describe("the examination catalogue", () => {
     expect(bmiClass({ ...toCtx(b), cat }).result).toBe("obese_3");
   });
 
-  it("every answerable item writes something when positive (140 of 140 compose by type)", () => {
+  it("every answerable item writes something when positive (142 of 142 compose by type)", () => {
     for (const it of ecat.items) {
       if (it.response.type === "link") continue;
       const s = scenario({
@@ -135,9 +138,12 @@ describe("the examination catalogue", () => {
         s.exam = A.setChoice(ecat, s.exam, it.id, it.response.options.find((o) => !o.expected)!.id);
       else if (it.response.type === "classified")
         s.exam = A.setAttr(ecat, s.exam, it.id, "signs_present", "sunken_eyes");
-      else if (it.response.type === "measured")
+      else if (it.response.type === "measured" && ecat.attribute(it.id, "signs"))
         s.exam = A.setAttr(ecat, s.exam, it.id, "signs", "muscle_wasting");
-      else s.exam = A.setState(ecat, s.exam, it.id, "positive");
+      else if (it.response.type === "measured") {
+        const a = it.attributes![0]!;
+        s.exam = A.setAttr(ecat, s.exam, it.id, a.id, a.options![0]!.id);
+      } else s.exam = A.setState(ecat, s.exam, it.id, "positive");
       const x = toCtx(s);
       const results = classifyAll(x, { ...ALL_SIGNED, withheld: [] });
       const text = examText(composeExam({ x, results, saved: null, audience: "clinician" }));
