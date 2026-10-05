@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.1-draft",
+  "version": "0.5.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -18626,11 +18626,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-23R",
-   "display": "Type 1 or on insulin, vomiting or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
+   "display": "Type 1 or on insulin, vomiting, abdominal pain or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick_review",
-    "label": "Type 1 recorded, or on insulin; vomiting or acutely unwell",
+    "label": "Type 1 recorded, or on insulin; vomiting, abdominal pain or acutely unwell",
     "any": [
      {
       "feature": "vomiting",
@@ -18638,6 +18638,10 @@
      },
      {
       "feature": "acute_illness_current",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
       "op": "present"
      }
     ],
@@ -18713,7 +18717,8 @@
     },
     "review": [
      "V04",
-     "W01"
+     "W01",
+     "W14c"
     ],
     "notWhen": [
      {
@@ -18767,6 +18772,7 @@
       }
      }
     ],
+    "signed": "W14(c) CSO 2026-10-05: abdominal pain added",
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -39306,2287 +39312,2287 @@
   "REF-DM-DX-FPG": {
    "value": 7.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-OGTT2H": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-OGTT2H-CAP": {
    "value": 12.2,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-RANDOM": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-HBA1C": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-OGTT1H-IDF": {
    "value": 11.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-FAST-MIN-H": {
    "value": 8,
    "unit": "h",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-REPEAT-WHO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-CONFIRM-ADA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-DISCORDANT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-NEAR-THRESHOLD-MIN": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-NEAR-THRESHOLD-MAX": {
    "value": 6,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-POC-WHO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-HIVGL-FBG": {
    "value": 7,
    "unit": "mmol/L",
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-DX-HIVGL-RBG": {
    "value": 11,
    "unit": "mmol/L",
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-DX-UCG-CRITERIA": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-DX-UG-2026": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-IH-IFG-WHO": {
    "value": 6.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-IFG-ADA": {
    "value": 5.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-IGT": {
    "value": 7.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-HBA1C-ADA": {
    "value": 5.7,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-OGTT1H-IDF": {
    "value": 8.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-OGTT-NEXT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-RETEST": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-GDM-FPG": {
    "value": 5.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-GDM-1H": {
    "value": 10.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-GDM-2H": {
    "value": 8.5,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-DIP": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-WINDOW-START": {
    "value": 24,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-WINDOW-END": {
    "value": 28,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-POSTPARTUM-FROM": {
    "value": 6,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-POSTPARTUM-TO": {
    "value": 12,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-CARE-WHO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-REVISION": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UCG": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-SUS-AGE-WHO": {
    "value": 40,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-BMI": {
    "value": 25,
    "unit": "kg/m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-AGE-ADA": {
    "value": 35,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-RESCREEN": {
    "value": 36,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-GDM-RETEST-MAX": {
    "value": 36,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-HOSP-GLU": {
    "value": 7.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-HOSP-HBA1C-LOOKBACK": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-STRESS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-HIV-ADA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-HIV-UG": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-SUS-TB": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-TB-RECHECK": {
    "value": 1,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-STEROID": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-STEROID-CBG": {
    "value": 12.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-STEROID-HBA1C-DELAY": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-ANTIPSYCHOTIC": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-PANCREATITIS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-DRUGS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-RISK-FACTORS-ADA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-WAIST-M": {
    "value": 94,
    "unit": "cm",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-WAIST-F": {
    "value": 80,
    "unit": "cm",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-NO-SCORE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-ONE-TEST-WEAK": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-PAED-4T": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-PAED-SAMEDAY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-PAED-MIMIC": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-USE-GLUCOSE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-RBC": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-IRON": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-HIV": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-G6PD": {
    "value": 0.81,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-VARIANT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-HBSS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-CKD-EGFR": {
    "value": 30,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-HBA1C-DRUGS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-GLYCOLYSIS": {
    "value": 0.6,
    "unit": "mmol/L per h",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-FPG-CV": {
    "value": 5.7,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-METER": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-CAP-POSTLOAD": {
    "value": 1.7,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-OGTT-PREP": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-URINE-KETONE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-EGFR-ARK": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-EGFR-EQUATION": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-EGFR-STEADY": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-VAL-UACR-TRANSIENT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-OPHTHALMOSCOPY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-VAL-ABI-HIGH": {
    "value": 1.3,
    "unit": "ratio",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T1-AGE": {
    "value": 35,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T1-BMI": {
    "value": 25,
    "unit": "kg/m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T1-GLU": {
    "value": 20,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-UG-LEAN": {
    "value": 32,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-UG-AB-NEG": {
    "value": 65.1,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-AB-ORDER": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-HIGH": {
    "value": 600,
    "unit": "pmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-LOW": {
    "value": 200,
    "unit": "pmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-VLOW": {
    "value": 80,
    "unit": "pmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-TIMING": {
    "value": 3,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-UNCLASSIFIED": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-KPD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-SLOW-IMMUNE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T1-MISSED": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-MODY-HBA1C": {
    "value": 7.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-MODY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-PANC": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-FCPD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T5": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T5-BMI": {
    "value": 18.5,
    "unit": "kg/m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T5-AGE": {
    "value": 30,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-DTG": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-CLS-REMISSION-HBA1C": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-REMISSION-MONTHS": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-T1-SAMEDAY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-HBA1C-TARGET": {
    "value": 7.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-HBA1C-RELAXED": {
    "value": 8.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-HBA1C-TIGHT": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-FPG-SURROGATE": {
    "value": 7.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-PPG-SURROGATE": {
    "value": 9.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-PRE-LOW-ADA": {
    "value": 4.4,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-PRE-HIGH-ADA": {
    "value": 7.2,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-PPG-ADA": {
    "value": 10.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-OLDER-HEALTHY": {
    "value": 7.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-OLDER-COMPLEX": {
    "value": 8.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-OLDER-POOR": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-TB": {
    "value": 8.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-CKD-LOW": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-CKD-HIGH": {
    "value": 8.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-WINDOW-AT-TARGET": {
    "value": 6,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-WINDOW-ABOVE": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-INSULIN-FPG-LOW": {
    "value": 4.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-INSULIN-REFER-HBA1C": {
    "value": 7.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-SEVERE-HBA1C": {
    "value": 10.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-SEVERE-GLU": {
    "value": 16.7,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-RAPID-FALL": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-UCG": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-HYPO-L1": {
    "value": 3.9,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-L2": {
    "value": 3.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-L3": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-WHO-IV": {
    "value": 2.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-MALARIA": {
    "value": 2.2,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-IAH": {
    "value": 4,
    "unit": "score",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-REVIEW": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-DEINTENSIFY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-RISK": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HYPO-RISK-AGE": {
    "value": 75,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-GLU": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-BOHB": {
    "value": 3.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-UKET": {
    "value": "2plus",
    "unit": "strip",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-PH": {
    "value": 7.3,
    "unit": "pH",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-HCO3": {
    "value": 15,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-SEV-PH": {
    "value": 7.0,
    "unit": "pH",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-MOD-PH": {
    "value": 7.25,
    "unit": "pH",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-SEV-HCO3": {
    "value": 10,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-MOD-HCO3": {
    "value": 15,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-DKA-SEV-BOHB": {
    "value": 6.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-EDKA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-HHS-GLU": {
    "value": 30.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-HHS-OSM-EFF": {
    "value": 300,
    "unit": "mOsm/kg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-HHS-OSM-TOTAL": {
    "value": 320,
    "unit": "mOsm/kg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-HHS-HCO3": {
    "value": 15,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-MIXED": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-KETONE-TEST-GLU": {
    "value": 18,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-FPG-SEVERE-SYMPT": {
    "value": 15,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-KETONE-LOW": {
    "value": 0.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-KETONE-RISK": {
    "value": 1.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-PAED-DKA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-PAED-CEREBRAL": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-PRECIPITANTS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-SICKDAY-INSULIN": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-REFER-ALL": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-INFECTIONS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-BP-REFER-SBP": {
    "value": 200,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-BP-REFER-DBP": {
    "value": 110,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-PERSIST": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-GFR-G2": {
    "value": 90,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-GFR-G3A": {
    "value": 60,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-GFR-G3B": {
    "value": 45,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-GFR-G4": {
    "value": 30,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-GFR-G5": {
    "value": 15,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-ACR-A2": {
    "value": 3,
    "unit": "mg/mmol",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-ACR-A3": {
    "value": 30,
    "unit": "mg/mmol",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-UACR-CONFIRM": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-SCREEN-INTERVAL": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-SCREEN-START-T1": {
    "value": 5,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-MONITOR-GRID": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-DIPSTICK": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-STRIP-MAP": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-KID-REFER-EGFR": {
    "value": 30,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-REFER-ACR": {
    "value": 70,
    "unit": "mg/mmol",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-REFER-FALL": {
    "value": 20,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-NDKD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-RASI-CHECK": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-RASI-CREAT-RISE": {
    "value": 30,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-K-ACTION": {
    "value": 5.5,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-K-MODERATE": {
    "value": 6.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-K-SEVERE": {
    "value": 6.5,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-AKI": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-ROUTINE-REFER-EGFR": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-INTERVAL-WHO": {
    "value": 24,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-INTERVAL-ADA": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-START-T1": {
    "value": 5,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-ICDR": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-DME": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-NONE-MILD-MAX": {
    "value": 24,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-MODERATE-MAX": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-SEVERE": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-PDR": {
    "value": 1,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-DME-CI": {
    "value": 1,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-CONTROLLED-ONLY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-REFER-VA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-REFER-NOVIEW": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-REFER-ADA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-UG-2016": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-UCG": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-EYE-PREG": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-METHOD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-IWGDF": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INT-0": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INT-1": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INT-2": {
    "value": 6,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INT-3": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-MONO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-IPSWICH": {
    "value": 2,
    "unit": "sites",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-LOPS-RULE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-EVERY-VISIT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INF-MIN-CM": {
    "value": 0.5,
    "unit": "cm",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INF-MOD-CM": {
    "value": 2,
    "unit": "cm",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-INF-SEVERE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-ISCH-ABI": {
    "value": 0.4,
    "unit": "ratio",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-ISCH-ANKLE": {
    "value": 50,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-ISCH-TOE": {
    "value": 30,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-ABI-LOW": {
    "value": 0.9,
    "unit": "ratio",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-CHARCOT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-URGENT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-1DAY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-FOOT-NO-IMPROVE": {
    "value": 50,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-INTERVAL": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-TESTS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-ASYMPTOMATIC": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-EXCLUSION": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-ATYPICAL": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-TORONTO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-AUTONOMIC": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-TACHY": {
    "value": 100,
    "unit": "/min",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-OH-SBP": {
    "value": 20,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-OH-DBP": {
    "value": 10,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-B12": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-NEU-PAIN": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-SBP": {
    "value": 130,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-DBP": {
    "value": 80,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-CONFIRM": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-2DRUG-SBP": {
    "value": 150,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-2DRUG-DBP": {
    "value": 90,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-INTERVAL": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-STATIN-AGE": {
    "value": 40,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-STATIN-AGE-MAX": {
    "value": 75,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-LDL-ASCVD": {
    "value": 1.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-LDL-HIGHRISK": {
    "value": 1.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-LIPID-INTERVAL": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-TC-REFER": {
    "value": 8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-TG-PANCREATITIS": {
    "value": 5.7,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-ANTIPLATELET": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-ASCVD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-CHART": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-CHART-AGE-MIN": {
    "value": 40,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-CHART-AGE-MAX": {
    "value": 74,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BAND-5": {
    "value": 5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BAND-10": {
    "value": 10,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BAND-20": {
    "value": 20,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BAND-30": {
    "value": 30,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-NONLAB-UNDER": {
    "value": 57.6,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-NOT-VALIDATED": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-EXEMPT": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-CVD-FOLLOWUP": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-RASI-ALBUMINURIA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-PREG-CONTRA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-ESC-NOTE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-LADDER-WHO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-METFORMIN-STOP-EGFR": {
    "value": 30,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-METFORMIN-NOSTART-EGFR": {
    "value": 45,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-METFORMIN-CONTRA": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-GLIB-AGE": {
    "value": 60,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-CARDIORENAL": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-SGLT2-EGFR": {
    "value": 20,
    "unit": "mL/min/1.73m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-SGLT2-HOLD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-PIO-HF": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-INSULIN-T1": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-GLUCAGON": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-TB-RIFAMPICIN": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-PREG": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-OLDER": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-REASSESS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-LOWCOST": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-EML": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-EMHSLU": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-RX-UCG-LADDER": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-RX-DTG-METFORMIN": {
    "value": null,
    "unit": null,
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-RX-SICKDAY-HOLD": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-INSULIN-CONTINUE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-REVIEW": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-CADENCE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EVERY-VISIT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-REFER-SAMEDAY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-REFER-ROUTINE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-LEVELS": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-DIET": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-PA-MIN": {
    "value": 150,
    "unit": "min/week",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-WEIGHT": {
    "value": 7,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-SUGAR": {
    "value": 10,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-FOOT": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-HYPO": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-INSULIN-STORE": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-INJECTION": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-EDU-RAMADAN": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-TB-COUGH": {
    "value": 2,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-DENTAL": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-SMBG": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-DSMES": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-PRECONCEPTION": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-VACCINES": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-TABLE41": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-UG-PREVALENCE": {
    "value": 3.3,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-UG-UNAWARE": {
    "value": 48.9,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-UG-FPG-SENS": {
    "value": 62.6,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-UG-HBA1C-SENS": {
    "value": 69.8,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-FPG-MISSED": {
    "value": 44.4,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-UG-DR": {
    "value": 19.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EPI-UG-EYE-CAPACITY": {
    "value": null,
    "unit": null,
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SUS-ANTIPSYCH-WEEKS": {
    "value": 12,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-OLDER-AGE": {
    "value": 65,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-REVIEW-MONTHS": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACT-REVIEW-AFTER-CHANGE": {
    "value": 1,
    "unit": "months",
-   "status": "draft",
-   "needsCsoInput": true
+   "status": "signed",
+   "needsCsoInput": false
   },
   "REF-DM-RX-DEESC-HBA1C": {
    "value": 7.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-PAED-GLU": {
    "value": 11,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-UACR-COUNT": {
    "value": 2,
    "unit": "results",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-BP-REFER-MEDS": {
    "value": 2,
    "unit": "medicines",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-DME-NCI": {
    "value": 3,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-BP-REFER-SBP-SYMPT": {
    "value": 180,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-KID-REFER-FALL-HAEMO": {
    "value": 30,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-MILD-MIN": {
    "value": 12,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-EYE-RECALL-MODERATE-MIN": {
    "value": 6,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-BP-SBP": {
    "value": 140,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-BP-DBP": {
    "value": 90,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-BP-SEVERE-SBP": {
    "value": 160,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-BP-SEVERE-DBP": {
    "value": 110,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-BP-EMERG-SBP": {
    "value": 180,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-ACU-BP-EMERG-DBP": {
    "value": 110,
    "unit": "mmHg",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-PE-POSTPARTUM": {
    "value": 6,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UCG-FPG": {
    "value": 7.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UCG-OGTT2H": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UCG-HBA1C": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UCG-RBS": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UCG-FBS": {
    "value": 5.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UCG-2H": {
    "value": 7.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UCG-BMI": {
    "value": 35,
    "unit": "kg/m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UCG-AGE": {
    "value": 40,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-PPG-UCG": {
    "value": 10.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-AGE": {
    "value": 35,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-YEARS": {
    "value": 3,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UG26-FPG": {
    "value": 7.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UG26-RBG": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UG26-OGTT": {
    "value": 11.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-DX-UG26-HBA1C": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-UG26-FPG": {
    "value": 5.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-UG26-RBG": {
    "value": 7.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-IH-UG26-HBA1C": {
    "value": 5.7,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-EARLY": {
    "value": 24,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-TGT-FBG": {
    "value": 5.3,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-TGT-1H": {
    "value": 7.8,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-TGT-2H": {
    "value": 6.7,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-PRECON": {
    "value": 6.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-ASA-WEEKS": {
    "value": 12,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-UG26-CPEP": {
    "value": 600,
    "unit": "pmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-UG26-ELDERLY": {
    "value": 60,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PAED-UG26-SCREEN-AGE": {
    "value": 11,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-OLDER-FPG-COMPLEX": {
    "value": 5.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CTRL-OLDER-FPG-HEALTHY": {
    "value": 4.4,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-UG26-COMBO": {
    "value": 7.5,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-RX-UG26-INS-FBG": {
    "value": 14,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-CVD-UG26-STATIN-YOUNG": {
    "value": 20,
    "unit": "years",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-INPT-UG26-LOW": {
    "value": 5.6,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-INPT-UG26-HIGH": {
    "value": 10.0,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-SURG-UG26-HBA1C": {
    "value": 8.0,
    "unit": "%",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-HIV-UG26-INTERVAL": {
    "value": 6,
    "unit": "months",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-TB-UG26-RBG": {
    "value": 6.1,
    "unit": "mmol/L",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREV-UG26-BMI": {
    "value": 35,
    "unit": "kg/m2",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   },
   "REF-DM-PREG-UG26-ASA-END": {
    "value": 16,
    "unit": "weeks",
-   "status": "draft",
+   "status": "signed",
    "needsCsoInput": false
   }
  }

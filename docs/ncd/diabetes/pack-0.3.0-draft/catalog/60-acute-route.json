@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.1-draft",
+  "version": "0.5.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -9071,11 +9071,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-23R",
-   "display": "Type 1 or on insulin, vomiting or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
+   "display": "Type 1 or on insulin, vomiting, abdominal pain or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick_review",
-    "label": "Type 1 recorded, or on insulin; vomiting or acutely unwell",
+    "label": "Type 1 recorded, or on insulin; vomiting, abdominal pain or acutely unwell",
     "any": [
      {
       "feature": "vomiting",
@@ -9083,6 +9083,10 @@
      },
      {
       "feature": "acute_illness_current",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
       "op": "present"
      }
     ],
@@ -9158,7 +9162,8 @@
     },
     "review": [
      "V04",
-     "W01"
+     "W01",
+     "W14c"
     ],
     "notWhen": [
      {
@@ -9211,6 +9216,7 @@
       }
      }
     ],
+    "signed": "W14(c) CSO 2026-10-05: abdominal pain added",
     "restrictedClasses": [],
     "runWhen": "always"
    }

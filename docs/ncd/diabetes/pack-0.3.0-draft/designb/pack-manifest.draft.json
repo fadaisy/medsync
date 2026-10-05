@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.5.1-draft",
+ "version": "0.5.2-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -5329,7 +5329,7 @@
    "id": "DM-ACU-ROUTE-23R",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1 or on insulin, vomiting or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
+   "title": "Type 1 or on insulin, vomiting, abdominal pain or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -5340,6 +5340,7 @@
    "reads": [
     "sx.vomiting",
     "ncd.acute_illness_current (no CFC concept yet)",
+    "sx.abdominal_pain",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],

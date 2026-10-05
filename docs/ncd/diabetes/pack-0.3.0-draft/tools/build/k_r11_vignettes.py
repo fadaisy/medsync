@@ -45,3 +45,8 @@ VIGNETTES += [
 V("DMV-209", "8-year-old not known to have diabetes, meter 32, district", ["W06", "paediatric"],
   {"age_years": 8, **M, "capillary_glucose": 32.0}, {"fires": ["DM-ACU-ROUTE-14P"], "silent": ["DM-ACU-ROUTE-14"]}, site="district", age_band="child"),
 ]
+VIGNETTES += [
+V("DMV-261", "Type 1 on insulin, abdominal pain, glucose 6.0, blood ketones 0.3", ["W14c", "sick day"],
+  {"age_years": 34, **M, **T1, "abdominal_pain": True, "capillary_glucose": 6.0, "bohb": 0.3},
+  {"fires": ["DM-ACU-ROUTE-23R"], "urgency": {"DM-ACU-ROUTE-23R": "same_day"}}, established=True),
+]
