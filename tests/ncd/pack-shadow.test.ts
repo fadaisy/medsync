@@ -1,0 +1,59 @@
+/** Shadow mode: the live capture translates only where meanings match, and the log holds no value. */
+import { describe, expect, it } from "vitest";
+
+import { recorded } from "@/lib/ncd/catalog/schema";
+import { runDiabetesPack } from "@/lib/ncd/pack";
+import { shadowInput, shadowSummary, translateCapture } from "@/lib/ncd/pack/shadow";
+
+describe("translateCapture", () => {
+  it("maps same and renamed codes, the medicine list and the sulfonylurea agent", () => {
+    const v = translateCapture({
+      polyuria: recorded(true),
+      fpg: recorded(7.4),
+      dm_status: recorded("known"),
+      glucose_lowering_therapy: recorded(["metformin", "sulfonylurea"]),
+      sulfonylurea_agent: recorded("gliclazide"),
+      bp_systolic: recorded([
+        { value: 150, at: "2026-10-05T08:00:00Z" },
+        { value: 142, at: "2026-10-05T09:00:00Z" },
+      ]),
+    });
+    expect(v).toEqual({
+      polyuria: true,
+      fasting_pg: 7.4,
+      dm_status: "known",
+      glucose_lowering_therapy: ["metformin", "gliclazide"],
+      bp_systolic: 142,
+    });
+  });
+  it("never maps a broader live field, and reads nothing from a not-assessed one", () => {
+    const v = translateCapture({
+      reduced_urine_output: recorded(true),
+      treatment_omission: recorded(true),
+      visual_symptoms: recorded(true),
+      polyuria: { state: "not_assessed" },
+    });
+    expect(v).toEqual({});
+  });
+  it("a 'none' diabetes status is not 'known'", () => {
+    expect(translateCapture({ dm_status: recorded("none") })).toEqual({});
+  });
+});
+
+describe("shadow summary", () => {
+  it("holds rule ids and counts, never a value", () => {
+    const r = runDiabetesPack(
+      shadowInput(
+        {
+          dm_status: recorded("known"),
+          glucose_lowering_therapy: recorded(["insulin"]),
+          capillary_glucose: recorded(2.4),
+        },
+        { ageYears: 40 },
+      ),
+    );
+    const s = shadowSummary(r);
+    expect(s.interrupt).toBe("DM-ACU-ROUTE-06");
+    expect(JSON.stringify(s)).not.toContain("2.4");
+  });
+});

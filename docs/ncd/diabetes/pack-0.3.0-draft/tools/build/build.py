@@ -11,7 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_signed, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_signed_vignettes, k_decisions, k_grid
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_signed, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_signed_vignettes, k_cover_vignettes, k_decisions, k_grid
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
@@ -359,7 +359,7 @@ def run_vignette(v):
         cap = it["x"].get("requiresCapability")
         return not cap or site == "ALL" or cap in site
     res = {"caveats": [c["id"] for c in caveats], "fired": {}, "dark": {}, "states": {}, "diagnosis": {}, "criteria": {}, "blocked_criteria": [], "unavailable_features": set(),
-           "complications": {}, "stages": {}, "risk": {}, "targets": [], "bands": {}, "bands_blocked": [], "classification": {}, "restricted": set(), "steps_fired": [], "cautions": {}, "gaps": {}, "urgency": {}, "withheld": [], "metViaUnknown": {}}
+           "complications": {}, "stages": {}, "risk": {}, "targets": [], "bands": {}, "bands_blocked": [], "classification": {}, "restricted": set(), "steps_fired": [], "cautions": {}, "gaps": {}, "urgency": {}, "withheld": [], "metViaUnknown": {}, "pregnancy_state": ps}
     for cs in REG["diagnosis"] + REG["diagnosis_pending"]:
         rw = cs["x"]["appliesTo"]["runWhen"]; ap = applies(cs["x"])
         if ap is False or (rw == "established") != est:
@@ -575,7 +575,7 @@ def check_vignettes():
                             "metButDark": dict(sorted(r["dark"].items())), "withheldForPregnancyAnswer": r["withheld"], "bandsWithheldByCaveat": r["bands_blocked"],
                             "complications": r["complications"], "stages": r["stages"], "risk": r["risk"], "targets": r["targets"], "bands": r["bands"],
                             "classification": r["classification"], "unavailableFeatures": sorted(r["unavailable_features"]), "restrictedClasses": sorted(r["restricted"]),
-                            "urgency": r["urgency"], "interrupt": r["interrupt"], "foldedInto": r["foldedInto"], "interruptActions": r["interruptActions"], "metViaUnknown": r["metViaUnknown"], "cautions": r["cautions"], "gaps": r["gaps"], "pregnancyState": preg_state(v["values"], v["ageBand"])}
+                            "urgency": r["urgency"], "interrupt": r["interrupt"], "foldedInto": r["foldedInto"], "interruptActions": r["interruptActions"], "metViaUnknown": r["metViaUnknown"], "cautions": r["cautions"], "gaps": r["gaps"], "pregnancyState": r["pregnancy_state"], "actionOverride": r.get("actionOverride", {})}
     return results
 
 # ── emit ────────────────────────────────────────────────────────────────────
@@ -684,6 +684,14 @@ def emit(vresults):
             w.writerow([c["id"], c["topic"], c["claim"], c["standard"], c["version"], c["document"], c["section"], c["url"], c.get("quote", ""), c["retrieved"], c["verified"], c["from_memory"], c.get("conflicts", ""), " ".join(c["usedByRefs"])])
     # Design B
     rules = designb_rules(usage)
+    # The runtime file the TypeScript engine (lib/ncd/pack) reads: the same objects the reference evaluator runs on.
+    dump("runtime/diabetes-pack.json", {"pack": PACK, "semantics": k_r5.SEMANTICS, "acuteOrder": k_r6.ACUTE_ORDER, "heldKinds": list(HELD_KINDS), "districtCapabilities": k_vignettes.DISTRICT,
+         "features": {c: {"valueType": f["valueType"], "requires": f.get("requires"), "restrictedClass": f.get("x", {}).get("restrictedClass"), "display": f.get("display")} for c, f in FEATURES.items()},
+         "diagnosis": REG["diagnosis"], "diagnosisPending": REG["diagnosis_pending"],
+         "complicationAmendmentCriteria": [a["change"]["criterion"] for a in REG["complication_amendments"] if isinstance(a["change"], dict) and "criterion" in a["change"]],
+         "rules": REG["rules"], "management": REG["management"], "therapyFlags": REG["therapyFlags"], "validityCaveats": REG["validityCaveats"], "complications": REG["complications"],
+         "targets": REG["targets"], "classifications": REG["classifications"], "riskModels": REG["riskModels"], "interpretation": REG["interpretation"],
+         "refs": {k: {"value": e["value"], "unit": e["unit"], "status": e["status"], "needsCsoInput": bool(e["x"].get("needsCsoInput"))} for k, e in REFS.items()}})
     dump("designb/pack-manifest.draft.json", {"id": "diabetes", "version": PACK["version"], "status": "draft", "semantics": k_r5.SEMANTICS,
         "criteriaSets": [c["id"] for c in REG["diagnosis"] + REG["diagnosis_pending"]], "defaultCriteriaSet": "who_hearts_d_2020",
         "defaultCriteriaSetNote": "D-NCD-11 names UCG 2023. Its text was not read, so the WHO set is the working default until D-DM-01 is decided.",

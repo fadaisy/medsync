@@ -19,7 +19,7 @@
    "device.bp_cuff_sizes"
   ]
  },
- "count": 148,
+ "count": 165,
  "vignettes": [
   {
    "id": "DMV-01",
@@ -102,7 +102,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -185,7 +186,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -264,7 +266,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -349,7 +352,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -438,7 +442,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -517,7 +522,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -605,7 +611,8 @@
       "hba1c"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -671,7 +678,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -744,7 +752,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -860,7 +869,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -945,7 +955,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1036,7 +1047,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1136,7 +1148,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1229,7 +1242,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1340,7 +1354,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1461,7 +1476,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1554,7 +1570,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1654,7 +1671,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1758,7 +1776,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1853,7 +1872,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -1952,7 +1972,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2053,7 +2074,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2153,7 +2175,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2255,7 +2278,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2366,7 +2390,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2474,7 +2499,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2571,7 +2597,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2682,7 +2709,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2767,7 +2795,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2880,7 +2909,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -2971,7 +3001,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3083,7 +3114,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3170,7 +3202,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -3255,7 +3288,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3371,7 +3405,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3457,7 +3492,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3563,7 +3599,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3648,7 +3685,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3738,7 +3776,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -3838,7 +3877,10 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {
+     "hypoglycaemia_needing_help_on_treatment": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here."
+    }
    }
   },
   {
@@ -3965,7 +4007,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4057,7 +4100,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4153,7 +4197,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4245,7 +4290,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4333,7 +4379,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4431,7 +4478,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -4531,7 +4579,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4613,7 +4662,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4718,7 +4768,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4814,7 +4865,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4887,7 +4939,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -4986,7 +5039,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5088,7 +5142,8 @@
       "egfr"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5184,7 +5239,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5282,7 +5338,8 @@
       "uacr_abnormal_count"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5371,7 +5428,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5451,7 +5509,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5543,7 +5602,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5632,7 +5692,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5723,7 +5784,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -5832,7 +5894,10 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {
+     "ras_blocker_or_statin_in_pregnancy": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here."
+    }
    }
   },
   {
@@ -5923,7 +5988,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6030,7 +6096,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6106,7 +6173,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6220,7 +6288,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6319,7 +6388,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6417,7 +6487,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6511,7 +6582,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6621,7 +6693,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6734,7 +6807,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -6830,7 +6904,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -6910,7 +6985,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -6996,7 +7072,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7098,7 +7175,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7191,7 +7269,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7278,7 +7357,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7361,7 +7441,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7464,7 +7545,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7535,7 +7617,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7649,7 +7732,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7737,7 +7821,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7841,7 +7926,8 @@
       "egfr"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -7905,7 +7991,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8008,7 +8095,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8077,7 +8165,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8182,7 +8271,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8279,7 +8369,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8383,7 +8474,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8480,7 +8572,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8600,7 +8693,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -8673,7 +8767,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8751,7 +8846,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8817,7 +8913,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -8910,7 +9007,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9016,7 +9114,8 @@
       "hba1c"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9110,7 +9209,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9197,7 +9297,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9276,7 +9377,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9350,7 +9452,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9457,7 +9560,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9533,7 +9637,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9616,7 +9721,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9717,7 +9823,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9807,7 +9914,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9906,7 +10014,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -9994,7 +10103,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10079,7 +10189,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10173,7 +10284,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10259,7 +10371,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10356,7 +10469,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10429,7 +10543,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10520,7 +10635,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10599,7 +10715,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10684,7 +10801,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10761,7 +10879,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10834,7 +10953,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -10934,7 +11054,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11026,7 +11147,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11126,7 +11248,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -11221,7 +11344,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11299,7 +11423,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11377,7 +11502,8 @@
       "postpartum_weeks"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11455,7 +11581,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11572,7 +11699,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -11642,7 +11770,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11723,7 +11852,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11804,7 +11934,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11896,7 +12027,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -11995,7 +12127,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12067,7 +12200,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12169,7 +12303,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -12261,7 +12396,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12359,7 +12495,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12426,7 +12563,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12528,7 +12666,8 @@
       "hba1c"
      ]
     },
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12621,7 +12760,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12723,7 +12863,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12830,7 +12971,8 @@
       "pregnant"
      ]
     },
-    "pregnancyState": "unknown"
+    "pregnancyState": "unknown",
+    "actionOverride": {}
    }
   },
   {
@@ -12899,7 +13041,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -12999,7 +13142,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13067,7 +13211,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13155,7 +13300,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13247,7 +13393,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13345,7 +13492,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13407,7 +13555,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13473,7 +13622,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "not_pregnant"
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13545,7 +13695,8 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
    }
   },
   {
@@ -13614,7 +13765,1392 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
-    "pregnancyState": "pregnant"
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-149",
+   "title": "Potassium 6.8 in diabetes",
+   "covers": [
+    "acute routing",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 60,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "potassium": 6.8
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-05"
+    ],
+    "urgency": {
+     "DM-ACU-ROUTE-05": "immediate"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACU-ROUTE-05": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-05": "immediate",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": "DM-ACU-ROUTE-05",
+    "foldedInto": {},
+    "interruptActions": [
+     "Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring"
+    ],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-150",
+   "title": "Type 2 on metformin, vomiting, no glucose yet",
+   "covers": [
+    "sick day",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 52,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "vomiting": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-13"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACU-ROUTE-13": "rule",
+     "metformin_during_acute_illness": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-13": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-151",
+   "title": "Type 1: insulin run out two days ago, well",
+   "covers": [
+    "sick day",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 27,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_1",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "insulin_omitted": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-10"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step",
+     "DM-ACU-ROUTE-10": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-10": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-152",
+   "title": "Type 1, well, blood ketones 2.1",
+   "covers": [
+    "ketones",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 33,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_1",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "bohb": 2.1,
+    "capillary_glucose": 12.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-22"
+    ],
+    "urgency": {
+     "DM-ACU-ROUTE-22": "same_day"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step",
+     "DM-ACU-ROUTE-22": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "bohb_bands": "at_risk"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-22": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-153",
+   "title": "Pregnant 30 weeks, BP 146/94, no symptoms, urine not yet tested",
+   "covers": [
+    "pregnancy",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 28,
+    "sex": "female",
+    "pregnant": true,
+    "gestation_weeks": 30,
+    "bp_systolic": 146,
+    "bp_diastolic": 94
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-27"
+    ],
+    "urgency": {
+     "DM-ACU-ROUTE-27": "same_day"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "insufficient",
+     "who_2013_diabetes_in_pregnancy": "insufficient",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "insufficient"
+    },
+    "caveatsInForce": [
+     "hba1c_pregnancy"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACU-ROUTE-27": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-PREG-01": "D-DM-12"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-27": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-154",
+   "title": "Type 2 on metformin with a chest infection, blood ketones 1.0, glucose 14",
+   "covers": [
+    "ketones",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 58,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "acute_illness_current": true,
+    "bohb": 1.0,
+    "capillary_glucose": 14.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-21B"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "capillary_glucose_acute_illness"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACU-ROUTE-21B": "rule",
+     "metformin_during_acute_illness": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "bohb_bands": "raised"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-21B": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-155",
+   "title": "Pregnant 32 weeks, BP 150/96, urine protein 2+",
+   "covers": [
+    "pregnancy",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 30,
+    "sex": "female",
+    "pregnant": true,
+    "gestation_weeks": 32,
+    "bp_systolic": 150,
+    "bp_diastolic": 96,
+    "urine_protein_strip": "2plus"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-27C"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "insufficient",
+     "who_2013_diabetes_in_pregnancy": "insufficient",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "insufficient"
+    },
+    "caveatsInForce": [
+     "hba1c_pregnancy"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACU-ROUTE-27C": "rule"
+    },
+    "metButDark": {
+     "DM-SUS-PREG-01": "D-DM-12"
+    },
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-27C": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-156",
+   "title": "12-year-old with type 1, smelling of acetone, glucose 9, no ketone result",
+   "covers": [
+    "paediatric",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adolescent",
+   "synthetic": true,
+   "values": {
+    "age_years": 12,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_1",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "acetone_breath": true,
+    "capillary_glucose": 9.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-25B"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACU-ROUTE-13B": "rule",
+     "DM-ACU-ROUTE-25B": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-25B": "immediate",
+     "DM-ACU-ROUTE-13B": "same_day"
+    },
+    "interrupt": "DM-ACU-ROUTE-25B",
+    "foldedInto": {},
+    "interruptActions": [
+     "A child with diabetes and acetone on the breath or dehydration: suspected ketoacidosis. Route now"
+    ],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-157",
+   "title": "Type 2 with pneumonia, glucose 22, not vomiting, ketones not raised",
+   "covers": [
+    "sick day",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "older_adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 70,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "acute_illness_current": true,
+    "capillary_glucose": 22.0,
+    "urine_ketones": "neg"
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-34B"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "capillary_glucose_acute_illness"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-REFER-GLU-02": "step",
+     "DM-ACU-ROUTE-34B": "rule",
+     "metformin_during_acute_illness": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_older_healthy",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-34B": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-REFER-GLU-02": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-158",
+   "title": "11-year-old with type 1, dehydrated, blood ketones 0.3, glucose 8",
+   "covers": [
+    "paediatric",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adolescent",
+   "synthetic": true,
+   "values": {
+    "age_years": 11,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_1",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "dehydration": true,
+    "bohb": 0.3,
+    "capillary_glucose": 8.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-25C"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACU-ROUTE-25C": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {
+     "bohb_bands": "normal"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-25C": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-159",
+   "title": "HbA1c 6.8% in a person with g6pd",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 45,
+    "sex": "male",
+    "g6pd_deficiency": true,
+    "hba1c": 6.8
+   },
+   "expect": {
+    "caveats": [
+     "hba1c_g6pd"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_g6pd"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-160",
+   "title": "HbA1c 6.8% in a person with sickle cell disease",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 45,
+    "sex": "male",
+    "sickle_cell_disease": true,
+    "hba1c": 6.8
+   },
+   "expect": {
+    "caveats": [
+     "hba1c_sickle_cell_disease"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_sickle_cell_disease"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-161",
+   "title": "HbA1c 6.8% in a person with haematinic or epo",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 45,
+    "sex": "male",
+    "on_iron_b12_or_epo": true,
+    "hba1c": 6.8
+   },
+   "expect": {
+    "caveats": [
+     "hba1c_haematinic_or_epo"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_haematinic_or_epo"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-162",
+   "title": "HbA1c 6.8% in a person with dapsone or spleen",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 45,
+    "sex": "male",
+    "on_dapsone": true,
+    "hba1c": 6.8
+   },
+   "expect": {
+    "caveats": [
+     "hba1c_dapsone_or_spleen"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_dapsone_or_spleen"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-163",
+   "title": "HbA1c 6.8% in a person with red cell turnover",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 45,
+    "sex": "male",
+    "malaria_current": true,
+    "hba1c": 6.8
+   },
+   "expect": {
+    "caveats": [
+     "hba1c_red_cell_turnover"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_red_cell_turnover"
+    ],
+    "blockedCriteria": [],
+    "fired": {},
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {},
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {
+     "DM-SUS-INCID-02": [
+      "hba1c"
+     ]
+    },
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-164",
+   "title": "Known type 2, creatinine not in steady state (acute kidney injury), eGFR 42",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 62,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "creatinine_unstable": true,
+    "egfr": 42
+   },
+   "expect": {
+    "caveats": [
+     "egfr_not_steady_state"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "egfr_not_steady_state"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "metformin_during_acute_illness": "therapyFlag",
+     "metformin_egfr_30_44": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {
+     "DM-ACT-REFER-EGFR-02": [
+      "egfr"
+     ]
+    },
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-165",
+   "title": "Known type 2, ankle-brachial index 1.45 (calcified vessels)",
+   "covers": [
+    "caveat",
+    "coverage"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "older_adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 66,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "abi": 1.45
+   },
+   "expect": {
+    "caveats": [
+     "abi_calcified"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met",
+     "ug_ucg_2023_gdm": "not_applicable"
+    },
+    "caveatsInForce": [
+     "abi_calcified"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_older_healthy",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
    }
   }
  ]

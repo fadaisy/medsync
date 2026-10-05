@@ -77,6 +77,17 @@ export function ncdClerkshipLive(): boolean {
   return process.env.NCD_CLERKSHIP_LIVE === "1" && encounterEngineLive();
 }
 
+/**
+ * Is the diabetes knowledge pack (MS-NCD-DM-PACK-001) running in shadow?
+ *
+ * Shadow means computed beside the NCD clerkship on each draft save and logged as rule ids
+ * and counts, shown to nobody (I10). Signed for the shadow build at GATE A (2026-10-05);
+ * clinical go-live is a separate signature.
+ */
+export function ncdPackShadowLive(): boolean {
+  return process.env.NCD_DM_PACK_SHADOW === "1" && ncdClerkshipLive();
+}
+
 /*
  * `clerkshipAgentLive()` / `clerkshipAgentConfig()` were removed with the v1
  * clerkship engine (ADR 0081) — they resolved the CSO-signed pack flags for a
