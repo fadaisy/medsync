@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1557,6 +1557,14 @@
   },
   {
    "feature": "hba1c_method_variant_free",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "acute_kidney_injury",
    "concept": null,
    "status": "none",
    "valueType": "boolean",

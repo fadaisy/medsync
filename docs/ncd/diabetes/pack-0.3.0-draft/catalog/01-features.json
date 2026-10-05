@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,7 +13,7 @@
  "counts": {
   "reuse": 50,
   "reconcile": 45,
-  "new": 99
+  "new": 100
  },
  "features": [
   {
@@ -2687,6 +2687,17 @@
    "x": {
     "status": "new",
     "note": "Lifts the variant caveats when the method is documented as unaffected (NGSP; eighth review, T16)."
+   }
+  },
+  {
+   "code": "acute_kidney_injury",
+   "display": "Acute kidney injury (a rise in creatinine of 26.5 µmol/L or more in 48 hours, or to 1.5 times baseline, or low urine output)",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "kidney",
+   "x": {
+    "status": "new",
+    "note": "KDIGO's definition (research claim A6-55); recorded by the clinician, not computed here (ninth review, U16)."
    }
   }
  ]

@@ -1,7 +1,7 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.5-draft",
+ "version": "0.3.6-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
  "count": 342,
@@ -60,6 +60,7 @@
      "remission_fasting_meter_high",
      "remission_glucose_high",
      "sus_fcap_ifg",
+     "sus_paed_fcap",
      "sus_paed_range",
      "sus_single_abnormal",
      "sus_single_fasting_meter",
@@ -5160,6 +5161,7 @@
     },
     "usedByCriteria": [
      "acu_bohb_mid",
+     "acu_dm_acetone_bohb_normal",
      "acu_edka_bohb_normal",
      "acu_ill_high_vomit",
      "acu_insulin_sick_bohb",
@@ -5204,6 +5206,7 @@
     },
     "usedByCriteria": [
      "acu_bohb_mid",
+     "acu_dm_acetone_raised",
      "acu_ketones_risk",
      "acu_ketones_risk_vomiting",
      "ref_glu18_pen_ket"
@@ -10862,7 +10865,8 @@
      "acu_preg_bp_prot",
      "acu_preg_bp_sympt",
      "acu_preg_drowsy",
-     "acu_preg_organ"
+     "acu_preg_organ",
+     "acu_preg_organ_r28b"
     ]
    }
   },
@@ -10899,7 +10903,8 @@
      "acu_preg_bp_prot",
      "acu_preg_bp_sympt",
      "acu_preg_drowsy",
-     "acu_preg_organ"
+     "acu_preg_organ",
+     "acu_preg_organ_r28b"
     ]
    }
   },
@@ -10934,8 +10939,7 @@
      "27b_severe",
      "27c_severe",
      "acu_preg_bp_sev",
-     "acu_preg_bp_severe",
-     "acu_preg_bp_sympt_sev"
+     "acu_preg_bp_severe"
     ]
    }
   },
@@ -10970,8 +10974,7 @@
      "27b_severe",
      "27c_severe",
      "acu_preg_bp_sev",
-     "acu_preg_bp_severe",
-     "acu_preg_bp_sympt_sev"
+     "acu_preg_bp_severe"
     ]
    }
   },

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -3328,6 +3328,173 @@
     "notWhen": [
      {
       "id": "sus_paed_range_known",
+      "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+       "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-30",
+        "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-SAMEDAY"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-05",
+   "display": "A child with a fasting capillary glucose of 7.0 or more: refer today as suspected diabetes",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_fcap",
+    "label": "A child with a fasting capillary glucose of 7.0 mmol/L or more",
+    "all": [
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "Reading a fasting meter value against the plasma threshold follows D-DM-04.",
+     "x": {
+      "claim": "A2-02",
+      "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-FPG"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Not truly fasting",
+    "Meter error"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+    "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+    "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-30",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "bodyProposed": "NICE",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "review": [
+     "U04"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_fcap_known",
       "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
       "any": [
        {

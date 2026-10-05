@@ -1,0 +1,213 @@
+== DM-SUS-RECON-01 kind=reconcile urg=routine ages=adult run=always preg=None en=None less=None measures=None
+  D: On a glucose-lowering medicine with no diabetes on the problem list: review the record
+  W: ALL[dm_status == not_known] & ANY[glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin]
+== DM-ACT-TEST-HBA1C-01 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=hba1c
+  D: HbA1c is due (never done, or 6 months since the last)
+  W: ANY[never_hba1c present; months_since_hba1c >= 6] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-TEST-HBA1C-02 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=hba1c
+  D: HbA1c is due (3 months since the last, after a treatment change)
+  W: ALL[therapy_changed_recently present; months_since_hba1c >= 3] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-EYE-01 kind=screen urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Retinal examination is due (never done, 2 years since the last, or the last look could not grade the retina)
+  W: ANY[never_eye_screen present; months_since_eye_screen >= 24; fundus_method == undilated_ophthalmoscopy; retina_view == inadequate; retina_view == not_attempted] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-KIDNEY-01 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Kidney check is due (urine albumin and creatinine: never done, or 12 months since the last)
+  W: ANY[never_kidney_screen present; months_since_kidney_screen >= 12] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-FOOT-01 kind=examine urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Foot risk assessment is due (never done, or 12 months since the last)
+  W: ANY[never_foot_assessment present; months_since_foot_risk_assessment >= 12] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-NEURO-01 kind=examine urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Sensation testing is due (never done, or 12 months since the last)
+  W: ANY[never_neuropathy_screen present; months_since_neuropathy_screen >= 12] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-LIPID-01 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Lipid profile is due (never done, or 12 months since the last)
+  W: ANY[never_lipids present; months_since_lipids >= 12] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-TB-01 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Cough for more than 2 weeks in a person with diabetes: assess for TB
+  W: ALL[cough_over_2_weeks present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-SCREEN-B12-01 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: On metformin with numb or burning feet: check vitamin B12
+  W: ALL[glucose_lowering_therapy == metformin; foot_numbness_burning present]
+== DM-ACT-SCREEN-PREG-01 kind=refer urg=same_day ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Pregnant with pre-existing diabetes: retinal and kidney assessment now, and specialised antenatal care
+  W: ALL[pregnant present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  NOT: ALL[dm_type_recorded == gestational]
+== DM-ACT-REFER-GLU-01 kind=refer urg=same_day ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Glucose 18 mmol/L or more and not improving on tablets: refer today
+  W: ALL[glucose_goal_unmet_on_oral present] & ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi]
+== DM-ACT-REFER-VISION-01 kind=refer urg=same_day ages=any run=always preg=None en=None less=None measures=None
+  D: Sudden loss or deterioration of vision: refer today
+  W: ALL[sudden_vision_loss present]
+== DM-ACT-REFER-BP-01 kind=refer urg=same_day ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Systolic above 200 or diastolic above 110 mmHg in diabetes: same-day referral
+  W: ANY[bp_systolic > 200; bp_diastolic > 110]
+== DM-ACT-REFER-EGFR-01 kind=refer urg=same_day ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: eGFR below 30, or passing no urine: refer today
+  W: ANY[egfr < 30; anuria present]
+== DM-ACT-REFER-EGFR-02 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: eGFR 30 to 59: routine referral
+  W: ALL[egfr >= 30; egfr < 60]
+== DM-ACT-REFER-ALB-01 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Confirmed albuminuria: routine referral
+  W: ALL[uacr_abnormal_count >= 2]
+  NOT: ALL[uacr_transient_cause present]
+== DM-ACT-REFER-ALB-02 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: ACR above 70 mg/mmol: refer to kidney care
+  W: ALL[urine_acr > 70]
+  NOT: ALL[uacr_transient_cause present]
+== DM-ACT-REFER-BP-02 kind=refer urg=routine ages=adult run=established_or_met preg=None en=None less=None measures=None
+  D: Blood pressure above 130/80 on two medicines: routine referral
+  W: ALL[bp_medicines_count >= 2] & ANY[bp_systolic > 130; bp_diastolic > 80]
+== DM-ACT-REFER-CHOL-01 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Total cholesterol above 8 mmol/L: routine referral
+  W: ALL[total_cholesterol > 8]
+== DM-ACT-REFER-EYE-01 kind=refer urg=urgent ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Severe or proliferative retinopathy, or macular oedema involving the centre: refer to an ophthalmologist urgently
+  W: ANY[retinopathy_stage in ['severe_npdr', 'pdr']; macular_oedema == centre_involving]
+== DM-ACT-REFER-EYE-02 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Vision worse than 6/12, or the retina could not be seen: refer
+  W: ANY[visual_acuity_worse_6_12 present; retina_view == inadequate]
+== DM-ACT-REFER-CHARCOT-01 kind=refer urg=urgent ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Foot warmer, swollen or red with intact skin: offload and refer
+  W: ALL[foot_hot_swollen present]
+== DM-ACT-REFER-FOOT-01 kind=refer urg=same_day ages=any run=always preg=None en=None less=None measures=None
+  D: A foot ulcer with infection, gangrene, or reduced or absent pulses: refer today
+  W: ALL[active_foot_ulcer present] & ANY[foot_infection_grade in ['mild', 'moderate', 'severe']; foot_gangrene present; pedal_pulses in ['reduced', 'absent']]
+== DM-ACT-REFER-PVD-01 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Foot pulses reduced or absent: routine referral for vascular assessment
+  W: ALL[pedal_pulses in ['reduced', 'absent']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  NOT: ALL[active_foot_ulcer present]
+== DM-ACT-REFER-TARGET-01 kind=refer urg=routine ages=adult run=established_or_met preg=None en=None less=None measures=None
+  D: Above target on two tablets: refer for insulin where this site does not start it
+  W: ALL[glucose_goal_unmet_on_oral present; glucose_lowering_therapy == metformin] & ANY[glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride]
+== DM-ACT-EDU-01 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Counsel at this visit: diet, physical activity, tobacco and alcohol, and taking medicines
+  W: ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-EDU-02 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Teach foot care: look every day, never barefoot, shoes that fit
+  W: ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-EDU-03 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: On insulin or a sulfonylurea: teach how to recognise and treat a low, and what causes one
+  W: ANY[glucose_lowering_therapy == insulin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride]
+== DM-ACT-EDU-04 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: On insulin: sick-day rules. Never stop insulin; check glucose and ketones; drink; come in if vomiting
+  W: ALL[glucose_lowering_therapy == insulin]
+== DM-ACT-EDU-05 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: On insulin: check storage and injection sites
+  W: ALL[glucose_lowering_therapy == insulin]
+== DM-ACT-EDU-06 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: On an SGLT2 inhibitor: teach the signs of ketoacidosis and when to stop the tablet
+  W: ALL[glucose_lowering_therapy == sglt2_inhibitor]
+== DM-ACT-EDU-07 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Plans to fast for Ramadan: assess risk well before the fast
+  W: ALL[fasting_ramadan_planned present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-EDU-08 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Could become pregnant: discuss pregnancy planning and which medicines must change first
+  W: ALL[could_conceive present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-EDU-09 kind=educate urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Uses tobacco: advise stopping and offer help
+  W: ALL[smoking_current present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-EDU-10 kind=educate urg=routine ages=adult run=not_established preg=None en=None less=None measures=None
+  D: Intermediate hyperglycaemia: weight, activity, and a test every year
+  W: ALL[prior_intermediate_hyperglycaemia present]
+== DM-ACT-RX-01 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Type 2 diabetes above target and not on medicine: WHO's first medicine is metformin, with diet and activity
+  W: ALL[dm_type_recorded == type_2; glucose_lowering_therapy == none] & ANY[hba1c >= 7.0; fasting_pg > 7.0] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  NOT: ALL[glycaemic_target_tier == relaxed; hba1c < 8.0; fasting_pg <= 7.0]
+  CI: ALL[egfr < 30]
+  CI: ALL[urine_ketones in ['2plus', '3plus']]
+  NBA: ['egfr']
+== DM-ACT-RX-02 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: On metformin without a sulfonylurea or insulin, and above target despite taking it: WHO's next step is to add a sulfonylurea (WHO prefers gliclazide; check what this level of care stocks)
+  W: ALL[dm_type_recorded == type_2; glucose_lowering_therapy == metformin; glucose_goal_unmet_on_oral present; glucose_lowering_therapy != glibenclamide; glucose_lowering_therapy != gliclazide; glucose_lowering_therapy != glimepiride; glucose_lowering_therapy != insulin]
+  NOT: ALL[glycaemic_target_tier == relaxed; hba1c < 8.0]
+  NOT: ALL[egfr < 30]
+  NOT: ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi]
+  CAU: caution_su_hypo ANY[age_years >= 75; frailty_or_limited_life_expectancy present; food_insecurity present; meals_irregular present; cognitive_impairment present; hypo_worst_12m in ['needed_help', 'measured_below_3', 'repeated']; egfr < 30]
+  NBA: ['egfr']
+== DM-ACT-RX-03 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: On metformin and a sulfonylurea and still above target: WHO's next step is human insulin, or referral for it
+  W: ALL[dm_type_recorded == type_2; glucose_lowering_therapy == metformin; glucose_goal_unmet_on_oral present; glucose_lowering_therapy != insulin] & ANY[glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride]
+  NOT: ALL[egfr < 30]
+  NOT: ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi]
+  NBA: ['egfr']
+== DM-ACT-RX-04 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Type 2 or unclassified diabetes, not on insulin, with HbA1c above 10% or glucose 16.7 mmol/L or more: ADA says consider insulin. Check ketones first
+  W: ALL[dm_type_recorded in ['type_2', 'unclassified']; glucose_lowering_therapy != insulin] & ANY[hba1c > 10.0; capillary_glucose >= 16.7; random_pg >= 16.7; fasting_pg >= 16.7; postprandial_pg >= 16.7; ogtt_1h_pg >= 16.7; ogtt_2h_pg >= 16.7] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  NOT: ANY[vomiting present; abdominal_pain present; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  NOT: ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi]
+== DM-ACT-RX-05 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Cardiovascular disease or heart failure with type 2 diabetes: ADA recommends an SGLT2 inhibitor or GLP-1 receptor agonist whatever the HbA1c
+  W: ALL[dm_type_recorded == type_2] & ANY[cvd_established present; heart_failure_known present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  CI: ALL[egfr < 20]
+== DM-ACT-RX-05B kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Confirmed kidney disease with type 2 diabetes: ADA and KDIGO recommend an SGLT2 inhibitor (or a GLP-1 receptor agonist) whatever the HbA1c
+  W: ALL[dm_type_recorded == type_2; kidney_abnormality_3_months present] & ANY[egfr < 60; uacr_abnormal_count >= 2] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  CI: ALL[egfr < 20]
+== DM-ACT-RX-06 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Type 2 diabetes aged 40 or over, not on a statin: WHO recommends one
+  W: ALL[dm_type_recorded == type_2; age_years >= 40; on_statin absent] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  CI: ALL[pregnant present]
+== DM-ACT-RX-07 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Blood pressure at or above 130/80 on two occasions: review blood pressure treatment
+  W: ALL[bp_raised_two_occasions present] & ANY[bp_systolic >= 130; bp_diastolic >= 80] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-RX-08 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Albuminuria with raised blood pressure and no ACE inhibitor or ARB: one of them is the recommended class
+  W: ALL[uacr_abnormal_count >= 2; bp_raised_two_occasions present; ras_blocker == none]
+  CI: ALL[pregnant present]
+== DM-ACT-RX-09 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Established cardiovascular disease and not on an antiplatelet: it is for secondary prevention. Not after a bleeding stroke or a stroke of unknown type; check bleeding risk
+  W: ALL[cvd_established present; on_antiplatelet absent] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  CI: ALL[haemorrhagic_or_unknown_stroke present]
+== DM-ACT-RX-10 kind=therapy_review urg=same_day ages=adult run=established preg=not_pregnant en=None less=True measures=None
+  D: A low needing help, a reading below 3.0, or repeated lows: re-evaluate the treatment and relax the target for now
+  W: ALL[hypo_worst_12m in ['needed_help', 'measured_below_3', 'repeated']] & ANY[glucose_lowering_therapy == insulin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride]
+== DM-ACT-RX-11 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=None less=False measures=None
+  D: Frail, 75 or over, on a sulfonylurea, with HbA1c below 7.0%: likely overtreated
+  W: ALL[age_years >= 75; frailty_or_limited_life_expectancy present; hba1c < 7.0] & ANY[glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride]
+== DM-ACT-RX-12 kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Numb, burning or tingling feet with a sign on examination: if it is painful, ADA names the first-line classes; opioids are not among them
+  W: ALL[foot_numbness_burning present] & ANY[monofilament_10g in ['one_foot', 'both_feet']; ankle_reflexes == reduced_or_absent; pinprick_feet == reduced] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-REFER-FOOT-03 kind=refer urg=same_day ages=any run=always preg=None en=None less=None measures=None
+  D: Gangrene, or a moderate or severe foot infection: refer today
+  W: ANY[foot_gangrene present; foot_infection_grade in ['moderate', 'severe']]
+== DM-ACT-REFER-FOOT-02 kind=refer urg=urgent ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Active foot ulcer: refer to a higher level of care
+  W: ALL[active_foot_ulcer present]
+  NOT: ANY[foot_infection_grade in ['mild', 'moderate', 'severe']; foot_gangrene present; pedal_pulses in ['reduced', 'absent']]
+== DM-ACT-REFER-LIMB-01 kind=refer urg=same_day ages=any run=always preg=None en=None less=None measures=None
+  D: Rest pain or a cold, pale or dusky foot, or an ankle-brachial index below 0.4: refer today
+  W: ANY[limb_ischaemia_signs present; abi < 0.4]
+== DM-ACT-RX-01B kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=False less=None measures=None
+  D: Type 2 diabetes above target on a fasting meter reading and not on medicine: WHO's first medicine is metformin, with diet and activity
+  W: ALL[dm_type_recorded == type_2; glucose_lowering_therapy == none; capillary_glucose_context == fasting; capillary_glucose > 7.0] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  CI: ALL[egfr < 30]
+  CI: ALL[urine_ketones in ['2plus', '3plus']]
+  NBA: ['egfr']
+== DM-ACT-TEST-ACR-01 kind=test urg=routine ages=adult run=established preg=None en=None less=None measures=None
+  D: Protein on the urine strip: abnormal, pending confirmation. Send a laboratory ratio
+  W: ALL[urine_protein_strip in ['1plus', '2plus', '3plus']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+== DM-ACT-REFER-EGFR-03 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: A sustained fall in eGFR of more than 20% (more than 30% just after starting an ACE inhibitor, ARB or SGLT2 inhibitor): refer to kidney care
+  W: ALL[egfr_fall_percent > 20] & ATLEAST1[ras_or_sglt2_started_recently absent; egfr_fall_percent > 30]
+== DM-ACT-REFER-BP-03 kind=refer urg=same_day ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Blood pressure above 180 systolic with headache or vomiting: refer today. Confusion, visual loss, breathlessness or little urine is an emergency (rule 29)
+  W: ALL[hypertensive_symptoms present; bp_systolic > 180]
+  NOT: ANY[bp_systolic > 200; bp_diastolic > 110]
+== DM-ACT-REFER-EYE-03 kind=refer urg=routine ages=any run=established_or_met preg=None en=None less=None measures=None
+  D: Moderate retinopathy, or macular oedema not involving the centre: refer to an ophthalmologist (routine)
+  W: ANY[retinopathy_stage == moderate_npdr; macular_oedema == non_centre]
+== DM-ACT-RX-11B kind=therapy_review urg=routine ages=adult run=established preg=not_pregnant en=None less=True measures=None
+  D: Frail or cognitively impaired, 75 or over, on insulin: ADA says to simplify treatment and avoid lows. Review the regimen and the target
+  W: ALL[age_years >= 75; glucose_lowering_therapy == insulin] & ANY[frailty_or_limited_life_expectancy present; cognitive_impairment present]
+== DM-ACT-REFER-TARGET-02 kind=refer urg=routine ages=adult run=established_or_met preg=None en=None less=None measures=None
+  D: On insulin with HbA1c above 7.5%: refer for review of the insulin
+  W: ALL[glucose_lowering_therapy == insulin; hba1c > 7.5; dm_type_recorded == type_2] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering...]
+  NOT: ALL[glycaemic_target_tier == relaxed; hba1c < 8.0]
+== DM-ACT-REFER-GLU-02 kind=refer urg=same_day ages=any run=always preg=None en=False less=None measures=None
+  D: Glucose 18 mmol/L or more with ketones below the danger range: same-day review by a clinician who can start or change treatment (WHO PEN refers all such patients to hospital)
+  W: ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[urine_ketones in ['neg', 'trace', '1plus']; bohb < 3.0]
+  NOT: ALL[glucose_goal_unmet_on_oral present]
+  NOT: ANY[bohb >= 1.6; urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  NOT: ALL[pregnant present]
+  NOT: ALL[care_setting == inpatient]

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -799,10 +799,6 @@
    "REF-DM-PREG-BP-DBP",
    "REF-DM-PREG-PE-POSTPARTUM"
   ],
-  "acu_preg_bp_sympt_sev": [
-   "REF-DM-PREG-BP-SEVERE-SBP",
-   "REF-DM-PREG-BP-SEVERE-DBP"
-  ],
   "acu_t1_acetone_bohb_normal": [
    "REF-DM-ACU-KETONE-LOW"
   ],
@@ -831,6 +827,16 @@
   "acu_preg_organ_nobp": [
    "REF-DM-PREG-PE-POSTPARTUM"
   ],
+  "acu_preg_organ_r28b": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP"
+  ],
+  "acu_dm_acetone_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_dm_acetone_raised": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
   "acu_paed_acetone_normal": [
    "REF-DM-ACU-KETONE-LOW"
   ],
@@ -838,6 +844,9 @@
    "REF-DM-DX-FPG",
    "REF-DM-DX-OGTT2H",
    "REF-DM-DX-HBA1C"
+  ],
+  "sus_paed_fcap": [
+   "REF-DM-DX-FPG"
   ],
   "tgt_hba1c_general_relaxed_applies": [
    "REF-DM-HYPO-IAH",

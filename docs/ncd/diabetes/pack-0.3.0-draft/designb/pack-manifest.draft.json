@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.3.5-draft",
+ "version": "0.3.6-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -46,9 +46,9 @@
    "DM-ACU-ROUTE-15"
   ],
   "bands": "An HbA1c control band is read only against a target that is actually proposed (`forTarget`), so a band never contradicts the target beside it (eighth review, T06).",
-  "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane (an untrusted result is 'insufficient' and named as a gap), and a step whose job is to order the blocked test (`measures`) proposes the alternative instead; acute rules and referrals for danger are never suppressed (N8; eighth review, T11).",
+  "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane, on routine (not same-day or urgent) referrals and on targets; a value hidden by it is named as a gap only where it changed a met result. Acute rules and referrals for danger are never suppressed (N8; ninth review, U11).",
   "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
-  "adult": "'Adult' is 16 and over by numeric age where it is recorded, whatever the display band (eighth review, T20; P0-01)."
+  "adult": "Age bands are effective bands: where a numeric age is recorded, under 16 is never 'adult' or 'older_adult' and 16 or over is never 'child' or 'adolescent', for rules, steps, flags and targets alike. A therapy flag shown under 16 shows its `under16Action` (refer; do not change the medicine here) instead of its action (ninth review, U07, U12)."
  },
  "criteriaSets": [
   "who_hearts_d_2020",
@@ -69,8 +69,8 @@
   "DM-ACT-SCREEN": 9,
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
-  "DM-ACT-THERAPY": 34,
-  "DM-ACU-ROUTE": 47,
+  "DM-ACT-THERAPY": 35,
+  "DM-ACU-ROUTE": 48,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -90,19 +90,19 @@
   "DM-STR-NEURO": 4,
   "DM-SUS-INCID": 5,
   "DM-SUS-INPT": 1,
-  "DM-SUS-PAED": 4,
+  "DM-SUS-PAED": 5,
   "DM-SUS-POP": 10,
   "DM-SUS-RECON": 2,
   "DM-SUS-RISK": 6,
   "DM-SUS-SYMP": 2
  },
  "lanes": {
-  "suspect": 30,
+  "suspect": 31,
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 47,
-  "act": 83
+  "acute_route": 48,
+  "act": 84
  },
  "rules": [
   {
@@ -1376,7 +1376,10 @@
    "lane": "classify",
    "title": "Pancreatic disease with diabetes: consider a pancreatic cause",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
     "pregnancy": "any"
    },
    "reads": [
@@ -1527,7 +1530,10 @@
    "lane": "stratify",
    "title": "Neuropathy in diabetes: exclude the other causes before calling it diabetic",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
     "pregnancy": "any"
    },
    "reads": [
@@ -1625,14 +1631,19 @@
    "lane": "stratify",
    "title": "A postural fall in blood pressure or a fast resting pulse: consider autonomic neuropathy after the commoner causes",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.postural_sbp_fall (no CFC concept yet)",
     "ncd.postural_dbp_fall (no CFC concept yet)",
-    "obs.heart_rate"
+    "obs.heart_rate",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:neuro_autonomic",
    "params": {
@@ -2899,12 +2910,17 @@
    "lane": "stratify",
    "title": "Known diabetes and on steroids: expect glucose to rise; monitor after meals",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
     "pregnancy": "any"
    },
    "reads": [
+    "ncd.on_glucocorticoid (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.on_glucocorticoid (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:str_steroid",
    "params": {},
@@ -2950,8 +2966,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "sx.weight_loss_unintended",
     "ncd.dm_status (no CFC concept yet)",
-    "sx.weight_loss_unintended"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.rule:cls_weight_loss",
    "params": {},
@@ -2997,7 +3015,10 @@
    "lane": "classify",
    "title": "Fatty stools with recurrent upper abdominal pain in a person with diabetes: consider a pancreatic cause",
    "appliesTo": {
-    "ageBands": null,
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
     "pregnancy": "any"
    },
    "reads": [
@@ -3529,6 +3550,7 @@
     "ncd.acute_illness_current (no CFC concept yet)",
     "sign.dehydration",
     "obs.glucose",
+    "sign.ketotic_breath",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
@@ -3570,7 +3592,7 @@
     "notWhen": [
      "acu_ketones_mid_bohb_normal",
      "acu_ketones_mid_bohb_high",
-     "acu_ketones_mid_signs"
+     "-21_interrupt_signs"
     ]
    }
   },
@@ -4195,6 +4217,7 @@
     "ncd.acute_illness_current (no CFC concept yet)",
     "sign.dehydration",
     "obs.glucose",
+    "sign.ketotic_breath",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
@@ -4235,7 +4258,9 @@
     "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
-    "notWhen": []
+    "notWhen": [
+     "21b_interrupt_signs"
+    ]
    }
   },
   {
@@ -4518,7 +4543,7 @@
    "id": "DM-ACU-ROUTE-28D",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Pregnant or within 6 weeks of birth and drowsy, with no blood pressure recorded: blood pressure and glucose now",
+   "title": "Pregnant or within 6 weeks of birth and drowsy: route now. Blood pressure and glucose now if not already recorded (eclampsia, hypoglycaemia)",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -4564,9 +4589,7 @@
     "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
-    "notWhen": [
-     "acu_preg_drowsy_bp_done"
-    ]
+    "notWhen": []
    }
   },
   {
@@ -4621,7 +4644,7 @@
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": [
-     "acu_preg_bp_sympt_sev"
+     "acu_preg_bp_sympt_organ"
     ]
    }
   },
@@ -4629,7 +4652,7 @@
    "id": "DM-ACU-ROUTE-24B",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes on insulin or an SGLT2 inhibitor, type 1, or medicines not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
+   "title": "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -4741,7 +4764,7 @@
    "id": "DM-ACU-ROUTE-23D",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now, repeat in 2 hours, and refer if vomiting continues or ketones rise",
+   "title": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -4784,8 +4807,7 @@
     "requiresCapability": null,
     "unlessCapability": "lab.ketones_blood",
     "notWhen": [
-     "acu_insulin_sick_district_raised",
-     "acu_insulin_sick_district_done"
+     "acu_insulin_sick_district_raised"
     ]
    }
   },
@@ -4847,7 +4869,7 @@
    "id": "DM-ACU-ROUTE-28E",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Pregnant or within 6 weeks of birth with organ-damage signs and no blood pressure recorded: blood pressure now; severe pre-eclampsia until proved otherwise. Route now",
+   "title": "Pregnant or within 6 weeks of birth, with confusion, seizures, visual loss, breathlessness or little urine: route now; measure blood pressure",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -4891,7 +4913,7 @@
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": [
-     "acu_preg_organ_bp_done"
+     "acu_preg_organ_r28b"
     ]
    }
   },
@@ -4899,7 +4921,7 @@
    "id": "DM-ACU-ROUTE-13B",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes with acetone on the breath or dehydration and no ketone result: ketones today",
+   "title": "Diabetes with acetone on the breath or dehydration: blood ketones today; a urine strip or a ketone below 1.6 does not settle it unless blood ketones are below 0.6",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -4943,8 +4965,8 @@
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": [
-     "acu_dm_acetone_test_done",
-     "acu_dm_acetone_test_signs"
+     "acu_dm_acetone_bohb_normal",
+     "acu_dm_acetone_raised"
     ]
    }
   },
@@ -4952,7 +4974,7 @@
    "id": "DM-ACU-ROUTE-25C",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child with diabetes, dehydrated or smelling of acetone, with normal blood ketones: fluids and same-day review; recheck ketones if it persists",
+   "title": "A child with diabetes, dehydrated or smelling of acetone, with normal blood ketones: same-day review by the paediatric or diabetes team; recheck ketones if it persists",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -5059,6 +5081,113 @@
     "notWhen": [
      "sus_paed_range_known"
     ]
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-05",
+   "family": "DM-SUS-PAED",
+   "lane": "suspect",
+   "title": "A child with a fasting capillary glucose of 7.0 or more: refer today as suspected diabetes",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.capillary_glucose_context (no CFC concept yet)",
+    "obs.glucose"
+   ],
+   "predicate": "catalog.rule:sus_paed_fcap",
+   "params": {
+    "dx-fpg": "REF-DM-DX-FPG"
+   },
+   "minTrust": 2,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-30"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_paed_fcap_known"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-32B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "A child with diabetes who is vomiting: sick-day review today, even with a normal glucose and ketones",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sx.vomiting",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_paed_vomit_review",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "section": "Executive summary / key principles",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-49"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "review",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
    }
   },
   {
@@ -8260,7 +8389,8 @@
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "ncd.acute_illness_current (no CFC concept yet)",
     "sx.vomiting",
-    "sign.dehydration"
+    "sign.dehydration",
+    "ncd.acute_kidney_injury (no CFC concept yet)"
    ],
    "predicate": "catalog.therapyFlag:metformin_during_acute_illness",
    "params": {},
@@ -8439,7 +8569,8 @@
     "ncd.acute_illness_current (no CFC concept yet)",
     "sx.vomiting",
     "sx.abdominal_pain",
-    "sign.dehydration"
+    "sign.dehydration",
+    "ncd.acute_kidney_injury (no CFC concept yet)"
    ],
    "predicate": "catalog.therapyFlag:sglt2_during_acute_illness",
    "params": {},
@@ -8530,6 +8661,41 @@
    "x": {
     "severity": "red",
     "action": "KDIGO (reproducing UK guidance): repeat within 24 hours if unexpected; assess in hospital if unwell or kidney function has fallen; at 6.5 or more act at once. Review today with the prescriber.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-FLAG-RAS-BLOCKER-OR-STATIN-PREGNANCY-POSSIBLE",
+   "family": "DM-ACT-THERAPY",
+   "lane": "act",
+   "title": "Pregnancy possible (the platform's answer), on an ACE inhibitor, an ARB or a statin",
+   "appliesTo": {
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.pregnancy_possible (no CFC concept yet)",
+    "ncd.ras_blocker (no CFC concept yet)",
+    "ncd.on_statin (no CFC concept yet)"
+   ],
+   "predicate": "catalog.therapyFlag:ras_blocker_or_statin_pregnancy_possible",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "flag"
+   ],
+   "citations": [
+    {
+     "source": "10. Cardiovascular Disease and Risk Management: Standards of Care in Diabetes—2026",
+     "section": "Recommendation 10.12",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader",
+     "verifiedOn": "2026-10-03",
+     "claim": "A5-14"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "severity": "amber",
+    "action": "Avoided in women who could conceive and are not using reliable contraception. Discuss pregnancy plans and contraception.",
     "restrictedClasses": []
    }
   },

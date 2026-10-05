@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1070,7 +1070,8 @@
       "verified": true,
       "ref": "REF-DM-HYPO-L1"
      }
-    }
+    },
+    "all": []
    },
    "posterior": "high",
    "urgency": "immediate",
@@ -1111,7 +1112,9 @@
      "J08",
      "J09",
      "K04",
-     "L11"
+     "L11",
+     "U01",
+     "U13"
     ],
     "notWhen": [
      {
@@ -1175,7 +1178,8 @@
         "verified": true,
         "ref": "REF-DM-HYPO-L2"
        }
-      }
+      },
+      "all": []
      },
      {
       "id": "acu_hypo_l1_list_clear",
@@ -1203,8 +1207,12 @@
        },
        {
         "feature": "dm_type_recorded",
-        "op": "!=",
-        "value": "type_1"
+        "op": "in",
+        "value": [
+         "type_2",
+         "gestational",
+         "other"
+        ]
        }
       ],
       "citation": {
@@ -1222,7 +1230,8 @@
         "verified": true,
         "ref": "REF-DM-HYPO-L1"
        }
-      }
+      },
+      "any": []
      }
     ],
     "interruptRank": 3,
@@ -3492,6 +3501,10 @@
       "feature": "glucose_meter_extreme",
       "op": "==",
       "value": "hi"
+     },
+     {
+      "feature": "acetone_breath",
+      "op": "present"
      }
     ],
     "atLeast": {
@@ -3658,7 +3671,8 @@
      "J03",
      "K06",
      "L01",
-     "L04"
+     "L04",
+     "U01"
     ],
     "notWhen": [
      {
@@ -3718,19 +3732,11 @@
       }
      },
      {
-      "id": "acu_ketones_mid_signs",
-      "label": "Deep breathing, acetone, dehydration or drowsiness (an interrupting rule applies)",
+      "id": "-21_interrupt_signs",
+      "label": "Deep breathing or drowsiness (an interrupting rule applies)",
       "any": [
        {
         "feature": "deep_rapid_breathing",
-        "op": "present"
-       },
-       {
-        "feature": "acetone_breath",
-        "op": "present"
-       },
-       {
-        "feature": "dehydration",
         "op": "present"
        },
        {
@@ -4471,8 +4477,12 @@
     "all": [
      {
       "feature": "dm_type_recorded",
-      "op": "!=",
-      "value": "type_1"
+      "op": "in",
+      "value": [
+       "type_2",
+       "gestational",
+       "other"
+      ]
      },
      {
       "feature": "glucose_lowering_therapy",
@@ -4656,7 +4666,9 @@
      "J08",
      "K04",
      "L11",
-     "L25"
+     "L25",
+     "U01",
+     "U13"
     ],
     "notWhen": [
      {
@@ -4720,7 +4732,8 @@
         "verified": true,
         "ref": "REF-DM-HYPO-L2"
        }
-      }
+      },
+      "all": []
      },
      {
       "id": "acu_hypo_other_drowsy",
@@ -4751,7 +4764,8 @@
         "verified": true,
         "ref": "REF-DM-HYPO-L3"
        }
-      }
+      },
+      "any": []
      }
     ],
     "restrictedClasses": [],
@@ -5914,6 +5928,10 @@
       "feature": "glucose_meter_extreme",
       "op": "==",
       "value": "hi"
+     },
+     {
+      "feature": "acetone_breath",
+      "op": "present"
      }
     ],
     "atLeast": {
@@ -6075,7 +6093,45 @@
     "review": [
      "K06",
      "L01",
-     "L04"
+     "L04",
+     "U01"
+    ],
+    "notWhen": [
+     {
+      "id": "21b_interrupt_signs",
+      "label": "Deep breathing or drowsiness (an interrupting rule applies)",
+      "any": [
+       {
+        "feature": "deep_rapid_breathing",
+        "op": "present"
+       },
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-40",
+        "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACU-REFER-ALL"
+       }
+      }
+     }
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -6890,7 +6946,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-28D",
-   "display": "Pregnant or within 6 weeks of birth and drowsy, with no blood pressure recorded: blood pressure and glucose now",
+   "display": "Pregnant or within 6 weeks of birth and drowsy: route now. Blood pressure and glucose now if not already recorded (eclampsia, hypoglycaemia)",
    "condition": "pre_eclampsia",
    "when": {
     "id": "acu_preg_drowsy_nobp",
@@ -6980,44 +7036,16 @@
      "Q05",
      "T02",
      "T18",
-     "T21"
+     "T21",
+     "U18",
+     "U22"
     ],
-    "notWhen": [
-     {
-      "id": "acu_preg_drowsy_bp_done",
-      "label": "A blood pressure is recorded at this visit (rules 28 and 28C read it)",
-      "any": [
-       {
-        "feature": "bp_systolic",
-        "op": "recorded"
-       },
-       {
-        "feature": "bp_diastolic",
-        "op": "recorded"
-       }
-      ],
-      "citation": {
-       "standard": "local",
-       "version": "2023",
-       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
-       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
-       "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
-       "retrieved": "2026-10-05",
-       "csoSigned": false,
-       "x": {
-        "claim": "UCG-PE-02",
-        "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
-        "bodyProposed": "UG-MOH",
-        "verified": true
-       }
-      }
-     }
-    ],
+    "notWhen": [],
     "interruptRank": 22,
     "pregnancyUnknownCounts": true,
     "unknownDisplays": {
-     "pregnant": "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: blood pressure and glucose now",
-     "postpartum_weeks": "The weeks since a birth are not recorded: ask now. If within 6 weeks of birth: blood pressure and glucose now"
+     "pregnant": "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: route now. Blood pressure and glucose now if not already recorded (eclampsia, hypoglycaemia)",
+     "postpartum_weeks": "The weeks since a birth are not recorded: ask now. If within 6 weeks of birth: route now. Blood pressure and glucose now if not already recorded (eclampsia, hypoglycaemia)"
     },
     "restrictedClasses": [],
     "runWhen": "always"
@@ -7120,25 +7148,14 @@
      "T08",
      "T02",
      "T18",
-     "T21"
+     "T21",
+     "U03"
     ],
     "notWhen": [
      {
-      "id": "acu_preg_bp_sympt_sev",
-      "label": "Systolic 160 mmHg or more or diastolic 110 mmHg or more, or organ-damage signs (rules 28 and 28B interrupt)",
-      "any": [
-       {
-        "feature": "bp_systolic",
-        "op": ">=",
-        "value": 160,
-        "unit": "mmHg"
-       },
-       {
-        "feature": "bp_diastolic",
-        "op": ">=",
-        "value": 110,
-        "unit": "mmHg"
-       },
+      "id": "acu_preg_bp_sympt_organ",
+      "label": "Organ-damage signs (rule 28B interrupts)",
+      "all": [
        {
         "feature": "hypertensive_organ_damage",
         "op": "present"
@@ -7156,8 +7173,7 @@
         "claim": "UCG-PE-02",
         "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
         "bodyProposed": "UG-MOH",
-        "verified": true,
-        "ref": "REF-DM-PREG-BP-SEVERE-SBP"
+        "verified": true
        }
       }
      }
@@ -7174,7 +7190,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-24B",
-   "display": "Diabetes on insulin or an SGLT2 inhibitor, type 1, or medicines not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
+   "display": "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
    "condition": "dka",
    "when": {
     "id": "acu_t1_acetone",
@@ -7270,7 +7286,8 @@
       "verified": true,
       "ref": "REF-DM-ACU-DKA-GLU"
      }
-    }
+    },
+    "all": []
    },
    "posterior": "high",
    "urgency": "immediate",
@@ -7312,7 +7329,9 @@
     },
     "review": [
      "Q09",
-     "T04"
+     "T04",
+     "U01",
+     "U13"
     ],
     "notWhen": [
      {
@@ -7341,7 +7360,8 @@
         "verified": true,
         "ref": "REF-DM-ACU-KETONE-LOW"
        }
-      }
+      },
+      "any": []
      },
      {
       "id": "acu_t1_acetone_list_clear",
@@ -7359,8 +7379,12 @@
        },
        {
         "feature": "dm_type_recorded",
-        "op": "!=",
-        "value": "type_1"
+        "op": "in",
+        "value": [
+         "type_2",
+         "gestational",
+         "other"
+        ]
        }
       ],
       "citation": {
@@ -7378,7 +7402,8 @@
         "verified": true,
         "ref": "REF-DM-ACU-DKA-GLU"
        }
-      }
+      },
+      "any": []
      }
     ],
     "interruptRank": 19,
@@ -7626,7 +7651,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-23D",
-   "display": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now, repeat in 2 hours, and refer if vomiting continues or ketones rise",
+   "display": "Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise",
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick_district",
@@ -7707,7 +7732,8 @@
      "tier": "now"
     },
     "review": [
-     "Q12"
+     "Q12",
+     "U02"
     ],
     "unlessCapability": "lab.ketones_blood",
     "notWhen": [
@@ -7743,32 +7769,6 @@
          "stupor",
          "coma"
         ]
-       }
-      ],
-      "citation": {
-       "standard": "local",
-       "version": "2022 (Phelan H et al.)",
-       "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
-       "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
-       "quote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] Monitoring blood ketones is preferred over urine ketones.",
-       "retrieved": "2026-10-03",
-       "csoSigned": false,
-       "x": {
-        "claim": "A9-49",
-        "section": "Executive summary / key principles",
-        "bodyProposed": "ISPAD",
-        "verified": true,
-        "ref": "REF-DM-ACU-SICKDAY-INSULIN"
-       }
-      }
-     },
-     {
-      "id": "acu_insulin_sick_district_done",
-      "label": "A urine ketone result is recorded (repeat it in 2 hours)",
-      "any": [
-       {
-        "feature": "urine_ketones",
-        "op": "recorded"
        }
       ],
       "citation": {
@@ -7973,7 +7973,7 @@
     "notWhen": [
      {
       "id": "acu_ill_high_vomit",
-      "label": "Vomiting, raised ketones or a sign (rule 34 or an interrupting rule applies)",
+      "label": "Vomiting, blood ketones 0.6 mmol/L or more, urine 2+, or a sign (rule 34 or an interrupting rule applies)",
       "any": [
        {
         "feature": "vomiting",
@@ -8039,7 +8039,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-28E",
-   "display": "Pregnant or within 6 weeks of birth with organ-damage signs and no blood pressure recorded: blood pressure now; severe pre-eclampsia until proved otherwise. Route now",
+   "display": "Pregnant or within 6 weeks of birth, with confusion, seizures, visual loss, breathlessness or little urine: route now; measure blood pressure",
    "condition": "pre_eclampsia",
    "when": {
     "id": "acu_preg_organ_nobp",
@@ -8120,20 +8120,25 @@
      "T01",
      "T02",
      "T18",
-     "T21"
+     "T21",
+     "U18"
     ],
     "notWhen": [
      {
-      "id": "acu_preg_organ_bp_done",
-      "label": "A blood pressure is recorded at this visit (rule 28B reads it)",
+      "id": "acu_preg_organ_r28b",
+      "label": "Systolic 140 mmHg or more or diastolic 90 mmHg or more (rule 28B interrupts)",
       "any": [
        {
         "feature": "bp_systolic",
-        "op": "recorded"
+        "op": ">=",
+        "value": 140,
+        "unit": "mmHg"
        },
        {
         "feature": "bp_diastolic",
-        "op": "recorded"
+        "op": ">=",
+        "value": 90,
+        "unit": "mmHg"
        }
       ],
       "citation": {
@@ -8141,22 +8146,23 @@
        "version": "2023",
        "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
        "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
-       "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+       "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
        "retrieved": "2026-10-05",
        "csoSigned": false,
        "x": {
-        "claim": "UCG-PE-02",
+        "claim": "UCG-PE-01",
         "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
         "bodyProposed": "UG-MOH",
-        "verified": true
+        "verified": true,
+        "ref": "REF-DM-PREG-BP-SBP"
        }
       }
      }
     ],
     "pregnancyUnknownCounts": true,
     "unknownDisplays": {
-     "pregnant": "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: blood pressure now; severe pre-eclampsia until proved otherwise. Route now",
-     "postpartum_weeks": "The weeks since a birth are not recorded: ask now. If within 6 weeks of birth: blood pressure now; severe pre-eclampsia until proved otherwise. Route now"
+     "pregnant": "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: route now; measure blood pressure",
+     "postpartum_weeks": "The weeks since a birth are not recorded: ask now. If within 6 weeks of birth: route now; measure blood pressure"
     },
     "interruptRank": 6,
     "restrictedClasses": [],
@@ -8165,7 +8171,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-13B",
-   "display": "Diabetes with acetone on the breath or dehydration and no ketone result: ketones today",
+   "display": "Diabetes with acetone on the breath or dehydration: blood ketones today; a urine strip or a ketone below 1.6 does not settle it unless blood ketones are below 0.6",
    "condition": "dka",
    "when": {
     "id": "acu_dm_acetone_test",
@@ -8299,43 +8305,56 @@
      "tier": "today"
     },
     "review": [
-     "T04"
+     "T04",
+     "U01"
     ],
     "notWhen": [
      {
-      "id": "acu_dm_acetone_test_done",
-      "label": "A ketone result is recorded (the ketone rules read it)",
-      "any": [
-       {
-        "feature": "urine_ketones",
-        "op": "recorded"
-       },
+      "id": "acu_dm_acetone_bohb_normal",
+      "label": "Blood ketones below 0.6 mmol/L (normal)",
+      "all": [
        {
         "feature": "bohb",
-        "op": "recorded"
+        "op": "<",
+        "value": 0.6,
+        "unit": "mmol/L"
        }
       ],
       "citation": {
-       "standard": "ADA",
-       "version": "Standards of Care in Diabetes—2026",
-       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
-       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
-       "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+       "standard": "local",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
        "retrieved": "2026-10-03",
        "csoSigned": false,
        "x": {
-        "claim": "A4-64",
-        "section": "Narrative 'Intercurrent Illness'",
-        "bodyProposed": "ADA",
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
         "verified": true,
-        "ref": "REF-DM-RX-SICKDAY-HOLD"
+        "ref": "REF-DM-ACU-KETONE-LOW"
        }
       }
      },
      {
-      "id": "acu_dm_acetone_test_signs",
-      "label": "Deep breathing or drowsiness (an interrupting rule applies)",
+      "id": "acu_dm_acetone_raised",
+      "label": "Blood ketones 1.6 mmol/L or more, urine 2+, deep breathing or drowsiness (the ketoacidosis rules apply)",
       "any": [
+       {
+        "feature": "bohb",
+        "op": ">=",
+        "value": 1.6,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "urine_ketones",
+        "op": "in",
+        "value": [
+         "2plus",
+         "3plus"
+        ]
+       },
        {
         "feature": "deep_rapid_breathing",
         "op": "present"
@@ -8351,19 +8370,19 @@
        }
       ],
       "citation": {
-       "standard": "WHO",
-       "version": "2020 (WHO/UCN/NCD/20.1)",
-       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
-       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
-       "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+       "standard": "local",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
        "retrieved": "2026-10-03",
        "csoSigned": false,
        "x": {
-        "claim": "A2-40",
-        "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
-        "bodyProposed": "WHO",
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
         "verified": true,
-        "ref": "REF-DM-ACU-REFER-ALL"
+        "ref": "REF-DM-ACU-KETONE-RISK"
        }
       }
      }
@@ -8374,7 +8393,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-25C",
-   "display": "A child with diabetes, dehydrated or smelling of acetone, with normal blood ketones: fluids and same-day review; recheck ketones if it persists",
+   "display": "A child with diabetes, dehydrated or smelling of acetone, with normal blood ketones: same-day review by the paediatric or diabetes team; recheck ketones if it persists",
    "condition": "dka",
    "when": {
     "id": "acu_paed_acetone_normal",
@@ -8517,6 +8536,146 @@
     },
     "review": [
      "T05"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-32B",
+   "display": "A child with diabetes who is vomiting: sick-day review today, even with a normal glucose and ketones",
+   "condition": "dka",
+   "when": {
+    "id": "acu_paed_vomit_review",
+    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), vomiting",
+    "all": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2022 (Phelan H et al.)",
+     "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "quote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] Monitoring blood ketones is preferred over urine ketones.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-49",
+      "section": "Executive summary / key principles",
+      "bodyProposed": "ISPAD",
+      "verified": true,
+      "ref": "REF-DM-ACU-SICKDAY-INSULIN"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2022 (Phelan H et al.)",
+    "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+    "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+    "quote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] Monitoring blood ketones is preferred over urine ketones.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-49",
+     "section": "Executive summary / key principles",
+     "bodyProposed": "ISPAD",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "ISPAD sick-day rules: glucose and ketones often, never stop insulin, seek advice early; a child who is vomiting cannot be relied on to keep fluids or food down.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "review",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "review": [
+     "U08"
     ],
     "restrictedClasses": [],
     "runWhen": "always"

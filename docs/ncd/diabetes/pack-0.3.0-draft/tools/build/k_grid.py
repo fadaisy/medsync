@@ -49,7 +49,8 @@ def floor(band, prof, state, glu, ket):
             or (ket == "b2.0" and (dm or glu in HIGH))
             or (prof in ("T1_ins", "ins_nostatus", "T1_nostatus") and state == "vomit" and ket == "none")
             or (glu == "28" and ket == "none")
-            or (dm and state in ("acetone", "dehydrated") and ket == "none")
+            or (dm and state in ("acetone", "dehydrated") and ket != "b0.3")
+            or (child and dm and state == "vomit")
             or (child and dm and state in ("acetone", "dehydrated") and ket == "b0.3")):
         return "same_day"
     return None
@@ -57,7 +58,7 @@ def floor(band, prof, state, glu, ket):
 # Women of 30 with no diabetes: pregnancy and postpartum blood pressure (seventh review, Q01, Q05, Q06, Q10).
 PREG = {"pregnant": {"pregnant": True, "gestation_weeks": 30}, "pp2": {"pregnant": False, "postpartum_weeks": 2}, "unknown": {},
         "notpreg_ppblank": {"pregnant": False}, "notpreg_notpp": {"pregnant": False, "postpartum_weeks": 30}}
-BP = {"none": {}, "145/95": {"bp_systolic": 145, "bp_diastolic": 95}, "165/112": {"bp_systolic": 165, "bp_diastolic": 112}}
+BP = {"none": {}, "118/76": {"bp_systolic": 118, "bp_diastolic": 76}, "145/95": {"bp_systolic": 145, "bp_diastolic": 95}, "165/112": {"bp_systolic": 165, "bp_diastolic": 112}}
 SYM = {"none": {}, "organ": {"hypertensive_organ_damage": True}, "drowsy": {"mental_status": "drowsy"}, "headache": {"hypertensive_symptoms": True}}
 PROTEIN = {"none": {}, "neg": {"urine_protein_strip": "neg"}, "1+": {"urine_protein_strip": "1plus"}}
 WGLU = {"none": {}, "6": {"capillary_glucose": 6.0}}
@@ -67,7 +68,8 @@ PREG_RULES = {"DM-ACU-ROUTE-27", "DM-ACU-ROUTE-27B", "DM-ACU-ROUTE-27C", "DM-ACU
 def women_floor(preg, bp, sym, glu):
     possible = preg in POSSIBLE
     if sym == "drowsy" and bp == "none" and (glu == "none" or possible): return "immediate"    # glucose now (15), or BP and glucose now (28D)
-    if possible and bp == "none" and sym == "organ": return "immediate"                       # 28E
+    if possible and bp in ("none", "118/76") and sym in ("organ", "drowsy"): return "immediate"   # 28D, 28E at any pressure (U18)
+    if possible and bp == "165/112" and sym in ("organ", "drowsy", "headache"): return "immediate" # never lower as the picture worsens (U03)
     if possible and bp == "145/95" and sym in ("organ", "drowsy", "headache"): return "immediate"   # 28B, 28C, 27D
     if preg in ("pregnant", "pp2") and bp == "165/112": return "immediate"                     # 28
     if possible and bp == "165/112": return "same_day"                                         # 28 on the unknown path asks the question (T18)

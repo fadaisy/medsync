@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1780,7 +1780,7 @@
      "severity": "low",
      "when": {
       "id": "hypo_base",
-      "label": "On insulin or a sulfonylurea",
+      "label": "On insulin or a sulfonylurea, no lows in the last year, and none of the factors above",
       "any": [
        {
         "feature": "glucose_lowering_therapy",
@@ -1818,7 +1818,14 @@
         "verified": true,
         "ref": "REF-DM-HYPO-RISK"
        }
-      }
+      },
+      "all": [
+       {
+        "feature": "hypo_worst_12m",
+        "op": "==",
+        "value": "none"
+       }
+      ]
      }
     }
    ],
@@ -2079,11 +2086,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "dm_status",
-    "op": "==",
-    "value": "known"
-   },
    "note": "WHO's surrogate where HbA1c is unavailable or unreliable. A value below 3.9 mmol/L is shown as LOW, never as 'at target'. WHO's clinical target is 'at or below' this value and its programme indicator is 'below' it; the band uses 'below' until D-DM-13 is decided. Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules.",
    "toneLabels": {
     "diagnostic": "Low",
@@ -2102,7 +2104,8 @@
      "F07",
      "F36",
      "F04",
-     "H06"
+     "H06",
+     "U10"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2155,11 +2158,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "dm_status",
-    "op": "==",
-    "value": "known"
-   },
    "toneLabels": {
     "diagnostic": "Low",
     "normal": "At target",
@@ -2177,7 +2175,8 @@
      "F07",
      "F36",
      "F04",
-     "H06"
+     "H06",
+     "U10"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2220,11 +2219,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "dm_status",
-    "op": "==",
-    "value": "known"
-   },
    "note": "WHO HEARTS-D. The live catalog already has the ADA table with the extra 150 mmHg band; both stand, chosen by site precedence. The table has no low band: a low pressure is owned by the vital-signs flags, and 'at target' here means only 'not above the treatment threshold'. Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules.",
    "toneLabels": {
     "normal": "Below the treatment threshold",
@@ -2239,7 +2233,8 @@
     "status": "new",
     "review": [
      "F04",
-     "H06"
+     "H06",
+     "U10"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2281,11 +2276,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "dm_status",
-    "op": "==",
-    "value": "known"
-   },
    "toneLabels": {
     "normal": "Below the treatment threshold",
     "intermediate": "Above target"
@@ -2299,7 +2289,8 @@
     "status": "new",
     "review": [
      "F04",
-     "H06"
+     "H06",
+     "U10"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2523,14 +2514,21 @@
    "version": "2020 (WHO/UCN/NCD/20.1)",
    "bands": [
     {
-     "code": "at_target",
-     "display": "Not above the upper limit",
+     "code": "below_range",
+     "display": "Below KDIGO's individualised range: review for over-treatment and lows",
+     "tone": "intermediate",
+     "to": 6.5
+    },
+    {
+     "code": "in_range",
+     "display": "Within KDIGO's individualised range (individualise within it)",
      "tone": "normal",
+     "from": 6.5,
      "to": 8.0
     },
     {
-     "code": "above_target",
-     "display": "Above target",
+     "code": "above_range",
+     "display": "Above the range",
      "tone": "intermediate",
      "from": 8.0
     }
@@ -2550,7 +2548,7 @@
      "verified": true
     }
    },
-   "note": "Read against the upper end of the CKD target range (below 8.0%).",
+   "note": "KDIGO 2022: an individualised HbA1c target from below 6.5% to below 8.0% in diabetes with CKD.",
    "toneLabels": {
     "normal": "Not above the upper limit",
     "intermediate": "Above target"
@@ -2559,11 +2557,13 @@
     "lane": "stratify",
     "family": "DM-STR-CTRL",
     "refs": [
+     "REF-DM-CTRL-CKD-LOW",
      "REF-DM-CTRL-CKD-HIGH"
     ],
     "status": "new",
     "review": [
-     "T06"
+     "T06",
+     "U14"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -2670,9 +2670,16 @@
      "kind": "test.order",
      "test": "vitamin_b12_if_on_metformin"
     },
+    "review": [
+     "U07"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
   },
   {
    "id": "DM-STR-NEURO-02",
@@ -2750,13 +2757,7 @@
    "when": {
     "id": "neuro_autonomic",
     "label": "Known diabetes, with any of: systolic fall above 20 mmHg on standing, diastolic fall above 10 mmHg, pulse above 100 (measured at rest)",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "postural_sbp_fall",
@@ -2792,6 +2793,72 @@
       "verified": true,
       "ref": "REF-DM-NEU-OH-SBP"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "posterior": "low",
@@ -2829,11 +2896,17 @@
     "lane": "stratify",
     "family": "DM-STR-NEURO",
     "review": [
-     "F35"
+     "F35",
+     "U07",
+     "U10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
   },
   {
    "id": "DM-STR-CKD-01",
@@ -2922,11 +2995,6 @@
     "label": "Known diabetes, on recurrent or long-term systemic steroids",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "on_glucocorticoid",
       "op": "present"
      }
@@ -2946,6 +3014,72 @@
       "verified": true,
       "ref": "REF-DM-SUS-STEROID"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "posterior": "moderate",
@@ -2981,11 +3115,17 @@
      "what": "glucose_after_meals"
     },
     "review": [
-     "F27"
+     "F27",
+     "U07",
+     "U10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
   }
  ],
  "targetsProposed": [
@@ -3115,7 +3255,8 @@
      "K13",
      "L09",
      "T06",
-     "T10"
+     "T10",
+     "U06"
     ],
     "ages": "adult",
     "notWhen": [
@@ -3229,6 +3370,33 @@
         "feature": "glucose_lowering_therapy",
         "op": "==",
         "value": "glimepiride"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_hba1c_general_avoid",
+      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
        }
       ],
       "citation": {
@@ -3577,14 +3745,45 @@
     "review": [
      "F10",
      "F04",
-     "T10"
+     "T10",
+     "U06"
     ],
     "restrictedReason": "On TB treatment with markedly raised glucose (WHO TB handbook).",
     "ages": "adult",
     "supersedes": [
      "tgt_hba1c_general",
      "tgt_hba1c_older_healthy",
-     "tgt_hba1c_tight"
+     "tgt_hba1c_tight",
+     "tgt_hba1c_ckd"
+    ],
+    "notWhen": [
+     {
+      "id": "tgt_hba1c_tb_avoid",
+      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     }
     ],
     "restrictedClasses": [
      "tb"
@@ -3723,7 +3922,8 @@
      "F04",
      "H14",
      "J12",
-     "T10"
+     "T10",
+     "U06"
     ],
     "ages": "adult",
     "notWhen": [
@@ -3801,6 +4001,33 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-TARGET"
+       }
+      }
+     },
+     {
+      "id": "tgt_hba1c_older_healthy_avoid",
+      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
        }
       }
      }
@@ -3946,7 +4173,8 @@
      "V4",
      "F04",
      "Q27",
-     "T10"
+     "T10",
+     "U06"
     ],
     "notWhen": [
      {
@@ -3956,6 +4184,64 @@
        {
         "feature": "on_dialysis",
         "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "KDIGO",
+       "version": "2022 (Kidney Int 2022;102(5S):S1-S127)",
+       "title": "KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease",
+       "url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
+       "quote": "We recommend an individualized HbA1c target ranging from <6.5% to <8.0% in patients with diabetes and CKD not treated with dialysis (1C).",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A6-38",
+        "section": "Recommendation 2.2.1 (1C); Practice Points 2.2.1, 2.2.2",
+        "bodyProposed": "KDIGO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-CKD-HIGH"
+       }
+      }
+     },
+     {
+      "id": "tgt_hba1c_ckd_avoid",
+      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_hba1c_ckd_tier",
+      "label": "A tier other than 'general' is already agreed (the agreed target applies)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "relaxed",
+         "tight",
+         "avoid_symptoms"
+        ]
        }
       ],
       "citation": {
@@ -4493,7 +4779,8 @@
     "review": [
      "L09",
      "Q11",
-     "T10"
+     "T10",
+     "U06"
     ],
     "ages": "adult",
     "notWhen": [
@@ -4581,6 +4868,33 @@
         "bodyProposed": "ADA",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-TIGHT"
+       }
+      }
+     },
+     {
+      "id": "tgt_hba1c_tight_avoid",
+      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
        }
       }
      }

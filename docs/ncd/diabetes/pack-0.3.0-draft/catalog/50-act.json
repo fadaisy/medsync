@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -7218,7 +7218,8 @@
     "review": [
      "H13",
      "J23",
-     "T10"
+     "T10",
+     "U06"
     ],
     "notWhen": [
      {
@@ -7235,6 +7236,50 @@
         "op": "<",
         "value": 8.0,
         "unit": "%"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "ref_target_ins_relax",
+      "label": "'Avoid symptoms' agreed, or a reason to relax (frailty, cognitive impairment, a significant low in the last year)",
+      "any": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
+       },
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       },
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
        }
       ],
       "citation": {
@@ -8291,7 +8336,7 @@
    "severity": "amber",
    "when": {
     "id": "metformin_ill",
-    "label": "On metformin, with any of: acutely unwell, vomiting, dehydration",
+    "label": "On metformin, with any of: acutely unwell, vomiting, dehydration or acute kidney injury",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
@@ -8310,6 +8355,10 @@
      },
      {
       "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "acute_kidney_injury",
       "op": "present"
      }
     ],
@@ -8353,7 +8402,8 @@
     "review": [
      "F23",
      "F04",
-     "T05"
+     "T05",
+     "U16"
     ],
     "ages": "adult",
     "restrictedClasses": []
@@ -8675,7 +8725,7 @@
    "severity": "red",
    "when": {
     "id": "sglt2_ill",
-    "label": "On an SGLT2 inhibitor, with any of: acutely unwell, vomiting, abdominal pain, dehydration",
+    "label": "On an SGLT2 inhibitor, with any of: acutely unwell, vomiting, abdominal pain, dehydration or acute kidney injury",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
@@ -8698,6 +8748,10 @@
      },
      {
       "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "acute_kidney_injury",
       "op": "present"
      }
     ],
@@ -8742,7 +8796,8 @@
      "F23",
      "F04",
      "H01",
-     "J03"
+     "J03",
+     "U16"
     ],
     "ages": "any",
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
@@ -8912,6 +8967,107 @@
     ],
     "ages": "any",
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "ras_blocker_or_statin_pregnancy_possible",
+   "display": "Pregnancy possible (the platform's answer), on an ACE inhibitor, an ARB or a statin",
+   "severity": "amber",
+   "when": {
+    "id": "ras_statin_possible",
+    "label": "Pregnancy possible, on an ACE inhibitor, an ARB or a statin",
+    "all": [
+     {
+      "feature": "pregnancy_possible",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "ras_blocker",
+      "op": "in",
+      "value": [
+       "acei",
+       "arb",
+       "both"
+      ]
+     },
+     {
+      "feature": "on_statin",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes—2026",
+     "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+     "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A4-64",
+      "section": "Narrative 'Intercurrent Illness'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-RX-SICKDAY-HOLD"
+     }
+    }
+   },
+   "action": "Avoided in women who could conceive and are not using reliable contraception. Discuss pregnancy plans and contraception.",
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl. 1):S216–S245; doi 10.2337/dc26-S010)",
+    "title": "10. Cardiovascular Disease and Risk Management: Standards of Care in Diabetes—2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader",
+    "quote": "10.12 In sexually active individuals of childbearing potential who are not using reliable contraception, avoid ACE inhibitors, ARBs, MRAs, direct renin inhibitors, and neprilysin inhibitors, as they are contraindicated in pregnancy. A",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A5-14",
+     "section": "Recommendation 10.12",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-THERAPY",
+    "status": "new",
+    "review": [
+     "U15"
+    ],
+    "notWhen": [
+     {
+      "id": "ras_statin_possible_answered",
+      "label": "'Could become pregnant' is answered (the other flag decides)",
+      "any": [
+       {
+        "feature": "could_conceive",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-64",
+        "section": "Narrative 'Intercurrent Illness'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-RX-SICKDAY-HOLD"
+       }
+      }
+     }
+    ],
+    "neutralDisplay": null,
+    "neutralAction": null,
     "restrictedClasses": []
    }
   }

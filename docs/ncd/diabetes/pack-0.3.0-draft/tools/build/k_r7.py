@@ -148,7 +148,7 @@ drule("DM-ACU-ROUTE-34B", "Diabetes, acutely unwell, glucose 18 or more: same-da
                   all=[P("acute_illness_current")], any=GLU("REF-DM-ACU-KETONE-TEST-GLU") + [HI()], atLeast=(1, DM_ANY()), ref_id="REF-DM-ACU-KETONE-TEST-GLU"),
       "moderate", "same_day", ["urine_ketones", "bohb", "sodium", "urea"], ["Infection", "Steroid-induced hyperglycaemia"], "A9-48", "DM-ACU-ROUTE", lane="acute_route",
       proposal={"kind": "review", "to": "clinician", "tier": "today"})
-last("rules", "Q15")["x"]["notWhen"] = [crit("acu_ill_high_vomit", "Vomiting, raised ketones or a sign (rule 34 or an interrupting rule applies)",
+last("rules", "Q15")["x"]["notWhen"] = [crit("acu_ill_high_vomit", "Vomiting, blood ketones 0.6 mmol/L or more, urine 2+, or a sign (rule 34 or an interrupting rule applies)",
                                              any=[P("vomiting"), P("bohb", ">=", ref="REF-DM-ACU-KETONE-LOW"), KET2()] + SIGNS(), ref_id="REF-DM-ACU-KETONE-LOW")]
 
 # ── displays (Q18 to Q20, Q24, Q26) ────────────────────────────────────────

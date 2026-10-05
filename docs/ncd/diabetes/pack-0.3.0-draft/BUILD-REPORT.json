@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -19,7 +19,7 @@
   "features": {
    "reuse": 50,
    "reconcile": 45,
-   "new": 99
+   "new": 100
   },
   "catalog": {
    "capabilities": 25,
@@ -31,17 +31,17 @@
    "complication_amendments": 13,
    "validityCaveats": 27,
    "riskModels": 2,
-   "therapyFlags": 19,
+   "therapyFlags": 20,
    "interpretation": 13,
    "orderables": 19,
    "management": 60,
    "conditions": 23,
-   "rules": 92,
+   "rules": 94,
    "designb_extra": 23,
    "targets": 9
   },
-  "criteria": 375,
-  "designBRules": 225,
+  "criteria": 386,
+  "designBRules": 228,
   "designBFamilies": 32,
   "clerking": {
    "profiles": 15,
@@ -82,29 +82,27 @@
    "vignettes": 34
   },
   "review": {
-   "findings": 269,
+   "findings": 295,
    "byStatus": {
-    "fixed": 202,
+    "fixed": 225,
     "fixed_in_part": 31,
-    "cso_decision": 7,
-    "phase_0": 20,
+    "cso_decision": 8,
+    "phase_0": 22,
     "no_change": 9
    }
   },
   "refsUsedByARule": 123,
-  "vignettes": 135,
+  "vignettes": 141,
   "acuteGrid": {
    "men": 21504,
-   "women": 360,
+   "women": 480,
    "silent": 0,
    "noisy": 0,
    "order": 0
   },
   "errors": 0,
-  "warnings": 1
+  "warnings": 0
  },
  "errors": [],
- "warnings": [
-  "rules.DM-ACU-ROUTE-34B.notWhen.acu_ill_high_vomit: label does not state 0.6 (bohb >=)"
- ]
+ "warnings": []
 }

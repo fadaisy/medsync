@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.5-draft",
+  "version": "0.3.6-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -694,11 +694,16 @@
      "review": "type"
     },
     "review": [
-     "F35"
+     "F35",
+     "U07"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
   },
   {
    "id": "DM-CLS-MODY-01",
@@ -1294,11 +1299,6 @@
     "label": "Known diabetes with unexplained weight loss",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "unexplained_weight_loss",
       "op": "present"
      }
@@ -1317,6 +1317,72 @@
       "bodyProposed": "ADA",
       "verified": true
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "posterior": "moderate",
@@ -1362,7 +1428,8 @@
      "tier": "today"
     },
     "review": [
-     "F19"
+     "F19",
+     "U10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -1435,11 +1502,16 @@
      "test": "pancreas_imaging"
     },
     "review": [
-     "F35"
+     "F35",
+     "U07"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
-   }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ]
   }
  ]
 }
