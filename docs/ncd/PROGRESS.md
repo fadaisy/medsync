@@ -151,3 +151,4 @@ writer,service}.ts`, cron continuation, ADR 0213.
   import (`tests/ncdreg-db/requirements.test.ts`). Now 51/51 verified, with untested parts listed in the final report.
 - Generator hang fixed (see P3); performance gate and calibration gate run green (P3, P8).
 - Final re-run from a clean `.next` and the committed tree: see `FINAL-REPORT.md` §3.
+- 2026-10-06: migration 0093 applied by the owner (`npm run db:migrate`). Owner closed S15, S23, S24, S26 (register R-01 to R-04).

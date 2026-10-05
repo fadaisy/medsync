@@ -364,7 +364,7 @@ Everything else lives under `lib/ncdreg/`, `app/ncd/`, `app/ncd-offline/`, `test
 
 ## 9. Open sign-off register
 
-All 27 items in `docs/ncd/SIGNOFF-REGISTER.md` are **open**. Nothing was approved by this build.
+All 27 items in `docs/ncd/SIGNOFF-REGISTER.md` are **open**. Nothing was approved by this build. After the report (2026-10-06) the product owner closed S15, S23, S24 and S26 and migration 0093 was applied by the owner; the register is the live record.
 
 | #   | Item                                                                                                                                              | Owner                                                | Status |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------ |
