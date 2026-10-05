@@ -72,3 +72,9 @@ The access log of the registry (views, reveals, drill-downs, exports, signatures
 scenario patients, or a full clinic of about 1,284). Every screen then carries "Demo data is on. Nothing here is a real
 patient." **Turn off demo data** removes every demo patient and everything recorded against them; real records are not
 touched. Demo data cannot be turned on once the registry is approved for patient data.
+
+## Platform superadmin
+
+A superadmin account sees nothing in the registry by default. The database owner can give it a registry role at one
+hospital in the Supabase SQL editor (`ncd_staff_role`); it then works exactly like anyone else holding that role, at
+that hospital only. Revoking the row removes access.
