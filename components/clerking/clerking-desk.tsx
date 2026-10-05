@@ -396,7 +396,8 @@ function SignBar({
   blocks?: readonly string[];
   canSign: boolean;
   signing?: boolean;
-  complete: boolean;
+  /** "Complete visit" on an open visit; "Patient copy" on a closed one (ADR 0203), or nothing. */
+  complete: boolean | "copy";
   onSign?: () => void;
   onComplete?: () => void;
 }) {
@@ -434,7 +435,7 @@ function SignBar({
       ) : null}
       {complete ? (
         <Button variant="secondary" className={cn("min-h-11", PRESS)} onClick={onComplete}>
-          Complete visit
+          {complete === "copy" ? "Patient copy" : "Complete visit"}
         </Button>
       ) : null}
     </div>
@@ -904,7 +905,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       blocks={imp?.signBlocks ?? []}
       canSign={editable}
       signing={props.signing}
-      complete={p.encounter.open}
+      complete={p.encounter.open || (p.close?.summaryLive && !!p.close.closed ? "copy" : false)}
       onSign={on.onSign}
       onComplete={on.onComplete}
     />
@@ -1225,9 +1226,9 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         footer={
           phone ? (
             <>
-              {p.encounter.open ? (
+              {p.encounter.open || (p.close?.summaryLive && p.close.closed) ? (
                 <Button variant="secondary" className={PRESS} onClick={on.onComplete}>
-                  Complete visit
+                  {p.encounter.open ? "Complete visit" : "Patient copy"}
                 </Button>
               ) : null}
               {editable ? (

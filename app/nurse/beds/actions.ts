@@ -65,3 +65,33 @@ export async function nurseReleaseBed(
     ...(next ? { next_state: next } : {}),
   });
 }
+
+/* ─── admissions (ADR 0199): allocate from the waiting list, Arrived, cancel ─── */
+
+export async function nurseAllocateAdmissionBed(
+  _wardId: string,
+  admissionId: string,
+  bedId: string,
+): Promise<SimpleResult> {
+  if (!uuid.safeParse(admissionId).success || !uuid.safeParse(bedId).success)
+    return { ok: false, error: "Unknown admission or bed." };
+  return hub({ op: "allocate_admission_bed", admission_id: admissionId, bed_id: bedId });
+}
+
+export async function nurseConfirmArrival(
+  _wardId: string,
+  assignmentId: string,
+): Promise<SimpleResult> {
+  if (!uuid.safeParse(assignmentId).success) return { ok: false, error: "Unknown bed assignment." };
+  return hub({ op: "confirm_arrival", assignment_id: assignmentId });
+}
+
+export async function nurseReleaseAdmissionBed(
+  _wardId: string,
+  admissionId: string,
+  reason: string,
+  outcome: "wait" | "end",
+): Promise<SimpleResult> {
+  if (!uuid.safeParse(admissionId).success) return { ok: false, error: "Unknown admission." };
+  return hub({ op: "release_admission_bed", admission_id: admissionId, reason, outcome });
+}

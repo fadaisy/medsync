@@ -212,3 +212,56 @@ export async function adminReleaseBed(
   revalidatePath(`${HUB}/wards/${wardId}/board`);
   return { ok: true };
 }
+
+/* ─── admissions (ADR 0199): allocate from the waiting list, Arrived, cancel ─── */
+
+async function adminHub(wardId: string, body: Record<string, unknown>): Promise<SimpleResult> {
+  const s = await scope();
+  const r = await callEdge(
+    "ha-services-hub",
+    { ...body, hospital_id: s.hospitalId },
+    "hospital-admin.beds",
+  );
+  if (!r.ok) return { ok: false, error: r.error };
+  revalidatePath(`${HUB}/wards/${wardId}/board`);
+  return { ok: true };
+}
+
+export async function adminAllocateAdmissionBed(
+  wardId: string,
+  admissionId: string,
+  bedId: string,
+): Promise<SimpleResult> {
+  if (![wardId, admissionId, bedId].every((x) => uuid.safeParse(x).success))
+    return { ok: false, error: "Unknown admission or bed." };
+  return adminHub(wardId, {
+    op: "allocate_admission_bed",
+    admission_id: admissionId,
+    bed_id: bedId,
+  });
+}
+
+export async function adminConfirmArrival(
+  wardId: string,
+  assignmentId: string,
+): Promise<SimpleResult> {
+  if (!uuid.safeParse(wardId).success || !uuid.safeParse(assignmentId).success)
+    return { ok: false, error: "Unknown bed assignment." };
+  return adminHub(wardId, { op: "confirm_arrival", assignment_id: assignmentId });
+}
+
+export async function adminReleaseAdmissionBed(
+  wardId: string,
+  admissionId: string,
+  reason: string,
+  outcome: "wait" | "end",
+): Promise<SimpleResult> {
+  if (!uuid.safeParse(wardId).success || !uuid.safeParse(admissionId).success)
+    return { ok: false, error: "Unknown admission." };
+  return adminHub(wardId, {
+    op: "release_admission_bed",
+    admission_id: admissionId,
+    reason,
+    outcome,
+  });
+}

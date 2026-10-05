@@ -542,6 +542,8 @@ const STATE_PAINT: Record<
   { fill: string; stroke: string; text: string; dashed?: boolean }
 > = {
   occupied: { fill: "fill-teal-tint", stroke: "stroke-teal-700", text: "fill-teal-text" },
+  // ADR 0199: held for an admitted patient on the way; the card with a dashed teal edge.
+  arriving: { fill: "fill-card", stroke: "stroke-teal-700", text: "fill-teal-text", dashed: true },
   free: { fill: "fill-card", stroke: "stroke-ink-700", text: "fill-foreground" },
   cleaning: { fill: "fill-sky-tint", stroke: "stroke-sky-icon", text: "fill-sky-text" },
   reserved: { fill: "fill-ink-100", stroke: "stroke-ink-600", text: "fill-ink-700", dashed: true },

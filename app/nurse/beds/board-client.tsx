@@ -3,9 +3,23 @@
 import type { BoardData } from "@/lib/wards/board";
 
 import { BedBoard } from "@/components/wards/board/bed-board";
-import { nurseAssignBed, nurseReleaseBed, nurseSetBedState } from "./actions";
+import {
+  nurseAllocateAdmissionBed,
+  nurseAssignBed,
+  nurseConfirmArrival,
+  nurseReleaseAdmissionBed,
+  nurseReleaseBed,
+  nurseSetBedState,
+} from "./actions";
 
-const ACTIONS = { setState: nurseSetBedState, assign: nurseAssignBed, release: nurseReleaseBed };
+const ACTIONS = {
+  setState: nurseSetBedState,
+  assign: nurseAssignBed,
+  release: nurseReleaseBed,
+  allocate: nurseAllocateAdmissionBed,
+  confirmArrival: nurseConfirmArrival,
+  releaseAdmission: nurseReleaseAdmissionBed,
+};
 const LINKS = {
   crumbs: [{ label: "Nursing", href: "/nurse" }],
   board: (id: string) => `/nurse/beds?ward=${id}`,

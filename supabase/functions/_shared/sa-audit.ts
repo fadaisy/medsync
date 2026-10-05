@@ -169,7 +169,12 @@ export type SaAuditAction =
   | "publish_ward_layout"
   | "set_bed_state"
   | "assign_bed"
-  | "release_bed";
+  | "release_bed"
+  // 0091: admission with a bed
+  | "admit_patient"
+  | "allocate_bed"
+  | "confirm_arrival"
+  | "cancel_allocation";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

@@ -1,10 +1,13 @@
 import "server-only";
 
 import type { WardTab } from "./data";
+import type { BedWaitReason } from "@/db/schema/admissions";
 import type { BedState, RoomKind, WardLayout } from "@/supabase/functions/_shared/ward-layout";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
+import { admissions } from "@/db/schema/admissions";
 import { hospitalWards } from "@/db/schema/hospital-wards";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
@@ -19,10 +22,12 @@ import {
 import { roomOfBed } from "@/supabase/functions/_shared/ward-layout";
 import { openAssignments, wardTabs } from "./data";
 import { parseLayout } from "./layout-schema";
+import { arrivingTooLong, waitingFor } from "./waiting";
 
 /*
  * The live bed board's read (ADR 0194): the engine behind every occupancy figure. Occupied comes from
- * an open bed_assignments row, Out from the register, and Cleaning / Reserved / Free from the latest
+ * an open bed_assignments row (Arriving when it was made for an admission nobody has arrived for, ADR 0199),
+ * Out from the register, and Cleaning / Reserved / Free from the latest
  * bed_state_events row since the last assignment on that bed ended.
  */
 
@@ -41,6 +46,21 @@ export interface BoardBed {
   /** Only for viewers allowed to see it: the MRN, and the name for the ward's own staff. */
   patient: { name: string | null; mrn: string | null } | null;
   assignmentId: string | null;
+  /** Set when the bed was allocated for an admission (ADR 0199): an Arriving bed, or one it became. */
+  admissionId: string | null;
+  /** The admitting clinician of an Arriving bed; null for the doctor's picker (`patients: "none"`). */
+  admittedBy: string | null;
+}
+
+/** An admitted patient on the ward's waiting list (ADR 0198 §5, ADR 0200 §4). */
+export interface BoardWaiting {
+  admissionId: string;
+  patientUserId: string;
+  name: string | null;
+  mrn: string | null;
+  admittedBy: string | null;
+  decidedAt: string;
+  waitReason: BedWaitReason | null;
 }
 
 export interface BoardCandidate {
@@ -57,6 +77,10 @@ export interface BoardData {
   published: { version: number; publishedAt: string } | null;
   beds: BoardBed[];
   candidates: BoardCandidate[];
+  /** `awaiting_bed` admissions for this ward, oldest first; empty for `patients: "none"`. */
+  waiting: BoardWaiting[];
+  /** Beds held as Arriving longer than ARRIVING_ATTENTION_MS, longest first (ADR 0199 §6). */
+  needsAttention: BoardBed[];
 }
 
 const WAITING_INTAKE = ["arrived", "awaiting_triage", "triaged"];
@@ -115,7 +139,16 @@ export async function loadBedBoard(
     tabs,
   };
   const parsed = pub ? parseLayout(pub.document) : null;
-  if (!pub || !parsed?.ok) return { ...base, doc: null, published: null, beds: [], candidates: [] };
+  if (!pub || !parsed?.ok)
+    return {
+      ...base,
+      doc: null,
+      published: null,
+      beds: [],
+      candidates: [],
+      waiting: [],
+      needsAttention: [],
+    };
   const doc = parsed.doc;
   const ids = beds.map((b) => b.id);
   const [services, ended, latest] = ids.length
@@ -163,11 +196,49 @@ export async function loadBedBoard(
           )
       : [];
 
+  // The ward's open admissions without an arrival: the waiting list, and who admitted an Arriving bed.
+  // Never read for the doctor's picker (`patients: "none"`).
+  const clinician = alias(users, "admitting_clinician");
+  const admitted =
+    viewer.patients === "none"
+      ? []
+      : await db
+          .select({
+            admissionId: admissions.id,
+            status: admissions.status,
+            patientUserId: admissions.patientUserId,
+            name: users.fullName,
+            mrn: patientProfiles.patientCode,
+            admittedBy: clinician.fullName,
+            decidedAt: admissions.decidedAt,
+            waitReason: admissions.bedWaitReason,
+          })
+          .from(admissions)
+          .leftJoin(patientProfiles, eq(patientProfiles.id, admissions.patientUserId))
+          .leftJoin(users, eq(users.id, admissions.patientUserId))
+          .leftJoin(clinician, eq(clinician.id, admissions.decidedBy))
+          .where(
+            and(
+              eq(admissions.hospitalId, hospitalId),
+              eq(admissions.wardId, wardId),
+              inArray(admissions.status, ["awaiting_bed", "bed_allocated"]),
+            ),
+          )
+          .orderBy(asc(admissions.decidedAt))
+          .limit(100);
+
   const byBed = new Map(beds.map((b) => [b.id, b]));
   const stateOf = (bedId: string) => {
     const bed = byBed.get(bedId);
     const a = open.find((x) => x.bedId === bedId);
-    if (a) return { state: "occupied" as const, since: a.startedAt.toISOString(), reason: null, a };
+    if (a)
+      return {
+        // ADR 0199: allocated for an admission, nobody arrived yet.
+        state: a.admissionId && !a.arrivedAt ? ("arriving" as const) : ("occupied" as const),
+        since: a.startedAt.toISOString(),
+        reason: null,
+        a,
+      };
     if (!bed || bed.closedAt)
       return {
         state: "out" as const,
@@ -208,11 +279,16 @@ export async function loadBedBoard(
             ? { name: viewer.patients === "names" ? (p?.name ?? null) : null, mrn: p?.mrn ?? null }
             : null,
         assignmentId: s.a?.id ?? null,
+        admissionId: s.a?.admissionId ?? null,
+        admittedBy:
+          (s.a?.admissionId &&
+            admitted.find((x) => x.admissionId === s.a!.admissionId)?.admittedBy) ||
+          null,
       };
     });
 
   // Patients sent to this ward who have no bed yet (ADR 0194 §4).
-  const waiting =
+  const intakes =
     viewer.patients === "none"
       ? []
       : await db
@@ -233,13 +309,17 @@ export async function loadBedBoard(
               isNotNull(patientIntakes.patientUserId),
               sql`NOT EXISTS (SELECT 1 FROM public.bed_assignments a
                                WHERE a.patient_user_id = ${patientIntakes.patientUserId} AND a.ended_at IS NULL)`,
+              // An admitted patient is on the waiting list (or Arriving) instead (ADR 0200 §4).
+              sql`NOT EXISTS (SELECT 1 FROM public.admissions ad
+                               WHERE ad.patient_user_id = ${patientIntakes.patientUserId}
+                                 AND ad.status IN ('awaiting_bed', 'bed_allocated', 'arrived'))`,
             ),
           )
           .orderBy(asc(patientIntakes.arrivedAt))
           .limit(50);
   const seen = new Set<string>();
   const candidates: BoardCandidate[] = [];
-  for (const c of waiting) {
+  for (const c of intakes) {
     if (!c.patientUserId || seen.has(c.patientUserId)) continue;
     seen.add(c.patientUserId);
     candidates.push({
@@ -259,5 +339,10 @@ export async function loadBedBoard(
     },
     beds: boardBeds,
     candidates,
+    waiting: waitingFor(
+      admitted.filter((a) => a.status === "awaiting_bed"),
+      viewer.patients,
+    ),
+    needsAttention: arrivingTooLong(boardBeds, Date.now()),
   };
 }

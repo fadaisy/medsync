@@ -141,14 +141,24 @@ function Where({
               <div role="group" aria-label="Ward" className="flex flex-wrap gap-1.5">
                 {v.payload.wards.map((w) => (
                   <Toggle
-                    key={w}
-                    on={d.disposition?.ward === w}
+                    key={w.id}
+                    on={
+                      d.disposition?.wardId
+                        ? d.disposition.wardId === w.id
+                        : d.disposition?.ward === w.name
+                    }
                     disabled={!editable}
                     onPress={() =>
-                      onPlan((x) => ({ ...x, disposition: { kind: "admit", ward: w } }))
+                      onPlan((x) => ({
+                        ...x,
+                        disposition: { kind: "admit", ward: w.name, wardId: w.id },
+                      }))
                     }
                   >
-                    {w}
+                    {w.name}
+                    {w.counts ? (
+                      <span className="text-muted-foreground font-normal"> · {w.counts}</span>
+                    ) : null}
                   </Toggle>
                 ))}
               </div>

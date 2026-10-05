@@ -5,6 +5,9 @@
  *
  * Who: the layout ops need a hospital admin (or superadmin). The live ops also let the ward's in-charge
  * and the nurses assigned to the ward act (role "ward_staff", checked per ward in assertWardWorker).
+ *
+ * Admissions (0091, ADRs 0199–0200): ward staff allocate a bed to a patient on the waiting list, confirm
+ * Arrived, and cancel an allocation or end a wait. Each is one SQL function (one transaction, row locks).
  */
 import type { RegisterBed, WardLayout } from "../_shared/ward-layout.ts";
 import type { Ctx, OpHandler } from "./common.ts";
@@ -68,10 +71,26 @@ export const WardOpSchema = z.discriminatedUnion("op", [
     /** Where the bed goes next: to be cleaned, or straight back to free. */
     next_state: z.enum(["cleaning", "free"]).optional(),
   }),
+  z.object({ op: z.literal("allocate_admission_bed"), admission_id: uuid, bed_id: uuid, reason }),
+  z.object({ op: z.literal("confirm_arrival"), assignment_id: uuid, reason }),
+  z.object({
+    op: z.literal("release_admission_bed"),
+    admission_id: uuid,
+    reason: z.string().trim().min(3, "Say why, in a few words.").max(200),
+    /** Still needs a bed (back to the waiting list), or the admission ends. */
+    outcome: z.enum(["wait", "end"]),
+  }),
 ]);
 
 /** The live ops a ward's in-charge and assigned nurses may run (ADR 0194 §3). */
-export const WARD_STAFF_OPS = new Set(["set_bed_state", "assign_bed", "release_bed"]);
+export const WARD_STAFF_OPS = new Set([
+  "set_bed_state",
+  "assign_bed",
+  "release_bed",
+  "allocate_admission_bed",
+  "confirm_arrival",
+  "release_admission_bed",
+]);
 
 /* ─── helpers ───────────────────────────────────────────────────────── */
 
@@ -268,7 +287,7 @@ async function openAssignmentOn(ctx: Ctx, bedId: string) {
 
 /** supabase-js errors from the publish function carry the SQL message ("WL409 …"). */
 function hubErrorFrom(e: { message: string; code?: string }): HubError | null {
-  const m = /^WL(409|404) (.*)$/s.exec(e.message);
+  const m = /^(?:WL|AD)(409|404|400) (.*)$/s.exec(e.message);
   if (m) return new HubError(m[2]!, m[1] === "409" ? 409 : 400);
   if (e.code === "23505")
     return new HubError("Someone changed this at the same moment. Look again, then retry.", 409);
@@ -566,7 +585,9 @@ const releaseBed: OpHandler = async (ctx, i) => {
   const a = must(
     await ctx.sb
       .from("bed_assignments")
-      .select("id, bed_id, ward_id, patient_user_id, ended_at, hospital_beds(label)")
+      .select(
+        "id, bed_id, ward_id, patient_user_id, ended_at, admission_id, arrived_at, hospital_beds(label)",
+      )
       .eq("id", i.assignment_id)
       .eq("hospital_id", ctx.hospitalId)
       .maybeSingle(),
@@ -577,10 +598,15 @@ const releaseBed: OpHandler = async (ctx, i) => {
     ward_id: string;
     patient_user_id: string;
     ended_at: string | null;
+    admission_id: string | null;
+    arrived_at: string | null;
     hospital_beds: { label: string } | null;
   } | null;
   if (!a) throw new HubError("That bed assignment isn't at this hospital.");
   if (a.ended_at) throw new HubError("The patient has already left this bed.", 409);
+  // An arriving patient's bed is cancelled with its admission (ADR 0199 §5), never released alone.
+  if (a.admission_id && !a.arrived_at)
+    throw new HubError("This patient hasn't arrived yet. Use Cancel on the arriving bed.", 409);
   await assertWardWorker(ctx, a.ward_id);
   const label = a.hospital_beds?.label ?? "the bed";
   return {
@@ -617,6 +643,104 @@ const releaseBed: OpHandler = async (ctx, i) => {
   };
 };
 
+/* ─── admissions (0091): the waiting list, Arrived, cancel ─────────── */
+
+interface AdmissionRow {
+  id: string;
+  ward_id: string;
+  patient_user_id: string;
+  status: string;
+}
+
+async function loadAdmission(ctx: Ctx, id: string): Promise<AdmissionRow> {
+  const a = must(
+    await ctx.sb
+      .from("admissions")
+      .select("id, ward_id, patient_user_id, status")
+      .eq("id", id)
+      .eq("hospital_id", ctx.hospitalId)
+      .maybeSingle(),
+    "admission",
+  ) as AdmissionRow | null;
+  if (!a) throw new HubError("That admission isn't at this hospital.");
+  return a;
+}
+
+/** One admission function, its refusals as the words after the code. */
+async function rpc(ctx: Ctx, fn: string, p: Record<string, unknown>) {
+  const r = await ctx.sb.rpc(fn, {
+    p: { ...p, hospital_id: ctx.hospitalId, actor: ctx.callerId },
+  });
+  if (r.error) throw hubErrorFrom(r.error) ?? new Error(`${fn}: ${r.error.message}`);
+  return r.data as Record<string, unknown>;
+}
+
+const allocateAdmissionBed: OpHandler = async (ctx, i) => {
+  const a = await loadAdmission(ctx, i.admission_id);
+  await assertWardWorker(ctx, a.ward_id);
+  const b = await loadBed(ctx, i.bed_id);
+  if (b.ward_id !== a.ward_id) throw new HubError("That bed is on another ward.", 409);
+  return {
+    audit: {
+      action: "allocate_bed",
+      reason: reasonOr(i.reason, `Bed ${b.label} allocated to an admitted patient`),
+      after: { admission_id: a.id, bed_id: b.id, patient_user_id: a.patient_user_id },
+    },
+    apply: () => rpc(ctx, "allocate_admission_bed", { admission_id: a.id, bed_id: b.id }),
+  };
+};
+
+const confirmArrival: OpHandler = async (ctx, i) => {
+  const a = must(
+    await ctx.sb
+      .from("bed_assignments")
+      .select("id, ward_id, admission_id, patient_user_id, hospital_beds(label)")
+      .eq("id", i.assignment_id)
+      .eq("hospital_id", ctx.hospitalId)
+      .maybeSingle(),
+    "assignment",
+  ) as {
+    id: string;
+    ward_id: string;
+    admission_id: string | null;
+    patient_user_id: string;
+    hospital_beds: { label: string } | null;
+  } | null;
+  if (!a) throw new HubError("That bed assignment isn't at this hospital.");
+  await assertWardWorker(ctx, a.ward_id);
+  return {
+    audit: {
+      action: "confirm_arrival",
+      reason: reasonOr(i.reason, `Patient arrived in bed ${a.hospital_beds?.label ?? ""}`.trim()),
+      after: {
+        assignment_id: a.id,
+        admission_id: a.admission_id,
+        patient_user_id: a.patient_user_id,
+      },
+    },
+    apply: () => rpc(ctx, "confirm_bed_arrival", { assignment_id: a.id }),
+  };
+};
+
+const releaseAdmissionBed: OpHandler = async (ctx, i) => {
+  const a = await loadAdmission(ctx, i.admission_id);
+  await assertWardWorker(ctx, a.ward_id);
+  return {
+    audit: {
+      action: "cancel_allocation",
+      reason: reasonOr(i.reason, "Admission bed allocation cancelled"),
+      before: { admission_id: a.id, status: a.status, patient_user_id: a.patient_user_id },
+      after: { outcome: i.outcome },
+    },
+    apply: () =>
+      rpc(ctx, "release_admission_bed", {
+        admission_id: a.id,
+        reason: i.reason,
+        outcome: i.outcome,
+      }),
+  };
+};
+
 export const WARD_OPS: Record<string, OpHandler> = {
   save_ward_layout_draft: saveWardLayoutDraft,
   publish_ward_layout: publishWardLayout,
@@ -625,6 +749,9 @@ export const WARD_OPS: Record<string, OpHandler> = {
   set_bed_state: setBedState,
   assign_bed: assignBed,
   release_bed: releaseBed,
+  allocate_admission_bed: allocateAdmissionBed,
+  confirm_arrival: confirmArrival,
+  release_admission_bed: releaseAdmissionBed,
 };
 
 /* ─── seams for the structure ops (0090 may not be applied yet) ─────── */

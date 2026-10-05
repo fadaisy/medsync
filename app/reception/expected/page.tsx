@@ -554,7 +554,10 @@ function BookedDay({
                         vitals and a bed; an appointment status knows neither,
                         and the Check in / Checked in control beside it already
                         says whether this patient is in the building. */}
-                <Pill tone="neutral">{r.seen ? "Seen" : (STATUS_LABEL[r.status] ?? r.status)}</Pill>
+                <Pill tone="neutral">
+                  {(r.seen && r.admitted) ||
+                    (r.seen ? "Seen" : (STATUS_LABEL[r.status] ?? r.status))}
+                </Pill>
               </td>
               <td className="px-4 py-2.5 text-right">
                 <div className="flex flex-wrap items-start justify-end gap-2">

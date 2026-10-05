@@ -5,11 +5,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireEmrActor } from "@/lib/emr/actor";
+import { stoppedRxIds } from "@/lib/emr/closure";
 import { DISPOSITION_CODES } from "@/lib/emr/encounter";
-import { emrV1LiveFor } from "@/lib/emr/feature";
+import { emrV1LiveFor, encounterCloseV2LiveFor } from "@/lib/emr/feature";
 import { CLOSURE_REASON_CODES } from "@/lib/emr/settings";
 import { actionError, withPatientWrite } from "@/lib/emr/write/context";
-import { planAdministrativeClosure, planCompletion } from "@/lib/emr/write/encounter";
+import { afterClose, planAdministrativeClosure, planCompletion } from "@/lib/emr/write/encounter";
 import { callEdge } from "@/lib/supabase/edge";
 
 /**
@@ -36,6 +37,7 @@ function revalidate(encounterId: string) {
     `/doctor/encounters/${encounterId}`,
     "/reception/expected",
     "/nurse/triage",
+    "/nurse/beds",
   ])
     revalidatePath(p);
 }
@@ -106,9 +108,28 @@ const CompleteEncounter = z.object({
       z.object({ kind: z.literal("none") }),
       z.object({ kind: z.literal("as_needed") }),
       z.object({ kind: z.literal("review_date"), date: z.iso.date() }),
+      z.object({ kind: z.literal("booked"), date: z.iso.date(), appointmentId: uuid }),
     ])
     .optional(),
+  /** ADR 0198–0200 (ENCOUNTER_CLOSE_V2): the ward, and a bed or why the patient waits. */
+  admission: z
+    .object({
+      wardId: uuid,
+      bedId: uuid.optional(),
+      waitReason: z.enum(["no_free_bed", "extra_bed", "floor", "other"]).optional(),
+      waitNote: z.string().trim().max(500).optional(),
+      leadingConditionId: uuid.optional(),
+    })
+    .optional(),
 });
+
+/** What ha-complete-encounter returns, inside the functions' `{ ok, data }` envelope. */
+type CompleteResponse = {
+  data?: {
+    encounter_id: string;
+    admission?: { admission_id: string; ward: string; bed: string | null };
+  };
+};
 
 /** Complete the visit: a disposition is required; warnings come back with the result. */
 export async function completeEncounter(raw: unknown): Promise<ActionResult> {
@@ -122,16 +143,50 @@ export async function completeEncounter(raw: unknown): Promise<ActionResult> {
   const i = parsed.data;
   const actor = await requireEmrActor(i.surface);
   if (!emrV1LiveFor(actor.hospitalId)) return off;
+  const v2 = !!i.admission || i.followUp?.kind === "booked" || !!i.dispositionDetail?.stopped_rx;
+  if (v2 && !encounterCloseV2LiveFor(actor.hospitalId))
+    return {
+      ok: false,
+      code: "config",
+      error: "Closing with an admission is not switched on here.",
+    };
   try {
     const plan = await withPatientWrite(actor, i.patientUserId, (ctx) => planCompletion(ctx, i));
-    const r = await callEdge("ha-complete-encounter", plan.body, `${i.surface}.emr`);
+    const r = await callEdge<CompleteResponse>(
+      "ha-complete-encounter",
+      plan.body,
+      `${i.surface}.emr`,
+    );
     if (!r.ok) return { ok: false, code: "conflict", error: r.error };
+    // The visit is closed; what follows is the clinician's own record (ADR 0197, 0201).
+    const stop = i.disposition === "home" ? stoppedRxIds(i.dispositionDetail) : [];
+    const admissionId = r.data?.data?.admission?.admission_id ?? null;
+    let after: string[] = [];
+    if (stop.length || admissionId) {
+      try {
+        after = await withPatientWrite(actor, i.patientUserId, (ctx) =>
+          afterClose(ctx, {
+            patientUserId: i.patientUserId,
+            encounterId: plan.id,
+            stopRxIds: stop,
+            admissionId,
+          }),
+        );
+      } catch (e) {
+        after = [
+          e instanceof Error && e.message
+            ? `The visit is closed, but: ${e.message}`
+            : "The visit is closed, but stopping the medicines or requesting the co-sign failed.",
+        ];
+      }
+    }
     revalidate(plan.id);
+    const warnings = [...plan.warnings, ...after];
     return {
       ok: true,
       id: plan.id,
       serverTime: serverTime(),
-      ...(plan.warnings.length ? { warnings: plan.warnings } : {}),
+      ...(warnings.length ? { warnings } : {}),
     };
   } catch (e) {
     return actionError(e);

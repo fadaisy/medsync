@@ -50,7 +50,11 @@ export function planFixture(variant: { allergy?: boolean; placed?: boolean } = {
   const at = "2026-09-27T20:10:00.000Z";
   return {
     prescribing: true,
-    wards: ["HDU", "ICU", "Medical ward"],
+    wards: [
+      { id: "00000000-0000-4000-8000-0000000000a1", name: "HDU", counts: null },
+      { id: "00000000-0000-4000-8000-0000000000a2", name: "ICU", counts: null },
+      { id: "00000000-0000-4000-8000-0000000000a3", name: "Medical ward", counts: null },
+    ],
     intern: false,
     facts: {
       ageYears: 76,

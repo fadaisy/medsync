@@ -38,6 +38,7 @@ import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 import { resolveTriageAuthority } from "@/lib/triage/authority";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { computeFlow, ENCOUNTER_IDLE_MS } from "./flow";
+import { admittedLabel } from "./words";
 
 export { ENCOUNTER_IDLE_MS };
 
@@ -156,6 +157,12 @@ export async function loadWorkspace(args: {
         startedAt: encounters.startedAt,
         endedAt: encounters.endedAt,
         updatedAt: encounters.updatedAt,
+        encounterType: encounters.encounterType,
+        disposition: encounters.disposition,
+        // 0071's column, read as lastActivityAt is: only where the EMR is on.
+        dispositionDetail: (emr ? sql`${encounters.dispositionDetail}` : sql`null`).mapWith(
+          encounters.dispositionDetail,
+        ),
         lastDocAt:
           sql`(select max(${clinicalDocumentation.createdAt}) from ${clinicalDocumentation} where ${clinicalDocumentation.encounterId} = ${encounters.id})`.mapWith(
             clinicalDocumentation.createdAt,
@@ -347,6 +354,8 @@ export async function loadWorkspace(args: {
           r.lastActivityAt?.getTime() ?? 0,
         ),
         unsignedNoteAtMs: r.unsignedNoteAt?.getTime() ?? null,
+        encounterType: r.encounterType ?? undefined,
+        admitted: admittedLabel(r.disposition, r.dispositionDetail),
       }),
     ),
     resus,
