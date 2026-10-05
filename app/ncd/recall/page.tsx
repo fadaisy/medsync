@@ -9,6 +9,7 @@ import { computeReport } from "@/lib/ncdreg/indicators/snapshot";
 import { recallList } from "@/lib/ncdreg/read/views";
 import { templateFor } from "@/lib/ncdreg/recall/templates";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
+import { DemoEmpty } from "../_components/demo-empty";
 import { EmptyState, fmtDate, fmtShort, Page, PageTitle } from "../_components/kit";
 import { RecallBoard } from "./_components/recall-board";
 
@@ -50,6 +51,7 @@ export default async function RecallPage() {
           ) : null
         }
       />
+      <DemoEmpty ctx={ctx} />
       <section aria-label="Recall figures for this month" className="grid gap-3 sm:grid-cols-3">
         <StatCard
           label={`Overdue on ${first}`}

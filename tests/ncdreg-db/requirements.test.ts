@@ -6,12 +6,19 @@
 import { randomUUID } from "node:crypto";
 import type { Lane } from "../emr-db/_pglite";
 import type { NcdFacility } from "./_ncd";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { DemoEmpty } from "@/app/ncd/_components/demo-empty";
 import { getSettings, updateSettings } from "@/lib/ncdreg/admin";
-import { continueLoad } from "@/lib/ncdreg/demo/service";
+import { continueLoad, turnOn } from "@/lib/ncdreg/demo/service";
+import { DEMO_COPY } from "@/lib/ncdreg/demo/source";
+import { fullExport } from "@/lib/ncdreg/exchange";
 import { LEGACY_TEMPLATE, legacyApply, legacyDryRun } from "@/lib/ncdreg/exchange/legacy";
-import { drillDown } from "@/lib/ncdreg/read/dashboard";
+import { computeIndicators } from "@/lib/ncdreg/indicators/engine";
+import { loadDataset } from "@/lib/ncdreg/indicators/load";
+import { enabledModules } from "@/lib/ncdreg/indicators/snapshot";
+import { dashboardBoard, drillDown } from "@/lib/ncdreg/read/dashboard";
 import { myPanel } from "@/lib/ncdreg/read/views";
 import { ctxFor, enrol, ok, refused, run } from "./_engine";
 import { bootLane, laneOn, ncdFacility } from "./_ncd";
@@ -307,5 +314,103 @@ describe.skipIf(!laneOn)("requirements without a test until P11", () => {
       visits: 1,
     });
     expect(await count()).toBe(before + 1);
+  });
+
+  it("D2: an event needs only the person, the type and the date; further fields only where the type needs them", async () => {
+    const clin = await ctxFor(lane.db, f, "clinician");
+    const p = await enrol(clin);
+    const ev = (o: Record<string, unknown>) =>
+      run(clin, "event.record", {
+        eventId: randomUUID(),
+        personId: p.personId,
+        eventDate: clin.today,
+        ...o,
+      });
+    await ok(clin, "event.record", {
+      eventId: randomUUID(),
+      personId: p.personId,
+      type: "stroke",
+      eventDate: clin.today,
+    });
+    expect(
+      (
+        await lane.pg.query(`SELECT reporting_unit FROM public.ncd_event WHERE person_id = $1`, [
+          p.personId,
+        ])
+      ).rows,
+    ).toEqual([{ reporting_unit: "ncd_clinic" }]);
+    refused(await ev({ type: "admission" }), "invalid");
+    expect((await ev({ type: "admission", admissionReason: "severe_hypoglycaemia" })).ok).toBe(
+      true,
+    );
+    refused(await ev({ type: "death" }), "invalid");
+  });
+
+  it("F1: the dashboard board shows one row per enabled condition, every figure from the engine; filters narrow it", async () => {
+    const hod = await ctxFor(lane.db, f, "head_of_department");
+    const month = hod.today.slice(0, 7);
+    const b = await dashboardBoard(hod, month, {});
+    const enabled = await enabledModules(hod);
+    expect(b.rows.map((r) => r.code).sort()).toEqual([...enabled].sort());
+    expect(b.trendMonths).toHaveLength(12);
+    const engine = computeIndicators(await loadDataset(hod), {
+      month,
+      asOf: hod.today,
+      catalogue: hod.catalogue,
+      enabled,
+    });
+    expect(b.results.C01?.num).toBe(engine.results.C01?.num);
+    for (const r of b.rows)
+      expect(b.results[`G04.${r.code}`]?.den).toBe(engine.results[`G04.${r.code}`]?.den);
+    const male = await dashboardBoard(hod, month, { sex: "male" });
+    expect(male.results.C01!.num!).toBeLessThan(b.results.C01!.num!);
+    await expect(dashboardBoard(await ctxFor(lane.db, f, "auditor"), month, {})).rejects.toThrow();
+  });
+
+  it("I5: an empty facility shows the empty-state line on every list; the demo switch only to holders of the capability", async () => {
+    const g = await ncdFacility(lane.pg, "Empty facility");
+    const html = async (role: "registry_lead" | "clinician") => {
+      const el = await DemoEmpty({ ctx: await ctxFor(lane.db, g, role) });
+      return el ? renderToStaticMarkup(el) : null;
+    };
+    const lead = await html("registry_lead");
+    expect(lead).toContain(DEMO_COPY.empty_state);
+    expect(lead).toContain(DEMO_COPY.switch_on);
+    const clin = await html("clinician");
+    expect(clin).toContain(DEMO_COPY.empty_state);
+    expect(clin).not.toContain(DEMO_COPY.switch_on);
+    await enrol(await ctxFor(lane.db, g, "clinician"));
+    expect(await html("registry_lead")).toBeNull();
+  });
+
+  it("I7 / interlock 1: demo data cannot be turned on at a facility approved for patient data", async () => {
+    const g = await ncdFacility(lane.pg, "Approved facility");
+    const {
+      rows: [gl],
+    } = await lane.pg.query<{ id: string }>(
+      `INSERT INTO public.ncd_go_live_request (facility_id, requested_by) VALUES ($1, $2) RETURNING id`,
+      [g.facilityId, g.users.registry_lead],
+    );
+    await lane.pg.query(
+      `UPDATE public.ncd_go_live_request SET status = 'approved', decided_by = $2 WHERE id = $1`,
+      [gl!.id, g.users.clinical_safety_officer],
+    );
+    await expect(turnOn(await ctxFor(lane.db, g, "registry_lead"), "scenario")).rejects.toThrow(
+      DEMO_COPY.blocked_after_go_live,
+    );
+    expect(
+      (
+        await lane.pg.query(`SELECT 1 FROM public.ncd_demo_load WHERE facility_id = $1`, [
+          g.facilityId,
+        ])
+      ).rows,
+    ).toEqual([]);
+  });
+
+  it("H4: the full export is refused to roles without export rights", async () => {
+    for (const role of ["clinician", "triage_nurse", "auditor", "head_of_department"] as const)
+      await expect(fullExport(await ctxFor(lane.db, f, role)), role).rejects.toThrow(
+        /Needs one of/,
+      );
   });
 });

@@ -46,7 +46,7 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
 - The code-search test caught `heart_failure` typed as a literal in the baseline schema (a known-CVD code that shares the
   module code); now derived from the code list.
 
-## P3 — Indicator engine · DONE (performance timing re-run in progress)
+## P3 — Indicator engine · DONE
 
 - Built: `lib/ncdreg/indicators/{dataset,load,engine,snapshot}.ts` (C01–C16, the generic G01–G06 family for every enabled
   module, H01–H12, monthly snapshots), the seeded generator `lib/ncdreg/fixtures/generator.ts`, ADR 0212.
@@ -59,8 +59,12 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
   update and delete; recompute returns it unchanged).
 - Generator determinism: `tests/ncdreg/generator.test.ts` 3/3.
 - Performance: profiled at 1,000 generated patients: ~14 s per 100 patients written (enrol 11→35 ms as the duplicate
-  search grows, visit ~20 ms); dashboard timings on 2,000 below (two earlier 2,000-patient runs were starved by parallel
-  work and stopped).
+  search grows, visit ~20 ms). The earlier 2,000-patient runs never finished: the generator's duplicate-name loop spun
+  forever once one sex's name pairs ran out (seed 7, about 1,000 patients); fixed in P11 with a retry cap that leaves
+  smaller cohorts unchanged, and a termination test.
+- **Performance gate (P11, committed code): 2,054 generated persons, 15,030 commands written (546 s); dataset load
+  376 ms, month computation 50 ms, 12-month trend 350 ms — each under 500 ms.** (`tests/ncdreg-db/performance.test.ts`,
+  `NCDREG_HEAVY=1`.)
 
 ## P4 — Command path, identity, administration, go-live · DONE
 
@@ -96,7 +100,7 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
 - C1/C2 forms and calculations, C3 list (`/ncd/reviews`), D2 event form from the record and the patients list, D3 reasons.
 - Checks: C2 in `visit.test.ts`; C3 boundary dates in `visit-form.test.ts` (12 months exactly, less a day, 30/31 days).
 
-## P8 — Dashboards, reports, quality, demo data · DONE (calibration gate run pending)
+## P8 — Dashboards, reports, quality, demo data · DONE
 
 - Built (lane B): `/ncd/dashboard` (F1, F3, F6, F7, §11.4 charts), drill-down, `/ncd/report/[month]` (F5). Lane C:
   `/ncd/my`, `/ncd/quality` (G3, G4, A7 UI). Mine: `/ncd/admin`, the demo service `lib/ncdreg/demo/{catalogue,source,
@@ -111,7 +115,8 @@ writer,service}.ts`, cron continuation, ADR 0213.
   values). Interlock 8 in `interlocks.test.ts`; interlock 3 in lane C; interlock 6 in P10.
 - Calibration: five tuning rounds on an in-memory mirror (D-26): round 1 30/38, round 2 30/38, round 3 33/38, round 4
   35/38 (kept), round 5 33/38. Known gaps after round 5: C07, H08 dialysis_start, H08 amputation. The database-backed gate
-  run (`tests/ncdreg-db/calibration.test.ts`) writes `docs/ncd/calibration-result.md`.
+  run (`tests/ncdreg-db/calibration.test.ts`, P11): full clinic through the real path (26 + 1,293 persons), **35/38
+  within tolerance**, the same three gaps; table in `DEMO-DATA.md` and `calibration-result.md`.
 - **CHECKPOINT 3** passed (continuous mode).
 
 ## P9 — Offline · DONE
@@ -132,3 +137,17 @@ writer,service}.ts`, cron continuation, ADR 0213.
   row error and a probable duplicate and refuses to apply, a clean file imports as back-entry; **interlock 6**).
 - Generated: `DATA-INVENTORY.md` (28 tables). Written: `HAZARD-LOG.md` (12 hazards), `USER-GUIDE.md`, ADRs 0209–0213.
 - **CHECKPOINT 4** passed (continuous mode).
+
+## P11 — Hardening · DONE
+
+- Accessibility pass: the strict jsx-a11y block covers `app/ncd/**` and `app/ncd-offline/**`; every finding fixed.
+- Adversarial review by a fresh subagent: 15 findings (among them: an approved go-live request insertable directly; identifiers to
+  roles without reveal; self-assignment; unpaged decrypting list; offline discards; demo/merge leaks; …). All fixed with
+  regression tests in `tests/ncdreg-review/` (10 attacks + the same-day engine test, all passing). Decisions D-28 to D-35;
+  hazards HZ-13 to HZ-15. Commit 65bd499.
+- Requirement audit by a second subagent: 48/51 verified, D2, F1, I5 built_unverified (I5 partly built). D2 (reporting
+  unit defaults), F1 (dashboard board test) and I5 (empty state with the demo switch on all five list screens) closed;
+  further tests for I7 interlock 1, H4 refusal, A2 dismissal logging, E2, F2, F4, G3, I3, continueLoad and the legacy
+  import (`tests/ncdreg-db/requirements.test.ts`). Now 51/51 verified, with untested parts listed in the final report.
+- Generator hang fixed (see P3); performance gate and calibration gate run green (P3, P8).
+- Final re-run from a clean `.next` and the committed tree: see `FINAL-REPORT.md` §3.

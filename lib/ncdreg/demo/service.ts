@@ -117,18 +117,16 @@ export async function turnOn(ctx: NcdContext, mode: DemoMode, cat: DemoCatalogue
           await setConditionEnabled(loader, code, true, "Demo data on", tx);
       const templates = await tx.select({ id: ncdSmsTemplate.id }).from(ncdSmsTemplate).limit(1);
       if (!templates.length)
-        await tx
-          .insert(ncdSmsTemplate)
-          .values(
-            cat.sms_templates_demo.map((t) => ({
-              facilityId: ctx.facilityId,
-              purpose: t.purpose,
-              language: t.language,
-              body: t.text,
-              status: t.status,
-              createdBy: ctx.userId,
-            })),
-          );
+        await tx.insert(ncdSmsTemplate).values(
+          cat.sms_templates_demo.map((t) => ({
+            facilityId: ctx.facilityId,
+            purpose: t.purpose,
+            language: t.language,
+            body: t.text,
+            status: t.status,
+            createdBy: ctx.userId,
+          })),
+        );
     });
     for (const p of cat.scenario_patients)
       await writeScenarioPatient(loader, p, { day0, demoLoadId: id });

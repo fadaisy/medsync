@@ -132,6 +132,17 @@ describe.skipIf(!laneOn)("enrolment and identity", () => {
         tier: "probable",
       });
     await okE(c, { ...again, dismissedCandidates: [first.personId] });
+    // The decision is recorded: who dismissed which candidate, at which tier.
+    const { rows: log } = await lane.pg.query<{ user_id: string; detail: unknown }>(
+      `SELECT user_id, detail FROM public.ncd_access_event WHERE action = 'dismiss_candidates' AND person_id = $1`,
+      [again.personId],
+    );
+    expect(log).toEqual([
+      {
+        user_id: f.users.clinician,
+        detail: { dismissed: [{ personId: first.personId, tier: "probable" }] },
+      },
+    ]);
   });
 
   it("A4: several registrations on different dates; a second of one condition is refused; disabled modules refused", async () => {

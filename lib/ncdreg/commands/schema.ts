@@ -221,7 +221,9 @@ export const COMMANDS = {
     type: z.string().min(1).max(60),
     eventDate: isoDate,
     dateEstimated: z.boolean().default(false),
-    reportingUnit: z.enum(["ncd_clinic", "medical_ward", "dialysis_unit", "other"]),
+    reportingUnit: z
+      .enum(["ncd_clinic", "medical_ward", "dialysis_unit", "other"])
+      .default("ncd_clinic"),
     admissionReason: z.string().max(60).nullish(),
     death: z
       .object({

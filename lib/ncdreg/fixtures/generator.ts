@@ -201,15 +201,19 @@ export function generatePatients(o: GenOptions): ScenarioPatient[] {
             : rng.int(70, 88);
     let given = "";
     let family = "";
+    // Prefer an unused pair; once one sex's pairs run out (about 1,000 patients), accept a repeat.
+    // The cap only changes the draw once the pool is exhausted, so smaller cohorts are unchanged.
+    let tries = 0;
     do {
       given = rng.pick(female ? s.name_pools.given_female : s.name_pools.given_male);
       family = rng.pick(s.name_pools.family);
-    } while (usedNames.has(`${given} ${family}`) && usedNames.size < 2000);
+    } while (usedNames.has(`${given} ${family}`) && ++tries < 200);
     usedNames.add(`${given} ${family}`);
     let phone: string | null = null;
     if (!rng.chance(s.share_with_no_phone_percent / 100)) {
+      let phoneTries = 0;
       do phone = `0700 00${rng.int(1, 9)} ${String(rng.int(0, 999)).padStart(3, "0")}`;
-      while (usedPhones.has(phone));
+      while (usedPhones.has(phone) && ++phoneTries < 200);
       usedPhones.add(phone);
     }
     const kind = rng.weighted({ bp: bpOnly, glu: gluOnly, both });

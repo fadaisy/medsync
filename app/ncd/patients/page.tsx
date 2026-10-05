@@ -4,6 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/lib/ncdreg/context";
 import { patientsList } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
+import { DemoEmpty } from "../_components/demo-empty";
 import { ConditionTags, fmtDate, Num, Page, PageTitle } from "../_components/kit";
 import { PatientSearch } from "./_components/patient-search";
 
@@ -41,6 +42,7 @@ export default async function PatientsPage({
           ) : null
         }
       />
+      <DemoEmpty ctx={ctx} />
       <PatientSearch />
       <div className="border-border overflow-x-auto border-y">
         <table className="w-full min-w-[760px] text-[14px]">

@@ -7,6 +7,7 @@ import { can } from "@/lib/ncdreg/context";
 import { REVIEW_LABELS } from "@/lib/ncdreg/read/derive";
 import { reviewsDueList } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
+import { DemoEmpty } from "../_components/demo-empty";
 import { EmptyState, fmtDate, Num, Page, PageTitle } from "../_components/kit";
 
 export const metadata: Metadata = { title: "Reviews due" };
@@ -22,6 +23,7 @@ export default async function ReviewsPage() {
         title="Reviews due"
         subline={`Due now or in the next 30 days, as at ${fmtDate(ctx.today)} · earliest first`}
       />
+      <DemoEmpty ctx={ctx} />
       {rows.length ? (
         <div className="border-border overflow-x-auto border-y">
           <table className="w-full min-w-[720px] border-collapse text-[14px]">

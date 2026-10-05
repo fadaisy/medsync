@@ -5,7 +5,7 @@
  * in KNOWN_GAPS (and in DEMO-DATA.md); every other target must be within tolerance.
  * Heavy: NCDREG_HEAVY=1 and EMR_PGLITE=1.
  */
-import { writeFileSync } from "node:fs";
+import { appendFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Lane } from "../emr-db/_pglite";
 import type { CalRow } from "./_calibration";
@@ -37,7 +37,13 @@ describe.skipIf(!laneOn || !heavy)("calibration of the full-clinic demo (§10.4)
     };
     await turnOn(lead, "full_clinic");
     let done = false;
-    while (!done) done = (await continueLoad(lead, 600_000)).done;
+    while (!done) {
+      const step = await continueLoad(lead, 60_000);
+      done = step.done;
+      // Vitest buffers worker output; follow a long run in a file.
+      if (process.env.NCDREG_PROGRESS_FILE)
+        appendFileSync(process.env.NCDREG_PROGRESS_FILE, `cohort ${step.next} of ${step.total}\n`);
+    }
     const r = await computeReport(lead, "2026-09", { dataCutoff: DAY0 });
     rows = calibrate(r, CAT.generator.calibration_targets as never, FULL_ROLES.bp);
     const table = rows

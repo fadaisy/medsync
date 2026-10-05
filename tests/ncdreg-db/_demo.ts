@@ -1,6 +1,6 @@
 /** Helpers to write catalogue-shaped patients on the PGlite lane as the demo loader. */
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Pg } from "../emr-db/_pglite";
 import type { NcdFacility } from "./_ncd";
@@ -47,9 +47,10 @@ export async function writeAll(
   for (const [i, p] of ps.entries()) {
     commands += (await writeScenarioPatient(ctx, p, { day0, demoLoadId })).commands;
     if ((i + 1) % 100 === 0) {
-      process.stdout.write(
-        `written ${i + 1}: ${Math.round(performance.now() - t)} ms for the last 100\n`,
-      );
+      const msg = `written ${i + 1}: ${Math.round(performance.now() - t)} ms for the last 100\n`;
+      process.stdout.write(msg);
+      // Vitest buffers worker output; heavy runs can also follow progress in a file.
+      if (process.env.NCDREG_PROGRESS_FILE) appendFileSync(process.env.NCDREG_PROGRESS_FILE, msg);
       t = performance.now();
     }
   }

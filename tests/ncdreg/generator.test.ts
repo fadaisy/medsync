@@ -37,6 +37,12 @@ describe("seeded generator", () => {
     expect(JSON.stringify(generatePatients(opts(cat.generator.seed + 1)))).not.toBe(a);
   });
 
+  it("terminates when a sex's name pairs run out (the 2,000-patient performance set, seed 7)", () => {
+    const t = performance.now();
+    expect(generatePatients(opts(7, 2000)).length).toBeGreaterThanOrEqual(2000);
+    expect(performance.now() - t).toBeLessThan(5_000);
+  });
+
   const gen = generatePatients(opts(cat.generator.seed, 1300));
   it("every person is synthetic, adult, DEMO-1xxxx, catalogue-shaped", () => {
     for (const p of gen) {

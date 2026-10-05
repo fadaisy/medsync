@@ -17,6 +17,7 @@ import {
 } from "@/lib/ncdreg/read/dashboard";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { HOSPITAL_PARAMS } from "@/lib/ncdreg/standard/indicators";
+import { DemoEmpty } from "../_components/demo-empty";
 import { fmtDate } from "../_components/kit";
 import { CompactCards, ConditionRows, HeadlineStrip } from "./_components/bands";
 import { ChartBands, DashboardFrame } from "./_components/frame";
@@ -170,6 +171,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       ) : null}
     </form>
   );
+
+  // §10.2: an empty facility shows the empty-state line (and, for managers, the demo switch) instead of zeros.
+  const empty = await DemoEmpty({ ctx });
+  if (empty)
+    return (
+      <DashboardFrame>
+        {title}
+        {empty}
+      </DashboardFrame>
+    );
 
   return (
     <DashboardFrame>

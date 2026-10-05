@@ -60,6 +60,14 @@ describe("interlock 9: the demo banner", () => {
     const layout = readFileSync(resolve(__dirname, "../../app/ncd/layout.tsx"), "utf8");
     expect(layout).toContain("<NoticeBanner");
   });
+
+  it("I5 / §10.2: Today's clinic, Patients, Recall, Reviews due and Dashboard carry the empty state with the demo switch", () => {
+    const page = (p: string) =>
+      readFileSync(resolve(__dirname, `../../app/ncd/${p}page.tsx`), "utf8");
+    expect(page("")).toContain("DEMO_COPY.empty_state");
+    for (const p of ["patients/", "recall/", "reviews/", "dashboard/"])
+      expect(page(p), p).toContain("DemoEmpty");
+  });
 });
 
 describe("interlock 5: every figure comes from the indicator engine", () => {

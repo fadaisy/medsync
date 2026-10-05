@@ -315,15 +315,13 @@ export async function assignRole(
     );
     if (!staff)
       throw new NcdError("forbidden", "Registry roles go to staff of this facility only.");
-    return tx
-      .insert(ncdStaffRole)
-      .values({
-        facilityId: ctx.facilityId,
-        userId,
-        ncdRole: role,
-        grantedBy: ctx.userId,
-        grantedAt: ctx.enteredAt,
-      });
+    return tx.insert(ncdStaffRole).values({
+      facilityId: ctx.facilityId,
+      userId,
+      ncdRole: role,
+      grantedBy: ctx.userId,
+      grantedAt: ctx.enteredAt,
+    });
   });
 }
 export async function revokeRole(ctx: NcdContext, assignmentId: string) {
