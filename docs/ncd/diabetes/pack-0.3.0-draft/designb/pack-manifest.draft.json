@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.3.4-draft",
+ "version": "0.3.5-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -14,7 +14,7 @@
   ],
   "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17).",
   "interrupt": "One interrupt per event: when several `immediate` rules are met, the surface interrupts once, headed by the first in `acuteOrder` (low glucose, then measured emergencies, then the clinical picture, then 'measure now' requests); a rule met only because pregnancy or a recent birth is unrecorded comes after every rule met on recorded facts. The interrupt carries every folded rule's action (`interruptActions`), so nothing is lost (seventh review, Q03, Q07).",
-  "pregnancyUnknown": "Acute pregnancy interrupts (`pregnancyUnknownCounts`: rules 28, 28B, 28C) treat an unanswered pregnancy question, or a 'not pregnant' answer with the weeks since birth unanswered, as possible; they fire with `unknownDisplay` (ask now, then the action) and name the gap. Same-day pregnancy rules wait for the answer (seventh review, Q01, Q10). `pregnancy_possible` is the platform's answer (D-DM-36).",
+  "pregnancyUnknown": "Acute pregnancy rules (`pregnancyUnknownCounts`: 27D, 28, 28B, 28C, 28D, 28E) treat an unanswered pregnancy question, or 'not pregnant' with the weeks since a birth unanswered, as possible; they fire with the matching `unknownDisplays` entry (ask now, then the action) and name the gap. A rule with `unknownUrgency` fires at that urgency on the unknown path (28: an asymptomatic pressure asks the question the same day). Same-day pregnancy rules without symptoms wait for the answer (eighth review, T02, T08, T18).",
   "targets": "A target with `supersedes` replaces the targets it names when both would be proposed; an agreed tier decides. 'Avoid symptoms' proposes no HbA1c target by design (sixth review, L09).",
   "diabetesContext": "Every acute rule reads 'has diabetes' the same way: known diabetes, a recorded type, or any glucose-lowering medicine (sixth review, L04).",
   "acuteOrder": [
@@ -23,7 +23,9 @@
    "DM-ACU-ROUTE-07",
    "DM-ACU-ROUTE-28",
    "DM-ACU-ROUTE-28B",
+   "DM-ACU-ROUTE-28E",
    "DM-ACU-ROUTE-28C",
+   "DM-ACU-ROUTE-27D",
    "DM-ACU-ROUTE-04",
    "DM-ACU-ROUTE-25",
    "DM-ACU-ROUTE-25B",
@@ -37,11 +39,16 @@
    "DM-ACU-ROUTE-24B",
    "DM-ACU-ROUTE-03",
    "DM-ACU-ROUTE-05",
+   "DM-ACU-ROUTE-28D",
    "DM-ACU-ROUTE-20",
    "DM-ACU-ROUTE-32",
-   "DM-ACU-ROUTE-15",
-   "DM-ACU-ROUTE-28D"
-  ]
+   "DM-SUS-PAED-01",
+   "DM-ACU-ROUTE-15"
+  ],
+  "bands": "An HbA1c control band is read only against a target that is actually proposed (`forTarget`), so a band never contradicts the target beside it (eighth review, T06).",
+  "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane (an untrusted result is 'insufficient' and named as a gap), and a step whose job is to order the blocked test (`measures`) proposes the alternative instead; acute rules and referrals for danger are never suppressed (N8; eighth review, T11).",
+  "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
+  "adult": "'Adult' is 16 and over by numeric age where it is recorded, whatever the display band (eighth review, T20; P0-01)."
  },
  "criteriaSets": [
   "who_hearts_d_2020",
@@ -63,7 +70,7 @@
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
   "DM-ACT-THERAPY": 34,
-  "DM-ACU-ROUTE": 44,
+  "DM-ACU-ROUTE": 47,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -83,18 +90,18 @@
   "DM-STR-NEURO": 4,
   "DM-SUS-INCID": 5,
   "DM-SUS-INPT": 1,
-  "DM-SUS-PAED": 3,
+  "DM-SUS-PAED": 4,
   "DM-SUS-POP": 10,
   "DM-SUS-RECON": 2,
   "DM-SUS-RISK": 6,
   "DM-SUS-SYMP": 2
  },
  "lanes": {
-  "suspect": 29,
+  "suspect": 30,
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 44,
+  "acute_route": 47,
   "act": 83
  },
  "rules": [
@@ -1190,7 +1197,7 @@
     "urgency": "immediate",
     "posterior": "moderate",
     "restrictedClasses": [],
-    "interruptRank": null,
+    "interruptRank": 25,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -1805,7 +1812,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 10,
+    "interruptRank": 12,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -1817,7 +1824,7 @@
    "id": "DM-ACU-ROUTE-03",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "On an SGLT2 inhibitor and unwell (vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now",
+   "title": "On an SGLT2 inhibitor and unwell (acute illness, vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -1856,7 +1863,7 @@
     "urgency": "immediate",
     "posterior": "moderate",
     "restrictedClasses": [],
-    "interruptRank": 18,
+    "interruptRank": 20,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -1919,7 +1926,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 7,
+    "interruptRank": 9,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -1966,7 +1973,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 19,
+    "interruptRank": 21,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -2121,7 +2128,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 13,
+    "interruptRank": 15,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -2229,7 +2236,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 12,
+    "interruptRank": 14,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -2276,7 +2283,7 @@
     "urgency": "immediate",
     "posterior": "low",
     "restrictedClasses": [],
-    "interruptRank": 22,
+    "interruptRank": 26,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -3117,7 +3124,7 @@
     "urgency": "immediate",
     "posterior": "moderate",
     "restrictedClasses": [],
-    "interruptRank": 15,
+    "interruptRank": 17,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -3332,7 +3339,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 20,
+    "interruptRank": 23,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -3494,7 +3501,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 16,
+    "interruptRank": 18,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -3721,7 +3728,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 8,
+    "interruptRank": 10,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -3890,7 +3897,7 @@
     "restrictedClasses": [],
     "interruptRank": 4,
     "pregnancyUnknownCounts": true,
-    "unknownDisplay": "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital",
+    "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": []
@@ -3997,7 +4004,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 14,
+    "interruptRank": 16,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -4055,7 +4062,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 11,
+    "interruptRank": 13,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -4162,7 +4169,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 21,
+    "interruptRank": 24,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -4279,7 +4286,7 @@
     "restrictedClasses": [],
     "interruptRank": 5,
     "pregnancyUnknownCounts": true,
-    "unknownDisplay": "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now",
+    "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": []
@@ -4331,9 +4338,9 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 6,
+    "interruptRank": 7,
     "pregnancyUnknownCounts": true,
-    "unknownDisplay": "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now",
+    "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": []
@@ -4552,8 +4559,8 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 23,
-    "pregnancyUnknownCounts": false,
+    "interruptRank": 22,
+    "pregnancyUnknownCounts": true,
     "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
@@ -4566,7 +4573,7 @@
    "id": "DM-ACU-ROUTE-27D",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Raised blood pressure in pregnancy or after birth with headache or vomiting: signs of pre-eclampsia. Refer to hospital today",
+   "title": "Raised blood pressure in pregnancy or after birth with headache or vomiting: features of severe pre-eclampsia. Route now; refer to hospital",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -4591,10 +4598,10 @@
    "citations": [
     {
      "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
-     "section": "16.2.3, PDF p. 771 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
      "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
      "verifiedOn": "2026-10-05",
-     "claim": "UCG-CHTN-03"
+     "claim": "UCG-PE-05"
     }
    ],
    "status": "draft",
@@ -4605,11 +4612,11 @@
      "tier": "today"
     },
     "neutralProposal": null,
-    "urgency": "same_day",
+    "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": null,
-    "pregnancyUnknownCounts": false,
+    "interruptRank": 8,
+    "pregnancyUnknownCounts": true,
     "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
@@ -4622,7 +4629,7 @@
    "id": "DM-ACU-ROUTE-24B",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Type 1, insulin or an SGLT2 inhibitor, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
+   "title": "Diabetes on insulin or an SGLT2 inhibitor, type 1, or medicines not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -4633,6 +4640,7 @@
    "reads": [
     "sign.ketotic_breath",
     "sign.dehydration",
+    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
@@ -4662,13 +4670,14 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 17,
+    "interruptRank": 19,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": [
-     "acu_t1_acetone_bohb_normal"
+     "acu_t1_acetone_bohb_normal",
+     "acu_t1_acetone_list_clear"
     ]
    }
   },
@@ -4717,7 +4726,7 @@
     "urgency": "immediate",
     "posterior": "high",
     "restrictedClasses": [],
-    "interruptRank": 9,
+    "interruptRank": 11,
     "pregnancyUnknownCounts": false,
     "unknownDisplay": null,
     "requiresCapability": null,
@@ -4775,7 +4784,8 @@
     "requiresCapability": null,
     "unlessCapability": "lab.ketones_blood",
     "notWhen": [
-     "acu_insulin_sick_district_raised"
+     "acu_insulin_sick_district_raised",
+     "acu_insulin_sick_district_done"
     ]
    }
   },
@@ -4830,6 +4840,224 @@
     "unlessCapability": null,
     "notWhen": [
      "acu_ill_high_vomit"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-28E",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Pregnant or within 6 weeks of birth with organ-damage signs and no blood pressure recorded: blood pressure now; severe pre-eclampsia until proved otherwise. Route now",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.hypertensive_organ_damage (no CFC concept yet)",
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.postpartum_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_organ_nobp",
+   "params": {
+    "preg-pe-postpartum": "REF-DM-PREG-PE-POSTPARTUM"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UCG-PE-02"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "acute.route",
+     "to": "triage",
+     "tier": "now"
+    },
+    "neutralProposal": null,
+    "urgency": "immediate",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": 6,
+    "pregnancyUnknownCounts": true,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_preg_organ_bp_done"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-13B",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Diabetes with acetone on the breath or dehydration and no ketone result: ketones today",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sign.ketotic_breath",
+    "sign.dehydration",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_dm_acetone_test",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "Type 2 diabetes: what to do when you are ill (TREND-UK leaflet)",
+     "section": "Whole leaflet",
+     "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T2Illness_TREND_FINAL.pdf",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-52"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ketones",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_dm_acetone_test_done",
+     "acu_dm_acetone_test_signs"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-25C",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "A child with diabetes, dehydrated or smelling of acetone, with normal blood ketones: fluids and same-day review; recheck ketones if it persists",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.ketones_blood",
+    "sign.ketotic_breath",
+    "sign.dehydration",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_paed_acetone_normal",
+   "params": {
+    "acu-ketone-low": "REF-DM-ACU-KETONE-LOW"
+   },
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "section": "Executive summary / key principles",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-49"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "review",
+     "to": "clinician",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-04",
+   "family": "DM-SUS-PAED",
+   "lane": "suspect",
+   "title": "A child with a fasting glucose of 7.0 or more, a 2-hour value of 11.1 or more, or an HbA1c of 6.5% or more: refer today as suspected diabetes",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose",
+    "obs.hba1c"
+   ],
+   "predicate": "catalog.rule:sus_paed_range",
+   "params": {
+    "dx-fpg": "REF-DM-DX-FPG",
+    "dx-ogtt2h": "REF-DM-DX-OGTT2H",
+    "dx-hba1c": "REF-DM-DX-HBA1C"
+   },
+   "minTrust": 2,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-30"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_paed_range_known"
     ]
    }
   },
@@ -4889,9 +5117,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.never_hba1c (no CFC concept yet)",
-    "ncd.months_since_hba1c (no CFC concept yet)"
+    "ncd.months_since_hba1c (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_hba1c_6",
    "params": {
@@ -4936,9 +5166,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.therapy_changed_recently (no CFC concept yet)",
-    "ncd.months_since_hba1c (no CFC concept yet)"
+    "ncd.months_since_hba1c (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_hba1c_3",
    "params": {
@@ -4983,11 +5215,13 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.never_eye_screen (no CFC concept yet)",
     "ncd.months_since_eye_screen (no CFC concept yet)",
     "ncd.fundus_method (no CFC concept yet)",
-    "ncd.retina_view (no CFC concept yet)"
+    "ncd.retina_view (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_eye",
    "params": {
@@ -5032,9 +5266,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.never_kidney_screen (no CFC concept yet)",
-    "ncd.months_since_kidney_screen (no CFC concept yet)"
+    "ncd.months_since_kidney_screen (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_kidney",
    "params": {
@@ -5082,9 +5318,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.never_foot_assessment (no CFC concept yet)",
-    "ncd.months_since_foot_risk_assessment (no CFC concept yet)"
+    "ncd.months_since_foot_risk_assessment (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_foot",
    "params": {
@@ -5129,9 +5367,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.never_neuropathy_screen (no CFC concept yet)",
-    "ncd.months_since_neuropathy_screen (no CFC concept yet)"
+    "ncd.months_since_neuropathy_screen (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_neuro",
    "params": {
@@ -5176,9 +5416,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.never_lipids (no CFC concept yet)",
-    "ncd.months_since_lipids (no CFC concept yet)"
+    "ncd.months_since_lipids (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:due_lipids",
    "params": {
@@ -5223,8 +5465,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "ncd.cough_over_2_weeks (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.cough_over_2_weeks (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:tb_cough",
    "params": {},
@@ -5317,8 +5561,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "ncd.pregnant (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.pregnant (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:preg_known",
    "params": {},
@@ -5950,8 +6196,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "exam.pedal_pulses",
     "ncd.dm_status (no CFC concept yet)",
-    "exam.pedal_pulses"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:ref_pvd",
    "params": {},
@@ -6038,7 +6286,9 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)"
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:edu_core",
    "params": {},
@@ -6081,7 +6331,9 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)"
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:edu_foot",
    "params": {},
@@ -6296,8 +6548,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "ncd.fasting_ramadan_planned (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.fasting_ramadan_planned (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:edu_ramadan",
    "params": {},
@@ -6340,8 +6594,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "ncd.could_conceive (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
-    "ncd.could_conceive (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:edu_preconception",
    "params": {},
@@ -6390,8 +6646,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "soc.tobacco",
     "ncd.dm_status (no CFC concept yet)",
-    "soc.tobacco"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:edu_tobacco",
    "params": {},
@@ -6477,11 +6735,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "obs.hba1c",
     "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)",
     "derived.egfr",
     "obs.ketones_urine"
    ],
@@ -6617,11 +6875,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "obs.hba1c",
-    "obs.glucose"
+    "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)"
    ],
    "predicate": "catalog.step:rx_severe",
    "params": {
@@ -6666,10 +6924,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.cvd_established (no CFC concept yet)",
     "ncd.heart_failure_known (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "derived.egfr"
    ],
    "predicate": "catalog.step:rx_cardio",
@@ -6714,11 +6973,12 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.kidney_abnormality_3_months (no CFC concept yet)",
     "derived.egfr",
-    "ncd.uacr_abnormal_count (no CFC concept yet)"
+    "ncd.uacr_abnormal_count (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:rx_renal",
    "params": {
@@ -6764,10 +7024,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.age_years (no CFC concept yet)",
     "ncd.on_statin (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "ncd.pregnant (no CFC concept yet)"
    ],
    "predicate": "catalog.step:rx_statin",
@@ -6812,10 +7073,12 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.bp_raised_two_occasions (no CFC concept yet)",
     "obs.bp_systolic",
-    "obs.bp_diastolic"
+    "obs.bp_diastolic",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:rx_bp",
    "params": {
@@ -6907,9 +7170,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.cvd_established (no CFC concept yet)",
     "ncd.on_antiplatelet (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "ncd.haemorrhagic_or_unknown_stroke (no CFC concept yet)"
    ],
    "predicate": "catalog.step:rx_antiplatelet",
@@ -7043,11 +7308,13 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "sx.foot_numbness_burning",
     "exam.monofilament",
     "ncd.ankle_reflexes (no CFC concept yet)",
-    "ncd.pinprick_feet (no CFC concept yet)"
+    "ncd.pinprick_feet (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:rx_pain",
    "params": {},
@@ -7222,11 +7489,11 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "ncd.capillary_glucose_context (no CFC concept yet)",
     "obs.glucose",
+    "ncd.dm_status (no CFC concept yet)",
     "derived.egfr",
     "obs.ketones_urine"
    ],
@@ -7273,8 +7540,10 @@
     "pregnancy": "any"
    },
    "reads": [
+    "obs.urine_protein_dipstick",
     "ncd.dm_status (no CFC concept yet)",
-    "obs.urine_protein_dipstick"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
    "predicate": "catalog.step:strip_positive",
    "params": {},
@@ -7358,7 +7627,7 @@
    "id": "DM-ACT-REFER-BP-03",
    "family": "DM-ACT-REFER",
    "lane": "act",
-   "title": "Blood pressure above 180 systolic with headache, blurred vision or vomiting: refer today. Confusion, breathlessness or little urine is an emergency (rule 29)",
+   "title": "Blood pressure above 180 systolic with headache or vomiting: refer today. Confusion, visual loss, breathlessness or little urine is an emergency (rule 29)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7504,10 +7773,10 @@
     "pregnancy": "any"
    },
    "reads": [
-    "ncd.dm_status (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "obs.hba1c",
-    "ncd.dm_type_recorded (no CFC concept yet)"
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)"
    ],
    "predicate": "catalog.step:ref_goal_insulin",
    "params": {
@@ -7845,6 +8114,7 @@
     "pregnancy": "any"
    },
    "reads": [
+    "ncd.ras_blocker (no CFC concept yet)",
     "ncd.creatinine_rise_percent_4w (no CFC concept yet)"
    ],
    "predicate": "catalog.therapyFlag:ras_blocker_creatinine_rise",
@@ -7988,7 +8258,9 @@
    },
    "reads": [
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
-    "ncd.acute_illness_current (no CFC concept yet)"
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "sx.vomiting",
+    "sign.dehydration"
    ],
    "predicate": "catalog.therapyFlag:metformin_during_acute_illness",
    "params": {},

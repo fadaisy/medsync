@@ -777,6 +777,27 @@
   "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing."
  },
  {
+  "id": "UCG-PE-05",
+  "topic": "Clinical features of severe pre-eclampsia",
+  "claim": "UCG 2023 16.3.7 (Clinical features of severe pre-eclampsia): Clinical features of severe pre-eclampsia Headache, blurring of vision of new onset Epigastric or right upper quadrant pain, vomiting",
+  "values": {
+   "quote": "Clinical features of severe pre-eclampsia Headache, blurring of vision of new onset Epigastric or right upper quadrant pain, vomiting"
+  },
+  "population": "As stated in the section",
+  "standard": "UCG",
+  "version": "2023",
+  "document": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+  "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+  "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+  "quote": "Clinical features of severe pre-eclampsia Headache, blurring of vision of new onset Epigastric or right upper quadrant pain, vomiting",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read in full from the CSO-supplied PDF's text layer (pypdf); quote checked as a verbatim substring. '³' in a quote is the PDF's mis-encoding of '≥'.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": "URL is the copy the pack's research located; page numbers are from the CSO's copy, which may be a different printing."
+ },
+ {
   "id": "UCG-CHTN-01",
   "topic": "Chronic hypertension in pregnancy",
   "claim": "UCG 2023 16.2.3 (Chronic hypertension in pregnancy): Blood pressure >140/90 present before the pregnancy or starting before 20 weeks.",

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2396,6 +2396,7 @@
       }
      }
     ],
+    "interruptRank": 25,
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
@@ -3237,6 +3238,180 @@
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-04",
+   "display": "A child with a fasting glucose of 7.0 or more, a 2-hour value of 11.1 or more, or an HbA1c of 6.5% or more: refer today as suspected diabetes",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_range",
+    "label": "A child with fasting plasma glucose 7.0 mmol/L or more, 2-hour plasma glucose 11.1 mmol/L or more, or HbA1c 6.5% or more",
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "hba1c",
+      "op": ">=",
+      "value": 6.5,
+      "unit": "%"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-02",
+      "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-FPG"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "A sample taken through a glucose infusion",
+    "Stress hyperglycaemia"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+    "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+    "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-30",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "bodyProposed": "NICE",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "NICE NG18: a child or young person with suspected diabetes is referred the same day. A diabetes-range value is the suspicion; the paediatric team confirms it.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "review": [
+     "T07"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_range_known",
+      "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+       "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-30",
+        "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-SAMEDAY"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
    }
   }
  ],

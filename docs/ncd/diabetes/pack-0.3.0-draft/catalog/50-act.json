@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -17,13 +17,7 @@
    "when": {
     "id": "due_hba1c_6",
     "label": "Confirmed diabetes, with no HbA1c ever, or 6 months or more since the last",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "never_hba1c",
@@ -51,6 +45,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-WINDOW-AT-TARGET"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -83,8 +143,10 @@
     "districtPathway": "No HbA1c at this site, or a validity caveat in force: fasting and post-meal glucose are the WHO surrogates. Order those instead and say why.",
     "ages": "adult",
     "review": [
-     "F12"
+     "F12",
+     "T10"
     ],
+    "measures": "hba1c",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -96,11 +158,6 @@
     "id": "due_hba1c_3",
     "label": "Confirmed diabetes, treatment changed, 3 months or more since the last HbA1c",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "therapy_changed_recently",
       "op": "present"
@@ -127,6 +184,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-WINDOW-ABOVE"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -157,6 +280,10 @@
      "test": "test.hba1c"
     },
     "ages": "adult",
+    "review": [
+     "T10"
+    ],
+    "measures": "hba1c",
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -167,13 +294,7 @@
    "when": {
     "id": "due_eye",
     "label": "Confirmed diabetes, with no retinal examination ever, 24 months or more since the last, a last examination that was undilated direct ophthalmoscopy, or a view that was inadequate or not attempted",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "never_eye_screen",
@@ -216,6 +337,72 @@
       "verified": true,
       "ref": "REF-DM-EYE-INTERVAL-WHO"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -252,7 +439,8 @@
     "review": [
      "F12",
      "H17",
-     "J13"
+     "J13",
+     "T10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -264,13 +452,7 @@
    "when": {
     "id": "due_kidney",
     "label": "Confirmed diabetes, with urine albumin and creatinine never checked, or 12 months or more since the last check",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "never_kidney_screen",
@@ -298,6 +480,72 @@
       "verified": true,
       "ref": "REF-DM-KID-SCREEN-INTERVAL"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -333,7 +581,8 @@
     "districtPathway": "No ACR: a urine protein strip, and creatinine if the laboratory runs it. A positive strip is 'abnormal, pending confirmation' and is sent for a laboratory ratio.",
     "ages": "adult",
     "review": [
-     "F12"
+     "F12",
+     "T10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -345,13 +594,7 @@
    "when": {
     "id": "due_foot",
     "label": "Confirmed diabetes, with no foot risk assessment ever, or 12 months or more since the last",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "never_foot_assessment",
@@ -379,6 +622,72 @@
       "verified": true,
       "ref": "REF-DM-FOOT-INT-0"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -412,7 +721,8 @@
     "districtPathway": "No monofilament or tuning fork: the Ipswich touch test and foot pulses.",
     "ages": "adult",
     "review": [
-     "F12"
+     "F12",
+     "T10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -424,13 +734,7 @@
    "when": {
     "id": "due_neuro",
     "label": "Confirmed diabetes, with sensation never tested, or 12 months or more since it was",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "never_neuropathy_screen",
@@ -458,6 +762,72 @@
       "verified": true,
       "ref": "REF-DM-NEU-INTERVAL"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "ADA",
@@ -489,7 +859,8 @@
     },
     "ages": "adult",
     "review": [
-     "F12"
+     "F12",
+     "T10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -501,13 +872,7 @@
    "when": {
     "id": "due_lipids",
     "label": "Confirmed diabetes, with no lipid profile ever, or 12 months or more since the last",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "never_lipids",
@@ -535,6 +900,72 @@
       "verified": true,
       "ref": "REF-DM-CVD-LIPID-INTERVAL"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "ADA",
@@ -570,7 +1001,8 @@
     "ages": "adult",
     "review": [
      "F12",
-     "H21"
+     "H21",
+     "T10"
     ],
     "requiresCapability": "lab.lipids",
     "enabledNote": "Shown only where the site has a lipid profile (D-DM-15).",
@@ -585,11 +1017,6 @@
     "id": "tb_cough",
     "label": "Confirmed diabetes with cough for more than 2 weeks",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "cough_over_2_weeks",
       "op": "present"
@@ -610,6 +1037,72 @@
       "verified": true,
       "ref": "REF-DM-ACT-TB-COUGH"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -643,7 +1136,8 @@
     "note": "The history catalogue already raises FLAG-TB-PRESUMPTIVE on cough duration; this adds the diabetes context to the Plan. Restricted class: tb.",
     "ages": "adult",
     "review": [
-     "J20"
+     "J20",
+     "T10"
     ],
     "neutralProposal": {
      "kind": "test.order",
@@ -731,11 +1225,6 @@
     "label": "Confirmed diabetes and pregnant",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "pregnant",
       "op": "present"
      }
@@ -755,6 +1244,72 @@
       "verified": true,
       "ref": "REF-DM-PREG-CARE-WHO"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -789,7 +1344,8 @@
     "review": [
      "H01",
      "H02",
-     "K15"
+     "K15",
+     "T10"
     ],
     "agesOverride": "any",
     "notWhen": [
@@ -1887,11 +2443,6 @@
     "label": "Foot pulses reduced or absent",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "pedal_pulses",
       "op": "in",
       "value": [
@@ -1915,6 +2466,72 @@
       "verified": true,
       "ref": "REF-DM-ACT-REFER-ROUTINE"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -1948,7 +2565,8 @@
     "review": [
      "F08",
      "H01",
-     "H02"
+     "H02",
+     "T10"
     ],
     "notWhen": [
      {
@@ -2076,13 +2694,7 @@
    "when": {
     "id": "edu_core",
     "label": "Confirmed diabetes",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "citation": {
      "standard": "WHO",
      "version": "WHO/UCN/NCD/20.1 (2020)",
@@ -2098,6 +2710,72 @@
       "verified": true,
       "ref": "REF-DM-ACT-EVERY-VISIT"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -2129,6 +2807,9 @@
     },
     "note": "WHO: at all visits. Activity goal REF-DM-ACT-EDU-PA-MIN; weight REF-DM-ACT-EDU-WEIGHT. The pack carries no food list: no official Ugandan guidance on local staples was found.",
     "ages": "adult",
+    "review": [
+     "T10"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -2139,13 +2820,7 @@
    "when": {
     "id": "edu_foot",
     "label": "Confirmed diabetes",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "citation": {
      "standard": "WHO",
      "version": "WHO/UCN/NCD/20.1 (2020)",
@@ -2161,6 +2836,72 @@
       "verified": true,
       "ref": "REF-DM-ACT-EDU-FOOT"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -2191,6 +2932,9 @@
      "topic": "foot_care"
     },
     "ages": "adult",
+    "review": [
+     "T10"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -2470,11 +3214,6 @@
     "label": "Confirmed diabetes and plans to fast",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "fasting_ramadan_planned",
       "op": "present"
      }
@@ -2494,6 +3233,72 @@
       "verified": true,
       "ref": "REF-DM-ACT-EDU-RAMADAN"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "IDF",
@@ -2524,6 +3329,9 @@
      "topic": "fasting"
     },
     "ages": "adult",
+    "review": [
+     "T10"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -2535,11 +3343,6 @@
     "id": "edu_preconception",
     "label": "Confirmed diabetes and could become pregnant",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "could_conceive",
       "op": "present"
@@ -2560,6 +3363,72 @@
       "verified": true,
       "ref": "REF-DM-ACT-PRECONCEPTION"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -2592,7 +3461,8 @@
     },
     "ages": "adult",
     "review": [
-     "J20"
+     "J20",
+     "T10"
     ],
     "neutralProposal": {
      "kind": "education.offer",
@@ -2613,11 +3483,6 @@
     "label": "Confirmed diabetes and currently uses tobacco",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "smoking_current",
       "op": "present"
      }
@@ -2636,6 +3501,72 @@
       "bodyProposed": "WHO",
       "verified": true
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -2666,6 +3597,9 @@
      "topic": "tobacco_cessation"
     },
     "ages": "adult",
+    "review": [
+     "T10"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -2738,11 +3672,6 @@
     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, with HbA1c 7.0% or more or fasting plasma glucose above 7.0 mmol/L",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "dm_type_recorded",
       "op": "==",
       "value": "type_2"
@@ -2782,6 +3711,72 @@
       "verified": true,
       "ref": "REF-DM-RX-LADDER-WHO"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -2882,7 +3877,8 @@
      "F36",
      "F16",
      "H36",
-     "H21"
+     "H21",
+     "T10"
     ],
     "notWhen": [
      {
@@ -3455,11 +4451,6 @@
     "label": "Type 2 or unclassified diabetes, not on insulin, with HbA1c above 10% or any glucose 16.7 mmol/L or more",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "dm_type_recorded",
       "op": "in",
       "value": [
@@ -3532,6 +4523,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-SEVERE-GLU"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "ADA",
@@ -3571,7 +4628,8 @@
      "H20",
      "H34",
      "H27",
-     "H21"
+     "H21",
+     "T10"
     ],
     "notWhen": [
      {
@@ -3704,11 +4762,6 @@
     "label": "Type 2 diabetes recorded, with established cardiovascular disease or heart failure",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "dm_type_recorded",
       "op": "==",
       "value": "type_2"
@@ -3739,6 +4792,72 @@
       "verified": true,
       "ref": "REF-DM-RX-CARDIORENAL"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "ADA",
@@ -3806,7 +4925,8 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "H21"
+     "H21",
+     "T10"
     ],
     "enabled": false,
     "enabledBy": "D-DM-20 and D-DM-21",
@@ -3822,11 +4942,6 @@
     "id": "rx_renal",
     "label": "Type 2 diabetes recorded, the kidney abnormality present for 3 months or more, with eGFR below 60 or albuminuria on at least 2 of 3 specimens",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "dm_type_recorded",
       "op": "==",
@@ -3866,6 +4981,72 @@
       "verified": true,
       "ref": "REF-DM-RX-CARDIORENAL"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "KDIGO",
@@ -3934,7 +5115,8 @@
     },
     "review": [
      "F05",
-     "H21"
+     "H21",
+     "T10"
     ],
     "enabled": false,
     "enabledBy": "D-DM-20 and D-DM-21",
@@ -3950,11 +5132,6 @@
     "id": "rx_statin",
     "label": "Type 2 diabetes recorded, aged 40 or over, not on a statin",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "dm_type_recorded",
       "op": "==",
@@ -3986,6 +5163,72 @@
       "verified": true,
       "ref": "REF-DM-CVD-STATIN-AGE"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -4049,7 +5292,8 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "H21"
+     "H21",
+     "T10"
     ],
     "enabled": false,
     "enabledBy": "D-DM-20",
@@ -4065,11 +5309,6 @@
     "id": "rx_bp",
     "label": "Raised on two or more occasions, with systolic 130 or more, or diastolic 80 or more",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "bp_raised_two_occasions",
       "op": "present"
@@ -4104,6 +5343,72 @@
       "verified": true,
       "ref": "REF-DM-CVD-BP-SBP"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -4139,7 +5444,8 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "H21"
+     "H21",
+     "T10"
     ],
     "enabled": false,
     "enabledBy": "D-DM-20",
@@ -4267,11 +5573,6 @@
     "label": "Confirmed diabetes with established cardiovascular disease, recorded as not on an antiplatelet",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "cvd_established",
       "op": "present"
      },
@@ -4295,6 +5596,72 @@
       "verified": true,
       "ref": "REF-DM-CVD-ANTIPLATELET"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -4331,7 +5698,8 @@
     },
     "review": [
      "F31",
-     "H21"
+     "H21",
+     "T10"
     ],
     "enabled": false,
     "enabledBy": "D-DM-20",
@@ -4572,11 +5940,6 @@
     "label": "Probable neuropathy with numb or burning feet",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "foot_numbness_burning",
       "op": "present"
      }
@@ -4616,6 +5979,72 @@
       "verified": true,
       "ref": "REF-DM-NEU-PAIN"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "ADA",
@@ -4651,7 +6080,8 @@
     },
     "review": [
      "F35",
-     "H21"
+     "H21",
+     "T10"
     ],
     "enabled": false,
     "enabledBy": "D-DM-20",
@@ -4931,11 +6361,6 @@
     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, with a fasting capillary glucose above 7.0 mmol/L",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "dm_type_recorded",
       "op": "==",
       "value": "type_2"
@@ -4972,6 +6397,72 @@
       "verified": true,
       "ref": "REF-DM-RX-LADDER-WHO"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -5070,7 +6561,8 @@
     },
     "review": [
      "F21",
-     "H21"
+     "H21",
+     "T10"
     ],
     "needsBeforeActing": [
      {
@@ -5093,11 +6585,6 @@
     "id": "strip_positive",
     "label": "Confirmed diabetes with urine protein 1+ or more on a strip",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "urine_protein_strip",
       "op": "in",
@@ -5123,6 +6610,72 @@
       "verified": true,
       "ref": "REF-DM-KID-DIPSTICK"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -5159,7 +6712,8 @@
     "districtPathway": "No laboratory ratio here: refer the sample or the patient. A NEGATIVE strip does not exclude early kidney disease; a positive strip is never a confirmed albuminuria category.",
     "ages": "adult",
     "review": [
-     "F21"
+     "F21",
+     "T10"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -5253,7 +6807,7 @@
   },
   {
    "id": "DM-ACT-REFER-BP-03",
-   "display": "Blood pressure above 180 systolic with headache, blurred vision or vomiting: refer today. Confusion, breathlessness or little urine is an emergency (rule 29)",
+   "display": "Blood pressure above 180 systolic with headache or vomiting: refer today. Confusion, visual loss, breathlessness or little urine is an emergency (rule 29)",
    "when": {
     "id": "ref_bp_sympt",
     "label": "Symptoms with the raised pressure, and systolic above 180 mmHg",
@@ -5533,11 +7087,6 @@
     "label": "Type 2 diabetes on insulin, with HbA1c above 7.5%",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "glucose_lowering_therapy",
       "op": "==",
       "value": "insulin"
@@ -5569,6 +7118,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-INSULIN-REFER-HBA1C"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "standard": "WHO",
@@ -5602,7 +7217,8 @@
     "ages": "adult",
     "review": [
      "H13",
-     "J23"
+     "J23",
+     "T10"
     ],
     "notWhen": [
      {
@@ -6389,8 +8005,17 @@
    "severity": "amber",
    "when": {
     "id": "tf_creat",
-    "label": "Creatinine risen by more than 30% within 4 weeks of starting or increasing",
+    "label": "On an ACE inhibitor or ARB, creatinine risen by more than 30% within 4 weeks of starting or increasing",
     "all": [
+     {
+      "feature": "ras_blocker",
+      "op": "in",
+      "value": [
+       "acei",
+       "arb",
+       "both"
+      ]
+     },
      {
       "feature": "creatinine_rise_percent_4w",
       "op": ">",
@@ -6437,7 +8062,8 @@
     "status": "new",
     "review": [
      "F37",
-     "F04"
+     "F04",
+     "T17"
     ],
     "ages": "adult",
     "restrictedClasses": []
@@ -6664,16 +8290,26 @@
    "display": "Metformin during acute illness",
    "severity": "amber",
    "when": {
-    "id": "tf_met_sick",
-    "label": "On metformin, acutely unwell",
+    "id": "metformin_ill",
+    "label": "On metformin, with any of: acutely unwell, vomiting, dehydration",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
       "op": "==",
       "value": "metformin"
-     },
+     }
+    ],
+    "any": [
      {
       "feature": "acute_illness_current",
+      "op": "present"
+     },
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "dehydration",
       "op": "present"
      }
     ],
@@ -6716,7 +8352,8 @@
     "status": "new",
     "review": [
      "F23",
-     "F04"
+     "F04",
+     "T05"
     ],
     "ages": "adult",
     "restrictedClasses": []

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -852,7 +852,44 @@
     "lane": "stratify",
     "family": "DM-STR-NEURO",
     "status": "new",
-    "note": "Toronto 'probable' is two of three CATEGORIES (symptoms, reduced sensation, reflexes). Two abnormal sensory tests are one category, so the rule is written as three criteria rather than atLeast over a flat list. It is 'diabetic' only by exclusion: the engine names the neuropathy and lists what to exclude; the clinician attributes it. Half of cases have no symptoms, so the tests are the screen. District pathway: the Ipswich touch test and ankle reflexes need no equipment."
+    "note": "Toronto 'probable' is two of three CATEGORIES (symptoms, reduced sensation, reflexes). Two abnormal sensory tests are one category, so the rule is written as three criteria rather than atLeast over a flat list. It is 'diabetic' only by exclusion: the engine names the neuropathy and lists what to exclude; the clinician attributes it. Half of cases have no symptoms, so the tests are the screen. District pathway: the Ipswich touch test and ankle reflexes need no equipment.",
+    "review": [
+     "T12"
+    ],
+    "notMetRequires": {
+     "id": "neuro_tested",
+     "label": "A monofilament, vibration or Ipswich touch result is recorded",
+     "any": [
+      {
+       "feature": "monofilament_10g",
+       "op": "recorded"
+      },
+      {
+       "feature": "vibration_128hz",
+       "op": "recorded"
+      },
+      {
+       "feature": "ipswich_sites_missed",
+       "op": "recorded"
+      }
+     ],
+     "citation": {
+      "standard": "IWGDF",
+      "version": "2023 update",
+      "title": "Practical guidelines on the prevention and management of diabetes-related foot disease (IWGDF 2023 update)",
+      "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf",
+      "quote": "When monofilament or tuning fork are not available test tactile sensation",
+      "retrieved": "2026-10-03",
+      "csoSigned": false,
+      "x": {
+       "claim": "A8-31",
+       "section": "Section 3.1 (LOPS) and Appendix 1",
+       "bodyProposed": "IWGDF",
+       "verified": true,
+       "ref": "REF-DM-FOOT-LOPS-RULE"
+      }
+     }
+    }
    }
   }
  ],
@@ -1527,9 +1564,41 @@
     "chart": "REF-DM-CVD-CHART",
     "bandsFirstMatch": true,
     "review": [
-     "F04"
+     "F04",
+     "T14"
     ],
-    "ages": "adult"
+    "ages": "adult",
+    "mustHave": [
+     "who_cvd_risk_percent"
+    ],
+    "notWhen": [
+     {
+      "id": "cvd_established_no_chart",
+      "label": "Established cardiovascular disease (already high risk; the chart does not apply)",
+      "all": [
+       {
+        "feature": "cvd_established",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Statins are recommended for all people with type 2 diabetes 40 years old or older, but only if this does not negatively impact access to glucose-lowering and blood pressure-lowering medication.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-32",
+        "section": "Section 'Control of blood pressure and blood lipids' (p.17); 'Control of blood lipids' (pp.23-24)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CVD-STATIN-AGE"
+       }
+      }
+     }
+    ]
    }
   },
   {
@@ -1777,9 +1846,13 @@
     "review": [
      "F06",
      "F32",
-     "F04"
+     "F04",
+     "T13"
     ],
-    "ages": "adult"
+    "ages": "adult",
+    "mustHave": [
+     "glucose_lowering_therapy"
+    ]
    }
   }
  ],
@@ -1818,11 +1891,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "glycaemic_target_tier",
-    "op": "==",
-    "value": "general"
-   },
    "note": "Read only for a person with confirmed diabetes and an accepted target tier. 'Below 7.0' follows ADA and WHO's own monitoring indicator; WHO's narrative says 'aim for 7.0%' (D-DM-13). Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules. The table has no lower edge: 'not above the upper limit' is not 'safe'. In a frail person on insulin or a sulfonylurea a low HbA1c is itself a warning (DM-ACT-RX-11, -11B).",
    "toneLabels": {
     "normal": "Not above the upper limit",
@@ -1838,12 +1906,14 @@
     "review": [
      "F04",
      "H06",
-     "H13"
+     "H13",
+     "T06"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_hba1c_general"
    }
   },
   {
@@ -1880,11 +1950,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "glycaemic_target_tier",
-    "op": "==",
-    "value": "relaxed"
-   },
    "toneLabels": {
     "normal": "Not above the upper limit",
     "intermediate": "Above target"
@@ -1899,12 +1964,14 @@
     "review": [
      "F04",
      "H06",
-     "H13"
+     "H13",
+     "T06"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_hba1c_relaxed"
    },
    "note": " Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules. The table has no lower edge: 'not above the upper limit' is not 'safe'. In a frail person on insulin or a sulfonylurea a low HbA1c is itself a warning (DM-ACT-RX-11, -11B)."
   },
@@ -1942,11 +2009,6 @@
      "verified": true
     }
    },
-   "when": {
-    "feature": "glycaemic_target_tier",
-    "op": "==",
-    "value": "tight"
-   },
    "toneLabels": {
     "normal": "Not above the upper limit",
     "intermediate": "Above target"
@@ -1961,12 +2023,14 @@
     "review": [
      "F04",
      "H06",
-     "H13"
+     "H13",
+     "T06"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_hba1c_tight"
    },
    "note": " Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules. The table has no lower edge: 'not above the upper limit' is not 'safe'. In a frail person on insulin or a sulfonylurea a low HbA1c is itself a warning (DM-ACT-RX-11, -11B)."
   },
@@ -2395,6 +2459,118 @@
      "pregnancy": "not_pregnant"
     }
    }
+  },
+  {
+   "id": "hba1c_control_older",
+   "feature": "hba1c",
+   "standard": "WHO",
+   "version": "2020 (WHO/UCN/NCD/20.1)",
+   "bands": [
+    {
+     "code": "at_target",
+     "display": "Not above the upper limit",
+     "tone": "normal",
+     "to": 7.5
+    },
+    {
+     "code": "above_target",
+     "display": "Above target",
+     "tone": "intermediate",
+     "from": 7.5
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). [...] If HbA1c measurement is not available or there is concern over its validity, an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-28",
+     "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 goal box (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "note": "Read against the older-adult target (below 7.5%).",
+   "toneLabels": {
+    "normal": "Not above the upper limit",
+    "intermediate": "Above target"
+   },
+   "x": {
+    "lane": "stratify",
+    "family": "DM-STR-CTRL",
+    "refs": [
+     "REF-DM-CTRL-OLDER-HEALTHY"
+    ],
+    "status": "new",
+    "review": [
+     "T06"
+    ],
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "forTarget": "tgt_hba1c_older_healthy"
+   }
+  },
+  {
+   "id": "hba1c_control_ckd",
+   "feature": "hba1c",
+   "standard": "WHO",
+   "version": "2020 (WHO/UCN/NCD/20.1)",
+   "bands": [
+    {
+     "code": "at_target",
+     "display": "Not above the upper limit",
+     "tone": "normal",
+     "to": 8.0
+    },
+    {
+     "code": "above_target",
+     "display": "Above target",
+     "tone": "intermediate",
+     "from": 8.0
+    }
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). [...] If HbA1c measurement is not available or there is concern over its validity, an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-28",
+     "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 goal box (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "note": "Read against the upper end of the CKD target range (below 8.0%).",
+   "toneLabels": {
+    "normal": "Not above the upper limit",
+    "intermediate": "Above target"
+   },
+   "x": {
+    "lane": "stratify",
+    "family": "DM-STR-CTRL",
+    "refs": [
+     "REF-DM-CTRL-CKD-HIGH"
+    ],
+    "status": "new",
+    "review": [
+     "T06"
+    ],
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "forTarget": "tgt_hba1c_ckd"
+   }
   }
  ],
  "rules": [
@@ -2821,13 +2997,7 @@
    "when": {
     "id": "tgt_general",
     "label": "Confirmed diabetes",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "citation": {
      "standard": "WHO",
      "version": "2020 (WHO/UCN/NCD/20.1)",
@@ -2843,6 +3013,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-HBA1C-TARGET"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -2877,7 +3113,9 @@
      "H14",
      "J12",
      "K13",
-     "L09"
+     "L09",
+     "T06",
+     "T10"
     ],
     "ages": "adult",
     "notWhen": [
@@ -2956,6 +3194,59 @@
         "ref": "REF-DM-CTRL-HBA1C-TARGET"
        }
       }
+     },
+     {
+      "id": "tgt_general_su_low",
+      "label": "On insulin or a sulfonylurea with a significant low in the last year (the relaxed target applies)",
+      "all": [
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       }
+      ],
+      "any": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
      }
     ],
     "restrictedClasses": []
@@ -2969,13 +3260,7 @@
    "when": {
     "id": "tgt_relaxed",
     "label": "Confirmed diabetes, with a relaxed target agreed, or any of: frailty, serious comorbidity or limited life expectancy; cognitive impairment; a significant low in the last year (needing help, a reading below 3.0, or repeated); impaired awareness of lows (Gold score 4 or more)",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "any": [
      {
       "feature": "frailty_or_limited_life_expectancy",
@@ -3021,6 +3306,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-HBA1C-RELAXED"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3053,7 +3404,8 @@
      "F04",
      "H14",
      "J12",
-     "K13"
+     "K13",
+     "T10"
     ],
     "ages": "adult",
     "notWhen": [
@@ -3091,7 +3443,9 @@
     ],
     "supersedes": [
      "tgt_hba1c_general",
-     "tgt_hba1c_older_healthy"
+     "tgt_hba1c_older_healthy",
+     "tgt_hba1c_ckd",
+     "tgt_hba1c_tb"
     ],
     "restrictedClasses": []
    }
@@ -3105,11 +3459,6 @@
     "id": "tgt_tb",
     "label": "On TB treatment",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "tb_current",
       "op": "present"
@@ -3130,6 +3479,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-TB"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3161,10 +3576,16 @@
     },
     "review": [
      "F10",
-     "F04"
+     "F04",
+     "T10"
     ],
     "restrictedReason": "On TB treatment with markedly raised glucose (WHO TB handbook).",
     "ages": "adult",
+    "supersedes": [
+     "tgt_hba1c_general",
+     "tgt_hba1c_older_healthy",
+     "tgt_hba1c_tight"
+    ],
     "restrictedClasses": [
      "tb"
     ],
@@ -3180,11 +3601,6 @@
     "id": "tgt_older",
     "label": "Aged 65 or over",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "age_years",
       "op": ">=",
@@ -3207,6 +3623,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-OLDER-HEALTHY"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3240,7 +3722,8 @@
      "F35",
      "F04",
      "H14",
-     "J12"
+     "J12",
+     "T10"
     ],
     "ages": "adult",
     "notWhen": [
@@ -3338,11 +3821,6 @@
     "label": "eGFR below 60",
     "all": [
      {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
-     {
       "feature": "egfr",
       "op": "<",
       "value": 60,
@@ -3364,6 +3842,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-CKD-HIGH"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3401,7 +3945,8 @@
     "review": [
      "V4",
      "F04",
-     "Q27"
+     "Q27",
+     "T10"
     ],
     "notWhen": [
      {
@@ -3448,13 +3993,7 @@
    "when": {
     "id": "tgt_fpg",
     "label": "Confirmed diabetes",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "citation": {
      "standard": "WHO",
      "version": "2020 (WHO/UCN/NCD/20.1)",
@@ -3470,6 +4009,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-FPG-SURROGATE"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3500,7 +4105,8 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "F04"
+     "F04",
+     "T10"
     ],
     "ages": "adult",
     "restrictedClasses": []
@@ -3514,13 +4120,7 @@
    "when": {
     "id": "tgt_ppg",
     "label": "Confirmed diabetes",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "citation": {
      "standard": "WHO",
      "version": "2020 (WHO/UCN/NCD/20.1)",
@@ -3536,6 +4136,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-PPG-SURROGATE"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3565,7 +4231,8 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "F04"
+     "F04",
+     "T10"
     ],
     "ages": "adult",
     "restrictedClasses": []
@@ -3579,13 +4246,7 @@
    "when": {
     "id": "tgt_bp_c",
     "label": "Confirmed diabetes",
-    "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     }
-    ],
+    "all": [],
     "citation": {
      "standard": "WHO",
      "version": "2020 (WHO/UCN/NCD/20.1)",
@@ -3601,6 +4262,72 @@
       "verified": true,
       "ref": "REF-DM-CVD-BP-SBP"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3631,7 +4358,8 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "F04"
+     "F04",
+     "T10"
     ],
     "ages": "adult",
     "restrictedClasses": []
@@ -3646,11 +4374,6 @@
     "id": "tgt_tight",
     "label": "A tight target agreed",
     "all": [
-     {
-      "feature": "dm_status",
-      "op": "==",
-      "value": "known"
-     },
      {
       "feature": "glycaemic_target_tier",
       "op": "==",
@@ -3672,6 +4395,72 @@
       "verified": true,
       "ref": "REF-DM-CTRL-HBA1C-TIGHT"
      }
+    },
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
     }
    },
    "citation": {
@@ -3703,7 +4492,8 @@
     },
     "review": [
      "L09",
-     "Q11"
+     "Q11",
+     "T10"
     ],
     "ages": "adult",
     "notWhen": [

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -19,7 +19,7 @@
    "device.bp_cuff_sizes"
   ]
  },
- "count": 129,
+ "count": 135,
  "vignettes": [
   {
    "id": "DMV-01",
@@ -592,7 +592,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-SUS-INCID-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "not_pregnant"
    }
   },
@@ -1198,13 +1202,13 @@
     },
     "interrupt": "DM-ACU-ROUTE-04",
     "foldedInto": {
-     "DM-ACU-ROUTE-15": "DM-ACU-ROUTE-04",
-     "DM-SUS-PAED-01": "DM-ACU-ROUTE-04"
+     "DM-SUS-PAED-01": "DM-ACU-ROUTE-04",
+     "DM-ACU-ROUTE-15": "DM-ACU-ROUTE-04"
     },
     "interruptActions": [
      "A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes or a glucose above 11: suspected ketoacidosis. Route now",
-     "Deep breathing or drowsiness, with no glucose on record: capillary glucose now",
-     "A child who is thirsty, passing a lot of urine or wetting the bed again: capillary glucose now"
+     "A child who is thirsty, passing a lot of urine or wetting the bed again: capillary glucose now",
+     "Deep breathing or drowsiness, with no glucose on record: capillary glucose now"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -2222,7 +2226,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "pregnant"
    }
   },
@@ -2370,7 +2378,7 @@
     ],
     "targets": [
      "tgt_hba1c_tb",
-     "tgt_hba1c_general"
+     "tgt_hba1c_tb"
     ],
     "silent": [
      "DM-SUS-POP-TB-01"
@@ -2417,7 +2425,6 @@
      "hypoglycaemia_risk_ada": "baseline"
     },
     "targets": [
-     "tgt_hba1c_general",
      "tgt_hba1c_tb",
      "tgt_fpg_surrogate",
      "tgt_ppg_surrogate",
@@ -2520,7 +2527,9 @@
      "tgt_ppg_surrogate",
      "tgt_bp"
     ],
-    "bands": {},
+    "bands": {
+     "hba1c_control_general": "at_target"
+    },
     "classification": {
      "type_1": "insufficient",
      "slowly_evolving_immune_mediated": "insufficient",
@@ -2571,7 +2580,7 @@
     ],
     "targets": [
      "tgt_hba1c_relaxed",
-     "tgt_hba1c_ckd"
+     "tgt_hba1c_relaxed"
     ],
     "targets_absent": [
      "tgt_hba1c_general",
@@ -2624,12 +2633,13 @@
     },
     "targets": [
      "tgt_hba1c_relaxed",
-     "tgt_hba1c_ckd",
      "tgt_fpg_surrogate",
      "tgt_ppg_surrogate",
      "tgt_bp"
     ],
-    "bands": {},
+    "bands": {
+     "hba1c_control_relaxed": "at_target"
+    },
     "classification": {
      "type_1": "insufficient",
      "slowly_evolving_immune_mediated": "insufficient",
@@ -3293,7 +3303,13 @@
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
-    "bandsWithheldByCaveat": [],
+    "bandsWithheldByCaveat": [
+     "hba1c_control_general",
+     "hba1c_control_relaxed",
+     "hba1c_control_tight",
+     "hba1c_control_older",
+     "hba1c_control_ckd"
+    ],
     "complications": {
      "diabetic_retinopathy": "insufficient",
      "peripheral_neuropathy_probable": "insufficient"
@@ -3323,7 +3339,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "not_pregnant"
    }
   },
@@ -3475,7 +3495,8 @@
     "fired": {
      "DM-ACT-EDU-01": "step",
      "DM-ACT-EDU-02": "step",
-     "DM-ACU-ROUTE-14": "rule"
+     "DM-ACU-ROUTE-14": "rule",
+     "metformin_during_acute_illness": "therapyFlag"
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
@@ -4447,7 +4468,9 @@
      "tgt_ppg_surrogate",
      "tgt_bp"
     ],
-    "bands": {},
+    "bands": {
+     "hba1c_control_general": "at_target"
+    },
     "classification": {
      "type_1": "insufficient",
      "slowly_evolving_immune_mediated": "insufficient",
@@ -4897,7 +4920,9 @@
      "tgt_ppg_surrogate",
      "tgt_bp"
     ],
-    "bands": {},
+    "bands": {
+     "hba1c_control_general": "above_target"
+    },
     "classification": {
      "type_1": "insufficient",
      "slowly_evolving_immune_mediated": "insufficient",
@@ -5458,7 +5483,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "pregnant"
    }
   },
@@ -6094,7 +6123,11 @@
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [
-     "hba1c_control_general"
+     "hba1c_control_general",
+     "hba1c_control_relaxed",
+     "hba1c_control_tight",
+     "hba1c_control_older",
+     "hba1c_control_ckd"
     ],
     "complications": {
      "diabetic_retinopathy": "insufficient",
@@ -6126,7 +6159,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "not_pregnant"
    }
   },
@@ -6226,7 +6263,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "pregnant"
    }
   },
@@ -7711,6 +7752,7 @@
      "tgt_bp"
     ],
     "bands": {
+     "hba1c_control_general": "at_target",
      "fcap_control_who": "above_target"
     },
     "classification": {
@@ -7892,7 +7934,7 @@
     },
     "interruptActions": [
      "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
-     "Type 1, insulin or an SGLT2 inhibitor, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now"
+     "Diabetes on insulin or an SGLT2 inhibitor, type 1, or medicines not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -8127,7 +8169,8 @@
      "DM-ACT-EDU-01": "step",
      "DM-ACT-EDU-02": "step",
      "DM-ACU-ROUTE-21": "rule",
-     "DM-ACU-ROUTE-34": "rule"
+     "DM-ACU-ROUTE-34": "rule",
+     "metformin_during_acute_illness": "therapyFlag"
     },
     "metButDark": {
      "DM-ACT-REFER-GLU-02": "D-DM-38"
@@ -8228,6 +8271,7 @@
      "DM-ACT-EDU-06": "step",
      "DM-ACU-ROUTE-03": "rule",
      "DM-ACU-ROUTE-21": "rule",
+     "metformin_during_acute_illness": "therapyFlag",
      "sglt2_during_acute_illness": "therapyFlag"
     },
     "metButDark": {},
@@ -8263,7 +8307,7 @@
     "interrupt": "DM-ACU-ROUTE-03",
     "foldedInto": {},
     "interruptActions": [
-     "On an SGLT2 inhibitor and unwell (vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now"
+     "On an SGLT2 inhibitor and unwell (acute illness, vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -8435,15 +8479,13 @@
     "urgency": {
      "DM-SUS-INCID-01": "routine",
      "DM-ACU-ROUTE-08": "same_day",
-     "DM-ACU-ROUTE-28": "immediate",
+     "DM-ACU-ROUTE-28": "same_day",
      "DM-ACT-REFER-BP-01": "same_day",
      "DM-ACT-REFER-EGFR-01": "same_day"
     },
-    "interrupt": "DM-ACU-ROUTE-28",
+    "interrupt": null,
     "foldedInto": {},
-    "interruptActions": [
-     "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital"
-    ],
+    "interruptActions": [],
     "metViaUnknown": {
      "DM-ACU-ROUTE-28": "pregnant"
     },
@@ -8843,7 +8885,13 @@
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
-    "bandsWithheldByCaveat": [],
+    "bandsWithheldByCaveat": [
+     "hba1c_control_general",
+     "hba1c_control_relaxed",
+     "hba1c_control_tight",
+     "hba1c_control_older",
+     "hba1c_control_ckd"
+    ],
     "complications": {
      "diabetic_retinopathy": "insufficient",
      "peripheral_neuropathy_probable": "insufficient"
@@ -8878,6 +8926,9 @@
     "cautions": {},
     "gaps": {
      "DM-ACT-RX-11": [
+      "hba1c"
+     ],
+     "DM-ACT-REFER-TARGET-02": [
       "hba1c"
      ]
     },
@@ -9450,6 +9501,7 @@
     "blockedCriteria": [],
     "fired": {
      "DM-ACU-ROUTE-02": "rule",
+     "metformin_during_acute_illness": "therapyFlag",
      "sglt2_during_acute_illness": "therapyFlag"
     },
     "metButDark": {},
@@ -9536,6 +9588,7 @@
      "DM-ACT-EDU-02": "step",
      "DM-ACT-EDU-06": "step",
      "DM-ACU-ROUTE-03": "rule",
+     "metformin_during_acute_illness": "therapyFlag",
      "sglt2_during_acute_illness": "therapyFlag"
     },
     "metButDark": {},
@@ -9570,7 +9623,7 @@
     "interrupt": "DM-ACU-ROUTE-03",
     "foldedInto": {},
     "interruptActions": [
-     "On an SGLT2 inhibitor and unwell (vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now"
+     "On an SGLT2 inhibitor and unwell (acute illness, vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -10347,7 +10400,9 @@
      "tgt_ppg_surrogate",
      "tgt_bp"
     ],
-    "bands": {},
+    "bands": {
+     "hba1c_control_older": "at_target"
+    },
     "classification": {
      "type_1": "insufficient",
      "slowly_evolving_immune_mediated": "insufficient",
@@ -10442,7 +10497,11 @@
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "pregnant"
    }
   },
@@ -10494,7 +10553,8 @@
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-04": "rule"
+     "DM-ACU-ROUTE-04": "rule",
+     "DM-ACU-ROUTE-13B": "rule"
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
@@ -10515,7 +10575,8 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-04": "immediate"
+     "DM-ACU-ROUTE-04": "immediate",
+     "DM-ACU-ROUTE-13B": "same_day"
     },
     "interrupt": "DM-ACU-ROUTE-04",
     "foldedInto": {},
@@ -10926,13 +10987,11 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-28": "immediate"
+     "DM-ACU-ROUTE-28": "same_day"
     },
-    "interrupt": "DM-ACU-ROUTE-28",
+    "interrupt": null,
     "foldedInto": {},
-    "interruptActions": [
-     "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital"
-    ],
+    "interruptActions": [],
     "metViaUnknown": {
      "DM-ACU-ROUTE-28": "pregnant"
     },
@@ -11018,7 +11077,8 @@
     "fired": {
      "DM-ACT-EDU-01": "step",
      "DM-ACT-EDU-02": "step",
-     "DM-ACU-ROUTE-34": "rule"
+     "DM-ACU-ROUTE-34": "rule",
+     "metformin_during_acute_illness": "therapyFlag"
     },
     "metButDark": {
      "DM-ACT-REFER-GLU-02": "D-DM-38"
@@ -11196,13 +11256,11 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-28": "immediate"
+     "DM-ACU-ROUTE-28": "same_day"
     },
-    "interrupt": "DM-ACU-ROUTE-28",
+    "interrupt": null,
     "foldedInto": {},
-    "interruptActions": [
-     "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital"
-    ],
+    "interruptActions": [],
     "metViaUnknown": {
      "DM-ACU-ROUTE-28": "postpartum_weeks"
     },
@@ -11362,7 +11420,7 @@
     },
     "interruptActions": [
      "Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones",
-     "Pregnancy or a recent birth is not recorded: ask now. If pregnant or within 6 weeks of birth: pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now"
+     "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: severe pre-eclampsia or eclampsia until proved otherwise. Route now"
     ],
     "metViaUnknown": {
      "DM-ACU-ROUTE-28C": "pregnant"
@@ -11488,7 +11546,10 @@
     "fires": [
      "DM-ACU-ROUTE-28D"
     ],
-    "something_fires": true
+    "something_fires": true,
+    "urgency": {
+     "DM-ACU-ROUTE-28D": "immediate"
+    }
    },
    "mapsToSpecVignettes": [],
    "story": null,
@@ -11526,16 +11587,16 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-15": "immediate",
-     "DM-ACU-ROUTE-28D": "folded"
+     "DM-ACU-ROUTE-15": "folded",
+     "DM-ACU-ROUTE-28D": "immediate"
     },
-    "interrupt": "DM-ACU-ROUTE-15",
+    "interrupt": "DM-ACU-ROUTE-28D",
     "foldedInto": {
-     "DM-ACU-ROUTE-28D": "DM-ACU-ROUTE-15"
+     "DM-ACU-ROUTE-15": "DM-ACU-ROUTE-28D"
     },
     "interruptActions": [
-     "Deep breathing or drowsiness, with no glucose on record: capillary glucose now",
-     "Pregnant or within 6 weeks of birth and drowsy, with no blood pressure recorded: blood pressure and glucose now"
+     "Pregnant or within 6 weeks of birth and drowsy, with no blood pressure recorded: blood pressure and glucose now",
+     "Deep breathing or drowsiness, with no glucose on record: capillary glucose now"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -11572,7 +11633,7 @@
      "DM-ACU-ROUTE-27B"
     ],
     "urgency": {
-     "DM-ACU-ROUTE-27D": "same_day"
+     "DM-ACU-ROUTE-27D": "immediate"
     }
    },
    "mapsToSpecVignettes": [],
@@ -11610,11 +11671,13 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-27D": "same_day"
+     "DM-ACU-ROUTE-27D": "immediate"
     },
-    "interrupt": null,
+    "interrupt": "DM-ACU-ROUTE-27D",
     "foldedInto": {},
-    "interruptActions": [],
+    "interruptActions": [
+     "Raised blood pressure in pregnancy or after birth with headache or vomiting: features of severe pre-eclampsia. Route now; refer to hospital"
+    ],
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
@@ -11668,7 +11731,8 @@
     "blockedCriteria": [],
     "fired": {
      "DM-ACT-EDU-01": "step",
-     "DM-ACT-EDU-02": "step"
+     "DM-ACT-EDU-02": "step",
+     "metformin_during_acute_illness": "therapyFlag"
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
@@ -11803,6 +11867,532 @@
     "metViaUnknown": {},
     "cautions": {},
     "gaps": {},
+    "pregnancyState": "not_pregnant"
+   }
+  },
+  {
+   "id": "DMV-130",
+   "title": "Two weeks after birth: confusion and little urine, blood pressure not yet taken",
+   "covers": [
+    "postpartum",
+    "missing data",
+    "review T01"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 26,
+    "sex": "female",
+    "pregnant": false,
+    "postpartum_weeks": 2,
+    "hypertensive_organ_damage": true
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-28E"
+    ],
+    "urgency": {
+     "DM-ACU-ROUTE-28E": "immediate"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACU-ROUTE-28E": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-28E": "immediate"
+    },
+    "interrupt": "DM-ACU-ROUTE-28E",
+    "foldedInto": {},
+    "interruptActions": [
+     "Pregnant or within 6 weeks of birth with organ-damage signs and no blood pressure recorded: blood pressure now; severe pre-eclampsia until proved otherwise. Route now"
+    ],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant"
+   }
+  },
+  {
+   "id": "DMV-131",
+   "title": "Woman of 32, pregnancy not asked: drowsy, glucose 6, blood pressure not yet taken",
+   "covers": [
+    "pregnancy unknown",
+    "review T02"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 32,
+    "sex": "female",
+    "mental_status": "drowsy",
+    "capillary_glucose": 6.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-28D"
+    ],
+    "gaps": {
+     "DM-ACU-ROUTE-28D": [
+      "pregnant"
+     ]
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "insufficient",
+     "who_2013_diabetes_in_pregnancy": "insufficient",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACU-ROUTE-28D": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-28D": "immediate"
+    },
+    "interrupt": "DM-ACU-ROUTE-28D",
+    "foldedInto": {},
+    "interruptActions": [
+     "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: blood pressure and glucose now"
+    ],
+    "metViaUnknown": {
+     "DM-ACU-ROUTE-28D": "pregnant"
+    },
+    "cautions": {},
+    "gaps": {
+     "who_hearts_d_2020": [
+      "pregnant"
+     ],
+     "ug_ucg_2023": [
+      "pregnant"
+     ],
+     "ug_integrated_dm_2026": [
+      "pregnant"
+     ],
+     "who_2006_intermediate": [
+      "pregnant"
+     ],
+     "ada_2026_prediabetes": [
+      "pregnant"
+     ],
+     "who_2013_gdm": [
+      "pregnant"
+     ],
+     "who_2013_diabetes_in_pregnancy": [
+      "pregnant"
+     ],
+     "DM-ACU-ROUTE-28D": [
+      "pregnant"
+     ]
+    },
+    "pregnancyState": "unknown"
+   }
+  },
+  {
+   "id": "DMV-132",
+   "title": "Type 2 on metformin, acetone on the breath, glucose 8, no ketone test",
+   "covers": [
+    "acute routing",
+    "review T04"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 55,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "acetone_breath": true,
+    "capillary_glucose": 8.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-13B"
+    ],
+    "silent": [
+     "DM-ACU-ROUTE-24B"
+    ],
+    "urgency": {
+     "DM-ACU-ROUTE-13B": "same_day"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACU-ROUTE-13B": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-13B": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant"
+   }
+  },
+  {
+   "id": "DMV-133",
+   "title": "eGFR 45, HbA1c 7.5%: read against the CKD target",
+   "covers": [
+    "targets",
+    "bands",
+    "review T06"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 60,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "egfr": 45,
+    "hba1c": 7.5
+   },
+   "expect": {
+    "targets": [
+     "tgt_hba1c_ckd"
+    ],
+    "targets_absent": [
+     "tgt_hba1c_general"
+    ],
+    "bands": {
+     "hba1c_control_ckd": "at_target"
+    },
+    "bands_absent": [
+     "hba1c_control_general"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-REFER-EGFR-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_ckd",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "hba1c_control_ckd": "at_target"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-EGFR-02": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant"
+   }
+  },
+  {
+   "id": "DMV-134",
+   "title": "12-year-old, fasting glucose 8.0, no symptoms recorded",
+   "covers": [
+    "paediatric",
+    "review T07"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adolescent",
+   "synthetic": true,
+   "values": {
+    "age_years": 12,
+    "sex": "male",
+    "fasting_pg": 8.0
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-PAED-04"
+    ],
+    "urgency": {
+     "DM-SUS-PAED-04": "same_day"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "not_met",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-PAED-04": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-PAED-04": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant"
+   }
+  },
+  {
+   "id": "DMV-135",
+   "title": "Known type 2 on insulin with iron deficiency: HbA1c 8.0%",
+   "covers": [
+    "caveat",
+    "review T11"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "female",
+    "pregnancy_possible": false,
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "iron_deficiency": true,
+    "hba1c": 8.0
+   },
+   "expect": {
+    "silent": [
+     "DM-ACT-REFER-TARGET-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [
+     "hba1c_b12_or_iron_deficiency"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [
+     "hba1c_control_general",
+     "hba1c_control_relaxed",
+     "hba1c_control_tight",
+     "hba1c_control_older",
+     "hba1c_control_ckd"
+    ],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {
+     "hypoglycaemia_risk_ada": "baseline"
+    },
+    "targets": [
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {
+     "DM-ACT-REFER-TARGET-02": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "not_pregnant"
    }
   }

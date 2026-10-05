@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,13 +13,13 @@
   "refsWithValue": 195,
   "refsNeedCso": 18,
   "refsWithConflict": 39,
-  "claims": 846,
-  "claimsVerified": 755,
-  "claimsCited": 438,
+  "claims": 847,
+  "claimsVerified": 756,
+  "claimsCited": 439,
   "features": {
    "reuse": 50,
    "reconcile": 45,
-   "new": 98
+   "new": 99
   },
   "catalog": {
    "capabilities": 25,
@@ -32,16 +32,16 @@
    "validityCaveats": 27,
    "riskModels": 2,
    "therapyFlags": 19,
-   "interpretation": 11,
+   "interpretation": 13,
    "orderables": 19,
    "management": 60,
    "conditions": 23,
-   "rules": 88,
+   "rules": 92,
    "designb_extra": 23,
    "targets": 9
   },
-  "criteria": 364,
-  "designBRules": 221,
+  "criteria": 375,
+  "designBRules": 225,
   "designBFamilies": 32,
   "clerking": {
    "profiles": 15,
@@ -82,20 +82,20 @@
    "vignettes": 34
   },
   "review": {
-   "findings": 234,
+   "findings": 269,
    "byStatus": {
-    "fixed": 178,
-    "fixed_in_part": 29,
-    "cso_decision": 5,
-    "phase_0": 15,
-    "no_change": 7
+    "fixed": 202,
+    "fixed_in_part": 31,
+    "cso_decision": 7,
+    "phase_0": 20,
+    "no_change": 9
    }
   },
   "refsUsedByARule": 123,
-  "vignettes": 129,
+  "vignettes": 135,
   "acuteGrid": {
    "men": 21504,
-   "women": 180,
+   "women": 360,
    "silent": 0,
    "noisy": 0,
    "order": 0

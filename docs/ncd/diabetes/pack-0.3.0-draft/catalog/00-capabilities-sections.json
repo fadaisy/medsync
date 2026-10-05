@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -320,7 +320,7 @@
   ],
   "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17).",
   "interrupt": "One interrupt per event: when several `immediate` rules are met, the surface interrupts once, headed by the first in `acuteOrder` (low glucose, then measured emergencies, then the clinical picture, then 'measure now' requests); a rule met only because pregnancy or a recent birth is unrecorded comes after every rule met on recorded facts. The interrupt carries every folded rule's action (`interruptActions`), so nothing is lost (seventh review, Q03, Q07).",
-  "pregnancyUnknown": "Acute pregnancy interrupts (`pregnancyUnknownCounts`: rules 28, 28B, 28C) treat an unanswered pregnancy question, or a 'not pregnant' answer with the weeks since birth unanswered, as possible; they fire with `unknownDisplay` (ask now, then the action) and name the gap. Same-day pregnancy rules wait for the answer (seventh review, Q01, Q10). `pregnancy_possible` is the platform's answer (D-DM-36).",
+  "pregnancyUnknown": "Acute pregnancy rules (`pregnancyUnknownCounts`: 27D, 28, 28B, 28C, 28D, 28E) treat an unanswered pregnancy question, or 'not pregnant' with the weeks since a birth unanswered, as possible; they fire with the matching `unknownDisplays` entry (ask now, then the action) and name the gap. A rule with `unknownUrgency` fires at that urgency on the unknown path (28: an asymptomatic pressure asks the question the same day). Same-day pregnancy rules without symptoms wait for the answer (eighth review, T02, T08, T18).",
   "targets": "A target with `supersedes` replaces the targets it names when both would be proposed; an agreed tier decides. 'Avoid symptoms' proposes no HbA1c target by design (sixth review, L09).",
   "diabetesContext": "Every acute rule reads 'has diabetes' the same way: known diabetes, a recorded type, or any glucose-lowering medicine (sixth review, L04).",
   "acuteOrder": [
@@ -329,7 +329,9 @@
    "DM-ACU-ROUTE-07",
    "DM-ACU-ROUTE-28",
    "DM-ACU-ROUTE-28B",
+   "DM-ACU-ROUTE-28E",
    "DM-ACU-ROUTE-28C",
+   "DM-ACU-ROUTE-27D",
    "DM-ACU-ROUTE-04",
    "DM-ACU-ROUTE-25",
    "DM-ACU-ROUTE-25B",
@@ -343,10 +345,15 @@
    "DM-ACU-ROUTE-24B",
    "DM-ACU-ROUTE-03",
    "DM-ACU-ROUTE-05",
+   "DM-ACU-ROUTE-28D",
    "DM-ACU-ROUTE-20",
    "DM-ACU-ROUTE-32",
-   "DM-ACU-ROUTE-15",
-   "DM-ACU-ROUTE-28D"
-  ]
+   "DM-SUS-PAED-01",
+   "DM-ACU-ROUTE-15"
+  ],
+  "bands": "An HbA1c control band is read only against a target that is actually proposed (`forTarget`), so a band never contradicts the target beside it (eighth review, T06).",
+  "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane (an untrusted result is 'insufficient' and named as a gap), and a step whose job is to order the blocked test (`measures`) proposes the alternative instead; acute rules and referrals for danger are never suppressed (N8; eighth review, T11).",
+  "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
+  "adult": "'Adult' is 16 and over by numeric age where it is recorded, whatever the display band (eighth review, T20; P0-01)."
  }
 }

@@ -1,7 +1,7 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.4-draft",
+ "version": "0.3.5-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
  "count": 342,
@@ -60,6 +60,7 @@
      "remission_fasting_meter_high",
      "remission_glucose_high",
      "sus_fcap_ifg",
+     "sus_paed_range",
      "sus_single_abnormal",
      "sus_single_fasting_meter",
      "who_hd_fcap_repeat",
@@ -105,6 +106,7 @@
      "con_preg_any_11",
      "dip_2h",
      "gdm_2h",
+     "sus_paed_range",
      "sus_single_abnormal",
      "who_hd_ogtt_repeat",
      "who_hd_ogtt_symptoms",
@@ -221,6 +223,7 @@
     },
     "usedByCriteria": [
      "ada_a1c_pre",
+     "sus_paed_range",
      "sus_single_abnormal",
      "who_hd_hba1c_repeat",
      "who_hd_hba1c_symptoms"
@@ -5164,6 +5167,7 @@
      "acu_ketones_mid_bohb_high",
      "acu_ketones_mid_bohb_normal",
      "acu_paed_acetone_bohb_normal",
+     "acu_paed_acetone_normal",
      "acu_t1_acetone_bohb_normal",
      "acu_vomit_high_ket"
     ]
@@ -11070,7 +11074,8 @@
      "acu_preg_bp_sympt",
      "acu_preg_drowsy",
      "acu_preg_drowsy_nobp",
-     "acu_preg_organ"
+     "acu_preg_organ",
+     "acu_preg_organ_nobp"
     ]
    }
   }

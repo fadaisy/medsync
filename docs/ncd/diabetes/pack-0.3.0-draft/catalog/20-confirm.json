@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1601,6 +1601,37 @@
     "lane": "confirm",
     "family": "DM-CON-VALID",
     "status": "reconcile",
+    "review": [
+     "T16"
+    ],
+    "notWhen": [
+     {
+      "id": "hba1c_sickle_cell_disease_lifted",
+      "label": "The laboratory documents an HbA1c method unaffected by variants",
+      "all": [
+       {
+        "feature": "hba1c_method_variant_free",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+       "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK304271/",
+       "quote": "HbA1c can be used as a diagnostic test for diabetes providing that stringent quality assurance tests are in place and assays are standardised to criteria aligned to the international reference values [...] An HbA1c of 6.5% is recommended as the cut point for diagnosing diabetes. A value of less than 6.5% does not exclude diabetes diagnosed using glucose tests.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-06",
+        "section": "Chapter 2, boxed recommendation",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-DX-HBA1C"
+       }
+      }
+     }
+    ],
     "restrictedClasses": []
    }
   },
@@ -1656,6 +1687,37 @@
     "lane": "confirm",
     "family": "DM-CON-VALID",
     "status": "reconcile",
+    "review": [
+     "T16"
+    ],
+    "notWhen": [
+     {
+      "id": "hba1c_variant_trait_lifted",
+      "label": "The laboratory documents an HbA1c method unaffected by variants",
+      "all": [
+       {
+        "feature": "hba1c_method_variant_free",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2011 (WHO/NMH/CHP/CPM/11.1)",
+       "title": "Use of Glycated Haemoglobin (HbA1c) in the Diagnosis of Diabetes Mellitus: Abbreviated Report of a WHO Consultation",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK304271/",
+       "quote": "HbA1c can be used as a diagnostic test for diabetes providing that stringent quality assurance tests are in place and assays are standardised to criteria aligned to the international reference values [...] An HbA1c of 6.5% is recommended as the cut point for diagnosing diabetes. A value of less than 6.5% does not exclude diabetes diagnosed using glucose tests.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-06",
+        "section": "Chapter 2, boxed recommendation",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-DX-HBA1C"
+       }
+      }
+     }
+    ],
     "restrictedClasses": []
    }
   },

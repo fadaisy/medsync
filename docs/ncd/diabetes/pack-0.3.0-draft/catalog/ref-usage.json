@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -827,6 +827,17 @@
   ],
   "acu_ill_high_vomit": [
    "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_preg_organ_nobp": [
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_paed_acetone_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "sus_paed_range": [
+   "REF-DM-DX-FPG",
+   "REF-DM-DX-OGTT2H",
+   "REF-DM-DX-HBA1C"
   ],
   "tgt_hba1c_general_relaxed_applies": [
    "REF-DM-HYPO-IAH",

@@ -11,11 +11,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_decisions, k_grid
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_decisions, k_grid
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
-PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.4-draft", "generated": "2026-10-05", "condition": "diabetes",
+PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.5-draft", "generated": "2026-10-05", "condition": "diabetes",
         "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)", "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
         "briefingCommit": "8e45d34"}
 errors, warnings = [], []
@@ -329,8 +329,9 @@ HELD_KINDS = ("therapy_review",)      # routine steps that may not read a value 
 def run_vignette(v):
     vals = v["values"]; site = "ALL" if v["site"] == "referral" else k_vignettes.DISTRICT
     est, band = v["established"], v["ageBand"]
-    adult = band in ("adult", "older_adult")
-    met_cav = [c for c in REG["validityCaveats"] if ev_crit(c["when"], vals, site) == MET]
+    adult = band in ("adult", "older_adult") and not (isinstance(vals.get("age_years"), (int, float)) and vals["age_years"] < 16)      # eighth review, T20: 16 by numeric age
+    met_cav = [c for c in REG["validityCaveats"] if ev_crit(c["when"], vals, site) == MET
+               and not any(ev_crit(k, vals, site) == MET for k in c["x"].get("notWhen", []))]      # eighth review, T16: a caveat can be lifted
     caveats = [c for c in met_cav if c["blocksDiagnosis"] or c["feature"] in vals]      # a warning on a value shows only when the value exists
     blocking = [c for c in caveats if c["blocksDiagnosis"]]
     blocked_any = {c["feature"] for c in blocking}
@@ -398,6 +399,9 @@ def run_vignette(v):
         cap = r["x"].get("unlessCapability")
         if cap and (site == "ALL" or cap in site): continue      # seventh review, Q12: the pathway for a site WITHOUT this test
         st = ev_crit(r["when"], vals, site); via = None
+        if r["x"]["lane"] != "acute_route":      # eighth review, T11: caveats reach routine rules (never the acute lane, N8)
+            g = guarded(r["when"], st)
+            if g != st: res["gaps"].setdefault(r["id"], []).extend(sorted({p["feature"] for p in preds_of(r["when"])} & blocked_any)); st = g
         if st != MET and r["x"].get("pregnancyUnknownCounts"):      # sixth/seventh review, L13, Q01: unanswered is 'possible', and named
             alt = None
             if ps == "unknown": alt = ({**vals, "pregnant": True}, "pregnant")
@@ -405,12 +409,17 @@ def run_vignette(v):
                   and vals.get("pregnancy_possible") is not False and band not in ("neonate", "infant", "child")): alt = ({**vals, "postpartum_weeks": 0}, "postpartum_weeks")
             if alt and ev_crit(r["when"], alt[0], site) == MET: st, via = MET, alt[1]
         if fire(r, "rule", st) == MET:
-            res["urgency"][r["id"]] = r["urgency"]
+            res["urgency"][r["id"]] = r["x"].get("unknownUrgency", r["urgency"]) if via else r["urgency"]      # eighth review, T18
             if via: res["gaps"].setdefault(r["id"], []).append(via); res["metViaUnknown"][r["id"]] = via
     for s in REG["management"]:
         if not gate(s["x"]["runWhen"]) or not ages_ok(s): continue
         held = s["x"]["kind"] in HELD_KINDS and not s["x"].get("lessTreatment")      # fourth review, J11: asking for less treatment reads every value
         st = ev_crit(s["when"], vals, site, blocked_any if held else ())
+        if not held and not s["x"].get("lessTreatment") and s["x"]["kind"] != "refer" or s["id"] == "DM-ACT-REFER-TARGET-02":      # eighth review, T11: direction-aware on routine steps
+            g = guarded(s["when"], st)
+            if g != st: res["gaps"].setdefault(s["id"], []).extend(sorted({p["feature"] for p in preds_of(s["when"])} & blocked_any)); st = g
+        if st == MET and s["x"].get("measures") in blocked_any:      # a step that orders a test the caveat makes invalid proposes the alternative instead
+            res["gaps"].setdefault(s["id"], []).append(f"{s['x']['measures']} not valid for this patient: use the caveat's alternative"); st = "blocked_by_caveat"
         if held and st != MET and ev_crit(s["when"], vals, site) == MET:      # fifth review, K14: the blocked value is a named gap, never read
             res["gaps"].setdefault(s["id"], []).extend(sorted({p["feature"] for p in preds_of(s["when"])} & blocked_any))
         if st == MET and any(ev_crit(k, vals, site) == MET for k in s.get("contraindications", [])): st = "contraindicated"
@@ -457,10 +466,11 @@ def run_vignette(v):
                  key=lambda k: (k in res["metViaUnknown"], k_r6.ACUTE_ORDER.index(k) if k in k_r6.ACUTE_ORDER else len(k_r6.ACUTE_ORDER)))      # seventh review, Q03
     res["interrupt"] = imm[0] if imm else None; res["foldedInto"] = {}
     rules_by_id = {r["id"]: r for r in REG["rules"]}
-    res["interruptActions"] = [(rules_by_id[k]["x"]["unknownDisplay"] if k in res["metViaUnknown"] else rules_by_id[k]["display"]) if k in rules_by_id else k for k in imm]      # Q07
+    res["interruptActions"] = [(rules_by_id[k]["x"]["unknownDisplays"][res["metViaUnknown"][k]] if k in res["metViaUnknown"] else rules_by_id[k]["display"]) if k in rules_by_id else k for k in imm]      # Q07, T21
     for k in imm[1:]: res["urgency"][k] = "folded"; res["foldedInto"][k] = imm[0]      # sixth review, L07: one interrupt per event
     for m in REG["riskModels"]:
         if not ages_ok(m): continue
+        if any(f not in vals for f in m["x"].get("mustHave", [])) or any(ev_crit(k, vals, site) == MET for k in m["x"].get("notWhen", [])): continue      # eighth review, T13, T14
         for b in m["bands"]:
             if ev_crit(b["when"], vals, site) == MET: res["risk"][m["id"]] = b["code"]; break
     for t in REG["interpretation"]:
@@ -469,6 +479,7 @@ def run_vignette(v):
         if not applies(t["x"]): continue
         if t.get("when") and ev_pred(t["when"], vals, site) != MET: continue
         if t["feature"] in blocked_any: res["bands_blocked"].append(t["id"]); continue   # never 'at target' on a value that is not valid
+        if t["x"].get("forTarget") and t["x"]["forTarget"] not in res["targets"]: continue      # eighth review, T06: read against the target shown
         x = vals[t["feature"]]
         for b in t["bands"]:
             if (b.get("from") is None or x >= b["from"]) and (b.get("to") is None or x < b["to"]): res["bands"][t["id"]] = b["code"]; break
@@ -681,7 +692,7 @@ def emit(vresults):
          "featureToConcept": cfc_map, "conceptsToPropose": k_wire.CFC_PROPOSE, "qualifiersNeeded": k_wire.CFC_QUALIFIERS, "diagnosisTermToConcept": k_wire.CONDITION_CONCEPTS})
     # review log: every finding of the two reviews with what was done about it
     log = []
-    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json", "R6-review.json", "R7-review.json"):
+    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json", "R6-review.json", "R7-review.json", "R8-review.json"):
         for f in json.load(open(os.path.join(lib.ROOT, "review", fname), encoding="utf-8")):
             st, what = k_review.DISPOSITION[f["id"]]
             log.append({"id": f["id"], "review": fname[:2], "severity": f["severity"], "where": f["where"], "finding": f["finding"], "why": f["why"], "reviewerFix": f["fix"], "status": st, "done": what})

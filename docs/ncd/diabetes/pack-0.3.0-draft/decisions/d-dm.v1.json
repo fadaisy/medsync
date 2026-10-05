@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -620,8 +620,8 @@
   {
    "id": "D-DM-41",
    "title": "The acute escalation floor",
-   "question": "The build now fails if any patient in a grid of men (21,504 cells) and women (300 cells) across sites, bands, profiles, states, glucose, ketones, pregnancy and blood pressure gets less than the minimum urgency in this table (build.py ACUTE_FLOOR), or more than one interrupt. Sign the table?",
-   "recommended": "Sign it as the acute lane's safety contract: interrupt on a meter HI, blood ketones 3.0 or more in diabetes or with a high glucose, ketones 1.6 to 2.9 with vomiting, Kussmaul breathing or acetone in diabetes, drowsiness with a low, high or unmeasured glucose in diabetes, a glucose below 3.9 on insulin, a sulfonylurea, type 1 or unknown medicines, SGLT2 with vomiting or deep breathing, a sick child with diabetes and no glucose; same day for the intermediate patterns.",
+   "question": "The build fails if any patient in its grids gets less than the minimum urgency in `k_grid.floor` / `women_floor` (21,504 men over 2 sites × 4 age bands × 8 diabetes profiles × 6 states × 7 glucose values × 8 ketone values; 360 women over pregnancy/postpartum × BP × symptoms × protein × glucose), or if the interrupt order breaks its invariants. Sign the floor?",
+   "recommended": "Sign it as the acute lane's contract. Interrupt on: a meter HI or LO; blood ketones 3.0 or more in diabetes or with a high glucose; ketones 1.6–2.9 with vomiting; deep breathing or drowsiness in diabetes, with a high glucose, or with no glucose at all; a glucose of 3.5 with drowsiness, or on insulin, a sulfonylurea, type 1 or unknown medicines; acetone or dehydration on insulin, an SGLT2 inhibitor, type 1, unknown medicines, or in a child with diabetes (unless blood ketones are normal); an SGLT2 inhibitor with vomiting, deep breathing, dehydration or drowsiness; a sick child with diabetes and no glucose; in pregnancy or 6 weeks postpartum (or unanswered) 160/110, or 140/90 with organ damage, drowsiness or headache, or organ damage or drowsiness with no BP. Same day for the intermediate patterns (ketones 0.6–2.9, vomiting with a high glucose, a low on other medicines, acetone or dehydration in other diabetes, 140/90 in pregnancy, and an asymptomatic 160/110 with pregnancy unanswered).",
    "alternatives": [
     "Amend any row; the build then enforces the amended table."
    ],

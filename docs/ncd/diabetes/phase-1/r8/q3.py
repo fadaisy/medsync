@@ -1,0 +1,20 @@
+from h import *
+M = dict(sex="male", age_years=55, dm_status="known", dm_type_recorded="type_2")
+def T(name, vals, **kw):
+    r = run(vals, show=False, **kw)
+    print(f"{name:55s} targets={r['targets']} withheld={r['withheld']} bands={ {k:v for k,v in r['bands'].items() if 'hba1c' in k} } steps={[s for s in r['steps_fired'] if 'RX' in s or 'TARGET' in s]} dark={[d for d in r['dark'] if 'RX' in d]}")
+    return r
+T("Q11 tight, glib, needed help, A1c 6.9", {**M, "glucose_lowering_therapy": ["glibenclamide"], "glycaemic_target_tier": "tight", "hypo_worst_12m": "needed_help", "hba1c": 6.9})
+T("Q11b tight, insulin, A1c 6.8", {**M, "glucose_lowering_therapy": ["insulin"], "glycaemic_target_tier": "tight", "hba1c": 6.8})
+T("Q11c tight, metformin, A1c 6.8", {**M, "glucose_lowering_therapy": ["metformin"], "glycaemic_target_tier": "tight", "hba1c": 6.8})
+T("Q11d tight, therapy blank, A1c 6.8", {**M, "glycaemic_target_tier": "tight", "hba1c": 6.8})
+T("Q27 tight egfr40 metformin A1c 6.8", {**M, "glucose_lowering_therapy": ["metformin"], "glycaemic_target_tier": "tight", "egfr": 40, "hba1c": 6.8})
+T("Q27b general egfr45 A1c 7.5", {**M, "glucose_lowering_therapy": ["metformin"], "glycaemic_target_tier": "general", "egfr": 45, "hba1c": 7.5})
+T("Q27c frail egfr45 A1c 7.5", {**M, "glucose_lowering_therapy": ["metformin"], "frailty_or_limited_life_expectancy": True, "egfr": 45, "hba1c": 7.5})
+T("no tier egfr45 A1c 7.5", {**M, "glucose_lowering_therapy": ["metformin"], "egfr": 45, "hba1c": 7.5})
+T("TB target: tb_current", {**M, "glucose_lowering_therapy": ["metformin"], "tb_current": True, "hba1c": 7.5})
+T("relaxed tier, insulin, A1c 7.6", {**M, "glucose_lowering_therapy": ["insulin"], "glycaemic_target_tier": "relaxed", "hba1c": 7.6})
+T("general tier, needed help, SU, A1c 7.4", {**M, "glucose_lowering_therapy": ["gliclazide"], "glycaemic_target_tier": "general", "hypo_worst_12m": "needed_help", "hba1c": 7.4})
+T("age 70 general tier A1c 7.3", {**M, "age_years": 70, "glucose_lowering_therapy": ["metformin"], "glycaemic_target_tier": "general", "hba1c": 7.3})
+T("age 70 no tier A1c 7.3", {**M, "age_years": 70, "glucose_lowering_therapy": ["metformin"], "hba1c": 7.3})
+T("sickle cell A1c 8", {**M, "glucose_lowering_therapy": ["metformin"], "sickle_cell_disease": True, "hba1c": 8.0, "glycaemic_target_tier": "general", "months_since_hba1c": 7})

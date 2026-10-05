@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,7 +13,7 @@
  "counts": {
   "reuse": 50,
   "reconcile": 45,
-  "new": 98
+  "new": 99
  },
  "features": [
   {
@@ -2676,6 +2676,17 @@
    "x": {
     "status": "new",
     "note": "UCG 2023 4.1.6.1's acute life-threatening complications, kept apart from ordinary headache so that it can interrupt (fifth review, K10)."
+   }
+  },
+  {
+   "code": "hba1c_method_variant_free",
+   "display": "The laboratory's HbA1c method is not affected by haemoglobin variants (NGSP list)",
+   "kind": "investigation",
+   "valueType": "boolean",
+   "section": "glycaemia",
+   "x": {
+    "status": "new",
+    "note": "Lifts the variant caveats when the method is documented as unaffected (NGSP; eighth review, T16)."
    }
   }
  ]

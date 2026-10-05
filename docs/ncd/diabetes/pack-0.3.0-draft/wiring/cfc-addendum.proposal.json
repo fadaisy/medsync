@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.4-draft",
+  "version": "0.3.5-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1549,6 +1549,14 @@
   },
   {
    "feature": "hypertensive_organ_damage",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hba1c_method_variant_free",
    "concept": null,
    "status": "none",
    "valueType": "boolean",

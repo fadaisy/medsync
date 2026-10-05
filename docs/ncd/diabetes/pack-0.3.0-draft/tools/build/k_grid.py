@@ -38,7 +38,7 @@ def floor(band, prof, state, glu, ket):
             or (ket == "b3.5" and (dm or glu in HIGH))
             or (ket == "b2.0" and state == "vomit" and (dm or glu in HIGH))
             or (state in ("kussmaul", "drowsy") and (dm or glu in HIGH or glu == "none" or (state == "drowsy" and glu == "3.5")))
-            or (state in ("acetone", "dehydrated") and (glu in HIGH or ((prof in INSULINISH or (child and dm)) and ket != "b0.3")))
+            or (state in ("acetone", "dehydrated") and (glu in HIGH or ((prof in INSULINISH or prof == "blanklist" or (child and dm)) and ket != "b0.3")))
             or (glu == "3.5" and prof in INSULIN_OR_SU_OR_UNKNOWN)
             or (prof == "SGLT2" and state in ("vomit", "kussmaul", "dehydrated", "drowsy") and ket != "b0.3")
             or (child and dm and state == "vomit" and glu == "none")):
@@ -48,7 +48,9 @@ def floor(band, prof, state, glu, ket):
             or (dm and state == "vomit" and ket in ("u_trace", "u_1+", "b1.0"))
             or (ket == "b2.0" and (dm or glu in HIGH))
             or (prof in ("T1_ins", "ins_nostatus", "T1_nostatus") and state == "vomit" and ket == "none")
-            or (glu == "28" and ket == "none")):
+            or (glu == "28" and ket == "none")
+            or (dm and state in ("acetone", "dehydrated") and ket == "none")
+            or (child and dm and state in ("acetone", "dehydrated") and ket == "b0.3")):
         return "same_day"
     return None
 
@@ -58,12 +60,17 @@ PREG = {"pregnant": {"pregnant": True, "gestation_weeks": 30}, "pp2": {"pregnant
 BP = {"none": {}, "145/95": {"bp_systolic": 145, "bp_diastolic": 95}, "165/112": {"bp_systolic": 165, "bp_diastolic": 112}}
 SYM = {"none": {}, "organ": {"hypertensive_organ_damage": True}, "drowsy": {"mental_status": "drowsy"}, "headache": {"hypertensive_symptoms": True}}
 PROTEIN = {"none": {}, "neg": {"urine_protein_strip": "neg"}, "1+": {"urine_protein_strip": "1plus"}}
+WGLU = {"none": {}, "6": {"capillary_glucose": 6.0}}
 POSSIBLE = {"pregnant", "pp2", "unknown", "notpreg_ppblank"}
 PREG_RULES = {"DM-ACU-ROUTE-27", "DM-ACU-ROUTE-27B", "DM-ACU-ROUTE-27C", "DM-ACU-ROUTE-27D", "DM-ACU-ROUTE-28", "DM-ACU-ROUTE-28B", "DM-ACU-ROUTE-28C", "DM-ACU-ROUTE-28D"}
 
-def women_floor(preg, bp, sym):
-    if sym == "drowsy" and bp == "none": return "immediate"                 # glucose now (15) or BP and glucose now (28D)
-    if preg in POSSIBLE and (bp == "165/112" or (bp == "145/95" and sym in ("organ", "drowsy"))): return "immediate"
+def women_floor(preg, bp, sym, glu):
+    possible = preg in POSSIBLE
+    if sym == "drowsy" and bp == "none" and (glu == "none" or possible): return "immediate"    # glucose now (15), or BP and glucose now (28D)
+    if possible and bp == "none" and sym == "organ": return "immediate"                       # 28E
+    if possible and bp == "145/95" and sym in ("organ", "drowsy", "headache"): return "immediate"   # 28B, 28C, 27D
+    if preg in ("pregnant", "pp2") and bp == "165/112": return "immediate"                     # 28
+    if possible and bp == "165/112": return "same_day"                                         # 28 on the unknown path asks the question (T18)
     if preg in ("pregnant", "pp2") and bp == "145/95": return "same_day"
     return None
 
@@ -95,12 +102,12 @@ def check(run_vignette, E):
         if prof in FULLY_RECORDED and state == "well" and glu in ("none", "7", "15") and ket in ("none", "u_neg", "u_trace", "b0.3") and top >= RANK["same_day"]:
             out["noisy"] += 1; E(cell, f"noise on an ordinary well patient: {sorted(k for k in r['fired'] if RANK.get(r['urgency'].get(k), 0) >= 2)}")
         out["order"] += _order(r, cell, E, measure)
-    for (preg, pv), (bp, bv), (sym, yv), (prot, tv) in itertools.product(PREG.items(), BP.items(), SYM.items(), PROTEIN.items()):
-        r = run_vignette({"id": "GRID", "site": "referral", "established": False, "ageBand": "adult", "values": {"sex": "female", "age_years": 30, **pv, **bv, **yv, **tv}})
+    for (preg, pv), (bp, bv), (sym, yv), (prot, tv), (glu, gv) in itertools.product(PREG.items(), BP.items(), SYM.items(), PROTEIN.items(), WGLU.items()):
+        r = run_vignette({"id": "GRID", "site": "referral", "established": False, "ageBand": "adult", "values": {"sex": "female", "age_years": 30, **pv, **bv, **yv, **tv, **gv}})
         out["women"] += 1
         top = max([RANK.get(r["urgency"].get(k), 3 if r["urgency"].get(k) == "folded" else 0) for k in r["fired"]] + [0])
-        cell = f"grid.women.{preg}.bp={bp}.{sym}.protein={prot}"
-        need = women_floor(preg, bp, sym)
+        cell = f"grid.women.{preg}.bp={bp}.{sym}.protein={prot}.glu={glu}"
+        need = women_floor(preg, bp, sym, glu)
         if need and top < RANK[need]:
             out["silent"] += 1; E(cell, f"below the escalation floor: needs {need}, got {sorted(r['fired'])}")
         if preg in ("notpreg_notpp", "unknown") and sym == "none" and bp == "145/95" and any(k in PREG_RULES for k in r["fired"]):
