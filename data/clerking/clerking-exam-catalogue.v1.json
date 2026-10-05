@@ -1,7 +1,7 @@
 {
  "id": "MS-EMR-EXAM-CAT-001",
  "title": "MedSync clerking examination catalogue",
- "version": "1.1.0-draft",
+ "version": "1.1.1-draft",
  "status": "signed-gate-a",
  "generated": "2026-09-27",
  "scope": "Adult examination for the clerking desk: vital signs and anthropometry, General (appearance, distress, consciousness, attachments, signs, hydration and nutrition), nine systems and a diabetic foot screen. Paediatric, obstetric and gynaecological examination are out of scope.",
@@ -2346,7 +2346,7 @@
        "non_centre"
       ]
      },
-     "text": "Re-examine in 3 months",
+     "text": "Refer routinely, and re-examine in 3 months",
      "tone": "caution"
     },
     {
@@ -15292,7 +15292,7 @@
   {
    "id": "FLAG-EX-INSULIN-STOPPED",
    "level": "urgent",
-   "badge": "Stopped insulin",
+   "badge": "Stopped {medicine}",
    "reason": "Insulin stopped in a person who depends on it or is unwell: risk of ketoacidosis. Check glucose and ketones now",
    "when": {
     "all": [
@@ -17522,6 +17522,16 @@
      "id": "PACK",
      "change": "6 flag rules and 6 suggestion rules from 07-exam.amendment.json by merge; FLAG-EX-GLU-KETONE-TEST and SUG-DM-POSTURAL dropped as duplicates (P0-23). See docs/ncd/diabetes/phase-5/amend-diff.md."
     }
+   ]
+  },
+  {
+   "version": "1.1.1-draft",
+   "date": "2026-10-05",
+   "by": "STOP 5 answers, signed by the CSO 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
+   "changes": [
+    "FLAG-EX-INSULIN-STOPPED badge names the medicine ('Stopped {medicine}'), so it merges with FLAG-MED-ADHERENCE's badge for any insulin.",
+    "dr_review: macular oedema not involving the centre reads 'Refer routinely, and re-examine in 3 months' (ICO; agrees with DM-ACT-REFER-EYE-03).",
+    "Confirmed as written: the systemic-steroid exclude_words and the classifier wording."
    ]
   }
  ]

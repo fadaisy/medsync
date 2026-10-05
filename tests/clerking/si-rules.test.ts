@@ -31,11 +31,8 @@ const leaves = (c: Cond): number =>
 describe("differential rules, both ways", () => {
   // 100 + the diabetes pack's 11 (Phase 5); 2 of them dark (D-DM-08).
   it("covers the catalogue's 111 rules", () => expect(dx.rules.length).toBe(111));
-  it("reports the dark rules", () =>
-    expect(dx.rules.filter((r) => dark(r.when)).map((r) => r.id)).toEqual([
-      "DDX-RESULT-GLUCOSE-FASTING",
-      "DDX-RESULT-GLUCOSE-IFG",
-    ]));
+  it("reports no dark rule now that the glucose window is signed (STOP 5 answers)", () =>
+    expect(dx.rules.filter((r) => dark(r.when)).map((r) => r.id)).toEqual([]));
 
   for (const rule of dx.rules) {
     if (dark(rule.when)) {

@@ -48,6 +48,6 @@ Without a `.env.local` this worktree needs `SKIP_ENV_VALIDATION=1` for 15 test f
 
 1. **Apply** 0092 after 0083 and 0085 (gated, additive; re-running it adds nothing). Flags stay off.
 2. **Before anything leaves shadow:** an independent read of R10's fixes (V01 to V16); the four-eyes second reviewer (D-NCD-17); reference-level signing (18 still need CSO input); a vignette for each of the 51 items no synthetic patient fires; replacing the live v0.1.0 engine with the pack's (the go-live step, with the Phase 0 rulings).
-3. **Phase 5 questions** (STOP-5 §7): result windows for bicarbonate, pH, osmolality and HbA1c; a reason for `dx.diabetes_in_pregnancy` (withheld); an age range for "could be pregnant"; the three dropped duplicates; the steroid exclusions and classifier wordings; the "Stopped insulin" badge merge.
+3. **Phase 5 questions**: answered 2026-10-05 (`phase-5/stop5-signoff.json`). REF-PREG-AGE is now signed (12 to 50), which also switches on the EMR safety bar's pregnancy line and the imaging prompt; triage, the clerking desk and the pack's shadow read the same value. Pack 0.4.1-draft (DM-ACT-REFER-EYE-01 names ICO's timings).
 4. **Held, not built:** the proposed prescribing checks and chart rules; formulary links for diabetic kidney disease, gestational diabetes and neuropathy (no diagnosis profiles yet); the care-list engine (EC-4) until the list is signed.
 5. The new formulary flags (renal, hepatic, high-alert) are draft proposals for CSO review.

@@ -15,7 +15,7 @@ import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
-PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.4.0-draft", "generated": "2026-10-05", "condition": "diabetes",
+PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.4.1-draft", "generated": "2026-10-05", "condition": "diabetes",
         "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)", "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
         "briefingCommit": "8e45d34"}
 errors, warnings = [], []

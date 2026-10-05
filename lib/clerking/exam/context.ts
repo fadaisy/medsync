@@ -5,6 +5,7 @@ import type { ExamCatalogue } from "./catalogue";
 import type { ExamDraft } from "./payload";
 import type { News2Result } from "@/lib/triage/types";
 
+import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
 import { pastDetail } from "../answers";
 import { rosAnswer } from "../linkage";
 import { entryOf, readAttr } from "./answers";
@@ -248,6 +249,21 @@ function cellMatches(grid: string, v: unknown, m: Cond, x: ExamContext): boolean
 /** A quick pick (history catalogue `medicines.quick_picks`) against the recorded medicines.
  *  "not_taking" needs "takes none, including herbal": a list without the medicine is not asked. */
 function medicineAtom(x: ExamContext, id: string, answer: unknown, adherence?: unknown): boolean {
+  const matched = medicinesMatching(x, id, adherence);
+  if (Array.isArray(adherence)) return matched.length > 0;
+  const taking = matched.length > 0;
+  if (answer === "taking") return taking;
+  if (answer === "not_taking")
+    return !taking && x.history.answers.past.medicinesNone === true && x.medicines.length === 0;
+  return false;
+}
+
+/** The recorded medicines a quick pick matches, with one of the adherence answers when given. */
+export function medicinesMatching(
+  x: ExamContext,
+  id: string,
+  adherence?: unknown,
+): ExamContext["medicines"] {
   const picks = x.history.cat.data.medicines.quick_picks as readonly {
     id: string;
     label: string;
@@ -265,13 +281,9 @@ function medicineAtom(x: ExamContext, id: string, answer: unknown, adherence?: u
     return want.some((w) => n === w || n.startsWith(`${w} `) || n.includes(` ${w}`));
   };
   // `adherence_any` (EC-7): the medicine is recorded with one of these adherence answers.
-  if (Array.isArray(adherence))
-    return x.medicines.some((m) => matches(m) && adherence.includes(m.adherence ?? ""));
-  const taking = x.medicines.some(matches);
-  if (answer === "taking") return taking;
-  if (answer === "not_taking")
-    return !taking && x.history.answers.past.medicinesNone === true && x.medicines.length === 0;
-  return false;
+  return x.medicines.filter(
+    (m) => matches(m) && (!Array.isArray(adherence) || adherence.includes(m.adherence ?? "")),
+  );
 }
 
 /** The value a `vital` atom reads. */
@@ -322,10 +334,12 @@ export function pefPercent(x: ExamContext): number | null {
 }
 
 /** Pregnancy as the `pregnancy` atom reads it (EC-5, P0-02): "unknown" when she could be pregnant
- *  and nobody recorded the answer (a woman, or a sex not recorded). */
+ *  and nobody recorded the answer (a woman, or a sex not recorded, inside REF-PREG-AGE or of
+ *  unknown age). */
 export function pregnancyState(x: ExamContext): "current" | "not_pregnant" | "unknown" {
   if (x.patient.pregnant === true) return "current";
   if (x.patient.pregnant === false || x.patient.sex === "male") return "not_pregnant";
+  if (inPregnancyAgeRange(x.patient.ageYears) === false) return "not_pregnant";
   return "unknown";
 }
 

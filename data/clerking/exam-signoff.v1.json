@@ -1,7 +1,7 @@
 {
   "catalogue": "MS-EMR-EXAM-CAT-001",
-  "catalogueVersion": "1.1.0-draft",
-  "catalogueSha256": "db5f71584bd5729ccac2dcd00926bb379f4f26ebc4548d08903ba56f2a453ac1",
+  "catalogueVersion": "1.1.1-draft",
+  "catalogueSha256": "86593599c51c93d0838568c1946850a36363312d894fc0cf30d9043fe22b25fb",
   "signedBy": "Fadhul (owner and CSO)",
   "signedOn": "2026-09-27",
   "gate": "GATE A, clerking examination v2 (docs/emr/clerking-v2/exam/gate-a-proposal.md)",
@@ -16,6 +16,11 @@
       "date": "2026-10-05",
       "gate": "MS-NCD-DM-PACK-001 Phase 5, signed GATE A 2026-10-05 (docs/ncd/diabetes/gate-a-signoff.json)",
       "change": "1.0.1-draft → 1.1.0-draft: diabetes pack 07-exam.amendment.json by merge (EC-3, EC-6, EC-7): ketone panel, three classifiers, fundoscopy grade, visual acuity, injection sites, 6 flags, 6 suggestions, 5 reference entries, 7 medicine groups. Detail: docs/ncd/diabetes/phase-5/amend-diff.md."
+    },
+    {
+      "date": "2026-10-05",
+      "gate": "STOP 5 answers, signed by the CSO 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
+      "change": "1.1.0-draft → 1.1.1-draft: the STOP 5 answers (see the catalogue's change_log)."
     }
   ]
 }

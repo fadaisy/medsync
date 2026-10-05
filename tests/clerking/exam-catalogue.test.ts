@@ -20,9 +20,9 @@ const handoff = JSON.parse(
 describe("the examination catalogue", () => {
   // The handed-over catalogue plus the GATE A edits, and the diabetes pack's merge: that it only
   // added is tested in ncd-dm-pack.test.ts.
-  it("is pinned by hash, at 1.1.0-draft", () => {
+  it("is pinned by hash, at 1.1.1-draft", () => {
     expect(createHash("sha256").update(runtime).digest("hex")).toBe(signoff.catalogueSha256);
-    expect(ecat.version).toBe("1.1.0-draft");
+    expect(ecat.version).toBe("1.1.1-draft");
     expect(signoff.catalogueVersion).toBe(ecat.version);
   });
 

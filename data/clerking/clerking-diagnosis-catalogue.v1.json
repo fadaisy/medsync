@@ -1,7 +1,7 @@
 {
  "id": "MS-EMR-DX-CAT-001",
  "title": "MedSync clerking diagnosis reasoning catalogue",
- "version": "1.1.0-draft",
+ "version": "1.1.1-draft",
  "status": "signed-gate-a",
  "generated": "2026-09-28",
  "scope": "Adult (15 and over) internal-medicine outpatient, emergency and ward clerking at a Ugandan referral hospital. The reasoning layer for step 09 Impression: what supports or argues against each diagnosis, what has not been asked or examined, which tests would help decide, must-not-miss marking, and differential suggestions. Paediatric, obstetric and surgical-specialty reasoning are later rounds.",
@@ -451,20 +451,20 @@
    "mirrors": "REF-DM-PREG-GDM-2H"
   },
   "REF-DX-RESULT-AGE-GLUCOSE": {
-   "value": null,
+   "value": 90,
    "unit": "days",
    "meaning": "How old a glucose result may be and still count as evidence at this visit",
-   "source": null,
-   "status": "needs-cso",
-   "note": "A product parameter, not a guideline number (D-DM-08). No value is proposed here, so every atom that carries it is UNKNOWN until the CSO signs one: the laboratory glucose rules are dark by design, not by accident."
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "A product parameter, not a guideline number (D-DM-08), signed by the CSO 2026-10-05: 90 days, as for HbA1c."
   },
   "REF-DX-ADULT-AGE": {
    "value": 16,
    "unit": "years",
    "meaning": "Below this age the Plan offers recognition and referral only; no adult target, interval or treatment review is shown",
-   "source": null,
-   "status": "needs-cso",
-   "note": "MedSync's own rule (briefing Part 4), not a guideline number. It must match the age band the NCD catalog calls 'adult'."
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "MedSync's own rule, signed at GATE A as D-DM-32 (16, by numeric age; P0-01). Matches the age the NCD pack calls 'adult'."
   },
   "REF-DX-RESULT-AGE-KIDNEY": {
    "value": 365,
@@ -481,6 +481,22 @@
    "source": "WHO-HEARTS-D-2020",
    "status": "draft",
    "mirrors": "REF-DM-CVD-STATIN-AGE"
+  },
+  "REF-DX-RESULT-AGE-HBA1C": {
+   "value": 90,
+   "unit": "days",
+   "meaning": "How old an HbA1c may be and still count as evidence at this visit",
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "A product parameter, signed by the CSO 2026-10-05: HbA1c reflects the last two to three months."
+  },
+  "REF-DX-RESULT-AGE-ACUTE": {
+   "value": 1,
+   "unit": "days",
+   "meaning": "How old a bicarbonate, pH or effective osmolality may be and still count: the current episode only",
+   "source": "MS-PRODUCT-SETTING",
+   "status": "draft",
+   "note": "A product parameter, signed by the CSO 2026-10-05: these describe an acute state."
   }
  },
  "sources": {
@@ -711,6 +727,10 @@
    "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
    "verified": false,
    "checked": "2026-10-03"
+  },
+  "MS-PRODUCT-SETTING": {
+   "title": "MedSync product setting, signed by the CSO",
+   "note": "Not a guideline number: a parameter the CSO sets."
   }
  },
  "source_note": "Sources listed here are new to this catalogue and unverified. Other source ids (NICE-*, WHO-*, UCG-2023, RCP-NEWS2, SSC-2026 and the rest) resolve in MS-EMR-CLERK-CAT-001 or MS-EMR-EXAM-CAT-001, where their verification status is recorded.",
@@ -9680,7 +9700,7 @@
     "default": "subacute"
    },
    "must_not_miss": true,
-   "must_not_miss_reason": "Reason awaiting the CSO: the pack marks it must-not-miss without one (MS-NCD-DM-PACK-001 Phase 5).",
+   "must_not_miss_reason": "Raised glucose in pregnancy harms mother and baby; she needs specialist antenatal care now.",
    "time_critical": false,
    "severity": {
     "kind": "none"
@@ -10551,7 +10571,8 @@
      "atom": {
       "result": "obs.bicarbonate",
       "lt_ref": "REF-DX-BICARB-DKA",
-      "min_trust": 3
+      "min_trust": 3,
+      "max_age_ref": "REF-DX-RESULT-AGE-ACUTE"
      }
     },
     {
@@ -10562,7 +10583,8 @@
       "min_trust": 3,
       "qualifiers": {
        "specimen": "venous_whole_blood"
-      }
+      },
+      "max_age_ref": "REF-DX-RESULT-AGE-ACUTE"
      }
     }
    ],
@@ -11128,7 +11150,8 @@
      "atom": {
       "result": "obs.hba1c",
       "gte_ref": "REF-DX-HBA1C-DM",
-      "min_trust": 3
+      "min_trust": 3,
+      "max_age_ref": "REF-DX-RESULT-AGE-HBA1C"
      }
     },
     {
@@ -16010,7 +16033,8 @@
      "atom": {
       "result": "derived.osmolality_effective",
       "gt_ref": "REF-DX-OSM-EFF-HHS",
-      "min_trust": 3
+      "min_trust": 3,
+      "max_age_ref": "REF-DX-RESULT-AGE-ACUTE"
      }
     }
    ],
@@ -42303,7 +42327,8 @@
    "when": {
     "result": "obs.hba1c",
     "gte_ref": "REF-DX-HBA1C-DM",
-    "min_trust": 3
+    "min_trust": 3,
+    "max_age_ref": "REF-DX-RESULT-AGE-HBA1C"
    },
    "why": "HbA1c 6.5% or more",
    "suggest": [
@@ -42624,6 +42649,17 @@
    "changes": [
     "Diabetes pack (09-diagnosis.amendment.json) merged: 7 profiles amended by merge, 8 added, 11 differential rules added and 3 amended; dx.dm_type1 must-not-miss (D-DM-35); dropped items in docs/ncd/diabetes/phase-5/amend-diff.md.",
     "New atoms (engine EC-1, EC-2, EC-3, EC-5, EC-7): result, past_detail, a glucose context, pregnancy, medicine groups, a setting list, the ketone panel; three-valued (P0-18)."
+   ]
+  },
+  {
+   "version": "1.1.1-draft",
+   "date": "2026-10-05",
+   "by": "STOP 5 answers, signed by the CSO 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
+   "changes": [
+    "Result windows: bicarbonate, pH and effective osmolality 1 day (REF-DX-RESULT-AGE-ACUTE); HbA1c 90 days (REF-DX-RESULT-AGE-HBA1C); glucose 90 days (REF-DX-RESULT-AGE-GLUCOSE, D-DM-08); 5 atoms.",
+    "dx.diabetes_in_pregnancy: must-not-miss reason signed.",
+    "REF-DX-ADULT-AGE: signed as D-DM-32 (16).",
+    "Confirmed: the three semantic duplicates dropped in Phase 5 stay dropped."
    ]
   }
  ]

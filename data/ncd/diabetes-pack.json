@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.0-draft",
+  "version": "0.4.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -19973,7 +19973,7 @@
   },
   {
    "id": "DM-ACT-REFER-EYE-01",
-   "display": "Severe or proliferative retinopathy, or macular oedema involving the centre: refer to an ophthalmologist urgently",
+   "display": "Severe or proliferative retinopathy, or macular oedema involving the centre: refer to an ophthalmologist, within 1 month for proliferative retinopathy or centre-involving oedema, within 3 months for severe retinopathy (ICO)",
    "when": {
     "id": "ref_eye_grade",
     "label": "Severe non-proliferative or proliferative retinopathy, or centre-involving macular oedema",
@@ -20044,6 +20044,12 @@
      "H02"
     ],
     "agesOverride": "any",
+    "refs": [
+     "REF-DM-EYE-RECALL-PDR",
+     "REF-DM-EYE-RECALL-DME-CI",
+     "REF-DM-EYE-RECALL-SEVERE"
+    ],
+    "signed": "D-DM-14 as ICO's timings, STOP 5 answers 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
     "restrictedClasses": [],
     "runWhen": "established_or_met"
    }

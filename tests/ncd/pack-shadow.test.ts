@@ -40,6 +40,18 @@ describe("translateCapture", () => {
   });
 });
 
+describe("shadowInput", () => {
+  it("derives 'could be pregnant' from sex and age by REF-PREG-AGE (12 to 50), unless the capture said", () => {
+    const at = (ageYears: number | undefined, sex?: string) =>
+      shadowInput(sex ? { sex: recorded(sex) } : {}, { ageYears }).values.pregnancy_possible;
+    expect(at(30, "female")).toBe(true);
+    expect(at(70, "female")).toBe(false);
+    expect(at(11)).toBe(false);
+    expect(at(undefined, "female")).toBeUndefined();
+    expect(at(30, "male")).toBeUndefined();
+  });
+});
+
 describe("shadow summary", () => {
   it("holds rule ids and counts, never a value", () => {
     const r = runDiabetesPack(

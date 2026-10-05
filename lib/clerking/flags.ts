@@ -216,7 +216,9 @@ function fill(template: string, vars: Record<string, string | number | undefined
     .trim();
 }
 
-const lcFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+/** "Insulin glargine" → "insulin glargine"; "ACE inhibitor" stays. Shared with the exam badges so they merge. */
+export const lcFirst = (s: string) =>
+  /^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
 
 export function evaluateFlags(cat: Catalogue, input: FlagInput): Flag[] {
   const live = cat.data.flag_rules.filter((r) => ruleIsLive(r, input.signoff));

@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Pregnancy age range signed; diabetes clerking answers — 2026-10-05
+
+- **"Could be pregnant" is 12 to 50** (REF-PREG-AGE, signed). The EMR safety bar now shows "Pregnancy status not recorded" for a woman in that range with no record, and the imaging prompt can fire; nurse triage, the clerking desk and the diabetes pack read the same value instead of their own.
+- **Clerking desk (behind `CLERKING_V2`):** a lab result counts as evidence only while recent: bicarbonate, pH and osmolality for a day, HbA1c and glucose for 90 days. "Diabetes in pregnancy" is offered, with its must-not-miss reason. The eye referral wording gives ICO's timings, and a stopped insulin shows one urgent badge whatever its name.
+
 ### Added — Diabetes knowledge pack, in shadow behind `NCD_DM_PACK_SHADOW` — 2026-10-05
 
 - **The diabetes pack** (MS-NCD-DM-PACK-001 0.4.0-draft, signed at GATE A for the shadow build) runs beside the live NCD catalog as data (`data/ncd/diabetes-pack.json`) on a port of its reference evaluator (`lib/ncd/pack`). On each NCD draft save, with the flag on, it logs the rule ids and counts it would have shown; nothing reaches a clinician (ADRs 0204–0207).

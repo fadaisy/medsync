@@ -97,4 +97,11 @@ _s["display"] = ("On metformin without a sulfonylurea or insulin, and above targ
                  "never start glibenclamide")
 k_r5.SEMANTICS["signed"] = "Content changed by the GATE A signatures carries `x.signed`; see docs/ncd/diabetes/gate-a-signoff.json."
 
+# ── D-DM-14, STOP 5 answers 2026-10-05: 'urgent' for the eyes means ICO's timings ─
+_s = item("management", "DM-ACT-REFER-EYE-01")
+_s["display"] = ("Severe or proliferative retinopathy, or macular oedema involving the centre: refer to an ophthalmologist, "
+                 "within 1 month for proliferative retinopathy or centre-involving oedema, within 3 months for severe retinopathy (ICO)")
+_s["x"]["refs"] = ["REF-DM-EYE-RECALL-PDR", "REF-DM-EYE-RECALL-DME-CI", "REF-DM-EYE-RECALL-SEVERE"]
+_s["x"]["signed"] = "D-DM-14 as ICO's timings, STOP 5 answers 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)"
+
 DISPOSITION.update({})

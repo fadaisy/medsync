@@ -3,9 +3,10 @@ import type { ExamFlagRule } from "./catalogue";
 import type { ClassifierResult, ExamSignoff } from "./classifiers";
 import type { DerivedReader, ExamContext } from "./context";
 
+import { lcFirst } from "../flags";
 import { entryOf, readAttr } from "./answers";
 import { classifyAll, footFacts } from "./classifiers";
-import { evalCond } from "./context";
+import { evalCond, medicinesMatching } from "./context";
 import { acvpuOf, amts, gcsTotal, mrcNumber } from "./scores";
 
 /**
@@ -119,6 +120,12 @@ function tokens(
           for (const side of ["R", "L"] as const)
             if (cell[side] === "absent") out.push(`${SIDE_WORD[side]} ${lc(row)}`);
       return list(out);
+    },
+    // ponytail: the first stopped medicine names the badge; a second one keeps its own caution badge.
+    medicine: () => {
+      const a = trueAtoms(rule.when, x, derived).find((c) => "medicine" in c);
+      const m = a && medicinesMatching(x, String(a.medicine), a.adherence_any)[0];
+      return m ? lcFirst(m.name) : String(a?.medicine ?? "");
     },
     crt: () => String(x.exam.entries["ex.cardiovascular.capillary_refill"]?.attrs?.time ?? ""),
     peritonism_sign: () => cap(findingWords(x, rule, derived)),

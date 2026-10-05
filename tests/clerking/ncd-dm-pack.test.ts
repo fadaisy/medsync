@@ -204,18 +204,15 @@ describe("GATE A rulings", () => {
     }
   });
 
-  it("withholds what has no signed value or reason, and the check reports it dark", () => {
-    expect(dxSignoff.withheld).toEqual(
-      expect.arrayContaining([
-        "REF-DX-RESULT-AGE-GLUCOSE",
-        "REF-DX-ADULT-AGE",
-        "dx.diabetes_in_pregnancy",
-      ]),
-    );
-    expect(dx.refValue("REF-DX-RESULT-AGE-GLUCOSE")).toBeNull();
+  it("releases what the STOP 5 answers signed: nothing is withheld", () => {
+    expect(dxSignoff.withheld).toEqual([]);
+    expect(dx.refValue("REF-DX-RESULT-AGE-GLUCOSE")).toBe(90);
+    expect(dx.refValue("REF-DX-RESULT-AGE-HBA1C")).toBe(90);
+    expect(dx.refValue("REF-DX-RESULT-AGE-ACUTE")).toBe(1);
     const live = dxLive({ ...dxSignoff, profiles: "all", rules: "all" } as never);
-    expect(live.profile("dx.diabetes_in_pregnancy")).toBe(false);
-    expect(live.ref("REF-DX-RESULT-AGE-GLUCOSE")).toBe(false);
+    expect(live.profile("dx.diabetes_in_pregnancy")).toBe(true);
+    expect(live.ref("REF-DX-RESULT-AGE-GLUCOSE")).toBe(true);
+    expect(live.ref("REF-DX-ADULT-AGE")).toBe(true);
   });
 });
 
@@ -270,6 +267,22 @@ describe("the evaluator is three-valued (P0-18)", () => {
     expect(evalTri(notPregnant, ctx(man))).toBe(true);
     const unrecordedSex = scenario({ patient: { ageYears: 30, sex: null, pregnant: null } });
     expect(evalTri(notPregnant, ctx(unrecordedSex))).toBeNull();
+    // REF-PREG-AGE (12 to 50, signed): outside it she is not pregnant; with no age, still unknown.
+    for (const [ageYears, want] of [
+      [70, true],
+      [51, true],
+      [50, null],
+      [12, null],
+      [11, true],
+      [null, null],
+    ] as const)
+      expect(
+        evalTri(
+          notPregnant,
+          ctx(scenario({ patient: { ageYears, sex: "female", pregnant: null } })),
+        ),
+        String(ageYears),
+      ).toBe(want);
   });
 
   it("an empty record fires no new flag, suggestion or differential rule", () => {
@@ -343,10 +356,18 @@ describe("the result atom (EC-1)", () => {
     expect(evalTri(kidney, ctx(scenario()))).toBeNull(); // results never loaded
   });
 
-  it("an unsigned window keeps the laboratory glucose rules dark (D-DM-08)", () => {
+  it("the signed windows: glucose and HbA1c 90 days, bicarbonate, pH and osmolality 1 day", () => {
     const rule = dx.rules.find((r) => r.id === "DDX-RESULT-GLUCOSE-FASTING")!;
-    const x = withFacts([fact({ value: 9, fastingState: "fasting" })]);
-    expect(evalTri(rule.when, x)).toBeNull();
+    const glu = (at: string) => withFacts([fact({ value: 9, fastingState: "fasting", at })]);
+    expect(evalTri(rule.when, glu("2026-10-01T08:00:00.000Z"))).toBe(true);
+    expect(evalTri(rule.when, glu("2026-07-01T08:00:00.000Z"))).toBeNull(); // 96 days old
+    const dka = dx
+      .profile("dx.dka")!
+      .suggest_for.map((e) => e.atom as Cond)
+      .find((a) => a.result === "obs.bicarbonate")!;
+    const bic = (at: string) => withFacts([fact({ concept: "obs.bicarbonate", value: 10, at })]);
+    expect(evalTri(dka, bic("2026-10-05T06:00:00.000Z"))).toBe(true);
+    expect(evalTri(dka, bic("2026-10-03T06:00:00.000Z"))).toBeNull(); // an old DKA bicarbonate
   });
 
   it("decides a bound ('> 33.3') only as far as the bound goes", () => {
@@ -729,6 +750,11 @@ describe("the flags merge with the live ones by wording", () => {
       (x) => x.ruleId === "FLAG-EX-INSULIN-STOPPED",
     );
     expect(f).toMatchObject({ level: "urgent", badge: "Stopped insulin" });
+    // Any insulin's name: the badge is FLAG-MED-ADHERENCE's own, so the two still merge.
+    s.medicines[s.medicines.length - 1] = { name: "Insulin glargine", adherence: "stopped" };
+    expect(
+      evaluateExamFlags(toCtx(s), signed).flags.find((x) => x.ruleId === "FLAG-EX-INSULIN-STOPPED"),
+    ).toMatchObject({ level: "urgent", badge: "Stopped insulin glargine" });
   });
 
   it("a systemic steroid group never matches a cream, an inhaler or an eye drop", () => {

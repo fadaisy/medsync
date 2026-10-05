@@ -12,6 +12,7 @@
 import type { CaptureMap, CaptureValue } from "@/lib/ncd/engine/evaluate";
 import type { PackInput, PackResult, PackValue, PackValues } from "@/lib/ncd/pack/types";
 
+import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
 import { isEntry, isSeries, latestReading } from "@/lib/ncd/engine/evaluate";
 import { effectiveBand } from "@/lib/ncd/pack/engine";
 
@@ -144,6 +145,11 @@ export function shadowInput(
 ): PackInput {
   const v = translateCapture(values);
   if (typeof ctx.ageYears === "number") v.age_years = ctx.ageYears;
+  // P0-02: "could be pregnant" from sex and age (REF-PREG-AGE) when the capture did not say.
+  if (v.pregnancy_possible === undefined && v.sex !== "male") {
+    const inRange = inPregnancyAgeRange(ctx.ageYears);
+    if (inRange !== null) v.pregnancy_possible = inRange;
+  }
   const band = effectiveBand("adult", ctx.ageYears) as PackInput["ageBand"];
   return {
     values: v,

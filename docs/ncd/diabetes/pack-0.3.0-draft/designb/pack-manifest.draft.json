@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.4.0-draft",
+ "version": "0.4.1-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -6263,7 +6263,7 @@
    "id": "DM-ACT-REFER-EYE-01",
    "family": "DM-ACT-REFER",
    "lane": "act",
-   "title": "Severe or proliferative retinopathy, or macular oedema involving the centre: refer to an ophthalmologist urgently",
+   "title": "Severe or proliferative retinopathy, or macular oedema involving the centre: refer to an ophthalmologist, within 1 month for proliferative retinopathy or centre-involving oedema, within 3 months for severe retinopathy (ICO)",
    "appliesTo": {
     "ageBands": [
      "adult",

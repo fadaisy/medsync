@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
 import { ACUITY_TIERS } from "@/lib/triage/constants";
 import { TRIAGE_DISCRIMINATORS } from "@/lib/triage/discriminators";
 import { runTriage } from "@/lib/triage/engine";
@@ -222,10 +223,7 @@ export function TriageDesk({
   // Reproductive-age female is auto-seeded from sex + age (drives the
   // unknown-pregnancy flag); the clinician can still toggle it.
   const autoReproFemale =
-    (row.sex?.toLowerCase().startsWith("f") ?? false) &&
-    row.ageYears != null &&
-    row.ageYears >= 12 &&
-    row.ageYears <= 50;
+    (row.sex?.toLowerCase().startsWith("f") ?? false) && inPregnancyAgeRange(row.ageYears) === true;
   const [reproFemale, setReproFemale] = useState(autoReproFemale);
   const [scale2, setScale2] = useState(false);
   const [discriminators, setDiscriminators] = useState<Set<string>>(new Set());

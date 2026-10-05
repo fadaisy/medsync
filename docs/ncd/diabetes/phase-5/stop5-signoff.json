@@ -1,0 +1,17 @@
+{
+ "gate": "STOP 5 answers, diabetes pack MS-NCD-DM-PACK-001 (docs/ncd/diabetes/phase-5/STOP-5.md §7)",
+ "signedBy": "Fadhul (owner and Clinical Safety Officer)",
+ "signedOn": "2026-10-05",
+ "mode": "Go ahead with the recommendations as given in the session (no exceptions named).",
+ "authorises": "The shadow build, as GATE A. Not clinical use.",
+ "answers": {
+  "result-windows": "Bicarbonate, venous pH and effective osmolality: 1 day (REF-DX-RESULT-AGE-ACUTE). HbA1c: 90 days (REF-DX-RESULT-AGE-HBA1C). Laboratory glucose: 90 days (REF-DX-RESULT-AGE-GLUCOSE, D-DM-08). Product settings, not guideline numbers.",
+  "dx.diabetes_in_pregnancy": "Must-not-miss reason: 'Raised glucose in pregnancy harms mother and baby; she needs specialist antenatal care now.' Released from 'withheld'.",
+  "REF-PREG-AGE": "12 to 50 years (lib/emr/reference/pregnancy.ts), the range nurse triage already used. One value for the clerking desk, the pack's shadow, triage, the EMR safety bar and the imaging prompt.",
+  "dropped-duplicates": "Confirmed dropped: dx.dka glucose >= REF-DX-GLU-RANDOM-DM (live: >= REF-EX-GLU-HIGH, both 11.1); dx.dm_type2 medicine_group metformin (live: medicine metformin taking); dx.hypoglycaemia_dm hypoglycaemia_level level_1/2 (live: glucose below REF-EX-HYPO-L1, 3.9).",
+  "steroid-exclude-words": "Confirmed as written.",
+  "classifier-wording": "Confirmed, with the eye timings made to agree: D-DM-14's 'urgent' means ICO's timings (proliferative or centre-involving within 1 month, severe within 3 months; DM-ACT-REFER-EYE-01 reworded, pack 0.4.1-draft); non-centre macular oedema reads 'Refer routinely, and re-examine in 3 months'.",
+  "stopped-insulin-badge": "Widened: FLAG-EX-INSULIN-STOPPED's badge names the medicine, so it merges with FLAG-MED-ADHERENCE for any insulin.",
+  "REF-DX-ADULT-AGE": "Bookkeeping: signed as D-DM-32 (16) at GATE A; released from 'withheld'."
+ }
+}
