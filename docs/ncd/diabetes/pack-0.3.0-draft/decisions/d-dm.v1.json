@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.0-draft",
+  "version": "0.3.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -9,7 +9,7 @@
   "briefingCommit": "8e45d34"
  },
  "note": "The first option of each decision is the recommendation. Nothing is decided until the CSO fills 'decision', 'signedBy' and 'signedOn'.",
- "count": 37,
+ "count": 40,
  "decisions": [
   {
    "id": "D-DM-01",
@@ -568,6 +568,51 @@
    "why": "(1) Diabetes and unwell with no glucose on record: test today (DM-ACU-ROUTE-13); drowsy: test now (DM-ACU-ROUTE-20). (2) No antiplatelet after a bleeding or untyped stroke. (3) Any meter reading of 12.2 or more, or HI, with symptoms is diagnostic. (4) The three pregnancy meter rules. (5) The count of two features for suspected type 1. (6) Repeated self-treated lows prompt the same review as one severe low.",
    "affects": "The items whose citation carries needsCsoInput",
    "needsFromCso": null,
+   "decision": null,
+   "signedBy": null,
+   "signedOn": null
+  },
+  {
+   "id": "D-DM-38",
+   "title": "Glucose 18 or more without ketoacidosis",
+   "question": "Which WHO rule refers a person with a glucose of 18 mmol/L or more whose ketones are not raised?",
+   "recommended": "WHO PEN: same-day review for everyone at this level (DM-ACT-REFER-GLU-02).",
+   "alternatives": [
+    "WHO HEARTS-D: refer only when not improving on tablets (DM-ACT-REFER-GLU-01 alone)."
+   ],
+   "why": "The 'not improving on tablets' box is usually blank, so the HEARTS-D rule rarely fires; the fourth review found a glucose of 25 on which nothing fired.",
+   "affects": "DM-ACT-REFER-GLU-02",
+   "needsFromCso": null,
+   "decision": null,
+   "signedBy": null,
+   "signedOn": null
+  },
+  {
+   "id": "D-DM-39",
+   "title": "Blood pressure above 180/110 without organ damage",
+   "question": "UCG 2023 4.1.6.1 admits a hypertensive urgency (above 180/110, no organ damage). The pack refers same day above 200/110 (HEARTS-D). Which applies?",
+   "recommended": "UCG 2023: admit above 180/110, as the national text says; the hypertension pack will own it.",
+   "alternatives": [
+    "WHO HEARTS-D: same-day referral above 200/110, or above 180/110 with symptoms."
+   ],
+   "why": "The emergency (with organ damage) interrupts already (DM-ACU-ROUTE-29); this decides the urgency without it.",
+   "affects": "DM-ACT-REFER-BP-01, DM-ACT-REFER-BP-02",
+   "needsFromCso": null,
+   "decision": null,
+   "signedBy": null,
+   "signedOn": null
+  },
+  {
+   "id": "D-DM-40",
+   "title": "Lower limits for older or high-risk people",
+   "question": "A fasting glucose of 4.2 reads 'at target' in a frail 79-year-old on insulin, and a BP of 80/50 has no low band. Supply lower limits?",
+   "recommended": "Read ADA Standards of Care section 13 (older adults) for the glucose floor and supply a low BP band from the hypertension pack's source; until then the bands carry no 'at target' below the general range for people on insulin or a sulfonylurea aged 65 or over.",
+   "alternatives": [
+    "Leave the bands as they are and rely on the hypoglycaemia risk model beside them."
+   ],
+   "why": "The pack will not type a number from memory (N2).",
+   "affects": "fpg_control_who, fcap_control_who, bp bands; J10",
+   "needsFromCso": "ADA SOC section 13 lower glucose goals for older adults on insulin or a sulfonylurea",
    "decision": null,
    "signedBy": null,
    "signedOn": null

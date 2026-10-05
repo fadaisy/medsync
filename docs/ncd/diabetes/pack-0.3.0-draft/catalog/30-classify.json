@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.0-draft",
+  "version": "0.3.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -278,7 +278,7 @@
    "condition": "insulin_deficient_diabetes",
    "when": {
     "id": "cls_ketosis",
-    "label": "Urine ketones 2+ or more now, with known diabetes, any glucose 11.1 mmol/L or more, or a meter reading HI",
+    "label": "Urine ketones 2+ or more now, with any glucose 11.1 mmol/L or more, or a meter reading HI",
     "all": [
      {
       "feature": "urine_ketones",
@@ -292,11 +292,6 @@
     "atLeast": {
      "n": 1,
      "of": [
-      {
-       "feature": "dm_status",
-       "op": "==",
-       "value": "known"
-      },
       {
        "feature": "glucose_meter_extreme",
        "op": "==",
@@ -400,7 +395,8 @@
      "F16",
      "F17",
      "H15",
-     "H35"
+     "H35",
+     "J22"
     ],
     "notWhen": [
      {
@@ -792,7 +788,7 @@
    "condition": "drug_associated_hyperglycaemia",
    "when": {
     "id": "cls_steroid",
-    "label": "On systemic steroids, with glucose 11.1 mmol/L or more",
+    "label": "On systemic steroids, with glucose 11.1 mmol/L or more or a meter reading HI",
     "all": [
      {
       "feature": "on_glucocorticoid",
@@ -817,6 +813,11 @@
       "op": ">=",
       "value": 11.1,
       "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
      }
     ],
     "citation": {
@@ -869,7 +870,8 @@
      "note": "A flag for the clinician; the engine does not relabel."
     },
     "review": [
-     "F27"
+     "F27",
+     "J24"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"

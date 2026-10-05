@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.0-draft",
+  "version": "0.3.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -338,6 +338,15 @@
   "ref_goal_insulin_relaxed": [
    "REF-DM-CTRL-HBA1C-RELAXED"
   ],
+  "ref_glu18_pen": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-DKA-BOHB"
+  ],
   "sus_risk_who": [
    "REF-DM-SUS-AGE-WHO",
    "REF-DM-SUS-BMI",
@@ -469,6 +478,14 @@
    "REF-DM-HYPO-L1",
    "REF-DM-HYPO-L1"
   ],
+  "acu_hypo_l1_l2": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
   "acu_picture": [
    "REF-DM-ACU-DKA-GLU",
    "REF-DM-ACU-DKA-GLU",
@@ -484,6 +501,9 @@
    "REF-DM-ACU-HHS-GLU",
    "REF-DM-ACU-HHS-GLU",
    "REF-DM-ACU-HHS-GLU"
+  ],
+  "acu_picture_r02": [
+   "REF-DM-ACU-DKA-BOHB"
   ],
   "acu_hhs_glu": [
    "REF-DM-ACU-HHS-GLU",
@@ -571,6 +591,75 @@
   ],
   "con_preg_fcap7": [
    "REF-DM-DX-FPG"
+  ],
+  "acu_known_kussmaul_r11": [
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_known_kussmaul_r02": [
+   "REF-DM-ACU-DKA-BOHB"
+  ],
+  "acu_ketones_mid": [
+   "REF-DM-ACU-KETONE-LOW",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_ketones_mid_up": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
+  "acu_ketones_risk": [
+   "REF-DM-ACU-KETONE-RISK",
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_hypo_other": [
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1"
+  ],
+  "acu_hypo_other_l2": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_preg_bp": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP"
+  ],
+  "acu_preg_bp_severe": [
+   "REF-DM-PREG-BP-SEVERE-SBP",
+   "REF-DM-PREG-BP-SEVERE-DBP"
+  ],
+  "acu_preg_bp_sev": [
+   "REF-DM-PREG-BP-SEVERE-SBP",
+   "REF-DM-PREG-BP-SEVERE-DBP"
+  ],
+  "sus_fcap_ifg": [
+   "REF-DM-IH-IFG-WHO",
+   "REF-DM-DX-FPG"
+  ],
+  "acu_htn_emerg": [
+   "REF-DM-ACU-BP-EMERG-SBP",
+   "REF-DM-ACU-BP-EMERG-DBP"
   ],
   "tgt_hba1c_general_relaxed_applies": [
    "REF-DM-HYPO-IAH"

@@ -372,6 +372,138 @@
    "readAt": "source",
    "retrieved": "2026-10-05",
    "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-HTN-03",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "4.1.6.1",
+   "topic": "Hypertensive emergency",
+   "pdfPage": 381,
+   "quote": "Hypertensive emergency BP >180/110 mmHg with symptoms and acute life threatening com plications: Hypertensive encephalopathy (severe headache, confusion, seizures, visual disturbances) Acute angina or acute myocardial infarction (AMI) Pulmonary oedema Acute kidney failure Acute aortic dissection Eclampsia or pre-eclampsia",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-HTN-04",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "4.1.6.1",
+   "topic": "Hypertensive urgency",
+   "pdfPage": 382,
+   "quote": "Hypertensive urgency BP > 180/110 mmHg without evidence of target organ damage, such as pulmonary edema, cardiac ischemia, neurologic deficits, or acute renal failure. Management TREATMENT LOC Admit",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-PE-01",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.3.7",
+   "topic": "Pre-eclampsia, mild to moderate",
+   "pdfPage": 792,
+   "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-PE-02",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.3.7",
+   "topic": "Pre-eclampsia, severe",
+   "pdfPage": 792,
+   "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-PE-03",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.3.7",
+   "topic": "Pre-eclampsia, referral",
+   "pdfPage": 793,
+   "quote": "Any case of pre-eclampsia has to be referred to hospital",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-PE-04",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.3.7",
+   "topic": "Pre-eclampsia, timing",
+   "pdfPage": 792,
+   "quote": "usually diag nosed after 20 weeks of gestation and can present as late as 4-6 weeks postpartum",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-CHTN-01",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "16.2.3",
+   "topic": "Chronic hypertension in pregnancy",
+   "pdfPage": 771,
+   "quote": "Blood pressure >140/90 present before the pregnancy or starting before 20 weeks.",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-HIV-02",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "3 (HIV)",
+   "topic": "Dolutegravir and metformin",
+   "pdfPage": 276,
+   "quote": "Metformin DTG DTG increases met formin levels. May increase risk of hypoglycaemia and metabolic acidosis Close fol low-up",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-HIV-03",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "3 (HIV)",
+   "topic": "Dolutegravir hyperglycaemia",
+   "pdfPage": 285,
+   "quote": "Excessive drinking/eating, excessive urination",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-HIV-04",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "3 (HIV)",
+   "topic": "Dolutegravir hyperglycaemia, action",
+   "pdfPage": 285,
+   "quote": "Do RBS to confirm hyperglycaemia then substitute with EFV",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+  },
+  {
+   "id": "UCG-HIV-05",
+   "source": "UG-UCG-2023",
+   "document": "Uganda Clinical Guidelines 2023 (Publication Final PDF Version 1)",
+   "section": "3 (HIV)",
+   "topic": "NCD screening in HIV care",
+   "pdfPage": 330,
+   "quote": "Screen regularly for NCD (diabetes, hypertension and - depression)",
+   "readAt": "source",
+   "retrieved": "2026-10-05",
+   "file": "~/Downloads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
   }
  ]
 }

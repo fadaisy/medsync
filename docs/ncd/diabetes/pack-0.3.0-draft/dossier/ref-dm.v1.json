@@ -1,23 +1,23 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.0-draft",
+ "version": "0.3.1-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
- "count": 335,
+ "count": 341,
  "verification": {
   "confirmed": 225,
   "confirmed_with_note": 95,
   "not_found": 8,
   "could_not_open": 2,
   "wrong_attribution": 1,
-  "not_rechecked": 4
+  "not_rechecked": 10
  },
  "counts": {
-  "withValue": 188,
+  "withValue": 194,
   "needsCsoInput": 18,
   "withConflict": 39,
-  "usedByARule": 114
+  "usedByARule": 122
  },
  "entries": [
   {
@@ -59,6 +59,7 @@
      "gdm_fpg",
      "remission_fasting_meter_high",
      "remission_glucose_high",
+     "sus_fcap_ifg",
      "sus_single_abnormal",
      "sus_single_fasting_meter",
      "who_hd_fcap_repeat",
@@ -635,6 +636,7 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "sus_fcap_ifg",
      "who_ifg"
     ]
    }
@@ -4230,7 +4232,8 @@
      "batch": "V2"
     },
     "usedByCriteria": [
-     "acu_hypo_l1"
+     "acu_hypo_l1",
+     "acu_hypo_other"
     ]
    }
   },
@@ -4265,7 +4268,9 @@
      "batch": "V2"
     },
     "usedByCriteria": [
-     "acu_hypo_l2"
+     "acu_hypo_l1_l2",
+     "acu_hypo_l2",
+     "acu_hypo_other_l2"
     ]
    }
   },
@@ -4559,6 +4564,9 @@
     },
     "usedByCriteria": [
      "acu_ketones",
+     "acu_ketones_mid",
+     "acu_ketones_risk",
+     "acu_known_kussmaul_r11",
      "acu_picture",
      "acu_picture_mild",
      "cls_ketosis"
@@ -4594,7 +4602,11 @@
     },
     "usedByCriteria": [
      "acu_ketones",
-     "acu_paed_glucose_soft"
+     "acu_ketones_risk",
+     "acu_known_kussmaul_r02",
+     "acu_paed_glucose_soft",
+     "acu_picture_r02",
+     "ref_glu18_pen"
     ]
    }
   },
@@ -5064,6 +5076,7 @@
      "acu_glu15_over18",
      "acu_glu18",
      "ref_glu18",
+     "ref_glu18_pen",
      "rx_second_glu18",
      "rx_severe_glu18",
      "rx_third_glu18"
@@ -5130,7 +5143,9 @@
      "urlUsed": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
      "batch": "V3"
     },
-    "usedByCriteria": []
+    "usedByCriteria": [
+     "acu_ketones_mid"
+    ]
    }
   },
   {
@@ -5162,7 +5177,10 @@
      "urlUsed": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
      "batch": "V3"
     },
-    "usedByCriteria": []
+    "usedByCriteria": [
+     "acu_ketones_mid_up",
+     "acu_ketones_risk"
+    ]
    }
   },
   {
@@ -10780,6 +10798,200 @@
      "batch": null
     },
     "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-PREG-BP-SBP",
+   "text": "UCG 2023: in pregnancy, systolic blood pressure at or above this value (with proteinuria) is pre-eclampsia",
+   "value": 140,
+   "unit": "mmHg",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+    "claims": [
+     "UCG-PE-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_preg_bp"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-BP-DBP",
+   "text": "UCG 2023: in pregnancy, diastolic blood pressure at or above this value (with proteinuria) is pre-eclampsia",
+   "value": 90,
+   "unit": "mmHg",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+    "claims": [
+     "UCG-PE-01"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_preg_bp"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-BP-SEVERE-SBP",
+   "text": "UCG 2023: acute severe hypertension in pregnancy, systolic",
+   "value": 160,
+   "unit": "mmHg",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+    "claims": [
+     "UCG-PE-02"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_preg_bp_sev",
+     "acu_preg_bp_severe"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-BP-SEVERE-DBP",
+   "text": "UCG 2023: acute severe hypertension in pregnancy, diastolic",
+   "value": 110,
+   "unit": "mmHg",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "acute severe hypertension (160/110 mmHg) and ³1+ proteinuria OR any degree of hypertension with evidence of organ dysfunction",
+    "claims": [
+     "UCG-PE-02"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_preg_bp_sev",
+     "acu_preg_bp_severe"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-ACU-BP-EMERG-SBP",
+   "text": "UCG 2023: hypertensive emergency is systolic above this value with acute complications",
+   "value": 180,
+   "unit": "mmHg",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "acute",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "4.1.6.1, PDF p. 381 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Hypertensive emergency BP >180/110 mmHg with symptoms and acute life threatening com plications: Hypertensive encephalopathy (severe headache, confusion, seizures, visual disturbances) Acute angina or acute myocardial infarction (AMI) Pulmonary oedema Acute kidney failure Acute aortic dissection Eclampsia or pre-eclampsia",
+    "claims": [
+     "UCG-HTN-03"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_htn_emerg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-ACU-BP-EMERG-DBP",
+   "text": "UCG 2023: hypertensive emergency is diastolic above this value with acute complications",
+   "value": 110,
+   "unit": "mmHg",
+   "source": "UG-MOH · Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions · 2023",
+   "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "acute",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "4.1.6.1, PDF p. 381 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+    "quote": "Hypertensive emergency BP >180/110 mmHg with symptoms and acute life threatening com plications: Hypertensive encephalopathy (severe headache, confusion, seizures, visual disturbances) Acute angina or acute myocardial infarction (AMI) Pulmonary oedema Acute kidney failure Acute aortic dissection Eclampsia or pre-eclampsia",
+    "claims": [
+     "UCG-HTN-03"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "acu_htn_emerg"
+    ]
    }
   }
  ]

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.0-draft",
+  "version": "0.3.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -475,6 +475,50 @@
    "x": {
     "status": "new"
    }
+  },
+  {
+   "code": "pre_eclampsia",
+   "display": "Pre-eclampsia",
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-PE-01",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "hypertensive_emergency",
+   "display": "Hypertensive emergency",
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "Hypertensive emergency BP >180/110 mmHg with symptoms and acute life threatening com plications: Hypertensive encephalopathy (severe headache, confusion, seizures, visual disturbances) Acute angina or acute myocardial infarction (AMI) Pulmonary oedema Acute kidney failure Acute aortic dissection Eclampsia or pre-eclampsia",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-HTN-03",
+     "section": "4.1.6.1, PDF p. 381 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
   }
  ],
  "rules": [
@@ -563,7 +607,8 @@
      "tier": "today"
     },
     "review": [
-     "H20"
+     "H20",
+     "J02"
     ],
     "notWhen": [
      {
@@ -592,10 +637,6 @@
        },
        {
         "feature": "ogtt_2h_pg",
-        "op": "recorded"
-       },
-       {
-        "feature": "hba1c",
         "op": "recorded"
        }
       ],
@@ -706,7 +747,8 @@
      "tier": "soon"
     },
     "review": [
-     "H20"
+     "H20",
+     "J02"
     ],
     "notWhen": [
      {
@@ -735,10 +777,6 @@
        },
        {
         "feature": "ogtt_2h_pg",
-        "op": "recorded"
-       },
-       {
-        "feature": "hba1c",
         "op": "recorded"
        }
       ],
@@ -2783,7 +2821,37 @@
      "tier": "today"
     },
     "review": [
-     "H04"
+     "H04",
+     "J05"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_known",
+      "label": "Known diabetes (the child is already diagnosed)",
+      "all": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NG18, Bookshelf copy last updated 11 May 2023",
+       "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-31",
+        "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-ACU-PAED-GLU"
+       }
+      }
+     }
     ],
     "restrictedClasses": [],
     "runWhen": "always"
@@ -2922,6 +2990,95 @@
        }
       }
      }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-04",
+   "display": "A fasting capillary glucose of 6.1 to below 7.0 mmol/L: repeat fasting on another day, and offer a 2-hour OGTT where one can be done",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_fcap_ifg",
+    "label": "A fasting capillary glucose of 6.1 mmol/L or more and below 7.0 mmol/L",
+    "all": [
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 6.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2006",
+     "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+     "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+     "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "WHO's intermediate range is for plasma; reading it from a meter follows D-DM-04.",
+     "x": {
+      "claim": "A2-10",
+      "section": "Summary table of diagnostic criteria (p.1)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-IH-IFG-WHO"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Not truly fasting",
+    "Meter error near the threshold"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2006",
+    "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+    "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+    "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-10",
+     "section": "Summary table of diagnostic criteria (p.1)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "A fasting value in this range neither diagnoses nor excludes diabetes; in African cohorts the OGTT finds cases a fasting value misses (D-DM-06).",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "proposal": {
+     "kind": "test.repeat",
+     "test": "test.glucose_fasting",
+     "tier": "routine"
+    },
+    "review": [
+     "J17"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"

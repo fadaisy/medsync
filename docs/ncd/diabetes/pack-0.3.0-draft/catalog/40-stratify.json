@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.0-draft",
+  "version": "0.3.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2874,7 +2874,8 @@
     },
     "review": [
      "F04",
-     "H14"
+     "H14",
+     "J12"
     ],
     "ages": "adult",
     "notWhen": [
@@ -2920,6 +2921,37 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tier_not_general",
+      "label": "A different glycaemic target tier has already been agreed",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "relaxed",
+         "tight",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). [...] If HbA1c measurement is not available or there is concern over its validity, an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-28",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 goal box (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-TARGET"
        }
       }
      }
@@ -3012,9 +3044,43 @@
     },
     "review": [
      "F04",
-     "H14"
+     "H14",
+     "J12"
     ],
     "ages": "adult",
+    "notWhen": [
+     {
+      "id": "tier_not_relaxed",
+      "label": "A different glycaemic target tier has already been agreed",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "general",
+         "tight",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). [...] If HbA1c measurement is not available or there is concern over its validity, an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-28",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 goal box (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-TARGET"
+       }
+      }
+     }
+    ],
     "restrictedClasses": []
    }
   },
@@ -3161,7 +3227,8 @@
     "review": [
      "F35",
      "F04",
-     "H14"
+     "H14",
+     "J12"
     ],
     "ages": "adult",
     "notWhen": [
@@ -3207,6 +3274,38 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tier_not_any",
+      "label": "A glycaemic target tier has already been agreed",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "general",
+         "relaxed",
+         "tight",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). [...] If HbA1c measurement is not available or there is concern over its validity, an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-28",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 goal box (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-TARGET"
        }
       }
      }

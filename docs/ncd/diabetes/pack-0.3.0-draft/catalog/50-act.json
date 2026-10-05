@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.0-draft",
+  "version": "0.3.1-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -166,7 +166,7 @@
    "display": "Retinal examination is due (never done, 2 years since the last, or the last look could not grade the retina)",
    "when": {
     "id": "due_eye",
-    "label": "Confirmed diabetes, with no retinal examination ever, 24 months or more since the last, or a last examination that was undilated direct ophthalmoscopy or gave an inadequate view",
+    "label": "Confirmed diabetes, with no retinal examination ever, 24 months or more since the last, a last examination that was undilated direct ophthalmoscopy, or a view that was inadequate or not attempted",
     "all": [
      {
       "feature": "dm_status",
@@ -194,6 +194,11 @@
       "feature": "retina_view",
       "op": "==",
       "value": "inadequate"
+     },
+     {
+      "feature": "retina_view",
+      "op": "==",
+      "value": "not_attempted"
      }
     ],
     "citation": {
@@ -246,7 +251,8 @@
     "ages": "adult",
     "review": [
      "F12",
-     "H17"
+     "H17",
+     "J13"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -636,6 +642,13 @@
     },
     "note": "The history catalogue already raises FLAG-TB-PRESUMPTIVE on cough duration; this adds the diabetes context to the Plan. Restricted class: tb.",
     "ages": "adult",
+    "review": [
+     "J20"
+    ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "tb"
     ],
@@ -961,7 +974,7 @@
   },
   {
    "id": "DM-ACT-REFER-BP-01",
-   "display": "Blood pressure above 200/110: refer today",
+   "display": "Systolic above 200 or diastolic above 110 mmHg in diabetes: same-day referral",
    "when": {
     "id": "ref_bp",
     "label": "Systolic above 200 or diastolic above 110 mmHg",
@@ -1027,7 +1040,8 @@
     "ages": "any",
     "review": [
      "H01",
-     "H02"
+     "H02",
+     "J21"
     ],
     "agesOverride": "any",
     "restrictedClasses": [],
@@ -1736,11 +1750,12 @@
     "ages": "any",
     "review": [
      "H01",
-     "H02"
+     "H02",
+     "J07"
     ],
     "agesOverride": "any",
     "restrictedClasses": [],
-    "runWhen": "always"
+    "runWhen": "established_or_met"
    }
   },
   {
@@ -2546,6 +2561,13 @@
      "restrictedClass": "sexual_reproductive_health"
     },
     "ages": "adult",
+    "review": [
+     "J20"
+    ],
+    "neutralProposal": {
+     "kind": "education.offer",
+     "code": "programme_review"
+    },
     "restrictedClasses": [
      "sexual_reproductive_health"
     ],
@@ -4406,8 +4428,10 @@
     },
     "review": [
      "F06",
-     "F32"
+     "F32",
+     "J11"
     ],
+    "lessTreatment": true,
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -4501,6 +4525,10 @@
     "appliesTo": {
      "pregnancy": "not_pregnant"
     },
+    "review": [
+     "J11"
+    ],
+    "lessTreatment": true,
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -4737,7 +4765,8 @@
     "review": [
      "F08",
      "H01",
-     "H02"
+     "H02",
+     "J07"
     ],
     "notWhen": [
      {
@@ -4786,7 +4815,7 @@
     ],
     "agesOverride": "any",
     "restrictedClasses": [],
-    "runWhen": "always"
+    "runWhen": "established_or_met"
    }
   },
   {
@@ -5456,8 +5485,10 @@
      "pregnancy": "not_pregnant"
     },
     "review": [
-     "H13"
+     "H13",
+     "J11"
     ],
+    "lessTreatment": true,
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5467,7 +5498,7 @@
    "display": "On insulin with HbA1c above 7.5%: refer for review of the insulin",
    "when": {
     "id": "ref_goal_insulin",
-    "label": "On insulin, with HbA1c above 7.5%",
+    "label": "Type 2 diabetes on insulin, with HbA1c above 7.5%",
     "all": [
      {
       "feature": "dm_status",
@@ -5484,6 +5515,11 @@
       "op": ">",
       "value": 7.5,
       "unit": "%"
+     },
+     {
+      "feature": "dm_type_recorded",
+      "op": "==",
+      "value": "type_2"
      }
     ],
     "citation": {
@@ -5531,9 +5567,10 @@
      "to": "diabetes_clinic"
     },
     "note": "WHO HEARTS-D's insulin annex. Insulin adjustment is outside this pack, for type 1 and type 2 alike, so a person above target on insulin is referred and not advised. Silent inside an accepted relaxed target.",
-    "ages": "any",
+    "ages": "adult",
     "review": [
-     "H13"
+     "H13",
+     "J23"
     ],
     "notWhen": [
      {
@@ -5570,9 +5607,162 @@
       }
      }
     ],
-    "agesOverride": "any",
+    "agesOverride": "adult",
     "restrictedClasses": [],
     "runWhen": "established_or_met"
+   }
+  },
+  {
+   "id": "DM-ACT-REFER-GLU-02",
+   "display": "Glucose 18 mmol/L or more without ketoacidosis: same-day review by a clinician who can start or change treatment (WHO PEN refers all such patients to hospital)",
+   "when": {
+    "id": "ref_glu18_pen",
+    "label": "Any glucose 18 mmol/L or more or a meter reading HI, with a ketone result below 2+ (or blood ketones below 3.0 mmol/L)",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 18,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "urine_ketones",
+       "op": "in",
+       "value": [
+        "neg",
+        "trace",
+        "1plus"
+       ]
+      },
+      {
+       "feature": "bohb",
+       "op": "<",
+       "value": 3.0,
+       "unit": "mmol/L"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+     "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+     "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+     "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-48",
+      "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-ACU-KETONE-TEST-GLU"
+     }
+    }
+   },
+   "standard": "WHO",
+   "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO PEN training manual (undated; mirrors HEARTS-D 2020, WHO/UCN/NCD/20.1)",
+    "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) - Management of type 2 diabetes",
+    "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+    "quote": "Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl) [...] If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured [...] Severe hyperglycaemia- Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-48",
+     "section": "Management of hyperglycaemia in primary health care; hyperglycaemic emergencies",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-REFER",
+    "kind": "refer",
+    "urgency": "same_day",
+    "proposal": {
+     "kind": "refer",
+     "to": "clinician_who_can_start_insulin",
+     "tier": "today"
+    },
+    "note": "WHO HEARTS-D refers at this level only when not improving on tablets (DM-ACT-REFER-GLU-01); WHO PEN refers all. D-DM-38 chooses; the recommendation is PEN, because the tablets box is usually blank.",
+    "ages": "adult",
+    "review": [
+     "J14"
+    ],
+    "enabled": true,
+    "enabledBy": "D-DM-38",
+    "notWhen": [
+     {
+      "id": "ref_glu18_pen_r01",
+      "label": "Above target despite taking the tablets is recorded (DM-ACT-REFER-GLU-01 applies)",
+      "all": [
+       {
+        "feature": "glucose_goal_unmet_on_oral",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-37",
+        "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-ACT-REFER-SAMEDAY"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
    }
   }
  ],
@@ -6700,16 +6890,30 @@
    "display": "SGLT2 inhibitor during acute illness",
    "severity": "red",
    "when": {
-    "id": "tf_sglt2_sick",
-    "label": "On an SGLT2 inhibitor, acutely unwell",
+    "id": "sglt2_ill",
+    "label": "On an SGLT2 inhibitor, with any of: acutely unwell, vomiting, abdominal pain, dehydration",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
       "op": "==",
       "value": "sglt2_inhibitor"
-     },
+     }
+    ],
+    "any": [
      {
       "feature": "acute_illness_current",
+      "op": "present"
+     },
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "dehydration",
       "op": "present"
      }
     ],
@@ -6753,7 +6957,8 @@
     "review": [
      "F23",
      "F04",
-     "H01"
+     "H01",
+     "J03"
     ],
     "ages": "any",
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
