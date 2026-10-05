@@ -143,11 +143,22 @@ describe("the table (§5.1)", () => {
     expect(pulse).toContain("data-advance");
   });
 
-  it("glucose context is required, in three words, and never 'Not sure'", () => {
+  it("glucose context is required, in four words, and never 'Not sure'", () => {
     const html = render({ vitalsDraft: { glucose: "6,1" } });
-    expect(group(html, "Glucose context")).toEqual(["Random", "Fasting", "2 hours after food"]);
+    expect(group(html, "Glucose context")).toEqual([
+      "Random",
+      "Fasting",
+      "2 hours after food",
+      "2 hours after 75 g glucose",
+    ]);
     expect(html).not.toContain("Not sure");
-    expect(html).toContain("Choose random, fasting or 2 hours after food.");
+    expect(html).toContain("Choose random, fasting or 2 hours after food or glucose.");
+  });
+
+  it("a meter's HI or LO is a reading, not a number (EC-6)", () => {
+    const html = render({ vitalsDraft: { glucose: "HI", glucoseContext: "random" } });
+    expect(group(html, "Meter reads")).toEqual(["HI", "LO"]);
+    expect(html).not.toContain("Type a number");
   });
 
   it("an irregular pulse asks for the apical count and shows the apex–radial deficit", () => {

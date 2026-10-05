@@ -15,13 +15,15 @@ const root = process.cwd();
 const src = readSeedSources(root);
 const committed = (rel: string) => readFileSync(join(root, rel), "utf8");
 
-describe("EMR reference seed (0072, 0082, 0083, 0085 + catalogue.generated.ts)", () => {
+describe("EMR reference seed (0072, 0082, 0083, 0085, 0086 + catalogue.generated.ts)", () => {
   it("regenerating from the data reproduces the committed files byte-for-byte", async () => {
-    const { sql, ts, sql12, sql13, sql85 } = await generateSeed(root);
+    const { sql, ts, sql12, sql13, sql85, sql86, sql15 } = await generateSeed(root);
     expect(sql).toBe(committed(SEED_OUTPUTS.sql));
     expect(sql12).toBe(committed(SEED_OUTPUTS.sql12));
     expect(sql13).toBe(committed(SEED_OUTPUTS.sql13));
     expect(sql85).toBe(committed(SEED_OUTPUTS.sql85));
+    expect(sql86).toBe(committed(SEED_OUTPUTS.sql86));
+    expect(sql15).toBe(committed(SEED_OUTPUTS.sql15));
     expect(ts).toBe(committed(SEED_OUTPUTS.ts));
   });
 
@@ -30,7 +32,7 @@ describe("EMR reference seed (0072, 0082, 0083, 0085 + catalogue.generated.ts)",
     expect(src.v1.drugClassTags).toHaveLength(21);
     expect(src.v1.capabilities).toHaveLength(29);
     expect(src.v11.concepts).toHaveLength(59);
-    expect(Object.keys(CONCEPTS)).toHaveLength(145 + 59 + 86 + 165); // + v1.2 and v1.3 (0082, 0083)
+    expect(Object.keys(CONCEPTS)).toHaveLength(145 + 59 + 86 + 165 + 10); // + v1.2, v1.3, v1.5 (0082, 0083, 0092)
     expect(Object.keys(DRUG_CLASS_TAGS)).toHaveLength(21);
     expect(CAPABILITY_IDS).toHaveLength(29);
     const sql = committed(SEED_OUTPUTS.sql);
@@ -184,5 +186,73 @@ describe("0085: the REF-DX-TERMS v1.1 addendum, uncoded (D-SI-26)", () => {
     expect(sql).toMatch(/^-- GATED: owner-applied/m);
     expect(sql).not.toMatch(/\b(DELETE|DROP|TRUNCATE|ALTER|UPDATE)\b/);
     expect(sql).toMatch(/ON CONFLICT DO NOTHING;/);
+  });
+});
+
+describe("0086: ICD-11 codes for the v1.1 addendum, read on the WHO API and signed", () => {
+  type Code = { id: string; code: string; title: string; uri: string; group: string };
+  const data = src.codes11 as {
+    classification: { release: string };
+    verified_on: string;
+    signed: { record: string };
+    codes: Code[];
+    held: { id: string; reason: string }[];
+  };
+  const sql = committed(SEED_OUTPUTS.sql86);
+  const rows = sql.split("\n").filter((l) => l.startsWith("  ("));
+  const addIds = src.terms11.terms.map((t: { id: string }) => t.id).sort();
+
+  it("codes 177 terms and holds 10: together exactly the 187 of 0085, none twice", () => {
+    expect(data.codes).toHaveLength(177);
+    expect(data.held).toHaveLength(10);
+    const ids = [...data.codes, ...data.held].map((t) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect([...ids].sort()).toEqual(addIds);
+    expect(data.codes.map((c) => c.group).every((g) => ["A", "B", "C"].includes(g))).toBe(true);
+    for (const h of data.held) expect(h.reason.length, h.id).toBeGreaterThan(20);
+  });
+
+  it("every code is a single WHO MMS stem code from the signed release, with WHO's entity", () => {
+    const { release } = data.classification;
+    expect(release).toBe("2026-01");
+    for (const c of data.codes) {
+      // ICD-11 stem codes: four characters, then an optional extension of one or two; no I or O,
+      // and no postcoordinated cluster ("&", "/"), which the column cannot hold.
+      expect(c.code, c.id).toMatch(/^[0-9A-HJ-NP-Z]{4}(?:\.[0-9A-HJ-NP-Z]{1,2})?$/);
+      expect(c.uri, c.id).toMatch(
+        new RegExp(
+          `^http://id\\.who\\.int/icd/release/11/${release}/mms/\\d+(?:/(?:other|unspecified))?$`,
+        ),
+      );
+      expect(c.title.length, c.id).toBeGreaterThan(0);
+    }
+    expect(new Set(data.codes.map((c) => c.uri)).size).toBe(
+      new Set(data.codes.map((c) => c.code)).size,
+    );
+  });
+
+  it("writes one row per signed code and none for a held term", () => {
+    expect(rows).toHaveLength(177);
+    for (const c of data.codes) {
+      const row = rows.find((r) => r.includes(`'${uuidV5(`diagnosis_terms:${c.id}`)}'`));
+      expect(row, c.id).toContain(
+        `, '${c.code}', 'verified (WHO ICD-11 API, MMS 2026-01): ${c.uri}')`,
+      );
+    }
+    for (const h of data.held) expect(sql, h.id).not.toContain(uuidV5(`diagnosis_terms:${h.id}`));
+  });
+
+  it("only fills in what 0085 left empty, and is GATED", () => {
+    expect(sql).toMatch(/^-- GATED: owner-applied/m);
+    expect(sql.match(/\bUPDATE\b/g)).toHaveLength(1);
+    expect(sql).not.toMatch(/\b(INSERT|DELETE|DROP|TRUNCATE|ALTER)\b/);
+    expect(sql).toContain(
+      `SET icd11_code = v.icd11_code, verified_on = DATE '${data.verified_on}', source = v.source\n`,
+    );
+    expect(sql).toMatch(
+      /WHERE t\.id = v\.id::uuid\n {2}AND t\.icd11_code IS NULL\n {2}AND t\.verified_on IS NULL;/,
+    );
+    expect(sql).not.toContain("icd10_who_code");
+    expect(readFileSync(join(root, data.signed.record), "utf8")).toMatch(/## Signatures/);
   });
 });

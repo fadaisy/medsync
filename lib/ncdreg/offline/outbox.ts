@@ -4,7 +4,7 @@ import { ONLINE_ONLY } from "../commands/schema";
 import { getSealed, idbDel, idbGet, idbKeys, idbPut, putSealed } from "./store";
 
 /**
- * The outbox (§9, B5, ADR 0210). Every capture write becomes a command with a client UUID, queued
+ * The outbox (§9, B5, ADR 0211). Every capture write becomes a command with a client UUID, queued
  * encrypted in IndexedDB, and sent in order per patient. The server applies each command once, so a
  * resend after a lost response is harmless. Failures back off; a command the server refuses for
  * good (or that names a removed demo patient) is discarded with a visible note, never retried

@@ -1,0 +1,4820 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "lane: suspect",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "conditions": [
+  {
+   "code": "diabetes_undiagnosed",
+   "display": "Diabetes, not yet diagnosed",
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-21",
+     "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "stress_hyperglycaemia",
+   "display": "Hyperglycaemia of acute illness",
+   "citation": {
+    "standard": "WHO",
+    "version": "WHO 1999 (WHO/NCD/NCS/99.2)",
+    "title": "Definition, Diagnosis and Classification of Diabetes Mellitus and its Complications. Report of a WHO Consultation. Part 1: Diagnosis and Classification of Diabetes Mellitus",
+    "url": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm",
+    "quote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-54",
+     "section": "Section 2.2.1",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "gestational_diabetes",
+   "display": "Gestational diabetes",
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "The diagnosis of gestational diabetes mellitus at any time during pregnancy should be based on any one of the following values: Fasting plasma glucose = 5.1-6.9 mmol/l (92-125 mg/dl); 1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl); 2-h post 75g oral glucose load 8.5–11.0 mmol/l (153-199 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-03",
+     "section": "Chapter 4 Recommendations, 4.3",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "diabetes_in_pregnancy",
+   "display": "Diabetes in pregnancy",
+   "citation": {
+    "standard": "WHO",
+    "version": "2013",
+    "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+    "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-02",
+     "section": "Chapter 4 Recommendations, 4.2",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "drug_associated_hyperglycaemia",
+   "display": "Medicine-associated hyperglycaemia",
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-28",
+     "section": "Recommendations 2.16a, 2.16b; narrative 'Medications'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "type_1_diabetes",
+   "display": "Type 1 diabetes",
+   "citation": {
+    "standard": "WHO",
+    "version": "2019 (ISBN 978-92-4-151570-2)",
+    "title": "Classification of diabetes mellitus",
+    "url": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04",
+    "quote": "Type 1 diabetes / Type 2 diabetes / Hybrid forms of diabetes / Slowly evolving immune-mediated diabetes of adults / Ketosis prone type 2 diabetes / Other specific types (see Tables) / Monogenic diabetes / [...] / Unclassified diabetes / Hyperglyacemia first detected during pregnancy / Diabetes mellitus in pregnancy / Gestational diabetes mellitus",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-15",
+     "section": "Table 2 'Types of diabetes' (p.13)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "insulin_deficient_diabetes",
+   "display": "Insulin-deficient diabetes (type 1 or ketosis-prone): do not assume type 2",
+   "citation": {
+    "standard": "ADA",
+    "version": "ADA/EASD consensus 2021",
+    "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
+    "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
+    "quote": "younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-49",
+     "section": "Diagnosis of type 1 diabetes; Fig. 1 and footnotes",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "atypical_lean_diabetes",
+   "display": "Atypical lean, young-onset diabetes: do not assume type 2",
+   "citation": {
+    "standard": "local",
+    "version": "2025 consensus statement (Vellore, Jan 2025; IDF World Diabetes Congress, Apr 2025)",
+    "title": "Wadivkar P, Jebasingh F, Thomas N, et al. Classifying a distinct form of diabetes in lean individuals with a history of undernutrition: an international consensus statement. Lancet Glob Health 2025;13(10):e1771-e1776",
+    "url": "https://www.sciencedirect.com/science/article/pii/S2214109X25002633",
+    "quote": "Since 1955, a form of diabetes in lean, young (BMI <18·5 kg/m2, age <30 years) individuals with a history suggestive of undernutrition from before birth and throughout childhood has been described in the literature.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-44",
+     "section": "Summary; panel of commonly/occasionally reported features",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "pancreatogenic_diabetes",
+   "display": "Diabetes from pancreatic disease",
+   "citation": {
+    "standard": "local",
+    "version": "Ewald N, Hardt PD. World J Gastroenterol 2013;19(42):7276-7281",
+    "title": "Diagnosis and treatment of diabetes mellitus in chronic pancreatitis",
+    "url": "https://www.wjgnet.com/1007-9327/full/v19/i42/7276.htm",
+    "quote": "Presence of exocrine pancreatic insufficiency (monoclonal fecal elastase-1 test or direct function tests) … Pathological pancreatic imaging (endoscopic ultrasound, MRI, CT) … Absence of type 1 diabetes mellitus associated autoimmune markers",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-42",
+     "section": "Proposed diagnostic criteria for type 3c diabetes",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "monogenic_diabetes",
+   "display": "Monogenic diabetes (MODY)",
+   "citation": {
+    "standard": "local",
+    "version": "GeneReviews (updated 24 May 2018); Diabetes Genes (Exeter)",
+    "title": "Maturity-Onset Diabetes of the Young Overview (Naylor R, Knight Johnson A, del Gaudio D) - GeneReviews",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK500456/",
+    "quote": "Early-onset diabetes in adolescence or young adulthood (typically age <35 years) … Mild, stable fasting hyperglycemia that does not progress or respond appreciably to pharmacologic therapy … A family history of diabetes consistent with autosomal dominant inheritance",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-53",
+     "section": "Clinical characteristics: when to suspect MODY",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "neuropathy_other_cause",
+   "display": "Neuropathy from another cause",
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care 2026",
+    "title": "12. Retinopathy, Neuropathy, and Foot Care: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl. 1):S261–S276; doi 10.2337/dc26-S012)",
+    "url": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf",
+    "quote": "Diabetic neuropathy is a diagnosis of exclusion. [...] causes of neuropathy other than diabetes should be considered, including toxins (e.g., alcohol), neurotoxic medications (e.g., chemotherapy), vitamin B12 (especially in those treated chronically with metformin) [...] hypothyroidism, kidney disease, malignancies [...], infections (e.g., HIV, hepatitis C)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A8-06",
+     "section": "Neuropathy > Diabetic Peripheral Neuropathy (narrative), p. S265",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "cardiovascular_autonomic_neuropathy",
+   "display": "Autonomic neuropathy",
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care 2026",
+    "title": "12. Retinopathy, Neuropathy, and Foot Care: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl. 1):S261–S276; doi 10.2337/dc26-S012)",
+    "url": "https://aotinc.net/wp-content/uploads/2026/02/Retinopathy-Neuropathy-and-Foot-Care-Standards-of-Care-in-Diabetes-2026.pdf",
+    "quote": "Major clinical manifestations of diabetic autonomic neuropathy include resting tachycardia, orthostatic hypotension, gastroparesis, constipation, diarrhea, fecal incontinence, erectile dysfunction, neurogenic bladder, and sudomotor dysfunction with either increased or decreased sweating.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A8-17",
+     "section": "Neuropathy > Diabetic Autonomic Neuropathy (narrative), p. S265",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "non_diabetic_kidney_disease",
+   "display": "Kidney disease from another cause",
+   "citation": {
+    "standard": "ADA",
+    "version": "2025 (Diabetes Care 2025;48(Suppl 1):S239-S251) - 2026 edition (Diabetes Care 2026;49(Suppl 1):S246, doi 10.2337/dc26-S011) could NOT be opened (diabetesjournals.org 403; PMC id not found / PMC CAPTCHA)",
+    "title": "11. Chronic Kidney Disease and Risk Management: Standards of Care in Diabetes-2025",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11635029/",
+    "quote": "An active urinary sediment (containing red or white blood cells or cellular casts), rapidly increasing albuminuria or total proteinuria, the presence of nephrotic syndrome, rapidly decreasing eGFR, or the absence of retinopathy (in type 1 diabetes) suggests alternative or additional causes of kidney disease.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-52",
+     "section": "Body text 'Diagnosis of Diabetic Kidney Disease' and 'Epidemiology of Diabetes and Chronic Kidney Disease'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "reconcile"
+   }
+  },
+  {
+   "code": "dka",
+   "display": "Diabetic ketoacidosis",
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-01",
+     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "complication": "dka",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "hyperkalaemia_severe",
+   "display": "Severe hyperkalaemia",
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+    "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+    "url": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/",
+    "quote": "Moderate K+ 6.0–6.4 mmol/l: Clinically unwell or AKI - Assess and treat in hospital; Unexpected result - Repeat within 24 hours. Severe K+ ≥6.5 mmol/l: Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-60",
+     "section": "Table 28 (Suggested action in the event of moderate and severe hyperkalemia), page S227",
+     "bodyProposed": "KDIGO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "hypoglycaemia",
+   "display": "Hypoglycaemia",
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes—2026",
+    "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+    "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L) | Level 3: A severe event characterized by altered mental and/or physical status requiring assistance for treatment of hypoglycemia, irrespective of glucose level. Adapted from Agiostratidou et al.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A4-14",
+     "section": "Table 6.4 'Classification of hypoglycemia'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "complication": "hypoglycaemia",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "hyperglycaemic_crisis",
+   "display": "Suspected ketoacidosis or hyperosmolar state",
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Plasma glucose level ≥13.9 mmol/L (250 mg/dL), occasionally lower [...] Urine ketones Positive [...] Plasma glucose level ≥33.3 mmol/L (600 mg/dL) [...] Urine ketones Negative (or weakly positive) [...] Refer to hospital all patients with suspected DKA or HHS.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-40",
+     "section": "Section 'Hyperglycaemic emergencies', Table 5 (pp.19-20); Fig. 2 (p.25)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "hhs",
+   "display": "Hyperosmolar hyperglycaemic state",
+   "citation": {
+    "standard": "EASD",
+    "version": "2024",
+    "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479",
+    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
+    "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-07",
+     "section": "Figure 2B - The diagnosis criteria of HHS",
+     "bodyProposed": "ADA-EASD-CONSENSUS",
+     "verified": true
+    }
+   },
+   "complication": "hhs",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "steroid_worsened_control",
+   "display": "Diabetes control worsened by steroids",
+   "citation": {
+    "standard": "local",
+    "version": "JBDS-IP 08, May 2021",
+    "title": "Management of Hyperglycaemia and Steroid (Glucocorticoid) Therapy. Joint British Diabetes Societies for Inpatient Care (JBDS-IP) guideline 08, revised May 2021",
+    "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Archive/JBDS_08_Steroids_DM_Guideline_FINAL_28052021_Archive.pdf",
+    "quote": "Given the recent hyperglycaemia the use of HbA1c as a screening tool should be delayed until 3 months following steroid cessation.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-39",
+     "section": "pp. 11, 17",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "hyperkalaemia_moderate",
+   "display": "Moderate hyperkalaemia",
+   "citation": {
+    "standard": "KDIGO",
+    "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+    "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+    "url": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/",
+    "quote": "Moderate K+ 6.0–6.4 mmol/l: Clinically unwell or AKI - Assess and treat in hospital; Unexpected result - Repeat within 24 hours. Severe K+ ≥6.5 mmol/l: Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A6-60",
+     "section": "Table 28 (Suggested action in the event of moderate and severe hyperkalemia), page S227",
+     "bodyProposed": "KDIGO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "acute_cardiovascular_event",
+   "display": "Possible heart attack or stroke",
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "Urgent (same day) referral should occur if one of the following is detected: urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide; suspicion of ketoacidosis or HHS; hypoglycaemia unresolved by treatment; clinical suspicion of type 1 diabetes in newly diagnosed patient; [...] blood pressure >200/>110 mmHg; blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output; [...] critical limb ischaemia; anuria or eGFR <30 mL/min/1.73 m²",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-37",
+     "section": "Section 4 'Criteria for referral to higher levels of care' (p.26)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "pre_eclampsia",
+   "display": "Pre-eclampsia",
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "A diastolic BP of 90-109 mmHg and/ or systolic BP of 140-159 mmHg, with ³1+ proteinuria; and no organ dysfunction",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-PE-01",
+     "section": "16.3.7, PDF p. 792 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "hypertensive_emergency",
+   "display": "Hypertensive emergency",
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "Hypertensive emergency BP >180/110 mmHg with symptoms and acute life threatening com plications: Hypertensive encephalopathy (severe headache, confusion, seizures, visual disturbances) Acute angina or acute myocardial infarction (AMI) Pulmonary oedema Acute kidney failure Acute aortic dissection Eclampsia or pre-eclampsia",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-HTN-03",
+     "section": "4.1.6.1, PDF p. 381 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "status": "new"
+   }
+  }
+ ],
+ "rules": [
+  {
+   "id": "DM-SUS-SYMP-01",
+   "display": "Thirst, passing a lot of urine or unexplained weight loss: test glucose today",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_symp_classic",
+    "label": "Any of: passing large volumes of urine, excessive thirst, unexplained weight loss",
+    "any": [
+     {
+      "feature": "polyuria",
+      "op": "present"
+     },
+     {
+      "feature": "polydipsia",
+      "op": "present"
+     },
+     {
+      "feature": "unexplained_weight_loss",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-21",
+      "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+      "bodyProposed": "WHO",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "random_pg",
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Diuretic treatment",
+    "Hypercalcaemia",
+    "Chronic kidney disease",
+    "Diabetes insipidus",
+    "Primary polydipsia",
+    "Urinary infection (frequency rather than volume)",
+    "HIV, TB or cancer as the cause of weight loss",
+    "Thyrotoxicosis"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-21",
+     "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "A random glucose now is the test: with symptoms a single diabetes-range value is diagnostic. A normal BMI does not lower suspicion; a third of Ugandan adults with non-autoimmune diabetes are lean.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-SYMP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_random_or_fasting",
+     "tier": "today"
+    },
+    "review": [
+     "H20",
+     "J02"
+    ],
+    "notWhen": [
+     {
+      "id": "symp_01_done",
+      "label": "A glucose is already recorded (the criteria and the other rules now read it; a meter HI or LO counts)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-02",
+        "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-DX-RANDOM"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-SYMP-02",
+   "display": "Blurred vision, recurrent infections, a slow-healing wound or numb, burning feet: test glucose",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_symp_soft",
+    "label": "Any of: blurred vision, recurrent infections, slow-healing wound, numbness or burning in the feet",
+    "any": [
+     {
+      "feature": "blurred_vision",
+      "op": "present"
+     },
+     {
+      "feature": "recurrent_infections",
+      "op": "present"
+     },
+     {
+      "feature": "slow_healing_wound",
+      "op": "present"
+     },
+     {
+      "feature": "foot_numbness_burning",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-21",
+      "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+      "bodyProposed": "WHO",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "capillary_glucose",
+    "random_pg",
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Refractive error or cataract",
+    "HIV",
+    "Vitamin B12 deficiency",
+    "Alcohol-related neuropathy",
+    "Peripheral artery disease"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-21",
+     "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-SYMP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "soon"
+    },
+    "review": [
+     "H20",
+     "J02"
+    ],
+    "notWhen": [
+     {
+      "id": "symp_02_done",
+      "label": "A glucose is already recorded (the criteria and the other rules now read it; a meter HI or LO counts)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-02",
+        "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-DX-RANDOM"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-RISK-01",
+   "display": "Aged 40 or over and overweight, never tested or not tested for 3 years: offer a fasting glucose",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_risk_who",
+    "label": "Age 40 or over with BMI 25 or more, and never tested or not tested in the last 36 months",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 40,
+      "unit": "years"
+     },
+     {
+      "feature": "bmi",
+      "op": ">=",
+      "value": 25,
+      "unit": "kg/m2"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 36,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-21",
+      "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-SUS-AGE-WHO"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "TEST ADULTS who have symptoms of diabetes with fasting or random plasma glucose (FPG or RPG) [...] TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) [...] IF ASYMPTOMATIC repeat test on subsequent day",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-21",
+     "section": "Fig. 1 'Protocol for control of blood glucose in type 2 diabetes' (p.16); Table 2 (p.12)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "WHO HEARTS-D. This is an eligibility rule, not a score: no risk score is validated for Uganda (REF-DM-SUS-NO-SCORE). WHO gives no re-test interval; 3 years is ADA's, used here only to stop the rule firing at every visit. It is a maximum gap: symptoms or a change in risk bring the test forward.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-RISK",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine"
+    },
+    "review": [
+     "F12",
+     "F38"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-RISK-02",
+   "display": "Overweight with another risk factor: offer testing at any adult age",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_risk_ada",
+    "label": "BMI 25 or more, with any of: a first-degree relative with diabetes, hypertension, cardiovascular disease, polycystic ovary syndrome, physical inactivity, acanthosis nigricans",
+    "all": [
+     {
+      "feature": "bmi",
+      "op": ">=",
+      "value": 25,
+      "unit": "kg/m2"
+     }
+    ],
+    "any": [
+     {
+      "feature": "first_degree_relative_diabetes",
+      "op": "present"
+     },
+     {
+      "feature": "hypertension_known",
+      "op": "present"
+     },
+     {
+      "feature": "cvd_established",
+      "op": "present"
+     },
+     {
+      "feature": "pcos",
+      "op": "present"
+     },
+     {
+      "feature": "physically_inactive",
+      "op": "present"
+     },
+     {
+      "feature": "acanthosis_nigricans",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes-2026; Diabetes Care 2026;49(Suppl 1):S27-S49",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader",
+     "quote": "Testing should be considered in adults with overweight or obesity (BMI ≥25 kg/m2 or ≥23 kg/m2 in individuals of Asian ancestry) who have one or more of the following risk factors: ... Individuals with polycystic ovary syndrome ... Other clinical conditions associated with insulin resistance (e.g., severe obesity, acanthosis nigricans, metabolic dysfunction-associated steatotic liver disease)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-45",
+      "section": "Table 2.5",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes-2026; Diabetes Care 2026;49(Suppl 1):S27-S49",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader",
+    "quote": "Testing should be considered in adults with overweight or obesity (BMI ≥25 kg/m2 or ≥23 kg/m2 in individuals of Asian ancestry) who have one or more of the following risk factors: ... Individuals with polycystic ovary syndrome ... Other clinical conditions associated with insulin resistance (e.g., severe obesity, acanthosis nigricans, metabolic dysfunction-associated steatotic liver disease)",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-45",
+     "section": "Table 2.5",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "ADA Table 2.5. Offered as an additional rule; whether it runs at district sites is D-DM-05. Like every eligibility rule here it is a prompt to offer a test; it does not look at when the last test was, so the engine shows it once per episode of care (Design B).",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-RISK",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine"
+    },
+    "requiresCapability": "lab.glucose",
+    "review": [
+     "H21"
+    ],
+    "enabledNote": "ADA's rule runs only at sites with a laboratory glucose (D-DM-05).",
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-RISK-03",
+   "display": "Aged 35 or over and never tested, or not tested for 3 years: offer testing",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_risk_age_ada",
+    "label": "Age 35 or over, and never tested or not tested in the last 36 months",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 35,
+      "unit": "years"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 36,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "Testing for prediabetes or type 2 diabetes in asymptomatic people should be considered in adults of any age with overweight or obesity who have one or more risk factors (Table 2.5). B [...] For all other people, screening should begin at age 35 years. B [...] repeat screening recommended at a minimum of 3-year intervals is reasonable, sooner with symptoms or change in risk (e.g., weight gain). C",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-21",
+      "section": "Recommendations 2.11, 2.12a, 2.12b, 2.12c",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-SUS-AGE-ADA"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Testing for prediabetes or type 2 diabetes in asymptomatic people should be considered in adults of any age with overweight or obesity who have one or more risk factors (Table 2.5). B [...] For all other people, screening should begin at age 35 years. B [...] repeat screening recommended at a minimum of 3-year intervals is reasonable, sooner with symptoms or change in risk (e.g., weight gain). C",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-21",
+     "section": "Recommendations 2.11, 2.12a, 2.12b, 2.12c",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "ADA only. WHO does not test asymptomatic adults who are not overweight. Off by default (D-DM-05).",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-RISK",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine"
+    },
+    "review": [
+     "F12",
+     "H21"
+    ],
+    "enabled": false,
+    "enabledBy": "D-DM-05",
+    "enabledNote": "ADA's universal testing from 35: off unless the CSO turns it on.",
+    "signed": "D-DM-05 signed at GATE A 2026-10-05: stays off",
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-RISK-04",
+   "display": "Borderline glucose before: re-test every year",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_ih_retest",
+    "label": "Previously in the intermediate range, and never re-tested or not tested in the last 12 months",
+    "all": [
+     {
+      "feature": "prior_intermediate_hyperglycaemia",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S50-S60; doi 10.2337/dc26-S003; PMCID PMC12690170)",
+     "title": "3. Prevention or Delay of Diabetes and Associated Comorbidities: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690170/",
+     "quote": "In people with prediabetes, monitor for the development of diabetes at least annually; modify frequency of testing based on individual risk assessment.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-50",
+      "section": "Recommendation 3.1",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-IH-RETEST"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S50-S60; doi 10.2337/dc26-S003; PMCID PMC12690170)",
+    "title": "3. Prevention or Delay of Diabetes and Associated Comorbidities: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690170/",
+    "quote": "In people with prediabetes, monitor for the development of diabetes at least annually; modify frequency of testing based on individual risk assessment.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-50",
+     "section": "Recommendation 3.1",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-RISK",
+    "proposal": {
+     "kind": "recall.schedule",
+     "test": "glucose_fasting",
+     "tier": "soon"
+    },
+    "review": [
+     "F12"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-RISK-05",
+   "display": "Gestational diabetes in the past: test for diabetes at least every 3 years",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_gdm_retest",
+    "label": "Gestational diabetes in a previous pregnancy, and never tested since or not tested in the last 36 months",
+    "all": [
+     {
+      "feature": "prior_gdm",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 36,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/table/T5/",
+     "quote": "People with prediabetes (A1C ≥5.7% [≥39 mmol/mol], IGT, or IFG) should be tested yearly. [...] People who were diagnosed with GDM should have testing at least every 1–3 years. [...] Individuals in other high-risk groups (e.g., people with HIV, exposure to high-risk medicines, evidence of periodontal disease, history of pancreatitis) should also be closely monitored.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-23",
+      "section": "Table 2.5, items 2-6",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-SUS-GDM-RETEST-MAX"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/table/T5/",
+    "quote": "People with prediabetes (A1C ≥5.7% [≥39 mmol/mol], IGT, or IFG) should be tested yearly. [...] People who were diagnosed with GDM should have testing at least every 1–3 years. [...] Individuals in other high-risk groups (e.g., people with HIV, exposure to high-risk medicines, evidence of periodontal disease, history of pancreatitis) should also be closely monitored.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-23",
+     "section": "Table 2.5, items 2-6",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-RISK",
+    "proposal": {
+     "kind": "test.order",
+     "test": "ogtt_75g",
+     "tier": "soon"
+    },
+    "review": [
+     "F12"
+    ],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "A risk factor for diabetes: a glucose test at least every 3 years"
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-02",
+   "display": "Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth, with an OGTT where the site can run one, otherwise a fasting glucose; then every 1 to 3 years for life (2026)",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_gdm_postpartum",
+    "label": "Gestational diabetes, 6 weeks or more since the birth",
+    "all": [
+     {
+      "feature": "prior_gdm",
+      "op": "present"
+     },
+     {
+      "feature": "postpartum_weeks",
+      "op": ">=",
+      "value": 6,
+      "unit": "weeks"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2025",
+     "title": "WHO recommendations on care for women with diabetes during pregnancy",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK619436/",
+     "quote": "Due to the increased risk of type 2 diabetes in women who have experienced GDM, follow-up assessment of glucose tolerance is essential 6 to 12 weeks postnatally.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-10",
+      "section": "Recommendations and supporting evidence - remarks to recommendations 17-18",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-PREG-POSTPARTUM-FROM"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Iron deficiency after delivery (if HbA1c is used instead)"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2025",
+    "title": "WHO recommendations on care for women with diabetes during pregnancy",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK619436/",
+    "quote": "Due to the increased risk of type 2 diabetes in women who have experienced GDM, follow-up assessment of glucose tolerance is essential 6 to 12 weeks postnatally.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-10",
+     "section": "Recommendations and supporting evidence - remarks to recommendations 17-18",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "notes": "Use glucose, not HbA1c: red-cell turnover has not settled after pregnancy and delivery.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "ogtt_75g",
+     "tier": "soon"
+    },
+    "review": [
+     "F38"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_pp_done",
+      "label": "Glucose has been tested since the birth",
+      "all": [
+       {
+        "feature": "glucose_tested_since_birth",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2025",
+       "title": "WHO recommendations on care for women with diabetes during pregnancy",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK619436/",
+       "quote": "Due to the increased risk of type 2 diabetes in women who have experienced GDM, follow-up assessment of glucose tolerance is essential 6 to 12 weeks postnatally.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-10",
+        "section": "Recommendations and supporting evidence - remarks to recommendations 17-18",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-PREG-POSTPARTUM-FROM"
+       }
+      }
+     }
+    ],
+    "signed": "UG-12 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Re-test glucose 6 to 12 weeks after the birth, then every 1 to 3 years"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-01",
+   "display": "Glucose 11.1 mmol/L or more on a random sample or a meter: diagnostic with symptoms; without them, repeat on another day and do not leave it",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_incidental",
+    "label": "Glucose 11.1 mmol/L or more on a random plasma sample or any meter reading, or a meter reading HI",
+    "any": [
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-02",
+      "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-RANDOM"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "hba1c",
+    "repeat_abnormal_result"
+   ],
+   "mimicsToExclude": [
+    "Acute illness (stress hyperglycaemia)",
+    "Steroid treatment",
+    "A recent meal or sugary drink, if the context was not recorded"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-04",
+     "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "WHO: repeat, preferably the same test, on a subsequent day. The rule does not test for the absence of symptoms: an unasked symptom would then silence it. The time-window search across past visits is Design B rule DM-SUS-INCID-WINDOW.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "proposal": {
+     "kind": "test.repeat",
+     "test": "glucose_fasting",
+     "tier": "soon"
+    },
+    "review": [
+     "F35",
+     "H27",
+     "H25"
+    ],
+    "notWhen": [
+     {
+      "id": "incid_01_preg",
+      "label": "Pregnant (the pregnancy rules apply and refer today)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2013",
+       "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+       "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-02",
+        "section": "Chapter 4 Recommendations, 4.2",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-PREG-DIP"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-INPT-01",
+   "display": "Glucose above 7.8 mmol/L in hospital: check HbA1c if valid, and follow up after recovery",
+   "condition": "stress_hyperglycaemia",
+   "when": {
+    "id": "sus_inpatient",
+    "label": "Seen in the emergency unit or as an inpatient, with glucose above 7.8 mmol/L",
+    "all": [
+     {
+      "feature": "care_setting",
+      "op": "in",
+      "value": [
+       "emergency",
+       "inpatient"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "random_pg",
+      "op": ">",
+      "value": 7.8,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">",
+      "value": 7.8,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "Standards of Care in Diabetes-2026; Diabetes Care 2026;49(Suppl 1):S339-S355",
+     "title": "16. Diabetes Care in the Hospital: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690180/?report=reader",
+     "quote": "Perform an A1C test on all people with diabetes or hyperglycemia (random blood glucose >140 mg/dL [>7.8 mmol/L]) at the time of admission to the hospital if no A1C test result is available from the prior 3 months. ... An admission A1C value ≥6.5% (≥48 mmol/mol) suggests that the onset of diabetes preceded hospitalization.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A11-36",
+      "section": "Rec 16.1; 'Standard Definitions of Glucose Abnormalities'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-SUS-HOSP-GLU"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "hba1c",
+    "fasting_pg"
+   ],
+   "mimicsToExclude": [
+    "Unrecognised diabetes",
+    "Steroid treatment",
+    "Intravenous glucose or feeding"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "Standards of Care in Diabetes-2026; Diabetes Care 2026;49(Suppl 1):S339-S355",
+    "title": "16. Diabetes Care in the Hospital: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690180/?report=reader",
+    "quote": "Perform an A1C test on all people with diabetes or hyperglycemia (random blood glucose >140 mg/dL [>7.8 mmol/L]) at the time of admission to the hospital if no A1C test result is available from the prior 3 months. ... An admission A1C value ≥6.5% (≥48 mmol/mol) suggests that the onset of diabetes preceded hospitalization.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A11-36",
+     "section": "Rec 16.1; 'Standard Definitions of Glucose Abnormalities'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "An admission HbA1c of 6.5% or more suggests diabetes came before the illness. Where HbA1c is invalid or unavailable, a fasting glucose after recovery decides.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INPT",
+    "proposal": {
+     "kind": "test.order",
+     "test": "hba1c_if_valid_else_fasting_glucose_after_recovery",
+     "tier": "soon"
+    },
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-HIV-01",
+   "display": "Living with HIV on ART: glucose every 6 months (2026)",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_hiv_annual",
+    "label": "On ART, never tested or 6 months or more since the last glucose",
+    "all": [
+     {
+      "feature": "hiv_on_art",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 6,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "People with HIV should be screened for diabetes and prediabetes with an FPG test before starting antiretroviral therapy, at the time of switching antiretroviral therapy, and 3–6 months after starting or switching antiretroviral therapy. If initial screening results are normal, FPG should be checked annually.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-26",
+      "section": "Recommendation 2.17",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "People with HIV should be screened for diabetes and prediabetes with an FPG test before starting antiretroviral therapy, at the time of switching antiretroviral therapy, and 3–6 months after starting or switching antiretroviral therapy. If initial screening results are normal, FPG should be checked annually.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-26",
+     "section": "Recommendation 2.17",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "ADA. Also before ART, at a switch, and 3 to 6 months after starting or switching (Design B rule DM-SUS-POP-ART-WINDOW). Use glucose, not HbA1c. Uganda's own rule is REF-DM-SUS-HIV-UG, not yet read. Restricted class: hiv.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine",
+     "restrictedClass": "hiv"
+    },
+    "review": [
+     "F12",
+     "K17"
+    ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
+    "signed": "UG-36 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Glucose test due"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-DTG-01",
+   "display": "On dolutegravir with thirst, polyuria or weight loss: check glucose today. The 2026 diabetes guideline says 'Avoid dolutegravir in individuals with diabetes and HIV comorbidity': discuss with the ART clinic; never change ART here.",
+   "condition": "drug_associated_hyperglycaemia",
+   "when": {
+    "id": "sus_dtg_symptoms",
+    "label": "On a dolutegravir regimen, with any of: thirst, passing a lot of urine, unexplained weight loss",
+    "all": [
+     {
+      "feature": "art_regimen",
+      "op": "in",
+      "value": [
+       "tdf_3tc_dtg",
+       "taf_ftc_dtg",
+       "abc_3tc_dtg",
+       "azt_3tc_dtg"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "polyuria",
+      "op": "present"
+     },
+     {
+      "feature": "polydipsia",
+      "op": "present"
+     },
+     {
+      "feature": "unexplained_weight_loss",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "Lamorde M et al. Lancet HIV 2020;7(7):e461-e462",
+     "title": "Dolutegravir-associated hyperglycaemia in patients with HIV",
+     "url": "https://i-base.info/htb/37218",
+     "quote": "16/3417 (0·47%) … 1/3230 (0·03%) … Median time from starting dolutegravir to onset of hyperglycaemia was 4 months",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "Source text was not opened during research; the value is from memory or a secondary source. Confirm against the primary document before signing.",
+     "x": {
+      "claim": "A10-23",
+      "section": "Correspondence (summarised by HIV i-Base, HTB)",
+      "bodyProposed": "OTHER",
+      "verified": false
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "fasting_pg",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Diuretic treatment",
+    "Hypercalcaemia",
+    "Chronic kidney disease",
+    "Diabetes insipidus",
+    "Primary polydipsia",
+    "Urinary infection (frequency rather than volume)",
+    "HIV, TB or cancer as the cause of weight loss",
+    "Thyrotoxicosis"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "Lamorde M et al. Lancet HIV 2020;7(7):e461-e462",
+    "title": "Dolutegravir-associated hyperglycaemia in patients with HIV",
+    "url": "https://i-base.info/htb/37218",
+    "quote": "16/3417 (0·47%) … 1/3230 (0·03%) … Median time from starting dolutegravir to onset of hyperglycaemia was 4 months",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "needsCsoInput": "The Kampala signal was read through a secondary summary (HIV i-Base), not the Lancet HIV letter. Uganda's 2022 HIV guideline algorithm for dolutegravir and glucose could not be read (pp. 186 to 189).",
+    "x": {
+     "claim": "A10-23",
+     "section": "Correspondence (summarised by HIV i-Base, HTB)",
+     "bodyProposed": "OTHER",
+     "verified": false
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Never stop or change ART from this rule: it proposes a glucose test. UCG 2023's HIV chapter, read verbatim, says 'Do RBS to confirm hyperglycaemia then substitute with EFV' and lists 'known diabetics' as a contraindication to dolutegravir; later WHO and national practice may differ, and the 2022 HIV guideline could not be read. What the engine says after the glucose result is D-DM-33. Restricted class: hiv.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_random",
+     "tier": "today",
+     "restrictedClass": "hiv"
+    },
+    "review": [
+     "F39",
+     "K17"
+    ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "today",
+     "code": "programme_review"
+    },
+    "signed": "UG-37 (D-DM-33 stands) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Check glucose today"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-TB-01",
+   "display": "TB: a random glucose at diagnosis; if it is 6.1 mmol/L or more, a fasting glucose (preferred) or HbA1c (2026). Re-check after the first month of TB treatment if raised",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_tb",
+    "label": "TB newly diagnosed or on treatment, and never tested or not tested in the last 12 months",
+    "all": [
+     {
+      "feature": "tb_current",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2025 (3rd ed. handbook)",
+     "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+     "url": "https://tbksp.who.int/en/node/2901",
+     "quote": "Adults with TB who have symptoms of diabetes or are > 40 years and are overweight and those who are obese (according to BMI) should be prioritized for diabetes testing.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-31",
+      "section": "Diabetes chapter 4.1 Diabetes screening and diagnosis",
+      "bodyProposed": "WHO",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "random_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Hyperglycaemia of active infection"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2025 (3rd ed. handbook)",
+    "title": "WHO operational handbook on tuberculosis. Module 6: tuberculosis and comorbidities, third edition (diabetes chapter; ISBN 9789240103276; announced 7 Feb 2025)",
+    "url": "https://tbksp.who.int/en/node/2901",
+    "quote": "Adults with TB who have symptoms of diabetes or are > 40 years and are overweight and those who are obese (according to BMI) should be prioritized for diabetes testing.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-31",
+     "section": "Diabetes chapter 4.1 Diabetes screening and diagnosis",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "A raised result at TB diagnosis is re-checked after the first month of treatment. Restricted class: tb.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine",
+     "restrictedClass": "tb"
+    },
+    "review": [
+     "F12",
+     "F38",
+     "K17"
+    ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
+    "refs": [
+     "REF-DM-TB-UG26-RBG"
+    ],
+    "signed": "UG-38 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [
+     "tb"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Offer a diabetes test"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-STEROID-01",
+   "display": "On systemic steroids: check glucose after a meal, not fasting",
+   "condition": "drug_associated_hyperglycaemia",
+   "when": {
+    "id": "sus_steroid",
+    "label": "On recurrent or long-term systemic steroids",
+    "all": [
+     {
+      "feature": "on_glucocorticoid",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "Monitor postprandial or random glucose levels with recurrent or long-term use of glucocorticoids.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-29",
+      "section": "Recommendation 2.18",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "postprandial_pg",
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "Diabetes that was present before the steroids"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Monitor postprandial or random glucose levels with recurrent or long-term use of glucocorticoids.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-29",
+     "section": "Recommendation 2.18",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_after_meal",
+     "tier": "routine"
+    },
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-ANTIPSYCH-01",
+   "display": "On a second-generation antipsychotic for 12 weeks or more with no glucose test since it was started: check glucose",
+   "condition": "drug_associated_hyperglycaemia",
+   "when": {
+    "id": "sus_antipsychotic",
+    "label": "On a second-generation antipsychotic, started 12 or more weeks ago, with no glucose test since the start",
+    "all": [
+     {
+      "feature": "on_second_gen_antipsychotic",
+      "op": "present"
+     },
+     {
+      "feature": "weeks_since_antipsychotic_start",
+      "op": ">=",
+      "value": 12,
+      "unit": "weeks"
+     },
+     {
+      "feature": "glucose_test_since_antipsychotic_start",
+      "op": "absent"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-28",
+      "section": "Recommendations 2.16a, 2.16b; narrative 'Medications'",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-28",
+     "section": "Recommendations 2.16a, 2.16b; narrative 'Medications'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "ADA: baseline, 12 to 16 weeks after starting, then yearly. 'No test since the start' must be recorded as no; an unanswered question does not fire the rule. Restricted class: mental_health.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine",
+     "restrictedClass": "mental_health"
+    },
+    "review": [
+     "F30",
+     "K17"
+    ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
+    "restrictedClasses": [
+     "mental_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Glucose test due"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-PANC-01",
+   "display": "After pancreatitis: test for diabetes",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_pancreatitis",
+    "label": "Acute pancreatitis in the past, or chronic pancreatitis, and never tested or not tested in the last 12 months",
+    "all": [
+     {
+      "feature": "pancreatitis_history",
+      "op": "in",
+      "value": [
+       "acute",
+       "chronic"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "Screen people for diabetes within 3–6 months following an episode of acute pancreatitis and annually thereafter. Screening for diabetes is recommended annually for people with chronic pancreatitis.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-31",
+      "section": "Recommendation 2.23; narrative 'Pancreatic Diabetes or Diabetes in the Context of Disease of the Exocrine Pancreas'",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Screen people for diabetes within 3–6 months following an episode of acute pancreatitis and annually thereafter. Screening for diabetes is recommended annually for people with chronic pancreatitis.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-31",
+     "section": "Recommendation 2.23; narrative 'Pancreatic Diabetes or Diabetes in the Context of Disease of the Exocrine Pancreas'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine"
+    },
+    "review": [
+     "F12"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-01",
+   "display": "24 weeks or more pregnant: offer a 75 g OGTT (the 2026 guideline screens every pregnant woman). Where an OGTT cannot be done: a fasting glucose, a random glucose and/or HbA1c",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "sus_preg_window",
+    "label": "Pregnant, at 24 weeks or more",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     },
+     {
+      "feature": "gestation_weeks",
+      "op": ">=",
+      "value": 24,
+      "unit": "weeks"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "FIGO 2015",
+     "title": "The International Federation of Gynecology and Obstetrics (FIGO) Initiative on gestational diabetes mellitus: A pragmatic guide for diagnosis, management, and care. Hod M et al. Int J Gynecol Obstet 2015;131(Suppl 3):S173-S211",
+     "url": "https://www.sciencedirect.com/science/article/pii/S0020729215300333",
+     "quote": "diagnosis of GDM is made using a single-step 75-g OGTT when one or more of the following results are recorded during routine testing specifically between weeks 24 and 28 of pregnancy",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A10-22",
+      "section": "Table 4, p. S186",
+      "bodyProposed": "OTHER",
+      "verified": true,
+      "ref": "REF-DM-PREG-WINDOW-START"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_1h_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Diabetes that was present before pregnancy"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "FIGO 2015",
+    "title": "The International Federation of Gynecology and Obstetrics (FIGO) Initiative on gestational diabetes mellitus: A pragmatic guide for diagnosis, management, and care. Hod M et al. Int J Gynecol Obstet 2015;131(Suppl 3):S173-S211",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0020729215300333",
+    "quote": "FIGO adopts and supports the IADPSG/WHO/IDF position that all pregnant women should be tested for hyperglycemia during pregnancy using a one-step procedure.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A10-20",
+     "section": "Executive summary recommendations; diagnosis section",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "notes": "FIGO: all women at 24 to 28 weeks, and diagnosis is valid at any time in pregnancy. WHO makes no universal screening recommendation, so this rule is off until the CSO decides (D-DM-12). HbA1c is not used for gestational diabetes.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "ogtt_75g",
+     "tier": "routine"
+    },
+    "review": [
+     "F38",
+     "H21",
+     "W05"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_preg_done",
+      "label": "A 75 g OGTT has been done in this pregnancy",
+      "all": [
+       {
+        "feature": "ogtt_done_this_pregnancy",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "FIGO 2015",
+       "title": "The International Federation of Gynecology and Obstetrics (FIGO) Initiative on gestational diabetes mellitus: A pragmatic guide for diagnosis, management, and care. Hod M et al. Int J Gynecol Obstet 2015;131(Suppl 3):S173-S211",
+       "url": "https://www.sciencedirect.com/science/article/pii/S0020729215300333",
+       "quote": "diagnosis of GDM is made using a single-step 75-g OGTT when one or more of the following results are recorded during routine testing specifically between weeks 24 and 28 of pregnancy",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-22",
+        "section": "Table 4, p. S186",
+        "bodyProposed": "OTHER",
+        "verified": true,
+        "ref": "REF-DM-PREG-WINDOW-START"
+       }
+      }
+     },
+     {
+      "id": "sus_preg_01_known",
+      "label": "Diabetes or gestational diabetes already recorded",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "enabled": true,
+    "enabledNote": "WHO makes no universal recommendation to test in pregnancy: off until the CSO decides.",
+    "signed": "UG-06 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-01",
+   "display": "A child who is thirsty, passing a lot of urine or wetting the bed again: capillary glucose now",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_4t",
+    "label": "Any of: passing large volumes of urine, excessive thirst, new bed-wetting",
+    "any": [
+     {
+      "feature": "polyuria",
+      "op": "present"
+     },
+     {
+      "feature": "polydipsia",
+      "op": "present"
+     },
+     {
+      "feature": "secondary_enuresis",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "web page as retrieved 2026-10-03",
+     "title": "Diabetes UK - Type 1 diabetes symptoms (the 4Ts)",
+     "url": "https://www.diabetes.org.uk/about-diabetes/type-1-diabetes/symptoms",
+     "quote": "Toilet: going for a wee more often, especially at night. Thirsty: being constantly thirsty and not being able to quench it. Tired: being incredibly tired and having no energy. Thinner: losing weight without trying to, or looking thinner than usual. [...] ask the doctor or nurse for a quick and simple finger prick blood test – it only takes a few seconds.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-29",
+      "section": "What are the 4Ts of type 1 diabetes?",
+      "bodyProposed": "OTHER",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "immediate",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Urinary tract infection",
+    "Malaria",
+    "Gastroenteritis",
+    "Respiratory infection"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "web page as retrieved 2026-10-03",
+    "title": "Diabetes UK - Type 1 diabetes symptoms (the 4Ts)",
+    "url": "https://www.diabetes.org.uk/about-diabetes/type-1-diabetes/symptoms",
+    "quote": "Toilet: going for a wee more often, especially at night. Thirsty: being constantly thirsty and not being able to quench it. Tired: being incredibly tired and having no energy. Thinner: losing weight without trying to, or looking thinner than usual. [...] ask the doctor or nurse for a quick and simple finger prick blood test – it only takes a few seconds.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-29",
+     "section": "What are the 4Ts of type 1 diabetes?",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "Recognition and referral only under 16. A raised glucose is a same-day referral; do not wait for a fasting test. In limited-resource settings ketoacidosis in a child is taken for malaria or gastroenteritis.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_capillary",
+     "tier": "now"
+    },
+    "review": [
+     "F03",
+     "F38",
+     "H04",
+     "H22"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_done",
+      "label": "A glucose is already recorded (a meter HI or LO counts)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "web page as retrieved 2026-10-03",
+       "title": "Diabetes UK - Type 1 diabetes symptoms (the 4Ts)",
+       "url": "https://www.diabetes.org.uk/about-diabetes/type-1-diabetes/symptoms",
+       "quote": "Toilet: going for a wee more often, especially at night. Thirsty: being constantly thirsty and not being able to quench it. Tired: being incredibly tired and having no energy. Thinner: losing weight without trying to, or looking thinner than usual. [...] ask the doctor or nurse for a quick and simple finger prick blood test – it only takes a few seconds.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-29",
+        "section": "What are the 4Ts of type 1 diabetes?",
+        "bodyProposed": "OTHER",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-4T"
+       }
+      }
+     }
+    ],
+    "interruptRank": 25,
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-02",
+   "display": "A child losing weight: include a capillary glucose in the work-up today",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_weight",
+    "label": "A child with unexplained weight loss",
+    "all": [
+     {
+      "feature": "unexplained_weight_loss",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "web page as retrieved 2026-10-03",
+     "title": "Diabetes UK - Type 1 diabetes symptoms (the 4Ts)",
+     "url": "https://www.diabetes.org.uk/about-diabetes/type-1-diabetes/symptoms",
+     "quote": "Toilet: going for a wee more often, especially at night. Thirsty: being constantly thirsty and not being able to quench it. Tired: being incredibly tired and having no energy. Thinner: losing weight without trying to, or looking thinner than usual. [...] ask the doctor or nurse for a quick and simple finger prick blood test – it only takes a few seconds.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-29",
+      "section": "What are the 4Ts of type 1 diabetes?",
+      "bodyProposed": "OTHER",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Undernutrition",
+    "Tuberculosis",
+    "HIV",
+    "Malabsorption"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "web page as retrieved 2026-10-03",
+    "title": "Diabetes UK - Type 1 diabetes symptoms (the 4Ts)",
+    "url": "https://www.diabetes.org.uk/about-diabetes/type-1-diabetes/symptoms",
+    "quote": "Toilet: going for a wee more often, especially at night. Thirsty: being constantly thirsty and not being able to quench it. Tired: being incredibly tired and having no energy. Thinner: losing weight without trying to, or looking thinner than usual. [...] ask the doctor or nurse for a quick and simple finger prick blood test – it only takes a few seconds.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-29",
+     "section": "What are the 4Ts of type 1 diabetes?",
+     "bodyProposed": "OTHER",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "Weight loss alone in a Ugandan child is usually undernutrition, TB or HIV, so this is a same-day test and not an interrupt. Tiredness alone is not tested: it would fire on most sick children.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.glucose_capillary",
+     "tier": "today"
+    },
+    "review": [
+     "F03",
+     "F38"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-POP-ANTIPSYCH-02",
+   "display": "On a second-generation antipsychotic: glucose at baseline and every year",
+   "condition": "drug_associated_hyperglycaemia",
+   "when": {
+    "id": "sus_antipsychotic_annual",
+    "label": "On a second-generation antipsychotic, and never tested or not tested in the last 12 months",
+    "all": [
+     {
+      "feature": "on_second_gen_antipsychotic",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "never_glucose_tested",
+      "op": "present"
+     },
+     {
+      "feature": "months_since_glucose_test",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+     "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+     "quote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-28",
+      "section": "Recommendations 2.16a, 2.16b; narrative 'Medications'",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Acute illness at the time of testing (transitory hyperglycaemia)",
+    "Steroid treatment at the time of testing"
+   ],
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+    "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+    "quote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-28",
+     "section": "Recommendations 2.16a, 2.16b; narrative 'Medications'",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "Olanzapine and clozapine can produce diabetes and ketoacidosis within months. Restricted class: mental_health.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-POP",
+    "proposal": {
+     "kind": "test.order",
+     "test": "glucose_fasting",
+     "tier": "routine",
+     "restrictedClass": "mental_health"
+    },
+    "review": [
+     "F30",
+     "F12",
+     "H32",
+     "K17"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_antipsychotic_12w_owns",
+      "label": "Started 12 or more weeks ago with no glucose test since (the 12-week rule fires)",
+      "all": [
+       {
+        "feature": "weeks_since_antipsychotic_start",
+        "op": ">=",
+        "value": 12,
+        "unit": "weeks"
+       },
+       {
+        "feature": "glucose_test_since_antipsychotic_start",
+        "op": "absent"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026 (Diabetes Care 2026;49(Suppl 1):S27-S49; doi 10.2337/dc26-S002; PMCID PMC12690183)",
+       "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+       "quote": "Consider screening people for prediabetes or diabetes if they are on certain medications, such as statins, thiazide diuretics, and some HIV medications, as these agents are known to increase the risk of these conditions.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A3-28",
+        "section": "Recommendations 2.16a, 2.16b; narrative 'Medications'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-SUS-ANTIPSYCHOTIC"
+       }
+      }
+     }
+    ],
+    "neutralProposal": {
+     "kind": "test.order",
+     "tier": "routine",
+     "code": "programme_review"
+    },
+    "restrictedClasses": [
+     "mental_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "Glucose test due"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-02",
+   "display": "One result in the diabetes range: confirm it today with a second, different test (fasting glucose, laboratory HbA1c or an OGTT; the 2026 guideline accepts two tests at the same time), or repeat on another day; do not leave it",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_single_abnormal",
+    "label": "Any one of: fasting plasma glucose 7.0 mmol/L or more, HbA1c 6.5% or more, 2-hour plasma glucose 11.1 mmol/L or more",
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "hba1c",
+      "op": ">=",
+      "value": 6.5,
+      "unit": "%"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-04",
+      "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-REPEAT-WHO"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg",
+    "hba1c",
+    "repeat_abnormal_result"
+   ],
+   "mimicsToExclude": [
+    "Acute illness (stress hyperglycaemia)",
+    "Steroid treatment",
+    "A sample that was not truly fasting",
+    "An HbA1c raised by iron or B12 deficiency"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-04",
+     "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "WHO: repeat, preferably the same test, as soon as practicable on a subsequent day. Where a validity caveat is in force on the HbA1c the repeat is a glucose test. The rule never proposes a diagnosis.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "proposal": {
+     "kind": "test.repeat",
+     "test": "same_test_or_glucose_if_hba1c_invalid",
+     "tier": "soon"
+    },
+    "review": [
+     "F14",
+     "H25",
+     "W11"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_single_repeated",
+      "label": "A second diabetes-range result on a later day is already recorded",
+      "all": [
+       {
+        "feature": "repeat_abnormal_result",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-04",
+        "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-DX-REPEAT-WHO"
+       }
+      }
+     },
+     {
+      "id": "incid_02_preg",
+      "label": "Pregnant (the pregnancy rules apply and refer today)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2013",
+       "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+       "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-02",
+        "section": "Chapter 4 Recommendations, 4.2",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-PREG-DIP"
+       }
+      }
+     },
+     {
+      "id": "incid_02_symptoms",
+      "label": "A classic symptom or a crisis is recorded (one value diagnoses)",
+      "any": [
+       {
+        "feature": "polyuria",
+        "op": "present"
+       },
+       {
+        "feature": "polydipsia",
+        "op": "present"
+       },
+       {
+        "feature": "polyphagia",
+        "op": "present"
+       },
+       {
+        "feature": "foot_numbness_burning",
+        "op": "present"
+       },
+       {
+        "feature": "pruritus",
+        "op": "present"
+       },
+       {
+        "feature": "unexplained_weight_loss",
+        "op": "present"
+       },
+       {
+        "feature": "wasting",
+        "op": "present"
+       },
+       {
+        "feature": "weakness",
+        "op": "present"
+       },
+       {
+        "feature": "hyperglycaemic_crisis_now",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "In the presence of classic symptoms of hyperglycaemia described above and/or a hyperglycaemic crisis such as diabetic ketoacidosis or hyperosmolar hyperglycaemic state, a single blood glucose test (RBG ≥11.1 mmol/l or 200 mg/dl or FBG ≥7.0 mmol/l or 126 mg/dl) is sufficient to diagnose diabetes.",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-SINGLE",
+        "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "incid_02_two_tests",
+      "label": "Two different tests in the diabetes range (fasting 7.0 or more, HbA1c 6.5% or more, 2-hour 11.1 or more)",
+      "atLeast": {
+       "n": 2,
+       "of": [
+        {
+         "feature": "fasting_pg",
+         "op": ">=",
+         "value": 7.0,
+         "unit": "mmol/L"
+        },
+        {
+         "feature": "ogtt_2h_pg",
+         "op": ">=",
+         "value": 11.1,
+         "unit": "mmol/L"
+        },
+        {
+         "feature": "hba1c",
+         "op": ">=",
+         "value": 6.5,
+         "unit": "%"
+        }
+       ]
+      },
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "two abnormal tests (RBG or FBG or 2h BG after an OGTT or HbA1c) performed at the same time or at two different time points",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-TWO",
+        "section": "PDF p. 19 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "signed": "UG-03 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-03",
+   "display": "A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_glucose",
+    "label": "A child with any glucose above 11 mmol/L, or a meter reading HI",
+    "any": [
+     {
+      "feature": "capillary_glucose",
+      "op": ">",
+      "value": 11,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": ">",
+      "value": 11,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": ">",
+      "value": 11,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "postprandial_pg",
+      "op": ">",
+      "value": 11,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_1h_pg",
+      "op": ">",
+      "value": 11,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">",
+      "value": 11,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_meter_extreme",
+      "op": "==",
+      "value": "hi"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+     "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+     "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+     "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-30",
+      "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+      "bodyProposed": "NICE",
+      "verified": true,
+      "ref": "REF-DM-SUS-PAED-SAMEDAY"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "urine_ketones",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "A sample taken through a glucose infusion",
+    "Stress hyperglycaemia in a very sick child (still referred)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+    "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+    "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-30",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "bodyProposed": "NICE",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "NICE: a child or young person with suspected type 1 diabetes is referred the same day. A raised glucose is itself the suspicion; the rule does not wait for thirst or weight loss to be recorded, and it is a referral, not another test. With vomiting, pain, deep breathing, dehydration or drowsiness rule DM-ACU-ROUTE-04 interrupts.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "review": [
+     "H04",
+     "J05",
+     "L29"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_known",
+      "label": "Known diabetes (the child is already diagnosed)",
+      "all": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NG18, Bookshelf copy last updated 11 May 2023",
+       "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-31",
+        "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-ACU-PAED-GLU"
+       }
+      }
+     },
+     {
+      "id": "sus_paed_dm_any",
+      "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NG18, Bookshelf copy last updated 11 May 2023",
+       "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-31",
+        "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-ACU-PAED-GLU"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-03",
+   "display": "A fasting meter reading of 7.0 mmol/L or more: with symptoms it is diagnostic; without them, repeat on another day and do not leave it",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_single_fasting_meter",
+    "label": "A fasting capillary glucose of 7.0 mmol/L or more",
+    "all": [
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-04",
+      "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-REPEAT-WHO"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "capillary_glucose",
+    "fasting_pg",
+    "repeat_abnormal_result"
+   ],
+   "mimicsToExclude": [
+    "A sample that was not truly fasting",
+    "Acute illness (stress hyperglycaemia)",
+    "Meter error near the threshold"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2020 (WHO/UCN/NCD/20.1)",
+    "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+    "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+    "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-04",
+     "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "The district form of DM-SUS-INCID-02: at a site with only a meter this is the single abnormal result that must not be dropped.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "proposal": {
+     "kind": "test.repeat",
+     "test": "glucose_capillary_fasting",
+     "tier": "soon"
+    },
+    "review": [
+     "H16"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_fmeter_repeated",
+      "label": "A second diabetes-range result on a later day is already recorded",
+      "all": [
+       {
+        "feature": "repeat_abnormal_result",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-04",
+        "section": "Section 'Diagnostic tests' (p.13); Fig. 1 box 'IF ASYMPTOMATIC repeat test on subsequent day'",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-DX-REPEAT-WHO"
+       }
+      }
+     },
+     {
+      "id": "sus_fmeter_preg",
+      "label": "Pregnant (the pregnancy rules apply and refer today)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2013",
+       "title": "Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy (WHO/NMH/MND/13.2)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK169023/",
+       "quote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) … 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load … random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A10-02",
+        "section": "Chapter 4 Recommendations, 4.2",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-PREG-DIP"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-04",
+   "display": "A fasting capillary glucose of 5.6 to below 7.0 mmol/L (2026: prediabetes range): repeat fasting on another day, and offer a 2-hour OGTT where one can be done",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_fcap_ifg",
+    "label": "A fasting capillary glucose of 5.6 mmol/L or more and below 7.0 mmol/L",
+    "all": [
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 5.6,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "<",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-IH-UG26-FPG"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Not truly fasting",
+    "Meter error near the threshold"
+   ],
+   "citation": {
+    "standard": "WHO",
+    "version": "2006",
+    "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+    "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+    "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A2-10",
+     "section": "Summary table of diagnostic criteria (p.1)",
+     "bodyProposed": "WHO",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "A fasting value in this range neither diagnoses nor excludes diabetes; in African cohorts the OGTT finds cases a fasting value misses (D-DM-06).",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "proposal": {
+     "kind": "test.repeat",
+     "test": "test.glucose_fasting",
+     "tier": "routine"
+    },
+    "review": [
+     "J17",
+     "K12"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_fcap_ifg_preg",
+      "label": "Pregnant (the pregnancy rules apply)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2006",
+       "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
+       "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
+       "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-10",
+        "section": "Summary table of diagnostic criteria (p.1)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-IH-IFG-WHO"
+       }
+      }
+     }
+    ],
+    "signed": "UG-05 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-04",
+   "display": "A child with a fasting glucose of 7.0 or more, a 2-hour value of 11.1 or more, or an HbA1c of 6.5% or more: refer today as suspected diabetes",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_range",
+    "label": "A child with fasting plasma glucose 7.0 mmol/L or more, 2-hour plasma glucose 11.1 mmol/L or more, or HbA1c 6.5% or more",
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": ">=",
+      "value": 11.1,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "hba1c",
+      "op": ">=",
+      "value": 6.5,
+      "unit": "%"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-02",
+      "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-FPG"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "A sample taken through a glucose infusion",
+    "Stress hyperglycaemia"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+    "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+    "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-30",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "bodyProposed": "NICE",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "notes": "NICE NG18: a child or young person with suspected diabetes is referred the same day. A diabetes-range value is the suspicion; the paediatric team confirms it.",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "review": [
+     "T07"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_range_known",
+      "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+       "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-30",
+        "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-SAMEDAY"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-05",
+   "display": "A child with a fasting capillary glucose of 7.0 or more: refer today as suspected diabetes",
+   "condition": "type_1_diabetes",
+   "when": {
+    "id": "sus_paed_fcap",
+    "label": "A child with a fasting capillary glucose of 7.0 mmol/L or more",
+    "all": [
+     {
+      "feature": "capillary_glucose_context",
+      "op": "==",
+      "value": "fasting"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Fasting venous or capillary plasma glucose ≥7.0 mmol/L (126 mg/dL) | 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) | 2-hour post-load capillary plasma glucose ≥12.2 mmol/L (220 mg/dL) | Random plasma glucose ≥11.1 mmol/L (200 mg/dL) To be used only in the presence of symptoms | HbA1c 6.5% (48 mmol/mol)",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "needsCsoInput": "Reading a fasting meter value against the plasma threshold follows D-DM-04.",
+     "x": {
+      "claim": "A2-02",
+      "section": "Section 'Diagnostic tests', Table 3 'Diagnostic criteria for diabetes' (p.13)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-DX-FPG"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Not truly fasting",
+    "Meter error"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+    "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+    "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-30",
+     "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+     "bodyProposed": "NICE",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "proposal": {
+     "kind": "refer",
+     "to": "paediatric_or_diabetes_team",
+     "tier": "today"
+    },
+    "review": [
+     "U04",
+     "V15"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_fcap_known",
+      "label": "Diabetes already known (known diabetes, a recorded type, or any glucose-lowering medicine)",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NICE NG18 (Bookshelf copy updated 11 May 2023); ISPAD 2022 Chapter 1",
+       "title": "NICE guideline NG18; ISPAD Clinical Practice Consensus Guidelines 2022: Definition, epidemiology, and classification of diabetes in children and adolescents",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-30",
+        "section": "NICE recs 1.1.1-1.1.2; ISPAD Chapter 1 'Diagnostic criteria'",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-SUS-PAED-SAMEDAY"
+       }
+      }
+     },
+     {
+      "id": "sus_paed_fcap_r03",
+      "label": "Any glucose above 11 mmol/L or HI (rule PAED-03 applies)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "==",
+        "value": "hi"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NG18, Bookshelf copy last updated 11 May 2023",
+       "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-31",
+        "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-ACU-PAED-GLU"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-UCG",
+   "display": "Pregnant, with a risk factor for gestational diabetes (UCG 2023): test for it (a 75 g OGTT where the site can run one; otherwise a fasting glucose). With a risk factor, test at the first visit rather than waiting (2026 screens everyone)",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "sus_preg_ucg",
+    "label": "Pregnant, with any of: BMI above 35, age above 40, gestational diabetes before, diabetes in a first-degree relative, a previous baby over 4 kg or an unexplained third-trimester death, polyhydramnios, glucose in the urine, a baby large for dates",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "bmi",
+      "op": ">",
+      "value": 35,
+      "unit": "kg/m2"
+     },
+     {
+      "feature": "age_years",
+      "op": ">",
+      "value": 40,
+      "unit": "years"
+     },
+     {
+      "feature": "prior_gdm",
+      "op": "present"
+     },
+     {
+      "feature": "fh_diabetes_first_degree",
+      "op": "present"
+     },
+     {
+      "feature": "prior_macrosomia_or_stillbirth",
+      "op": "present"
+     },
+     {
+      "feature": "polyhydramnios",
+      "op": "present"
+     },
+     {
+      "feature": "glycosuria",
+      "op": "present"
+     },
+     {
+      "feature": "fetus_large_for_dates",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2023",
+     "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+     "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+     "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UCG-GDM-01",
+      "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-UCG-BMI"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_1h_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "Diabetes before the pregnancy, not yet recorded (the OGTT will show it)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2023",
+    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+    "quote": "GDM in previous pregnancy ~ Family history (8 first degree relatives) of diabetes ~ Previous unexplained third trimester death, macrosomic baby (weight >4 kg) ~ Polyhydramnios ~ Glycosuria ~ Foetus large for gestational age",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UCG-GDM-02",
+     "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "notes": "UCG 2023 16.2.5 lists these as 'risk factors (and indication for screening)'. A universal 24-28-week OGTT (DM-SUS-PREG-01) stays off unless a site opts in (D-DM-12).",
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PREG",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ogtt",
+     "tier": "routine"
+    },
+    "signed": "UG-06 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "notWhen": [
+     {
+      "id": "sus_preg_ucg_known",
+      "label": "Diabetes or gestational diabetes already recorded in this pregnancy",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-GDM-01",
+        "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UCG-BMI"
+       }
+      }
+     }
+    ],
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [
+     "sexual_reproductive_health"
+    ],
+    "runWhen": "not_established",
+    "neutralDisplay": "A risk factor for raised glucose: test for it now (a 75 g OGTT where available, otherwise a fasting glucose)"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-05",
+   "display": "A random glucose of 7.8 to below 11.1 mmol/L: test properly (a fasting glucose, laboratory HbA1c or an OGTT). The 2026 band is a reason to test, not a label",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_rbg_band",
+    "label": "A random plasma glucose of 7.8 mmol/L or more and below 11.1 mmol/L",
+    "all": [
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 7.8,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": "<",
+      "value": 11.1,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-IH-UG26-RBG"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "A post-meal or stress value"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-DX-TABLE",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "signed": "UG-05 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-03",
+   "display": "Pregnant (before 24 weeks, or gestation not recorded), no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "sus_preg_first",
+    "label": "Pregnant (before 24 weeks, or gestation not recorded)",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-PREG-SCREEN",
+      "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "ogtt_2h_pg",
+    "fasting_pg",
+    "random_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Diabetes before the pregnancy, not yet recorded"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREG-SCREEN",
+     "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PREG",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ogtt",
+     "tier": "routine"
+    },
+    "signed": "UG-06 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_preg_first_known",
+      "label": "Diabetes or gestational diabetes already recorded",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "sus_preg_first_done",
+      "label": "A glucose result recorded at this visit (fasting, random, OGTT or HbA1c)",
+      "any": [
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "hba1c",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "sus_preg_first_late",
+      "label": "24 weeks or more (DM-SUS-PREG-01 owns it)",
+      "all": [
+       {
+        "feature": "gestation_weeks",
+        "op": ">=",
+        "value": 24,
+        "unit": "weeks"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UG26-EARLY"
+       }
+      }
+     },
+     {
+      "id": "sus_preg_first_ucg",
+      "label": "Pregnant, with any of: BMI above 35, age above 40, gestational diabetes before, diabetes in a first-degree relative, a previous baby over 4 kg or an unexplained third-trimester death, polyhydramnios, glucose in the urine, a baby large for dates (DM-SUS-PREG-UCG owns it)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "any": [
+       {
+        "feature": "bmi",
+        "op": ">",
+        "value": 35,
+        "unit": "kg/m2"
+       },
+       {
+        "feature": "age_years",
+        "op": ">",
+        "value": 40,
+        "unit": "years"
+       },
+       {
+        "feature": "prior_gdm",
+        "op": "present"
+       },
+       {
+        "feature": "fh_diabetes_first_degree",
+        "op": "present"
+       },
+       {
+        "feature": "prior_macrosomia_or_stillbirth",
+        "op": "present"
+       },
+       {
+        "feature": "polyhydramnios",
+        "op": "present"
+       },
+       {
+        "feature": "glycosuria",
+        "op": "present"
+       },
+       {
+        "feature": "fetus_large_for_dates",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2023",
+       "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
+       "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
+       "quote": "Risk factors (and indication for screening) ~ BMI >35 kg/m2 ~ Age >40 years",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UCG-GDM-01",
+        "section": "16.2.5, PDF p. 774 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-PREG-UCG-BMI"
+       }
+      }
+     }
+    ],
+    "review": [
+     "W12",
+     "W21"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-06",
+   "display": "A child or adolescent vomiting without diarrhoea, or with unexplained abdominal pain, and no glucose today: fingerstick glucose now (2026: new diabetes can present as gastroenteritis, malaria or pneumonia)",
+   "condition": "dka",
+   "when": {
+    "id": "sus_paed_vomit",
+    "label": "Under 16, vomiting or abdominal pain",
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-CHILD-VOMIT",
+      "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis (with diarrhoea), malaria, pneumonia"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-CHILD-VOMIT",
+     "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "signed": "UG-30 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_vomit_diarrhoea",
+      "label": "Diarrhoea",
+      "all": [
+       {
+        "feature": "diarrhoea",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-CHILD-VOMIT",
+        "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "sus_paed_vomit_glucose",
+      "label": "A glucose recorded at this visit",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-CHILD-VOMIT",
+        "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-INPT-02",
+   "display": "Admitted: check a random glucose and, where valid, HbA1c (2026 screens every admitted medical and surgical patient)",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_admitted",
+    "label": "Inpatient, no glucose at this visit",
+    "all": [
+     {
+      "feature": "care_setting",
+      "op": "==",
+      "value": "inpatient"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Routinely screen all admitted medical and surgical patients for hyperglycaemia by measuring random blood glucose (RBG) and glycated haemoglobin (HbA1c",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-INPT-SCREEN",
+      "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "random_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Stress hyperglycaemia"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Routinely screen all admitted medical and surgical patients for hyperglycaemia by measuring random blood glucose (RBG) and glycated haemoglobin (HbA1c",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-INPT-SCREEN",
+     "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INPT",
+    "signed": "UG-34 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_admitted_done",
+      "label": "A glucose recorded at this visit, or diabetes already known",
+      "any": [
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "hba1c",
+        "op": "recorded"
+       },
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Routinely screen all admitted medical and surgical patients for hyperglycaemia by measuring random blood glucose (RBG) and glycated haemoglobin (HbA1c",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-INPT-SCREEN",
+        "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "review": [
+     "W21"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  }
+ ],
+ "management": [
+  {
+   "id": "DM-SUS-RECON-01",
+   "display": "On a glucose-lowering medicine with no diabetes on the problem list: review the record",
+   "when": {
+    "id": "recon_gl_med",
+    "label": "Recorded as having no diabetes, and taking metformin, a sulfonylurea or insulin",
+    "all": [
+     {
+      "feature": "dm_status",
+      "op": "==",
+      "value": "not_known"
+     }
+    ],
+    "any": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "metformin"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "glibenclamide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "gliclazide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "glimepiride"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "insulin"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl 1):S50-S60; doi 10.2337/dc26-S003; PMCID PMC12690170)",
+     "title": "3. Prevention or Delay of Diabetes and Associated Comorbidities: Standards of Care in Diabetes-2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690170/",
+     "quote": "Metformin for the prevention of type 2 diabetes should be considered in adults at high risk of type 2 diabetes, as typified by the Diabetes Prevention Program, especially those aged 25–59 years with BMI ≥35 kg/m2, higher fasting plasma glucose (e.g., ≥110 mg/dL [≥6 mmol/L]), and higher A1C (e.g., ≥6.0% [≥42 mmol/mol]), and in individuals with prior gestational diabetes mellitus.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A3-55",
+      "section": "Recommendation 3.7",
+      "bodyProposed": "ADA",
+      "verified": true
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026 (Diabetes Care 2026;49(Suppl 1):S50-S60; doi 10.2337/dc26-S003; PMCID PMC12690170)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026 (Diabetes Care 2026;49(Suppl 1):S50-S60; doi 10.2337/dc26-S003; PMCID PMC12690170)",
+    "title": "3. Prevention or Delay of Diabetes and Associated Comorbidities: Standards of Care in Diabetes-2026",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690170/",
+    "quote": "Metformin for the prevention of type 2 diabetes should be considered in adults at high risk of type 2 diabetes, as typified by the Diabetes Prevention Program, especially those aged 25–59 years with BMI ≥35 kg/m2, higher fasting plasma glucose (e.g., ≥110 mg/dL [≥6 mmol/L]), and higher A1C (e.g., ≥6.0% [≥42 mmol/mol]), and in individuals with prior gestational diabetes mellitus.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A3-55",
+     "section": "Recommendation 3.7",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-RECON",
+    "kind": "reconcile",
+    "urgency": "routine",
+    "proposal": {
+     "kind": "reconcile.problem_list"
+    },
+    "note": "Metformin is also used for prediabetes and polycystic ovary syndrome, so this asks a question and assumes nothing.",
+    "ages": "adult",
+    "review": [
+     "F15"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  }
+ ]
+}

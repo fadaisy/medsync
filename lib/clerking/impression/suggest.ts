@@ -70,6 +70,7 @@ export function suggestions(i: SuggestInput): Suggestion[] {
       const p = i.dx.profile(id);
       if (!p || !i.live.profile(id) || onIt.has(id)) continue;
       if (!canSee(i.viewer, p.restricted_class)) continue;
+      if (p.requires && !atomTrue(p.requires, i)) continue; // EC-5: unknown never opens the gate
       if (sex === "male" && sexRule.female_only.includes(id)) continue;
       if (sex === "female" && sexRule.male_only.includes(id)) continue;
       // R-6: a recorded "not pregnant" suppresses pregnancy-related diagnoses.

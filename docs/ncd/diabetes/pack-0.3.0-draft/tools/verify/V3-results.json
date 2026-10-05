@@ -1,0 +1,258 @@
+[
+ {
+  "ref": "REF-DM-SUS-STEROID-CBG",
+  "verdict": "confirmed",
+  "foundQuote": "Monitor blood glucose at least once daily – preferably prior to lunch or evening meal, or alternatively 1-2 hours post lunch or evening meal. [...] increase the frequency of testing to four times daily (before meals and before bed) [...] If a capillary blood glucose is found to be consistently greater than 12.0mmol/L i.e. on two consecutive readings in 48 hours refer to the treatment algorithm",
+  "correctValue": null,
+  "note": "JBDS-IP 08 (May 2021), Table 4, people without a pre-existing diagnosis of diabetes. Operator is 'greater than 12.0 mmol/L' (strict >), matching 'above this value'. The fetch tool returned the trigger clause in paraphrase ('If reading exceeds 12.0 mmol/L') and the action clause verbatim; a second fetch for the fully verbatim trigger sentence was blocked by the WebFetch session limit. Fetch tool placed this on p.13 (Table 4). Do not conflate with the second step (two consecutive readings >12.0 in 48 h -> treatment algorithm).",
+  "urlUsed": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Archive/JBDS_08_Steroids_DM_Guideline_FINAL_28052021_Archive.pdf"
+ },
+ {
+  "ref": "REF-DM-SUS-STEROID-HBA1C-DELAY",
+  "verdict": "confirmed",
+  "foundQuote": "Given the recent hyperglycaemia the use of HbA1c as a screening tool should be delayed until 3 months following steroid cessation",
+  "correctValue": null,
+  "note": "Value and unit match. Fetch tool located the sentence under 'Screening post discharge' on p.18; the entry cites pp. 11 and 17. Page reference could not be re-checked (WebFetch session limit) - page numbers are unverified, the sentence is verified.",
+  "urlUsed": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Archive/JBDS_08_Steroids_DM_Guideline_FINAL_28052021_Archive.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-BOHB",
+  "verdict": "confirmed",
+  "foundQuote": "Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater",
+  "correctValue": null,
+  "note": "Figure 2A, Diabetes Care PDF. Operator >= confirmed. Corroborated by body text in the Diabetologia/PMC copy ('Blood concentrations of β-hydroxybutyrate ≥3.0 mmol/l correlate well with acid–base changes, with >90% sensitivity and specificity for the diagnosis of DKA') and by ADA Standards of Care 2026 Table 16.1.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-GLU",
+  "verdict": "confirmed",
+  "foundQuote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes",
+  "correctValue": null,
+  "note": "Figure 2A. Operator >= and the 'OR prior history of diabetes' alternative both confirmed. Diabetologia/PMC body text: 'we have defined hyperglycaemia as a diagnostic criterion for DKA from >13.9 mmol/l (250 mg/dl) to either a glucose value of ≥11.1 mmol/l (200 mg/dl) or a prior history of diabetes irrespective of the presenting glucose value'. 'All three components must be present to make this diagnosis.'",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-HCO3",
+  "verdict": "confirmed",
+  "foundQuote": "Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L",
+  "correctValue": null,
+  "note": "Figure 2A. Strict < confirmed; joined to pH by 'and/or'. Note for rule builders: the HHS criterion in the same report is bicarbonate >=15, so 15 to <18 mmol/L satisfies both the DKA acidosis line and the HHS no-acidosis line on bicarbonate alone.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-MOD-HCO3",
+  "verdict": "confirmed",
+  "foundQuote": "Moderate DKA: pH 7.0–7.25 or bicarbonate 10 to <15 mmol/L",
+  "correctValue": null,
+  "note": "Table 2. Bicarbonate 10 to <15 (below 15, at or above 10) confirmed in both the Diabetes Care PDF and the Diabetologia PDF ('pH 7.0–7.25; Bicarbonate 10 to <15 mmol/l'). Footnote: 'Not all variables need to be fulfilled to be defined as either mild, moderate, or severe, and the admission site and level of care are ultimately a clinical decision.' Mild is printed as 'bicarbonate 15–18 mmol/L' (the 18 end is not given an operator in the table).",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-MOD-PH",
+  "verdict": "confirmed",
+  "foundQuote": "Mild DKA: pH >7.25 to <7.30 or bicarbonate 15–18 mmol/L. Moderate DKA: pH 7.0–7.25 or bicarbonate 10 to <15 mmol/L. Severe DKA: pH <7.0 or bicarbonate <10 mmol/L",
+  "correctValue": null,
+  "note": "Table 2. Moderate = pH 7.0 to 7.25 inclusive (mild starts at >7.25, severe at <7.0), so 'at or below 7.25 and at or above 7.0' is right. Same cells in the Diabetologia PDF.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-PH",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L",
+  "correctValue": null,
+  "note": "Value and operator (<7.3) confirmed. The diagnostic figure says 'pH', not 'venous pH': the word 'venous' is the entry's addition. The report lists venous blood gases among initial samples and uses 'venous pH ≥7.3' in the resolution criteria, but the fetch tool found no sentence stating venous is acceptable instead of arterial for diagnosis. Either drop 'venous' from the entry text or word it as 'pH (venous sample acceptable)'.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-SEV-BOHB",
+  "verdict": "confirmed",
+  "foundQuote": "Severe DKA: β-Hydroxybutyrate >6.0 mmol/L",
+  "correctValue": null,
+  "note": "Table 2, strict >. Mild and moderate both read 'β-Hydroxybutyrate 3.0–6.0 mmol/L', so ketone level does not separate mild from moderate. Same in the Diabetologia PDF and PMC copy.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-SEV-HCO3",
+  "verdict": "confirmed",
+  "foundQuote": "Severe DKA: pH <7.0 or bicarbonate <10 mmol/L",
+  "correctValue": null,
+  "note": "Table 2, strict <. Same in the Diabetologia PDF ('pH <7.0; Bicarbonate <10 mmol/l').",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-SEV-PH",
+  "verdict": "confirmed",
+  "foundQuote": "Severe DKA: pH <7.0 or bicarbonate <10 mmol/L",
+  "correctValue": null,
+  "note": "Table 2, strict <. Same in the Diabetologia PDF.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-DKA-UKET",
+  "verdict": "confirmed",
+  "foundQuote": "Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater",
+  "correctValue": null,
+  "note": "Figure 2A; '2+ or greater' = at or above 2+. The Diabetologia/PMC body text does not restate '2+' (it is in the figure only). Supporting claim A9-23 (ISPAD 2022 DKA chapter) read: 'Ketonemia (blood ß-hydroxybutyrate ≥3 mmol/L) or moderate or large ketonuria' and 'Urine ketones are typically ≥2+ (\"moderate or large\").' The report also says the anion gap is 'not recommended as a first-line diagnostic or resolution criterion' but 'may still have some utility in resource settings where ketone measurement is unavailable'.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-EDKA",
+  "verdict": "confirmed",
+  "foundQuote": "Approximately 10% of patients with DKA present with euglycemic DKA, which is defined as plasma glucose levels <200 mg/dL [11.1 mmol/L] in the presence of ketosis and metabolic acidosis criteria. [...] exogenous insulin injection, reduced food intake, pregnancy, or impaired gluconeogenesis due to alcohol use, liver failure, and/or SGLT2 inhibitor therapy.",
+  "correctValue": null,
+  "note": "Confirmed in the Diabetes Care PDF and the Diabetologia/PMC copy. The source's cause list also includes 'exogenous insulin injection', which the entry omits (acceptable under 'causes include'). Supporting claim A4-65 opened: it is ADA Standards of Care 2026 Section 16 (Diabetes Care in the Hospital), which says 'Approximately 10% of people experiencing DKA present with euglycemic DKA (plasma glucose <200 mg/dL [<11.1 mmol/L])'.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-HHS-GLU",
+  "verdict": "confirmed",
+  "foundQuote": "Hyperglycemia: Plasma glucose ≥600 mg/dL (33.3 mmol/L)",
+  "correctValue": null,
+  "note": "Figure 2B, Diabetes Care PDF, operator >=. In the PMC and Springer HTML/PDF copies Figure 2 is an image and its text was not readable; the body text there only says 'The diagnosis of HHS should be based on the four criteria presented in Fig. 2b. All four components must be present to make the diagnosis.' (One PMC fetch returned different HHS numbers - 13.9, 320, 18 - which were the fetch tool's guesses from an unreadable image, not source text; disregard.) Independent corroboration: ADA Standards of Care 2026 Table 16.1 'Plasma glucose ≥600 mg/dL (33.3 mmol/L)'. Supporting claim A2-40 (WHO HEARTS-D 2020, Table 5): fetch tool returned 'HHS: ≥33.3 mmol/L (600 mg/dL)' - operator in that WHO table read once only, not double-checked. Contrast: ISPAD 2022 (children) uses strict '> 33.3 mmol/L (600 mg/dl)'.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-HHS-HCO3",
+  "verdict": "confirmed",
+  "foundQuote": "Absence of acidosis: pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
+  "correctValue": null,
+  "note": "Figure 2B, operator >=, joined to pH by 'and'. Corroborated by ADA 2026 Table 16.1. Do not confuse with the body sentence 'Although most people with HHS have an admission pH ≥7.30 and a bicarbonate level ≥18 mmol/L, mild ketonemia may be present' - that is descriptive, the criterion is >=15.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-HHS-OSM-EFF",
+  "verdict": "confirmed",
+  "foundQuote": "Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg",
+  "correctValue": null,
+  "note": "Figure 2B, strict >, formula 2 x Na + glucose (all in mmol/L). Corroborated by ADA 2026 Table 16.1 ('Calculated osmolality >300 mOsm/kg or total >320 mOsm/kg'). Contrast: ISPAD 2022 paediatric HHS uses 'effective serum osmolality >320 mOsm/kg' - do not apply the adult 300 cut-off to the paediatric rule.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-HHS-OSM-TOTAL",
+  "verdict": "confirmed",
+  "foundQuote": "OR total serum osmolality >320 mOsm/kg [2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]",
+  "correctValue": null,
+  "note": "Figure 2B, strict >, formula includes urea in mmol/L (not BUN in mg/dL). Effective (>300) and total (>320) are alternatives joined by OR.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-MIXED",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Clinical overlap between DKA and HHS has been reported in more than one-third of people with hyperglycemic crises. [...] higher hospital mortality than those with HHS (adjusted odds ratio [OR] 2.7; 95% CI 1.5–4.9) or with DKA (adjusted OR 1.8; 95% CI 0.9–3.6).",
+  "correctValue": null,
+  "note": "'More than one-third' confirmed (also in the PMC copy). The report does say mortality is higher than either alone, but the comparison with DKA alone has a confidence interval crossing 1 (adjusted OR 1.8; 95% CI 0.9–3.6): only the comparison with HHS alone is statistically significant. The entry should not present 'higher than DKA alone' as established.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-PRECIPITANTS",
+  "verdict": "confirmed",
+  "foundQuote": "The most frequent causes are infection, particularly urinary tract infections and pneumonia, and the omission of insulin therapy. [...] In recent years, sodium–glucose cotransporter 2 (SGLT2) inhibitors have been found to increase the risk of DKA. [...] Between 6% and 21% of adults present with DKA as their initial diagnosis of T1D.",
+  "correctValue": null,
+  "note": "Table 1 row labels read as: New-onset diabetes, Infection, Insulin omission, Other, Unknown. All four elements of the entry are supported.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-VAL-URINE-KETONE",
+  "verdict": "confirmed",
+  "foundQuote": "Reliance on urine ketone testing can underestimate the severity of ketonemia early in the course of DKA because of a lag in the formation of acetoacetate, and conversely overestimate its severity later in the course of DKA [...] several sulfhydryl drugs (e.g., captopril) and medications such as valproate can give false-positive nitroprusside urine tests.",
+  "correctValue": null,
+  "note": "Both halves of the entry confirmed.",
+  "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-KETONE-LOW",
+  "verdict": "confirmed",
+  "foundQuote": "Less than 0.6 mmol/L is normal",
+  "correctValue": null,
+  "note": "Trend UK leaflet (March 2020). The recorded quote did not contain this line, but the leaflet does. Next band: '0.6 to 1.5 mmol/L means you may be at risk of developing DKA so test again after 2 hours'. Supporting claim A9-10 (consensus report, resolution criteria) read: 'Resolution of DKA is defined as achieving plasma ketone <0.6 mmol/L and venous pH ≥7.3 or bicarbonate ≥18 mmol/L. Ideally, the blood glucose concentration should also be <200 mg/dL (11.1 mmol/L)'; HHS: 'resolved when the measured or calculated serum osmolality falls to <300 mOsm/kg, hyperglycemia has been corrected, urine output is >0.5 mL/kg/h, cognitive status has improved, and the blood glucose is <250 mg/dL (13.9 mmol/L)'. ISPAD 2022 sick-day table also gives <0.6 mmol/L as normal.",
+  "urlUsed": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-KETONE-RISK",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible",
+  "correctValue": null,
+  "note": "Value 1.6 and the band (1.6 to 2.9; '3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible') confirmed. The leaflet says 'as soon as possible'; it does not say 'the same day' - that is the entry's paraphrase. The entry also lacks its upper bound: at 3.0 or higher the action changes to emergency help. Supporting claim A9-50 (ISPAD 2022 sick-day chapter) uses a slightly different cut: band '1.5–2.9 mmol/L' and urgent review if 'blood ketones remain elevated (>1.5 mmol/L) or urine ketones remain large despite extra insulin and hydration'; ≥3.0 mmol/L = emergency evaluation. So 1.6 is Trend UK's figure; ISPAD's is 1.5 / >1.5.",
+  "urlUsed": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-INFECTIONS",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Rhinocerebral mucormycosis is the most common form in patients with diabetes and with renal transplants. [...] The overall mortality rate is approximately 50%, although early identification and treatment can lead to better outcomes.",
+  "correctValue": null,
+  "note": "CDC page (24 April 2024) confirms rhinocerebral mucormycosis and diabetes; it lists 'Uncontrolled diabetes' as a risk factor and does NOT mention ketoacidosis, so '(with ketoacidosis)' is not supported by this cited page. Supporting sources: NBK448099 opened = StatPearls 'Emphysematous Cholecystitis' ('Diabetes mellitus is present in an estimated 30% to 75% of patients'; mortality 'approximately 15% to 25%'); AAO-HNS Acute Otitis Externa guideline 2014 opened ('Necrotizing (malignant) otitis externa is an aggressive infection that predominantly affects elderly, diabetic, or immunocompromised patients'); FDA 29 Aug 2018 opened (Fournier's gangrene with SGLT2 inhibitors). JAMA Internal Medicine source for emphysematous pyelonephritis (A9-60) could not be opened (CAPTCHA) - that element is unverified. 'Near-specific to diabetes' is the entry's framing, not wording from any source read.",
+  "urlUsed": "https://www.cdc.gov/mucormycosis/hcp/clinical-overview/index.html"
+ },
+ {
+  "ref": "REF-DM-SUS-PAED-4T",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Toilet – going for a wee more often, especially at night. Thirsty – being constantly thirsty and not being able to quench it. Tired – being incredibly tired and having no energy. Thinner – losing weight without trying to, or looking thinner than usual. [...] If you or a family member is showing any of these symptoms, contact your GP surgery straight away, call 111 for advice or go to A&E if your symptoms are getting worse. [...] ask the doctor or nurse for a quick and simple finger prick blood test – it only takes a few seconds.",
+  "correctValue": null,
+  "note": "The 4Ts and the finger-prick test are confirmed on the Diabetes UK page. The page is patient-facing: it tells families to contact the GP 'straight away' and ask for a finger-prick test; the clinician-directed 'measure capillary glucose at presentation' wording is NICE NG18 rec 1.4.1 (supporting claim A9-31, read and confirmed), where it is tied to the classic symptoms AND any of nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced consciousness. 'Immediately' is the entry's word.",
+  "urlUsed": "https://www.diabetes.org.uk/about-diabetes/type-1-diabetes/symptoms"
+ },
+ {
+  "ref": "REF-DM-SUS-PAED-MIMIC",
+  "verdict": "confirmed",
+  "foundQuote": "DKA may be mistaken for other common illnesses such as gastroenteritis, respiratory infections, urinary infections, malaria, and parasitic infections. [...] suspect diabetes in any unwell young person, especially if there is a history of weight loss, lethargy, thirst, excessive urination, ants at site of urination, abdominal pain, or persistent/recurrent infections.",
+  "correctValue": null,
+  "note": "ISPAD 2022 limited-resource chapter (Virmani et al.) confirmed. Supporting claim A9-33 (PLOS ONE 2017, Addis Ababa) opened: it only says 'Many children in sub-Saharan Africa are diagnosed with diabetes only when they present with DKA, which quite often is misdiagnosed' and does not name the mimics - the list of mimics rests on ISPAD alone.",
+  "urlUsed": "https://www.ispad.org/asset/4D78AA81-7C4E-45EF-B9BF02E2E7A6ABC2/"
+ },
+ {
+  "ref": "REF-DM-ACU-SICKDAY-INSULIN",
+  "verdict": "confirmed",
+  "foundQuote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] blood ketones remain elevated (>1.5 mmol/L) or urine ketones remain large despite extra insulin and hydration [...] vomiting persists beyond 2 h (particularly in young children)",
+  "correctValue": null,
+  "note": "ISPAD 2022 sick-day chapter (Phelan et al.). All four elements supported. Source is paediatric. Supporting claim A4-63 opened: ADA Standards of Care 2026 Section 6 ('should not stop or hold their basal insulin even if not eating'; 'seek immediate medical attention if they are unable to tolerate oral hydration, they experience ongoing emesis, blood glucose levels and/or ketone levels do not improve with insulin administration, altered mental status is present').",
+  "urlUsed": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/"
+ },
+ {
+  "ref": "REF-DM-ACU-PAED-CEREBRAL",
+  "verdict": "confirmed",
+  "foundQuote": "Onset of headache or vomiting after beginning treatment or progressively worsening or severe headache, slowing of heart rate not related to sleep or improved intravascular volume, change in neurological status (irritability, lethargy, confusion, incontinence), specific neurological signs (e.g., cranial nerve palsies), decreased oxygen saturation. [...] Clinically significant cerebral injury usually develops within the first 12 h after treatment has started.",
+  "correctValue": null,
+  "note": "ISPAD 2022 DKA/HHS chapter (Glaser et al.). Signs and the 12-hour statement both confirmed.",
+  "urlUsed": "https://www.ispad.org/asset/6DD62EAE-C8CB-4B4A-84E1EFC768505746/"
+ },
+ {
+  "ref": "REF-DM-ACU-PAED-DKA",
+  "verdict": "confirmed",
+  "foundQuote": "Hyperglycemia (blood glucose >11 mmol/L [≈200 mg/dl]) [...] Venous pH <7.3 or serum bicarbonate <18 mmol/L [...] Ketonemia (blood ß-hydroxybutyrate ≥3 mmol/L) or moderate or large ketonuria. [...] Urine ketones are typically ≥2+ ('moderate or large').",
+  "correctValue": null,
+  "note": "ISPAD 2022 (Glaser et al.). All operators match: glucose strict >11, pH <7.3 OR bicarbonate <18, BOHB >=3. Supporting claim A9-24 (severity) read: mild 'venous pH < 7.3 or serum bicarbonate <18 mmol/L', moderate 'pH < 7.2 or serum bicarbonate <10 mmol/L', severe 'pH < 7.1 or serum bicarbonate <5 mmol/L'. These paediatric severity cut-offs differ from the adult consensus table (7.25/7.0 and 15/10) and from NICE NG18 (bicarbonate below 15 to diagnose; BOHB 'above 3'), so keep the adult and paediatric rules separate.",
+  "urlUsed": "https://www.ispad.org/asset/6DD62EAE-C8CB-4B4A-84E1EFC768505746/"
+ },
+ {
+  "ref": "REF-DM-HYPO-IAH",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "The single-question Gold, the eight-question Clarke and six-question modified Clarke have been used to screen children with IAH (Appendices A to C). Although a score of ≥4 implies IAH on these measures, it is important to acknowledge that IAH is not an \"all or none phenomenon\" but reflects a continuum in which differing degrees of impaired awareness can occur. [...] IAH is a syndrome in which the ability to detect hypoglycemia is diminished or absent, reported in 25% of adults with T1D.",
+  "correctValue": null,
+  "note": "Value 4 and operator >= confirmed in ISPAD 2022 hypoglycaemia chapter (Abraham et al.), applying to Gold, Clarke and modified Clarke. Qualifiers the entry lacks: (1) ISPAD itself says IAH is 'not an all or none phenomenon' - a continuum; (2) the questionnaires are for 'older children who are able to self-report'. The second cited source (ADA Standards of Care 2025 Section 6, recs 6.11) has no URL in the worklist and was NOT opened, so the ADA half of the attribution is unverified.",
+  "urlUsed": "https://www.ispad.org/asset/F61C3D00-8344-4C30-A7B5E142B14737FE/"
+ },
+ {
+  "ref": "REF-DM-HYPO-MALARIA",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Hypoglycaemia: Blood or plasma glucose < 2.2 mmol/L (< 40 mg/dL) [...] Although hypoglycaemia is defined as glucose < 2.2 mmol/L, the threshold for intervention is < 3 mmol/L for children < 5 years and < 2.2 mmol/L for older children and adults.",
+  "correctValue": null,
+  "note": "Definition <2.2 mmol/L (<40 mg/dL), strict <, confirmed in WHO Guidelines for the Treatment of Malaria, 3rd edition (2015), chapter 7. Qualifier the entry lacks: the same passage sets the threshold for INTERVENTION at <3 mmol/L in children under 5 years, so a rule that acts only below 2.2 would under-treat under-fives. Edition is 2015; the current WHO consolidated malaria guidelines were not opened (no URL reachable), so currency is unverified.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK294445/"
+ },
+ {
+  "ref": "REF-DM-ACU-PAED-GLU",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "1.4.2 For children or young people without known diabetes who have a plasma glucose level above 11 mmol/litre and symptoms that suggest diabetic ketoacidosis, suspect DKA and immediately send them to a hospital with acute paediatric facilities.",
+  "correctValue": null,
+  "note": "NICE NG18 (Bookshelf copy, last updated 11 May 2023) confirms 'above 11 mmol/litre' (strict >) and immediate hospital transfer. Notes: (1) the send-to-hospital action is NICE's recommendation only; ISPAD 2022 gives '>11 mmol/L' as a biochemical diagnostic criterion for DKA, not as a referral trigger, so 'NICE and ISPAD' over-attributes the action; (2) the NICE trigger is glucose above 11 PLUS symptoms that suggest DKA (rec 1.4.1: thirst, polyuria, weight loss or tiredness and any of nausea, vomiting, abdominal pain, hyperventilation, dehydration, reduced consciousness); (3) NICE 1.4.4 separately says to suspect DKA 'even if the blood glucose is normal' in a child with known diabetes and those symptoms, so the 11 threshold must not be used to exclude DKA in known diabetes.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK555102/"
+ },
+ {
+  "ref": "REF-DM-SUS-PAED-SAMEDAY",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "1.1.2 Refer children and young people with suspected type 1 diabetes immediately (on the same day) to a multidisciplinary paediatric diabetes team.",
+  "correctValue": null,
+  "note": "NICE NG18 rec 1.1.2 confirmed verbatim (rec 1.1.1 gives 'random plasma glucose more than 11 mmol/litre'). The second half of the entry ('confirmation is not delayed to another day') is attributed to ISPAD 2022 Chapter 1, for which the worklist gives no URL; the Wiley copy returned 403 and a PMC attempt hit a CAPTCHA, so that half is NOT verified.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK555102/"
+ }
+]

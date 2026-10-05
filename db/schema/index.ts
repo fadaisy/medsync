@@ -125,5 +125,9 @@ export * from "./monitoring";
 
 // ─── The ward builder and the live bed board (migration 0090 — GATED, ADRs 0191–0196)
 export * from "./ward-builder";
-// ─── NCDSync, the hospital NCD registry (migration 0093 — GATED, ADRs 0208–0213)
+
+// ─── Closing the encounter: admissions and the patient's copy (migration 0091 — GATED, ADRs 0197–0203)
+export * from "./admissions";
+
+// ─── NCDSync, the hospital NCD registry (migration 0093 — GATED, ADRs 0209–0214)
 export * from "./ncd-registry";

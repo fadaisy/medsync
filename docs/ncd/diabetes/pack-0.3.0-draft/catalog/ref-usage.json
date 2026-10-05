@@ -1,0 +1,1082 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "which REF-DM entry each criterion's numbers come from",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "usage": {
+  "who_hd_fpg_symptoms": [
+   "REF-DM-DX-FPG"
+  ],
+  "who_hd_fpg_repeat": [
+   "REF-DM-DX-FPG"
+  ],
+  "who_hd_fcap_symptoms": [
+   "REF-DM-DX-FPG"
+  ],
+  "who_hd_fcap_repeat": [
+   "REF-DM-DX-FPG"
+  ],
+  "who_hd_ogtt_symptoms": [
+   "REF-DM-DX-OGTT2H"
+  ],
+  "who_hd_ogtt_repeat": [
+   "REF-DM-DX-OGTT2H"
+  ],
+  "who_hd_ogtt_cap_symptoms": [
+   "REF-DM-DX-OGTT2H-CAP"
+  ],
+  "who_hd_ogtt_cap_repeat": [
+   "REF-DM-DX-OGTT2H-CAP"
+  ],
+  "who_hd_hba1c_symptoms": [
+   "REF-DM-DX-HBA1C"
+  ],
+  "who_hd_hba1c_repeat": [
+   "REF-DM-DX-HBA1C"
+  ],
+  "who_hd_random_symptoms": [
+   "REF-DM-DX-RANDOM"
+  ],
+  "who_hd_random_cap_symptoms": [
+   "REF-DM-DX-RANDOM"
+  ],
+  "who_hd_cap_high_symptoms": [
+   "REF-DM-DX-OGTT2H-CAP"
+  ],
+  "ucg_fpg_repeat": [
+   "REF-DM-DX-UCG-FPG"
+  ],
+  "ucg_ogtt_repeat": [
+   "REF-DM-DX-UCG-OGTT2H"
+  ],
+  "ucg_hba1c_repeat": [
+   "REF-DM-DX-UCG-HBA1C"
+  ],
+  "ucg_random_symptoms": [
+   "REF-DM-DX-UCG-RBS"
+  ],
+  "ug26_sym_fpg": [
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "ug26_sym_rbg": [
+   "REF-DM-DX-UG26-RBG"
+  ],
+  "ug26_fpg_repeat": [
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "ug26_ogtt_repeat": [
+   "REF-DM-DX-UG26-OGTT"
+  ],
+  "ug26_hba1c_repeat": [
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_fpg_ogtt": [
+   "REF-DM-DX-UG26-FPG",
+   "REF-DM-DX-UG26-OGTT"
+  ],
+  "ug26_fpg_hba1c": [
+   "REF-DM-DX-UG26-FPG",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_ogtt_hba1c": [
+   "REF-DM-DX-UG26-OGTT",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_rbg_fpg": [
+   "REF-DM-DX-UG26-RBG",
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "ug26_rbg_hba1c": [
+   "REF-DM-DX-UG26-RBG",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_fcap_symptoms": [
+   "REF-DM-DX-FPG"
+  ],
+  "ug26_fcap_repeat": [
+   "REF-DM-DX-FPG"
+  ],
+  "ug26_random_cap_symptoms": [
+   "REF-DM-DX-RANDOM"
+  ],
+  "ug26_cap_high_symptoms": [
+   "REF-DM-DX-OGTT2H-CAP"
+  ],
+  "who_ifg": [
+   "REF-DM-IH-IFG-WHO",
+   "REF-DM-DX-FPG"
+  ],
+  "who_igt": [
+   "REF-DM-IH-IGT",
+   "REF-DM-DX-OGTT2H",
+   "REF-DM-DX-FPG"
+  ],
+  "ada_ifg": [
+   "REF-DM-IH-IFG-ADA",
+   "REF-DM-DX-FPG"
+  ],
+  "ada_igt": [
+   "REF-DM-IH-IGT",
+   "REF-DM-DX-OGTT2H"
+  ],
+  "ada_a1c_pre": [
+   "REF-DM-IH-HBA1C-ADA",
+   "REF-DM-DX-HBA1C"
+  ],
+  "gdm_fpg": [
+   "REF-DM-PREG-GDM-FPG",
+   "REF-DM-DX-FPG"
+  ],
+  "gdm_1h": [
+   "REF-DM-PREG-GDM-1H"
+  ],
+  "gdm_2h": [
+   "REF-DM-PREG-GDM-2H",
+   "REF-DM-DX-OGTT2H"
+  ],
+  "dip_fpg": [
+   "REF-DM-DX-FPG"
+  ],
+  "dip_2h": [
+   "REF-DM-DX-OGTT2H"
+  ],
+  "dip_random": [
+   "REF-DM-DX-RANDOM"
+  ],
+  "remission_hba1c": [
+   "REF-DM-CLS-REMISSION-HBA1C",
+   "REF-DM-CLS-REMISSION-MONTHS"
+  ],
+  "remission_glucose_high": [
+   "REF-DM-DX-FPG",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM"
+  ],
+  "remission_fasting_meter_high": [
+   "REF-DM-DX-FPG"
+  ],
+  "t1_cpeptide_low": [
+   "REF-DM-CLS-CPEP-LOW",
+   "REF-DM-CLS-CPEP-AGE",
+   "REF-DM-CLS-CPEP-YEARS"
+  ],
+  "lada": [
+   "REF-DM-CLS-T1-AGE"
+  ],
+  "pn_symptom_sign": [
+   "REF-DM-FOOT-IPSWICH"
+  ],
+  "pn_reflex_sign": [
+   "REF-DM-FOOT-IPSWICH"
+  ],
+  "dkd_albuminuria_2of3": [
+   "REF-DM-KID-UACR-COUNT",
+   "REF-DM-KID-ACR-A2"
+  ],
+  "egfr30": [
+   "REF-DM-VAL-HBA1C-CKD-EGFR"
+  ],
+  "egfr_60_89": [
+   "REF-DM-KID-GFR-G3A",
+   "REF-DM-KID-GFR-G2"
+  ],
+  "abi_high": [
+   "REF-DM-VAL-ABI-HIGH"
+  ],
+  "r30": [
+   "REF-DM-CVD-BAND-30"
+  ],
+  "r20": [
+   "REF-DM-CVD-BAND-20"
+  ],
+  "r10": [
+   "REF-DM-CVD-BAND-10"
+  ],
+  "r5": [
+   "REF-DM-CVD-BAND-5"
+  ],
+  "r0": [
+   "REF-DM-CVD-BAND-5"
+  ],
+  "hypo_high": [
+   "REF-DM-HYPO-IAH",
+   "REF-DM-KID-GFR-G4"
+  ],
+  "hypo_raised": [
+   "REF-DM-HYPO-RISK-AGE",
+   "REF-DM-KID-GFR-G3A"
+  ],
+  "tf_met45": [
+   "REF-DM-RX-METFORMIN-STOP-EGFR",
+   "REF-DM-RX-METFORMIN-NOSTART-EGFR"
+  ],
+  "tf_glib60": [
+   "REF-DM-RX-GLIB-AGE"
+  ],
+  "tf_glib_ckd": [
+   "REF-DM-KID-GFR-G3A"
+  ],
+  "tf_creat": [
+   "REF-DM-KID-RASI-CREAT-RISE"
+  ],
+  "tf_k": [
+   "REF-DM-KID-K-ACTION",
+   "REF-DM-KID-K-MODERATE"
+  ],
+  "tf_met30": [
+   "REF-DM-RX-METFORMIN-STOP-EGFR"
+  ],
+  "tf_k6": [
+   "REF-DM-KID-K-MODERATE"
+  ],
+  "tf_pio_60": [
+   "REF-DM-RX-GLIB-AGE"
+  ],
+  "due_hba1c_6": [
+   "REF-DM-CTRL-WINDOW-AT-TARGET"
+  ],
+  "due_hba1c_6_above": [
+   "REF-DM-CTRL-HBA1C-TARGET",
+   "REF-DM-CTRL-WINDOW-ABOVE"
+  ],
+  "due_hba1c_3": [
+   "REF-DM-CTRL-WINDOW-ABOVE"
+  ],
+  "due_eye": [
+   "REF-DM-EYE-INTERVAL-WHO"
+  ],
+  "due_kidney": [
+   "REF-DM-KID-SCREEN-INTERVAL"
+  ],
+  "due_foot": [
+   "REF-DM-FOOT-INT-0"
+  ],
+  "due_neuro": [
+   "REF-DM-NEU-INTERVAL"
+  ],
+  "due_lipids": [
+   "REF-DM-CVD-LIPID-INTERVAL"
+  ],
+  "ref_glu18": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "ref_bp": [
+   "REF-DM-ACU-BP-REFER-SBP",
+   "REF-DM-ACU-BP-REFER-DBP"
+  ],
+  "ref_egfr30": [
+   "REF-DM-KID-REFER-EGFR"
+  ],
+  "ref_egfr_30_59": [
+   "REF-DM-KID-GFR-G4",
+   "REF-DM-KID-GFR-G3A"
+  ],
+  "ref_alb": [
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "ref_acr70": [
+   "REF-DM-KID-REFER-ACR"
+  ],
+  "ref_bp2": [
+   "REF-DM-CVD-BP-REFER-MEDS",
+   "REF-DM-CVD-BP-SBP",
+   "REF-DM-CVD-BP-DBP"
+  ],
+  "ref_tc": [
+   "REF-DM-CVD-TC-REFER"
+  ],
+  "rx_first": [
+   "REF-DM-CTRL-HBA1C-TARGET",
+   "REF-DM-CTRL-FPG-SURROGATE"
+  ],
+  "contra_egfr30": [
+   "REF-DM-RX-METFORMIN-STOP-EGFR"
+  ],
+  "rx_first_relaxed": [
+   "REF-DM-CTRL-HBA1C-RELAXED",
+   "REF-DM-CTRL-FPG-SURROGATE"
+  ],
+  "caution_su_hypo": [
+   "REF-DM-HYPO-RISK-AGE",
+   "REF-DM-KID-GFR-G4"
+  ],
+  "rx_second_relaxed": [
+   "REF-DM-CTRL-HBA1C-RELAXED"
+  ],
+  "rx_second_egfr30": [
+   "REF-DM-RX-METFORMIN-STOP-EGFR"
+  ],
+  "rx_second_glu18": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "rx_third_egfr30": [
+   "REF-DM-RX-METFORMIN-STOP-EGFR"
+  ],
+  "rx_third_glu18": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "rx_severe": [
+   "REF-DM-CTRL-SEVERE-HBA1C",
+   "REF-DM-RX-UG26-INS-FBG",
+   "REF-DM-CTRL-SEVERE-GLU",
+   "REF-DM-CTRL-SEVERE-GLU",
+   "REF-DM-CTRL-SEVERE-GLU",
+   "REF-DM-CTRL-SEVERE-GLU",
+   "REF-DM-CTRL-SEVERE-GLU"
+  ],
+  "rx_severe_glu18": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "rx_cardio": [
+   "REF-DM-SUS-BMI",
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "contra_sglt2_egfr": [
+   "REF-DM-RX-SGLT2-EGFR"
+  ],
+  "rx_renal": [
+   "REF-DM-KID-GFR-G3A",
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "contra_sglt2_egfr_b": [
+   "REF-DM-RX-SGLT2-EGFR"
+  ],
+  "rx_statin": [
+   "REF-DM-CVD-STATIN-AGE"
+  ],
+  "rx_bp": [
+   "REF-DM-CVD-BP-SBP",
+   "REF-DM-CVD-BP-DBP"
+  ],
+  "rx_rasi": [
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "rx_deesc": [
+   "REF-DM-HYPO-RISK-AGE",
+   "REF-DM-RX-DEESC-HBA1C"
+  ],
+  "ref_limb": [
+   "REF-DM-FOOT-ISCH-ABI"
+  ],
+  "rx_first_meter": [
+   "REF-DM-CTRL-FPG-SURROGATE"
+  ],
+  "contra_egfr30_b": [
+   "REF-DM-RX-METFORMIN-STOP-EGFR"
+  ],
+  "ref_egfr_fall": [
+   "REF-DM-KID-REFER-FALL",
+   "REF-DM-KID-REFER-FALL-HAEMO"
+  ],
+  "ref_bp_sympt": [
+   "REF-DM-ACU-BP-REFER-SBP-SYMPT"
+  ],
+  "ref_bp_sympt_higher": [
+   "REF-DM-ACU-BP-REFER-SBP",
+   "REF-DM-ACU-BP-REFER-DBP"
+  ],
+  "rx_deesc_insulin": [
+   "REF-DM-HYPO-RISK-AGE"
+  ],
+  "ref_goal_insulin": [
+   "REF-DM-CTRL-INSULIN-REFER-HBA1C"
+  ],
+  "ref_goal_insulin_relaxed": [
+   "REF-DM-CTRL-HBA1C-RELAXED"
+  ],
+  "ref_glu18_pen": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-DKA-BOHB"
+  ],
+  "ref_glu18_pen_ket": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
+  "dm_act_edu_10b": [
+   "REF-DM-IH-UG26-FPG",
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "dm_act_edu_10c": [
+   "REF-DM-IH-UG26-HBA1C",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "edu_10c_fasting": [
+   "REF-DM-IH-UG26-FPG",
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "preg_asa": [
+   "REF-DM-PREG-UG26-ASA-WEEKS",
+   "REF-DM-PREG-UG26-ASA-END"
+  ],
+  "rx_cpep": [
+   "REF-DM-RX-UG26-CPEP"
+  ],
+  "due_hba1c_above": [
+   "REF-DM-CTRL-HBA1C-TARGET",
+   "REF-DM-CTRL-WINDOW-ABOVE"
+  ],
+  "due_hba1c_above_relaxed": [
+   "REF-DM-HYPO-IAH"
+  ],
+  "dm_act_rx_14": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "dm_act_rx_14b": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "dm_act_rx_06b": [
+   "REF-DM-CVD-UG26-STATIN-YOUNG",
+   "REF-DM-CVD-STATIN-AGE",
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "dm_act_rx_06c": [
+   "REF-DM-KID-GFR-G3A",
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "rx_06c_owned": [
+   "REF-DM-CVD-STATIN-AGE"
+  ],
+  "due_eye_mild": [
+   "REF-DM-EYE-RECALL-MILD-MIN"
+  ],
+  "due_b12": [
+   "REF-DM-CVD-LIPID-INTERVAL"
+  ],
+  "rx_prevent": [
+   "REF-DM-PREV-UG26-BMI"
+  ],
+  "dm_act_rx_14m": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "dm-act-rx-14m_plasma": [
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "dm_act_rx_14bm": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "dm-act-rx-14bm_plasma": [
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "sus_risk_who": [
+   "REF-DM-SUS-AGE-WHO",
+   "REF-DM-SUS-BMI",
+   "REF-DM-SUS-RESCREEN"
+  ],
+  "sus_risk_ada": [
+   "REF-DM-SUS-BMI"
+  ],
+  "sus_risk_age_ada": [
+   "REF-DM-SUS-AGE-ADA",
+   "REF-DM-SUS-RESCREEN"
+  ],
+  "sus_ih_retest": [
+   "REF-DM-IH-RETEST"
+  ],
+  "sus_gdm_retest": [
+   "REF-DM-SUS-GDM-RETEST-MAX"
+  ],
+  "sus_gdm_postpartum": [
+   "REF-DM-PREG-POSTPARTUM-FROM"
+  ],
+  "sus_incidental": [
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM"
+  ],
+  "sus_inpatient": [
+   "REF-DM-SUS-HOSP-GLU",
+   "REF-DM-SUS-HOSP-GLU"
+  ],
+  "sus_hiv_annual": [
+   "REF-DM-HIV-UG26-INTERVAL"
+  ],
+  "sus_tb": [
+   "REF-DM-IH-RETEST"
+  ],
+  "sus_antipsychotic": [
+   "REF-DM-SUS-ANTIPSYCH-WEEKS"
+  ],
+  "sus_pancreatitis": [
+   "REF-DM-IH-RETEST"
+  ],
+  "sus_preg_window": [
+   "REF-DM-PREG-WINDOW-START"
+  ],
+  "con_gdm_any": [
+   "REF-DM-PREG-GDM-FPG",
+   "REF-DM-PREG-GDM-1H",
+   "REF-DM-PREG-GDM-2H"
+  ],
+  "con_dip_any": [
+   "REF-DM-DX-FPG",
+   "REF-DM-DX-OGTT2H"
+  ],
+  "cls_ketosis": [
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "cls_t1_features": [
+   "REF-DM-CLS-T1-AGE",
+   "REF-DM-CLS-T1-BMI",
+   "REF-DM-CLS-T1-GLU"
+  ],
+  "cls_atypical": [
+   "REF-DM-CLS-T5-BMI",
+   "REF-DM-CLS-T5-AGE"
+  ],
+  "cls_mody": [
+   "REF-DM-CLS-T1-AGE",
+   "REF-DM-CLS-T1-BMI"
+  ],
+  "cls_steroid": [
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM"
+  ],
+  "neuro_exclude": [
+   "REF-DM-FOOT-IPSWICH"
+  ],
+  "neuro_autonomic": [
+   "REF-DM-NEU-OH-SBP",
+   "REF-DM-NEU-OH-DBP",
+   "REF-DM-NEU-TACHY"
+  ],
+  "acu_glu18": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "acu_ketones": [
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_edka_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_edka_r02": [
+   "REF-DM-ACU-DKA-BOHB"
+  ],
+  "acu_paed": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
+  ],
+  "acu_k": [
+   "REF-DM-KID-K-SEVERE"
+  ],
+  "acu_hypo_l2": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_hypo_l1": [
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1"
+  ],
+  "acu_hypo_l1_l2": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_picture": [
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_picture_hhs": [
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU"
+  ],
+  "acu_picture_r02": [
+   "REF-DM-ACU-DKA-BOHB"
+  ],
+  "acu_hhs_glu": [
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU",
+   "REF-DM-ACU-HHS-GLU"
+  ],
+  "con_preg_any_11": [
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-OGTT2H"
+  ],
+  "con_preg_fcap": [
+   "REF-DM-PREG-GDM-FPG"
+  ],
+  "con_preg_fcap_high": [
+   "REF-DM-DX-FPG"
+  ],
+  "sus_antipsychotic_annual": [
+   "REF-DM-IH-RETEST"
+  ],
+  "sus_antipsychotic_12w_owns": [
+   "REF-DM-SUS-ANTIPSYCH-WEEKS"
+  ],
+  "sus_single_abnormal": [
+   "REF-DM-DX-FPG",
+   "REF-DM-DX-HBA1C",
+   "REF-DM-DX-OGTT2H"
+  ],
+  "incid_02_two_tests": [
+   "REF-DM-DX-UG26-FPG",
+   "REF-DM-DX-UG26-OGTT",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "cls_t1_unclassified": [
+   "REF-DM-CLS-T1-AGE",
+   "REF-DM-CLS-T1-BMI",
+   "REF-DM-CLS-T1-GLU"
+  ],
+  "cls_t1_new": [
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-DX-RANDOM",
+   "REF-DM-CLS-T1-AGE",
+   "REF-DM-CLS-T1-BMI"
+  ],
+  "acu_glu15_sympt": [
+   "REF-DM-ACU-FPG-SEVERE-SYMPT",
+   "REF-DM-ACU-FPG-SEVERE-SYMPT",
+   "REF-DM-ACU-FPG-SEVERE-SYMPT"
+  ],
+  "acu_glu15_over18": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "acu_k_moderate": [
+   "REF-DM-KID-K-MODERATE",
+   "REF-DM-KID-K-SEVERE"
+  ],
+  "sus_paed_glucose": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
+  ],
+  "acu_paed_glucose_soft": [
+   "REF-DM-ACU-DKA-BOHB"
+  ],
+  "acu_picture_mild": [
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "sus_single_fasting_meter": [
+   "REF-DM-DX-FPG"
+  ],
+  "con_preg_fcap7": [
+   "REF-DM-DX-FPG"
+  ],
+  "acu_known_kussmaul_r11": [
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_known_kussmaul_r02": [
+   "REF-DM-ACU-DKA-BOHB"
+  ],
+  "acu_known_kussmaul_hypo": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_ketones_mid": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_ketones_mid_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_ketones_mid_bohb_high": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_ketones_risk": [
+   "REF-DM-ACU-KETONE-RISK",
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_insulin_sick_bohb": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_insulin_sick_raised": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_paed_known_signs_r04": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
+  ],
+  "acu_paed_known_signs_hypo": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_hypo_other": [
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1"
+  ],
+  "acu_hypo_other_l2": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_preg_bp": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_preg_bp_severe": [
+   "REF-DM-PREG-BP-SEVERE-SBP",
+   "REF-DM-PREG-BP-SEVERE-DBP"
+  ],
+  "acu_preg_bp_sev": [
+   "REF-DM-PREG-BP-SEVERE-SBP",
+   "REF-DM-PREG-BP-SEVERE-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "sus_fcap_ifg": [
+   "REF-DM-IH-UG26-FPG",
+   "REF-DM-DX-FPG"
+  ],
+  "acu_htn_emerg": [
+   "REF-DM-ACU-BP-EMERG-SBP",
+   "REF-DM-ACU-BP-EMERG-DBP"
+  ],
+  "acu_ketones_risk_vomiting": [
+   "REF-DM-ACU-KETONE-RISK",
+   "REF-DM-ACU-DKA-BOHB",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_hypo_drowsy": [
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1",
+   "REF-DM-HYPO-L1"
+  ],
+  "acu_hypo_drowsy_r06": [
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2",
+   "REF-DM-HYPO-L2"
+  ],
+  "acu_bohb_mid": [
+   "REF-DM-ACU-KETONE-LOW",
+   "REF-DM-ACU-KETONE-RISK",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU",
+   "REF-DM-ACU-DKA-GLU"
+  ],
+  "acu_preg_organ": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_preg_drowsy": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_preg_bp_neg": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "27b_severe": [
+   "REF-DM-PREG-BP-SEVERE-SBP",
+   "REF-DM-PREG-BP-SEVERE-DBP"
+  ],
+  "acu_preg_bp_prot": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "27c_severe": [
+   "REF-DM-PREG-BP-SEVERE-SBP",
+   "REF-DM-PREG-BP-SEVERE-DBP"
+  ],
+  "acu_vomit_high_noket": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "acu_vomit_high_ket": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_preg_drowsy_nobp": [
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_preg_bp_sympt": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP",
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_t1_acetone_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_paed_acetone_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_paed_acetone_r04": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
+  ],
+  "acu_ill_high": [
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU",
+   "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "acu_ill_high_vomit": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_preg_organ_nobp": [
+   "REF-DM-PREG-PE-POSTPARTUM"
+  ],
+  "acu_preg_organ_r28b": [
+   "REF-DM-PREG-BP-SBP",
+   "REF-DM-PREG-BP-DBP"
+  ],
+  "acu_dm_acetone_bohb_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "acu_dm_acetone_raised": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
+  "acu_paed_acetone_normal": [
+   "REF-DM-ACU-KETONE-LOW"
+  ],
+  "sus_paed_range": [
+   "REF-DM-DX-FPG",
+   "REF-DM-DX-OGTT2H",
+   "REF-DM-DX-HBA1C"
+  ],
+  "sus_paed_fcap": [
+   "REF-DM-DX-FPG"
+  ],
+  "sus_paed_fcap_r03": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
+  ],
+  "acu_insulin_sick_review_signs": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
+  "sus_preg_ucg": [
+   "REF-DM-PREG-UCG-BMI",
+   "REF-DM-PREG-UCG-AGE"
+  ],
+  "sus_rbg_band": [
+   "REF-DM-IH-UG26-RBG",
+   "REF-DM-DX-UG26-RBG"
+  ],
+  "sus_preg_first_late": [
+   "REF-DM-PREG-UG26-EARLY"
+  ],
+  "sus_preg_first_ucg": [
+   "REF-DM-PREG-UCG-BMI",
+   "REF-DM-PREG-UCG-AGE"
+  ],
+  "con_preg_hba1c_early": [
+   "REF-DM-PREG-UG26-EARLY",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "tgt_hba1c_general_relaxed_applies": [
+   "REF-DM-HYPO-IAH",
+   "REF-DM-HYPO-IAH",
+   "REF-DM-HYPO-IAH",
+   "REF-DM-HYPO-IAH"
+  ],
+  "tgt_relaxed": [
+   "REF-DM-HYPO-IAH"
+  ],
+  "tgt_older": [
+   "REF-DM-CTRL-OLDER-AGE"
+  ],
+  "tgt_hba1c_older_healthy_relaxed_applies": [
+   "REF-DM-HYPO-IAH"
+  ],
+  "tgt_ckd": [
+   "REF-DM-KID-GFR-G3A"
+  ],
+  "tgt_fpg_floor_0": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "tgt_fpg_floor_cap_0": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "tgt_fpg_floor_1": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "tgt_fpg_floor_cap_1": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "tgt_elderly_2026": [
+   "REF-DM-CTRL-UG26-ELDERLY",
+   "REF-DM-KID-GFR-G3A"
+  ]
+ }
+}

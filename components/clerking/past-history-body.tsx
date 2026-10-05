@@ -4,7 +4,7 @@ import type { HistoryBodyProps } from "./history-sections";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxTerm } from "@/components/emr/desk/search";
 import type { SectionHandlers } from "@/components/emr/desk/sections";
-import type { History } from "@/lib/clerking/answers";
+import type { History, PropValue } from "@/lib/clerking/answers";
 import type { Catalogue, Option } from "@/lib/clerking/catalogue";
 import type { ClerkingDeskData } from "@/lib/clerking/desk-data";
 import type { ReactNode } from "react";
@@ -17,7 +17,8 @@ import { ReasonChoice } from "@/components/emr/desk/sections";
 import { EmrDialog } from "@/components/emr/emr-dialog";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
-import { toggleEntry } from "@/lib/clerking/answers";
+import { Input } from "@/components/ui/input";
+import { applyProp, toggleEntry } from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
 import { operationById, operationGroups } from "@/lib/clerking/pick-lists";
@@ -345,6 +346,22 @@ function Conditions({
                 </Chip>
               ))}
             </div>
+            <ConditionDetails
+              cat={cat}
+              conditionId={c.id}
+              details={entry.details}
+              disabled={!editable}
+              onDetails={(fn) =>
+                put((m) => {
+                  const cur = m[c.id];
+                  if (!cur) return m;
+                  const details = fn(cur.details ?? {});
+                  const { details: _old, ...rest } = cur;
+                  const next = Object.keys(details).length ? { ...rest, details } : rest;
+                  return { ...m, [c.id]: next };
+                })
+              }
+            />
             {onList ? (
               <span className="text-caption inline-flex items-center gap-1 text-teal-700 dark:text-teal-300">
                 <CheckIcon aria-hidden className="size-3" />
@@ -369,6 +386,85 @@ function Conditions({
         and never leave clinical views.
       </p>
     </section>
+  );
+}
+
+/** A yes's own questions (EC-2: "About the diabetes"), from the catalogue; reported, not charted.
+ *  A property shown only for an answer drops its value when that answer goes. */
+function ConditionDetails({
+  cat,
+  conditionId,
+  details,
+  disabled,
+  onDetails,
+}: {
+  cat: Catalogue;
+  conditionId: string;
+  details: Record<string, PropValue> | undefined;
+  disabled: boolean;
+  onDetails: (fn: (d: Record<string, PropValue>) => Record<string, PropValue>) => void;
+}) {
+  const def = cat.details(conditionId);
+  if (!def) return null;
+  const d = details ?? {};
+  const shown = (p: (typeof def.properties)[number], v: Record<string, PropValue>) => {
+    if (!p.shown_when) return true;
+    const w = v[p.shown_when.property];
+    return p.shown_when.includes_any.some((o) => (Array.isArray(w) ? w.includes(o) : w === o));
+  };
+  const write = (fn: (v: Record<string, PropValue>) => Record<string, PropValue>) =>
+    onDetails((cur) => {
+      const next = fn(cur);
+      for (const p of def.properties) if (!shown(p, next)) delete next[p.id];
+      return next;
+    });
+  return (
+    <div className="flex flex-col gap-2" role="group" aria-label={def.label}>
+      <span className="text-caption text-muted-foreground">{def.label}</span>
+      {def.properties
+        .filter((p) => shown(p, d))
+        .map((p) =>
+          p.kind === "year" ? (
+            <FieldRow key={p.id} label={p.label} group={false}>
+              <Input
+                aria-label={p.label}
+                inputMode="numeric"
+                maxLength={4}
+                className="w-24"
+                disabled={disabled}
+                defaultValue={typeof d[p.id] === "number" ? String(d[p.id]) : ""}
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  write((v) => {
+                    const next = { ...v };
+                    if (/^\d{4}$/.test(e.target.value) && n >= 1900 && n <= 2100) next[p.id] = n;
+                    else delete next[p.id];
+                    return next;
+                  });
+                }}
+              />
+            </FieldRow>
+          ) : (
+            <FieldRow key={p.id} label={p.label}>
+              {p.options.map((o) => {
+                const v = d[p.id];
+                return (
+                  <Chip
+                    key={o.id}
+                    selected={Array.isArray(v) ? v.includes(o.id) : v === o.id}
+                    disabled={disabled}
+                    onPress={() =>
+                      write((cur) => applyProp({ props: cur, flags: {} }, p, o.id).props)
+                    }
+                  >
+                    {o.label}
+                  </Chip>
+                );
+              })}
+            </FieldRow>
+          ),
+        )}
+    </div>
   );
 }
 

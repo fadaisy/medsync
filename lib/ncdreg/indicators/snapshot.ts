@@ -1,5 +1,5 @@
 /**
- * Monthly snapshots (§6, F5, ADR 0212). The engine computes; the snapshot stores the result without
+ * Monthly snapshots (§6, F5, ADR 0213). The engine computes; the snapshot stores the result without
  * person ids. A snapshot computed from any synthetic person is marked synthetic and can never be
  * signed. A signed snapshot is immutable (a trigger refuses any update or delete): corrections made
  * afterwards appear in the next period.

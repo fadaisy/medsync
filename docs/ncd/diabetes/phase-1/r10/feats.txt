@@ -1,0 +1,195 @@
+dm_status | single_select |  | known,not_known | Diabetes status
+polyuria | boolean |  |  | Passing large volumes of urine
+polydipsia | boolean |  |  | Excessive thirst
+polyphagia | boolean |  |  | Increased appetite
+unexplained_weight_loss | boolean |  |  | Unexplained weight loss
+fatigue | boolean |  |  | Tiredness
+slow_healing_wound | boolean |  |  | Slow-healing wound
+vomiting | boolean |  |  | Vomiting
+abdominal_pain | boolean |  |  | Abdominal pain
+capillary_glucose | number | device.glucometer |  | Capillary glucose
+random_pg | number | lab.glucose |  | Random plasma glucose
+hba1c | number | lab.hba1c |  | HbA1c
+bohb | number | lab.ketones_blood |  | Blood beta-hydroxybutyrate
+urine_ketones | single_select | lab.ketones_urine | neg,trace,1plus,2plus,3plus | Urine ketones
+venous_ph | number | lab.blood_gas |  | Venous pH
+bicarbonate | number | lab.electrolytes |  | Bicarbonate
+sodium | number | lab.electrolytes |  | Sodium
+urea | number | lab.electrolytes |  | Urea
+effective_osmolality | number | lab.electrolytes |  | Effective osmolality
+mental_status | single_select |  | alert,drowsy,stupor,coma | Mental status
+deep_rapid_breathing | boolean |  |  | Deep, sighing rapid breathing (Kussmaul)
+acetone_breath | boolean |  |  | Acetone on the breath
+dehydration | boolean |  |  | Dehydration
+egfr | number | lab.creatinine |  | eGFR
+urine_acr | number | lab.urine_acr |  | Urine albumin-to-creatinine ratio
+urine_protein_strip | single_select | lab.urine_dipstick | neg,trace,1plus,2plus,3plus | Urine protein (strip)
+kidney_abnormality_3_months | boolean |  |  | The kidney abnormality has persisted for 3 months or more
+glucose_lowering_therapy | multi_select |  | metformin,glibenclamide,gliclazide,glimepiride,insulin,sglt2_inhibitor,pioglitazone,dpp4_inhibitor,glp1_ra,none | Glucose-lowering treatment
+hiv_on_art | boolean |  |  | Living with HIV, on ART
+art_regimen | single_select |  | tdf_3tc_dtg,taf_ftc_dtg,tdf_3tc_efv,abc_3tc_dtg,abc_3tc_efv,abc_3tc_lpvr,azt_3tc_dtg,azt_3tc_efv,azt_3tc_lpvr,tdf_3tc_lpvr,tdf_3tc_atvr,other,unknown | Regimen
+haemolysis | boolean |  |  | Haemolysis
+malaria_current | boolean |  |  | Current or recent malaria
+recent_transfusion | boolean |  |  | Transfusion in the last 3 months
+bp_systolic | series |  |  | Blood pressure, systolic
+bp_diastolic | series |  |  | Blood pressure, diastolic
+pulse | series |  |  | Pulse
+respiratory_rate | series |  |  | Respiratory rate
+temperature | series |  |  | Temperature
+weight_kg | number |  |  | Weight
+height_cm | number |  |  | Height
+waist_cm | number |  |  | Waist
+bmi | number |  |  | Body mass index
+pedal_pulses | single_select |  | both,reduced,absent | Foot pulses
+monofilament_10g | single_select | device.monofilament | none,one_foot,both_feet | 10 g monofilament
+retinopathy_stage | single_select | imaging.fundus | none,mild_npdr,moderate_npdr,severe_npdr,pdr | Retinopathy grade (worse eye)
+foot_deformity | boolean |  |  | Foot deformity
+active_foot_ulcer | boolean |  |  | Active foot ulcer
+foot_infection_grade | single_select |  | none,mild,moderate,severe | Foot infection
+acanthosis_nigricans | boolean |  |  | Acanthosis nigricans
+peripheral_oedema | boolean |  |  | Peripheral oedema
+age_years | number |  |  | Age
+sex | single_select |  | female,male | Sex
+pregnant | boolean |  |  | Pregnant
+gestation_weeks | number |  |  | Gestation
+fasting_pg | number | lab.glucose |  | Fasting plasma glucose
+ogtt_2h_pg | number | lab.ogtt |  | 2-hour plasma glucose (75 g OGTT)
+ogtt_1h_pg | number | lab.ogtt |  | 1-hour plasma glucose (75 g OGTT)
+capillary_glucose_context | single_select |  | random,fasting,two_hours_after_glucose,two_hours_after_food | When was it taken
+repeat_abnormal_result | boolean |  |  | A second result in the diabetes range, on a later day
+blurred_vision | boolean |  |  | Blurred vision
+recurrent_infections | boolean |  |  | Recurrent infections (skin, urine, thrush)
+foot_numbness_burning | boolean |  |  | Numbness, burning or tingling in the feet
+sudden_vision_loss | boolean |  |  | Sudden loss or deterioration of vision
+chest_pain_or_stroke_symptoms | boolean |  |  | Chest pain, or sudden weakness, speech or facial change
+orthostatic_dizziness | boolean |  |  | Dizziness or faintness on standing
+acute_illness_current | boolean |  |  | Acutely unwell now (infection, vomiting, not eating)
+first_degree_relative_diabetes | boolean |  |  | Parent, brother, sister or child with diabetes
+hypertension_known | boolean |  |  | Known hypertension or on treatment for it
+smoking_current | boolean |  |  | Currently uses tobacco
+age_at_diagnosis | number |  |  | Age when diabetes was diagnosed
+years_since_diagnosis | number |  |  | Years since diagnosis
+ketosis_at_presentation | boolean |  |  | Ketosis or ketoacidosis at first presentation
+c_peptide | number | lab.c_peptide |  | C-peptide (random, with glucose)
+islet_autoantibodies | single_select | lab.islet_autoantibodies | positive,negative | Islet autoantibodies
+sickle_cell_disease | boolean |  |  | Sickle cell disease (HbSS, HbSC)
+sickle_cell_trait | boolean |  |  | Sickle cell trait or another haemoglobin variant
+iron_deficiency | boolean |  |  | Iron deficiency
+on_dialysis | boolean |  |  | On dialysis
+previous_foot_ulcer | boolean |  |  | Previous foot ulcer
+previous_amputation | boolean |  |  | Previous lower-limb amputation
+end_stage_kidney_disease | boolean |  |  | End-stage kidney disease or dialysis
+vibration_128hz | single_select | device.tuning_fork_128 | present,absent_one,absent_both | Vibration (128 Hz), great toe
+ipswich_sites_missed | number |  |  | Ipswich touch test: sites not felt (of 6)
+foot_hot_swollen | boolean |  |  | Foot warmer, swollen or red compared with the other, skin intact
+foot_gangrene | boolean |  |  | Gangrene
+potassium | number | lab.electrolytes |  | Potassium
+haematuria_strip | boolean | lab.urine_dipstick |  | Blood on urine strip
+total_cholesterol | number | lab.lipids |  | Total cholesterol
+ldl_cholesterol | number | lab.lipids |  | LDL cholesterol
+triglycerides | number | lab.lipids |  | Triglycerides
+heart_failure_known | boolean |  |  | Known heart failure
+cough_over_2_weeks | boolean |  |  | Cough for more than 2 weeks
+injection_site_lumps | boolean |  |  | Lumps at injection sites (lipohypertrophy)
+alcohol_harmful | boolean |  |  | Harmful alcohol use
+care_setting | single_select |  | outpatient,emergency,inpatient | Where the patient is being seen
+prior_gdm | boolean |  |  | Gestational diabetes in a previous pregnancy
+postpartum_weeks | number |  |  | Weeks since the birth
+prior_intermediate_hyperglycaemia | boolean |  |  | Previously told blood sugar was borderline
+months_since_glucose_test | number |  |  | Months since the last glucose or HbA1c test
+on_glucocorticoid | boolean |  |  | On recurrent or long-term systemic steroids
+on_second_gen_antipsychotic | boolean |  |  | On a second-generation antipsychotic
+weeks_since_antipsychotic_start | number |  |  | Weeks since it was started
+months_since_art_start_or_switch | number |  |  | Months since ART was started or switched
+tb_current | boolean |  |  | On treatment for TB, or newly diagnosed
+pancreatitis_history | single_select |  | none,acute,chronic | Pancreatitis
+cvd_established | boolean |  |  | Heart attack, angina, stroke, TIA, or peripheral artery disease
+pcos | boolean |  |  | Polycystic ovary syndrome
+physically_inactive | boolean |  |  | Physically inactive
+secondary_enuresis | boolean |  |  | Bed-wetting in a child who was previously dry
+g6pd_deficiency | boolean |  |  | G6PD deficiency
+b12_deficiency | boolean |  |  | Vitamin B12 deficiency
+on_dapsone | boolean |  |  | On dapsone
+on_iron_b12_or_epo | boolean |  |  | On iron, vitamin B12 or erythropoietin treatment
+splenomegaly | boolean |  |  | Enlarged spleen
+uacr_transient_cause | boolean |  |  | Exercise in the last 24 hours, fever, infection, menstruation, or very
+creatinine_unstable | boolean |  |  | Creatinine not in steady state (acute kidney injury or hyperglycaemic 
+fundus_method | single_select |  | photograph,dilated_ophthalmoscopy,undilated_ophthalmoscopy,slit_lamp | How the retina was examined
+insulin_stopped_without_relapse | boolean |  |  | Came off insulin after the first illness and stayed well
+parent_with_diabetes | boolean |  |  | A parent has diabetes
+childhood_undernutrition | boolean |  |  | Undernutrition in childhood
+steatorrhoea | boolean |  |  | Pale, fatty stools
+recurrent_abdominal_pain | boolean |  |  | Recurrent upper abdominal pain
+pancreatic_calcification | boolean | imaging.plain_xray |  | Pancreatic calcification on X-ray or ultrasound
+glucose_at_presentation | number |  |  | Glucose at first presentation
+months_off_glucose_lowering | number |  |  | Months off all glucose-lowering medicines
+postprandial_pg | number | device.glucometer |  | Glucose 2 hours after a meal
+glycaemic_target_tier | single_select |  | general,relaxed,tight,avoid_symptoms | Target agreed with the patient
+months_since_hba1c | number |  |  | Months since the last HbA1c
+months_since_any_control_measure | number |  |  | Months since the last HbA1c or fasting glucose
+therapy_changed_recently | boolean |  |  | Treatment changed since the last measure
+hypo_worst_12m | single_select |  | none,self_treated,repeated,measured_below_3,needed_help | Low blood sugar in the last 12 months
+hypo_awareness_score | number |  |  | Awareness of lows (Gold score, 1 to 7)
+frailty_or_limited_life_expectancy | boolean |  |  | Frailty, serious comorbidity or limited life expectancy
+cognitive_impairment | boolean |  |  | Cognitive impairment or dementia
+food_insecurity | boolean |  |  | Not always enough food at home
+uacr_abnormal_count | number |  |  | Abnormal ACR results out of the last 3 (within 6 months)
+egfr_fall_percent | number |  |  | Sustained fall in eGFR from baseline (confirmed on a repeat)
+creatinine_rise_percent_4w | number |  |  | Rise in creatinine within 4 weeks of starting or increasing an ACE inh
+nephrotic_or_active_sediment | boolean |  |  | Nephrotic picture, or red cell casts on microscopy
+months_since_kidney_screen | number |  |  | Months since urine albumin and creatinine were last checked
+macular_oedema | single_select | imaging.fundus | none,non_centre,centre_involving | Macular oedema
+visual_acuity_worse_6_12 | boolean | device.visual_acuity_chart |  | Visual acuity worse than 6/12 in either eye (with pinhole)
+retina_view | single_select |  | adequate,inadequate,not_attempted | Retinal view
+months_since_eye_screen | number |  |  | Months since the last retinal examination
+pinprick_feet | single_select |  | normal,reduced | Pinprick sensation in the feet
+ankle_reflexes | single_select |  | present,reduced_or_absent | Ankle reflexes
+neuropathy_atypical | boolean |  |  | Sudden onset, one-sided, or any weakness
+postural_sbp_fall | number |  |  | Fall in systolic pressure on standing
+postural_dbp_fall | number |  |  | Fall in diastolic pressure on standing
+autonomic_symptoms | boolean |  |  | Fainting, bowel or bladder change, or altered sweating
+months_since_neuropathy_screen | number |  |  | Months since sensation was last tested
+abi | number | device.doppler_abi |  | Ankle-brachial index
+months_since_foot_risk_assessment | number |  |  | Months since the last foot risk assessment
+ulcer_area_reduction_4w | number |  |  | Ulcer area reduction over 4 weeks
+bp_raised_two_occasions | boolean |  |  | Blood pressure raised on two or more occasions
+bp_medicines_count | number |  |  | Number of blood pressure medicines
+on_statin | boolean |  |  | On a statin
+ras_blocker | single_select |  | none,acei,arb,both | ACE inhibitor or ARB
+who_cvd_risk_percent | number |  |  | WHO 10-year cardiovascular risk
+who_cvd_chart_used | single_select |  | laboratory,non_laboratory | Chart used
+months_since_lipids | number |  |  | Months since the last lipid profile
+overt_nephropathy | boolean |  |  | Overt diabetic kidney disease
+on_rifampicin | boolean |  |  | On rifampicin
+surgery_or_fasting_planned | boolean |  |  | Surgery or a prolonged fast planned
+could_conceive | boolean |  |  | Could become pregnant
+fasting_ramadan_planned | boolean |  |  | Plans to fast for Ramadan
+glucose_goal_unmet_on_oral | boolean |  |  | Above target at review despite taking the tablets
+meals_irregular | boolean |  |  | Skips meals or does heavy physical work
+months_since_dental | number |  |  | Months since the last dental check
+non_diabetic_kidney_clue | boolean |  |  | Rapidly rising albumin, nephrotic picture or red cell casts
+ogtt_normal | boolean | lab.ogtt |  | 75 g OGTT within the normal range
+dm_type_recorded | single_select |  | type_1,type_2,unclassified,gestational,other | Type of diabetes, as recorded by a clinician
+glucose_meter_extreme | single_select | device.glucometer | hi,lo | Meter shows HI or LO instead of a number
+pregnancy_possible | boolean |  |  | Could be pregnant (computed by the platform from sex and age)
+never_glucose_tested | boolean |  |  | Never had a glucose or HbA1c test
+never_hba1c | boolean |  |  | Never had an HbA1c
+never_eye_screen | boolean |  |  | Never had a retinal examination
+never_kidney_screen | boolean |  |  | Never had urine albumin and creatinine checked
+never_foot_assessment | boolean |  |  | Never had a foot risk assessment
+never_neuropathy_screen | boolean |  |  | Sensation in the feet never tested
+never_lipids | boolean |  |  | Never had a lipid profile
+insulin_omitted | boolean |  |  | Insulin stopped, missed or run out
+hypoglycaemia_not_resolving | boolean |  |  | Low glucose not resolving after treatment
+on_antiplatelet | boolean |  |  | On an antiplatelet medicine
+haemorrhagic_or_unknown_stroke | boolean |  |  | Previous stroke that was a bleed, or of unknown type
+glucose_test_since_antipsychotic_start | boolean |  |  | Glucose tested since the antipsychotic was started
+ras_or_sglt2_started_recently | boolean |  |  | ACE inhibitor, ARB or SGLT2 inhibitor started or increased since the b
+limb_ischaemia_signs | boolean |  |  | Rest pain in the foot, or a cold, pale or dusky foot
+anuria | boolean |  |  | Passing no urine
+hypertensive_symptoms | boolean |  |  | With the raised pressure: headache, nausea or vomiting
+glucose_tested_since_birth | boolean |  |  | Glucose tested since the birth
+ogtt_done_this_pregnancy | boolean |  |  | A 75 g OGTT has been done in this pregnancy
+hypertensive_organ_damage | boolean |  |  | With the raised pressure: confusion, seizures, blurred or lost vision;
+hba1c_method_variant_free | boolean |  |  | The laboratory's HbA1c method is not affected by haemoglobin variants 
+acute_kidney_injury | boolean |  |  | Acute kidney injury (a rise in creatinine of 26.5 µmol/L or more in 48

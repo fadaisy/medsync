@@ -1,0 +1,12 @@
+exec(open('/Users/airm1/Desktop/medsync-ncd/docs/ncd/diabetes/phase-1/r9/h.py').read())
+M=dict(sex="male", age_years=35)
+T1=dict(dm_status="known", dm_type_recorded="type_1", glucose_lowering_therapy=["insulin"])
+T2M=dict(dm_status="known", dm_type_recorded="type_2", glucose_lowering_therapy=["metformin"])
+for site in ("district","referral"):
+  run({**M,**T1,"vomiting":True,"capillary_glucose":7.0}, est=True, site=site, label=f"adult T1 vomit glu7 noket {site}")
+  run({**M,**T1,"vomiting":True,"capillary_glucose":7.0,"urine_ketones":"neg"}, est=True, site=site, label=f"adult T1 vomit glu7 uneg {site}")
+  run({**M,**T1,"vomiting":True,"capillary_glucose":14.0,"urine_ketones":"neg"}, est=True, site=site, label=f"adult T1 vomit glu14 uneg {site}")
+run({**M,**T2M,"vomiting":True,"dehydration":True,"capillary_glucose":9.0,"urine_ketones":"trace"}, est=True, label="T2 metf vomit+dehydr glu9 utrace")
+run({**M,**T2M,"dehydration":True,"capillary_glucose":9.0,"bohb":1.0}, est=True, label="T2 metf dehydr glu9 bohb1.0")
+run({**M,**T2M,"acetone_breath":True,"capillary_glucose":9.0,"bohb":2.0}, est=True, label="T2 metf acetone glu9 bohb2.0")
+run({**M,**T2M,"acetone_breath":True,"capillary_glucose":9.0,"bohb":2.5,"vomiting":True}, est=True, label="T2 metf acetone vomit bohb2.5")

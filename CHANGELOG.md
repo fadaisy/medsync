@@ -10,7 +10,47 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **NCDReg 0.1 (draft) as data** (`lib/ncdreg/standard/`): the data dictionary, code lists, calculations (BMI, visit blood pressure, 2021 CKD-EPI eGFR, KDIGO, foot risk, hypertension grade, care band, status), validation, a condition catalogue of two full and eight core modules, and 34 indicator definitions locked to HEARTS360 plus hospital additions. Generated documents in `docs/ncd/`.
 - **The registry** (`/ncd`): Today's clinic with arrival and stage, search and enrol with tiered duplicate matching over encrypted identifiers, one-screen visit capture (nurse and clinician parts, trajectory, carried-forward medicines, completeness), the patient record, annual reviews, events, recall with call logging and SMS reminders through a logging mock, reviews due, my patients, the one-screen dashboard with drill-down, the signed monthly report, data quality (queries, audit sample, four-eyes merge), exchange (aggregates, DHIS2 refusing until mapped, FHIR R4 refusing unverified codes, de-identified research releases, full export, legacy import), administration, offline capture with an encrypted outbox, and a removable demo data mode from the catalogue file.
 - **Migration 0093** (GATED, owner-applied): 26 tables keyed on the facility, row-level security forced on every one with policies generated from the capability map, two app roles without BYPASSRLS, interlock triggers (synthetic before go-live only, no deletion of real records, immutable signed snapshots, four-eyes approvals), audit triggers.
-- ADRs 0208–0213 (proposed). Nothing here is approved for patient data: the standard, every code list and every core module await Clinical Safety Officer and Registry Technical Group sign-off (`docs/ncd/SIGNOFF-REGISTER.md`).
+- ADRs 0209–0214 (proposed). Nothing here is approved for patient data: the standard, every code list and every core module await Clinical Safety Officer and Registry Technical Group sign-off (`docs/ncd/SIGNOFF-REGISTER.md`).
+
+### Added — The diabetes pack on the NCD clerkship, behind `NCD_DM_PACK_LIVE` (off) — 2026-10-05
+
+- **Switch-over built, not switched on.** With `NCD_DM_PACK_LIVE=1` the NCD diabetes section asks the pack's own questions (8 sections, 113 fields added to the live form) and shows the pack's decision panel: one interrupt carrying every action, today's items, medicines to review, the diagnosis by criteria set, the care plan, targets and the questions still open. Off, the section is unchanged. ADR 0208.
+- **All 381 reference numbers signed by the CSO** on the sign-off page; abdominal pain on insulin now starts the same-day sick-day review; round R11's 23 findings fixed (pack 0.5.3-draft).
+
+### Changed — Diabetes pack follows the 2026 Uganda diabetes guideline (shadow) — 2026-10-05
+
+- **Pack 0.5.0-draft**, still shadow only. The 2026 Integrated Diabetes Management Guideline (summarised, MoH June 2026) is the default diagnostic set ("≥", eight symptoms, two different tests on one day); every pregnant woman is screened; two medicines from HbA1c 7.5% at diagnosis; the second medicine by age and BMI, with where EMHSLU 2023 stocks it; pregnancy targets; HbA1c below 8% from 60 in the 2026 profile; HHS suspected from glucose 30; health centre III starts IV fluids before transfer; hospital, surgery, HIV and TB items; the Ugandan plate. 46 items signed (UG-01 to UG-46), five kept as the pack had them (two-antibody rule, two agents before insulin, ketone triage, dolutegravir, BP in PAD). The sources review (C-peptide, EMHSLU, insulin storage, DKA in pregnancy, older-adult glucose floor) is in too.
+- 197 synthetic patients, parity with the reference evaluator on all of them; the emergency-floor grid unchanged at zero.
+
+### Changed — Pregnancy age range signed; diabetes clerking answers — 2026-10-05
+
+- **"Could be pregnant" is 12 to 50** (REF-PREG-AGE, signed). The EMR safety bar now shows "Pregnancy status not recorded" for a woman in that range with no record, and the imaging prompt can fire; nurse triage, the clerking desk and the diabetes pack read the same value instead of their own.
+- **Clerking desk (behind `CLERKING_V2`):** a lab result counts as evidence only while recent: bicarbonate, pH and osmolality for a day, HbA1c and glucose for 90 days. "Diabetes in pregnancy" is offered, with its must-not-miss reason. The eye referral wording gives ICO's timings, and a stopped insulin shows one urgent badge whatever its name.
+
+### Added — Diabetes knowledge pack, in shadow behind `NCD_DM_PACK_SHADOW` — 2026-10-05
+
+- **The diabetes pack** (MS-NCD-DM-PACK-001 0.4.0-draft, signed at GATE A for the shadow build) runs beside the live NCD catalog as data (`data/ncd/diabetes-pack.json`) on a port of its reference evaluator (`lib/ncd/pack`). On each NCD draft save, with the flag on, it logs the rule ids and counts it would have shown; nothing reaches a clinician (ADRs 0204–0207).
+- **Uganda first:** UCG 2023's diagnostic set is the default with WHO HEARTS-D alongside; WHO 2013 is the default gestational set with UCG's alongside; UCG's risk-based testing in pregnancy and its post-meal target. Treatment review prompts carry no dose.
+- **Checks in CI:** parity with the reference evaluator on 165 synthetic patients; an escalation-floor grid of 25,568 patients; a mutation test on every acute rule, red flag and blocking caveat; no dose text, no restricted word in neutral text, no number without its reference entry.
+- **Fact contract v1.5** (gated migration 0092, for the owner to apply after 0083 and 0085): ten concepts, two maculopathy answers, eight terms and nine tests for the diabetes menu, with no reference ranges.
+- **Formulary:** the oral glucose-lowering class is split into biguanide, sulfonylurea, SGLT2, DPP-4 and thiazolidinedione classes, GLP-1 agonists stand alone, and ten medicines are added (glimepiride, dapagliflozin, empagliflozin, vildagliptin, sitagliptin, pioglitazone, semaglutide, insulin aspart, biphasic insulin aspart, bendroflumethiazide), every dose still to verify. Glibenclamide stays, marked off the 2023 essential medicines list.
+
+### Added — Closing the encounter: admission with a bed, and the patient's copy, dark behind `ENCOUNTER_CLOSE_V2` and `PATIENT_VISIT_SUMMARY` — 2026-10-03
+
+- **Close visit, prefilled from the Plan.** "Complete visit" opens one centred dialog that starts on the Plan's decision. Home: continue or stop each medicine, book the follow-up into a real slot (the patient gets the usual receipt) or a review date when there is no clinic, "come back if" in the clinician's own words. Refer: where, why, how urgent, how (the referral printout now carries them). A changed outcome is recorded.
+- **Admission with a bed.** The doctor picks the ward (with its free, arriving and occupied counts) and a free bed on the ward's floor plan, never seeing another patient's name, or admits the patient to wait for a bed with a reason. The bed is held as **Arriving** until the ward nurse taps **Arrived**, which opens the inpatient record; the ward can cancel with a reason. Bed boards gain Arriving, **Waiting for a bed** and **Needs attention** (held over 4 hours, a proposed value). The Workspace and reception show "Admitted · ward · bed".
+- **The patient's copy.** After the close the doctor sees the visit exactly as the patient will read it (restricted items already removed and counted), removes anything to be told in person, then shares it or holds it with a reason. Patients see "Your visits" on My care and can add take-home medicines to their tracker with a tap. Headings and wording are drafts for the CSO.
+- **Migration `0091` (GATED, for the owner to apply):** `admissions`, the arrival columns on `bed_assignments`, four admission functions, `patient_visit_summaries`, `self_medications.source_prescription_id`.
+
+### Decided — Closing the encounter: admission with a bed, and the patient's copy (ADRs 0197–0203) — 2026-10-03
+
+- **One close, prefilled from the Plan** ([ADR 0197](docs/adr/0197-one-close-prefilled-from-the-plan.md)): the Plan's disposition starts the close; Observe in EU is not a closure; a changed outcome is recorded; referral detail reaches the printout; the Plan's ward is an id. Behind `ENCOUNTER_CLOSE_V2`.
+- **The admission record** ([ADR 0198](docs/adr/0198-the-admission-record.md)): `admissions`, one open per patient, `awaiting_bed → bed_allocated → arrived` (or `cancelled`); the wait for a bed is recorded with its reason.
+- **Doctors allocate; the ward confirms** ([ADR 0199](docs/adr/0199-doctors-allocate-the-ward-confirms.md), supersedes ADR 0194 §1 and §3 in part): a sixth bed state, Arriving; the admitting doctor picks a bed only inside the admission; ward staff confirm Arrived or cancel with a reason; nothing auto-releases.
+- **Admission is atomic** ([ADR 0200](docs/adr/0200-admission-is-atomic-and-its-cascade.md)): one SQL function writes the admission, the bed and the close; nursing assignments end on arrival, not at the close; the board's waiting list comes from admissions; arrival opens the inpatient encounter.
+- **Co-sign for an admission** ([ADR 0201](docs/adr/0201-cosign-for-admission.md)): the admission goes ahead and a request is raised for interns and clinical officers. The owner's call.
+- **Follow-up is a booking** ([ADR 0202](docs/adr/0202-follow-up-is-a-booking.md)): the close books a real slot (`origin: 'clinician'`), or records a review date when there is no schedule.
+- **The patient's visit summary** ([ADR 0203](docs/adr/0203-the-patients-visit-summary.md)): the doctor previews, then shares or holds it; restricted items never reach it; versioned and append-only; take-home medicines join the patient's tracker only by their tap. Behind `PATIENT_VISIT_SUMMARY`.
 
 ### Added — "Show all" medicines in the prescribing dialog — 2026-09-30
 
@@ -65,6 +105,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **Weight from the vitals** ([ADR 0188](docs/adr/0188-weight-from-the-vitals.md)): no weight, no per-kg arithmetic.
 - **Monitoring charts opened by the plan** ([ADR 0189](docs/adr/0189-monitoring-charts-opened-by-the-plan.md)): proposed triggers off until signed; the chart day starts at midnight; reference lines never flag.
 - **Pharmacy seam** ([ADR 0190](docs/adr/0190-pharmacy-seam.md)): always "not linked" today.
+
+### Added — ICD-11 codes for the REF-DX-TERMS v1.1 terms, read on the WHO API — 2026-09-28
+
+- 177 of the 187 terms seeded uncoded by 0085 now carry an ICD-11 code, each resolved on the WHO ICD-11 API (MMS 2026-01) and signed by the CSO ([ADR 0183](docs/adr/0183-icd11-codes-for-the-v1-1-terms.md); record `docs/emr/clerking-v2/summary-impression/icd11-signoff.md`). They show their code on the desk and in the chart.
+- 10 terms with no single honest code stay "As typed · not coded" (advanced HIV, suspected malignancy, the "or" terms whose halves have different codes, and others).
+- **Migration (GATED, owner):** `0086_ref_dx_terms_v1_1_icd11`, after 0085. Generated from `data/emr/diagnosis-terms.v1.1-icd11.json`; it fills in only rows still uncoded, so a re-run changes nothing.
 
 ### Added — Clerking v2: Summary (step 08) and Impression (step 09), behind `CLERKING_V2` — 2026-09-28
 

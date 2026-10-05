@@ -97,7 +97,7 @@ export interface BookInput {
   /** `created_by_user_id`; the replay and rate-limit key. */
   actorId: string;
   /** 'ussd' (Gate F): the caller is a carrier-verified phone with no account. */
-  origin: "patient" | "reception" | "ussd";
+  origin: "patient" | "reception" | "clinician" | "ussd";
   channel: "web" | "app" | "desk" | "ussd";
   hospitalId: string;
   reason: string;

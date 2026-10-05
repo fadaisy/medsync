@@ -31,6 +31,7 @@ import { FindingText, NotAsked } from "../summary/summary-step";
 
 const ONSET_WORD: Record<OnsetId, string> = {
   acute: "Acute",
+  subacute: "Subacute",
   chronic: "Chronic",
   acute_on_chronic: "Acute on chronic",
   recurrent: "Recurrent",

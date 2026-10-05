@@ -1,0 +1,138 @@
+[
+ {
+  "ref": "REF-DM-DX-HIVGL-FBG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "✓ FBG ≥ 7mmol ✓ RBG ≥ 11mmol ✓ HTN ≥ 140/90mmhg ✓ SRQ≥ 6 ✓ Audit-C > 3 ✓ HPV/VIA positive clients",
+  "correctValue": null,
+  "note": "Value and operator confirmed (at or above 7). Two qualifiers: (1) the unit is printed 'mmol', not 'mmol/L'; (2) the line sits in the summary-of-changes table as a definition of a client category for differentiated service delivery, not as a diagnostic criterion. Title page confirmed: 'CONSOLIDATED GUIDELINES FOR THE PREVENTION AND TREATMENT OF HIV AND AIDS IN UGANDA NOVEMBER 2022'. Only about the first 11 pages of this PDF were readable (last visible heading 'Chapter 8: NEW FORMULATIONS INTRODUCED'); the diabetes screening algorithm for people moving to dolutegravir (Figures 42 to 44, pp. 186 to 189) is beyond what the fetch tool can read.",
+  "urlUsed": "https://dsduganda.com/wp-content/uploads/2023/05/Consolidated-HIV-and-AIDS-Guidelines-20230516.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-HIVGL-RBG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "✓ FBG ≥ 7mmol ✓ RBG ≥ 11mmol ✓ HTN ≥ 140/90mmhg ✓ SRQ≥ 6 ✓ Audit-C > 3 ✓ HPV/VIA positive clients",
+  "correctValue": null,
+  "note": "Value and operator confirmed (at or above 11). Printed as '11mmol': a whole number, not 11.1, and without '/L'. Same context caveat as the fasting entry (client-category definition in the summary-of-changes table). Algorithm figures not readable.",
+  "urlUsed": "https://dsduganda.com/wp-content/uploads/2023/05/Consolidated-HIV-and-AIDS-Guidelines-20230516.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-EMHSLU",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Essential medicines/formulations deleted from 2016 edition. | 16. Glibenclamide Tablet [dose omitted] || Essential medicines/formulations added to 2023 edition | Dapagliflozin Tablet [dose omitted] | Gliclazide Tablet [dose omitted] | Glucagon Injection [dose omitted] | Insulin Aspart injection [dose omitted] | Insulin glargine Injection [dose omitted] | Bi-phasic protamine crystallised insulin aspart [dose omitted] || (PLoS One 2025) Currently, metformin [dose omitted] and glimepiride [dose omitted] are the only OHAs designated for availability in primary care settings.",
+  "correctValue": null,
+  "note": "Deletion of glibenclamide and all six additions were read in the EMHSLU 2023 front matter (title page: revised September 2023). The primary-care statement was read only in the peer-reviewed analysis (Bonyani et al., PLoS One 2025;20:e0326806), not in the list itself: the EMHSLU PDF is readable only to about p. 32, short of the endocrine section, so per-medicine level-of-care codes remain unread. Two things to carry: (a) the same paper says gliclazide, pioglitazone, dapagliflozin and vildagliptin 'are designated for use only in tertiary healthcare facilities'; (b) the paper says glimepiride was ADDED in 2023, but the fetch tool did not find glimepiride (or pioglitazone, vildagliptin, metformin) in the EMHSLU 'added' list it could read; unresolved, check the list's endocrine section.",
+  "urlUsed": "https://guluhospital.net/wp-content/uploads/2023/11/Uganda-Essential-Medicines-Health-Supplies-List-2023.pdf"
+ },
+ {
+  "ref": "REF-DM-CLS-DTG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "16/3417 (0·47%) of people in the case group had new-onset hyperglycaemia vs 1/3230 (0·03%) in the control group | Median time from starting dolutegravir to onset of hyperglycaemia was 4 months (IQR 2·5 to 4·5) | people who started dolutegravir-based first-line regimens between 1 April 2018 and 31 March 2019 (cases)",
+  "correctValue": null,
+  "note": "Numbers and the 4-month median confirmed, but only through the HIV i-Base summary; the Lancet HIV letter itself was not read and i-Base cites it as 'Lancet HIV 2020. Published online 24 February 2020' (volume and pages 7(7):e461-e462 not verified). Qualifiers: (1) i-Base describes the case group as people who started dolutegravir-based first-line regimens in a programme where 'eligible treatment-experienced patients be transitioned from their existing first-line regimens'; it does not state that all 16 were switchers. (2) 'Low incidence in ART-naive cohorts' holds for DIABETES only: Mulindwa et al. (AIDS Res Ther 2023, GLUMED) reported 1 participant developing diabetes out of 243 over 48 weeks ('4 cases per 1000 PY') but 54 developing pre-diabetes ('240 cases per 1000 person-years (PY)') (counts paraphrased by the fetch tool, rates quoted). (3) Mulindwa et al. BMC Infect Dis 2024;24:746 confirmed: 'Ugandan ART naïve PWH with pre-diabetes at enrollment have consistent improvement in both fasting blood glucose and glucose tolerance over 48 weeks on dolutegravir.'",
+  "urlUsed": "https://i-base.info/htb/37218"
+ },
+ {
+  "ref": "REF-DM-EPI-UG-PREVALENCE",
+  "verdict": "confirmed",
+  "foundQuote": "high blood glucose from 1.5% in 2014 to 3.3% in 2023 (p< 0.001)",
+  "correctValue": null,
+  "note": "Confirmed: Kusolo R et al., PLOS Glob Public Health 2025;5(4):e0003755; participants 18-69 years. Definition as printed: 'percentage of participants with a fasting plasma glucose reading of > 7.0 millimoles per liter (mmol/L), or reporting to currently be on anti-diabetes treatment prescribed by a health care worker' (so the 3.3% includes treated people, and the page shows '>' not '>='). The WHO AFRO article (24 Nov 2025) words it differently: '3.3% of adults aged 18 and above are living with diabetes, with over 59% of those aged 30 and above not receiving treatment.'",
+  "urlUsed": "https://journals.plos.org/globalpublichealth/article?id=10.1371/journal.pgph.0003755"
+ },
+ {
+  "ref": "REF-DM-EPI-UG-DR",
+  "verdict": "confirmed",
+  "foundQuote": "19.5% (95% CI 3.9–35.2, I2 = 99.60%, p < 0.001)",
+  "correctValue": null,
+  "note": "Confirmed: Kibirige D et al., PLOS ONE 2026;21(6):e0312792. The confidence interval is very wide and heterogeneity extreme; the figure should not be presented as precise.",
+  "urlUsed": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0312792"
+ },
+ {
+  "ref": "REF-DM-DX-UG-2026",
+  "verdict": "could_not_open",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "library.health.go.ug failed at the robots.txt step on every attempt: 3 attempts on the worklist URL ('- Comprehensive version.pdf') and 3 on the '(Comprehensive Version).pdf' spelling; the library search also failed 3 times, so no landing page was found. Not even the title was read. Existence, date, content and whether it replaces the UCG 2023 diabetes section are all unverified.",
+  "urlUsed": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf"
+ },
+ {
+  "ref": "REF-DM-EPI-UG-EYE-CAPACITY",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "95% (n = 36) reported that there are no community screening programs for DR. | As of 2023, Uganda had 51 Ophthalmologists and five Vitreoretinal Surgeons; most of whom are based in Kampala",
+  "correctValue": null,
+  "note": "Both facts confirmed: Matovu JKB et al., Discov Health Systems 3, 52 (2024). Qualifiers: the ophthalmologist count is 'as of 2023', not 2024; the study 'interviewed 40 healthcare professionals and staff representatives', so 95% (n = 36) is of those who answered that question, not of all 40.",
+  "urlUsed": "https://link.springer.com/article/10.1007/s44250-024-00121-6"
+ },
+ {
+  "ref": "REF-DM-SUS-HIV-UG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "avoiding the use of DTG in Ugandan ART naïve and experienced PLHIV known to have diabetes mellitus | withholding DTG in patients who develop type-2 diabetes mellitus (T2DM) | three monthly blood glucose (BG) monitoring | age ≥ 45 years, BMI ≥ 24 kg/m2 and history of hypertension",
+  "correctValue": null,
+  "note": "The secondary quotation is confirmed in Mulindwa et al. (returned by the fetch tool as four fragments; it cites reference [18], whose citation was not shown, so attribution to the 2020 MoH guidance rests on the worklist). The recorded quote stops at BMI; the sentence continues 'and history of hypertension'. BMI threshold is printed as 24, which is unusual: check the primary. Additional evidence read: (a) UCG 2023 HIV chapter (prescribingcompanion.com, which states '2023 Uganda Clinical Guidelines'): 'Contraindications for DTG (use DTG screening tool prior to DTG initiation) including: known diabetics, patients on anticonvulsants (carbamazepine, phenytoin, phenobarbital)' and, in the toxicity table, 'Do RBS to confirm hyperglycaemia then substitute with EFV'; first-line regimens TDF + 3TC + DTG, TDF + 3TC + EFV400 (if DTG contraindicated), TAF + FTC + DTG, ABC + 3TC + DTG. (b) Mulindwa et al. BMC Infect Dis 2024 describes the MoH recommendation as 'blood glucose monitoring every 3 months during the first six months of therapy in PWH with pre-diabetes mellitus (pre-DM)'. The 2022 HIV guideline itself: only about 11 pages readable; section 5.4.7.1, section 6.6 and Figures 44, 57, 59 are beyond what the fetch tool can read, so the CURRENT national algorithm remains unverified.",
+  "urlUsed": "https://link.springer.com/article/10.1186/s12981-023-00510-6"
+ },
+ {
+  "ref": "REF-DM-ACT-LEVELS",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "(UCG 2023) HC1-4 refers to health centres of different levels (with HC1 being the community level), H to general hospital, RR to regional referral hospital, and NR to national referral hospital. || (EMHSLU 2023) Each item has a designation representing the lowest level of use. The item can be prescribed and dispensed at this level and all the levels above. | HC4: Health centre 4 (Medical Officer) | HC3: Health centre 3 (Clinical Officer) | HC2: Health centre 2 (Enrolled Comprehensive Nurse) | HC1: Health centre 1 (Community, VHT, CHEW)",
+  "correctValue": null,
+  "note": "All facts confirmed, but attribution needs splitting: the code definitions are in UCG 2023's Introduction; the cadres (clinical officer at HC3, medical officer at HC4) and the 'lowest level' rule were read in EMHSLU 2023, not in the UCG. The fetch tool found no cadre sentence in the readable part of the UCG. EMHSLU also gives HC2 as Enrolled Comprehensive Nurse, and says 'H: Hospital' where the UCG says 'general hospital'.",
+  "urlUsed": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-UCG",
+  "verdict": "not_found",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "PASSAGE BEYOND THE READABLE PORTION, which is not evidence that it is absent. The PDF opens, but the fetch tool reads front matter only (to roman xlvi in this copy, xlix in the DSD and prescribingcompanion copies). prescribingcompanion.com reproduces UCG 2023 as web pages for infection chapters only: there is no endocrine chapter there. No UCG value was read; the entry stays unverified and must not be filled from recollection. The recalled targets in needsCsoInput (fasting below 7, postprandial below 10, HbA1c below 7%, 7.5% in the elderly) were NOT confirmed. Note the 2023 Introduction says the diabetes section was 'expanded', so 2016 wording cannot be assumed.",
+  "urlUsed": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-UCG-CRITERIA",
+  "verdict": "not_found",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "PASSAGE BEYOND THE READABLE PORTION, which is not evidence that it is absent. The PDF opens, but the fetch tool reads front matter only (to roman xlvi in this copy, xlix in the DSD and prescribingcompanion copies). prescribingcompanion.com reproduces UCG 2023 as web pages for infection chapters only: there is no endocrine chapter there. No UCG value was read; the entry stays unverified and must not be filled from recollection. Only the pointer is confirmed from the table of contents: '8.1.3 Diabetes Mellitus' at p. 471 in the nms.go.ug copy and p. 469 in the DSD / prescribingcompanion copy (two printings with different pagination). Title page confirmed: 'Uganda Clinical Guidelines 2023 / National Guidelines for Management of Common Health Conditions'.",
+  "urlUsed": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf"
+ },
+ {
+  "ref": "REF-DM-PREG-UCG",
+  "verdict": "not_found",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "PASSAGE BEYOND THE READABLE PORTION, which is not evidence that it is absent. The PDF opens, but the fetch tool reads front matter only (to roman xlvi in this copy, xlix in the DSD and prescribingcompanion copies). prescribingcompanion.com reproduces UCG 2023 as web pages for infection chapters only: there is no endocrine chapter there. No UCG value was read; the entry stays unverified and must not be filled from recollection. Pointer only: the nms.go.ug table of contents lists '16.2.5 Diabetes in Pregnancy' at p. 711 (as returned by the fetch tool; the page number was cut off in the other copy's TOC). No screening or diagnostic criterion was read.",
+  "urlUsed": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-UCG-LADDER",
+  "verdict": "not_found",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "PASSAGE BEYOND THE READABLE PORTION, which is not evidence that it is absent. The PDF opens, but the fetch tool reads front matter only (to roman xlvi in this copy, xlix in the DSD and prescribingcompanion copies). prescribingcompanion.com reproduces UCG 2023 as web pages for infection chapters only: there is no endocrine chapter there. No UCG value was read; the entry stays unverified and must not be filled from recollection. Secondary evidence only (Bonyani et al., PLoS One 2025): 'the 2023 national clinical guideline lacks some of the OHAs listed in the EMHSLU 2023, mentioning only metformin, glibenclamide, and glimepiride'. That supports the NAMES metformin and a sulfonylurea but gives no order, step or level-of-care code, and nothing on insulin or type 1. It also shows a live conflict: UCG 2023 still names glibenclamide, which EMHSLU 2023 deleted.",
+  "urlUsed": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-UCG",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "20.2.3 Diabetic Retinopathy..........................................................................933 | 8.1.3 Diabetes Mellitus ...........................................................................................469",
+  "correctValue": null,
+  "note": "POINTER ONLY. The passage named in this entry is the table of contents, and that is confirmed (section 20.2.3 at p. 933, 8.1.3 at p. 469, chapter 20 Eye Conditions at p. 920, in the DSD copy). NO clinical content of section 20.2.3 was read; the entry's own 'NOT VERIFIED' label must stay. The nms.go.ug copy paginates the same section at p. 936.",
+  "urlUsed": "https://www.differentiatedservicedelivery.org/wp-content/uploads/UCG-2023-Publication-Final-PDF-Version-1.pdf"
+ },
+ {
+  "ref": "REF-DM-EPI-UG-UNAWARE",
+  "verdict": "confirmed",
+  "foundQuote": "the majority of participants identified with hyperglycaemia (90.5% impaired fasting glycaemia and 48.9% diabetes) were not aware of their hyperglycaemic status.",
+  "correctValue": null,
+  "note": "Confirmed: Bahendeka S et al., Trop Med Int Health 2016;21(3):405-416, DOI 10.1111/tmi.12663, PMID 26729021; survey April to July 2014, adults 18-69. Read through the OpenAlex record (the fetch tool rebuilt the abstract from OpenAlex's word index, so spelling of 'impaired fasting glycaemia' versus 'IFG' may differ from the journal). The worklist's Europe PMC URL returned HTTP 429 (rate limited, told not to retry) and PubMed also returned 429. The source prefix 'UG-MOH' is loose: this is a journal article, not a ministry publication.",
+  "urlUsed": "https://api.openalex.org/works/doi:10.1111/tmi.12663?select=title,publication_year,primary_location,ids,abstract_inverted_index,biblio,authorships"
+ },
+ {
+  "ref": "REF-DM-RX-DTG-METFORMIN",
+  "verdict": "confirmed",
+  "foundQuote": "DTG increases metformin levels. May increase risk of hypoglycaemia and metabolic acidosis | Close follow-up (routine electrolytes, BUN and Creatinine, Random Blood Sugar tests) recommended",
+  "correctValue": null,
+  "note": "Quote confirmed verbatim in the drug-interaction table of the HIV chapter page. Edition no longer needs to be inferred: the site's parent index page states '2023 Uganda Clinical Guidelines' (the HIV page itself carries no edition line). Still a mirror of the UCG chapter, not the 2022 HIV guideline.",
+  "urlUsed": "https://www.prescribingcompanion.com/uganda/infections-and-infectious-diseases-prescribing/hivaids-and-sexually-transmitted-infections/hiv-infection-and-aids-acquired-immunodeficiency-syndrome/"
+ }
+]

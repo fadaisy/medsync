@@ -73,6 +73,7 @@ function base(
       patientUserId: P,
       state: "in_progress",
       open: true,
+      encounterType: "opd",
       typeWord: "Outpatient visit",
       startedAt: "2026-09-20T08:30:00.000Z",
       triageRecordId: uuid(),
@@ -159,6 +160,7 @@ function base(
         summary: `/doctor/encounters/${encounterId}/print/summary`,
         referral: `/doctor/encounters/${encounterId}/print/referral`,
         labRequest: `/doctor/encounters/${encounterId}/print/lab-request`,
+        patientCopy: `/doctor/encounters/${encounterId}/print/patient-copy`,
       },
     },
     settings: {

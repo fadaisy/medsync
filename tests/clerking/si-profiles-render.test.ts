@@ -106,8 +106,8 @@ const render = (p: DeskPayload) =>
 const text = () => host.textContent ?? "";
 
 describe("every profile renders (§14)", () => {
-  it("has a name for each of the 272", () => {
-    expect(IDS).toHaveLength(272);
+  it("has a name for each of the 280 (272 + the diabetes pack's 8)", () => {
+    expect(IDS).toHaveLength(280);
     expect(IDS.filter((id) => !DX_NAMES[id])).toEqual([]);
   });
 

@@ -1,0 +1,60 @@
+// Live evaluator truth tables over the four states, plus point probes.
+import { writeFileSync } from "node:fs";
+import type { Criterion, Feature, Predicate, SiteProfile } from "@/lib/ncd/catalog/schema";
+import { evaluateCriterion, evaluatePredicate, type CaptureMap } from "@/lib/ncd/engine/evaluate";
+
+const S = ["met", "not_met", "insufficient", "unavailable"] as const;
+const cite = { standard: "local", version: "x", title: "x", needsCsoInput: "probe", csoSigned: false } as const;
+const site: SiteProfile = { id: "s", display: "s", standardPreference: ["WHO"], available: ["cap.ok"] };
+const feats: Feature[] = [];
+const values: CaptureMap = {};
+for (let i = 0; i < 4; i++) for (const s of S) {
+  const code = `f${i}_${s}`;
+  feats.push({ code, display: code, kind: "history", valueType: "boolean", section: "x", ...(s === "unavailable" ? { requires: "cap.missing" } : {}) });
+  if (s === "met") values[code] = { state: "recorded", value: true };
+  if (s === "not_met") values[code] = { state: "recorded", value: false };
+}
+const ctx = { values, features: new Map(feats.map((f) => [f.code, f])), site };
+const P = (i: number, s: string): Predicate => ({ feature: `f${i}_${s}`, op: "present" });
+const combos = (m: number): string[][] => (m === 0 ? [[]] : combos(m - 1).flatMap((c) => S.map((s) => [...c, s])));
+const out: Record<string, string> = {};
+for (let m = 1; m <= 3; m++) for (const c of combos(m)) {
+  const ps = c.map((s, i) => P(i, s));
+  const key = c.join(",");
+  out[`all|${key}`] = evaluateCriterion({ id: "c", label: "c", all: ps, citation: cite } as Criterion, ctx).state;
+  out[`any|${key}`] = evaluateCriterion({ id: "c", label: "c", any: ps, citation: cite } as Criterion, ctx).state;
+  for (let n = 1; n <= m; n++)
+    out[`atLeast${n}|${key}`] = evaluateCriterion({ id: "c", label: "c", atLeast: { n, of: ps }, citation: cite } as Criterion, ctx).state;
+}
+// multi-branch: all[a] + any[b] + atLeast1[c]
+for (const c of combos(3)) {
+  out[`mixed|${c.join(",")}`] = evaluateCriterion({ id: "c", label: "c", all: [P(0, c[0]!)], any: [P(1, c[1]!)], atLeast: { n: 1, of: [P(2, c[2]!)] }, citation: cite } as Criterion, ctx).state;
+}
+// point probes
+const pf: Feature[] = [
+  { code: "uk", display: "", kind: "investigation", valueType: "single_select", section: "x", options: [{ value: "neg", display: "" }, { value: "2plus", display: "" }] },
+  { code: "n", display: "", kind: "investigation", valueType: "number", unit: "u", section: "x" },
+  { code: "ms", display: "", kind: "history", valueType: "multi_select", section: "x", options: [{ value: "metformin", display: "" }, { value: "insulin", display: "" }, { value: "unknown", display: "" }] },
+  { code: "dur", display: "", kind: "history", valueType: "duration", unit: "years", section: "x" },
+  { code: "ser", display: "", kind: "measurement", valueType: "series", unit: "mmHg", section: "x" },
+  { code: "lab", display: "", kind: "investigation", valueType: "number", unit: "u", requires: "cap.missing", section: "x" },
+];
+const pctx = (v: CaptureMap) => ({ values: v, features: new Map(pf.map((f) => [f.code, f])), site });
+const probe = (name: string, p: Predicate, v: CaptureMap) => (out[`probe|${name}`] = evaluatePredicate(p, pctx(v)).state);
+probe("neg_present", { feature: "uk", op: "present" }, { uk: { state: "recorded", value: "neg" } });
+probe("zero_present", { feature: "n", op: "present" }, { n: { state: "recorded", value: 0 } });
+probe("emptylist_present", { feature: "ms", op: "present" }, { ms: { state: "recorded", value: [] } });
+probe("ms_ne_insulin_metformin", { feature: "ms", op: "!=", value: "insulin" }, { ms: { state: "recorded", value: ["metformin"] } });
+probe("ms_ne_insulin_unknown", { feature: "ms", op: "!=", value: "insulin" }, { ms: { state: "recorded", value: ["unknown"] } });
+probe("ms_ne_insulin_blank", { feature: "ms", op: "!=", value: "insulin" }, {});
+probe("ms_in_scalar", { feature: "ms", op: "in", value: "insulin" as unknown as string[] }, { ms: { state: "recorded", value: ["insulin"] } });
+probe("recorded_op", { feature: "n", op: "recorded" as never }, { n: { state: "recorded", value: 5 } });
+probe("unknown_feature", { feature: "nope", op: "present" }, {});
+probe("explicit_unavailable", { feature: "n", op: ">=", value: 1 }, { n: { state: "unavailable", capability: "cap.x" } });
+probe("lab_recorded_at_site_without_cap", { feature: "lab", op: ">=", value: 1 }, { lab: { state: "recorded", value: 2 } });
+probe("string_vs_number", { feature: "n", op: ">=", value: 1 }, { n: { state: "recorded", value: "HI" } });
+probe("duration_120mo_ge_10y", { feature: "dur", op: ">=", value: 10, unit: "years" }, { dur: { state: "recorded", value: { value: 120, unit: "months" } } });
+probe("series_latest", { feature: "ser", op: ">=", value: 140 }, { ser: { state: "recorded", value: [{ value: 160, at: "2026-01-01T08:00" }, { value: 130, at: "2026-01-01T09:00" }] } });
+out["probe|empty_criterion"] = evaluateCriterion({ id: "e", label: "e", citation: cite } as Criterion, ctx).state;
+writeFileSync("/private/tmp/claude-501/ncd-p0/live-truth.json", JSON.stringify(out, null, 1));
+console.log(Object.keys(out).length, "cases");

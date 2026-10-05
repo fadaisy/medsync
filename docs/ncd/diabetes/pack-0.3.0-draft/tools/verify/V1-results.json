@@ -1,0 +1,522 @@
+[
+ {
+  "ref": "REF-DM-ACT-REFER-ROUTINE",
+  "verdict": "confirmed",
+  "foundQuote": "Non-emergency referral should occur if one of the following is detected: | glycaemia treatment goal is not achieved despite compliance to treatment with oral medication (and insulin) | eGFR 30–59 mL/min/1.73 m2 | moderately and severely increased albuminuria | symptoms and signs of peripheral vascular disease | blood pressure >130/80 mmHg despite treatment with two medications | total cholesterol >8 mmol/L (310 mg/dL)",
+  "correctValue": null,
+  "note": "All six items match. The source heading is 'Non-emergency referral', not 'routine'. Read in three separate fetches.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-REFER-SAMEDAY",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Urgent (same day) referral should occur if one of the following is detected: | urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide | suspicion of ketoacidosis or HHS (see page 19) | hypoglycaemia unresolved by treatment (see page 19) | clinical suspicion of type 1 diabetes in newly diagnosed patient | symptoms/signs of coronary heart disease and stroke | recent deterioration of vision | blood pressure >200/>110 mmHg | blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output | infected foot ulcer with or without symptoms of systemic infection; gangrene | critical limb ischaemia | anuria or eGFR <30 mL/min/1.73 m2",
+  "correctValue": null,
+  "note": "List confirmed, including 'anuria or eGFR <30' in the urgent (same day) list. Two gaps in the entry: (1) it omits a whole bullet, 'blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output'; (2) ketone operator is inconsistent inside the document: section 4 prints 'urine ketones >2+' but Fig. 1 (p.16) prints 'Urine ketones ≥2+' leading to 'REFER to higher level of care'. A patient at exactly 2+ is referred under Fig. 1 and not under a literal reading of section 4. Use >=2+.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-REVIEW-AFTER-CHANGE",
+  "verdict": "not_found",
+  "foundQuote": "Fig. 1: 'REVIEW IN 1 MONTH' and 'REVIEW IN 1 MONTH (or immediately if symptoms appear)'. Fig. 2: 'BEGIN METFORMIN [dose omitted] once daily. Counsel on diet and physical activity and adherence at ALL visits' then 'REVIEW IN 3 MONTHS' then 'If goal not achieved increase dose to [dose omitted]'. Annex 1: 'REVIEW in 3 days'; 'IF stabilized REVIEW with HbA1c in 3 months'. PEN training manual: Review blood glucose control in 3 months",
+  "correctValue": null,
+  "note": "Fig. 1 is a two-arm flowchart and the fetch tool returns only its text stream; asked directly, it answered 'cannot determine' for where each REVIEW label sits. Labels read in Fig. 1: 'REVIEW in 3–5 days', 'REVIEW in 2–3 months', 'REVIEW IN 1 MONTH', 'REVIEW IN 1 MONTH (or immediately if symptoms appear)', 'REVIEW IN 3 MONTHS (or immediately if symptoms appear)' (the last repeated several times). So the words 'REVIEW IN 1 MONTH' exist in Fig. 1 (twice), but I could not establish that they follow 'a treatment change' in general. What I could read points the other way: Fig. 2 prints 'REVIEW IN 3 MONTHS' after starting metformin and after each dose step, and the entry's own recorded quote says 3 months. The text order suggests the 1-month labels belong to the severe-hyperglycaemia arm (after dual therapy and the 3-5 day review), but that is an inference, not a reading. Do not use 1 month as a general post-change interval until someone looks at the printed figure on p.16. Extra evidence from the WHO PEN training manual (who.int): after a change of therapy in a worked case it says 'Review blood glucose control in 3 months'; the manual states no 1-month interval.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-BP-REFER-DBP",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "blood pressure >200/>110 mmHg | blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output",
+  "correctValue": null,
+  "note": "Diastolic >110 confirmed, strict '>' operator, in the urgent (same day) list. The previous researcher's recorded quote elided the blood pressure bullets altogether. The source writes '>200/>110' without saying whether systolic and diastolic are joined by AND or OR; a rule that fires on diastolic >110 alone is an interpretation. A second bullet uses the same diastolic with a lower systolic (>180) when symptoms are present.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-BP-REFER-SBP",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "blood pressure >200/>110 mmHg | blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output",
+  "correctValue": null,
+  "note": "Systolic >200 confirmed (strict '>'). Missing qualifier: the same list has a second bullet at systolic >180 (with diastolic >110) when the patient has headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting or reduced urine output. A rule that knows only 200 will miss symptomatic patients between 181 and 200. AND/OR between systolic and diastolic is not stated in the source.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-FPG-SEVERE-SYMPT",
+  "verdict": "confirmed",
+  "foundQuote": "FPG ≥15 mmol/L and SYMPTOMATIC or FPG/RPG >18 mmol/L, regardless of symptoms",
+  "correctValue": null,
+  "note": "Read in Fig. 1 (p.16), three fetches. Fig. 2 (p.25) has no 15 mmol/L stratum; it prints only 'FPG/RPG >18 mmol/l ( 325 mg/dl)'. Note '>18' in both figures versus '≥18' in the Diagnostic tests text.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACU-REFER-ALL",
+  "verdict": "confirmed",
+  "foundQuote": "Refer to hospital all patients with suspected DKA or HHS. | Table 5: DKA plasma glucose ≥13.9 mmol/L (250 mg/dL), occasionally lower; urine ketones Positive. HHS plasma glucose ≥33.3 mmol/L (600 mg/dL); urine ketones Negative (or weakly positive). | suspicion of ketoacidosis or HHS (see page 19)",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CLS-T1-SAMEDAY",
+  "verdict": "confirmed",
+  "foundQuote": "Urgent (same day) referral should occur if one of the following is detected: [...] clinical suspicion of type 1 diabetes in newly diagnosed patient",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-FPG-SURROGATE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates. | Fig. 2: Goal for glycaemic control Plasma glucose** Fasting ≤7.0 mmol/l (126mg/dl)† | Table 7: HbA1c <7.0% (53 mmol/mol), or FPG <7.0 mmol/L (126mg/dL) and (if available) a postprandial PG value <9.0 mmol/L (160 mg/dL)",
+  "correctValue": null,
+  "note": "Value and '≤' confirmed on p.17 and in the Fig. 2 goal box. But Table 7 (p.27), which the entry's second claim A2-58 cites, prints 'FPG <7.0 mmol/L' for the control-rate indicator (read three times as '<'). The document disagrees with itself at exactly 7.0 mmol/L. The clinical target is ≤7.0; the programme indicator is <7.0. Keep the two apart in the catalogue.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-HBA1C-RELAXED",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy. | Fig. 2 footnote: † Consider less stringent glycaemic control in patients with frequent severe hypoglycaemia, advanced complications, serious comorbidities and/or limited life expectancy.",
+  "correctValue": null,
+  "note": "'<8%' confirmed, but the source offers it as an example ('e.g. to <8%'), not a fixed target. 'Frailty' is not in the WHO wording I read (neither the p.17 sentence nor the Fig. 2 footnote); it comes from the entry's other claim (ADA, not checked by me). 'Serious comorbidity' is in the Fig. 2 footnote.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-HBA1C-TARGET",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "The majority of patients can be expected to aim for an HbA1c of 7.0% | Table 7: HbA1c <7.0% (53 mmol/mol), or FPG <7.0 mmol/L (126mg/dL) and (if available) a postprandial PG value <9.0 mmol/L (160 mg/dL) | Fig. 2: ** HbA1c should be used where available.",
+  "correctValue": null,
+  "note": "The number 7.0% is right. The operator 'at or below' is not printed anywhere I could read for HbA1c: p.17 gives no operator ('aim for an HbA1c of 7.0%'), the Fig. 2 goal box gives an operator only for fasting glucose, and Table 7 (control-rate indicator) prints 'HbA1c <7.0%'. So at exactly 7.0% the WHO text is silent and the WHO indicator says not controlled. The entry's other claims (ADA rec 6.3a, IDF 2025) were not checked here; if they also say '<7%', the rule operator should be '<', or the entry should say the operator is the catalogue's own choice.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-INSULIN-FPG-LOW",
+  "verdict": "confirmed",
+  "foundQuote": "CONTINUE INCREASING DOSAGE by [dose omitted] at 3-day intervals until FBG = 4–7 mmol/L | IF FBG <4 mmol/L or if nocturnal hypoglycaemia occurs | IF FBG 4–7 mmol/L and daytime hypoglycaemia occurs REDUCE morning gliclazide",
+  "correctValue": null,
+  "note": "Lower bound 4 mmol/L confirmed in Annex 1 (source writes 'FBG', fasting blood glucose, and '4–7', not '4.0'). The previously recorded quote did not contain the number 4; use the quote here instead.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-INSULIN-REFER-HBA1C",
+  "verdict": "confirmed",
+  "foundQuote": "IF HbA1c >7.5% REFER to higher level of care for intensification | IF stabilized REVIEW with HbA1c in 3 months",
+  "correctValue": null,
+  "note": "Strict '>' confirmed.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-PPG-SURROGATE",
+  "verdict": "confirmed",
+  "foundQuote": "an FPG value of ≤7.0 mmol/L (126mg/dL) and a postprandial PG value of ≤9.0 mmol/L (160 mg/dL) can serve as surrogates.",
+  "correctValue": null,
+  "note": "p.17 confirmed with '≤'. Table 7 (p.27) prints '<9.0 mmol/L' for the indicator. The Fig. 2 goal box, as returned to me, shows only the fasting value.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-ANTIPLATELET",
+  "verdict": "confirmed",
+  "foundQuote": "Use of antiplatelet treatment is recommended only for secondary prevention of CVD events, even among patients with diabetes.",
+  "correctValue": null,
+  "note": "Source continues with a recommendation for people who have survived a CVD event and have no history of major bleeding (dose not recorded).",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-DBP",
+  "verdict": "confirmed",
+  "foundQuote": "Hypertension treatment is indicated in people with diabetes when systolic blood pressure ≥130 mmHg or diastolic blood pressure ≥80 mmHg. [...] Maintain blood pressure levels at <130/80 mmHg with an angiotensin-converting enzyme (ACE) inhibitor and add thiazide diuretic if required. | Thiazide diuretics and ACE inhibitors are recommended to achieve a target blood pressure of <130/80 mmHg.",
+  "correctValue": null,
+  "note": "Treat at ≥80, target <80. Operators match the entry.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-REFER-MEDS",
+  "verdict": "confirmed",
+  "foundQuote": "blood pressure >130/80 mmHg despite treatment with two medications",
+  "correctValue": null,
+  "note": "In the 'Non-emergency referral' list.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-SBP",
+  "verdict": "confirmed",
+  "foundQuote": "Hypertension treatment is indicated in people with diabetes when systolic blood pressure ≥130 mmHg or diastolic blood pressure ≥80 mmHg. [...] Maintain blood pressure levels at <130/80 mmHg with an angiotensin-converting enzyme (ACE) inhibitor and add thiazide diuretic if required. | Thiazide diuretics and ACE inhibitors are recommended to achieve a target blood pressure of <130/80 mmHg.",
+  "correctValue": null,
+  "note": "Treat at ≥130, target <130. Operators match the entry.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-STATIN-AGE",
+  "verdict": "confirmed",
+  "foundQuote": "Statins are recommended for all people with type 2 diabetes 40 years old or older, but only if this does not negatively impact access to glucose-lowering and blood pressure-lowering medication. | Statins are recommended for all patients of 40 years of age and older with diabetes.",
+  "correctValue": null,
+  "note": "Age 40 and 'or older' confirmed. The p.17 sentence is conditional on not harming access to glucose- and blood-pressure-lowering medicines, and the lipid section adds a fallback where universal use is not feasible: 'use statins in patients at highest risk of CVD events (e.g. patients with CVD, patients with nephropathy and/or patients with a high risk on a CVD risk prediction chart)'. The entry text ('a statin for everyone') drops that condition.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-TC-REFER",
+  "verdict": "confirmed",
+  "foundQuote": "total cholesterol >8 mmol/L (310 mg/dL)",
+  "correctValue": null,
+  "note": "In the 'Non-emergency referral' list. Strict '>'.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-FPG",
+  "verdict": "confirmed",
+  "foundQuote": "Fasting venous or capillary** plasma glucose | ≥7.0 mmol/L (126 mg/dL) || 2-hour post-load venous plasma glucose | ≥11.1 mmol/L (200 mg/dL) || 2-hour post-load capillary** plasma glucose | ≥12.2 mmol/L (220 mg/dL) || Random plasma glucose | ≥11.1 mmol/L (200 mg/dL) | To be used only in the presence of symptoms || HbA1c*** | 6.5% (48 mmol/mol)",
+  "correctValue": null,
+  "note": "Table 3 read twice. WHO 2006 summary table also read: Diabetes fasting plasma glucose '≥7.0mmol/l (126mg/dl)'. Footnote: 'Overnight fast of 8–14 hours.'",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-OGTT2H",
+  "verdict": "confirmed",
+  "foundQuote": "Fasting venous or capillary** plasma glucose | ≥7.0 mmol/L (126 mg/dL) || 2-hour post-load venous plasma glucose | ≥11.1 mmol/L (200 mg/dL) || 2-hour post-load capillary** plasma glucose | ≥12.2 mmol/L (220 mg/dL) || Random plasma glucose | ≥11.1 mmol/L (200 mg/dL) | To be used only in the presence of symptoms || HbA1c*** | 6.5% (48 mmol/mol)",
+  "correctValue": null,
+  "note": "Table 3 read twice. WHO 2006 summary table: 2-h plasma glucose '≥11.1mmol/l (200mg/dl)', footnote 'Venous plasma glucose 2–h after ingestion of 75g oral glucose load'.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-OGTT2H-CAP",
+  "verdict": "confirmed",
+  "foundQuote": "2-hour post-load capillary** plasma glucose | ≥12.2 mmol/L (220 mg/dL) | Venous plasma glucose is the standard method for measuring and reporting. However, in recognition of the widespread use of capillary sampling, especially in low-resource settings, values for capillary plasma glucose are provided for post-load glucose values. Fasting values for venous and capillary plasma glucose are identical.",
+  "correctValue": null,
+  "note": "12.2 mmol/L with '≥' confirmed in two separate fetches (one asked point-blank whether it was 11.1 or 12.2).",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-POC-WHO",
+  "verdict": "confirmed",
+  "foundQuote": "If laboratory measurement is not available, point of care, (\"finger stick\") devices can be used (they report glucose values in capillary plasma). | If plasma glucose measurement is not possible, urine glucose testing can be used to confirm suspicion of diabetes in people with symptoms. A negative urine test does not exclude diabetes, but it excludes severe hyperglycaemia.",
+  "correctValue": null,
+  "note": "The point-of-care sentence is the Table 3 footnote (**), not body text. The previously recorded quote did not contain it. The source adds that a negative urine test 'excludes severe hyperglycaemia', which the entry leaves out.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-RANDOM",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Random plasma glucose | ≥11.1 mmol/L (200 mg/dL) | To be used only in the presence of symptoms",
+  "correctValue": null,
+  "note": "Value, operator and the symptoms condition confirmed. The entry's parenthesis '(or a hyperglycaemic crisis)' is not in HEARTS-D Table 3; it is wording from the entry's second claim (ADA 'Confirming the Diagnosis'), which I did not open. Attribute that phrase to ADA, not WHO.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-DX-REPEAT-WHO",
+  "verdict": "confirmed",
+  "foundQuote": "In asymptomatic people, repeat the test to confirm the diagnosis, preferably with the same test, as soon as practicable on a subsequent day. | Fig. 1: IF ASYMPTOMATIC repeat test on subsequent day",
+  "correctValue": null,
+  "note": "Also read in WHO 2011 (NBK304271): 'The diagnosis of diabetes in an asymptomatic person should not be made on the basis of a single abnormal plasma glucose or HbA1c value.' and in WHO 1999 section 2.2.1: 'The diagnosis of diabetes in an asymptomatic subject should never be made on the basis of a single abnormal blood glucose value.'",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-INTERVAL-WHO",
+  "verdict": "confirmed",
+  "foundQuote": "People with type 2 diabetes should be screened for retinopathy by a trained person upon diagnosis, and biennially thereafter, or as recommended by an ophthalmologist, for: visual acuity; direct or indirect ophthalmoscopy (dilated pupils) or retinal fundus photography. | Fig. 2: REFER for dilated-pupil retinal exam upon diagnosis, and every two years thereafter, or as per ophthalmologist recommendation",
+  "correctValue": null,
+  "note": "Biennially = every two years = 24 months; conversion is sound. PEN training manual agrees: 'upon diagnosis and every 2 years thereafter'. Qualifier in the source: 'or as recommended by an ophthalmologist'. The WHO Europe screening guide (apps.who.int, claim A7-48) was not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-EYE-METHOD",
+  "verdict": "confirmed",
+  "foundQuote": "People with type 2 diabetes should be screened for retinopathy by a trained person upon diagnosis, and biennially thereafter, or as recommended by an ophthalmologist, for: visual acuity; direct or indirect ophthalmoscopy (dilated pupils) or retinal fundus photography.",
+  "correctValue": null,
+  "note": "Other claims (A7-14, A7-22) not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-FOOT-EVERY-VISIT",
+  "verdict": "confirmed",
+  "foundQuote": "Examine feet for ulcers at every visit. REFER to higher level of care if ulcer present | Assess risk of lower limb amputation annually (foot pulses, sensory neuropathy by monofilament, presence of healed or open ulcers, calluses) | REFER to higher level of care if ulcer present or pulse absent",
+  "correctValue": null,
+  "note": "Read in the Fig. 2 panel. The foot annex grades the reassessment interval by risk: 'Patients at low risk can be assessed annually, those at moderate risk every 3–6 months, and those at high risk every 1–3 months.' 'Yearly' is therefore the low-risk interval only.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-HYPO-WHO-IV",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Unconscious patients, those with plasma glucose ≤2.8 mmol/L (50 mg/dL) and those unable to to ingest drink should be given hypertonic glucose (dextrose) intravenously [dose omitted]. | Fig. 2: Severe hypoglycaemia (plasma glucose <50 mg/dl or 2.8 mmol/l) or signs:",
+  "correctValue": null,
+  "note": "Body text (pp.18-19) confirms '≤2.8 mmol/L (50 mg/dL)'. The Fig. 2 panel, which the entry also cites, prints '<50 mg/dl or 2.8 mmol/l' (strict). The operator differs inside the same document; '≤' is the safer one. Also confirmed: 'It is most frequently defined at plasma glucose of ≤3.9 mmol/L (70 mg/dL), when it should be managed even if there are no symptoms and signs.'",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-DIPSTICK",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Urinary albumin excretion can be estimated in a spot urine sample using several tests (from most preferred to least preferred): urine albumin-to-creatinine ratio (ACR); urine protein-to-creatinine ratio (PCR); reagent strip (\"dipstick\") urine analysis for albumin or total protein with automated reading; reagent strip (\"dipstick\") urine analysis for albumin or total protein with manual reading. | KDIGO 2024 Practice Point 1.3.1.2: Confirm reagent strip positive albuminuria and/or proteinuria by quantitative laboratory measurement and express as a ratio to urine creatinine wherever possible (i.e., quantify the ACR or PCR if initial semiquantitative tests are positive).",
+  "correctValue": null,
+  "note": "The ranking is WHO HEARTS-D and is correct. The second sentence of the entry ('A positive strip must be confirmed by a laboratory ratio') is NOT in HEARTS-D: two separate fetches of the kidney section found no such sentence. It is KDIGO 2024 Practice Point 1.3.1.2 (read at the kdigo.org summary), whose wording is 'wherever possible', not 'must'. Attribute that sentence to KDIGO. Table 6 as read: moderately increased 30–300 mg/g (3–30 mg/mmol), dipstick Trace/1+; severely increased >300 mg/g (>30 mg/mmol), dipstick 1+/2+.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-ROUTINE-REFER-EGFR",
+  "verdict": "confirmed",
+  "foundQuote": "eGFR 30–59 mL/min/1.73 m2 | moderately and severely increased albuminuria",
+  "correctValue": null,
+  "note": "In the 'Non-emergency referral' list.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-SCREEN-INTERVAL",
+  "verdict": "confirmed",
+  "foundQuote": "People with type 2 diabetes should be screened once a year with either the albumin/creatinine ratio in a spot urine sample or with eGFR using serum creatinine (preferably both tests, for better prognostic ability). | Fig. 2: Test for proteinuria annually. REFER to higher level of care if positive.",
+  "correctValue": null,
+  "note": "'Once a year' = 12 months; conversion is sound. The source says 'once a year', not 'at least' once a year, and 'either ... or ... (preferably both)'. PEN training manual: 'Once a year monitor the albumin/creatinine ratio in a spot urine sample and serum creatinine'. ADA claim A6-09 not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-GLIB-AGE",
+  "verdict": "confirmed",
+  "foundQuote": "Glibenclamide is not recommended in: | people aged 60 years or older | people with severe liver disease | in patients for whom hypoglycaemia is a concern | people who drive or operate machinery as part of their job",
+  "correctValue": null,
+  "note": "'60 years or older' = at or above 60; matches. Other claims (EML, ADA) not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-LADDER-WHO",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Metformin does not cause weight gain or hypoglycaemia and is the recommended initial treatment for people who do not achieve the desired glycaemic control with diet and physical activity. | Add a second-generation sulfonylurea (preferably gliclazide) to metformin in patients with inadequately controlled glycaemia on metformin, along with diet and physical activity. | Refer for insulin treatment or add human insulin to oral medication. | If insulin is unsuitable, a DPP-4 inhibitor, SGLT-2 inhibitor or a thiazolidinedione (TZD) may be added, but these are not recommended for routine use due to high cost and, with the exception of SGLT-2 inhibitors, uncertain benefit. | Fig. 1: Counsel on diet and physical activity and adherence to medicines at all visits / IF goal not achieved BEGIN METFORMIN [dose omitted] daily | Fig. 2: BEGIN METFORMIN [dose omitted] once daily. Counsel on diet and physical activity and adherence at ALL visits / REVIEW IN 3 MONTHS",
+  "correctValue": null,
+  "note": "The ladder order is confirmed by the body text (pp.14-15). Three qualifiers the entry lacks. (1) When metformin starts: the body text and Fig. 1 make metformin conditional ('for people who do not achieve the desired glycaemic control with diet and physical activity'; 'IF goal not achieved BEGIN METFORMIN'), but Fig. 2, the WHO-PEN-derived protocol on p.25, starts metformin at diagnosis together with counselling ('BEGIN METFORMIN [dose omitted] once daily. Counsel on diet and physical activity and adherence at ALL visits', no 'if goal not achieved'). The document carries both; the catalogue should say which it follows. (2) 'Review 3 months after each step' holds for Fig. 2 only; Fig. 1 also prints 'REVIEW in 3–5 days', 'REVIEW in 2–3 months' and 'REVIEW IN 1 MONTH', whose positions I could not read. (3) Fig. 2 footnote: 'If they are more affordable than insulin, DPP4-inhibitors, SGLT2-inhibitors or pioglitazone can be used before insulin in cases of treatment failure with metformin and gliclazide', which is wider than 'only if insulin is unsuitable'. Fig. 1 also has a separate arm for severe hyperglycaemia that starts two medicines at once. WHO 2018 guideline (NBK532235) not opened. The WHO PEN training manual says 'Metformin is recommended as the first-line medicine in the treatment of diabetes. Sulfonylurea is recommended as the second-line treatment, and human insulin as the third-line treatment.' and, as relayed by the reader, its case studies prescribe metformin alongside lifestyle advice at diagnosis.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-METFORMIN-CONTRA",
+  "verdict": "confirmed",
+  "foundQuote": "Metformin is contraindicated in: | people with chronic kidney disease (estimated glomerular filtration rate (eGFR) <30 mL/minute/1.73m2) | people with severe reduced liver function | people with acute cardiac insufficiency | people with respiratory insufficiency | people who abuse alcohol | people with history of lactic acidosis",
+  "correctValue": null,
+  "note": "In the source 'acute' qualifies cardiac insufficiency only; respiratory insufficiency is its own bullet without 'acute'.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-METFORMIN-STOP-EGFR",
+  "verdict": "confirmed",
+  "foundQuote": "people with chronic kidney disease (estimated glomerular filtration rate (eGFR) <30 mL/minute/1.73m2)",
+  "correctValue": null,
+  "note": "Strict '<30' confirmed. ADA and KDIGO claims not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-SUS-AGE-WHO",
+  "verdict": "confirmed",
+  "foundQuote": "Fig. 1: TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) | Fig. 2: Test adults who are 40+ years old with BMI >25 with FPG",
+  "correctValue": null,
+  "note": "Age '40+' confirmed in both figures, joined to BMI by 'and'. Table 2 (p.12), which the entry's section line cites, is titled 'Symptoms and signs of diabetes' and carries no age or BMI threshold; the threshold is in Fig. 1 and Fig. 2 only.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-SUS-BMI",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Fig. 1: TEST ASYMPTOMATIC ADULTS who are 40+ years old and BMI ≥25 (FPG) | Fig. 2: Test adults who are 40+ years old with BMI >25 with FPG",
+  "correctValue": null,
+  "note": "25 confirmed. Operator differs between the two protocols in the same document: Fig. 1 (p.16) prints 'BMI ≥25', Fig. 2 (p.25) prints 'BMI >25'. The entry's 'at or above' follows Fig. 1. Table 2 (p.12) has no BMI threshold. ADA claim A3-22 not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-IH-IFG-WHO",
+  "verdict": "confirmed",
+  "foundQuote": "Impaired Fasting Glucose (IFG): fasting plasma glucose 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) 2-h plasma glucose <7.8mmol/l (140mg/dl) | Recommendation 4: The fasting plasma glucose cut-point for Impaired Fasting Glucose (IFG) should remain at 6.1mmol/l. | * If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
+  "correctValue": null,
+  "note": "Title confirmed: WHO/IDF consultation, 2006.",
+  "urlUsed": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7"
+ },
+ {
+  "ref": "REF-DM-IH-IGT",
+  "verdict": "confirmed",
+  "foundQuote": "Impaired Glucose Tolerance (IGT): fasting plasma glucose <7.0mmol/l (126mg/dl) and 2-h plasma glucose ≥7.8 and <11.1mmol/l (140mg/dl and 200mg/dl) | * Venous plasma glucose 2–h after ingestion of 75g oral glucose load",
+  "correctValue": null,
+  "note": "'≥7.8' and upper bound '<11.1' confirmed; the value is for venous plasma. ADA claim not opened.",
+  "urlUsed": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7"
+ },
+ {
+  "ref": "REF-DM-IH-OGTT-NEXT",
+  "verdict": "confirmed",
+  "foundQuote": "An OGTT should be used in individuals with fasting plasma glucose 6.1–6.9mmol/l (110–125mg/dl) to determine glucose tolerance status.",
+  "correctValue": null,
+  "note": "Recommendation 6, verbatim.",
+  "urlUsed": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7"
+ },
+ {
+  "ref": "REF-DM-CLS-KPD",
+  "verdict": "confirmed",
+  "foundQuote": "Ketosis-prone type 2 diabetes is an unusual form of non-immune ketosis-prone diabetes first reported in young African-Americans in Flatbush, New York, USA. Subsequently similar phenotypes were described in populations in sub-Saharan African. | Typically, those affected present with ketosis and evidence of severe insulin deficiency but later go into remission and do not require insulin treatment. Reports suggest that further ketotic episodes occur in 90% of these people within 10 years.",
+  "correctValue": null,
+  "note": "Listed under 'Hybrid forms of diabetes' in Table 2. Title, year and ISBN 978-92-4-151570-2 confirmed. The source adds that further ketotic episodes are reported in 90% within 10 years, which the entry text omits and which matters for follow-up.",
+  "urlUsed": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04"
+ },
+ {
+  "ref": "REF-DM-CLS-SLOW-IMMUNE",
+  "verdict": "confirmed",
+  "foundQuote": "There are no universally agreed criteria for this subtype of diabetes, but three criteria are often used: positivity for GAD autoantibodies, age older than 35 years at diagnosis, and no need for insulin therapy in the first 6–12 months after diagnosis.",
+  "correctValue": null,
+  "note": "Verbatim match.",
+  "urlUsed": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04"
+ },
+ {
+  "ref": "REF-DM-CLS-UNCLASSIFIED",
+  "verdict": "confirmed",
+  "foundQuote": "Consequently, a category of 'unclassified diabetes' has been introduced. For most individuals given this label at diagnosis, it is a temporary category as they can be classified into an appropriate type at some point after diagnosis. | Until there is a definite diagnosis of the type of diabetes, a classification of 'unclassified' should be used and attempts to classify the type of diabetes should continue to support appropriate management decisions.",
+  "correctValue": null,
+  "note": "Second recorded sentence matched verbatim. The first recorded sentence (Table 2 description, 'This category should be used temporarily...') was not returned to me verbatim; the body-text sentence quoted here says the same thing.",
+  "urlUsed": "https://medbox.org/index.php/dl/665314975b72dd201c23ba04"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-DIET",
+  "verdict": "confirmed",
+  "foundQuote": "People with diabetes should be advised to eat a healthy balanced diet that is applicable to the general population. | Overweight patients should be advised to reduce weight by reducing their food (calorie) intake. | All patients should be advised on avoidance of tobacco use and harmful use of alcohol.",
+  "correctValue": null,
+  "note": "",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-FOOT",
+  "verdict": "confirmed",
+  "foundQuote": "Inspect your feet daily. Check for cuts, blisters, redness, swelling, or nail problems. | Keep your feet clean by washing them daily. | Dry by blotting or patting, and dry carefully between the toes. | Cut nails carefully. Cut them straight across and file the edges. | Never walk barefoot, not even at home. Always wear shoes or slippers. | Wear socks and appropriate footwear. The inside length of the shoe should be 1–2 cm longer than your foot, and should be neither too tight nor too loose.",
+  "correctValue": null,
+  "note": "Every element of the entry is in the foot annex list. The one-line quote recorded earlier ('Patients with diabetes should receive counselling on avoidance of foot complications') was not returned to me; use the list quoted here. IWGDF claim not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-HYPO",
+  "verdict": "confirmed",
+  "foundQuote": "Discuss hypoglycaemia risk factors with the patient (skipping meals, physical activity more intense than usual, alcohol ingestion) and adjust medication if necessary. | Fig. 2: ADD gliclazide [dose omitted]. Counsel on hypoglycaemia at all subsequent visits",
+  "correctValue": null,
+  "note": "Same sentence read in the PEN training manual. The source sentence does not itself say 'on insulin or a sulfonylurea'; that framing comes from the hypoglycaemia section's context and the Fig. 2 instruction to counsel on hypoglycaemia once gliclazide is added.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-PA-MIN",
+  "verdict": "confirmed",
+  "foundQuote": "Most adults should engage in at least 150 minutes of moderate or vigorous-intensity aerobic activity per week, spread over at least 3 days.",
+  "correctValue": null,
+  "note": "WHO 2020 physical activity guideline (NBK566046) not opened.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EVERY-VISIT",
+  "verdict": "confirmed",
+  "foundQuote": "Measure blood pressure at every scheduled visit, review medication as per hypertension protocol | Examine feet for ulcers at every visit. REFER to higher level of care if ulcer present | Counsel on diet and physical activity and adherence at ALL visits | Fig. 1: Counsel on diet and physical activity and adherence to medicines at all visits",
+  "correctValue": null,
+  "note": "All three elements read in Fig. 2 (p.25) and Fig. 1 (p.16). The quote recorded earlier for this entry is about retinal and kidney screening and does not support the every-visit claim; replace it with the quotes here.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-REVIEW",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "REVIEW IN 3 MONTHS (or immediately if symptoms appear) | REVIEW IN 1 MONTH | REVIEW IN 1 MONTH (or immediately if symptoms appear) | IF stabilized REVIEW with HbA1c in 3 months",
+  "correctValue": null,
+  "note": "First half confirmed ('REVIEW IN 3 MONTHS (or immediately if symptoms appear)'). Second half ('review 1 month after a treatment change') not established. Fig. 1 is a two-arm flowchart and the fetch tool returns only its text stream; asked directly, it answered 'cannot determine' for where each REVIEW label sits. Labels read in Fig. 1: 'REVIEW in 3–5 days', 'REVIEW in 2–3 months', 'REVIEW IN 1 MONTH', 'REVIEW IN 1 MONTH (or immediately if symptoms appear)', 'REVIEW IN 3 MONTHS (or immediately if symptoms appear)' (the last repeated several times). Fig. 2 prints 'REVIEW IN 3 MONTHS' after starting metformin and after each dose step. Someone needs to look at the printed Fig. 1 to see what the 1-month label follows.",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-REVIEW-MONTHS",
+  "verdict": "confirmed",
+  "foundQuote": "REVIEW IN 3 MONTHS (or immediately if symptoms appear) | Fig. 2: REVIEW IN 3 MONTHS | Annex 1: IF stabilized REVIEW with HbA1c in 3 months",
+  "correctValue": null,
+  "note": "3 months is the commonest interval in both figures. Fig. 1 also carries shorter and other intervals (3–5 days, 1 month, 2–3 months).",
+  "urlUsed": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-PREG-DIP",
+  "verdict": "confirmed",
+  "foundQuote": "fasting plasma glucose ≥ 7.0 mmol/l (126 mg/dl) | 2-h plasma glucose ≥ 11.1 mmol/l (200 mg/dl) following a 75g oral glucose load | random plasma glucose ≥ 11.1 mmol/l (200 mg/dl) in the presence of diabetes symptoms",
+  "correctValue": null,
+  "note": "Recommendation 4.2. HbA1c is not in the list. 4.1 also read: 'Hyperglycaemia first detected at any time during pregnancy should be classified as either: diabetes mellitus in pregnancy [or] gestational diabetes mellitus'.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK169023/"
+ },
+ {
+  "ref": "REF-DM-PREG-GDM-1H",
+  "verdict": "confirmed",
+  "foundQuote": "1-h post 75g oral glucose load >=10.0 mmol/l (180 mg/dl)",
+  "correctValue": null,
+  "note": "Recommendation 4.3. Footnote in the source: 'there are no established criteria for the diagnosis of diabetes based on the 1-hour post-load value'.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK169023/"
+ },
+ {
+  "ref": "REF-DM-PREG-GDM-2H",
+  "verdict": "confirmed",
+  "foundQuote": "2-h post 75g oral glucose load 8.5 – 11.0 mmol/l (153-199 mg/dl)",
+  "correctValue": null,
+  "note": "Recommendation 4.3. Range 8.5 to 11.0; 11.1 or above is diabetes in pregnancy (4.2).",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK169023/"
+ },
+ {
+  "ref": "REF-DM-PREG-GDM-FPG",
+  "verdict": "confirmed",
+  "foundQuote": "Fasting plasma glucose = 5.1-6.9 mmol/l (92 -125 mg/dl)",
+  "correctValue": null,
+  "note": "Recommendation 4.3. Range 5.1 to 6.9; 7.0 or above is diabetes in pregnancy (4.2).",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK169023/"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-DRUGS",
+  "verdict": "confirmed",
+  "foundQuote": "1. Erythropoiesis. Increased HbA1c: iron, vitamin B12 deficiency, decreased erythropoiesis. Decreased HbA1c: administration of erythropoietin, iron, vitamin B12, reticulocytosis, chronic liver disease. | 4. Erythrocyte destruction. Increased HbA1c: increased erythrocyte life span: Splenectomy. Decreased HbA1c: decreased erythrocyte life span: haemoglobinopathies, splenomegaly, rheumatoid arthritis or drugs such as antiretrovirals, ribavirin and dapsone.",
+  "correctValue": null,
+  "note": "Direction of every listed factor checked individually. Annex 1 is adapted from Gallagher et al., so this is WHO reprinting a published table.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK304266/"
+ },
+ {
+  "ref": "REF-DM-DX-HBA1C",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "HbA1c can be used as a diagnostic test for diabetes providing that stringent quality assurance tests are in place and assays are standardised to criteria aligned to the international reference values, and there are no conditions present which preclude its accurate measurement. | An HbA1c of 6.5% is recommended as the cut point for diagnosing diabetes. | A value of less than 6.5% does not exclude diabetes diagnosed using glucose tests.",
+  "correctValue": null,
+  "note": "6.5% confirmed as the WHO 2011 cut point. Neither WHO 2011 nor HEARTS-D Table 3 ('HbA1c*** | 6.5% (48 mmol/mol)') prints an operator; 'at or above' is the ordinary reading of 'cut point' and is explicit only in the ADA claim, which I did not open. HEARTS-D footnote to the HbA1c row: 'Plasma glucose is preferred in people with symptoms who are suspected of having type 1 diabetes.'",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK304271/"
+ },
+ {
+  "ref": "REF-DM-SUS-ONE-TEST-WEAK",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "WHO 2011: A value of less than 6.5% does not exclude diabetes diagnosed using glucose tests. | Chivese (Diabetic Medicine): Against OGTT, HbA1c at ≥48 mmol/mol (6.5%) had a pooled sensitivity of 57.7% (95% confidence interval [CI] 43.4–70.9) and specificity of 92.3% | Baye 2025: The sensitivity of FPG in identifying diabetes cases was 44.3% at a cut-off 126 mg/dL with a specificity of 99.3%. / FPG failed to detect 34.1% of all prediabetes and 44.4% of all diabetes cases. | Kasujja 2022: the HBA1C and FPG tests had comparable sensitivity [69.8% (95% CI 46.3–86.1) versus 62.6% (95% CI 41.5–79.8), respectively]",
+  "correctValue": null,
+  "note": "A synthesis, not a quotation, and correctly labelled as such. The component numbers were read at the three other-claim URLs. 'A third or more' holds for Chivese (HbA1c misses about 42%) and Baye (FPG misses 44% or more; the abstract's 44.3% sensitivity and '44.4% missed' do not add up, so quote one of them, not both), and for FPG in Kasujja (about 37%). Kasujja's HbA1c sensitivity of 69.8% means about 30% missed, just under a third, with a wide interval. Baye reports FPG only, not HbA1c. OpenAlex lists Chivese as 2021, not 2022. 'The 2-hour OGTT is the most sensitive test' is true by construction in these studies (the OGTT is the reference standard); none of the passages I read states it as a finding. ADA Section 2 not opened.",
+  "urlUsed": "https://www.ncbi.nlm.nih.gov/books/NBK304271/ ; https://api.openalex.org/works/doi:10.1111/dme.14754 ; https://pmc.ncbi.nlm.nih.gov/articles/PMC11979980/ ; https://api.plos.org/search?q=id:%2210.1371/journal.pone.0272515%22"
+ },
+ {
+  "ref": "REF-DM-SUS-STRESS",
+  "verdict": "confirmed",
+  "foundQuote": "Severe hyperglycaemia detected under conditions of acute infective, traumatic, circulatory or other stress may be transitory and should not in itself be regarded as diagnostic of diabetes.",
+  "correctValue": null,
+  "note": "Verbatim, WHO 1999 section 2.2.1. The copy is a reproduction hosted on a Newcastle University staff page, not WHO's own site. Endocrine Society claim not opened.",
+  "urlUsed": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm"
+ },
+ {
+  "ref": "REF-DM-VAL-OGTT-PREP",
+  "verdict": "confirmed",
+  "foundQuote": "The OGTT should be administered in the morning after at least three days of unrestricted diet (greater than 150 g of carbohydrate daily) and usual physical activity. | The test should be preceded by an overnight fast of 8-14 hours, during which water may be drunk. | Smoking is not permitted during the test. | the subject should drink 75 g of anhydrous glucose or 82.5 g of glucose monohydrate...in 250-300 ml of water over the course of 5 minutes. | Blood samples must be collected 2 hours after the test load.",
+  "correctValue": null,
+  "note": "All elements confirmed. Detail the entry drops: 82.5 g if glucose monohydrate is used instead of anhydrous glucose, which is the usual pharmacy form. Same reproduction-host caveat as above.",
+  "urlUsed": "https://www.staff.ncl.ac.uk/philip.home/who_dmc.htm"
+ },
+ {
+  "ref": "REF-DM-ACT-CADENCE",
+  "verdict": "confirmed",
+  "foundQuote": "When diabetes is diagnosed, monitor glycaemic control every three months until diabetes is controlled, then every six months after that.",
+  "correctValue": null,
+  "note": "Title confirmed: Training Manual: WHO Package of Essential NCD Interventions (PEN) - Management of Type 2 Diabetes. This is a training manual, not a guideline; HEARTS-D itself does not print the six-month step in the passages I read.",
+  "urlUsed": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2"
+ },
+ {
+  "ref": "REF-DM-ACU-KETONE-TEST-GLU",
+  "verdict": "confirmed",
+  "foundQuote": "PEN manual: If plasma glucose >= 18 mmol/l (325 mg/dl) urine ketones should be measured | HEARTS-D p.13: If plasma glucose ≥18 mmol/L (325 mg/dL), or symptoms are present, measure urine ketones to assess degree of metabolic disturbance.",
+  "correctValue": null,
+  "note": "'At or above 18' confirmed in both documents. Things the entry lacks: HEARTS-D adds 'or symptoms are present'; HEARTS-D Fig. 1 and Fig. 2 print the stratum as '>18' (strict) and Fig. 1 also sends 'FPG ≥15 mmol/L and SYMPTOMATIC' down the ketone-testing arm. The two WHO documents differ on what follows: the PEN manual says 'Refer to hospital all patients with plasma glucose levels >= 18 mmol/l (325 mg/dl)', while HEARTS-D Fig. 1 treats, tests ketones and refers only if 'Urine ketones ≥2+' or there is no improvement. PEN manual's severe hyperglycaemia line: 'Plasma glucose >18 mmol/l (325 mg/dl) and Urine ketone 2+ or signs and Symptoms of severe hyperglycaemia'.",
+  "urlUsed": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2"
+ },
+ {
+  "ref": "REF-DM-CTRL-WINDOW-ABOVE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "When diabetes is diagnosed, monitor glycaemic control every three months until diabetes is controlled, then every six months after that.",
+  "correctValue": null,
+  "note": "Three months confirmed as a monitoring interval. The entry restates it as a staleness window ('a control measure older than this is not current') and adds 'or therapy changed'; neither phrase is in the source. That is the catalogue's own derivation and should be labelled as one. ADA rec 6.2 (claim A4-01) not opened.",
+  "urlUsed": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2"
+ },
+ {
+  "ref": "REF-DM-CTRL-WINDOW-AT-TARGET",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "When diabetes is diagnosed, monitor glycaemic control every three months until diabetes is controlled, then every six months after that. | HEARTS-D Table 7: number of patients with diabetes with good glycaemic control at the last clinical visit in the last 6 months",
+  "correctValue": null,
+  "note": "Six months confirmed as a monitoring interval once controlled. As above, the 'not current' framing is the catalogue's derivation, not the source's wording. HEARTS-D Table 7 uses the same six-month look-back for its control-rate indicator, which supports the window. ADA and KDIGO claims not opened.",
+  "urlUsed": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2"
+ }
+]

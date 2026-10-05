@@ -24,7 +24,14 @@ const ACTIONS: EditorActions = {
   discardDraft: ok,
   saveWard: ok,
 };
-const BOARD_ACTIONS = { setState: ok, assign: ok, release: ok };
+const BOARD_ACTIONS = {
+  setState: ok,
+  assign: ok,
+  release: ok,
+  allocate: ok,
+  confirmArrival: ok,
+  releaseAdmission: ok,
+};
 const BOARD_LINKS = {
   crumbs: [
     { label: "Hospital admin", href: "#" },
@@ -173,6 +180,18 @@ export function FixtureWardBuilder({ screen }: { screen: Screen }) {
           links={BOARD_LINKS}
           live={false}
           initialSelected="b1"
+        />
+      );
+    case "board-arriving":
+      return (
+        <BedBoard
+          data={boardData()}
+          hospitalId={FX.hospital}
+          mayAct
+          actions={BOARD_ACTIONS}
+          links={NURSE_LINKS}
+          live={false}
+          initialSelected="b7"
         />
       );
     default:

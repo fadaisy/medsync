@@ -14,7 +14,7 @@ import {
 } from "../standard/indicators";
 
 /**
- * The indicator engine (§6, ADR 0212): pure functions over a facility dataset, parameterised by a
+ * The indicator engine (§6, ADR 0213): pure functions over a facility dataset, parameterised by a
  * reporting month and an as-of date. No condition code appears here: the C- and H- definitions name
  * their modules in the standard (`indicators.ts`), and the G- family runs over the module records.
  * Every result carries its definition version and the person ids behind each count (drill-down, F2).

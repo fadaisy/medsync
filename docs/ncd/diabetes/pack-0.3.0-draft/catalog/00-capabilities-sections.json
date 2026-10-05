@@ -1,0 +1,367 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "capabilities and sections",
+ "shape": "lib/ncd/catalog/schema.ts (briefing Appendix A). Keys named 'x' are outside the schema: provenance, lane and family, and proposed fields.",
+ "capabilities": [
+  {
+   "code": "device.glucometer",
+   "display": "Capillary glucose meter",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "device.monofilament",
+   "display": "10 g monofilament",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "device.doppler_abi",
+   "display": "Hand-held Doppler for ankle-brachial index",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.glucose",
+   "display": "Laboratory plasma glucose",
+   "tier": "basic_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.hba1c",
+   "display": "HbA1c",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.ketones_blood",
+   "display": "Blood ketone (beta-hydroxybutyrate) meter",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.ketones_urine",
+   "display": "Urine ketone strip",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.blood_gas",
+   "display": "Venous or arterial blood gas",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.electrolytes",
+   "display": "Urea and electrolytes",
+   "tier": "basic_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.creatinine",
+   "display": "Serum creatinine",
+   "tier": "basic_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.urine_acr",
+   "display": "Urine albumin-to-creatinine ratio",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.urine_dipstick",
+   "display": "Urine reagent strip",
+   "tier": "bedside",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "imaging.fundus",
+   "display": "Retinal examination adequate for grading",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.c_peptide",
+   "display": "C-peptide",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.islet_autoantibodies",
+   "display": "Islet autoantibodies",
+   "tier": "specialist",
+   "x": {
+    "status": "reuse"
+   }
+  },
+  {
+   "code": "lab.ogtt",
+   "display": "75 g oral glucose tolerance test",
+   "tier": "basic_lab",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "lab.lipids",
+   "display": "Lipid profile",
+   "tier": "basic_lab",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "lab.vitamin_b12",
+   "display": "Vitamin B12",
+   "tier": "advanced_lab",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.tuning_fork_128",
+   "display": "128 Hz tuning fork",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.visual_acuity_chart",
+   "display": "Visual acuity chart with pinhole",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.ophthalmoscope",
+   "display": "Direct ophthalmoscope with dilating drops",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "device.bp_cuff_sizes",
+   "display": "Validated BP device with standard and large cuffs",
+   "tier": "bedside",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "imaging.plain_xray",
+   "display": "Plain X-ray",
+   "tier": "imaging",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "imaging.ultrasound",
+   "display": "Ultrasound",
+   "tier": "imaging",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "code": "lab.urine_pcr",
+   "display": "Urine protein-to-creatinine ratio",
+   "tier": "basic_lab",
+   "x": {
+    "status": "new"
+   }
+  }
+ ],
+ "sections": [
+  {
+   "id": "risk_context",
+   "display": "Who to test",
+   "order": 11,
+   "description": "Reasons to test a person who does not have known diabetes.",
+   "groups": [
+    {
+     "id": "rc_person",
+     "display": "The person",
+     "order": 1
+    },
+    {
+     "id": "rc_medicines",
+     "display": "Medicines",
+     "order": 2
+    },
+    {
+     "id": "rc_conditions",
+     "display": "Other conditions",
+     "order": 3
+    },
+    {
+     "id": "rc_pregnancy",
+     "display": "Pregnancy",
+     "order": 4
+    }
+   ],
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "classification",
+   "display": "Type of diabetes",
+   "order": 12,
+   "description": "What separates the types. Recorded, never inferred from build alone.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "control",
+   "display": "Control and targets",
+   "order": 13,
+   "description": "The measure, its date, and the target agreed with the patient.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "eye",
+   "display": "Eyes",
+   "order": 14,
+   "description": "Visual acuity, retinal view and grade.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "nerves",
+   "display": "Nerves",
+   "order": 15,
+   "description": "Sensation, reflexes and autonomic symptoms.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "cardiovascular",
+   "display": "Heart and vessels",
+   "order": 16,
+   "description": "Blood pressure, lipids, tobacco and cardiovascular risk.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "care_processes",
+   "display": "Checks due",
+   "order": 17,
+   "description": "When each routine check was last done.",
+   "x": {
+    "status": "new"
+   }
+  },
+  {
+   "id": "therapy_context",
+   "display": "Treatment context",
+   "order": 18,
+   "description": "What the person takes and what bears on its safety.",
+   "x": {
+    "status": "new"
+   }
+  }
+ ],
+ "semantics": {
+  "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
+  "evaluator": [
+   "J04: 'established_or_met' reads the non-pregnant criteria set as if pregnancy were answered, so an unknown pregnancy never hides a referral.",
+   "J16: an item switched off by `enabled: false` is reported as dark and nowhere else: not in fired steps, urgency, gaps, cautions or the pregnancy-withheld list.",
+   "J11: steps that ask for LESS treatment (`x.lessTreatment`) read every value, even one under a blocking caveat.",
+   "J25: a child (neonate, infant or child band) has pregnancy 'not possible'; no pregnancy question waits on her.",
+   "K14: a routine step that would fire but for a value under a blocking caveat reports that value as a named gap ('cannot be used for this patient'), instead of staying silent or reading it.",
+   "K11/K24: 'child' (pregnancy not possible) is the neonate, infant and child bands; the platform's child band ends before 10 years."
+  ],
+  "patientFacing": "No catalog string is patient-facing. A surface without a restricted class shows `neutralDisplay` / `neutralAction` / `neutralAlternative` / `neutralProposal` and nothing else from that item (fifth review, K17).",
+  "interrupt": "One interrupt per event: when several `immediate` rules are met, the surface interrupts once, headed by the first in `acuteOrder` (low glucose, then measured emergencies, then the clinical picture, then 'measure now' requests); a rule met only because pregnancy or a recent birth is unrecorded comes after every rule met on recorded facts. The interrupt carries every folded rule's action (`interruptActions`), so nothing is lost (seventh review, Q03, Q07).",
+  "pregnancyUnknown": "Acute pregnancy rules (`pregnancyUnknownCounts`: 27D, 28, 28B, 28C, 28D, 28E) treat an unanswered pregnancy question, or 'not pregnant' with the weeks since a birth unanswered, as possible; they fire with the matching `unknownDisplays` entry (ask now, then the action) and name the gap. A rule with `unknownUrgency` fires at that urgency on the unknown path (28: an asymptomatic pressure asks the question the same day). Same-day pregnancy rules without symptoms wait for the answer (eighth review, T02, T08, T18).",
+  "targets": "A target with `supersedes` replaces the targets it names when both would be proposed; an agreed tier decides. 'Avoid symptoms' proposes no HbA1c target by design (sixth review, L09).",
+  "diabetesContext": "Every acute rule reads 'has diabetes' the same way: known diabetes, a recorded type, or any glucose-lowering medicine (sixth review, L04).",
+  "acuteOrder": [
+   "DM-ACU-ROUTE-06",
+   "DM-ACU-ROUTE-31",
+   "DM-ACU-ROUTE-07",
+   "DM-ACU-ROUTE-28",
+   "DM-ACU-ROUTE-28B",
+   "DM-ACU-ROUTE-28E",
+   "DM-ACU-ROUTE-28C",
+   "DM-ACU-ROUTE-27D",
+   "DM-ACU-ROUTE-04",
+   "DM-ACU-ROUTE-25",
+   "DM-ACU-ROUTE-25B",
+   "DM-ACU-ROUTE-02",
+   "DM-ACU-ROUTE-02P",
+   "DM-ACU-ROUTE-30",
+   "DM-ACU-ROUTE-14",
+   "DM-ACU-ROUTE-14P",
+   "DM-ACU-ROUTE-11",
+   "DM-ACU-ROUTE-29",
+   "DM-ACU-ROUTE-17",
+   "DM-ACU-ROUTE-24",
+   "DM-ACU-ROUTE-24B",
+   "DM-ACU-ROUTE-03",
+   "DM-ACU-ROUTE-05",
+   "DM-ACU-ROUTE-28D",
+   "DM-ACU-ROUTE-20",
+   "DM-ACU-ROUTE-32",
+   "DM-SUS-PAED-01",
+   "DM-ACU-ROUTE-15"
+  ],
+  "bands": "An HbA1c control band is read only against a target that is actually proposed (`forTarget`), so a band never contradicts the target beside it (eighth review, T06).",
+  "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane, on routine (not same-day or urgent) referrals and on targets; a value hidden by it is named as a gap only where it changed a met result. Acute rules and referrals for danger are never suppressed (N8; ninth review, U11).",
+  "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
+  "adult": "Age bands are effective bands: where a numeric age is recorded, under 16 is never 'adult' or 'older_adult' and 16 or over is never 'child' or 'adolescent', for rules, steps, flags and targets alike. A therapy flag shown under 16 shows its `under16Action` (refer; do not change the medicine here) instead of its action (ninth review, U07, U12). A recorded age of 10 to 15 is 'adolescent' even if the band says 'child' (tenth review, V16).",
+  "defaultSets": "Diagnosis: the 2026 Uganda guideline (`ug_integrated_dm_2026`) is the default set; WHO HEARTS-D 2020 and UCG 2023 are shown alongside; 'met at this visit' (for referrals) means the 2026 or the WHO set met (`metNowSets`). Intermediate: the 2026 prediabetes bands (`ada_2026_prediabetes`, same numbers). Gestational: WHO 2013 (the 2026 guideline's own values); UCG 2023's gestational set retired (UG-07).",
+  "signed": "Content changed by the GATE A signatures carries `x.signed`; see docs/ncd/diabetes/gate-a-signoff.json.",
+  "metNowSets": [
+   "who_hearts_d_2020",
+   "ug_integrated_dm_2026"
+  ]
+ }
+}

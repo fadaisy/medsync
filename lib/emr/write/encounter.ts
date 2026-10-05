@@ -3,14 +3,18 @@ import "server-only";
 import type { WriteCtx } from "./context";
 import type { DispositionCode, FollowUp, TransitionError } from "@/lib/emr/encounter";
 import type { ClosureReasonCode } from "@/lib/emr/settings";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
+import { clinicalCosignPolicies, clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { clinicalNotes, conditions, encounterOrderEvents, specimens } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { prescriptions } from "@/db/schema/prescribing";
 import { encounters } from "@/db/schema/scheduling";
+import { admissionNeedsCosign } from "@/lib/emr/closure";
 import { completionWarnings, planTransition } from "@/lib/emr/encounter";
 import { decrypt, encrypt } from "@/lib/encryption";
 import { EmrWriteError } from "./context";
+import { stopMedicationStatement } from "./facts";
 import { ORDERING_CADRES, requireCadre } from "./orders";
 
 /**
@@ -61,6 +65,14 @@ export interface PlanCompletionInput {
   disposition: DispositionCode;
   dispositionDetail?: Record<string, string>;
   followUp?: FollowUp;
+  /** ADR 0198–0200: the ward, and a bed or why the patient waits. Only with `admitted`. */
+  admission?: {
+    wardId: string;
+    bedId?: string;
+    waitReason?: "no_free_bed" | "extra_bed" | "floor" | "other";
+    waitNote?: string;
+    leadingConditionId?: string;
+  };
 }
 
 const WARNING_TEXT = {
@@ -90,6 +102,13 @@ export async function planCompletion(
     const [code, message] = TRANSITION_MESSAGE[plan.error];
     throw new EmrWriteError(code, message);
   }
+  const a = input.admission;
+  if (a && input.disposition !== "admitted")
+    throw new EmrWriteError("invalid", "Only an admission names a ward.");
+  if (input.disposition === "admitted" && a && !a.bedId && !a.waitReason)
+    throw new EmrWriteError("invalid", "Choose a bed, or say why the patient waits for one.");
+  if (a?.waitReason === "other" && !a.waitNote?.trim())
+    throw new EmrWriteError("invalid", "Say why the patient waits.");
 
   const notes = await ctx.tx
     .select({
@@ -185,9 +204,114 @@ export async function planCompletion(
       closure_kind: "clinical",
       disposition: input.disposition,
       ...(input.dispositionDetail ? { disposition_detail: input.dispositionDetail } : {}),
-      ...(input.followUp ? { follow_up: input.followUp } : {}),
+      ...(input.followUp
+        ? {
+            follow_up:
+              input.followUp.kind === "booked"
+                ? {
+                    kind: "booked",
+                    date: input.followUp.date,
+                    appointment_id: input.followUp.appointmentId,
+                  }
+                : input.followUp,
+          }
+        : {}),
+      ...(a
+        ? {
+            admission: {
+              ward_id: a.wardId,
+              ...(a.bedId ? { bed_id: a.bedId } : {}),
+              ...(!a.bedId && a.waitReason ? { bed_wait_reason: a.waitReason } : {}),
+              ...(!a.bedId && a.waitReason === "other" && a.waitNote?.trim()
+                ? { bed_wait_note_ciphertext: encrypt(a.waitNote.trim()) }
+                : {}),
+              ...(a.leadingConditionId ? { leading_condition_id: a.leadingConditionId } : {}),
+            },
+          }
+        : {}),
     },
   };
+}
+
+/**
+ * After the close (ADR 0197, 0201), in the clinician's transaction: stop the medicines the clinician chose not
+ * to continue at home (the prescription completes, its medication statement stops), and raise the admission's
+ * co-sign request where the cadre needs one. Returns warnings in words; never throws for a co-sign.
+ */
+export async function afterClose(
+  ctx: WriteCtx,
+  input: {
+    patientUserId: string;
+    encounterId: string;
+    stopRxIds: readonly string[];
+    admissionId: string | null;
+  },
+): Promise<string[]> {
+  const warnings: string[] = [];
+  if (input.stopRxIds.length) {
+    const rows = await ctx.tx
+      .select({ id: prescriptions.id, statementId: prescriptions.medicationStatementId })
+      .from(prescriptions)
+      .where(
+        and(
+          inArray(prescriptions.id, [...input.stopRxIds]),
+          eq(prescriptions.encounterId, input.encounterId),
+          eq(prescriptions.patientUserId, input.patientUserId),
+          eq(prescriptions.hospitalId, ctx.actor.hospitalId),
+          eq(prescriptions.state, "active"),
+        ),
+      );
+    for (const r of rows) {
+      await ctx.tx
+        .update(prescriptions)
+        .set({ state: "completed", updatedAt: ctx.now })
+        .where(eq(prescriptions.id, r.id));
+      if (r.statementId)
+        await stopMedicationStatement(ctx, {
+          patientUserId: input.patientUserId,
+          statementId: r.statementId,
+          reasonCode: "stopped_at_discharge",
+          clientKey: `close-stop:${r.id}`,
+        });
+    }
+  }
+  if (input.admissionId) {
+    const policies = await ctx.tx
+      .select({
+        departmentId: clinicalCosignPolicies.departmentId,
+        requirement: clinicalCosignPolicies.requirement,
+      })
+      .from(clinicalCosignPolicies)
+      .where(
+        and(
+          eq(clinicalCosignPolicies.hospitalId, ctx.actor.hospitalId),
+          eq(clinicalCosignPolicies.cadreCode, ctx.actor.cadreCode),
+          eq(clinicalCosignPolicies.actionKind, "admit_patient"),
+          ctx.actor.departmentId
+            ? or(
+                isNull(clinicalCosignPolicies.departmentId),
+                eq(clinicalCosignPolicies.departmentId, ctx.actor.departmentId),
+              )
+            : isNull(clinicalCosignPolicies.departmentId),
+        ),
+      );
+    // The department's own row wins; no row at all requests one, never refuses (ADR 0201 §2).
+    const row = policies.find((p) => p.departmentId !== null) ?? policies[0];
+    if (admissionNeedsCosign(row?.requirement)) {
+      await ctx.tx.insert(clinicalCosignRequests).values({
+        hospitalId: ctx.actor.hospitalId,
+        patientUserId: input.patientUserId,
+        requestedByUserId: ctx.actor.userId,
+        requestedByAffiliationId: ctx.actor.affiliationId,
+        requestedByCadreCode: ctx.actor.cadreCode,
+        actionKind: "admit_patient",
+        // PHI-free (gate-a-proposal A.5).
+        actionPayload: { admissionId: input.admissionId, encounterId: input.encounterId },
+      });
+      warnings.push("A senior co-sign of the admission has been requested.");
+    }
+  }
+  return warnings;
 }
 
 function hasDeferred(content: {

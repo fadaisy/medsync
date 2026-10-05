@@ -1,0 +1,442 @@
+[
+ {
+  "ref": "REF-DM-CVD-ESC-NOTE",
+  "verdict": "confirmed",
+  "foundQuote": "SCORE2-Diabetes was developed by extending SCORE2 algorithms using individual-participant data from four large-scale datasets comprising 229 460 participants (43 706 CVD events) ... Models were recalibrated to CVD incidence in four European risk regions. ... External validation included 217 036 further individuals (38 602 CVD events), and showed good discrimination",
+  "correctValue": null,
+  "note": "Eur Heart J 2023 abstract. Calibrated to four European risk regions only.",
+  "urlUsed": "https://academic.oup.com/eurheartj/article/44/28/2544/7185611"
+ },
+ {
+  "ref": "REF-DM-VAL-EGFR-ARK",
+  "verdict": "confirmed",
+  "foundQuote": "Among 2578 included participants, creatinine-based equations overestimated kidney function compared with mGFR, worsened by use of ethnicity coefficients. The greatest bias occurred at low kidney function, such that the proportion with GFR of less than 60 mL/min per 1·73 m2 either directly measured or estimated by cystatin C was more than double that estimated from creatinine. A new creatinine-based equation did not outperform existing equations, and no equation, including the Chronic Kidney Disease Epidemiology Collaboration (CKD-EPI) 2021 race-neutral equation, estimated GFR within plus or minus 30% of mGFR for 75% or more of the participants.",
+  "correctValue": null,
+  "note": "Lancet Glob Health 2022 abstract (Malawi n=1020, South Africa n=986, Uganda n=1019), read via Semantic Scholar API. The finding explicitly includes the CKD-EPI 2021 race-neutral equation, which is the platform's own equation.",
+  "urlUsed": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1016/S2214-109X(22)00239-X?fields=title,abstract,externalIds,year,venue,openAccessPdf"
+ },
+ {
+  "ref": "REF-DM-CVD-CHART",
+  "verdict": "confirmed",
+  "foundQuote": "WHO cardiovascular disease risk laboratory-based charts Eastern Sub-Saharan Africa ... WHO cardiovascular disease risk non-laboratory based charts Eastern Sub-Saharan Africa ... Burundi, Comoros, Djibouti, Eritrea, Ethiopia, Kenya, Madagascar, Mozambique, Malawi, Rwanda, Somalia, Tanzania, Uganda, Zambia",
+  "correctValue": null,
+  "note": "WHO chart PDF read directly. Lab chart axes: age bands 40-44 to 70-74, Men/Women, Non-smoker/Smoker, People without/with Diabetes, SBP (mmHg) '<120','120-139','140-159','160-179','≥180', total cholesterol (mmol/l) '<4','4-4.9','5-5.9','6-6.9','≥7'. Non-lab chart: age, sex, smoking, SBP, BMI (kg/m2) '<20','20-24','25-29','30-35','≥35' - no cholesterol, no diabetes panel. Lancet Glob Health 2019 paper also read: lab model = age, smoking status, systolic blood pressure, history of diabetes, total cholesterol; non-lab model = age, smoking status, systolic blood pressure, BMI. Note the paper derives models for ages 40–80; the published charts show 40–74.",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2 ; https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7025029/fullTextXML"
+ },
+ {
+  "ref": "REF-DM-CVD-CHART-AGE-MAX",
+  "verdict": "confirmed",
+  "foundQuote": "Age bands printed on the charts: 40-44, 45-49, 50-54, 55-59, 60-64, 65-69, 70-74",
+  "correctValue": null,
+  "note": "WHO chart PDF: highest age band is 70-74, so 74 inclusive. The recorded quote (risk-level legend) does not itself show the age; the age axis does. The underlying models (Lancet Glob Health 2019) were derived for ages 40–80.",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2"
+ },
+ {
+  "ref": "REF-DM-CVD-CHART-AGE-MIN",
+  "verdict": "confirmed",
+  "foundQuote": "Age bands printed on the charts: 40-44, 45-49, 50-54, 55-59, 60-64, 65-69, 70-74",
+  "correctValue": null,
+  "note": "WHO chart PDF: lowest age band is 40-44, so 40 inclusive.",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2"
+ },
+ {
+  "ref": "REF-DM-CVD-FOLLOWUP",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "CVD risk < 5%: 'Follow up in 12 months if treatment not initiated' | CVD risk 5-10 %: 'Follow up every 3 months until targets are met, then 6-9 months thereafter' | CVD risk 10-20%: 'Follow-up every 3-6 months' | CVD risk >20%: 'Follow-up every 3 months' ; 'If there is no reduction in cardiovascular risk after 6 months of follow up, refer to the next level'",
+  "correctValue": null,
+  "note": "All four intervals match, read in the WHO South-East Asia booklet. Three caveats. (1) Operator: the booklet prints the top band as 'CVD risk >20%' (strictly above), and the middle bands as '5-10 %' and '10-20%' with no '<'; the entry's '20% or more' and '5 to under 10%' are a tidied reading, not what is printed. (2) The under-5% interval is conditional: '12 months if treatment not initiated'. (3) Attribution: the booklet does not credit HEARTS, and the HEARTS Risk-based CVD management PDF itself could not be opened (iris.who.int / apps.who.int 403 on four URLs), so 'HEARTS' as the origin is unverified. The top band also adds referral if risk has not fallen after 6 months.",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/searo/ncd/booklet-know-your-cardiovascular-disease-risk-take-action.pdf?sfvrsn=6b0b5d80_2"
+ },
+ {
+  "ref": "REF-DM-KID-K-MODERATE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Table 28 | Suggested action in the event of moderate and severe hyperkalemia ... Moderate K+ 6.0–6.4 mmol/l | Clinically unwell or AKI: Assess and treat in hospital | Unexpected result: Repeat within 24 hours ... Data from Think Kidneys, the Renal Association and the British Society for Heart Failure.",
+  "correctValue": null,
+  "note": "Value right: moderate band is 6.0–6.4 mmol/l (lower bound inclusive), KDIGO 2024 Table 28, p. S227. Attribution qualifier: the table's credit line reads 'Data from Think Kidneys, the Renal Association and the British Society for Heart Failure', so the severity bands are UK data reproduced by KDIGO as a 'suggested action', not a graded KDIGO recommendation or practice point. Cite as 'KDIGO 2024 Table 28 (data from Think Kidneys / Renal Association / British Society for Heart Failure)'.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/"
+ },
+ {
+  "ref": "REF-DM-KID-K-SEVERE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Table 28 | Suggested action in the event of moderate and severe hyperkalemia ... Severe K+ ≥6.5 mmol/l | Take immediate action to assess and treat. Assessment will include blood testing and electrocardiogram monitoring ... Data from Think Kidneys, the Renal Association and the British Society for Heart Failure.",
+  "correctValue": null,
+  "note": "Value and operator right: severe is ≥6.5 mmol/l with immediate assessment including blood testing and ECG monitoring, KDIGO 2024 Table 28, p. S227. Attribution qualifier: the table is credited 'Data from Think Kidneys, the Renal Association and the British Society for Heart Failure', i.e. UK data reproduced by KDIGO as a suggested action, not a graded KDIGO statement. Add that credit to the entry.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/112/"
+ },
+ {
+  "ref": "REF-DM-KID-K-ACTION",
+  "verdict": "confirmed",
+  "foundQuote": "Actions to manage hyperkalemia (potassium>5.5 mmol/l) in chronic kidney disease.",
+  "correctValue": null,
+  "note": "Figure 32 caption, KDIGO 2024 p. S228. Operator is strictly > 5.5 mmol/l (exactly 5.5 does not trigger). Same page text separately uses 'severe recurrent hyperkalemia (potassium>6 mmol/l)' for potassium-binder cost-benefit discussion.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/113/"
+ },
+ {
+  "ref": "REF-DM-KID-REFER-ACR",
+  "verdict": "confirmed",
+  "foundQuote": "A consistent finding of ACR >700 mg/g [>70 mg/mmol]",
+  "correctValue": null,
+  "note": "Figure 48, KDIGO 2024 p. S255. Operator strictly >. Same figure also lists lower-threshold referral triggers the entry does not carry: 'Consistent finding of significant albuminuria (ACR ≥300 mg/g [≥30 mg/mmol] or AER ≥300 mg/24 hours, approximately equivalent to PCR ≥500 mg/g [≥50 mg/mmol] or PER ≥500 mg/24 h) in combination with hematuria' and '≥2-fold increase in albuminuria in people with significant albuminuria'.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/140/"
+ },
+ {
+  "ref": "REF-DM-KID-REFER-EGFR",
+  "verdict": "confirmed",
+  "foundQuote": "KDIGO 2024 Figure 48: 'eGFR <30 ml/min per 1.73 m2' | ADA 2025: '11.9 Individuals should be referred for evaluation by a nephrologist if they have continuously increasing urinary albumin levels and/or continuously decreasing eGFR and/or if the eGFR is <30 mL/min/1.73 m2. A' | WHO 2020 (Diagnosis and management of type 2 diabetes), urgent referral: 'anuria or eGFR <30 mL/min/1.73 m2'; non-emergency referral: 'eGFR 30–59 mL/min/1.73 m2'",
+  "correctValue": null,
+  "note": "Operator strictly <30 in all three sources. KDIGO Figure 48 also lists 'A >3%–5% 5-year risk of requiring KRT measured using a validated risk equation'. WHO treats eGFR <30 as urgent (same-day) referral and 30–59 as non-emergency referral, which is a lower bar than the entry.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/140/ ; https://diabetesjournals.org/care/article/48/Supplement_1/S239/157554/11-Chronic-Kidney-Disease-and-Risk-Management ; https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-REFER-FALL",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "A sustained fall in GFR of >20% or >30% in those people initiating hemodynamically active therapies",
+  "correctValue": null,
+  "note": "Figure 48, KDIGO 2024 p. S255. The >20% threshold is right, but the source sets a DIFFERENT threshold (>30%) for people who have just started hemodynamically active therapy (ACE inhibitor/ARB, SGLT2 inhibitor). The entry lacks this qualifier: a rule using 20% alone would over-refer patients with the expected 20-30% dip after starting these medicines. The fall must also be 'sustained'.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/140/"
+ },
+ {
+  "ref": "REF-DM-KID-MONITOR-GRID",
+  "verdict": "confirmed",
+  "foundQuote": "Raw figure text: 'A1G1≥90G260–89G3a45–59G3b30–44G415–29G5Kidney failure<15 ... <30 mg/g<3 mg/mmolScreen1Screen1Treat1Treat1Treat3Treat3Treat1Treat2Treat2Treat3Treat3Treat3Treat*3Treat4+Treat*3Treat4+Treat4+Treat4+30–299 mg/g3–29 mg/mmol≥300 mg/g≥30 mg/mmol'. Caption: 'Frequency of monitoring glomerular filtration rate (GFR) and albuminuria in people with chronic kidney disease (CKD). Albuminuria and GFR grid reflects the risk of progression by intensity of coloring (green, yellow, orange, red, and deep red). The numbers in the boxes are a guide to the frequency of monitoring (number of times per year).'",
+  "correctValue": null,
+  "note": "Figure 13 (p. S197) is a graphic; its 18 cell labels were extracted as a jumbled text run, not as a table. The 18 values are: 1 x5, 2 x2, 3 x7, 4+ x4, which is exactly the multiset of the recorded grid (G1 1/1/3, G2 1/1/3, G3a 1/2/3, G3b 2/3/3, G4 3/3/4+, G5 4+/4+/4+). The extraction order (G1A1,G2A1,G1A2,G2A2,G1A3,G2A3 | G3aA1,G3aA2,G3bA1,G3bA2,G3aA3,G3bA3 | G4A1,G5A1,G4A2,G5A2,G4A3,G5A3) is fully consistent with the recorded grid, but cell POSITIONS are inferred from that order and could not be read cell-by-cell; a human should eyeball the figure once. Qualifiers: G1/G2 with A1 is labelled 'Screen 1' and the legend says 'Low risk (if no other markers of kidney disease, no CKD)', i.e. annual screening, not CKD monitoring. G4 A1 and G4 A2 carry an asterisk ('Treat* 3'). The figure's column headings use A2 3–29 mg/mmol and A3 ≥30 mg/mmol (differs from Table 3).",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/82/"
+ },
+ {
+  "ref": "REF-DM-KID-AKI",
+  "verdict": "confirmed",
+  "foundQuote": "Increase in SCr by ≥0.3 mg/dl (≥26.5 μmol/l) within 48 hours; Increase in SCr to ≥1.5 times baseline, which is known or presumed to have occurred within the prior 7 days; Urine volume <0.5 ml/kg/h for 6 hours (Not Graded)",
+  "correctValue": null,
+  "note": "KDIGO 2012 AKI statement 2.1.1. All three operators match (≥26.5 µmol/l; ≥1.5 times; <0.5 ml/kg/h for 6 hours).",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2016/10/KDIGO-2012-AKI-Guideline-English.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-STRIP-MAP",
+  "verdict": "not_found",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "KDIGO 2012 Table 7 could not be read from any copy: it lies beyond the part of the kdigo.org PDF the fetch tool returns (last table visible was Table 6); in the Europe PMC XML of Chapter 1 (PMC4089693) the table is an image (kisup201264t6.jpg, labelled 'Table 6' there); kisupplements.org and ajkd.org returned 403 or front matter only; the table is not reproduced on KDIGO 2024 pp. S190–S191. The KDIGO attribution is therefore UNVERIFIED. A WHO source that could be read gives a similar but not identical mapping - WHO 2020 'Diagnosis and management of type 2 diabetes', Table 6 'Categories of albuminuria (measured by ACR)': 'normal to mildly increased | <30 | <3 | –'; 'moderately increased | 30–300 | 3–30 | Trace/1+'; 'severely increased | >300 | >30 | 1+/2+'. Either have a human read KDIGO 2012 Table 7, or re-attribute the strip mapping to the WHO table (A2 = trace/1+, A3 = 1+/2+).",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2017/02/KDIGO_2012_CKD_GL.pdf ; https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4089693/fullTextXML ; https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-CKD-HIGH",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "We recommend an individualized HbA1c target ranging from <6.5% to <8.0% in patients with diabetes and CKD not treated with dialysis",
+  "correctValue": null,
+  "note": "KDIGO 2022 Recommendation 2.2.1 (1C). Value and operator right (<8.0%). Qualifier the entry lacks: the recommendation applies to people with CKD NOT treated with dialysis.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
+ },
+ {
+  "ref": "REF-DM-CTRL-CKD-LOW",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "We recommend an individualized HbA1c target ranging from <6.5% to <8.0% in patients with diabetes and CKD not treated with dialysis",
+  "correctValue": null,
+  "note": "KDIGO 2022 Recommendation 2.2.1 (1C). Value and operator right (<6.5%). Qualifier the entry lacks: applies to CKD NOT treated with dialysis. Practice Point 2.2.1 adds: 'Safe achievement of lower HbA1c targets (e.g., <6.5% or <7.0%) may be facilitated by CGM or SMBG and by selection of glucose-lowering agents that are not associated with hypoglycemia.'",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-RASI-CHECK",
+  "verdict": "confirmed",
+  "foundQuote": "Monitor for changes in blood pressure, serum creatinine, and serum potassium within 2–4 weeks of initiation or increase in the dose of an ACEi or ARB",
+  "correctValue": null,
+  "note": "KDIGO 2022 Practice Point 1.2.2. The 2-4 week window is KDIGO's; the other-claim ADA 2026 Rec 10.11 is less specific ('Monitor for drop in eGFR and for increase in serum potassium levels at initiation and periodically as clinically appropriate when ACE inhibitors, ARBs, and mineralocorticoid receptor antagonists (MRAs) are used. B'). Cross-body difference to be aware of: the ADA 2025 Section 11 page returned the sentence 'Monitor for increased serum creatinine and for increased serum potassium levels when ACE inhibitors, ARBs, and mineralocorticoid receptor antagonists (MRAs) are used, or for hypokalemia when diuretics are used at routine visits and 7–14 days after initiation or after a dose change.' (recommendation number not captured), i.e. an earlier check than KDIGO's 2–4 weeks.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-RASI-CREAT-RISE",
+  "verdict": "confirmed",
+  "foundQuote": "Continue ACEi or ARB therapy unless serum creatinine rises by more than 30% within 4 weeks following initiation of treatment or an increase in dose",
+  "correctValue": null,
+  "note": "KDIGO 2022 Practice Point 1.2.3. Operator is 'more than 30%' (strict), window 'within 4 weeks following initiation of treatment or an increase in dose'. Note the measure is serum CREATININE rise, not eGFR fall. Consistent ADA 2025 Section 11 text also read: 'ACE inhibitors and ARBs should not be discontinued for increases in serum creatinine (<30%) in the absence of volume depletion.' Related KDIGO 2024 text read on p. S197: 'GFR reductions of >30% on subsequent testing' during hemodynamically active therapies warrant evaluation.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-SGLT2-EGFR",
+  "verdict": "confirmed",
+  "foundQuote": "We recommend treating patients with type 2 diabetes (T2D), CKD, and an eGFR ‡20 ml/min per 1.73 m2 with an SGLT2i (1A). ... Once an SGLT2i is initiated, it is reasonable to continue an SGLT2i even if the eGFR falls below 20 ml/min per 1.73 m2, unless it is not tolerated or kidney replacement therapy is initiated.",
+  "correctValue": null,
+  "note": "KDIGO 2022 Recommendation 1.3.1 (1A) and Practice Point 1.3.6. The PDF text layer renders the ≥ sign as the glyph '‡'; the threshold is eGFR ≥20. Initiation threshold only: continuation below 20 is allowed. The other-claim URL (ADA Section 9 Table 9.2) was not re-checked in this pass.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-CKD-EGFR",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Accuracy and precision of HbA1c measurement declines with advanced CKD (G4–G5), particularly among patients treated by dialysis, in whom HbA1c measurements have low reliability.",
+  "correctValue": null,
+  "note": "KDIGO 2022 Practice Point 2.1.2. The source does NOT print '30': it says 'advanced CKD (G4–G5)'. The value 30 mL/min/1.73 m2 is a derived conversion from the KDIGO category table (G4 = 15–29, G5 = <15, so G4–G5 = eGFR <30), which was verified separately. Record this as a conversion on the entry. NGSP other-claim page not re-checked in this pass.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-ACR-A2",
+  "verdict": "confirmed",
+  "foundQuote": "A2 | 30–300 | 3–30 | 30–300 | Moderately increased ... Albuminuria (ACR ≥30 mg/g [≥3 mg/mmol])",
+  "correctValue": null,
+  "note": "KDIGO 2024 Table 3 (AER mg/24 h | ACR mg/mmol | ACR mg/g) and Table 1. A2 starts at 3 mg/mmol inclusive (A1 is <3).",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-ACR-A3",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Table 3: A2 | 30–300 | 3–30 | 30–300 | Moderately increased; A3 | >300 | >30 | >300 | Severely increased. Figure 13 column headings (raw page text): '<30 mg/g<3 mg/mmol ... 30–299 mg/g3–29 mg/mmol≥300 mg/g≥30 mg/mmol'. Figure 48: 'significant albuminuria (ACR ≥300 mg/g [≥30 mg/mmol] ...'",
+  "correctValue": null,
+  "note": "As attributed to KDIGO 2024 Table 3 the entry is right: A3 is strictly >30 mg/mmol and exactly 30 falls in A2 (3–30). BUT the same guideline is internally inconsistent at the boundary: Figure 13 (the monitoring grid) heads A2 as '30–299 mg/g, 3–29 mg/mmol' and A3 as '≥300 mg/g, ≥30 mg/mmol', and Figure 48 uses '≥30 mg/mmol'. ADA Section 10/11 also uses UACR ≥300 mg/g for severely increased. A result of exactly 30 mg/mmol (300 mg/g) is therefore A2 by Table 3 but A3 by Figure 13 and by ADA. The rule author must choose and document one operator; the safer (earlier-escalating) choice is >=30.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf ; https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/82/"
+ },
+ {
+  "ref": "REF-DM-KID-GFR-G2",
+  "verdict": "confirmed",
+  "foundQuote": "G1 | ≥90 | Normal or high; G2 | 60–89 | Mildly decreased",
+  "correctValue": null,
+  "note": "KDIGO 2024 Table 2 (ml/min per 1.73 m2).",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-GFR-G3A",
+  "verdict": "confirmed",
+  "foundQuote": "G2 | 60–89 | Mildly decreased; G3a | 45–59 | Mildly to moderately decreased ... Decreased GFR: GFR <60 ml/min per 1.73 m2",
+  "correctValue": null,
+  "note": "KDIGO 2024 Table 2 and Table 1.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-GFR-G3B",
+  "verdict": "confirmed",
+  "foundQuote": "G3a | 45–59 | Mildly to moderately decreased; G3b | 30–44 | Moderately to severely decreased",
+  "correctValue": null,
+  "note": "KDIGO 2024 Table 2.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-GFR-G4",
+  "verdict": "confirmed",
+  "foundQuote": "G3b | 30–44 | Moderately to severely decreased; G4 | 15–29 | Severely decreased",
+  "correctValue": null,
+  "note": "KDIGO 2024 Table 2.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-GFR-G5",
+  "verdict": "confirmed",
+  "foundQuote": "G4 | 15–29 | Severely decreased; G5 | <15 | Kidney failure",
+  "correctValue": null,
+  "note": "KDIGO 2024 Table 2.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-KID-PERSIST",
+  "verdict": "confirmed",
+  "foundQuote": "CKD is defined as abnormalities of kidney structure or function, present for a minimum of 3 months, with implications for health.",
+  "correctValue": null,
+  "note": "KDIGO 2024 definition sentence.",
+  "urlUsed": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf"
+ },
+ {
+  "ref": "REF-DM-VAL-EGFR-STEADY",
+  "verdict": "not_found",
+  "foundQuote": "Sources of error in GFR estimation from SCr concentration include nonsteady-state conditions, non-GFR determinants of SCr, measurement error at higher GFR, and interferences with the creatinine assays.",
+  "correctValue": null,
+  "note": "Partly found. KDIGO 2024 p. S176 (section 1.2.2) supports only the first clause, and in weaker words: non-steady-state conditions are a 'source of error' (the source does not say 'invalid'). NOT found in KDIGO 2024 pp. S176–S184: any example naming AKI or hyperglycaemic crisis for non-steady state, and any statement that creatinine eGFR is not validated in pregnancy (searched 'pregnan', 'hyperglyc', 'ketoacidosis', 'AKI' on each page; no hits). The pregnancy clause and the hyperglycaemic-crisis example need their own source or must be labelled as the pack's clinical reasoning.",
+  "urlUsed": "https://fliphtml5.com/yyidk/zjiq/KDIGO-2024-CKD-Guideline_(www.buahpinggang.info)_/61/"
+ },
+ {
+  "ref": "REF-DM-KID-NDKD",
+  "verdict": "confirmed",
+  "foundQuote": "An active urinary sediment (containing red or white blood cells or cellular casts), rapidly increasing albuminuria or total proteinuria, the presence of nephrotic syndrome, rapidly decreasing eGFR, or the absence of retinopathy (in type 1 diabetes) suggests alternative or additional causes of kidney disease.",
+  "correctValue": null,
+  "note": "ADA Standards of Care 2025, Section 11, read on diabetesjournals.org (PMC copy returned a CAPTCHA). 2026 edition of Section 11 could not be opened (doi.org and diabetesjournals article-lookup both 403), so this is verified against 2025 only.",
+  "urlUsed": "https://diabetesjournals.org/care/article/48/Supplement_1/S239/157554/11-Chronic-Kidney-Disease-and-Risk-Management"
+ },
+ {
+  "ref": "REF-DM-KID-SCREEN-START-T1",
+  "verdict": "confirmed",
+  "foundQuote": "11.1a Assess kidney function (i.e., spot urine albumin-to-creatinine ratio [UACR]) and estimated glomerular filtration rate [eGFR] in people with type 1 diabetes with duration of ≥5 years and in all people with type 2 diabetes regardless of treatment. B",
+  "correctValue": null,
+  "note": "ADA 2025 Rec 11.1a (B). Operator: duration ≥5 years for type 1; all people with type 2 regardless of treatment. Verified against the 2025 edition only (2026 Section 11 could not be opened).",
+  "urlUsed": "https://diabetesjournals.org/care/article/48/Supplement_1/S239/157554/11-Chronic-Kidney-Disease-and-Risk-Management"
+ },
+ {
+  "ref": "REF-DM-KID-UACR-CONFIRM",
+  "verdict": "confirmed",
+  "foundQuote": "Because of high biological variability of >20% between measurements in urinary albumin excretion, two of three specimens of UACR collected within a 3- to 6-month period should be abnormal before considering an individual to have moderately or severely elevated albuminuria.",
+  "correctValue": null,
+  "note": "ADA 2025 Section 11 body text. Verified against the 2025 edition only.",
+  "urlUsed": "https://diabetesjournals.org/care/article/48/Supplement_1/S239/157554/11-Chronic-Kidney-Disease-and-Risk-Management"
+ },
+ {
+  "ref": "REF-DM-KID-UACR-COUNT",
+  "verdict": "confirmed",
+  "foundQuote": "Because of high biological variability of >20% between measurements in urinary albumin excretion, two of three specimens of UACR collected within a 3- to 6-month period should be abnormal before considering an individual to have moderately or severely elevated albuminuria.",
+  "correctValue": null,
+  "note": "ADA 2025 Section 11 body text: 2 of 3 specimens, within a 3- to 6-month window (the rule should carry the window as well as the count). Same page defines the categories as: 'Normal level of urine albumin excretion is defined as <30 mg/g creatinine, moderately elevated albuminuria is defined as ≥30–300 mg/g creatinine, and severely elevated albuminuria is defined as ≥300 mg/g creatinine.'",
+  "urlUsed": "https://diabetesjournals.org/care/article/48/Supplement_1/S239/157554/11-Chronic-Kidney-Disease-and-Risk-Management"
+ },
+ {
+  "ref": "REF-DM-VAL-UACR-TRANSIENT",
+  "verdict": "confirmed",
+  "foundQuote": "Exercise within 24 h, infection, fever, heart failure, marked hyperglycemia, menstruation, and marked hypertension may elevate UACR independently of kidney damage.",
+  "correctValue": null,
+  "note": "ADA 2025 Section 11 body text; all seven factors match. Source wording is 'may elevate'. KDIGO 2024 Table 16 other-claim page not re-read in this pass.",
+  "urlUsed": "https://diabetesjournals.org/care/article/48/Supplement_1/S239/157554/11-Chronic-Kidney-Disease-and-Risk-Management"
+ },
+ {
+  "ref": "REF-DM-CVD-ASCVD",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "ASCVD broadly refers to a history of acute coronary syndrome, myocardial infarction (MI), stable or unstable angina or coronary or other arterial revascularization, stroke, or peripheral artery disease (PAD) including aortic aneurysm and is the leading cause of morbidity and mortality in people with diabetes.",
+  "correctValue": null,
+  "note": "ADA 2026 Section 10 Introduction. The entry adds 'transient ischaemic attack', which is NOT in the 2026 sentence (checked explicitly), and omits 'including aortic aneurysm'. Either drop TIA, or cite a source that includes it (not verified here), or mark TIA as a local clinical addition.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-2DRUG-DBP",
+  "verdict": "confirmed",
+  "foundQuote": "10.7 Individuals with confirmed office-based blood pressure ≥150/90 mmHg should, in addition to lifestyle therapy, have prompt initiation and timely titration of two drugs or a single-pill combination of drugs for hypertension that have also been demonstrated to reduce cardiovascular events in people with diabetes. A",
+  "correctValue": null,
+  "note": "ADA 2026 Rec 10.7 (A). Operator ≥. The source gives the pair '≥150/90' without stating and/or; the usual reading is either component. Rec 10.6: pharmacologic therapy from confirmed office BP ≥130/80 mmHg (A).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-2DRUG-SBP",
+  "verdict": "confirmed",
+  "foundQuote": "10.7 Individuals with confirmed office-based blood pressure ≥150/90 mmHg should, in addition to lifestyle therapy, have prompt initiation and timely titration of two drugs or a single-pill combination of drugs for hypertension that have also been demonstrated to reduce cardiovascular events in people with diabetes. A",
+  "correctValue": null,
+  "note": "ADA 2026 Rec 10.7 (A). Operator ≥.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-CONFIRM",
+  "verdict": "confirmed",
+  "foundQuote": "Hypertension is defined as a systolic blood pressure ≥130 mmHg or a diastolic blood pressure ≥80 mmHg based on an average of two or more measurements obtained on two or more occasions.",
+  "correctValue": null,
+  "note": "ADA 2026 Section 10, Screening and Diagnosis.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-BP-INTERVAL",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "ADA 10.1: 'Blood pressure should be measured at every routine clinical visit, or at least every 6 months. A' | WHO 2021 Rec 7: 'WHO suggests a monthly follow up after initiation or a change in antihypertensive medications until patients reach target. Conditional recommendation, low-certainty evidence' ; 'WHO suggests a follow up every 3–6 months for patients whose blood pressure is under control. Conditional recommendation, low-certainty evidence'",
+  "correctValue": null,
+  "note": "The entry is a composite of two bodies but its source field names ADA only. ADA 2026 Rec 10.1 supports only 'every routine clinical visit, or at least every 6 months' (the entry drops the 6-month floor). 'Monthly until at target, then every 3 to 6 months' is the WHO 2021 Guideline for the pharmacological treatment of hypertension in adults, Recommendation 7 (conditional, low-certainty), verified at the other-claim URL; ADA Section 10 gives no monthly interval in the passages read. Attribute the second half to WHO.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader ; https://www.ncbi.nlm.nih.gov/books/NBK573631/pdf/Bookshelf_NBK573631.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-LDL-ASCVD",
+  "verdict": "confirmed",
+  "foundQuote": "10.27 For people with diabetes and ASCVD, treatment with high-intensity statin therapy is recommended to obtain an LDL cholesterol reduction of ≥50% from baseline and an LDL cholesterol goal of <55 mg/dL (<1.4 mmol/L). Addition of ezetimibe or a PCSK9 inhibitor with proven benefit in this population is recommended if this goal is not achieved on maximum tolerated statin therapy. B",
+  "correctValue": null,
+  "note": "ADA 2026 Rec 10.27 (B). Goal <1.4 mmol/L AND ≥50% reduction from baseline.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-LDL-HIGHRISK",
+  "verdict": "confirmed",
+  "foundQuote": "10.20 For people with diabetes aged 40–75 years at higher cardiovascular risk, including those with one or more additional ASCVD risk factors, high-intensity statin therapy is recommended to reduce LDL cholesterol by ≥50% of baseline and to obtain an LDL cholesterol goal of <70 mg/dL (<1.8 mmol/L). A",
+  "correctValue": null,
+  "note": "ADA 2026 Rec 10.20 (A).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-LIPID-INTERVAL",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "10.16 In adults with prediabetes or diabetes not taking statins or other lipid-lowering therapy, it is reasonable to obtain a lipid profile at the time of diagnosis, at an initial medical evaluation, annually thereafter, or more frequently if indicated. E | 10.17 Obtain a lipid profile at initiation of statins or other lipid-lowering therapy, 4–12 weeks after initiation or a change in dose, and annually thereafter, as it facilitates monitoring the response to therapy and informs medication-taking behavior. A",
+  "correctValue": null,
+  "note": "12 months ('annually thereafter') is right and the conversion is sound. Qualifier for the rule: Rec 10.16 (grade E) is for people NOT on lipid-lowering therapy; for people starting or changing lipid-lowering therapy Rec 10.17 (grade A) requires a profile at initiation and again 4–12 weeks after initiation or a dose change, then annually. A flat 12-month interval misses the 4–12 week check.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-PREG-CONTRA",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "10.12 In sexually active individuals of childbearing potential who are not using reliable contraception, avoid ACE inhibitors, ARBs, MRAs, direct renin inhibitors, and neprilysin inhibitors, as they are contraindicated in pregnancy. A | 10.25 In most circumstances, lipid-lowering agents should be stopped prior to conception and avoided in sexually active individuals of childbearing potential who are not using reliable contraception. B In some circumstances (e.g., familial hypercholesterolemia, familial hypertriglyceridemia, prior ASCVD event, or history of pancreatitis), lipid-lowering therapy may be continued when the benefits outweigh risks. E",
+  "correctValue": null,
+  "note": "Right for ACE inhibitors, ARBs and MRAs (Rec 10.12, A; the source also lists direct renin inhibitors and neprilysin inhibitors). For statins the 2026 text does NOT say 'contraindicated in pregnancy': Rec 10.25 says lipid-lowering agents should 'in most circumstances' be stopped before conception and avoided without reliable contraception (B), and may be continued in some circumstances when benefits outweigh risks (E). Reword the statin half; a hard-stop rule on statins would overstate the source.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-RASI-ALBUMINURIA",
+  "verdict": "confirmed",
+  "foundQuote": "10.10 In nonpregnant people with diabetes and hypertension, either an ACE inhibitor or ARB is recommended for those with moderately increased albuminuria (UACR 30–299 mg/g creatinine) B and is strongly recommended for those with severely increased albuminuria (UACR ≥300 mg/g creatinine) and/or estimated glomerular filtration rate (eGFR) <60 mL/min/1.73 m2 to maximally tolerated dose to prevent the progression of kidney disease and reduce cardiovascular events. A | 10.9 Multiple-drug therapy is generally required to achieve blood pressure goals. However, avoid any combination of ACE inhibitors, ARBs (including ARBs and neprilysin inhibitors), and direct renin inhibitors. A",
+  "correctValue": null,
+  "note": "ADA 2026 Recs 10.10 and 10.9. Scope is 'nonpregnant'. KDIGO 2022 Rec 1.2.1 (1B) also read: 'We recommend that treatment with an angiotensin-converting enzyme inhibitor (ACEi) or an angiotensin II receptor blocker (ARB) be initiated in patients with diabetes, hypertension, and albuminuria...'. ADA here uses UACR 30–299 / ≥300 mg/g (A3 inclusive of 300).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-STATIN-AGE-MAX",
+  "verdict": "confirmed",
+  "foundQuote": "10.18 For people with diabetes aged 40–75 years without ASCVD, use moderate-intensity statin therapy in addition to lifestyle therapy. A | 10.22 In adults with diabetes aged >75 years already on statin therapy, it is reasonable to continue statin treatment. B | 10.23 In adults with diabetes aged >75 years, it may be reasonable to initiate moderate-intensity statin therapy after discussion of potential benefits and risks. C",
+  "correctValue": null,
+  "note": "ADA 2026. Age range 40–75 inclusive; >75 continue (B), and initiation 'may be reasonable' (C), which the entry does not mention. Also Rec 10.19: ages 20–39 with additional ASCVD risk factors 'may be reasonable' (C).",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-TG-PANCREATITIS",
+  "verdict": "confirmed",
+  "foundQuote": "10.29 For individuals with fasting triglyceride levels ≥500 mg/dL (≥5.7 mmol/L), evaluate for secondary causes of hypertriglyceridemia and consider medical therapy to reduce the risk of pancreatitis. C",
+  "correctValue": null,
+  "note": "ADA 2026 Rec 10.29 (C). Operator ≥, fasting.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CVD-BAND-10",
+  "verdict": "confirmed",
+  "foundQuote": "WHO chart legend: 'Risk Level 0 <5% 5 5% to <10% 10 10% to <20% 20 20% to <30% 30 ≥30%' | Global Heart 2022: '<5% (green), 5% to <10% (yellow), 10% to <20% (orange), 20% to <30% (red), and ≥30% (dark red)'",
+  "correctValue": null,
+  "note": "Confirmed on the WHO chart itself and in the Global Heart paper (Introduction). Boundary: 10% belongs to the upper band (10% to <20%).",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2 ; https://storage.googleapis.com/jnl-up-j-gh-files/journals/1/articles/1148/submission/proof/1148-1-5215-1-10-20220901.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-BAND-20",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "WHO chart legend: 'Risk Level 0 <5% 5 5% to <10% 10 10% to <20% 20 20% to <30% 30 ≥30%' | WHO SEARO booklet: band heading 'CVD risk >20%', TREAT: 'Give a statin', 'Consider drug treatment if persistent BP ≥ 130/80 mmHg'",
+  "correctValue": null,
+  "note": "The chart band boundary is right: 20% belongs to the '20% to <30%' band. The statin clause is NOT verified as written: the only source that could be read (the WHO South-East Asia booklet) heads the statin band 'CVD risk >20%' (strictly above), not 'at or above 20%', and does not credit HEARTS; the HEARTS Risk-based CVD management PDF returned 403 on every WHO IRIS URL. A rule that gives a statin at exactly 20% rests on the chart banding, not on a sentence that was read. A human should read HEARTS/WHO PEN Protocol 1 for the operator.",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2 ; https://cdn.who.int/media/docs/default-source/searo/ncd/booklet-know-your-cardiovascular-disease-risk-take-action.pdf?sfvrsn=6b0b5d80_2"
+ },
+ {
+  "ref": "REF-DM-CVD-BAND-30",
+  "verdict": "confirmed",
+  "foundQuote": "WHO chart legend: 'Risk Level 0 <5% 5 5% to <10% 10 10% to <20% 20 20% to <30% 30 ≥30%' | Global Heart 2022: '<5% (green), 5% to <10% (yellow), 10% to <20% (orange), 20% to <30% (red), and ≥30% (dark red)'",
+  "correctValue": null,
+  "note": "Confirmed on the WHO chart itself and in the Global Heart paper (Introduction). Top band is ≥30%.",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2 ; https://storage.googleapis.com/jnl-up-j-gh-files/journals/1/articles/1148/submission/proof/1148-1-5215-1-10-20220901.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-BAND-5",
+  "verdict": "confirmed",
+  "foundQuote": "WHO chart legend: 'Risk Level 0 <5% 5 5% to <10% 10 10% to <20% 20 20% to <30% 30 ≥30%' | Global Heart 2022: '<5% (green), 5% to <10% (yellow), 10% to <20% (orange), 20% to <30% (red), and ≥30% (dark red)'",
+  "correctValue": null,
+  "note": "Confirmed on the WHO chart itself (primary) and in the Global Heart paper (the sentence is in the Introduction, not Methods). Boundary: 5% belongs to the upper band (5% to <10%).",
+  "urlUsed": "https://cdn.who.int/media/docs/default-source/cardiovascular-diseases/eastern-sub-saharan-africa.pdf?sfvrsn=a0724b9d_2 ; https://storage.googleapis.com/jnl-up-j-gh-files/journals/1/articles/1148/submission/proof/1148-1-5215-1-10-20220901.pdf"
+ },
+ {
+  "ref": "REF-DM-CVD-NOT-VALIDATED",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "External validation: 'the Asia Pacific Cohort Studies Collaboration (APCSC), the New Zealand primary care-based PREDICT cardiovascular disease cohort (PREDICT-CVD), the Chinese Multi-Provincial Cohort Study, the Health Checks Ubon Ratchathani Study in Thailand, the Tehran Lipids and Glucose Study, and UK Biobank' | 'the proportion of individuals aged 40–64 years with an estimated risk greater than 20% varied by region and country, from less than 1% for Uganda to greater than 16% for Egypt'",
+  "correctValue": null,
+  "note": "The six external validation cohorts match the entry (Asia-Pacific, New Zealand, China, Thailand, Iran, UK). 'In no sub-Saharan African cohort' is a correct INFERENCE from that list, not a sentence in the paper: no explicit statement about sub-Saharan Africa was found in the text read. The paper's own limitation wording is general (suitable prospective cohort data 'do not yet exist for most low-income and middle-income countries'). Word the entry as 'none of the six external validation cohorts was from sub-Saharan Africa'.",
+  "urlUsed": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7025029/fullTextXML"
+ },
+ {
+  "ref": "REF-DM-VAL-EGFR-EQUATION",
+  "verdict": "confirmed",
+  "foundQuote": "eGFRcr = 142 x min(Scr/κ, 1)α x max(Scr/κ, 1)-1.200 x 0.9938^Age x 1.012 [if female] ... Scr = standardized serum creatinine in mg/dL; κ = 0.7 (females) or 0.9 (males); α = -0.241 (female) or -0.302 (male); min(Scr/κ, 1) is the minimum of Scr/κ or 1.0; max(Scr/κ, 1) is the maximum of Scr/κ or 1.0",
+  "correctValue": null,
+  "note": "NKF page, citing Inker LA et al., N Engl J Med 2021;385:1737-1749; no race term. ADA 2025 Section 11 also read: 'The Chronic Kidney Disease Epidemiology Collaboration (CKD-EPI) creatinine equation was refit without the race variable and should be used for everyone.' Implementation caution: Scr in the equation is in mg/dL; laboratories reporting µmol/L need a unit conversion before κ is applied. The ARK study (REF-DM-VAL-EGFR-ARK) found this equation overestimates kidney function in Uganda.",
+  "urlUsed": "https://www.kidney.org/professionals/ckd-epi-creatinine-equation-2021"
+ },
+ {
+  "ref": "REF-DM-CVD-NONLAB-UNDER",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "The non-lab-based chart underestimated the CVD risk in 57.6 % of people with diabetes.",
+  "correctValue": null,
+  "note": "57.6% is right (Nutr Metab Cardiovasc Dis 2024 abstract): six WHO STEPS surveys in Eastern Sub-Saharan Africa 2012–2017 (Tanzania, Rwanda, Uganda, Ethiopia, Malawi, Zambia), 9857 participants aged 40–69 years. Qualifier the entry lacks: the comparison is against the laboratory-based chart (agreement study; kappa 0.43 in diabetes), not against observed cardiovascular events. Say 'underestimated risk relative to the laboratory-based chart'.",
+  "urlUsed": "https://www.sciencedirect.com/science/article/pii/S0939475324000462"
+ },
+ {
+  "ref": "REF-DM-CVD-EXEMPT",
+  "verdict": "could_not_open",
+  "foundQuote": "",
+  "correctValue": null,
+  "note": "The HEARTS Risk-based CVD management PDF could not be opened: https://iris.who.int/server/api/core/bitstreams/aef55845-a638-45d0-b816-70dd5bf8885a/content (the download link on the WHO landing page), iris.who.int/bitstream/handle/10665/333221/9789240001367-eng.pdf, apps.who.int/iris/... and iris.who.int/handle/10665/333221 all returned 403. The WHO landing page gives the overview only. The list was not found in the WHO SEARO booklet or in the readable part of the WHO PEN 2020 PDF. Nearest text that WAS read is a different document and a different operator: WHO 2020 'Diagnosis and management of type 2 diabetes', non-emergency referral criteria include 'total cholesterol >8 mmol/L (310 mg/dL)' (strictly above 8, and a referral criterion, not a chart exemption). The entry's '8 mmol/L or more' and the rest of the list are unverified.",
+  "urlUsed": "https://www.who.int/publications/i/item/9789240001367"
+ }
+]

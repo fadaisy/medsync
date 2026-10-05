@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PatientIdentity } from "@/components/medsync/patient-identity";
+import type { SQL } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lt, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -15,11 +16,13 @@ import { appointments, encounters, queueEntries } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { computeAgeYears } from "@/lib/age";
 import { signedAvatarUrl } from "@/lib/avatars";
+import { emrV1LiveFor } from "@/lib/emr/feature";
 import { decrypt } from "@/lib/encryption";
 import { declaredLast, presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
 import { appointmentBookedVia, byBookedAt, intakeBookedVia } from "@/lib/reception/booked-via";
 import { maskPhone, matchBasis } from "@/lib/reception/reconcile-basis";
+import { admittedLabel } from "@/lib/workspace/words";
 import {
   DEFAULT_TIME_ZONE,
   endOfLocalDay,
@@ -284,6 +287,8 @@ export interface ExpectedArrival {
   hereSinceIso: string | null;
   /** An encounter for this booking reached state='completed' — the "Seen" stage. */
   seen: boolean;
+  /** "Admitted · {ward} · Bed 12" when that visit closed as admitted (ADR 0200); else null. */
+  admitted: string | null;
   /**
    * The patient card (ADR 0095): the audited name reveal, photo, age, sex and
    * what they said is bothering them. For a provisional booking the title is
@@ -308,6 +313,20 @@ const seenSql = sql<boolean>`exists (
   where ${encounters.appointmentId} = ${appointments.id}
     and ${encounters.state} = 'completed'
 )`;
+
+/**
+ * A closed visit's admission, for "Admitted · {ward}" in place of "Seen" (ADR 0200): the completed
+ * encounter's disposition_detail when it was admitted. disposition_detail is 0071's, so it is read only
+ * where the EMR is on (as the Workspace reads 0071's columns).
+ */
+const admittedDetail = (hospitalId: string, link: SQL) =>
+  emrV1LiveFor(hospitalId)
+    ? sql<unknown>`(
+        select ${encounters.dispositionDetail} from ${encounters}
+        where ${link} and ${encounters.state} = 'completed' and ${encounters.disposition} = 'admitted'
+        order by ${encounters.endedAt} desc limit 1
+      )`
+    : sql<unknown>`null`;
 
 /** The booking's first queue row — its arrival. Keyed on the patient too, for the patient index. */
 const hereSinceSql = sql`(
@@ -381,6 +400,10 @@ export async function fetchExpectedArrivals(args: {
       bookingCode: appointments.bookingCode,
       hereSince: hereSinceSql,
       seen: seenSql,
+      admittedDetail: admittedDetail(
+        args.hospitalId,
+        sql`${encounters.appointmentId} = ${appointments.id}`,
+      ),
       provisionalId: provisionalPatients.id,
       provisionalNameEncrypted: provisionalPatients.declaredNameEncrypted,
       provisionalState: provisionalPatients.reconciliationState,
@@ -448,6 +471,7 @@ export async function fetchExpectedArrivals(args: {
       bookingCode: r.bookingCode,
       hereSinceIso: r.hereSince?.toISOString() ?? null,
       seen: r.seen,
+      admitted: admittedLabel("admitted", r.admittedDetail),
       identity: {
         patientCode: r.patientCode,
         displayName: r.patientUserId
@@ -1143,6 +1167,8 @@ export interface FlowRow {
    * arrived) and `arrived` (here, not yet in a triage queue).
    * Migration 0035. */
   stage: "declared" | "expected" | "arrived" | "in_queue" | "awaiting_triage" | "seen";
+  /** "Admitted · {ward} · Bed 12" for a seen visit that closed as admitted (ADR 0200); else null. */
+  admitted: string | null;
   departmentName: string | null;
   whenIso: string;
   detail: string;
@@ -1171,6 +1197,10 @@ export async function fetchTodayFlow(args: {
       startsAt: appointments.startsAt,
       departmentName: hospitalDepartments.name,
       seen: seenSql,
+      admittedDetail: admittedDetail(
+        args.hospitalId,
+        sql`${encounters.appointmentId} = ${appointments.id}`,
+      ),
     })
     .from(appointments)
     .leftJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
@@ -1198,6 +1228,10 @@ export async function fetchTodayFlow(args: {
       declaredByPatient: patientIntakes.declaredByPatient,
       routedTo: patientIntakes.routedTo,
       departmentName: hospitalDepartments.name,
+      admittedDetail: admittedDetail(
+        args.hospitalId,
+        sql`${encounters.visitId} = ${patientIntakes.id}`,
+      ),
     })
     .from(patientIntakes)
     .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
@@ -1231,6 +1265,7 @@ export async function fetchTodayFlow(args: {
       patientCode: r.patientCode,
       patientUnknownLabel: r.patientUserId ? null : r.provisionalId ? "Identity to confirm" : null,
       stage,
+      admitted: admittedLabel("admitted", r.admittedDetail),
       departmentName: r.departmentName,
       whenIso: r.startsAt.toISOString(),
       detail: `Booked · ${r.status}`,
@@ -1258,6 +1293,7 @@ export async function fetchTodayFlow(args: {
       patientCode: r.patientCode,
       patientUnknownLabel: r.patientUnknownLabel,
       stage,
+      admitted: admittedLabel("admitted", r.admittedDetail),
       departmentName: r.departmentName,
       whenIso: presenceOf(r).toISOString(),
       detail: [source, r.status, r.routedTo === "clinic" ? "sent to clinic" : null]

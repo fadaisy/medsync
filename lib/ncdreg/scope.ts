@@ -31,7 +31,7 @@ export type NcdScope = {
 };
 
 /**
- * Who is using the registry, where, with which NCD roles (ADR 0208). Auth and AAL2 as every clinical
+ * Who is using the registry, where, with which NCD roles (ADR 0209). Auth and AAL2 as every clinical
  * workspace; the facility is the user's most recent active affiliation, admin roster seat or NCD role
  * assignment. A user with no NCD role there gets a 404, not a hint that the module exists.
  */

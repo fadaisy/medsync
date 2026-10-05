@@ -4,6 +4,7 @@
  *   supabase/migrations/0072_emr_reference_seed.sql  (rows for the 0071 registries, gate-a-proposal §A.2)
  *   supabase/migrations/0082, 0083                   (the CFC v1.2 and v1.3 addenda)
  *   supabase/migrations/0085_ref_dx_terms_v1_1.sql   (the REF-DX-TERMS v1.1 addendum, uncoded: D-SI-26)
+ *   supabase/migrations/0086_ref_dx_terms_v1_1_icd11.sql (their ICD-11 codes, read on the WHO API and signed)
  *   lib/facts/catalogue.generated.ts                 (the same registry as a typed const for the engines)
  *
  * Deterministic: rows sorted by id, uuids derived from the data id (v5), output through the repo's
@@ -22,15 +23,19 @@ export const SEED_SOURCES = {
   v11: "data/emr/clinical-fact-concepts.v1.1.json",
   v12: "data/emr/clinical-fact-concepts.v1.2.json",
   v13: "data/emr/clinical-fact-concepts.v1.3.json",
+  v15: "data/emr/clinical-fact-concepts.v1.5.json",
   tests: "data/emr/test-catalogue.v1.json",
   terms: "data/emr/diagnosis-terms.v1.json",
   terms11: "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json",
+  codes11: "data/emr/diagnosis-terms.v1.1-icd11.json",
 } as const;
 export const SEED_OUTPUTS = {
   sql: "supabase/migrations/0072_emr_reference_seed.sql",
   sql12: "supabase/migrations/0082_cfc_v1_2_clerking_findings.sql",
   sql13: "supabase/migrations/0083_cfc_v1_3_examination.sql",
   sql85: "supabase/migrations/0085_ref_dx_terms_v1_1.sql",
+  sql86: "supabase/migrations/0086_ref_dx_terms_v1_1_icd11.sql",
+  sql15: "supabase/migrations/0092_cfc_v1_5_ncd_diabetes.sql",
   ts: "lib/facts/catalogue.generated.ts",
 } as const;
 
@@ -47,6 +52,12 @@ const ADDENDA = [
     title: "0082 — CFC v1.2: clerking history findings",
   },
   { key: "v13", version: "1.3.0", sql: "sql13", title: "0083 — CFC v1.3: the examination" },
+  {
+    key: "v15",
+    version: "1.5.0",
+    sql: "sql15",
+    title: "0092 — CFC v1.5: NCD diabetes (MS-NCD-DM-PACK-001)",
+  },
 ] as const;
 
 // Fixed namespace for the uuid-keyed registries (test_catalogue, diagnosis_terms have no text key column).
@@ -77,9 +88,11 @@ export function readSeedSources(root: string) {
     v11: read(SEED_SOURCES.v11),
     v12: read(SEED_SOURCES.v12),
     v13: read(SEED_SOURCES.v13),
+    v15: read(SEED_SOURCES.v15),
     tests: read(SEED_SOURCES.tests),
     terms: read(SEED_SOURCES.terms),
     terms11: read(SEED_SOURCES.terms11),
+    codes11: read(SEED_SOURCES.codes11),
   };
 }
 export type SeedSources = ReturnType<typeof readSeedSources>;
@@ -287,43 +300,7 @@ function buildSql(src: SeedSources): string {
     concepts.map((c) => conceptRow(src, c)),
   );
 
-  const testSql = insert(
-    "test_catalogue",
-    [
-      "id",
-      "hospital_id",
-      "code",
-      "display",
-      "kind",
-      "components",
-      "specimen_type",
-      "container",
-      "fasting_required",
-      "ionising",
-      "default_units",
-      "in_house",
-      "capability_id",
-      "turnaround_target_minutes",
-      "active",
-    ],
-    tests.map((t: Json) => [
-      lit(uuidV5(`test_catalogue:${t.id}`)),
-      "NULL",
-      lit(t.id),
-      lit(t.display),
-      lit(t.kind),
-      arr(t.panelComponents),
-      lit(t.specimenType),
-      lit(t.container),
-      bool(t.fasting_required),
-      bool(IONISING_TESTS.has(t.id)),
-      jsonb(t.defaultUnits),
-      bool(t.in_house),
-      lit(t.capability_id),
-      t.turnaround_target_minutes == null ? "NULL" : String(t.turnaround_target_minutes),
-      bool(t.active),
-    ]),
-  );
+  const testSql = insert("test_catalogue", TEST_CATALOGUE_COLS, tests.map(testRow));
 
   // source keeps the ICD-11 verification status and page, since the table has one code column, not jsonb.
   // symptom_level follows the terms file's own rule: "…, cause not yet known" terms.
@@ -365,6 +342,42 @@ function buildSql(src: SeedSources): string {
   ].join("\n");
 }
 
+// ─── test_catalogue rows (0072, and the menu additions of later addenda) ──
+const TEST_CATALOGUE_COLS = [
+  "id",
+  "hospital_id",
+  "code",
+  "display",
+  "kind",
+  "components",
+  "specimen_type",
+  "container",
+  "fasting_required",
+  "ionising",
+  "default_units",
+  "in_house",
+  "capability_id",
+  "turnaround_target_minutes",
+  "active",
+];
+const testRow = (t: Json) => [
+  lit(uuidV5(`test_catalogue:${t.id}`)),
+  "NULL",
+  lit(t.id),
+  lit(t.display),
+  lit(t.kind),
+  arr(t.panelComponents),
+  lit(t.specimenType),
+  lit(t.container),
+  bool(t.fasting_required),
+  bool(IONISING_TESTS.has(t.id)),
+  jsonb(t.defaultUnits),
+  bool(t.in_house),
+  lit(t.capability_id),
+  t.turnaround_target_minutes == null ? "NULL" : String(t.turnaround_target_minutes),
+  bool(t.active),
+];
+
 // ─── 0082, 0083: the CFC addenda ─────────────────────────────────────
 function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string {
   const add = src[a.key];
@@ -384,7 +397,7 @@ function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string
 --   clinical_concepts   ${concepts.length} at ${a.version} (${withCode} carry a symptom_catalog code${ext.length ? `; answers added to ${ext.map(([id]) => id).join(", ")}` : ""})
 --
 -- GATED: owner-applied (\`npm run db:migrate\`), after 0076 (symptom_code references symptom_catalog codes
--- 0076 adds) and after ${a.key === "v12" ? "0072" : "0082 (v1.3 reuses v1.2 concepts)"}. Until it runs, signing keeps these findings in the note only
+-- 0076 adds) and after ${a.key === "v12" ? "0072" : a.key === "v13" ? "0082 (v1.3 reuses v1.2 concepts)" : "0083 and 0085 (v1.5 links terms 0085 seeds)"}. Until it runs, signing keeps these findings in the note only
 -- (it charts only concepts present in clinical_concepts).
 `;
   const extSql = ext.map(
@@ -465,6 +478,99 @@ function buildTermsAddendumSql(src: SeedSources): string {
   ].join("\n");
 }
 
+// ─── 0092: v1.5's diagnosis terms (uncoded) and term → concept links ──
+/**
+ * v1.5 adds the diagnosis terms the diabetes pack names (uncoded, as 0085: "as typed, not coded") and
+ * links each pack term to its condition concept, so a diagnosis picked from REF-DX-TERMS becomes a
+ * condition fact an engine can read (Phase 0 Q10). A link is written only where none exists: a re-run,
+ * or a hospital's own link, is never overwritten.
+ */
+function buildV15Extra(src: SeedSources): string {
+  const add = src.v15;
+  const terms = [...add.termsAdd].sort(byId((t: Json) => t.id));
+  const tests = [...(add.testsAdd ?? [])].sort(byId((t: Json) => t.id));
+  const links = Object.entries(add.termConcepts as Record<string, string>).sort(([a], [b]) =>
+    a < b ? -1 : 1,
+  );
+  return [
+    "-- ─── diagnosis_terms (draft, uncoded) ───────────────────────────────",
+    insert(
+      "diagnosis_terms",
+      TERM_COLS,
+      terms.map((t: Json) => [
+        lit(uuidV5(`diagnosis_terms:${t.id}`)),
+        lit(t.display),
+        arr(t.synonyms),
+        "NULL",
+        bool(t.chronic),
+        bool(symptomLevel(t.display)),
+        lit(t.hmis_category_id),
+        lit(t.idsr_class),
+        lit(t.sensitivity),
+        lit(t.status),
+        lit(`CFC ${add.version}: as typed, not coded (ICD-11 ${t.icd11?.status ?? "to-code"})`),
+        "NULL",
+      ]),
+    ),
+    "-- ─── test_catalogue (the default menu; no reference ranges, no turnaround numbers) ─",
+    insert("test_catalogue", TEST_CATALOGUE_COLS, tests.map(testRow)),
+    "-- ─── term → condition concept links ─────────────────────────────────",
+    links
+      .map(
+        ([term, concept]) =>
+          `UPDATE public.diagnosis_terms SET concept_id = ${lit(concept)}\n  WHERE id = ${lit(uuidV5(`diagnosis_terms:${term}`))} AND concept_id IS NULL; -- ${term}`,
+      )
+      .join("\n") + "\n",
+  ].join("\n");
+}
+
+// ─── 0086: ICD-11 codes for the v1.1 addendum, read on the WHO API and signed ─
+/**
+ * Sets icd11_code, verified_on and source on each signed term, and nothing else. A term is touched
+ * only while it is still exactly as 0085 left it (no code, never verified), so a re-run changes
+ * nothing and a code set since by other means is never overwritten. The held terms get no row.
+ */
+function buildTermsCodesSql(src: SeedSources): string {
+  const data = src.codes11;
+  const { release } = data.classification;
+  const codes = [...data.codes].sort(byId((c: Json) => c.id));
+  const source = (c: Json) => `verified (WHO ICD-11 API, MMS ${release}): ${c.uri}`;
+  const header = `-- 0086 — REF-DX-TERMS v1.1: ICD-11 codes for the addendum terms 0085 seeded uncoded.
+--
+-- GENERATED by scripts/emr/gen-seed.ts from ${SEED_SOURCES.codes11}, signed by the CSO
+-- ${data.signed.on} (${data.signed.record}). Do not edit: regenerate with
+-- \`npx tsx scripts/emr/gen-seed.ts\`; tests/emr/seed.test.ts fails while this file drifts from the data.
+--
+-- Each code was resolved on the WHO ICD-11 API (id.who.int) in MMS ${release} on ${data.verified_on}: the
+-- code, WHO's title and the entity uri are WHO's own, never typed from memory or a mirror (D-SI-26).
+--   coded   ${codes.length} (groups A, B and C of the sign-off record)
+--   held    ${data.held.length}, no single honest code; they stay "As typed, not coded" (group D)
+-- Sets icd11_code, verified_on and source only. A row is updated only while icd11_code and verified_on
+-- are both still NULL, as 0085 left it: a re-run changes nothing. ICD-10 stays NULL (R9/E6).
+--
+-- GATED: owner-applied (\`npm run db:migrate\`), after 0085. Until it runs, these terms read
+-- "As typed, not coded" and are never HMIS-counted.
+`;
+  const rows = codes.map(
+    (c: Json) =>
+      `  (${lit(uuidV5(`diagnosis_terms:${c.id}`))}, ${lit(c.code)}, ${lit(source(c))}), -- ${c.id}`,
+  );
+  rows[rows.length - 1] = rows[rows.length - 1]!.replace(/\), -- /, ")  -- ");
+  return [
+    header,
+    "-- ─── diagnosis_terms: signed ICD-11 codes ───────────────────────────",
+    "UPDATE public.diagnosis_terms AS t",
+    `SET icd11_code = v.icd11_code, verified_on = DATE ${lit(data.verified_on)}, source = v.source`,
+    "FROM (VALUES",
+    ...rows,
+    ") AS v (id, icd11_code, source)",
+    "WHERE t.id = v.id::uuid",
+    "  AND t.icd11_code IS NULL",
+    "  AND t.verified_on IS NULL;",
+    "",
+  ].join("\n");
+}
+
 // ─── catalogue.generated.ts ──────────────────────────────────────────
 function buildTs(src: SeedSources): string {
   const concepts = registryConcepts(src);
@@ -509,7 +615,10 @@ function buildTs(src: SeedSources): string {
   );
   const caps = src.v1.capabilities.map((c: Json) => c.id).sort();
   const sensitivityRuleIds = src.v11.sensitivityRules.map((r: Json) => r.id);
-  const minorTerms = [...src.terms.conditionalSensitivity.termIds].sort();
+  const minorTerms = [
+    ...src.terms.conditionalSensitivity.termIds,
+    ...(src.v15.restrictedForMinors ?? []),
+  ].sort();
 
   return `// GENERATED — do not edit. Sources: ${SEED_SOURCES.v1}, ${SEED_SOURCES.v11}, ${SEED_SOURCES.v12}, ${SEED_SOURCES.v13},
 // ${SEED_SOURCES.tests}, ${SEED_SOURCES.terms}.
@@ -574,9 +683,15 @@ export const DIAGNOSIS_TERMS_RESTRICTED_FOR_MINORS = ${JSON.stringify(
 }
 
 /** The pure core: data in, file contents out. Nothing is written. */
-export async function generateSeed(
-  root: string = process.cwd(),
-): Promise<{ sql: string; ts: string; sql12: string; sql13: string; sql85: string }> {
+export async function generateSeed(root: string = process.cwd()): Promise<{
+  sql: string;
+  ts: string;
+  sql12: string;
+  sql13: string;
+  sql85: string;
+  sql86: string;
+  sql15: string;
+}> {
   const src = readSeedSources(root);
   const tsPath = join(root, SEED_OUTPUTS.ts);
   const config = (await prettier.resolveConfig(tsPath)) ?? {};
@@ -585,17 +700,21 @@ export async function generateSeed(
     sql12: buildAddendumSql(src, ADDENDA[0]),
     sql13: buildAddendumSql(src, ADDENDA[1]),
     sql85: buildTermsAddendumSql(src),
+    sql86: buildTermsCodesSql(src),
+    sql15: buildAddendumSql(src, ADDENDA[2]) + "\n" + buildV15Extra(src),
     ts: await prettier.format(buildTs(src), { ...config, filepath: tsPath }),
   };
 }
 
 if (process.argv[1]?.endsWith("gen-seed.ts")) {
   const root = process.cwd();
-  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85 }) => {
+  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85, sql86, sql15 }) => {
     writeFileSync(join(root, SEED_OUTPUTS.sql), sql);
     writeFileSync(join(root, SEED_OUTPUTS.sql12), sql12);
     writeFileSync(join(root, SEED_OUTPUTS.sql13), sql13);
     writeFileSync(join(root, SEED_OUTPUTS.sql85), sql85);
+    writeFileSync(join(root, SEED_OUTPUTS.sql86), sql86);
+    writeFileSync(join(root, SEED_OUTPUTS.sql15), sql15);
     writeFileSync(join(root, SEED_OUTPUTS.ts), ts);
     console.log(`wrote ${Object.values(SEED_OUTPUTS).join(", ")}`);
   });

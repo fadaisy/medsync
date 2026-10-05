@@ -23,6 +23,8 @@ export function followUpWords(followUp: unknown, timeZone?: string): string {
   if (f?.kind === "as_needed") return "As needed";
   if (f?.kind === "review_date" && f.date)
     return `Review on ${formatters(timeZone).date(`${f.date}T12:00:00Z`)}`;
+  if (f?.kind === "booked" && f.date)
+    return `Booked: ${formatters(timeZone).date(`${f.date}T12:00:00Z`)}`;
   return "Not set";
 }
 

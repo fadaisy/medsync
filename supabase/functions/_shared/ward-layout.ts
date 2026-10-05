@@ -1154,35 +1154,43 @@ export function publishPayload(
 
 export const BED_STATES = [
   { code: "occupied", label: "Occupied", short: "Occ" },
+  // ADR 0199: allocated to an admitted patient who has not arrived yet; not available.
+  { code: "arriving", label: "Arriving", short: "Arr" },
   { code: "free", label: "Free", short: "Free" },
   { code: "cleaning", label: "Cleaning", short: "Clean" },
   { code: "reserved", label: "Reserved", short: "Res" },
   { code: "out", label: "Out of service", short: "Out" },
 ] as const;
 export type BedState = (typeof BED_STATES)[number]["code"];
-/** The states staff set by hand; Occupied comes from an assignment and Out from the register. */
+/** The states staff set by hand; Occupied and Arriving come from an assignment, Out from the register. */
 export const SETTABLE_STATES = ["free", "cleaning", "reserved"] as const;
 export type SettableState = (typeof SETTABLE_STATES)[number];
 export const bedStateMeta = (s: BedState) => BED_STATES.find((x) => x.code === s)!;
 
 export interface BedStateInput {
   closed: boolean;
-  open: { startedAt: string } | null;
+  /** The open assignment; `arriving` when it was made for an admission and nobody has arrived (ADR 0199). */
+  open: { startedAt: string; arriving?: boolean } | null;
   /** When the last assignment on this bed ended, if one did. */
   lastEndedAt: string | null;
   events: readonly { state: SettableState; setAt: string; reason: string | null }[];
 }
 
 /**
- * Occupied from an open assignment; Out from the register; else the latest state event since the last
- * assignment ended; else Free.
+ * Occupied (or Arriving) from an open assignment; Out from the register; else the latest state event since
+ * the last assignment ended; else Free.
  */
 export function bedState(i: BedStateInput): {
   state: BedState;
   since: string | null;
   reason: string | null;
 } {
-  if (i.open) return { state: "occupied", since: i.open.startedAt, reason: null };
+  if (i.open)
+    return {
+      state: i.open.arriving ? "arriving" : "occupied",
+      since: i.open.startedAt,
+      reason: null,
+    };
   if (i.closed) return { state: "out", since: null, reason: null };
   const after = i.lastEndedAt === null ? null : Date.parse(i.lastEndedAt);
   const latest = [...i.events]
@@ -1227,7 +1235,7 @@ export function freeByNeed(beds: readonly BoardBedLite[]) {
 
 /** Counts per state, in the legend's order. */
 export function stateCounts(beds: readonly { state: BedState }[]): Record<BedState, number> {
-  const out = { occupied: 0, free: 0, cleaning: 0, reserved: 0, out: 0 } as Record<
+  const out = { occupied: 0, arriving: 0, free: 0, cleaning: 0, reserved: 0, out: 0 } as Record<
     BedState,
     number
   >;

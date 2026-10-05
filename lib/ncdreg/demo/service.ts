@@ -1,5 +1,5 @@
 /**
- * Demo data mode (§10, I5–I7, ADR 0213). Switching on creates a demo load record and writes the
+ * Demo data mode (§10, I5–I7, ADR 0214). Switching on creates a demo load record and writes the
  * catalogue's patients through the normal command path as the `demo_loader` principal; switching off
  * removes every record of that load's synthetic persons, in one transaction, and verifies nothing is
  * left. Real records are never touched: selection is by demo load id AND is_synthetic, a trigger

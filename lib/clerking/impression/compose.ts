@@ -20,6 +20,7 @@ export interface ImpressionComposeInput {
 
 const ONSET: Record<string, string> = {
   acute: "acute",
+  subacute: "subacute",
   chronic: "chronic",
   acute_on_chronic: "acute on chronic",
   recurrent: "recurrent",

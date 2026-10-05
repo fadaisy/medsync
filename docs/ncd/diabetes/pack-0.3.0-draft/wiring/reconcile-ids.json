@@ -1,0 +1,760 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "note": "Every catalogue id the clerking wiring names. 'proposed' ids are created by this pack. Every other id was written from the briefing's samples and MUST be found in the live catalogue in Phase 0; an id that is not found is reported, never guessed.",
+ "ids": [
+  {
+   "id": "derived.egfr",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "derived.osmolality_effective",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.aki",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.cataract",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.ckd",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.diabetes_in_pregnancy",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.diabetic_foot",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.diabetic_kidney_disease",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.diabetic_neuropathy",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.diabetic_retinopathy",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.dka",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.dm_type1",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.dm_type2",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.dm_type_unknown",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.dyslipidaemia",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.gestational_diabetes",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.hhs",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.hyperglycaemia_unconfirmed",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.hypertension",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.hypoglycaemia_dm",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.hypoglycaemia_no_dm",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.intermediate_hyperglycaemia",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.malaria_severe",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.obesity",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.sepsis",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "dx.steroid_induced_hyperglycaemia",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "dx.stroke",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.eyes_ent_neck.fundoscopy",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.eyes_ent_neck.fundoscopy.seen",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.eyes_ent_neck.visual_acuity",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "ex.feet",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.feet.ipswich_touch",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.feet.monofilament",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.feet.vibration_128",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.general.hydration",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.general.odour",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.general.oedema",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.nervous.reflexes",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.respiratory.breathing_pattern",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "ex.skin.injection_sites",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "exam.macular_oedema",
+   "usedIn": [
+    "exam",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "exam.maculopathy",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "exam.retinal_view",
+   "usedIn": [
+    "exam",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "exam.retinopathy_grade",
+   "usedIn": [
+    "exam",
+    "test-menu"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "hx.prior_gdm",
+   "usedIn": [
+    "history"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.abi",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.bicarbonate",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "obs.c_peptide",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.glucose",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "obs.hba1c",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "obs.islet_autoantibody",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.ketones_blood",
+   "usedIn": [
+    "exam",
+    "test-menu"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "obs.ketones_urine",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "obs.ph_venous",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.uacr",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "obs.upcr",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.visual_acuity",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "obs.vitamin_b12",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "sign.lipohypertrophy",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "sym.abdominal_pain",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.blurred_vision",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.confusion",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.dizziness",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.numbness",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.polydipsia",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.polyuria",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.recurrent_infections",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.vomiting",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "sym.weight_loss",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "target.hba1c",
+   "usedIn": [
+    "plan"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.abi",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.c_peptide",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.creatinine",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.gad_antibodies",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.glucose_capillary",
+   "usedIn": [
+    "plan",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.glucose_fasting",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.glucose_random",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.hba1c",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.ketones_blood",
+   "usedIn": [
+    "diagnosis",
+    "plan",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.lipid_panel",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.ogtt_75g",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.retinal_photograph",
+   "usedIn": [
+    "diagnosis",
+    "plan",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.thyroid",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.uacr",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.urea_electrolytes",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.urinalysis_dipstick",
+   "usedIn": [
+    "diagnosis",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "test.urine_pcr",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.venous_gas",
+   "usedIn": [
+    "diagnosis",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.vitamin_b12",
+   "usedIn": [
+    "diagnosis",
+    "plan",
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "test.xray_abdomen",
+   "usedIn": [
+    "test-menu"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "vs.bp",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "vs.consciousness",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "vs.glucose",
+   "usedIn": [
+    "diagnosis",
+    "exam",
+    "plan"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "vs.ketones",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "proposed"
+  },
+  {
+   "id": "vs.ketones.blood",
+   "usedIn": [
+    "diagnosis"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "vs.postural",
+   "usedIn": [
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "vs.waist",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  },
+  {
+   "id": "vs.weight",
+   "usedIn": [
+    "diagnosis",
+    "exam"
+   ],
+   "status": "resolve in Phase 0"
+  }
+ ]
+}

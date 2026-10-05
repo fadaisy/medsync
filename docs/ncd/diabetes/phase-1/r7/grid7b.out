@@ -1,0 +1,75 @@
+    76  info: pregnant/pp BP>=140/90 with headache/blurred vision -> no interrupt
+     4  noise: pregnancy unanswered, diabetic woman, no symptoms -> interrupt
+     2  noise: pregnancy unanswered, diabetic woman, no symptoms -> same day
+   722  order: pregnancy-unknown interrupt shown over a measured emergency
+    24  silent: GDM glucose 3.5
+    62  silent: GDM ketones >=3.0/3+ needs immediate (ROUTE-02)
+   222  silent: pregnant/pp BP>=140/90 needs same day (UCG-PE-03/CHTN-03) [notpreg_ppblank]
+   228  silent: pregnant/pp BP>=160/110 needs immediate (UCG-PE-02) [notpreg_ppblank]
+    16  silent: pregnant/pp drowsy BP>=140/90 needs immediate (28C) [notpreg_ppblank]
+    16  silent: pregnant/pp drowsy, BP not recorded
+   114  silent: pregnant/pp organ damage needs immediate (UCG-PE-02) [notpreg_ppblank]
+
+# order: pregnancy-unknown interrupt shown over a measured emergency
+    ('unknown.noinfo.bp=none.organ.g=HI.k=none', 'DM-ACU-ROUTE-28B', [('DM-ACU-ROUTE-01', 'same_day'), ('DM-ACU-ROUTE-14', 'folded'), ('DM-ACU-ROUTE-28B', 'immediate')])
+    ('unknown.noinfo.bp=none.organ.g=HI.k=b3.5', 'DM-ACU-ROUTE-28B', [('DM-ACU-ROUTE-02', 'folded'), ('DM-ACU-ROUTE-14', 'folded'), ('DM-ACU-ROUTE-28B', 'immediate')])
+    ('unknown.noinfo.bp=none.organ.g=HI.k=u_3', 'DM-ACU-ROUTE-28B', [('DM-ACU-ROUTE-02', 'folded'), ('DM-ACU-ROUTE-14', 'folded'), ('DM-ACU-ROUTE-28B', 'immediate'), ('DM-CLS-T1-01', 'same_day')])
+    ('unknown.noinfo.bp=none.organ.g=HI.k=b1.0', 'DM-ACU-ROUTE-28B', [('DM-ACU-ROUTE-14', 'folded'), ('DM-ACU-ROUTE-21B', 'same_day'), ('DM-ACU-ROUTE-28B', 'immediate')])
+
+# noise: pregnancy unanswered, diabetic woman, no symptoms -> same day
+    ('unknown.T2_metf.bp=145/95.none.g=none.k=none', None, [('DM-ACU-ROUTE-27', 'same_day')])
+    ('unknown.T2_metf.bp=145/95.none.g=c7.k=none', None, [('DM-ACU-ROUTE-27', 'same_day')])
+
+# noise: pregnancy unanswered, diabetic woman, no symptoms -> interrupt
+    ('unknown.T2_metf.bp=165/112.none.g=none.k=none', 'DM-ACU-ROUTE-28', [('DM-ACT-REFER-BP-01', 'same_day'), ('DM-ACU-ROUTE-28', 'immediate')])
+    ('unknown.T2_metf.bp=165/112.none.g=c7.k=none', 'DM-ACU-ROUTE-28', [('DM-ACT-REFER-BP-01', 'same_day'), ('DM-ACU-ROUTE-28', 'immediate')])
+    ('unknown.T2_metf.bp=190/120.none.g=none.k=none', 'DM-ACU-ROUTE-28', [('DM-ACT-REFER-BP-01', 'same_day'), ('DM-ACU-ROUTE-28', 'immediate')])
+    ('unknown.T2_metf.bp=190/120.none.g=c7.k=none', 'DM-ACU-ROUTE-28', [('DM-ACT-REFER-BP-01', 'same_day'), ('DM-ACU-ROUTE-28', 'immediate')])
+
+# silent: pregnant/pp drowsy, BP not recorded
+    ('preg34.noinfo.bp=none.drowsy.g=c7.k=none', None, [])
+    ('preg34.noinfo.bp=none.drowsy.g=c7.k=b3.5', None, [])
+    ('preg34.noinfo.bp=none.drowsy.g=c7.k=u_3', None, [])
+    ('preg34.noinfo.bp=none.drowsy.g=c7.k=b1.0', None, [])
+
+# info: pregnant/pp BP>=140/90 with headache/blurred vision -> no interrupt
+    ('preg34.noinfo.bp=145/95.headache.g=none.k=none', None, [('DM-ACU-ROUTE-27', 'same_day')])
+    ('preg34.noinfo.bp=145/95.headache.g=none.k=b3.5', None, [('DM-ACU-ROUTE-27', 'same_day')])
+    ('preg34.noinfo.bp=145/95.headache.g=none.k=u_3', None, [('DM-ACU-ROUTE-27', 'same_day')])
+    ('preg34.noinfo.bp=145/95.headache.g=none.k=b1.0', None, [('DM-ACU-ROUTE-27', 'same_day')])
+
+# silent: GDM ketones >=3.0/3+ needs immediate (ROUTE-02)
+    ('preg34.GDM_nostatus.bp=none.none.g=none.k=b3.5', None, [])
+    ('preg34.GDM_nostatus.bp=none.none.g=none.k=u_3', None, [])
+    ('preg34.GDM_nostatus.bp=none.none.g=c7.k=b3.5', None, [])
+    ('preg34.GDM_nostatus.bp=none.none.g=c7.k=u_3', None, [])
+
+# silent: GDM glucose 3.5
+    ('preg34.GDM_nostatus.bp=none.none.g=c3.5.k=none', None, [])
+    ('preg34.GDM_nostatus.bp=none.none.g=c3.5.k=b3.5', None, [])
+    ('preg34.GDM_nostatus.bp=none.none.g=c3.5.k=u_3', None, [])
+    ('preg34.GDM_nostatus.bp=none.none.g=c3.5.k=b1.0', None, [])
+
+# silent: pregnant/pp organ damage needs immediate (UCG-PE-02) [notpreg_ppblank]
+    ('notpreg_ppblank.noinfo.bp=none.organ.g=none.k=none', None, [])
+    ('notpreg_ppblank.noinfo.bp=none.organ.g=none.k=b3.5', None, [])
+    ('notpreg_ppblank.noinfo.bp=none.organ.g=none.k=u_3', None, [])
+    ('notpreg_ppblank.noinfo.bp=none.organ.g=none.k=b1.0', None, [])
+
+# silent: pregnant/pp BP>=140/90 needs same day (UCG-PE-03/CHTN-03) [notpreg_ppblank]
+    ('notpreg_ppblank.noinfo.bp=145/95.none.g=none.k=none', None, [])
+    ('notpreg_ppblank.noinfo.bp=145/95.none.g=none.k=b3.5', None, [])
+    ('notpreg_ppblank.noinfo.bp=145/95.none.g=none.k=u_3', None, [])
+    ('notpreg_ppblank.noinfo.bp=145/95.none.g=none.k=b1.0', None, [])
+
+# silent: pregnant/pp drowsy BP>=140/90 needs immediate (28C) [notpreg_ppblank]
+    ('notpreg_ppblank.noinfo.bp=145/95.drowsy.g=none.k=none', None, [])
+    ('notpreg_ppblank.noinfo.bp=145/95.drowsy.g=none.k=b3.5', None, [])
+    ('notpreg_ppblank.noinfo.bp=145/95.drowsy.g=none.k=u_3', None, [])
+    ('notpreg_ppblank.noinfo.bp=145/95.drowsy.g=none.k=b1.0', None, [])
+
+# silent: pregnant/pp BP>=160/110 needs immediate (UCG-PE-02) [notpreg_ppblank]
+    ('notpreg_ppblank.noinfo.bp=165/112.none.g=none.k=none', None, [])
+    ('notpreg_ppblank.noinfo.bp=165/112.none.g=none.k=b3.5', None, [])
+    ('notpreg_ppblank.noinfo.bp=165/112.none.g=none.k=u_3', None, [])
+    ('notpreg_ppblank.noinfo.bp=165/112.none.g=none.k=b1.0', None, [])

@@ -153,7 +153,11 @@ function itemText(
   const r = item.response;
   if (r.type === "link") return null;
   if (e.state === "not_examined") return null;
-  const clause = e.state === "positive" ? attrsClause(cat, item, e, audience) : "";
+  // A normal finding writes only what is recorded on any state (EC-7); positive writes them all.
+  const clause =
+    e.state === "positive" || (e.state === "negative" && r.type !== "choice")
+      ? attrsClause(cat, item, e, audience)
+      : "";
   const withClause = (base: string) => (clause ? `${base}, ${clause}` : base);
 
   if (r.type === "device")
@@ -177,6 +181,13 @@ function itemText(
     if (c.result === "none") return { positive: false, text: item.phrase?.negative ?? lc(c.text) };
     return { positive: true, text: `${lc(c.text)} (GTFCC: ${c.inputs.join(", ")})` };
   }
+  if (r.type === "measured" && !cat.attribute(item.id, "signs")) {
+    // A measurement written as its attributes ("visual acuity: right eye 6/9, left eye 6/12").
+    const parts = (item.attributes ?? [])
+      .filter((a) => e.attrs?.[a.id] !== undefined)
+      .map((a) => `${lc(a.label)} ${attrText(cat, item, a, e.attrs![a.id]!, audience)}`);
+    return parts.length ? { positive: true, text: `${lc(item.label)}: ${parts.join(", ")}` } : null;
+  }
   if (r.type === "measured") {
     // MUAC is written on the anthropometry line; here only the signs and the oedema caution.
     const signs = attrText(
@@ -188,8 +199,11 @@ function itemText(
     );
     return signs ? { positive: true, text: `nutrition: ${signs}` } : null;
   }
+  // The undilated rule (EC-7): an undilated look that seems normal is not a retinal screen.
+  if (e.state === "negative" && e.attrs?.method === "undilated" && e.attrs?.view !== "inadequate")
+    return { positive: false, text: "no retinopathy seen (undilated, not a screen)" };
   if (e.state === "negative")
-    return item.phrase ? { positive: false, text: item.phrase.negative } : null;
+    return item.phrase ? { positive: false, text: withClause(item.phrase.negative) } : null;
   if (item.id === "ex.general.distress") {
     const d = results.get("distress_severity");
     const parts = ["respiratory_distress_severity", "pain_severity", "agitation_severity"]
@@ -348,6 +362,7 @@ function systemParagraph(i: ComposeInput, systemId: string): string | null {
   const extra = {
     respiratory: ["acute_asthma_severity", "crb65"],
     nervous: ["rosier"],
+    eyes_ent_neck: ["dr_review"],
     feet: ["iwgdf_risk", "dfi_iwgdf_idsa", "sinbad"],
   }[systemId];
   for (const id of extra ?? []) {
@@ -376,9 +391,35 @@ function systemParagraph(i: ComposeInput, systemId: string): string | null {
   return text;
 }
 
+const KETONE_URINE: Record<string, string> = {
+  neg: "negative",
+  trace: "trace",
+  "1plus": "1+",
+  "2plus": "2+",
+  "3plus": "3+ or more",
+};
+
+/** The meter's HI or LO and the ketone panel: written from the draft, never charted (EC-6, EC-7). */
+function meterAndKetones(i: ComposeInput): string[] {
+  const out: string[] = [];
+  const v = i.x.vitals;
+  if (v.glucoseReads)
+    out.push(
+      `glucose ${v.glucoseReads} (${v.glucoseReads === "HI" ? "above" : "below"} the meter's range${v.glucoseContext ? `, ${v.glucoseContext.replace(/_/g, " ").replace("two hours", "2 hours")}` : ""})`,
+    );
+  const k = i.x.exam.panels?.ketones;
+  const kb = [
+    k?.blood !== undefined ? `blood ${k.blood} mmol/L` : null,
+    k?.urine ? `urine ${KETONE_URINE[k.urine] ?? k.urine}` : null,
+  ].filter(Boolean);
+  if (kb.length) out.push(`ketones ${kb.join(", ")}`);
+  return out;
+}
+
 function vitalsLine(i: ComposeInput): string | null {
   const s = i.saved;
-  if (!s) return null;
+  const extra = meterAndKetones(i);
+  if (!s) return extra.length ? `Vital signs: ${extra.join(", ")}.` : null;
   const v = s.values;
   const bits: string[] = [];
   const missing: string[] = [];
@@ -410,6 +451,7 @@ function vitalsLine(i: ComposeInput): string | null {
     bits.push(
       `glucose ${v.glucose} mmol/L${quals([s.glucoseContext?.replace(/_/g, " ").replace("two hours", "2 hours")])}${conf("glucose")}`,
     );
+  bits.push(...extra);
   if (!bits.length) return null;
   const n = s.news2;
   const news = n ? ` NEWS2 ${n.total}${n.provisional ? " (incomplete)" : ""}.` : "";

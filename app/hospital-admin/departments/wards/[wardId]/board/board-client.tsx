@@ -3,11 +3,25 @@
 import type { BoardData } from "@/lib/wards/board";
 
 import { BedBoard } from "@/components/wards/board/bed-board";
-import { adminAssignBed, adminReleaseBed, adminSetBedState } from "../actions";
+import {
+  adminAllocateAdmissionBed,
+  adminAssignBed,
+  adminConfirmArrival,
+  adminReleaseAdmissionBed,
+  adminReleaseBed,
+  adminSetBedState,
+} from "../actions";
 
 const HUB = "/hospital-admin/departments";
 
-const ACTIONS = { setState: adminSetBedState, assign: adminAssignBed, release: adminReleaseBed };
+const ACTIONS = {
+  setState: adminSetBedState,
+  assign: adminAssignBed,
+  release: adminReleaseBed,
+  allocate: adminAllocateAdmissionBed,
+  confirmArrival: adminConfirmArrival,
+  releaseAdmission: adminReleaseAdmissionBed,
+};
 const LINKS = {
   crumbs: [
     { label: "Hospital admin", href: "/hospital-admin" },

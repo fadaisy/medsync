@@ -115,6 +115,10 @@ export const bedAssignments = pgTable(
     endedBy: uuid("ended_by"),
     /** Why the patient left the bed (set once, when the assignment ends). */
     reason: text("reason"),
+    /** 0091 (ADR 0199): the admission this bed was allocated for; with no arrived_at it is Arriving. FK in SQL. */
+    admissionId: uuid("admission_id"),
+    arrivedAt: timestamp("arrived_at", { withTimezone: true }),
+    arrivedBy: uuid("arrived_by"),
   },
   (t) => [
     uniqueIndex("bed_assignments_one_open_per_bed")

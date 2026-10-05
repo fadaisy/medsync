@@ -1,0 +1,2045 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "diffFirst": "Diff this list against the generated concept catalogue before writing the addendum (review G22). Option ids are the catalog's: urine ketones neg, trace, 1plus, 2plus, 3plus; macula none, non_centre, centre_involving, cannot_assess. Per-condition history answers (EC-2) are note text and evidence references only: the hx.* concepts below are for the problem-list proposal the clinician confirms, not for charting the answer.",
+ "note": "For a CFC addendum (next free number after v1.4) and a GATED seed migration (next free number 0092 or later). The owner applies migrations.",
+ "featureToConcept": [
+  {
+   "feature": "dm_status",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "polyuria",
+   "concept": "sx.polyuria",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "polydipsia",
+   "concept": "sx.polydipsia",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "polyphagia",
+   "concept": "sx.polyphagia",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "unexplained_weight_loss",
+   "concept": "sx.weight_loss_unintended",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "fatigue",
+   "concept": "sx.fatigue",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "slow_healing_wound",
+   "concept": "sx.slow_healing_wound",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "vomiting",
+   "concept": "sx.vomiting",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "abdominal_pain",
+   "concept": "sx.abdominal_pain",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "capillary_glucose",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "random_pg",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "hba1c",
+   "concept": "obs.hba1c",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "%",
+   "restrictedClass": null
+  },
+  {
+   "feature": "bohb",
+   "concept": "obs.ketones_blood",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "urine_ketones",
+   "concept": "obs.ketones_urine",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "venous_ph",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "pH",
+   "restrictedClass": null
+  },
+  {
+   "feature": "bicarbonate",
+   "concept": "obs.bicarbonate",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "sodium",
+   "concept": "obs.sodium",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "urea",
+   "concept": "obs.urea",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "effective_osmolality",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "mOsm/kg",
+   "restrictedClass": null
+  },
+  {
+   "feature": "mental_status",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "deep_rapid_breathing",
+   "concept": "sign.kussmaul_breathing",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "acetone_breath",
+   "concept": "sign.ketotic_breath",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "dehydration",
+   "concept": "sign.dehydration",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "egfr",
+   "concept": "derived.egfr",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mL/min/1.73m2",
+   "restrictedClass": null
+  },
+  {
+   "feature": "urine_acr",
+   "concept": "obs.uacr",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mg/mmol",
+   "restrictedClass": null
+  },
+  {
+   "feature": "urine_protein_strip",
+   "concept": "obs.urine_protein_dipstick",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "kidney_abnormality_3_months",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glucose_lowering_therapy",
+   "concept": null,
+   "status": "none",
+   "valueType": "multi_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hiv_on_art",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "hiv"
+  },
+  {
+   "feature": "art_regimen",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": "hiv"
+  },
+  {
+   "feature": "haemolysis",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "malaria_current",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "recent_transfusion",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "bp_systolic",
+   "concept": "obs.bp_systolic",
+   "status": "existing",
+   "valueType": "series",
+   "unit": "mmHg",
+   "restrictedClass": null
+  },
+  {
+   "feature": "bp_diastolic",
+   "concept": "obs.bp_diastolic",
+   "status": "existing",
+   "valueType": "series",
+   "unit": "mmHg",
+   "restrictedClass": null
+  },
+  {
+   "feature": "pulse",
+   "concept": "obs.heart_rate",
+   "status": "existing",
+   "valueType": "series",
+   "unit": "/min",
+   "restrictedClass": null
+  },
+  {
+   "feature": "respiratory_rate",
+   "concept": "obs.resp_rate",
+   "status": "existing",
+   "valueType": "series",
+   "unit": "/min",
+   "restrictedClass": null
+  },
+  {
+   "feature": "temperature",
+   "concept": "obs.temperature",
+   "status": "existing",
+   "valueType": "series",
+   "unit": "Cel",
+   "restrictedClass": null
+  },
+  {
+   "feature": "weight_kg",
+   "concept": "obs.weight",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "kg",
+   "restrictedClass": null
+  },
+  {
+   "feature": "height_cm",
+   "concept": "obs.height",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "cm",
+   "restrictedClass": null
+  },
+  {
+   "feature": "waist_cm",
+   "concept": "obs.waist",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "cm",
+   "restrictedClass": null
+  },
+  {
+   "feature": "bmi",
+   "concept": "derived.bmi",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "kg/m2",
+   "restrictedClass": null
+  },
+  {
+   "feature": "pedal_pulses",
+   "concept": "exam.pedal_pulses",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "monofilament_10g",
+   "concept": "exam.monofilament",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "retinopathy_stage",
+   "concept": "exam.retinopathy_grade",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "foot_deformity",
+   "concept": "sign.foot_deformity",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "active_foot_ulcer",
+   "concept": "sign.foot_ulcer",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "foot_infection_grade",
+   "concept": "sign.foot_infection",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "acanthosis_nigricans",
+   "concept": "sign.acanthosis_nigricans",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "peripheral_oedema",
+   "concept": "sign.oedema",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "age_years",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "years",
+   "restrictedClass": null
+  },
+  {
+   "feature": "sex",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "pregnant",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "gestation_weeks",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "weeks",
+   "restrictedClass": null
+  },
+  {
+   "feature": "fasting_pg",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "ogtt_2h_pg",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "ogtt_1h_pg",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "capillary_glucose_context",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "repeat_abnormal_result",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "blurred_vision",
+   "concept": "sx.vision_change",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "recurrent_infections",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "foot_numbness_burning",
+   "concept": "sx.foot_numbness_burning",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "sudden_vision_loss",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "chest_pain_or_stroke_symptoms",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "orthostatic_dizziness",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "acute_illness_current",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "first_degree_relative_diabetes",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hypertension_known",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "smoking_current",
+   "concept": "soc.tobacco",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "age_at_diagnosis",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "years",
+   "restrictedClass": null
+  },
+  {
+   "feature": "years_since_diagnosis",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "years",
+   "restrictedClass": null
+  },
+  {
+   "feature": "ketosis_at_presentation",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "c_peptide",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "pmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "islet_autoantibodies",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "sickle_cell_disease",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "sickle_cell_trait",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "iron_deficiency",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_dialysis",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "previous_foot_ulcer",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "previous_amputation",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "end_stage_kidney_disease",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "vibration_128hz",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "ipswich_sites_missed",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "sites",
+   "restrictedClass": null
+  },
+  {
+   "feature": "foot_hot_swollen",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "foot_gangrene",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "potassium",
+   "concept": "obs.potassium",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "haematuria_strip",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "total_cholesterol",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "ldl_cholesterol",
+   "concept": "obs.chol_ldl",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "triglycerides",
+   "concept": "obs.triglycerides",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "heart_failure_known",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "cough_over_2_weeks",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "tb"
+  },
+  {
+   "feature": "injection_site_lumps",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "alcohol_harmful",
+   "concept": "soc.alcohol_pattern",
+   "status": "existing",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "care_setting",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "prior_gdm",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "sexual_reproductive_health"
+  },
+  {
+   "feature": "postpartum_weeks",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "weeks",
+   "restrictedClass": null
+  },
+  {
+   "feature": "prior_intermediate_hyperglycaemia",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_glucose_test",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_glucocorticoid",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_second_gen_antipsychotic",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "mental_health"
+  },
+  {
+   "feature": "weeks_since_antipsychotic_start",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "weeks",
+   "restrictedClass": "mental_health"
+  },
+  {
+   "feature": "months_since_art_start_or_switch",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": "hiv"
+  },
+  {
+   "feature": "tb_current",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "tb"
+  },
+  {
+   "feature": "pancreatitis_history",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "cvd_established",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "pcos",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "physically_inactive",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "secondary_enuresis",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "g6pd_deficiency",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "b12_deficiency",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_dapsone",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_iron_b12_or_epo",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "splenomegaly",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "uacr_transient_cause",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "creatinine_unstable",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "fundus_method",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "insulin_stopped_without_relapse",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "parent_with_diabetes",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "childhood_undernutrition",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "steatorrhoea",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "recurrent_abdominal_pain",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "pancreatic_calcification",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glucose_at_presentation",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_off_glucose_lowering",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "postprandial_pg",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "number",
+   "unit": "mmol/L",
+   "restrictedClass": null
+  },
+  {
+   "feature": "glycaemic_target_tier",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_hba1c",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_any_control_measure",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "therapy_changed_recently",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hypo_worst_12m",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hypo_awareness_score",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "score",
+   "restrictedClass": null
+  },
+  {
+   "feature": "frailty_or_limited_life_expectancy",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "cognitive_impairment",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "food_insecurity",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "uacr_abnormal_count",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "results",
+   "restrictedClass": null
+  },
+  {
+   "feature": "egfr_fall_percent",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "%",
+   "restrictedClass": null
+  },
+  {
+   "feature": "creatinine_rise_percent_4w",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "%",
+   "restrictedClass": null
+  },
+  {
+   "feature": "nephrotic_or_active_sediment",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_kidney_screen",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "macular_oedema",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "visual_acuity_worse_6_12",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "retina_view",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_eye_screen",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "pinprick_feet",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "ankle_reflexes",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "neuropathy_atypical",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "postural_sbp_fall",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "mmHg",
+   "restrictedClass": null
+  },
+  {
+   "feature": "postural_dbp_fall",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "mmHg",
+   "restrictedClass": null
+  },
+  {
+   "feature": "autonomic_symptoms",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_neuropathy_screen",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "abi",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "ratio",
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_foot_risk_assessment",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "ulcer_area_reduction_4w",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "%",
+   "restrictedClass": null
+  },
+  {
+   "feature": "bp_raised_two_occasions",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "bp_medicines_count",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "medicines",
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_statin",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "ras_blocker",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "who_cvd_risk_percent",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "%",
+   "restrictedClass": null
+  },
+  {
+   "feature": "who_cvd_chart_used",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_lipids",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "overt_nephropathy",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_rifampicin",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "tb"
+  },
+  {
+   "feature": "surgery_or_fasting_planned",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "could_conceive",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "sexual_reproductive_health"
+  },
+  {
+   "feature": "fasting_ramadan_planned",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glucose_goal_unmet_on_oral",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "meals_irregular",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_dental",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "non_diabetic_kidney_clue",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "ogtt_normal",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "dm_type_recorded",
+   "concept": null,
+   "status": "none",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glucose_meter_extreme",
+   "concept": "obs.glucose",
+   "status": "existing",
+   "valueType": "single_select",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "pregnancy_possible",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_glucose_tested",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_hba1c",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_eye_screen",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_kidney_screen",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_foot_assessment",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_neuropathy_screen",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_lipids",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "insulin_omitted",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hypoglycaemia_not_resolving",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "on_antiplatelet",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "haemorrhagic_or_unknown_stroke",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glucose_test_since_antipsychotic_start",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": "mental_health"
+  },
+  {
+   "feature": "ras_or_sglt2_started_recently",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "limb_ischaemia_signs",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "anuria",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hypertensive_symptoms",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glucose_tested_since_birth",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "ogtt_done_this_pregnancy",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hypertensive_organ_damage",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hba1c_method_variant_free",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "fh_diabetes_first_degree",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "prior_macrosomia_or_stillbirth",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "polyhydramnios",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "glycosuria",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "fetus_large_for_dates",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hyperglycaemic_emergency_last_2_weeks",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "pruritus",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "wasting",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "weakness",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hyperglycaemic_crisis_now",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hba1c_point_of_care",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "diarrhoea",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_b12",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
+   "restrictedClass": null
+  },
+  {
+   "feature": "never_b12",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  }
+ ],
+ "conceptsToPropose": [
+  {
+   "code": "obs.ph_venous",
+   "kind": "observation",
+   "valueType": "quantity",
+   "unit": "[pH]",
+   "why": "Ketoacidosis criterion and severity.",
+   "status": "propose"
+  },
+  {
+   "code": "derived.osmolality_effective",
+   "kind": "derived",
+   "valueType": "quantity",
+   "unit": "mosm/kg",
+   "why": "HHS criterion: 2 x sodium + glucose. Computed, with its inputs' ids.",
+   "status": "propose"
+  },
+  {
+   "code": "obs.c_peptide",
+   "kind": "observation",
+   "valueType": "quantity",
+   "unit": "pmol/L",
+   "why": "Classification. Requires a paired glucose and the 'on insulin' context.",
+   "status": "verify: the reviewer found this concept in the briefing's list of existing concepts"
+  },
+  {
+   "code": "obs.islet_autoantibody",
+   "kind": "observation",
+   "valueType": "coded",
+   "unit": null,
+   "why": "positive | negative, with the antibody named (GAD, IA-2, ZnT8).",
+   "status": "verify: the reviewer found this concept in the briefing's list of existing concepts"
+  },
+  {
+   "code": "obs.chol_total",
+   "kind": "observation",
+   "valueType": "quantity",
+   "unit": "mmol/L",
+   "why": "Input to the WHO laboratory risk chart. LDL, HDL, triglycerides and non-HDL exist; total does not.",
+   "status": "verify: the reviewer found this concept in the briefing's list of existing concepts"
+  },
+  {
+   "code": "obs.vitamin_b12",
+   "kind": "observation",
+   "valueType": "quantity",
+   "unit": "pmol/L",
+   "why": "Metformin; neuropathy differential; HbA1c validity.",
+   "status": "propose"
+  },
+  {
+   "code": "obs.upcr",
+   "kind": "observation",
+   "valueType": "quantity",
+   "unit": "mg/mmol",
+   "why": "WHO's first fallback for ACR.",
+   "status": "propose"
+  },
+  {
+   "code": "obs.abi",
+   "kind": "observation",
+   "valueType": "quantity",
+   "unit": "{ratio}",
+   "why": "Per leg (laterality required).",
+   "status": "propose"
+  },
+  {
+   "code": "obs.visual_acuity",
+   "kind": "observation",
+   "valueType": "coded",
+   "unit": null,
+   "why": "Snellen line per eye, with a pinhole flag. Retinopathy referral rule.",
+   "status": "propose"
+  },
+  {
+   "code": "exam.macular_oedema",
+   "kind": "examination",
+   "valueType": "coded",
+   "unit": null,
+   "why": "none | non_centre | centre_involving; worse eye.",
+   "status": "verify: exam.maculopathy exists; extend or map to it, do not add a second macula concept"
+  },
+  {
+   "code": "exam.retinal_view",
+   "kind": "examination",
+   "valueType": "coded",
+   "unit": null,
+   "why": "adequate | inadequate | not_attempted, with method and dilation. Makes 'looked and could not see' different from 'did not look'.",
+   "status": "propose"
+  },
+  {
+   "code": "exam.pinprick_foot",
+   "kind": "examination",
+   "valueType": "coded",
+   "unit": null,
+   "why": "normal | reduced; laterality.",
+   "status": "propose"
+  },
+  {
+   "code": "exam.ankle_reflex",
+   "kind": "examination",
+   "valueType": "coded",
+   "unit": null,
+   "why": "present | reduced_or_absent; laterality.",
+   "status": "verify: the reviewer found this concept in the briefing's list of existing concepts"
+  },
+  {
+   "code": "exam.ipswich_touch",
+   "kind": "examination",
+   "valueType": "quantity",
+   "unit": "{sites}",
+   "why": "Sites not felt, 0 to 6.",
+   "status": "propose"
+  },
+  {
+   "code": "sign.lipohypertrophy",
+   "kind": "sign",
+   "valueType": "presence",
+   "unit": null,
+   "why": "Injection-site lumps.",
+   "status": "propose"
+  },
+  {
+   "code": "sign.foot_hot_swollen",
+   "kind": "sign",
+   "valueType": "presence",
+   "unit": null,
+   "why": "Possible active Charcot foot; laterality.",
+   "status": "propose"
+  },
+  {
+   "code": "derived.cvd_risk_who",
+   "kind": "derived",
+   "valueType": "quantity",
+   "unit": "%",
+   "why": "10-year risk band midpoint with chart (laboratory | non_laboratory), region and chart version as qualifiers.",
+   "status": "propose"
+  },
+  {
+   "code": "derived.kdigo_gfr_category",
+   "kind": "derived",
+   "valueType": "coded",
+   "unit": null,
+   "why": "G1 to G5, with the equation label.",
+   "status": "propose"
+  },
+  {
+   "code": "derived.kdigo_albuminuria_category",
+   "kind": "derived",
+   "valueType": "coded",
+   "unit": null,
+   "why": "A1 to A3.",
+   "status": "propose"
+  },
+  {
+   "code": "derived.iwgdf_risk",
+   "kind": "derived",
+   "valueType": "coded",
+   "unit": null,
+   "why": "0 to 3; reconcile with whatever the exam classifier already writes.",
+   "status": "propose"
+  },
+  {
+   "code": "event.hypoglycaemia",
+   "kind": "event",
+   "valueType": "coded",
+   "unit": null,
+   "why": "level_1 | level_2 | level_3, with 'needed help' and the reporter. Feeds the control axis without averaging.",
+   "status": "propose"
+  },
+  {
+   "code": "hx.dm_type_reported",
+   "kind": "history",
+   "valueType": "coded",
+   "unit": null,
+   "why": "type_1 | type_2 | gestational | other | not_sure, with the source (patient, card, letter). Never a diagnosis fact.",
+   "status": "propose"
+  },
+  {
+   "code": "hx.dm_year_diagnosed",
+   "kind": "history",
+   "valueType": "quantity",
+   "unit": "a",
+   "why": "Year of diagnosis as reported.",
+   "status": "propose"
+  },
+  {
+   "code": "hx.prior_gdm",
+   "kind": "history",
+   "valueType": "presence",
+   "unit": null,
+   "why": "Gestational diabetes in a previous pregnancy.",
+   "status": "propose",
+   "restrictedClass": "sexual_reproductive_health"
+  },
+  {
+   "code": "proc.retinal_examination",
+   "kind": "procedure",
+   "valueType": "event",
+   "unit": null,
+   "why": "Date, method, grade reference. Drives screened / overdue.",
+   "status": "propose"
+  },
+  {
+   "code": "proc.foot_risk_assessment",
+   "kind": "procedure",
+   "valueType": "event",
+   "unit": null,
+   "why": "Date and the resulting category.",
+   "status": "propose"
+  },
+  {
+   "code": "soc.physical_activity",
+   "kind": "social",
+   "valueType": "coded",
+   "unit": null,
+   "why": "active | inactive against the WHO 150 minutes.",
+   "status": "verify: the reviewer found this concept in the briefing's list of existing concepts"
+  },
+  {
+   "code": "soc.food_security",
+   "kind": "social",
+   "valueType": "coded",
+   "unit": null,
+   "why": "secure | not_always_enough. A major hypoglycaemia risk factor on insulin or a sulfonylurea.",
+   "status": "propose"
+  },
+  {
+   "code": "target.hba1c",
+   "kind": "target",
+   "valueType": "quantity",
+   "unit": "%",
+   "why": "The clinician-accepted individual target and tier; owned by the monitoring engine.",
+   "status": "propose"
+  },
+  {
+   "code": "target.bp",
+   "kind": "target",
+   "valueType": "quantity",
+   "unit": "mm[Hg]",
+   "why": "Accepted blood pressure target (systolic and diastolic components).",
+   "status": "propose"
+  }
+ ],
+ "qualifiersNeeded": [
+  {
+   "concept": "obs.glucose",
+   "qualifier": "context",
+   "values_needed": [
+    "random",
+    "fasting",
+    "ogtt_1h",
+    "ogtt_2h",
+    "two_hours_after_food"
+   ],
+   "why": "A diagnostic rule may not read a glucose whose context is unknown."
+  },
+  {
+   "concept": "obs.glucose",
+   "qualifier": "specimen",
+   "values_needed": [
+    "venous_plasma",
+    "capillary_whole_blood"
+   ],
+   "why": "The 2-hour capillary threshold differs (12.2 against 11.1 mmol/L)."
+  },
+  {
+   "concept": "obs.hba1c",
+   "qualifier": "method",
+   "values_needed": [
+    "laboratory_ngsp",
+    "point_of_care",
+    "unknown"
+   ],
+   "why": "Diagnostic use needs a quality-assured method."
+  },
+  {
+   "concept": "derived.egfr",
+   "qualifier": "equation",
+   "values_needed": [
+    "ckd_epi_2021_creatinine"
+   ],
+   "why": "The equation label is shown beside every eGFR (D-CFC-06)."
+  }
+ ],
+ "diagnosisTermToConcept": [
+  {
+   "dx": "dx.dm_type1",
+   "concept": "cond.dm_type1",
+   "status": "map"
+  },
+  {
+   "dx": "dx.dm_type2",
+   "concept": "cond.dm_type2",
+   "status": "map"
+  },
+  {
+   "dx": "dx.dm_type_unknown",
+   "concept": "cond.dm_unclassified",
+   "status": "map"
+  },
+  {
+   "dx": "dx.dka",
+   "concept": "cond.dka",
+   "status": "map"
+  },
+  {
+   "dx": "dx.hhs",
+   "concept": "cond.hhs",
+   "status": "map"
+  },
+  {
+   "dx": "dx.hypoglycaemia_dm",
+   "concept": "cond.hypoglycaemia_diabetes",
+   "status": "map"
+  },
+  {
+   "dx": "dx.diabetic_foot",
+   "concept": "cond.diabetic_foot",
+   "status": "map"
+  },
+  {
+   "dx": "dx.ckd",
+   "concept": "cond.ckd",
+   "status": "map"
+  },
+  {
+   "dx": "dx.intermediate_hyperglycaemia",
+   "concept": "cond.intermediate_hyperglycaemia",
+   "status": "new"
+  },
+  {
+   "dx": "dx.gestational_diabetes",
+   "concept": "cond.gestational_diabetes",
+   "status": "new"
+  },
+  {
+   "dx": "dx.diabetes_in_pregnancy",
+   "concept": "cond.diabetes_in_pregnancy",
+   "status": "new"
+  },
+  {
+   "dx": "dx.diabetic_retinopathy",
+   "concept": "cond.diabetic_retinopathy",
+   "status": "new"
+  },
+  {
+   "dx": "dx.diabetic_kidney_disease",
+   "concept": "cond.diabetic_kidney_disease",
+   "status": "new"
+  },
+  {
+   "dx": "dx.diabetic_neuropathy",
+   "concept": "cond.diabetic_neuropathy",
+   "status": "new"
+  },
+  {
+   "dx": "dx.hyperglycaemia_unconfirmed",
+   "concept": "cond.hyperglycaemia_unconfirmed",
+   "status": "new"
+  },
+  {
+   "dx": "dx.steroid_induced_hyperglycaemia",
+   "concept": "cond.drug_associated_hyperglycaemia",
+   "status": "new"
+  }
+ ]
+}

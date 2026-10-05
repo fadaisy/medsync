@@ -1,5 +1,5 @@
 /**
- * The one command path (§9, ADR 0210). A command is applied once: replaying its id is a no-op that
+ * The one command path (§9, ADR 0211). A command is applied once: replaying its id is a no-op that
  * returns the original result. The command, its handler and its log row share one transaction under
  * medsync_ncd_app, so a failed command leaves nothing behind and can be retried.
  */

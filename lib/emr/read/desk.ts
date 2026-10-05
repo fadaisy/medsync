@@ -44,10 +44,15 @@ import { carryMedicines, carryProblems, triagePrefill } from "@/lib/emr/carry-fo
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
 import { encounterDiagnoses, pendingCosignIds } from "@/lib/emr/diagnoses";
 import { completionWarnings, isOpen } from "@/lib/emr/encounter";
-import { clerkingPlanV2LiveFor, clerkingV2LiveFor } from "@/lib/emr/feature";
+import {
+  clerkingPlanV2LiveFor,
+  clerkingV2LiveFor,
+  encounterCloseV2LiveFor,
+} from "@/lib/emr/feature";
 import { getTemplate, noteStatus } from "@/lib/emr/notes";
 import { orderStatusText } from "@/lib/emr/orders";
 import { loadChartFor } from "@/lib/emr/read/chart";
+import { loadCloseContext } from "@/lib/emr/read/close";
 import { loadPlanPayload } from "@/lib/emr/read/plan";
 import { deskTemplateOf, generalSigns, loadRosScreen, vitalConcepts } from "@/lib/emr/read/terms";
 import { EMR_SETTINGS_DEFAULTS } from "@/lib/emr/settings";
@@ -633,9 +638,11 @@ export async function loadDeskFor(
   const chartProblem = new Map(
     payload.summary.problems.map((p) => [rowIdOf(p.id, "conditions"), p]),
   );
+  // The term the clinician picked wins over the concept's registry name: once a term is linked to a
+  // concept (0092), the chart names the problem by its concept, but the desk keeps the clinician's words.
   const conditionName = (c: (typeof rec.conditionRows)[number]) =>
-    chartProblem.get(c.id)?.display ??
     (c.termId ? termName.get(c.termId) : null) ??
+    chartProblem.get(c.id)?.display ??
     safeDecrypt(c.textCiphertext) ??
     "Problem";
   const problems: CarriedProblem[] = carryProblems(rec.conditionRows).map((c) => ({
@@ -712,6 +719,7 @@ export async function loadDeskFor(
           database: opts.database,
           patientUserId: enc.patientUserId,
           encounterId: enc.id,
+          encounterType: enc.encounterType,
           sex: side.profile?.sex ?? null,
           ageYears: computeAgeYears(side.profile?.dob ?? null, now),
           rows: payload.flowsheet.rows,
@@ -744,6 +752,15 @@ export async function loadDeskFor(
           now,
         })
       : undefined;
+
+  // Closing the encounter (ADRs 0197–0203).
+  const close = encounterCloseV2LiveFor(actor.hospitalId)
+    ? await loadCloseContext(actor, {
+        patientUserId: enc.patientUserId,
+        encounterId: enc.id,
+        database: opts.database,
+      })
+    : undefined;
 
   const draftContent = draft?.content ?? { sections: {} };
   const deferred = Object.values(draftContent.sections).some((s) =>
@@ -779,12 +796,14 @@ export async function loadDeskFor(
     payload: {
       ...(clerking ? { clerking } : {}),
       ...(plan ? { plan } : {}),
+      ...(close ? { close } : {}),
       fullForm: v2Live ? CLERKING_V2_TEMPLATE_ID : "tpl.clerking.adult_opd",
       encounter: {
         id: enc.id,
         patientUserId: enc.patientUserId,
         state: enc.state,
         open,
+        encounterType: enc.encounterType,
         typeWord: TYPE_WORDS[enc.encounterType] ?? enc.encounterType,
         startedAt: enc.startedAt.toISOString(),
         triageRecordId: rec.triage?.id ?? null,
@@ -849,6 +868,7 @@ export async function loadDeskFor(
           summary: `${base}/print/summary`,
           referral: `${base}/print/referral`,
           labRequest: `${base}/print/lab-request`,
+          patientCopy: `${base}/print/patient-copy`,
         },
       },
       settings: {

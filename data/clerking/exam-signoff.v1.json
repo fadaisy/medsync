@@ -1,7 +1,7 @@
 {
   "catalogue": "MS-EMR-EXAM-CAT-001",
-  "catalogueVersion": "1.0.1-draft",
-  "catalogueSha256": "b1aec36f72e87e1bf79b135fbff26c6c6592f1716206df84c22788c782e389ae",
+  "catalogueVersion": "1.1.1-draft",
+  "catalogueSha256": "86593599c51c93d0838568c1946850a36363312d894fc0cf30d9043fe22b25fb",
   "signedBy": "Fadhul (owner and CSO)",
   "signedOn": "2026-09-27",
   "gate": "GATE A, clerking examination v2 (docs/emr/clerking-v2/exam/gate-a-proposal.md)",
@@ -10,5 +10,17 @@
   "referenceEntries": "all",
   "classifiers": "all",
   "note": "Signed as drafted with the SC and TM changes applied in 1.0.1-draft (see the catalogue's change_log). To switch a rule, classifier or value off, list its id under 'withheld': a rule or classifier whose reference is withheld does not fire and shows 'Awaiting sign-off'.",
-  "withheld": []
+  "withheld": [],
+  "amendments": [
+    {
+      "date": "2026-10-05",
+      "gate": "MS-NCD-DM-PACK-001 Phase 5, signed GATE A 2026-10-05 (docs/ncd/diabetes/gate-a-signoff.json)",
+      "change": "1.0.1-draft → 1.1.0-draft: diabetes pack 07-exam.amendment.json by merge (EC-3, EC-6, EC-7): ketone panel, three classifiers, fundoscopy grade, visual acuity, injection sites, 6 flags, 6 suggestions, 5 reference entries, 7 medicine groups. Detail: docs/ncd/diabetes/phase-5/amend-diff.md."
+    },
+    {
+      "date": "2026-10-05",
+      "gate": "STOP 5 answers, signed by the CSO 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
+      "change": "1.1.0-draft → 1.1.1-draft: the STOP 5 answers (see the catalogue's change_log)."
+    }
+  ]
 }

@@ -257,9 +257,14 @@ describe("safety bar: allergy line", () => {
 });
 
 describe("safety bar: pregnancy line", () => {
-  it("is absent while REF-PREG-AGE is pending and nothing is recorded", () => {
-    expect(REF_PREG_AGE.status).toBe("pending_cso");
-    expect(build().safetyBar.pregnancy).toBeNull();
+  it("is absent while the age range is pending and nothing is recorded", () => {
+    expect(
+      build({ pregnancyAgeRef: { ...REF_PREG_AGE, status: "pending_cso" } }).safetyBar.pregnancy,
+    ).toBeNull();
+  });
+  it("prompts 'not recorded' for a woman of 40 under the signed REF-PREG-AGE (12 to 50)", () => {
+    expect(REF_PREG_AGE.status).toBe("signed");
+    expect(build().safetyBar.pregnancy).toMatchObject({ text: "Pregnancy status not recorded" });
   });
   it("prompts 'not recorded' only once the age range is signed (test fixture) and applies", () => {
     const ref = signedPregAge(10, 60);

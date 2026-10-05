@@ -73,7 +73,7 @@ const TEST_SCREEN = signed<IdsrScreen>(REF_IDSR_SCREEN, {
 // Kampala is UTC+3: 22:30 UTC on 30 Jun is 01:30 on 1 Jul locally.
 const kla = (iso: string) => new Date(`${iso}+03:00`);
 
-describe("reference entries: all pending the CSO, value withheld", () => {
+describe("reference entries: pending the CSO, value withheld (REF-PREG-AGE signed)", () => {
   it("nine entries with unique ids", () => {
     expect(Object.keys(indexRefs(ALL_REFS)).sort()).toEqual([
       "REF-DM-FASTING-DEF",
@@ -87,7 +87,11 @@ describe("reference entries: all pending the CSO, value withheld", () => {
       "REF-PREG-POSTPARTUM",
     ]);
   });
-  it.each(ALL_REFS.map((r) => [r.id, r]))(
+  it("REF-PREG-AGE is signed: 12 to 50 (STOP 5 answers, 2026-10-05)", () => {
+    expect(REF_PREG_AGE.status).toBe("signed");
+    expect(REF_PREG_AGE.data).toEqual({ fromYears: 12, toYears: 51 });
+  });
+  it.each(ALL_REFS.filter((r) => r !== REF_PREG_AGE).map((r) => [r.id, r]))(
     "%s is pending_cso with no value and no data",
     (_id, ref) => {
       expect(ref.status).toBe("pending_cso");

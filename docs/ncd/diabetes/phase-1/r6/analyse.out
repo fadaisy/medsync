@@ -1,0 +1,183 @@
+SILENT 73  (new vs pre-K: 18)
+   adult      noinfo       vomit    glu=15   ket=u_trace need sam | now: - | preK: R21:sam
+   adult      noinfo       vomit    glu=15   ket=u_1+    need sam | now: - | preK: R21:sam
+   adult      noinfo       vomit    glu=15   ket=b1.0    need sam | now: - | preK: R21:sam
+   adult      noinfo       vomit    glu=28   ket=u_trace need sam | now: - | preK: R21:sam REFER-GLU-02:sam
+   adult      noinfo       vomit    glu=28   ket=u_1+    need sam | now: - | preK: R21:sam REFER-GLU-02:sam
+   adult      noinfo       vomit    glu=28   ket=b1.0    need sam | now: - | preK: R21:sam REFER-GLU-02:sam
+   adult      T1_nostatus  drowsy   glu=none ket=none    need imm | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  drowsy   glu=none ket=u_neg   need imm | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  drowsy   glu=none ket=u_trace need imm | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  drowsy   glu=none ket=u_1+    need imm | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  drowsy   glu=none ket=b0.3    need imm | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  drowsy   glu=none ket=b1.0    need imm | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  drowsy   glu=none ket=b2.0    need imm | now: R09:sam R22:sam | preK: R09:sam
+   child      T2_metf      well     glu=3.5  ket=none    need sam | now: - | preK: -
+   child      T2_metf      well     glu=3.5  ket=u_neg   need sam | now: - | preK: -
+   child      T2_metf      well     glu=3.5  ket=u_trace need sam | now: - | preK: R21:sam
+   child      T2_metf      well     glu=3.5  ket=u_1+    need sam | now: - | preK: R21:sam
+   child      T2_metf      well     glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   child      T2_metf      well     glu=3.5  ket=b1.0    need sam | now: - | preK: R21:sam
+   child      T2_metf      vomit    glu=3.5  ket=none    need sam | now: - | preK: -
+   child      T2_metf      vomit    glu=3.5  ket=u_neg   need sam | now: - | preK: -
+   child      T2_metf      vomit    glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   child      SGLT2        well     glu=3.5  ket=none    need sam | now: - | preK: -
+   child      SGLT2        well     glu=3.5  ket=u_neg   need sam | now: - | preK: -
+   child      SGLT2        well     glu=3.5  ket=u_trace need sam | now: - | preK: R21:sam
+   child      SGLT2        well     glu=3.5  ket=u_1+    need sam | now: - | preK: R21:sam
+   child      SGLT2        well     glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   child      SGLT2        well     glu=3.5  ket=b1.0    need sam | now: - | preK: R21:sam
+   child      SGLT2        vomit    glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   child      ins_nostatus kussmaul glu=7    ket=none    need imm | now: - | preK: -
+   child      ins_nostatus kussmaul glu=7    ket=u_neg   need imm | now: - | preK: -
+   child      ins_nostatus kussmaul glu=7    ket=u_trace need imm | now: - | preK: R21:sam
+   child      ins_nostatus kussmaul glu=7    ket=u_1+    need imm | now: - | preK: R21:sam
+   child      ins_nostatus kussmaul glu=7    ket=b0.3    need imm | now: - | preK: -
+   child      ins_nostatus kussmaul glu=7    ket=b1.0    need imm | now: - | preK: R21:sam
+   child      ins_nostatus kussmaul glu=7    ket=b2.0    need imm | now: R22:sam | preK: R22:urg
+   child      T1_nostatus  kussmaul glu=7    ket=none    need imm | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  kussmaul glu=7    ket=u_neg   need imm | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  kussmaul glu=7    ket=u_trace need imm | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  kussmaul glu=7    ket=u_1+    need imm | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  kussmaul glu=7    ket=b0.3    need imm | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  kussmaul glu=7    ket=b1.0    need imm | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  kussmaul glu=7    ket=b2.0    need imm | now: R09:sam R22:sam | preK: R09:sam
+   adolescent T2_metf      well     glu=3.5  ket=none    need sam | now: - | preK: -
+   adolescent T2_metf      well     glu=3.5  ket=u_neg   need sam | now: - | preK: -
+   adolescent T2_metf      well     glu=3.5  ket=u_trace need sam | now: - | preK: R21:sam
+   adolescent T2_metf      well     glu=3.5  ket=u_1+    need sam | now: - | preK: R21:sam
+   adolescent T2_metf      well     glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   adolescent T2_metf      well     glu=3.5  ket=b1.0    need sam | now: - | preK: R21:sam
+   adolescent T2_metf      vomit    glu=3.5  ket=none    need sam | now: - | preK: -
+   adolescent T2_metf      vomit    glu=3.5  ket=u_neg   need sam | now: - | preK: -
+   adolescent T2_metf      vomit    glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   adolescent SGLT2        well     glu=3.5  ket=none    need sam | now: - | preK: -
+   adolescent SGLT2        well     glu=3.5  ket=u_neg   need sam | now: - | preK: -
+   adolescent SGLT2        well     glu=3.5  ket=u_trace need sam | now: - | preK: R21:sam
+   adolescent SGLT2        well     glu=3.5  ket=u_1+    need sam | now: - | preK: R21:sam
+   adolescent SGLT2        well     glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   adolescent SGLT2        well     glu=3.5  ket=b1.0    need sam | now: - | preK: R21:sam
+   adolescent SGLT2        vomit    glu=3.5  ket=b0.3    need sam | now: - | preK: -
+   adolescent ins_nostatus kussmaul glu=7    ket=none    need imm | now: - | preK: -
+   adolescent ins_nostatus kussmaul glu=7    ket=u_neg   need imm | now: - | preK: -
+   adolescent ins_nostatus kussmaul glu=7    ket=u_trace need imm | now: - | preK: R21:sam
+   adolescent ins_nostatus kussmaul glu=7    ket=u_1+    need imm | now: - | preK: R21:sam
+   adolescent ins_nostatus kussmaul glu=7    ket=b0.3    need imm | now: - | preK: -
+   adolescent ins_nostatus kussmaul glu=7    ket=b1.0    need imm | now: - | preK: R21:sam
+   adolescent ins_nostatus kussmaul glu=7    ket=b2.0    need imm | now: R22:sam | preK: R22:urg
+   adolescent T1_nostatus  kussmaul glu=7    ket=none    need imm | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  kussmaul glu=7    ket=u_neg   need imm | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  kussmaul glu=7    ket=u_trace need imm | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  kussmaul glu=7    ket=u_1+    need imm | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  kussmaul glu=7    ket=b0.3    need imm | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  kussmaul glu=7    ket=b1.0    need imm | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  kussmaul glu=7    ket=b2.0    need imm | now: R09:sam R22:sam | preK: R09:sam
+
+DOUBLE 1155 (new vs pre-K: 290)
+   96 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-04')
+   74 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-32')
+   70 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14')
+   70 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-15')
+   70 ('DM-ACU-ROUTE-20', 'DM-ACU-ROUTE-25')
+   70 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-20')
+   70 ('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-25')
+   47 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-07')
+   44 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04')
+   42 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-14')
+   42 ('DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-20')
+   36 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-25')
+   35 ('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-24')
+   34 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-25')
+   28 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-30')
+   28 ('DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-31')
+   18 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-24')
+   15 ('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-30')
+   14 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-32')
+   14 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-32')
+   14 ('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-31')
+   14 ('DM-ACU-ROUTE-15', 'DM-ACU-ROUTE-20')
+   14 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-15', 'DM-ACU-ROUTE-20')
+   12 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-11')
+   12 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14')
+   12 ('DM-ACU-ROUTE-30', 'DM-ACU-ROUTE-32')
+   12 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30', 'DM-ACU-ROUTE-32')
+   12 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14')
+   11 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-14')
+   10 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-15')
+   10 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-20', 'DM-ACU-ROUTE-25')
+   10 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-20')
+   10 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-25')
+   10 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-32')
+   10 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-32')
+   9 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-30')
+   7 ('DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30')
+   7 ('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-31')
+   6 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-20')
+   6 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-20')
+   6 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-15')
+   4 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-31')
+   4 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-30')
+   2 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-31')
+   2 ('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30')
+   2 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-30', 'DM-ACU-ROUTE-32')
+   2 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30', 'DM-ACU-ROUTE-32')
+   2 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-31')
+   2 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-15', 'DM-ACU-ROUTE-20')
+   2 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-15', 'DM-ACU-ROUTE-20')
+   1 ('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30')
+   1 ('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-31')
+ new pairs: [(('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-07'), 31), (('DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-30'), 28), (('DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-31'), 28), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-25'), 20), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04'), 16), (('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-30'), 15), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-24'), 15), (('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-24'), 14), (('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-32'), 14), (('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-25'), 14), (('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-25', 'DM-ACU-ROUTE-31'), 14), (('DM-ACU-ROUTE-30', 'DM-ACU-ROUTE-32'), 12), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-11'), 10), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-32'), 10), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-30'), 9), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-14'), 9), (('DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30'), 7), (('DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-31'), 7), (('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-15'), 6), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-04', 'DM-ACU-ROUTE-30'), 4), (('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-31'), 2), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-30', 'DM-ACU-ROUTE-32'), 2), (('DM-ACU-ROUTE-03', 'DM-ACU-ROUTE-14', 'DM-ACU-ROUTE-30'), 1), (('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-07', 'DM-ACU-ROUTE-31'), 1), (('DM-ACU-ROUTE-02', 'DM-ACU-ROUTE-20'), 1)]
+
+NOISY 52
+   adult      T1_nostatus  well     glu=none ket=none    | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=none ket=u_neg   | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=none ket=u_trace | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=none ket=b0.3    | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=7    ket=none    | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=7    ket=u_neg   | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=7    ket=u_trace | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=7    ket=b0.3    | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=15   ket=none    | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=15   ket=u_neg   | now: R09:sam | preK: R09:sam
+   adult      T1_nostatus  well     glu=15   ket=u_trace | now: R09:sam | preK: R09:sam R21:sam
+   adult      T1_nostatus  well     glu=15   ket=b0.3    | now: R09:sam | preK: R09:sam
+   child      noinfo       well     glu=15   ket=none    | now: PAED-03:sam | preK: PAED-03:sam
+   child      noinfo       well     glu=15   ket=u_neg   | now: PAED-03:sam | preK: PAED-03:sam
+   child      noinfo       well     glu=15   ket=u_trace | now: PAED-03:sam | preK: PAED-03:sam R21:sam
+   child      noinfo       well     glu=15   ket=b0.3    | now: PAED-03:sam | preK: PAED-03:sam
+   child      ins_nostatus well     glu=15   ket=none    | now: PAED-03:sam | preK: PAED-03:sam
+   child      ins_nostatus well     glu=15   ket=u_neg   | now: PAED-03:sam | preK: PAED-03:sam
+   child      ins_nostatus well     glu=15   ket=u_trace | now: PAED-03:sam | preK: PAED-03:sam R21:sam
+   child      ins_nostatus well     glu=15   ket=b0.3    | now: PAED-03:sam | preK: PAED-03:sam
+   child      T1_nostatus  well     glu=none ket=none    | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=none ket=u_neg   | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=none ket=u_trace | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=none ket=b0.3    | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=7    ket=none    | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=7    ket=u_neg   | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=7    ket=u_trace | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=7    ket=b0.3    | now: R09:sam | preK: R09:sam
+   child      T1_nostatus  well     glu=15   ket=none    | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam
+   child      T1_nostatus  well     glu=15   ket=u_neg   | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam
+   child      T1_nostatus  well     glu=15   ket=u_trace | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam R21:sam
+   child      T1_nostatus  well     glu=15   ket=b0.3    | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam
+   adolescent noinfo       well     glu=15   ket=none    | now: PAED-03:sam | preK: PAED-03:sam
+   adolescent noinfo       well     glu=15   ket=u_neg   | now: PAED-03:sam | preK: PAED-03:sam
+   adolescent noinfo       well     glu=15   ket=u_trace | now: PAED-03:sam | preK: PAED-03:sam R21:sam
+   adolescent noinfo       well     glu=15   ket=b0.3    | now: PAED-03:sam | preK: PAED-03:sam
+   adolescent ins_nostatus well     glu=15   ket=none    | now: PAED-03:sam | preK: PAED-03:sam
+   adolescent ins_nostatus well     glu=15   ket=u_neg   | now: PAED-03:sam | preK: PAED-03:sam
+   adolescent ins_nostatus well     glu=15   ket=u_trace | now: PAED-03:sam | preK: PAED-03:sam R21:sam
+   adolescent ins_nostatus well     glu=15   ket=b0.3    | now: PAED-03:sam | preK: PAED-03:sam
+   adolescent T1_nostatus  well     glu=none ket=none    | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=none ket=u_neg   | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=none ket=u_trace | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=none ket=b0.3    | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=7    ket=none    | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=7    ket=u_neg   | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=7    ket=u_trace | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=7    ket=b0.3    | now: R09:sam | preK: R09:sam
+   adolescent T1_nostatus  well     glu=15   ket=none    | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam
+   adolescent T1_nostatus  well     glu=15   ket=u_neg   | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam
+   adolescent T1_nostatus  well     glu=15   ket=u_trace | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam R21:sam
+   adolescent T1_nostatus  well     glu=15   ket=b0.3    | now: R09:sam PAED-03:sam | preK: R09:sam PAED-03:sam

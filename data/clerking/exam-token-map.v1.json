@@ -1,6 +1,6 @@
 {
  "catalogue": "MS-EMR-EXAM-CAT-001",
- "catalogueVersion": "1.0.1-draft",
+ "catalogueVersion": "1.1.0-draft",
  "source": "docs/emr/clerking-v2/exam/exam-token-map.csv (GATE A; CFC v1.3 signed 2026-09-28)",
  "note": "Item → CFC concept, and option-level findings (present only when ticked). Blocks (GCS parts, AMTS, grids) and vital signs are mapped in lib/clerking/exam/commit.ts; conditions go through the problem list.",
  "items": {
@@ -144,7 +144,8 @@
   "ex.spine_joints.skin_over_spine": "exam.skin_over_spine",
   "ex.spine_joints.spinal_tenderness": "sign.spinal_tenderness",
   "ex.spine_joints.step_deformity": "sign.spinal_step_deformity",
-  "ex.spine_joints.straight_leg_raise": "sign.straight_leg_raise"
+  "ex.spine_joints.straight_leg_raise": "sign.straight_leg_raise",
+  "ex.skin.injection_sites": "sign.lipohypertrophy"
  },
  "options": [
   {
@@ -632,6 +633,32 @@
    "attribute": "history",
    "option": "end_stage_kidney_disease_or_dialysis",
    "concept": "hist.eskd_or_dialysis"
+  }
+ ],
+ "values": [
+  {
+   "item": "ex.eyes_ent_neck.fundoscopy",
+   "attribute": "dr_grade",
+   "concept": "exam.retinopathy_grade",
+   "value_from_option": true
+  },
+  {
+   "item": "ex.eyes_ent_neck.fundoscopy",
+   "attribute": "macula",
+   "concept": "exam.maculopathy",
+   "value_from_option": true,
+   "map": {
+    "none": "absent",
+    "non_centre": "non_centre_involving",
+    "centre_involving": "centre_involving",
+    "cannot_assess": "ungradable"
+   }
+  },
+  {
+   "item": "ex.eyes_ent_neck.fundoscopy",
+   "attribute": "view",
+   "concept": "exam.retinal_view",
+   "value_from_option": true
   }
  ]
 }

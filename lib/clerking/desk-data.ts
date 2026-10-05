@@ -1,4 +1,5 @@
 import type { PatientSex } from "./catalogue";
+import type { ResultFact } from "./exam/context";
 import type { Signoff } from "./flags";
 import type { DxSignoff } from "./impression/catalogue";
 import type { ConversionFlagDefs } from "./legacy";
@@ -13,6 +14,11 @@ export interface ClerkingDeskData {
   catalogueVersion: string;
   sex: PatientSex;
   ageYears: number | null;
+  /** The encounter's type (opd, emergency, inpatient…), for `setting` lists (EC-7). */
+  encounterType?: string | null;
+  /** Results the reasoning reads (EC-1); absent when they could not be loaded (every `result`
+   *  atom is then unknown). */
+  facts?: ResultFact[];
   /** The newest reading of each NEWS2 input from the observation store (never copied). */
   vitals: AdultVitals;
   vitalsAt: string | null;
@@ -77,6 +83,8 @@ export interface ClerkingDeskData {
       weight: number | null;
       height: number | null;
       waist: number | null;
+      /** The newest glucose's context when an examination set at this visit wrote it (EC-3). */
+      glucoseContext?: string | null;
     };
     /** The newest set saved from an examination at this visit, with its qualifiers (D-EX-11). */
     set: null | {
@@ -95,5 +103,7 @@ export interface ClerkingDeskData {
     };
     /** An open pregnancy episode (BMI and IMAM rules); null when none is recorded. */
     pregnant: boolean | null;
+    /** When that episode began (ISO): results on a pregnancy diagnosis are bounded to it (EC-5). */
+    pregnancySince?: string | null;
   };
 }

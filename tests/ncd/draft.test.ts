@@ -42,6 +42,7 @@ const live = vi.hoisted(() => ({ value: true }));
 vi.mock("@/lib/encounter/feature", () => ({
   clerkshipDraftsLive: () => live.value,
   encounterEngineLive: () => true,
+  ncdPackShadowLive: () => false,
 }));
 vi.mock("server-only", () => ({}));
 

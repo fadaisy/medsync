@@ -12,11 +12,12 @@ import { encounters } from "@/db/schema/scheduling";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
-import { encounterEngineLive, ncdClerkshipLive } from "@/lib/encounter/feature";
+import { encounterEngineLive, ncdClerkshipLive, ncdPackLive } from "@/lib/encounter/feature";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
-import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
+import { DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { loadNcdDraft } from "@/lib/ncd/draft";
+import { leanDiabetesPack, ncdCatalog, packFieldCodes } from "@/lib/ncd/pack/capture";
 import { initialCapture, loadLatestVitals, loadPatientDemographics } from "@/lib/ncd/vitals";
 import { doctorWorkspace } from "@/lib/workspace/feature";
 import { EncounterRail, NextPatient } from "../../_components/workspace/encounter-extras";
@@ -123,8 +124,10 @@ export default async function DoctorEncounterPage({ params, searchParams }: Page
 
   // Undefined when the flag is off, the migration is un-applied, or there is
   // simply no draft — all three are the same honest empty state to the form.
+  // The form: the pack's when NCD_DM_PACK_LIVE is on (its own questions added), the v0.1.0 form otherwise.
+  const catalog = ncdCatalog();
   const vitals = ncdClerkshipLive()
-    ? await loadLatestVitals(enc.patientUserId, DIABETES_CATALOG)
+    ? await loadLatestVitals(enc.patientUserId, catalog)
     : undefined;
   /**
    * Demographics the chart already holds. The waist bands are sex-specific and
@@ -149,7 +152,7 @@ export default async function DoctorEncounterPage({ params, searchParams }: Page
     ? await loadPatientDemographics(enc.patientUserId)
     : { values: {} as CaptureMap };
   const draft = ncdClerkshipLive()
-    ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
+    ? await loadNcdDraft(encounterId, scope.userId, catalog)
     : undefined;
   // Doctor workspace on: back goes to the board, the rail and "next patient" join the page.
   const workspace = doctorWorkspace(scope.hospitalId);
@@ -211,7 +214,22 @@ export default async function DoctorEncounterPage({ params, searchParams }: Page
             save — the one that does write a version — is the next increment. */}
           {ncdClerkshipLive() ? (
             <NcdClerkship
-              catalog={DIABETES_CATALOG}
+              catalog={catalog}
+              pack={
+                ncdPackLive()
+                  ? {
+                      data: leanDiabetesPack(),
+                      fields: packFieldCodes(),
+                      ageYears: demographics.ageYears ?? null,
+                      careSetting:
+                        enc.encounterType === "inpatient"
+                          ? "inpatient"
+                          : enc.encounterType === "emergency"
+                            ? "emergency"
+                            : "outpatient",
+                    }
+                  : undefined
+              }
               site={REFERRAL_SITE}
               siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
               initialValues={initialCapture(

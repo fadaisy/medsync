@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { EMPTY_IMPRESSION } from "@/lib/clerking/impression/board";
 import { composeImpression } from "@/lib/clerking/impression/compose";
-import { recordedFindings } from "@/lib/clerking/impression/facts";
+import { recordedFindings, syntheticFinding } from "@/lib/clerking/impression/facts";
 import { board, ctx, feverNeck, recorded } from "./si-fixtures";
 
 /**
@@ -70,5 +70,35 @@ describe("patient-facing exclusion (§12)", () => {
     expect(patient).not.toMatch(/Cryptococcal meningitis/);
     expect(patient).not.toMatch(/HIV|antiretroviral/i);
     expect(patient).toMatch(/Bacterial meningitis/);
+  });
+
+  it("the diabetes pack's evidence (a past detail, ketones) keeps HIV out of the patient's text", () => {
+    const s = feverNeck();
+    s.history.past.conditions.diabetes = { answer: "yes", details: { type: "type_1" } };
+    s.exam = { ...s.exam, panels: { ...s.exam.panels, ketones: { blood: 3.2 } } };
+    const x = ctx(s);
+    const lead = recorded("dx.dm_type1", { slot: "leading" });
+    const crypto = recorded("dx.cryptococcal_meningitis");
+    const at = { by: "u-1", at: "2026-10-05T08:00:00Z" };
+    const draft: ImpressionDraft = {
+      ...EMPTY_IMPRESSION,
+      evidence: {
+        [lead.logicalId]: {
+          "pmh:diabetes#type": { w: "for", ...at },
+          "cl:ketone_band": { w: "for", ...at },
+        },
+        [crypto.logicalId]: { "pmh:hiv": { w: "for", ...at } },
+      },
+    };
+    const findings = new Map(recordedFindings(x).map((f) => [f.ref, f]));
+    for (const ref of ["pmh:diabetes#type", "cl:ketone_band"]) {
+      const f = syntheticFinding(ref, x);
+      if (f) findings.set(ref, f);
+    }
+    const input = { board: board([lead, crypto], draft), draft, findings, unexplained: [] };
+    const patient = composeImpression({ ...input, audience: "patient" });
+    expect(composeImpression({ ...input, audience: "clinical" })).toMatch(/Cryptococcal/);
+    expect(patient).not.toMatch(/HIV|antiretroviral|Cryptococcal/i);
+    expect(patient).toMatch(/diabetes, type: type 1/);
   });
 });

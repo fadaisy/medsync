@@ -1,0 +1,243 @@
+section,pack_id,pack_value,pack_status,result,live_id,evidence
+conceptsToPropose,obs.ph_venous,observation/quantity,propose,exists_other_id,obs.ph,"venous is the specimen qualifier (ENUMS.specimen venous_whole_blood, lib/facts/catalogue.generated.ts:7401), not a concept: obs.ph ""Blood pH"" (lib/facts/catalogue.generated.ts:3330; valueType quantity; answers null; context [""specimen""])"
+conceptsToPropose,derived.osmolality_effective,derived/quantity,propose,exists_exact,derived.osmolality_effective,"derived.osmolality_effective ""Effective serum osmolality"" (lib/facts/catalogue.generated.ts:833; valueType quantity; answers null; context [""formula""])"
+conceptsToPropose,obs.c_peptide,observation/quantity,verify: the reviewer found this concept in the briefing's list of existing concepts,exists_exact,obs.c_peptide,"obs.c_peptide ""C-peptide"" (lib/facts/catalogue.generated.ts:2546; valueType quantity; answers null; context [""fastingState""]); canonical nmol/L, pmol/L already an accepted unit"
+conceptsToPropose,obs.islet_autoantibody,observation/coded,verify: the reviewer found this concept in the briefing's list of existing concepts,exists_exact,obs.islet_autoantibody,"obs.islet_autoantibody ""Islet autoantibody"" (lib/facts/catalogue.generated.ts:3106; valueType coded; answers [""positive"", ""negative"", ""indeterminate""]; context [""antigen"", ""method""]); antibody named by context antigen"
+conceptsToPropose,obs.chol_total,observation/quantity,verify: the reviewer found this concept in the briefing's list of existing concepts,exists_exact,obs.chol_total,"obs.chol_total ""Total cholesterol"" (lib/facts/catalogue.generated.ts:2658; valueType quantity; answers null; context []); pack says total cholesterol does not exist: it does, and test.lipid_panel returns it"
+conceptsToPropose,obs.vitamin_b12,observation/quantity,propose,new,,no B12 concept
+conceptsToPropose,obs.upcr,observation/quantity,propose,new,,no urine protein:creatinine concept (obs.urine_protein_dipstick and obs.total_protein are different tests)
+conceptsToPropose,obs.abi,observation/quantity,propose,new,,no ankle-brachial index concept
+conceptsToPropose,obs.visual_acuity,observation/coded,propose,new,,no acuity concept; exam.cn_ii is normal|abnormal (lib/facts/catalogue.generated.ts:1233)
+conceptsToPropose,exam.macular_oedema,examination/coded,"verify: exam.maculopathy exists; extend or map to it, do not add a second macula concept",exists_other_id,exam.maculopathy,"exam.maculopathy ""Maculopathy"" (lib/facts/catalogue.generated.ts:1601; valueType coded; answers [""absent"", ""present"", ""ungradable""]; context [""laterality"", ""method""]): extend the answer set (centre_involving, non_centre) rather than add a concept; CSO"
+conceptsToPropose,exam.retinal_view,examination/coded,propose,new,,no concept; exam.retinopathy_grade answer ungradable plus context method (lib/facts/catalogue.generated.ts:1938) already says looked-and-could-not-grade; only not_attempted is missing
+conceptsToPropose,exam.pinprick_foot,examination/coded,propose,exists_other_id,exam.pinprick,"exam.pinprick ""Pinprick sensation"" (lib/facts/catalogue.generated.ts:1800; valueType coded; answers [""normal"", ""abnormal""]; context []); foot site would be a context, not a concept"
+conceptsToPropose,exam.ankle_reflex,examination/coded,verify: the reviewer found this concept in the briefing's list of existing concepts,exists_exact,exam.ankle_reflex,"exam.ankle_reflex ""Ankle reflex"" (lib/facts/catalogue.generated.ts:1057; valueType coded; answers [""present"", ""reduced"", ""absent""]; context [""laterality""]); answers present|reduced|absent vs pack present|reduced_or_absent (map, do not add)"
+conceptsToPropose,exam.ipswich_touch,examination/quantity,propose,exists_other_id,exam.ipswich_touch_test,"exam.ipswich_touch_test ""Ipswich touch test"" (lib/facts/catalogue.generated.ts:1505; valueType coded; answers [""normal"", ""abnormal""]; context []); live is coded normal|abnormal, pack wants a 0-6 count: the count is lost at commit today"
+conceptsToPropose,sign.lipohypertrophy,sign/presence,propose,new,,no concept
+conceptsToPropose,sign.foot_hot_swollen,sign/presence,propose,new,,"no concept; nearest exam.foot_temperature equal|different (lib/facts/catalogue.generated.ts:1409) is an input, not the finding; FLAG-EX-CHARCOT already detects it in the exam"
+conceptsToPropose,derived.cvd_risk_who,derived/quantity,propose,new,,no concept
+conceptsToPropose,derived.kdigo_gfr_category,derived/coded,propose,new,,no concept (derived.egfr exists)
+conceptsToPropose,derived.kdigo_albuminuria_category,derived/coded,propose,new,,no concept (obs.uacr exists)
+conceptsToPropose,derived.iwgdf_risk,derived/coded,propose,new,,no concept; the exam classifier iwgdf_risk exists in code (lib/clerking/exam/classifiers.ts:759) and commits no fact
+conceptsToPropose,event.hypoglycaemia,event/coded,propose,exists_other_id,evt.hypoglycaemia,"evt.hypoglycaemia ""Hypoglycaemia episode"" (lib/facts/catalogue.generated.ts:1009; valueType coded; answers [""level1"", ""level2"", ""level3""]; context []); prefix evt not event; answers level1|level2|level3 vs pack level_1..3; needed-help and reporter are not modelled"
+conceptsToPropose,hx.dm_type_reported,history/coded,propose,new,,"no hx.* namespace (live history concepts are hist.*). CFC already records a reported diagnosis as cond.dm_type1|dm_type2|dm_unspecified|dm_other with assertedBy=patient_reported, verificationStatus=unconfirmed (lib/facts/catalogue.generated.ts:246, ENUMS.assertedBy lib/facts/catalogue.generated.ts:7445): CSO to decide whether a second concept is needed"
+conceptsToPropose,hx.dm_year_diagnosed,history/quantity,propose,new,,no concept; a condition fact can carry onset (check condition context) instead of a new concept
+conceptsToPropose,hx.prior_gdm,history/presence,propose,new,,no concept; nearest hist.high_glucose_ever is broader (lib/facts/catalogue.generated.ts:2274); cond.dm_in_pregnancy with clinicalStatus resolved is an alternative; restricted class is D-DM-30
+conceptsToPropose,proc.retinal_examination,procedure/event,propose,exists_other_id,proc.eye_screen,"proc.eye_screen ""Retinal screening"" (lib/facts/catalogue.generated.ts:4008; valueType procedure; answers null; context [""outcome""])"
+conceptsToPropose,proc.foot_risk_assessment,procedure/event,propose,exists_other_id,proc.foot_exam,"proc.foot_exam ""Comprehensive foot examination"" (lib/facts/catalogue.generated.ts:4024; valueType procedure; answers null; context [""outcome""])"
+conceptsToPropose,soc.physical_activity,social/coded,verify: the reviewer found this concept in the briefing's list of existing concepts,exists_exact,soc.physical_activity,"soc.physical_activity ""Physical activity"" (lib/facts/catalogue.generated.ts:5720; valueType coded; answers [""meets_recommended"", ""below_recommended"", ""unknown""]; context []); answers meets_recommended|below_recommended|unknown vs pack active|inactive"
+conceptsToPropose,soc.food_security,social/coded,propose,new,,no concept
+conceptsToPropose,target.hba1c,target/quantity,propose,new,,"no target concept and no ""target"" ConceptKind (lib/facts/catalogue.generated.ts:10-17): a schema change"
+conceptsToPropose,target.bp,target/quantity,propose,new,,as target.hba1c
+qualifiersNeeded,obs.glucose#context,random|fasting|ogtt_1h|ogtt_2h|two_hours_after_food,needed,qualifier_exists,fastingState + challenge,"No ""context"" key: the fact model splits it. random -> fastingState non_fasting; fasting -> fastingState fasting; ogtt_1h/ogtt_2h -> challenge {type: ogtt_75g, minutesPostLoad: 60|120}; two_hours_after_food -> challenge {type: meal, minutesPostMeal: 120} (lib/facts/types.ts:134-138; ENUMS lib/facts/catalogue.generated.ts:7412-7413). The vitals path already maps vs.glucose context this way (lib/clerking/exam/vitals.ts:300-309). The pack placeholder ""ogtt_75g_2h"" is not a value. fastingState unknown is never read as fasting (types.ts:133)."
+qualifiersNeeded,obs.glucose#specimen,venous_plasma|capillary_whole_blood,needed,qualifier_exists,"specimen (+ pointOfCare, calibration, deviceId)","specimen is required on obs.glucose (lib/facts/catalogue.generated.ts:2898); venous_plasma and capillary_whole_blood both in ENUMS.specimen (lib/facts/catalogue.generated.ts:7398-7409). Point of care is a boolean context pointOfCare (lib/facts/types.ts:142), with deviceId and calibration conditional; there is no ""pointOfCare"" enum value."
+qualifiersNeeded,obs.hba1c#method,laboratory_ngsp|point_of_care|unknown,needed,qualifier_exists,method + certification + pointOfCare,"obs.hba1c requires method, certification and pointOfCare (lib/facts/catalogue.generated.ts:2962); certification enum ngsp|ifcc|ngsp_and_ifcc|none|unknown (lib/facts/catalogue.generated.ts:7414). Pack values laboratory_ngsp|point_of_care|unknown map to certification=ngsp(+pointOfCare false) | pointOfCare true | certification unknown. No new qualifier needed."
+qualifiersNeeded,derived.egfr#equation,ckd_epi_2021_creatinine,needed,qualifier_exists,formula,"derived.egfr requires context ""formula"" (lib/facts/catalogue.generated.ts:801), not ""equation""; the value list (ckd_epi_2021_creatinine) is a formula value, the formula is carried in fact provenance (lib/facts/refinements.ts:74); no new qualifier needed."
+diagnosisTermToConcept,dx.dm_type1,cond.dm_type1,map,exists_exact,cond.dm_type1,"cond.dm_type1 ""Type 1 diabetes"" (lib/facts/catalogue.generated.ts:246; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.dm_type1 exists; term dx.dm_type1 is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.dm_type2,cond.dm_type2,map,exists_exact,cond.dm_type2,"cond.dm_type2 ""Type 2 diabetes"" (lib/facts/catalogue.generated.ts:262; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.dm_type2 exists; term dx.dm_type2 is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.dm_type_unknown,cond.dm_unclassified,map,exists_other_id,cond.dm_unspecified,"cond.dm_unspecified ""Diabetes, type unspecified"" (lib/facts/catalogue.generated.ts:278; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.dm_unclassified does not exist; term dx.dm_type_unknown is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.dka,cond.dka,map,exists_exact,cond.dka,"cond.dka ""Diabetic ketoacidosis"" (lib/facts/catalogue.generated.ts:118; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.dka exists; term dx.dka is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.hhs,cond.hhs,map,exists_exact,cond.hhs,"cond.hhs ""Hyperosmolar hyperglycaemic state"" (lib/facts/catalogue.generated.ts:358; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.hhs exists; term dx.hhs is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.hypoglycaemia_dm,cond.hypoglycaemia_diabetes,map,exists_other_id,cond.hypoglycaemia_in_dm,"cond.hypoglycaemia_in_dm ""Hypoglycaemia in diabetes"" (lib/facts/catalogue.generated.ts:406; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.hypoglycaemia_diabetes does not exist; term dx.hypoglycaemia_dm is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.diabetic_foot,cond.diabetic_foot,map,exists_other_id,cond.dm_foot_ulcer,"cond.dm_foot_ulcer ""Diabetic foot ulcer"" (lib/facts/catalogue.generated.ts:134; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.diabetic_foot does not exist; term dx.diabetic_foot is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328); live concept is ""Diabetic foot ulcer"" only; the term is ""ulcer or infection"": narrower"
+diagnosisTermToConcept,dx.ckd,cond.ckd,map,exists_exact,cond.ckd,"cond.ckd ""Chronic kidney disease"" (lib/facts/catalogue.generated.ts:102; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.ckd exists; term dx.ckd is in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.intermediate_hyperglycaemia,cond.intermediate_hyperglycaemia,new,exists_exact,cond.intermediate_hyperglycaemia,"cond.intermediate_hyperglycaemia ""Intermediate hyperglycaemia"" (lib/facts/catalogue.generated.ts:422; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.intermediate_hyperglycaemia exists; term dx.intermediate_hyperglycaemia is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.gestational_diabetes,cond.gestational_diabetes,new,exists_other_id,cond.dm_in_pregnancy,"cond.dm_in_pregnancy ""Diabetes or hyperglycaemia in pregnancy"" (lib/facts/catalogue.generated.ts:150; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.gestational_diabetes does not exist; term dx.gestational_diabetes is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328); one CFC concept ""Diabetes or hyperglycaemia in pregnancy"" covers both pregnancy terms: two terms -> one concept, or split (CSO)"
+diagnosisTermToConcept,dx.diabetes_in_pregnancy,cond.diabetes_in_pregnancy,new,exists_other_id,cond.dm_in_pregnancy,"cond.dm_in_pregnancy ""Diabetes or hyperglycaemia in pregnancy"" (lib/facts/catalogue.generated.ts:150; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.diabetes_in_pregnancy does not exist; term dx.diabetes_in_pregnancy is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328); see dx.gestational_diabetes"
+diagnosisTermToConcept,dx.diabetic_retinopathy,cond.diabetic_retinopathy,new,exists_other_id,cond.dm_retinopathy,"cond.dm_retinopathy ""Diabetic retinopathy"" (lib/facts/catalogue.generated.ts:230; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.diabetic_retinopathy does not exist; term dx.diabetic_retinopathy is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.diabetic_kidney_disease,cond.diabetic_kidney_disease,new,exists_other_id,cond.dm_kidney_disease,"cond.dm_kidney_disease ""Diabetic kidney disease"" (lib/facts/catalogue.generated.ts:166; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.diabetic_kidney_disease does not exist; term dx.diabetic_kidney_disease is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.diabetic_neuropathy,cond.diabetic_neuropathy,new,exists_other_id,cond.dm_neuropathy,"cond.dm_neuropathy ""Diabetic neuropathy"" (lib/facts/catalogue.generated.ts:198; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.diabetic_neuropathy does not exist; term dx.diabetic_neuropathy is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.hyperglycaemia_unconfirmed,cond.hyperglycaemia_unconfirmed,new,exists_other_id,cond.elevated_glucose_unspecified,"cond.elevated_glucose_unspecified ""Elevated blood glucose, not yet explained"" (lib/facts/catalogue.generated.ts:310; valueType condition; answers null; context [""clinicalStatus"", ""verificationStatus"", ""assertedBy"", ""subjectRelation""]); pack concept cond.hyperglycaemia_unconfirmed does not exist; term dx.hyperglycaemia_unconfirmed is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328)"
+diagnosisTermToConcept,dx.steroid_induced_hyperglycaemia,cond.drug_associated_hyperglycaemia,new,new,,"no concept; pack concept cond.drug_associated_hyperglycaemia does not exist; term dx.steroid_induced_hyperglycaemia is NOT in REF-DX-TERMS/addendum; diagnosis_terms.concept_id column exists (supabase/migrations/0071_emr_record_spine.sql:150) but no term JSON has concept_id and the 0072 insert omits it (0072_emr_reference_seed.sql:328); pack proposes cond.drug_associated_hyperglycaemia; nothing live (cond.dm_other is ""other specified type of diabetes"", not this)"
+featureToConcept,dm_status,,none,none,,
+featureToConcept,polyuria,sx.polyuria,existing,ok,sx.polyuria,lib/facts/catalogue.generated.ts:6927; lib/ncd/cfc-map.ts:141 maps polyuria -> sx.polyuria
+featureToConcept,polydipsia,sx.polydipsia,existing,ok,sx.polydipsia,lib/facts/catalogue.generated.ts:6895; lib/ncd/cfc-map.ts:143 maps polydipsia -> sx.polydipsia
+featureToConcept,polyphagia,sx.polyphagia,existing,ok,sx.polyphagia,lib/facts/catalogue.generated.ts:6911; lib/ncd/cfc-map.ts:144 maps polyphagia -> sx.polyphagia
+featureToConcept,unexplained_weight_loss,sx.weight_loss_unintended,existing,ok,sx.weight_loss_unintended,lib/facts/catalogue.generated.ts:7359; lib/ncd/cfc-map.ts:145 maps unexplained_weight_loss -> sx.weight_loss_unintended
+featureToConcept,fatigue,sx.fatigue,existing,ok,sx.fatigue,lib/facts/catalogue.generated.ts:6239; lib/ncd/cfc-map.ts:146 maps fatigue -> sx.fatigue
+featureToConcept,slow_healing_wound,sx.slow_healing_wound,existing,ok,sx.slow_healing_wound,lib/facts/catalogue.generated.ts:7103; lib/ncd/cfc-map.ts:147 maps slow_healing_wound -> sx.slow_healing_wound
+featureToConcept,vomiting,sx.vomiting,existing,ok,sx.vomiting,lib/facts/catalogue.generated.ts:7311; lib/ncd/cfc-map.ts:148 maps vomiting -> sx.vomiting
+featureToConcept,abdominal_pain,sx.abdominal_pain,existing,ok,sx.abdominal_pain,lib/facts/catalogue.generated.ts:5775; lib/ncd/cfc-map.ts:149 maps abdominal_pain -> sx.abdominal_pain
+featureToConcept,capillary_glucose,obs.glucose,existing,ok,obs.glucose,lib/facts/catalogue.generated.ts:2898; lib/ncd/cfc-map.ts:119 maps capillary_glucose -> obs.glucose
+featureToConcept,random_pg,obs.glucose,existing,ok_no_bridge,obs.glucose,lib/facts/catalogue.generated.ts:2898; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,hba1c,obs.hba1c,existing,ok,obs.hba1c,lib/facts/catalogue.generated.ts:2962; lib/ncd/cfc-map.ts:123 maps hba1c -> obs.hba1c
+featureToConcept,bohb,obs.ketones_blood,existing,ok_no_bridge,obs.ketones_blood,lib/facts/catalogue.generated.ts:3122; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,urine_ketones,obs.ketones_urine,existing,ok,obs.ketones_urine,lib/facts/catalogue.generated.ts:3138; lib/ncd/cfc-map.ts:179 maps urine_ketones -> obs.ketones_urine
+featureToConcept,venous_ph,,none,exists_other_id,obs.ph,exact via specimen venous_whole_blood; lib/facts/catalogue.generated.ts:3330
+featureToConcept,bicarbonate,obs.bicarbonate,existing,ok,obs.bicarbonate,lib/facts/catalogue.generated.ts:2418; lib/ncd/cfc-map.ts:136 maps bicarbonate -> obs.bicarbonate
+featureToConcept,sodium,obs.sodium,existing,ok,obs.sodium,lib/facts/catalogue.generated.ts:3474; lib/ncd/cfc-map.ts:134 maps sodium -> obs.sodium
+featureToConcept,urea,obs.urea,existing,ok,obs.urea,lib/facts/catalogue.generated.ts:3688; lib/ncd/cfc-map.ts:135 maps urea -> obs.urea
+featureToConcept,effective_osmolality,,none,exists_other_id,derived.osmolality_effective,exact; lib/facts/catalogue.generated.ts:833
+featureToConcept,mental_status,,none,none,,
+featureToConcept,deep_rapid_breathing,sign.kussmaul_breathing,existing,ok,sign.kussmaul_breathing,lib/facts/catalogue.generated.ts:5000; lib/ncd/cfc-map.ts:151 maps deep_rapid_breathing -> sign.kussmaul_breathing
+featureToConcept,acetone_breath,sign.ketotic_breath,existing,ok,sign.ketotic_breath,lib/facts/catalogue.generated.ts:4984; lib/ncd/cfc-map.ts:152 maps acetone_breath -> sign.ketotic_breath
+featureToConcept,dehydration,sign.dehydration,existing,ok,sign.dehydration,lib/facts/catalogue.generated.ts:4488; lib/ncd/cfc-map.ts:170 maps dehydration -> sign.dehydration
+featureToConcept,egfr,derived.egfr,existing,ok,derived.egfr,lib/facts/catalogue.generated.ts:801; lib/ncd/cfc-map.ts:137 maps egfr -> derived.egfr
+featureToConcept,urine_acr,obs.uacr,existing,ok,obs.uacr,lib/facts/catalogue.generated.ts:3656; lib/ncd/cfc-map.ts:138 maps urine_acr -> obs.uacr
+featureToConcept,urine_protein_strip,obs.urine_protein_dipstick,existing,ok,obs.urine_protein_dipstick,lib/facts/catalogue.generated.ts:3784; lib/ncd/cfc-map.ts:186 maps urine_protein_strip -> obs.urine_protein_dipstick
+featureToConcept,kidney_abnormality_3_months,,none,none,,
+featureToConcept,glucose_lowering_therapy,,none,none,,
+featureToConcept,hiv_on_art,,none,none,,
+featureToConcept,art_regimen,,none,none,,
+featureToConcept,haemolysis,,none,none,,
+featureToConcept,malaria_current,,none,none,,
+featureToConcept,recent_transfusion,,none,partial,proc.blood_transfusion,derivable from date; lib/facts/catalogue.generated.ts:3944
+featureToConcept,bp_systolic,obs.bp_systolic,existing,ok,obs.bp_systolic,lib/facts/catalogue.generated.ts:2522; lib/ncd/cfc-map.ts:124 maps bp_systolic -> obs.bp_systolic
+featureToConcept,bp_diastolic,obs.bp_diastolic,existing,ok,obs.bp_diastolic,lib/facts/catalogue.generated.ts:2498; lib/ncd/cfc-map.ts:125 maps bp_diastolic -> obs.bp_diastolic
+featureToConcept,pulse,obs.heart_rate,existing,ok,obs.heart_rate,lib/facts/catalogue.generated.ts:3026; lib/ncd/cfc-map.ts:126 maps pulse -> obs.heart_rate
+featureToConcept,respiratory_rate,obs.resp_rate,existing,ok,obs.resp_rate,lib/facts/catalogue.generated.ts:3442; lib/ncd/cfc-map.ts:127 maps respiratory_rate -> obs.resp_rate
+featureToConcept,temperature,obs.temperature,existing,ok,obs.temperature,lib/facts/catalogue.generated.ts:3576; lib/ncd/cfc-map.ts:128 maps temperature -> obs.temperature
+featureToConcept,weight_kg,obs.weight,existing,ok,obs.weight,lib/facts/catalogue.generated.ts:3848; lib/ncd/cfc-map.ts:130 maps weight_kg -> obs.weight
+featureToConcept,height_cm,obs.height,existing,ok,obs.height,lib/facts/catalogue.generated.ts:3042; lib/ncd/cfc-map.ts:131 maps height_cm -> obs.height
+featureToConcept,waist_cm,obs.waist,existing,ok,obs.waist,lib/facts/catalogue.generated.ts:3816; lib/ncd/cfc-map.ts:132 maps waist_cm -> obs.waist
+featureToConcept,bmi,derived.bmi,existing,ok,derived.bmi,lib/facts/catalogue.generated.ts:657; lib/ncd/cfc-map.ts:133 maps bmi -> derived.bmi
+featureToConcept,pedal_pulses,exam.pedal_pulses,existing,ok,exam.pedal_pulses,lib/facts/catalogue.generated.ts:1752; lib/ncd/cfc-map.ts:200 maps pedal_pulses -> exam.pedal_pulses
+featureToConcept,monofilament_10g,exam.monofilament,existing,ok,exam.monofilament,lib/facts/catalogue.generated.ts:1656; lib/ncd/cfc-map.ts:212 maps monofilament_10g -> exam.monofilament
+featureToConcept,retinopathy_stage,exam.retinopathy_grade,existing,ok,exam.retinopathy_grade,lib/facts/catalogue.generated.ts:1938; lib/ncd/cfc-map.ts:224 maps retinopathy_stage -> exam.retinopathy_grade
+featureToConcept,foot_deformity,sign.foot_deformity,existing,ok,sign.foot_deformity,lib/facts/catalogue.generated.ts:4648; lib/ncd/cfc-map.ts:158 maps foot_deformity -> sign.foot_deformity
+featureToConcept,active_foot_ulcer,sign.foot_ulcer,existing,ok,sign.foot_ulcer,lib/facts/catalogue.generated.ts:4680; lib/ncd/cfc-map.ts:159 maps active_foot_ulcer -> sign.foot_ulcer
+featureToConcept,foot_infection_grade,sign.foot_infection,existing,ok,sign.foot_infection,lib/facts/catalogue.generated.ts:4664; lib/ncd/cfc-map.ts:162 maps foot_infection_grade -> sign.foot_infection
+featureToConcept,acanthosis_nigricans,sign.acanthosis_nigricans,existing,ok,sign.acanthosis_nigricans,lib/facts/catalogue.generated.ts:4200; lib/ncd/cfc-map.ts:155 maps acanthosis_nigricans -> sign.acanthosis_nigricans
+featureToConcept,peripheral_oedema,sign.oedema,existing,ok,sign.oedema,lib/facts/catalogue.generated.ts:5128; lib/ncd/cfc-map.ts:157 maps peripheral_oedema -> sign.oedema
+featureToConcept,age_years,,none,partial,demo.date_of_birth,derivable; lib/facts/catalogue.generated.ts:609
+featureToConcept,sex,,none,exists_other_id,demo.sex_at_birth,exact; lib/facts/catalogue.generated.ts:625
+featureToConcept,pregnant,,none,exists_other_id,preg.status,exact (pregnant); lib/facts/catalogue.generated.ts:3928
+featureToConcept,gestation_weeks,,none,exists_other_id,preg.gestational_age,exact; lib/facts/catalogue.generated.ts:3896
+featureToConcept,fasting_pg,obs.glucose,existing,ok_no_bridge,obs.glucose,lib/facts/catalogue.generated.ts:2898; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,ogtt_2h_pg,obs.glucose,existing,ok_no_bridge,obs.glucose,lib/facts/catalogue.generated.ts:2898; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,ogtt_1h_pg,obs.glucose,existing,ok_no_bridge,obs.glucose,lib/facts/catalogue.generated.ts:2898; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,capillary_glucose_context,,none,partial,obs.glucose#fastingState/challenge,"qualifier, not a concept; lib/facts/catalogue.generated.ts:2898"
+featureToConcept,repeat_abnormal_result,,none,none,,
+featureToConcept,blurred_vision,sx.vision_change,existing,mismatch,sx.blurred_vision,pack concept sx.vision_change not in CONCEPTS; it is proposed in the UNSIGNED CFC v1.4 (docs/emr/cfc/cfc-v1.4-proposal.md V1); live token for the symptom is sx.blurred_vision (lib/facts/catalogue.generated.ts:5871)
+featureToConcept,recurrent_infections,,none,exists_other_id,sx.recurrent_infections,exact; lib/facts/catalogue.generated.ts:6991
+featureToConcept,foot_numbness_burning,sx.foot_numbness_burning,existing,ok_no_bridge,sx.foot_numbness_burning,lib/facts/catalogue.generated.ts:6303; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,sudden_vision_loss,,none,none,,
+featureToConcept,chest_pain_or_stroke_symptoms,,none,none,,
+featureToConcept,orthostatic_dizziness,,none,none,,
+featureToConcept,acute_illness_current,,none,none,,
+featureToConcept,first_degree_relative_diabetes,,none,exists_other_id,fh.diabetes,exact via subjectRelation; lib/facts/catalogue.generated.ts:2194
+featureToConcept,hypertension_known,,none,exists_other_id,cond.hypertension,exact; lib/facts/catalogue.generated.ts:390
+featureToConcept,smoking_current,soc.tobacco,existing,ok_no_bridge,soc.tobacco,lib/facts/catalogue.generated.ts:5736; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,age_at_diagnosis,,none,none,,
+featureToConcept,years_since_diagnosis,,none,none,,
+featureToConcept,ketosis_at_presentation,,none,none,,
+featureToConcept,c_peptide,,none,exists_other_id,obs.c_peptide,exact; lib/facts/catalogue.generated.ts:2546
+featureToConcept,islet_autoantibodies,,none,exists_other_id,obs.islet_autoantibody,exact; lib/facts/catalogue.generated.ts:3106
+featureToConcept,sickle_cell_disease,,none,exists_other_id,cond.sickle_cell_disease,exact; lib/facts/catalogue.generated.ts:486
+featureToConcept,sickle_cell_trait,,none,none,,
+featureToConcept,iron_deficiency,,none,partial,cond.iron_deficiency_anaemia,narrower live (anaemia); lib/facts/catalogue.generated.ts:438
+featureToConcept,on_dialysis,,none,exists_other_id,hist.eskd_or_dialysis,exact; proc.dialysis also exists; lib/facts/catalogue.generated.ts:2242
+featureToConcept,previous_foot_ulcer,,none,exists_other_id,hist.foot_ulcer,exact; lib/facts/catalogue.generated.ts:2258
+featureToConcept,previous_amputation,,none,exists_other_id,cond.amputation_history,exact; lib/facts/catalogue.generated.ts:54
+featureToConcept,end_stage_kidney_disease,,none,exists_other_id,hist.eskd_or_dialysis,exact (also covers dialysis); lib/facts/catalogue.generated.ts:2242
+featureToConcept,vibration_128hz,,none,exists_other_id,exam.vibration_128hz,exact; lib/facts/catalogue.generated.ts:2146
+featureToConcept,ipswich_sites_missed,,none,partial,exam.ipswich_touch_test,"narrower live (normal|abnormal, count lost); lib/facts/catalogue.generated.ts:1505"
+featureToConcept,foot_hot_swollen,,none,none,,
+featureToConcept,foot_gangrene,,none,exists_other_id,sign.gangrene,exact; lib/facts/catalogue.generated.ts:4744
+featureToConcept,potassium,obs.potassium,existing,ok_no_bridge,obs.potassium,lib/facts/catalogue.generated.ts:3378; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,haematuria_strip,,none,exists_other_id,obs.urine_blood_dipstick,exact (ordinal); lib/facts/catalogue.generated.ts:3720
+featureToConcept,total_cholesterol,,none,exists_other_id,obs.chol_total,exact; lib/facts/catalogue.generated.ts:2658
+featureToConcept,ldl_cholesterol,obs.chol_ldl,existing,ok_no_bridge,obs.chol_ldl,lib/facts/catalogue.generated.ts:2642; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,triglycerides,obs.triglycerides,existing,ok_no_bridge,obs.triglycerides,lib/facts/catalogue.generated.ts:3608; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,heart_failure_known,,none,exists_other_id,cond.heart_failure,exact; lib/facts/catalogue.generated.ts:342
+featureToConcept,cough_over_2_weeks,,none,none,,
+featureToConcept,injection_site_lumps,,none,none,,
+featureToConcept,alcohol_harmful,soc.alcohol_pattern,existing,ok_no_bridge,soc.alcohol_pattern,lib/facts/catalogue.generated.ts:5688; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,care_setting,,none,exists_other_id,ctx.care_setting,exact; lib/facts/catalogue.generated.ts:550
+featureToConcept,prior_gdm,,none,none,,
+featureToConcept,postpartum_weeks,,none,none,,
+featureToConcept,prior_intermediate_hyperglycaemia,,none,exists_other_id,cond.intermediate_hyperglycaemia,exact (clinicalStatus resolved/inactive); lib/facts/catalogue.generated.ts:422
+featureToConcept,months_since_glucose_test,,none,none,,
+featureToConcept,on_glucocorticoid,,none,none,,
+featureToConcept,on_second_gen_antipsychotic,,none,none,,
+featureToConcept,weeks_since_antipsychotic_start,,none,none,,
+featureToConcept,months_since_art_start_or_switch,,none,none,,
+featureToConcept,tb_current,,none,exists_other_id,cond.tuberculosis,"exact (restricted, tb); lib/facts/catalogue.generated.ts:518"
+featureToConcept,pancreatitis_history,,none,partial,cond.chronic_pancreatitis,narrower live (chronic only); lib/facts/catalogue.generated.ts:86
+featureToConcept,cvd_established,,none,exists_other_id,cond.ascvd,exact; lib/facts/catalogue.generated.ts:70
+featureToConcept,pcos,,none,exists_other_id,cond.pcos,exact; lib/facts/catalogue.generated.ts:470
+featureToConcept,physically_inactive,,none,partial,soc.physical_activity,derivable (below_recommended); lib/facts/catalogue.generated.ts:5720
+featureToConcept,secondary_enuresis,,none,exists_other_id,sx.secondary_enuresis,exact; lib/facts/catalogue.generated.ts:7055
+featureToConcept,g6pd_deficiency,,none,exists_other_id,cond.g6pd_deficiency,exact; lib/facts/catalogue.generated.ts:326
+featureToConcept,b12_deficiency,,none,none,,
+featureToConcept,on_dapsone,,none,none,,
+featureToConcept,on_iron_b12_or_epo,,none,none,,
+featureToConcept,splenomegaly,,none,exists_other_id,sign.splenomegaly,exact; lib/facts/catalogue.generated.ts:5528
+featureToConcept,uacr_transient_cause,,none,none,,
+featureToConcept,creatinine_unstable,,none,none,,
+featureToConcept,fundus_method,,none,none,,
+featureToConcept,insulin_stopped_without_relapse,,none,none,,
+featureToConcept,parent_with_diabetes,,none,exists_other_id,fh.diabetes,exact via subjectRelation mother|father; lib/facts/catalogue.generated.ts:2194
+featureToConcept,childhood_undernutrition,,none,exists_other_id,hist.childhood_undernutrition,exact; lib/facts/catalogue.generated.ts:2226
+featureToConcept,steatorrhoea,,none,none,,
+featureToConcept,recurrent_abdominal_pain,,none,none,,
+featureToConcept,pancreatic_calcification,,none,none,,
+featureToConcept,glucose_at_presentation,,none,none,,
+featureToConcept,months_off_glucose_lowering,,none,none,,
+featureToConcept,postprandial_pg,obs.glucose,existing,ok_no_bridge,obs.glucose,lib/facts/catalogue.generated.ts:2898; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,glycaemic_target_tier,,none,none,,
+featureToConcept,months_since_hba1c,,none,partial,obs.hba1c,derivable from date; lib/facts/catalogue.generated.ts:2962
+featureToConcept,months_since_any_control_measure,,none,none,,
+featureToConcept,therapy_changed_recently,,none,none,,
+featureToConcept,hypo_worst_12m,,none,partial,evt.hypoglycaemia,derivable (levels); lib/facts/catalogue.generated.ts:1009
+featureToConcept,hypo_awareness_score,,none,none,,
+featureToConcept,frailty_or_limited_life_expectancy,,none,none,,
+featureToConcept,cognitive_impairment,,none,none,,
+featureToConcept,food_insecurity,,none,none,,
+featureToConcept,uacr_abnormal_count,,none,none,,
+featureToConcept,egfr_fall_percent,,none,none,,
+featureToConcept,creatinine_rise_percent_4w,,none,none,,
+featureToConcept,nephrotic_or_active_sediment,,none,none,,
+featureToConcept,months_since_kidney_screen,,none,none,,
+featureToConcept,macular_oedema,,none,partial,exam.maculopathy,narrower live answer set; lib/facts/catalogue.generated.ts:1601
+featureToConcept,visual_acuity_worse_6_12,,none,none,,
+featureToConcept,retina_view,,none,none,,
+featureToConcept,months_since_eye_screen,,none,partial,proc.eye_screen,derivable from date (Design B); lib/facts/catalogue.generated.ts:4008
+featureToConcept,pinprick_feet,,none,exists_other_id,exam.pinprick,exact (normal|abnormal); lib/facts/catalogue.generated.ts:1800
+featureToConcept,ankle_reflexes,,none,exists_other_id,exam.ankle_reflex,exact; lib/facts/catalogue.generated.ts:1057
+featureToConcept,neuropathy_atypical,,none,none,,
+featureToConcept,postural_sbp_fall,,none,none,,
+featureToConcept,postural_dbp_fall,,none,none,,
+featureToConcept,autonomic_symptoms,,none,none,,
+featureToConcept,months_since_neuropathy_screen,,none,none,,
+featureToConcept,abi,,none,none,,
+featureToConcept,months_since_foot_risk_assessment,,none,partial,proc.foot_exam,derivable from date (Design B); lib/facts/catalogue.generated.ts:4024
+featureToConcept,ulcer_area_reduction_4w,,none,none,,
+featureToConcept,bp_raised_two_occasions,,none,none,,
+featureToConcept,bp_medicines_count,,none,none,,
+featureToConcept,on_statin,,none,none,,
+featureToConcept,ras_blocker,,none,none,,
+featureToConcept,who_cvd_risk_percent,,none,none,,
+featureToConcept,who_cvd_chart_used,,none,none,,
+featureToConcept,months_since_lipids,,none,none,,
+featureToConcept,overt_nephropathy,,none,none,,
+featureToConcept,on_rifampicin,,none,none,,
+featureToConcept,surgery_or_fasting_planned,,none,none,,
+featureToConcept,could_conceive,,none,none,,
+featureToConcept,fasting_ramadan_planned,,none,none,,
+featureToConcept,glucose_goal_unmet_on_oral,,none,none,,
+featureToConcept,meals_irregular,,none,none,,
+featureToConcept,months_since_dental,,none,none,,
+featureToConcept,non_diabetic_kidney_clue,,none,none,,
+featureToConcept,ogtt_normal,,none,none,,
+featureToConcept,dm_type_recorded,,none,exists_other_id,cond.dm_type1|cond.dm_type2|cond.dm_unspecified|cond.dm_other,exact via condition; lib/facts/catalogue.generated.ts:246
+featureToConcept,glucose_meter_extreme,obs.glucose,existing,ok_no_bridge,obs.glucose,lib/facts/catalogue.generated.ts:2898; feature not in lib/ncd/cfc-map.ts NCD_CFC_RULES (no capture<->fact bridge yet)
+featureToConcept,pregnancy_possible,,none,none,,
+featureToConcept,never_glucose_tested,,none,none,,
+featureToConcept,never_hba1c,,none,none,,
+featureToConcept,never_eye_screen,,none,partial,proc.eye_screen,derivable only from a complete record (N4); lib/facts/catalogue.generated.ts:4008
+featureToConcept,never_kidney_screen,,none,none,,
+featureToConcept,never_foot_assessment,,none,partial,proc.foot_exam,derivable only from a complete record (N4); lib/facts/catalogue.generated.ts:4024
+featureToConcept,never_neuropathy_screen,,none,none,,
+featureToConcept,never_lipids,,none,none,,
+featureToConcept,insulin_omitted,,none,none,,
+featureToConcept,hypoglycaemia_not_resolving,,none,none,,
+featureToConcept,on_antiplatelet,,none,none,,
+featureToConcept,haemorrhagic_or_unknown_stroke,,none,none,,
+featureToConcept,glucose_test_since_antipsychotic_start,,none,none,,
+featureToConcept,ras_or_sglt2_started_recently,,none,none,,
+featureToConcept,limb_ischaemia_signs,,none,none,,
+featureToConcept,anuria,,none,none,,
+featureToConcept,hypertensive_symptoms,,none,none,,
+featureToConcept,glucose_tested_since_birth,,none,none,,
+featureToConcept,ogtt_done_this_pregnancy,,none,none,,

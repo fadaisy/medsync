@@ -331,7 +331,7 @@ describe("step 10, Plan by problem", () => {
       /All medicines/.test(d.textContent ?? ""),
     )!;
     expect(all).toBeTruthy();
-    expect(all.textContent).toMatch(/182 medicines in \d+ classes, by body system/);
+    expect(all.textContent).toMatch(/192 medicines in \d+ classes, by body system/);
     const systems = [...all.querySelectorAll("h3")].map((x) => x.firstChild?.textContent);
     expect(systems[0]).toBe("Anti-infectives");
     expect(systems).toContain("Cardiovascular");

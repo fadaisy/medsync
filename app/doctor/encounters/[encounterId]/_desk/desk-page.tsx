@@ -8,7 +8,8 @@ import { sectionWith } from "@/components/emr/desk/model";
 import { EncounterPrescriptions } from "@/components/emr/prescribing/encounter-prescriptions";
 import { SafetyBarView } from "@/components/emr/safety-bar";
 import { loadDesk } from "@/lib/emr/read/desk";
-import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
+import { ncdPackLive } from "@/lib/encounter/feature";
+import { leanDiabetesPack, ncdCatalog, packFieldCodes } from "@/lib/ncd/pack/capture";
 import { initialCapture, loadLatestVitals, loadPatientDemographics } from "@/lib/ncd/vitals";
 import { doctorWorkspace } from "@/lib/workspace/feature";
 import { EncounterOrders } from "../_orders/encounter-orders";
@@ -56,11 +57,28 @@ export async function DeskPage({
     // The NCD module pre-fills from what the record holds (vitals, sex, life stage), as before.
     const [demographics, vitals] = await Promise.all([
       loadPatientDemographics(p.encounter.patientUserId),
-      loadLatestVitals(p.encounter.patientUserId, DIABETES_CATALOG),
+      loadLatestVitals(p.encounter.patientUserId, ncdCatalog()),
     ]);
     ncdSeed = {
       initialValues: initialCapture({ ...demographics.values, ...vitals.values }, undefined),
       ageBand: demographics.ageBand,
+      // NCD_DM_PACK_LIVE: the pack's form and its decision panel (absent keeps the v0.1.0 section unchanged).
+      ...(ncdPackLive()
+        ? {
+            catalog: ncdCatalog(),
+            pack: {
+              data: leanDiabetesPack(),
+              fields: packFieldCodes(),
+              ageYears: demographics.ageYears ?? null,
+              careSetting:
+                p.encounter.encounterType === "inpatient"
+                  ? ("inpatient" as const)
+                  : p.encounter.encounterType === "emergency"
+                    ? ("emergency" as const)
+                    : ("outpatient" as const),
+            },
+          }
+        : {}),
       pulled: vitals.vitals.length
         ? {
             values: vitals.values,

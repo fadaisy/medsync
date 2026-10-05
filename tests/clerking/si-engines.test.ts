@@ -82,9 +82,11 @@ const summaryOf = (
 
 describe("the catalogue", () => {
   it("parses with the counts STOP 0 reported", () => {
-    expect(dx.profiles.length).toBe(272);
-    expect(dx.rules.length).toBe(100);
-    expect(dx.profiles.filter((p) => p.must_not_miss).length).toBe(89);
+    // + the diabetes pack (Phase 5): 8 profiles, 11 rules; type 1 and diabetes in pregnancy
+    // must-not-miss.
+    expect(dx.profiles.length).toBe(280);
+    expect(dx.rules.length).toBe(111);
+    expect(dx.profiles.filter((p) => p.must_not_miss).length).toBe(91);
     expect(dx.profiles.filter((p) => p.time_critical).length).toBe(86);
     expect(dx.profiles.filter((p) => p.restricted_class).length).toBe(28);
   });

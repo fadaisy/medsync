@@ -1,5 +1,5 @@
 /**
- * I1 capabilities and their default holders (§7 I1, ADR 0208). Mapped onto the repository's roles:
+ * I1 capabilities and their default holders (§7 I1, ADR 0209). Mapped onto the repository's roles:
  * cadres and `hospital_admin` derive the NCD roles in SQL (`private.ncd_user_roles`); only the roles
  * the repository lacks (registry lead, head of department, auditor, clinical safety officer) are
  * assigned per facility in `ncd_staff_role`. Superadmin holds none of these.

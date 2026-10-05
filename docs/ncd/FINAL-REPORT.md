@@ -9,7 +9,7 @@ production-ready and not approved for patient data.** Every definition in it is 
 section 9, and the human gates in section 10 cannot be closed by a build.
 
 Run mode was continuous (owner instruction: "go through all gates"); checkpoints were recorded, not stopped at. The phase
-ledger is `docs/ncd/PROGRESS.md`; decisions D-01 to D-35 are in `docs/ncd/DECISIONS.md`; ADRs 0208 to 0213 (all
+ledger is `docs/ncd/PROGRESS.md`; decisions D-01 to D-35 are in `docs/ncd/DECISIONS.md`; ADRs 0209 to 0213 (all
 `proposed`) are in `docs/adr/`.
 
 ## 1. Requirements
@@ -347,18 +347,18 @@ the boards use to the repository's existing tokens (all present). The Chroma cla
 
 Everything else lives under `lib/ncdreg/`, `app/ncd/`, `app/ncd-offline/`, `tests/ncdreg*/` and `docs/ncd/`.
 
-| File                                                                    | Change                                                                                                                                |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `supabase/migrations/0093_ncd_registry.sql`                             | new, GATED: 26 tables, two roles without BYPASSRLS, capability functions, interlock and audit triggers, generated policies and grants |
-| `db/schema/ncd-registry.ts`, `db/schema/index.ts`                       | new Drizzle mirror; one export line                                                                                                   |
-| `app/api/cron/ncd-demo/route.ts`, `app/api/cron/ncd-reminders/route.ts` | new cron handlers (CRON_SECRET required; not yet scheduled in `vercel.json`)                                                          |
-| `public/ncd-sw.js`                                                      | new service worker scoped to `/ncd` (static shell only)                                                                               |
-| `scripts/ncdreg-docs.ts`, `scripts/ncdreg-policies.ts`                  | new generators                                                                                                                        |
-| `package.json`, `package-lock.json`                                     | scripts `ncdreg:docs`, `ncdreg:policies`; dev dependency `fake-indexeddb`                                                             |
-| `eslint.config.mjs`                                                     | the strict jsx-a11y block also covers `app/ncd/**` and `app/ncd-offline/**`                                                           |
-| `.prettierignore`                                                       | the handed-over prompt, PRD and catalogue (byte-identical) and the four generated documents                                           |
-| `docs/adr/0208`–`0213`                                                  | six ADRs, `proposed`                                                                                                                  |
-| `CHANGELOG.md`                                                          | one entry under Unreleased                                                                                                            |
+| File                                                                    | Change                                                                                                                                   |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `supabase/migrations/0093_ncd_registry.sql`                             | new, GATED: 26 tables, two roles without BYPASSRLS, capability functions, interlock and audit triggers, generated policies and grants    |
+| `db/schema/ncd-registry.ts`, `db/schema/index.ts`                       | new Drizzle mirror; one export line                                                                                                      |
+| `app/api/cron/ncd-demo/route.ts`, `app/api/cron/ncd-reminders/route.ts` | new cron handlers (CRON_SECRET required; not yet scheduled in `vercel.json`)                                                             |
+| `public/ncd-sw.js`                                                      | new service worker scoped to `/ncd` (static shell only)                                                                                  |
+| `scripts/ncdreg-docs.ts`, `scripts/ncdreg-policies.ts`                  | new generators                                                                                                                           |
+| `package.json`, `package-lock.json`                                     | scripts `ncdreg:docs`, `ncdreg:policies`; dev dependency `fake-indexeddb`                                                                |
+| `eslint.config.mjs`                                                     | the strict jsx-a11y block also covers `app/ncd/**` and `app/ncd-offline/**`                                                              |
+| `.prettierignore`                                                       | the handed-over prompt, PRD and catalogue (byte-identical) and the four generated documents                                              |
+| `docs/adr/0209`–`0214`                                                  | six ADRs, `proposed` (numbered 0208–0213 until the merge with main, where 0208 was taken; migration 0093's header keeps the old numbers) |
+| `CHANGELOG.md`                                                          | one entry under Unreleased                                                                                                               |
 
 `.env.example` is untouched. No existing route, table, policy or component was modified.
 

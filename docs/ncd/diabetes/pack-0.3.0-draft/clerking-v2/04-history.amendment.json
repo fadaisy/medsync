@@ -1,0 +1,380 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "catalogue": "MS-EMR-CLERK-CAT-001",
+ "file": "data/clerking/clerking-history-catalogue.v1.json",
+ "amendment": {
+  "past_history.condition_details": {
+   "diabetes": {
+    "label": "About the diabetes",
+    "shown_when": {
+     "past_condition": "diabetes",
+     "answer": "yes"
+    },
+    "properties": [
+     {
+      "id": "type",
+      "label": "Type",
+      "kind": "one",
+      "options": [
+       {
+        "id": "type_1",
+        "label": "Type 1"
+       },
+       {
+        "id": "type_2",
+        "label": "Type 2"
+       },
+       {
+        "id": "other",
+        "label": "Another type"
+       },
+       {
+        "id": "not_sure",
+        "label": "Not sure"
+       }
+      ],
+      "phrase": {
+       "pre": "",
+       "post": ""
+      }
+     },
+     {
+      "id": "year_diagnosed",
+      "label": "Year diagnosed",
+      "kind": "year",
+      "phrase": {
+       "pre": "diagnosed ",
+       "post": ""
+      }
+     },
+     {
+      "id": "treatment",
+      "label": "Treatment now",
+      "kind": "many",
+      "options": [
+       {
+        "id": "diet_only",
+        "label": "Diet only"
+       },
+       {
+        "id": "tablets",
+        "label": "Tablets"
+       },
+       {
+        "id": "insulin",
+        "label": "Insulin"
+       },
+       {
+        "id": "herbal",
+        "label": "Herbal or traditional"
+       },
+       {
+        "id": "none",
+        "label": "None"
+       }
+      ],
+      "exclusive_options": [
+       "none"
+      ],
+      "phrase": {
+       "pre": "on ",
+       "post": ""
+      }
+     },
+     {
+      "id": "insulin_from_start",
+      "label": "On insulin since diagnosis",
+      "kind": "one",
+      "shown_when": {
+       "property": "treatment",
+       "includes_any": [
+        "insulin"
+       ]
+      },
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes"
+       },
+       {
+        "id": "no",
+        "label": "No"
+       },
+       {
+        "id": "not_sure",
+        "label": "Not sure"
+       }
+      ]
+     },
+     {
+      "id": "complications_told",
+      "label": "Told of problems with",
+      "kind": "many",
+      "options": [
+       {
+        "id": "eyes",
+        "label": "Eyes"
+       },
+       {
+        "id": "kidneys",
+        "label": "Kidneys"
+       },
+       {
+        "id": "nerves_or_feet",
+        "label": "Nerves or feet"
+       },
+       {
+        "id": "heart",
+        "label": "Heart"
+       },
+       {
+        "id": "stroke",
+        "label": "Stroke"
+       },
+       {
+        "id": "foot_ulcer",
+        "label": "Foot ulcer"
+       },
+       {
+        "id": "amputation",
+        "label": "Amputation"
+       },
+       {
+        "id": "none_told",
+        "label": "None told"
+       }
+      ],
+      "exclusive_options": [
+       "none_told"
+      ],
+      "phrase": {
+       "pre": "known problems: ",
+       "post": ""
+      }
+     },
+     {
+      "id": "last_eye_check",
+      "label": "Last eye check",
+      "kind": "one",
+      "options_ref": "last_check",
+      "phrase": {
+       "pre": "last eye check ",
+       "post": ""
+      }
+     },
+     {
+      "id": "last_foot_check",
+      "label": "Last foot check",
+      "kind": "one",
+      "options_ref": "last_check",
+      "phrase": {
+       "pre": "last foot check ",
+       "post": ""
+      }
+     },
+     {
+      "id": "last_kidney_test",
+      "label": "Last urine and kidney test",
+      "kind": "one",
+      "options_ref": "last_check",
+      "phrase": {
+       "pre": "last kidney test ",
+       "post": ""
+      }
+     },
+     {
+      "id": "lows_12_months",
+      "label": "Low blood sugar in the last 12 months",
+      "kind": "one",
+      "options": [
+       {
+        "id": "none",
+        "label": "None"
+       },
+       {
+        "id": "self_treated",
+        "label": "Once, managed without help"
+       },
+       {
+        "id": "repeated",
+        "label": "More than once, managed without help"
+       },
+       {
+        "id": "measured_below_3",
+        "label": "A reading below 3.0 mmol/L"
+       },
+       {
+        "id": "needed_help",
+        "label": "Needed someone's help"
+       },
+       {
+        "id": "not_sure",
+        "label": "Not sure"
+       }
+      ],
+      "phrase": {
+       "pre": "lows in the last year: ",
+       "post": ""
+      }
+     },
+     {
+      "id": "admitted_for_sugar",
+      "label": "Admitted for very high sugar or ketoacidosis",
+      "kind": "one",
+      "options": [
+       {
+        "id": "never",
+        "label": "Never"
+       },
+       {
+        "id": "over_1_year",
+        "label": "More than a year ago"
+       },
+       {
+        "id": "within_1_year",
+        "label": "In the last year"
+       },
+       {
+        "id": "not_sure",
+        "label": "Not sure"
+       }
+      ],
+      "phrase": {
+       "pre": "admitted for high sugar ",
+       "post": ""
+      }
+     },
+     {
+      "id": "tests_at_home",
+      "label": "Tests sugar at home",
+      "kind": "one",
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes"
+       },
+       {
+        "id": "no",
+        "label": "No"
+       }
+      ]
+     },
+     {
+      "id": "regular_clinic",
+      "label": "Attends a diabetes clinic",
+      "kind": "one",
+      "options": [
+       {
+        "id": "yes",
+        "label": "Yes"
+       },
+       {
+        "id": "no",
+        "label": "No"
+       }
+      ]
+     }
+    ],
+    "composer": "Diabetes ({type}) {year_diagnosed}, {treatment}; {complications_told}; {last_eye_check}; {lows_12_months}.",
+    "composer_rule": "A clause whose property is unanswered is omitted with its punctuation. An unanswered property is an absent key and leaves no mark in the note.",
+    "rule": "Reported, not verified. Nothing here is charted; the type and the complications become qualifiers on the problem-list proposal the clinician confirms.",
+    "not_here": "Gestational diabetes in a previous pregnancy is NOT an option under 'type': it would make the woman a known diabetic to every rule. It is a separate past-history question (below), a risk factor, and its restricted class is D-DM-30.",
+    "source": "ADA-SOC-2026",
+    "status": "draft"
+   }
+  },
+  "option_sets.add": {
+   "last_check": [
+    {
+     "id": "within_1_year",
+     "label": "In the last year"
+    },
+    {
+     "id": "1_to_2_years",
+     "label": "1 to 2 years ago"
+    },
+    {
+     "id": "over_2_years",
+     "label": "More than 2 years ago"
+    },
+    {
+     "id": "never",
+     "label": "Never"
+    },
+    {
+     "id": "not_sure",
+     "label": "Not sure"
+    }
+   ]
+  },
+  "past_history.questions.propose": [
+   {
+    "id": "gestational_diabetes_before",
+    "label": "Diabetes in a previous pregnancy",
+    "kind": "yes_no",
+    "feeds": "hx.prior_gdm",
+    "restricted_class": "sexual_reproductive_health (proposed; D-DM-30)",
+    "rule": "A risk factor for testing. Never answers 'past condition: diabetes'."
+   }
+  ],
+  "medicines.quick_picks.add": [
+   "gliclazide",
+   "glimepiride",
+   "dapagliflozin",
+   "prednisolone"
+  ],
+  "medicines.quick_picks.note": "glibenclamide stays: patients still take it although EMHSLU 2023 deleted it.",
+  "flag_rules.add": [
+   {
+    "id": "FLAG-DM-LOW-NEEDED-HELP",
+    "level": "caution",
+    "badge": "Low needing help in the last year",
+    "reason": "A low needing someone's help in the last year: review the treatment and the target at this visit",
+    "applies_to": "past_history",
+    "when": {
+     "past_detail": "diabetes",
+     "property": "lows_12_months",
+     "equals": "needed_help"
+    },
+    "source": "ADA-SOC-2026",
+    "status": "draft",
+    "shown_in": "flags_panel",
+    "needs": [
+     "EC-2"
+    ],
+    "refs_dm": [
+     "REF-DM-HYPO-DEINTENSIFY"
+    ]
+   },
+   {
+    "id": "FLAG-DM-ADMITTED-RECENT",
+    "level": "caution",
+    "badge": "Admitted for high sugar in the last year",
+    "reason": "Admitted for very high sugar or ketoacidosis in the last year: ask what led to it and review sick-day rules",
+    "applies_to": "past_history",
+    "when": {
+     "past_detail": "diabetes",
+     "property": "admitted_for_sugar",
+     "equals": "within_1_year"
+    },
+    "source": "ADA-SOC-2026",
+    "status": "draft",
+    "shown_in": "flags_panel",
+    "needs": [
+     "EC-2"
+    ],
+    "refs_dm": [
+     "REF-DM-ACU-PRECIPITANTS"
+    ]
+   }
+  ]
+ }
+}

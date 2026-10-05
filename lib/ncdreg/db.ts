@@ -1,5 +1,5 @@
 /**
- * The NCD module's only way into the database (§8.1, ADR 0208). Mirrors lib/emr/db.ts (ADR 0131):
+ * The NCD module's only way into the database (§8.1, ADR 0209). Mirrors lib/emr/db.ts (ADR 0131):
  * identity travels as transaction-local GUCs, so nothing leaks on the pooler. Unlike the EMR writer,
  * NCD writes also run under a role with no BYPASSRLS, so the row-level policies decide every read
  * AND every write:

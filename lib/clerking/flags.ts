@@ -3,7 +3,7 @@ import type { Catalogue, FlagRule, PatientSex, Symptom } from "./catalogue";
 import type { Linked } from "./linkage";
 import type { News2Result } from "@/lib/triage/types";
 
-import { durationDays, durationText, emptyEntry } from "./answers";
+import { durationDays, durationText, emptyEntry, pastDetail } from "./answers";
 import { appliesTo, ASSOCIATED, isRestricted } from "./catalogue";
 import { rosAnswer } from "./linkage";
 
@@ -216,7 +216,9 @@ function fill(template: string, vars: Record<string, string | number | undefined
     .trim();
 }
 
-const lcFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+/** "Insulin glargine" → "insulin glargine"; "ACE inhibitor" stays. Shared with the exam badges so they merge. */
+export const lcFirst = (s: string) =>
+  /^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
 
 export function evaluateFlags(cat: Catalogue, input: FlagInput): Flag[] {
   const live = cat.data.flag_rules.filter((r) => ruleIsLive(r, input.signoff));
@@ -273,6 +275,9 @@ export function evaluateFlags(cat: Catalogue, input: FlagInput): Flag[] {
 
   for (const r of live) {
     const t = r.applies_to;
+    // EC-7: a past-history detail (EC-2); unanswered never fires.
+    if (t === "past_history" && pastDetail(input.history, r.when as Cond) === true)
+      flags.push(record(r, r.badge, "Past history", "pmh"));
     if (t === "medicines" && "adherence_any" in r.when) {
       const any = r.when.adherence_any as string[];
       for (const m of input.medicines)

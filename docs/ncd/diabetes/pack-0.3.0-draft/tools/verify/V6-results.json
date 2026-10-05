@@ -1,0 +1,242 @@
+[
+ {
+  "ref": "REF-DM-VAL-HBA1C-HIV",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "HbA1c underestimates glycaemia in HIV-infected patients and its use in patients with risk factors for HbA1c discordance may lead to under-diagnosis and to under-treatment of established diabetes mellitus.",
+  "correctValue": null,
+  "note": "Conclusion sentence read verbatim. The risk-factor list (CD4 <500 cells/mm3, protease inhibitor regimens, NNRTI regimens, zidovudine, high MCV, abnormal corpuscular haemoglobin) came back from the fetch as a summary list, not a verbatim sentence; a second fetch for the exact Results sentence failed (WebFetch session limit). Qualifiers the entry lacks: the cohort was HIV-infected MEN only (Multicenter AIDS Cohort Study), and 'low CD4' means CD4 <500. ADA 2026 Section 2 (PMC12690183, reader view) independently returned: 'As the A1C test may underestimate glycemia in people with HIV, plasma glucose criteria are preferred'.",
+  "urlUsed": "https://academic.oup.com/jac/article/69/12/3360/820631"
+ },
+ {
+  "ref": "REF-DM-EPI-UG-FPG-SENS",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "At recommended cut-off points for diabetes, the HBA1C and FPG tests had comparable sensitivity [69.8% (95% CI 46.3–86.1) versus 62.6% (95% CI 41.5–79.8), respectively] and specificity [98.6% (95% CI 95.4–99.6) versus 99.4% (95% CI 98.9–99.7), respectively].",
+  "correctValue": null,
+  "note": "Value 62.6% confirmed verbatim in the abstract (eastern Uganda, OGTT reference). The abstract says 'recommended cut-off points' and does NOT state 7.0 mmol/L; the full text (journals.plos.org) could not be opened (HTTP 429) so the numeric cut-off in the entry text was not read. Confidence interval is wide (41.5 to 79.8) and should travel with the figure.",
+  "urlUsed": "https://api.plos.org/search?q=id:%2210.1371/journal.pone.0272515%22&fl=id,title,author,journal,publication_date,abstract&wt=json"
+ },
+ {
+  "ref": "REF-DM-EPI-UG-HBA1C-SENS",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "At recommended cut-off points for diabetes, the HBA1C and FPG tests had comparable sensitivity [69.8% (95% CI 46.3–86.1) versus 62.6% (95% CI 41.5–79.8), respectively] and specificity [98.6% (95% CI 95.4–99.6) versus 99.4% (95% CI 98.9–99.7), respectively].",
+  "correctValue": null,
+  "note": "Value 69.8% confirmed verbatim in the abstract. The abstract says 'recommended cut-off points' and does NOT state 6.5%; full text could not be opened (HTTP 429) so the numeric cut-off in the entry text was not read. Confidence interval is wide (46.3 to 86.1). Same abstract gives the study's own optimum HbA1c cut-off as 45.0 mmol/mol (6.3%).",
+  "urlUsed": "https://api.plos.org/search?q=id:%2210.1371/journal.pone.0272515%22&fl=id,title,author,journal,publication_date,abstract&wt=json"
+ },
+ {
+  "ref": "REF-DM-RX-EML",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "18.5.1 Insulins: insulin injection (soluble); intermediate-acting insulin; long-acting insulin analogues (Therapeutic alternatives: insulin degludec, insulin detemir, insulin glargine). 18.5.2 Oral hypoglycaemic agents: empagliflozin (Therapeutic alternatives: canagliflozin, dapagliflozin); gliclazide (Therapeutic alternatives: 4th level ATC chemical subgroup A10BB Sulfonylureas) (*glibenclamide not suitable above 60 years); metformin. eEML rec 1228 (empagliflozin): \"First added in 2021\". eEML rec 1600 (semaglutide): \"First added in 2025\"; \"Type 2 diabetes mellitus\" ... \"established cardiovascular disease or chronic kidney disease\" ... \"obesity (BMI ≥ 30 kg/m2)\".",
+  "correctValue": null,
+  "note": "Metformin, gliclazide, human insulin, long-acting analogues and empagliflozin (with canagliflozin and dapagliflozin) are all in the cited 23rd list (2023). SEMAGLUTIDE IS NOT in the cited 23rd list: the fetch confirmed no GLP-1 receptor agonist appears in Section 18.5 of the 2023 document. It is supported only by the eEML (list.essentialmeds.org recommendation 1600, first added 2025, TRS 1064), so the source line should cite the 2025 list for that part. eEML wording is established cardiovascular disease or CKD AND obesity (BMI >= 30), with dulaglutide, liraglutide and tirzepatide as alternatives. The 2023 PDF was read from a third-party host (cmhrc.org), not WHO's own site. The list quote above is as returned by the fetch tool (names only, no strengths).",
+  "urlUsed": "https://cmhrc.org/wp-content/uploads/2025/06/WHO-Essential-Medicines-23rd-list-2023.pdf ; https://list.essentialmeds.org/recommendations/1600 ; https://list.essentialmeds.org/recommendations/1228 ; https://list.essentialmeds.org/recommendations/249"
+ },
+ {
+  "ref": "REF-DM-CLS-T5",
+  "verdict": "confirmed",
+  "foundQuote": "IDF news (15 April 2025): \"develop formal diagnostic criteria and therapeutic guidelines for a type of diabetes linked to malnutrition\". Lancet Glob Health consensus: \"Since 1955, a form of diabetes in lean, young (BMI <18·5 kg/m2, age <30 years) individuals with a history suggestive of undernutrition from before birth and throughout childhood has been described in the literature.\" ... \"Insufficient evidence for this form of diabetes makes it challenging to define diagnostic criteria and risk factors that are applicable to diverse populations.\"",
+  "correctValue": null,
+  "note": "The IDF news item itself gives no BMI or age figure; both (BMI <18.5, age <30) are in the Lancet Global Health consensus statement (Wadivkar P, Jebasingh F, Thomas N, et al. 2025;13(10)), which opened on ScienceDirect. Panel: 'BMI less than 18·5 kg/m2 for adults', 'Ketosis resistance', 'Negative for GAD-65 antibody (and IA-2 and ZnT8 antibodies, if available)' are commonly reported; 'Normal pancreas on comprehensive pancreatic imaging' is listed as only OCCASIONALLY reported.",
+  "urlUsed": "https://idf.org/news/new-type-5-diabetes-working-group/ ; https://www.sciencedirect.com/science/article/pii/S2214109X25002633"
+ },
+ {
+  "ref": "REF-DM-SUS-WAIST-F",
+  "verdict": "confirmed",
+  "foundQuote": "Europids: \"Male ≥ 94 cm / Female ≥ 80 cm\"; Sub-Saharan Africans: \"Use European data until more specific data are available\"",
+  "correctValue": null,
+  "note": "Operator is >= (at or above 80 cm). Document: The IDF consensus worldwide definition of the metabolic syndrome, 2006. Table 1 footnote also read: 'If BMI is >30kg/m², central obesity can be assumed and waist circumference does not need to be measured.'",
+  "urlUsed": "https://international-diabetes-federation.s3.eu-west-1.amazonaws.com/media/uploads/2023/05/attachments-30.pdf"
+ },
+ {
+  "ref": "REF-DM-SUS-WAIST-M",
+  "verdict": "confirmed",
+  "foundQuote": "Europids: \"Male ≥ 94 cm / Female ≥ 80 cm\"; Sub-Saharan Africans: \"Use European data until more specific data are available\"",
+  "correctValue": null,
+  "note": "Operator is >= (at or above 94 cm). European value applied to sub-Saharan Africans as an interim measure, as the entry says.",
+  "urlUsed": "https://international-diabetes-federation.s3.eu-west-1.amazonaws.com/media/uploads/2023/05/attachments-30.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-RAMADAN",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "\"Blood glucose is below 70mg/dl, 3.9mmol/L\" ... \"Blood glucose is above 300mg/dl, 16.6 mmol/L\" ... \"If you feel unwell, immediately break your fast.\" ... What does not break your fast: \"Blood glucose monitoring\" and \"Injecting insulin\"",
+  "correctValue": null,
+  "note": "Thresholds (below 3.9, above 16.6 mmol/L), 'feel unwell' and 'testing does not break the fast' are confirmed in the IDF-DAR patient guide. The '6 to 8 weeks before Ramadan' part was NOT FOUND in anything I could read: the patient guide says only 'Consult your doctor before fasting'; ADA 2026 Section 5 recs 5.32/5.33 (PMC12690188) say 'well in advance of religious fasting' with no week figure; the IDF-DAR Practical Guidelines 2021 PDF was readable only through Chapters 1 to 3 (truncated), which say 'well before Ramadan commences'. The 6 to 8 week figure probably sits in a later chapter (pre-Ramadan assessment / risk stratification) that was beyond the readable portion; the journal summary (Diabetes Res Clin Pract 2022, doi 10.1016/j.diabres.2021.109185) could not be fetched (WebFetch session limit). Treat the 6 to 8 weeks as unverified.",
+  "urlUsed": "https://international-diabetes-federation.s3.eu-west-1.amazonaws.com/media/uploads/2024/08/DAR-guide-to-safe-fast-EN.pdf ; https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/ ; https://international-diabetes-federation.s3.eu-west-1.amazonaws.com/media/uploads/2024/08/IDF_DaR_Practical_Guidelines_Ramadan.pdf"
+ },
+ {
+  "ref": "REF-DM-VAL-HBA1C-G6PD",
+  "verdict": "confirmed",
+  "foundQuote": "the X-linked G6PD G202A variant (T-allele frequency 11%) was associated with an absolute decrease in HbA1c of 0.81%-units (95% CI 0.66–0.96) per allele in hemizygous men, and 0.68%-units (95% CI 0.38–0.97) in homozygous women.",
+  "correctValue": null,
+  "note": "Unit is absolute HbA1c %-units. Finding is in African American participants. ADA 2026 Section 2 (PMC12690183 reader view) restates it as 'a decrease in A1C of about 0.8%' (the fetch returned the ADA wording as 'in homozygous men').",
+  "urlUsed": "https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1002383"
+ },
+ {
+  "ref": "REF-DM-CLS-REMISSION-HBA1C",
+  "verdict": "confirmed",
+  "foundQuote": "HbA1c <48 mmol/mol (<6.5%) measured at least 3 months after cessation of glucose-lowering pharmacotherapy",
+  "correctValue": null,
+  "note": "Operator is strictly < 6.5%. Also read: alternative criteria when HbA1c is unreliable are 'FPG < 7.0 mmol/l (<126 mg/dl)' or 'eA1C < 6.5%' from CGM; and 'Testing of HbA1c or another measure of glycaemic control should be performed no less often than yearly.'",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05542-z"
+ },
+ {
+  "ref": "REF-DM-CLS-REMISSION-MONTHS",
+  "verdict": "confirmed",
+  "foundQuote": "HbA1c <48 mmol/mol (<6.5%) measured at least 3 months after cessation of glucose-lowering pharmacotherapy",
+  "correctValue": null,
+  "note": "3 months applies after stopping medicines ('at least 3 months after cessation of any glucose-lowering agent'). The same source gives different waits for other routes, which a rule should not conflate: 'at least 3 months' after surgery and 'at least 6 months after initiation' of a lifestyle intervention.",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05542-z"
+ },
+ {
+  "ref": "REF-DM-CLS-CPEP-LOW",
+  "verdict": "not_found",
+  "foundQuote": "\"C-peptide values 200–600 pmol/l are usually consistent with type 1 diabetes or maturity-onset diabetes of the young (MODY)\" ... \"Persistent C-peptide >600 pmol/l (non-fasting) is strongly suggestive of type 2 diabetes\" ... \"By contrast, low or absent C-peptide confirms the diagnosis of type 1 diabetes.\" ... \"Molecular genetic testing should only be considered if the antibodies are negative and non-fasting C-peptide is >200 pmol/l\"",
+  "correctValue": null,
+  "note": "I could not read any sentence that says C-peptide <200 pmol/l indicates type 1 diabetes. Three fetches of the consensus (Springer HTML twice, Springer PDF once) returned no such text and one stated explicitly that it is absent from the C-peptide subsection; the fetch tool reported that the Fig. 1 flowchart box text 'is not clearly readable'. The '<200 pmol/l' band is therefore most likely printed only inside the Fig. 1 image (and ADA 2026 Fig. 2.1), which I could not read; the ADA page fetch described it only as an inference from 'flowchart logic'. The recorded quote also contains no '<200'. Readable text is consistent with 200 as the lower edge of an indeterminate band, but note the safety point: 200 to 600 pmol/l is ALSO 'usually consistent with type 1 diabetes or MODY', so a rule must not read >=200 as 'not type 1'. Conditions that were read verbatim: test only in insulin-treated people; random sample with concurrent glucose within 5 h of eating; 'If the result is <600 pmol/l and the concurrent glucose is <4 mmol/l (<72 mg/dl) or the person may have been fasting, consider repeating the test.'; not within 2 weeks of a hyperglycaemic emergency. Needs a human to read Fig. 1 of Holt et al. (or ADA 2026 Fig. 2.1) directly. Springer figure page was blocked by robots.txt; PMC12690183 default and classic views and PMC8481000 returned reCAPTCHA; diabetesjournals.org fetch failed (session limit).",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05568-3 ; https://link.springer.com/content/pdf/10.1007/s00125-021-05568-3.pdf ; https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CLS-CPEP-TIMING",
+  "verdict": "confirmed",
+  "foundQuote": "\"Beyond 3 years after diagnosis where there is uncertainty about diabetes type, a random C-peptide measurement (with concurrent glucose) within 5 h of eating is recommended.\" ... \"A C-peptide test is only indicated in people receiving insulin treatment.\" ... \"Do not test C-peptide within 2 weeks of a hyperglycaemic emergency.\"",
+  "correctValue": null,
+  "note": "All three parts of the entry (insulin-treated only, beyond 3 years, not within 2 weeks of a hyperglycaemic emergency) were read. Same two footnote sentences were also returned from ADA 2026 Fig. 2.1 footnotes (PMC12690183 reader view).",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05568-3 ; https://link.springer.com/content/pdf/10.1007/s00125-021-05568-3.pdf"
+ },
+ {
+  "ref": "REF-DM-CLS-T1-AGE",
+  "verdict": "confirmed",
+  "foundQuote": "The most discriminative feature is younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl) at presentation also being informative.",
+  "correctValue": null,
+  "note": "Operator < 35 years. Also read: 'Most of the available data discussed below are derived from White European populations', which the entry already carries.",
+  "urlUsed": "https://link.springer.com/content/pdf/10.1007/s00125-021-05568-3.pdf"
+ },
+ {
+  "ref": "REF-DM-CLS-T1-BMI",
+  "verdict": "confirmed",
+  "foundQuote": "The most discriminative feature is younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl) at presentation also being informative.",
+  "correctValue": null,
+  "note": "Operator < 25 kg/m2. The source ranks BMI as 'also being informative' (weaker than age) and the data are from White European populations; this entry's text does not carry that caveat, and the Ugandan cohort in REF-DM-CLS-UG-LEAN shows 32% of antibody-negative new-onset adults have BMI <25.",
+  "urlUsed": "https://link.springer.com/content/pdf/10.1007/s00125-021-05568-3.pdf"
+ },
+ {
+  "ref": "REF-DM-CLS-T1-GLU",
+  "verdict": "confirmed",
+  "foundQuote": "The most discriminative feature is younger age at diagnosis (<35 years), with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis and glucose >20 mmol/l (>360 mg/dl) at presentation also being informative.",
+  "correctValue": null,
+  "note": "Operator > 20 mmol/l (>360 mg/dl), at presentation. Ranked 'also being informative', White European data.",
+  "urlUsed": "https://link.springer.com/content/pdf/10.1007/s00125-021-05568-3.pdf"
+ },
+ {
+  "ref": "REF-DM-CLS-T1-MISSED",
+  "verdict": "confirmed",
+  "foundQuote": "over 40% of those developing type 1 diabetes after age 30 years are initially treated as having type 2 diabetes",
+  "correctValue": null,
+  "note": "Fetch returned the clause from 'over 40%' onward; matches the recorded quote.",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05568-3"
+ },
+ {
+  "ref": "REF-DM-CLS-UG-LEAN",
+  "verdict": "confirmed",
+  "foundQuote": "\"160 (32%, 95% CI 27.9–36.3%) and 340 (68%, 95% CI 63.7–72.1%) were lean and non-lean, respectively.\" ... \"BMI cut-offs of <25 and ≥25 kg/m2\" ... \"34 participants (6.4%) were excluded because they were positive for at least one of the three pancreatic autoantibodies\"",
+  "correctValue": null,
+  "note": "32% = 160 of 500 autoantibody-negative adults with newly diagnosed diabetes; lean defined as BMI <25 kg/m2; seven tertiary hospitals in Central and Southwestern Uganda. Quotes are from the article body (the page did not present a structured abstract to the fetch tool).",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05644-8"
+ },
+ {
+  "ref": "REF-DM-CLS-FCPD",
+  "verdict": "confirmed",
+  "foundQuote": "The typical patient with FCPD is a lean adolescent or young adult of either sex, presenting with history of recurrent bouts of abdominal pain and steatorrhea. Demonstration of large, discrete pancreatic calculi by plain radiographs or ultrasonography of the abdomen is diagnostic. ... most patients require multiple doses of insulin for control of glycemia. However, in spite of high blood glucose levels, patients rarely develop ketosis.",
+  "correctValue": null,
+  "note": "Abstract read in full. Also states the disease occurs 'in the absence of alcohol abuse' and is 'restricted to tropical regions of the world'.",
+  "urlUsed": "https://link.springer.com/article/10.1007/s00592-014-0685-9"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-INJECTION",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "\"Examine the sites for lipohypertrophy at least every 3 months, or more frequently.\" ... \"Patients should be requested to avoid injecting into areas of lipohypertrophy until the next examination.\" ... \"The same site should be used for at least 1 month and rotation should be done within the same site, rather than rotating to different sites with each injection.\"",
+  "correctValue": null,
+  "note": "'At least every 3 months' and 'do not inject into lumps' confirmed. Qualifier needed on 'rotate sites': the EADSG text returned says rotation is WITHIN the same anatomical site, keeping the same site for at least 1 month, 'rather than rotating to different sites with each injection'. Read from the Springer PDF (the HTML page returned only the reference list); a second fetch to re-check the rotation wording failed (session limit), so this rests on one read.",
+  "urlUsed": "https://link.springer.com/content/pdf/10.1007/s13300-019-0574-x.pdf"
+ },
+ {
+  "ref": "REF-DM-ACT-EDU-INSULIN-STORE",
+  "verdict": "confirmed",
+  "foundQuote": "\"Store unopened insulin in an area of the refrigerator where freezing is unlikely to occur.\" ... \"Vials in use may be kept at room temperature (20–25 °C)...for 6 weeks, and 4 weeks if the temperature goes up to 30 °C.\" ... \"Keeping insulin in clay pots is likely to cause contamination as it is difficult to keep it clean: this should be avoided.\"",
+  "correctValue": null,
+  "note": "Refrigerate and avoid freezing, time-limited room-temperature storage of a vial in use, and clay pots to be avoided on contamination grounds all read. The ellipsis inside the vial quote is the fetch tool's; the 'protected from sunlight' phrase and the 32 °C ceiling in the recorded quote were not returned to me and a re-fetch failed (session limit). The refrigerator temperature range itself was not read.",
+  "urlUsed": "https://link.springer.com/content/pdf/10.1007/s13300-019-0574-x.pdf"
+ },
+ {
+  "ref": "REF-DM-RX-DEESC-HBA1C",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "An individual at advanced age (e.g. ≥ 75 years), identified as being moderately or severely frail, with an HbA1c value < 53 mmol/mol (< 7.0%) would suggest a high risk of occurrence of complications from hypoglycaemia. ... Consideration should be given to de-escalation of therapies that may induce this feared complication, such as SUs or SU + insulin combinations.",
+  "correctValue": null,
+  "note": "Value and operator confirmed: HbA1c < 7.0% (< 53 mmol/mol), age >= 75 (given as an example, 'e.g.'), moderately or severely frail. Qualifier: the source names 'SUs or SU + insulin combinations' as the therapies to consider de-escalating, not insulin on its own as the entry's 'a sulfonylurea or insulin' implies. This is a UK expert consensus (Strain et al. 2021), not a guideline body. I could not re-open the page to read the sentence before the quoted one (session limit).",
+  "urlUsed": "https://link.springer.com/article/10.1007/s13300-021-01035-9"
+ },
+ {
+  "ref": "REF-DM-SUS-NO-SCORE",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "Ekure et al.: \"Of the 825 articles identified, 39 articles met the inclusion criteria, and three articles reported tools used in SSA population but developed for the Western population. None was validated in SSA population.\" ... \"no available diabetes risk assessment tool was developed and validated for the SSA population\". Mugume et al. (Kenya): \"With an optimal cut-off ≥ 7, the simplified FINDRISC had a higher positive predictive value (PPV) (7.9%) and diagnostic odds (OR:6.65, 95%CI: 4.43–9.96)\"",
+  "correctValue": null,
+  "note": "Supported: no tool developed and validated for sub-Saharan Africa (review covers January 2010 to January 2020), and Kenya optimum cut-off >= 7 for the SIMPLIFIED FINDRISC (PLoS One 2023, pone.0276858). Not read: (a) the review does not mention Uganda at all, so 'not validated for use in Uganda' is an inference from the regional finding; (b) the 'Finnish 12 to 15' comparison bands were not in any source I opened; (c) the African Diabetes Risk Score thesis (Mayige, Newcastle) was not opened. Counter-evidence to weigh: later studies have externally validated scores in African populations, e.g. RODAM (PMC10687695, Ghanaian migrants and non-migrants; six scores, AUC 0.70 to 0.75, 'Calibration was poor, with a consistent trend toward risk overestimation'), so 'no score is validated' should be worded as 'none validated in Uganda'.",
+  "urlUsed": "https://link.springer.com/article/10.1007/s13410-022-01045-8 ; https://api.plos.org/search?q=id:%2210.1371/journal.pone.0276858%22&fl=id,title,abstract&wt=json ; https://pmc.ncbi.nlm.nih.gov/articles/PMC10687695/?report=reader"
+ },
+ {
+  "ref": "REF-DM-EPI-FPG-MISSED",
+  "verdict": "confirmed",
+  "foundQuote": "\"FPG failed to detect 34.1% of all prediabetes and 44.4% of all diabetes cases.\" ... \"11 (15.3%) displayed abnormalities in FPG alone (false positive results), 32 (44.4%) in 2-h PG alone (false negative results for FPG), and 29 (40.3%) in both.\"",
+  "correctValue": null,
+  "note": "44.4% = 32 of 72 diabetes cases, Butajira (Ethiopia) and Enugu State (Nigeria), 1550 screened. Thresholds FPG >= 126 mg/dL, 2-h PG >= 200 mg/dL. The same abstract also reports FPG sensitivity as 44.3% at 126 mg/dL against 2-h PG; do not confuse the two figures.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11979980/?report=reader"
+ },
+ {
+  "ref": "REF-DM-CTRL-SEVERE-GLU",
+  "verdict": "confirmed",
+  "foundQuote": "In adults with type 2 diabetes, initiation of insulin should be considered regardless of background glucose-lowering therapy or disease duration if symptoms of hyperglycemia are present or when A1C or blood glucose levels are very high (i.e., A1C >10% [>86 mmol/mol] or blood glucose ≥300 mg/dL [≥16.7 mmol/L]).",
+  "correctValue": null,
+  "note": "Recommendation 9.20, evidence grade E (expert opinion). Operator >= 16.7 mmol/L. Applies to adults with type 2 diabetes; symptoms of hyperglycaemia are an independent trigger.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-CTRL-SEVERE-HBA1C",
+  "verdict": "confirmed",
+  "foundQuote": "In adults with type 2 diabetes, initiation of insulin should be considered regardless of background glucose-lowering therapy or disease duration if symptoms of hyperglycemia are present or when A1C or blood glucose levels are very high (i.e., A1C >10% [>86 mmol/mol] or blood glucose ≥300 mg/dL [≥16.7 mmol/L]).",
+  "correctValue": null,
+  "note": "Recommendation 9.20, evidence grade E. Operator is strictly > 10% (> 86 mmol/mol), unlike the glucose limb which is >=.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-CARDIORENAL",
+  "verdict": "confirmed",
+  "foundQuote": "For people with type 2 diabetes and established ASCVD or indicators of high ASCVD risk, HF, or CKD, an SGLT2 inhibitor and/or GLP-1 RA with demonstrated cardiovascular benefit is recommended independent of A1C ... \"with or without metformin use, and in consideration of person-specific factors\"",
+  "correctValue": null,
+  "note": "Narrative sentence read in two fetches (main clause, then the tail). Recommendations 9.7 to 9.10 were not individually reproduced by the fetch tool, so the per-condition recommendation numbers in the other claims were not checked.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-INSULIN-CONTINUE",
+  "verdict": "confirmed",
+  "foundQuote": "9.23: \"In adults with type 2 diabetes who are initiating insulin therapy, continue glucose-lowering agents (unless contraindicated or not tolerated) for ongoing glycemic and metabolic benefits.\" 9.17: \"When initiating a new glucose-lowering medication, reassess the need for and/or dose of medications with higher hypoglycemia risk (i.e., sulfonylureas, meglitinides, and insulin).\" 9.18: \"Concurrent use of dipeptidyl peptidase 4 (DPP-4) inhibitors with a GLP-1 RA or a dual GIP and GLP-1 RA is not recommended due to lack of additional glucose lowering beyond that of a GLP-1–based therapy.\"",
+  "correctValue": null,
+  "note": "9.23 carries the qualifier 'unless contraindicated or not tolerated'. 9.17 covers meglitinides and insulin as well as sulfonylureas. Evidence grades for 9.17, 9.18 and 9.23 were not returned.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-METFORMIN-NOSTART-EGFR",
+  "verdict": "confirmed_with_note",
+  "foundQuote": "\"Importantly, metformin should not be started in those whose eGFR is <45 mL/min/1.73 m2.\" ... \"For those already treated with metformin, the dose of metformin should be reduced once eGFR is <45 mL/min/1.73 m2 and should be stopped once eGFR is <30 mL/min/1.73 m2.\" Table 9.2: \"Contraindicated with eGFR <30 mL/min/1.73 m2\"",
+  "correctValue": null,
+  "note": "No-start threshold confirmed: eGFR < 45 (strictly below). The second half of the entry is weaker than the source: ADA 2026 does not say 'reassess benefit and risk' for people already on treatment; it says the amount 'should be reduced' once eGFR is <45 and metformin 'should be stopped' once eGFR is <30 (Table 9.2: contraindicated <30). 'Reassess benefit and risk' is not wording I found on the ADA page. No dose recorded. The KDIGO 2022 PDF listed for claim A6-39 was not opened.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ },
+ {
+  "ref": "REF-DM-RX-PIO-HF",
+  "verdict": "confirmed",
+  "foundQuote": "Increased risk of HF and fluid retention; do not use in setting of HF",
+  "correctValue": null,
+  "note": "Table 9.2, thiazolidinedione (pioglitazone) row.",
+  "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/?report=classic"
+ }
+]

@@ -19,8 +19,15 @@ const empty = () => emptyExam(ecat.version);
 describe("E-2, E-3, E-8 resolved", () => {
   it("E-2: glucose is one field with a required random, fasting or 2-hour context", () => {
     const html = examMarkup(empty(), { system: "vitals" });
-    expect(glucose.qualifiers!.context).toEqual(["random", "fasting", "two_hours_after_food"]);
-    for (const word of ["Random", "Fasting", "2 hours after food"]) expect(html).toContain(word);
+    // + 2 hours after 75 g glucose (EC-3, diabetes pack Phase 5)
+    expect(glucose.qualifiers!.context).toEqual([
+      "random",
+      "fasting",
+      "two_hours_after_food",
+      "two_hours_after_glucose",
+    ]);
+    for (const word of ["Random", "Fasting", "2 hours after food", "2 hours after 75 g glucose"])
+      expect(html).toContain(word);
     expect(html).not.toContain("Not sure");
     expect(
       html.match(/<input[^>]*aria-label="Glucose[^"]*"/gi) ??

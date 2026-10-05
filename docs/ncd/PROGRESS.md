@@ -37,7 +37,7 @@ database; `tsc` needs `NODE_OPTIONS=--max-old-space-size=6144` on this 8 GB mach
   `npm run ncdreg:policies`); Drizzle `db/schema/ncd-registry.ts`; `lib/ncdreg/{capabilities,table-access,migration-blocks,
 db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{schema,shared,handlers,apply}.ts`
   (enrol, registration, visit arrive/nurse/clinician/close/record/lab/invalid, review, event, call, merge, query,
-  generic observations and recorded control, arrival and stage, the injectable entry time). ADR 0208 (proposed).
+  generic observations and recorded control, arrival and stage, the injectable entry time). ADR 0209 (proposed).
 - Checks (PGlite lane, `EMR_PGLITE=1`): `tests/ncdreg-db/migration.test.ts` (applies after all 0000–0090, re-runs to a
   no-op, RLS enabled+forced on every NCD table, facility_id everywhere but the capability map, no BYPASSRLS, generated
   blocks current) 7/7; `tests/emr-db/drizzle-parity.test.ts` 180/180 with the NCD tables; **access probes 1,664/1,664**
@@ -49,7 +49,7 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
 ## P3 — Indicator engine · DONE
 
 - Built: `lib/ncdreg/indicators/{dataset,load,engine,snapshot}.ts` (C01–C16, the generic G01–G06 family for every enabled
-  module, H01–H12, monthly snapshots), the seeded generator `lib/ncdreg/fixtures/generator.ts`, ADR 0212.
+  module, H01–H12, monthly snapshots), the seeded generator `lib/ncdreg/fixtures/generator.ts`, ADR 0213.
 - Golden dataset: 69 patients and the expected numbers written by a separate agent that never read the engine
   (`tests/ncdreg-db/golden/`), loaded through the commands. **58/58 expectations equal**, every number and the patients
   behind it; sum checks hold; G04.hypertension = C04–C06 and G04.diabetes = C07–C11 exactly.
@@ -70,7 +70,7 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
 
 - Built: `lib/ncdreg/commands/*` (P2) plus `lib/ncdreg/admin.ts` (I2 definition versions with a different approver, I3
   settings, I4 condition catalogue, roles, §8.3 go-live request and approval), the client outbox
-  `lib/ncdreg/offline/{store,outbox}.ts`, ADRs 0209–0211.
+  `lib/ncdreg/offline/{store,outbox}.ts`, ADRs 0210–0212.
 - Checks: `tests/ncdreg/identity.test.ts` 10/10 (the catalogue's duplicate_check_demo lands in its tiers; fixture pairs);
   `tests/ncdreg-db/enrolment.test.ts` 9/9 (A1 token, A2 server-side, A3, A4, A5, A6, idempotency, A7 merge);
   `tests/ncdreg-db/interlocks.test.ts` 8/8 (real person refused before go-live, DEMO- series, draft module before/after
@@ -104,7 +104,7 @@ db,context,crypto,identity,search}.ts`; the command path `lib/ncdreg/commands/{s
 
 - Built (lane B): `/ncd/dashboard` (F1, F3, F6, F7, §11.4 charts), drill-down, `/ncd/report/[month]` (F5). Lane C:
   `/ncd/my`, `/ncd/quality` (G3, G4, A7 UI). Mine: `/ncd/admin`, the demo service `lib/ncdreg/demo/{catalogue,source,
-writer,service}.ts`, cron continuation, ADR 0213.
+writer,service}.ts`, cron continuation, ADR 0214.
 - Checks: `tests/ncdreg/dashboard.test.ts` 13/13 (suppression 1–4 and the synthetic exemption, shared scale, G02 order,
   colour ramp, F7 layout contract on markup — no browser runner, so "four rows visible at 1440×1000" is unverified);
   `tests/ncdreg-db/quality.test.ts` 4/4 (G4 reproducible from its seed); **acceptance walk `tests/ncdreg-db/demo.test.ts`
@@ -135,7 +135,7 @@ writer,service}.ts`, cron continuation, ADR 0213.
   unverified codes, and with the development flag every resource passes the R4 structure schemas; four-eyes release; no
   identifier field or value in the research extract; full export with the dictionary, logged; legacy dry run reports a
   row error and a probable duplicate and refuses to apply, a clean file imports as back-entry; **interlock 6**).
-- Generated: `DATA-INVENTORY.md` (28 tables). Written: `HAZARD-LOG.md` (12 hazards), `USER-GUIDE.md`, ADRs 0209–0213.
+- Generated: `DATA-INVENTORY.md` (28 tables). Written: `HAZARD-LOG.md` (12 hazards), `USER-GUIDE.md`, ADRs 0210–0214.
 - **CHECKPOINT 4** passed (continuous mode).
 
 ## P11 — Hardening · DONE

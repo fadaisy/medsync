@@ -1,0 +1,126 @@
+{
+ "pack": {
+  "id": "MS-NCD-DM-PACK-001",
+  "version": "0.5.3-draft",
+  "generated": "2026-10-05",
+  "condition": "diabetes",
+  "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
+  "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
+  "briefingCommit": "8e45d34"
+ },
+ "file": "data/emr/test-catalogue.v1.json",
+ "shape": "These entries say WHAT to add. The live menu's shape (components[], fasting_required, capability_id) was not visible in the briefing: Phase 0 rewrites each entry in the live shape. Each entry lists the result concepts it must return so that nothing the rules read is left without an orderable source (review G23).",
+ "add": [
+  {
+   "id": "test.glucose_capillary",
+   "display": "Capillary glucose (meter)",
+   "kind": "point_of_care",
+   "why": "The Plan notes 'No capillary test is on the menu yet'. The glucose chart and every district pathway need it.",
+   "result_concept": "obs.glucose",
+   "qualifiers": {
+    "specimen": "capillary_whole_blood",
+    "context": [
+     "random",
+     "fasting",
+     "two_hours_after_food",
+     "two_hours_after_glucose"
+    ]
+   }
+  },
+  {
+   "id": "test.ogtt_75g",
+   "display": "Oral glucose tolerance test, 75 g",
+   "kind": "laboratory",
+   "fasting_required": true,
+   "why": "WHO retains the OGTT; it is the only test for gestational diabetes and the next step after an impaired fasting result.",
+   "result_concept": "obs.glucose",
+   "components": [
+    "fasting",
+    "1 hour (pregnancy)",
+    "2 hours"
+   ],
+   "qualifiers": {
+    "context": [
+     "fasting",
+     "ogtt_1h",
+     "ogtt_2h"
+    ]
+   }
+  },
+  {
+   "id": "test.ketones_blood",
+   "display": "Blood ketones (beta-hydroxybutyrate)",
+   "kind": "point_of_care",
+   "why": "Preferred over urine strips by the 2024 consensus.",
+   "result_concept": "obs.ketones_blood"
+  },
+  {
+   "id": "test.venous_gas",
+   "display": "Venous blood gas",
+   "kind": "laboratory",
+   "why": "pH and bicarbonate for ketoacidosis.",
+   "result_concept": "obs.ph_venous",
+   "components": [
+    "obs.ph_venous",
+    "obs.bicarbonate"
+   ]
+  },
+  {
+   "id": "test.c_peptide",
+   "display": "C-peptide",
+   "kind": "laboratory",
+   "why": "Classification at referral sites.",
+   "result_concept": "obs.c_peptide"
+  },
+  {
+   "id": "test.gad_antibodies",
+   "display": "GAD antibodies",
+   "kind": "laboratory",
+   "why": "Classification at referral sites.",
+   "result_concept": "obs.islet_autoantibody"
+  },
+  {
+   "id": "test.vitamin_b12",
+   "display": "Vitamin B12",
+   "kind": "laboratory",
+   "why": "Metformin with neuropathy or anaemia.",
+   "result_concept": "obs.vitamin_b12"
+  },
+  {
+   "id": "test.retinal_photograph",
+   "display": "Retinal photograph or dilated retinal examination",
+   "kind": "procedure",
+   "why": "Retinopathy screening.",
+   "result_concept": "exam.retinopathy_grade",
+   "components": [
+    "exam.retinopathy_grade",
+    "exam.macular_oedema",
+    "exam.retinal_view"
+   ]
+  },
+  {
+   "id": "test.abi",
+   "display": "Ankle-brachial index",
+   "kind": "procedure",
+   "why": "Peripheral artery disease; read by the limb-ischaemia referral rule.",
+   "result_concept": "obs.abi"
+  },
+  {
+   "id": "test.xray_abdomen",
+   "display": "Abdominal X-ray",
+   "kind": "imaging",
+   "why": "Pancreatic calcification in a lean young person with diabetes and abdominal pain.",
+   "result_concept": null,
+   "status": "hold",
+   "note": "Held until a result concept exists for the finding; a free-text report cannot feed a rule."
+  },
+  {
+   "id": "test.urine_pcr",
+   "display": "Urine protein-to-creatinine ratio",
+   "kind": "laboratory",
+   "why": "WHO's first fallback where ACR is unavailable. No rule reads it yet: add it only with a kidney rule that does.",
+   "result_concept": "obs.upcr",
+   "status": "hold"
+  }
+ ]
+}

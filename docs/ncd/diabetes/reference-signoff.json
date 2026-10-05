@@ -1,0 +1,2675 @@
+{
+  "page": "https://claude.ai/artifact/272PEc4BTBHqojFGQPgiBb",
+  "exportedOn": "2026-10-05",
+  "signer": "Fadhul (owner and CSO), viewer id u_4wBzWZUBLtug218RjtM5QQ",
+  "note": "Exported from the page's database. The 16 notes are research notes (written in Claude's voice, 'not yet checked by the CSO'); the CSO signed these references with the notes attached.",
+  "records": [
+    {
+      "at": "2026-10-05T19:25:18.049Z",
+      "note": "",
+      "ref": "REF-DM-ACT-CADENCE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:26.473Z",
+      "note": "",
+      "ref": "REF-DM-ACT-DENTAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:27.409Z",
+      "note": "",
+      "ref": "REF-DM-ACT-DSMES",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:21.020Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-DIET",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:23.204Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-FOOT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:23.785Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-HYPO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:24.873Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-INJECTION",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:24.412Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-INSULIN-STORE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:21.526Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-PA-MIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:25.515Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-RAMADAN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:22.649Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-SUGAR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:22.159Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EDU-WEIGHT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:18.669Z",
+      "note": "",
+      "ref": "REF-DM-ACT-EVERY-VISIT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:20.372Z",
+      "note": "",
+      "ref": "REF-DM-ACT-LEVELS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:28.021Z",
+      "note": "",
+      "ref": "REF-DM-ACT-PRECONCEPTION",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:19.758Z",
+      "note": "",
+      "ref": "REF-DM-ACT-REFER-ROUTINE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:19.171Z",
+      "note": "",
+      "ref": "REF-DM-ACT-REFER-SAMEDAY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:17.450Z",
+      "note": "",
+      "ref": "REF-DM-ACT-REVIEW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:30.469Z",
+      "note": "HEARTS-D Fig. 1 (p. 16), looked at as a rendered page, not as extracted text. 'Review in 1 month (or immediately if symptoms appear)' follows diagnosis and counselling on diet, activity and adherence, before any medicine is started. Every medicine step (start, each increase, each addition) is followed by 'Review in 3 months (or immediately if symptoms appear)'. The severe branch prints review in 3 to 5 days, then in 2 to 3 months. One month should not be used as a general interval after a treatment change. Suggest retiring this reference or redefining it as the first review after diagnosis and lifestyle counselling. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-ACT-REVIEW-AFTER-CHANGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:33.686Z",
+      "note": "",
+      "ref": "REF-DM-ACT-REVIEW-MONTHS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:26.939Z",
+      "note": "",
+      "ref": "REF-DM-ACT-SMBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:29.313Z",
+      "note": "",
+      "ref": "REF-DM-ACT-TABLE41",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:25.979Z",
+      "note": "",
+      "ref": "REF-DM-ACT-TB-COUGH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:28.710Z",
+      "note": "",
+      "ref": "REF-DM-ACT-VACCINES",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:41.084Z",
+      "note": "",
+      "ref": "REF-DM-ACU-BP-EMERG-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:40.625Z",
+      "note": "",
+      "ref": "REF-DM-ACU-BP-EMERG-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:12.990Z",
+      "note": "",
+      "ref": "REF-DM-ACU-BP-REFER-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:12.503Z",
+      "note": "",
+      "ref": "REF-DM-ACU-BP-REFER-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:36.998Z",
+      "note": "",
+      "ref": "REF-DM-ACU-BP-REFER-SBP-SYMPT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:09.207Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-BOHB",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:08.625Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:24.937Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-HCO3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:26.924Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-MOD-HCO3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:25.910Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-MOD-PH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:24.395Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-PH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:27.375Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-SEV-BOHB",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:26.445Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-SEV-HCO3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:25.407Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-SEV-PH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:23.870Z",
+      "note": "",
+      "ref": "REF-DM-ACU-DKA-UKET",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:27.864Z",
+      "note": "",
+      "ref": "REF-DM-ACU-EDKA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:10.664Z",
+      "note": "",
+      "ref": "REF-DM-ACU-FPG-SEVERE-SYMPT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:09.660Z",
+      "note": "",
+      "ref": "REF-DM-ACU-HHS-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:29.399Z",
+      "note": "",
+      "ref": "REF-DM-ACU-HHS-HCO3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:28.369Z",
+      "note": "",
+      "ref": "REF-DM-ACU-HHS-OSM-EFF",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:28.908Z",
+      "note": "",
+      "ref": "REF-DM-ACU-HHS-OSM-TOTAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:33.034Z",
+      "note": "",
+      "ref": "REF-DM-ACU-INFECTIONS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:11.271Z",
+      "note": "",
+      "ref": "REF-DM-ACU-KETONE-LOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:11.832Z",
+      "note": "",
+      "ref": "REF-DM-ACU-KETONE-RISK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:10.162Z",
+      "note": "",
+      "ref": "REF-DM-ACU-KETONE-TEST-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:29.933Z",
+      "note": "",
+      "ref": "REF-DM-ACU-MIXED",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:31.051Z",
+      "note": "",
+      "ref": "REF-DM-ACU-PAED-CEREBRAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:30.446Z",
+      "note": "",
+      "ref": "REF-DM-ACU-PAED-DKA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:35.450Z",
+      "note": "",
+      "ref": "REF-DM-ACU-PAED-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:31.547Z",
+      "note": "",
+      "ref": "REF-DM-ACU-PRECIPITANTS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:32.562Z",
+      "note": "",
+      "ref": "REF-DM-ACU-REFER-ALL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:32.064Z",
+      "note": "",
+      "ref": "REF-DM-ACU-SICKDAY-INSULIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:08.696Z",
+      "note": "",
+      "ref": "REF-DM-CLS-AB-ORDER",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:45.512Z",
+      "note": "",
+      "ref": "REF-DM-CLS-CPEP-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:09.203Z",
+      "note": "",
+      "ref": "REF-DM-CLS-CPEP-HIGH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:57.163Z",
+      "note": "",
+      "ref": "REF-DM-CLS-CPEP-LOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:10.367Z",
+      "note": "",
+      "ref": "REF-DM-CLS-CPEP-TIMING",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:09.812Z",
+      "note": "",
+      "ref": "REF-DM-CLS-CPEP-VLOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:46.008Z",
+      "note": "",
+      "ref": "REF-DM-CLS-CPEP-YEARS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:04.870Z",
+      "note": "Lamorde et al., Lancet HIV 2020;7(7):e461-e462, read on thelancet.com. New-onset hyperglycaemia in 16 (0.47%) of 3417 people on dolutegravir first-line regimens against 1 (0.03%) of 3230 on first-line regimens without it, p=0.0004; 4.7 against 0.32 per 1000 over 12 months; median onset 4 months (IQR 2.5 to 4.5); 15 of 16 severe; most preceded by weight loss. Correction to the wording: the dolutegravir group was treatment-naive and treatment-experienced patients together, not only people who switched. The ART-naive cohort figures in the note come from another source and were not checked here. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-CLS-DTG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:14.787Z",
+      "note": "",
+      "ref": "REF-DM-CLS-FCPD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:11.431Z",
+      "note": "",
+      "ref": "REF-DM-CLS-KPD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:13.819Z",
+      "note": "",
+      "ref": "REF-DM-CLS-MODY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:13.225Z",
+      "note": "",
+      "ref": "REF-DM-CLS-MODY-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:14.299Z",
+      "note": "",
+      "ref": "REF-DM-CLS-PANC",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:58.691Z",
+      "note": "",
+      "ref": "REF-DM-CLS-REMISSION-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:59.168Z",
+      "note": "",
+      "ref": "REF-DM-CLS-REMISSION-MONTHS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:12.018Z",
+      "note": "",
+      "ref": "REF-DM-CLS-SLOW-IMMUNE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:55.667Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T1-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:56.189Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T1-BMI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:56.684Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T1-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:12.522Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T1-MISSED",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:15.978Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T1-SAMEDAY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:15.356Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T5",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:58.177Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T5-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:57.659Z",
+      "note": "",
+      "ref": "REF-DM-CLS-T5-BMI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:07.990Z",
+      "note": "",
+      "ref": "REF-DM-CLS-UG-AB-NEG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:07.455Z",
+      "note": "",
+      "ref": "REF-DM-CLS-UG-LEAN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:10.923Z",
+      "note": "",
+      "ref": "REF-DM-CLS-UNCLASSIFIED",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:03.368Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-CKD-HIGH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:02.860Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-CKD-LOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:01.316Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-FPG-SURROGATE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:00.342Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-HBA1C-RELAXED",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:59.676Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-HBA1C-TARGET",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:00.843Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-HBA1C-TIGHT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:19.648Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-INSULIN-FPG-LOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:04.869Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-INSULIN-REFER-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:34.155Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-OLDER-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:18.549Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-OLDER-COMPLEX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:54.475Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:54.985Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:01.839Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-OLDER-HEALTHY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:19.136Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-OLDER-POOR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:17.925Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-PPG-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:16.454Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-PPG-SURROGATE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:45.034Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-PPG-UCG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:17.428Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-PRE-HIGH-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:16.934Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-PRE-LOW-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:20.435Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-RAPID-FALL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:05.807Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-SEVERE-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:05.334Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-SEVERE-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:02.353Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-TB",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:09.587Z",
+      "note": "UCG 2023 section 8.1.3, 'Treatment targets', printed p. 473 (PDF p. 539). 'Elderly' is not defined by age. The page adds that elderly people are at higher risk of hypoglycaemia and very strict control is not the aim. Blood pressure target printed as 120/80 on p. 472. Same source as REF-DM-CTRL-PPG-UCG. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-CTRL-UCG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:53.392Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-UG26-ELDERLY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:04.376Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-WINDOW-ABOVE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:03.869Z",
+      "note": "",
+      "ref": "REF-DM-CTRL-WINDOW-AT-TARGET",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:03.043Z",
+      "note": "",
+      "ref": "REF-DM-CVD-ANTIPLATELET",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:03.509Z",
+      "note": "",
+      "ref": "REF-DM-CVD-ASCVD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:29.868Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BAND-10",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:30.460Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BAND-20",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:30.970Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BAND-30",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:29.297Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BAND-5",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:26.714Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-2DRUG-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:26.237Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-2DRUG-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:00.538Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-CONFIRM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:25.745Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:01.008Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-INTERVAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:36.517Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-REFER-MEDS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:25.240Z",
+      "note": "",
+      "ref": "REF-DM-CVD-BP-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:04.009Z",
+      "note": "",
+      "ref": "REF-DM-CVD-CHART",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:05.253Z",
+      "note": "",
+      "ref": "REF-DM-CVD-CHART-AGE-MAX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:04.598Z",
+      "note": "",
+      "ref": "REF-DM-CVD-CHART-AGE-MIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:08.554Z",
+      "note": "",
+      "ref": "REF-DM-CVD-ESC-NOTE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:18.302Z",
+      "note": "HEARTS Risk-based CVD management (WHO 2020), Table 3, printed p. 19. Drug treatment is considered for: all patients with established diabetes and CVD (coronary heart disease, myocardial infarction, TIA, cerebrovascular or peripheral vascular disease) or renal disease, who if stable continue treatment and are treated as risk above 20%; people with albuminuria, retinopathy or left ventricular hypertrophy; everyone with persistent BP 160/100 mmHg or above; everyone with total cholesterol 8 mmol/L (320 mg/dL) or above. 'Diabetes with overt nephropathy' and 'persistently very high blood pressure' are not this document's words. The 8 mmol/L threshold is confirmed. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-CVD-EXEMPT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:07.024Z",
+      "note": "",
+      "ref": "REF-DM-CVD-FOLLOWUP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:27.872Z",
+      "note": "",
+      "ref": "REF-DM-CVD-LDL-ASCVD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:02.064Z",
+      "note": "",
+      "ref": "REF-DM-CVD-LDL-HIGHRISK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:28.333Z",
+      "note": "",
+      "ref": "REF-DM-CVD-LIPID-INTERVAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:05.811Z",
+      "note": "",
+      "ref": "REF-DM-CVD-NONLAB-UNDER",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:06.397Z",
+      "note": "",
+      "ref": "REF-DM-CVD-NOT-VALIDATED",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:08.076Z",
+      "note": "",
+      "ref": "REF-DM-CVD-PREG-CONTRA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:07.504Z",
+      "note": "",
+      "ref": "REF-DM-CVD-RASI-ALBUMINURIA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:27.395Z",
+      "note": "",
+      "ref": "REF-DM-CVD-STATIN-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:01.562Z",
+      "note": "",
+      "ref": "REF-DM-CVD-STATIN-AGE-MAX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:28.812Z",
+      "note": "",
+      "ref": "REF-DM-CVD-TC-REFER",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:02.583Z",
+      "note": "",
+      "ref": "REF-DM-CVD-TG-PANCREATITIS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:56.396Z",
+      "note": "",
+      "ref": "REF-DM-CVD-UG26-STATIN-YOUNG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:39.886Z",
+      "note": "",
+      "ref": "REF-DM-DX-CONFIRM-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:40.634Z",
+      "note": "",
+      "ref": "REF-DM-DX-DISCORDANT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:16:01.595Z",
+      "note": "",
+      "ref": "REF-DM-DX-FAST-MIN-H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:42.327Z",
+      "note": "",
+      "ref": "REF-DM-DX-FPG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:44.436Z",
+      "note": "",
+      "ref": "REF-DM-DX-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:22:41.671Z",
+      "note": "Uganda HIV guidelines Nov 2022, figures now read. Fig. 42 (printed p. 187): FBG <7.0 mmol/L normal, re-screen every 6 months or when clinically indicated; FBG >7.0 to 18 mmol/L or RBG >11.1 to 18 mmol/L diabetes mellitus, treat per national guidelines; FBG >18 mmol/L or RBG >15 stabilise and consult or refer. Fig. 44 (p. 189, screening before dolutegravir): high blood glucose is fasting >6.95 or non-fasting >8.89 (no unit printed), high urine glucose any +. Treatment goal FBG <7 mmol/l (p. 194). The operator differs by place: at or above 7 in the client-category table, above 7.0 in Fig. 42. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-DX-HIVGL-FBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:22:39.955Z",
+      "note": "Uganda HIV guidelines Nov 2022, figures now read. The client-category table prints RBG at or above 11 mmol. Fig. 42 (p. 187) prints RBG >11.1 to 18 mmol/L for diabetes mellitus and RBG >15 for the refer branch, which overlap. Fig. 44 (p. 189) uses non-fasting >8.89 (no unit printed) as high glucose before starting dolutegravir. The guideline is not internally consistent on the random glucose threshold. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-DX-HIVGL-RBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:41.806Z",
+      "note": "",
+      "ref": "REF-DM-DX-NEAR-THRESHOLD-MAX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:41.120Z",
+      "note": "",
+      "ref": "REF-DM-DX-NEAR-THRESHOLD-MIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:44.920Z",
+      "note": "",
+      "ref": "REF-DM-DX-OGTT1H-IDF",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:42.866Z",
+      "note": "",
+      "ref": "REF-DM-DX-OGTT2H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:43.386Z",
+      "note": "",
+      "ref": "REF-DM-DX-OGTT2H-CAP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:42.285Z",
+      "note": "",
+      "ref": "REF-DM-DX-POC-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:43.880Z",
+      "note": "",
+      "ref": "REF-DM-DX-RANDOM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:16:05.492Z",
+      "note": "",
+      "ref": "REF-DM-DX-REPEAT-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:22:38.641Z",
+      "note": "UCG 2023 section 8.1.3, printed p. 471 (PDF p. 537). Units mmol/L. All four are printed as 'above', not 'at or above'. Criteria 1 to 3 must be confirmed by repeat testing unless hyperglycaemia is unequivocal; a single slightly raised value without symptoms is not diagnostic. The page prints '75mg of glucose', a misprint for 75 g. Same content as REF-DM-DX-UCG-FPG, -OGTT2H, -HBA1C and -RBS; re-read in a second copy with the same pagination. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-DX-UCG-CRITERIA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:42.122Z",
+      "note": "",
+      "ref": "REF-DM-DX-UCG-FPG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:43.121Z",
+      "note": "",
+      "ref": "REF-DM-DX-UCG-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:42.606Z",
+      "note": "",
+      "ref": "REF-DM-DX-UCG-OGTT2H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:43.602Z",
+      "note": "",
+      "ref": "REF-DM-DX-UCG-RBS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:22:36.504Z",
+      "note": "The comprehensive version is still unread: library.health.go.ug reset the connection on 5 Oct 2026, from a normal browser as well. The summarised version supplied by the CSO has been read and its values are in the REF-DM-*-UG26-* references. Open questions: the comprehensive version's date, whether it differs from the summarised version, and whether it supersedes UCG 2023 section 8.1.3. The file is needed. Noted by Claude; not a CSO sign-off.",
+      "ref": "REF-DM-DX-UG-2026",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:46.510Z",
+      "note": "",
+      "ref": "REF-DM-DX-UG26-FPG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:47.960Z",
+      "note": "",
+      "ref": "REF-DM-DX-UG26-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:47.470Z",
+      "note": "",
+      "ref": "REF-DM-DX-UG26-OGTT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:46.979Z",
+      "note": "",
+      "ref": "REF-DM-DX-UG26-RBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:32.108Z",
+      "note": "",
+      "ref": "REF-DM-EPI-FPG-MISSED",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:32.692Z",
+      "note": "",
+      "ref": "REF-DM-EPI-UG-DR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:33.185Z",
+      "note": "",
+      "ref": "REF-DM-EPI-UG-EYE-CAPACITY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:30.937Z",
+      "note": "",
+      "ref": "REF-DM-EPI-UG-FPG-SENS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:31.565Z",
+      "note": "",
+      "ref": "REF-DM-EPI-UG-HBA1C-SENS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:29.778Z",
+      "note": "",
+      "ref": "REF-DM-EPI-UG-PREVALENCE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:30.439Z",
+      "note": "",
+      "ref": "REF-DM-EPI-UG-UNAWARE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:43.130Z",
+      "note": "",
+      "ref": "REF-DM-EYE-CONTROLLED-ONLY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:41.487Z",
+      "note": "",
+      "ref": "REF-DM-EYE-DME",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:41.042Z",
+      "note": "",
+      "ref": "REF-DM-EYE-ICDR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:40.041Z",
+      "note": "",
+      "ref": "REF-DM-EYE-INTERVAL-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:19.565Z",
+      "note": "",
+      "ref": "REF-DM-EYE-INTERVAL-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:46.416Z",
+      "note": "",
+      "ref": "REF-DM-EYE-METHOD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:45.805Z",
+      "note": "",
+      "ref": "REF-DM-EYE-PREG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:21.149Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-DME-CI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:34.169Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-DME-NCI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:37.991Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-MILD-MIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:42.632Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-MODERATE-MAX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:34.655Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-MODERATE-MIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:41.975Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-NONE-MILD-MAX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:20.580Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-PDR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:20.068Z",
+      "note": "",
+      "ref": "REF-DM-EYE-RECALL-SEVERE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:44.653Z",
+      "note": "",
+      "ref": "REF-DM-EYE-REFER-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:44.098Z",
+      "note": "",
+      "ref": "REF-DM-EYE-REFER-NOVIEW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:43.620Z",
+      "note": "",
+      "ref": "REF-DM-EYE-REFER-VA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:40.549Z",
+      "note": "",
+      "ref": "REF-DM-EYE-START-T1",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:16.069Z",
+      "note": "UCG 2023 section 20.2.3, printed pp. 933 to 934 (PDF pp. 999 to 1000). It covers definition, risk factors (longer duration and poor control, hypertension, kidney disease, pregnancy, high BMI, sedentary lifestyle, smoking, alcohol), presentation, investigations (thorough eye examination; fundus photography, OCT, fluorescein angiography) and treatment at regional referral level (pan-retinal photocoagulation, anti-VEGF injections, vitrectomy, low-vision rehabilitation). No rule can take an interval from it. The HIV guidelines 2022 Fig. 45 (p. 190) print: refer for eye examination at diagnosis and every 2 years after, or as the ophthalmologist recommends. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-EYE-UCG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:45.151Z",
+      "note": "",
+      "ref": "REF-DM-EYE-UG-2016",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:54.686Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-1DAY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:53.204Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-ABI-LOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:53.686Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-CHARCOT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:50.275Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-EVERY-VISIT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:50.763Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INF-MIN-CM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:51.260Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INF-MOD-CM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:51.753Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INF-SEVERE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:21.709Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INT-0",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:47.472Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INT-1",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:47.949Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INT-2",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:48.666Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-INT-3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:22.240Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-IPSWICH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:22.741Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-ISCH-ABI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:52.246Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-ISCH-ANKLE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:52.715Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-ISCH-TOE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:46.978Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-IWGDF",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:49.785Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-LOPS-RULE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:49.149Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-MONO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:55.208Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-NO-IMPROVE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:54.160Z",
+      "note": "",
+      "ref": "REF-DM-FOOT-URGENT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:58.396Z",
+      "note": "",
+      "ref": "REF-DM-HIV-UG26-INTERVAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:22.901Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-DEINTENSIFY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:07.606Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-IAH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:06.325Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-L1",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:07.020Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-L2",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:20.953Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-L3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:21.952Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-MALARIA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:22.421Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-REVIEW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:23.375Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-RISK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:08.099Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-RISK-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:21.476Z",
+      "note": "",
+      "ref": "REF-DM-HYPO-WHO-IV",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:46.993Z",
+      "note": "",
+      "ref": "REF-DM-IH-HBA1C-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:45.929Z",
+      "note": "",
+      "ref": "REF-DM-IH-IFG-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:45.405Z",
+      "note": "",
+      "ref": "REF-DM-IH-IFG-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:46.504Z",
+      "note": "",
+      "ref": "REF-DM-IH-IGT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:42.801Z",
+      "note": "",
+      "ref": "REF-DM-IH-OGTT-NEXT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:47.631Z",
+      "note": "",
+      "ref": "REF-DM-IH-OGTT1H-IDF",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:48.119Z",
+      "note": "",
+      "ref": "REF-DM-IH-RETEST",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:48.469Z",
+      "note": "",
+      "ref": "REF-DM-IH-UG26-FPG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:49.548Z",
+      "note": "",
+      "ref": "REF-DM-IH-UG26-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:49.073Z",
+      "note": "",
+      "ref": "REF-DM-IH-UG26-RBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:57.358Z",
+      "note": "",
+      "ref": "REF-DM-INPT-UG26-HIGH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:56.859Z",
+      "note": "",
+      "ref": "REF-DM-INPT-UG26-LOW",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:35.064Z",
+      "note": "",
+      "ref": "REF-DM-KID-ACR-A2",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:35.530Z",
+      "note": "",
+      "ref": "REF-DM-KID-ACR-A3",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:39.039Z",
+      "note": "",
+      "ref": "REF-DM-KID-AKI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:37.582Z",
+      "note": "",
+      "ref": "REF-DM-KID-DIPSTICK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:13.573Z",
+      "note": "",
+      "ref": "REF-DM-KID-GFR-G2",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:14.189Z",
+      "note": "",
+      "ref": "REF-DM-KID-GFR-G3A",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:34.009Z",
+      "note": "",
+      "ref": "REF-DM-KID-GFR-G3B",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:14.686Z",
+      "note": "",
+      "ref": "REF-DM-KID-GFR-G4",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:34.513Z",
+      "note": "",
+      "ref": "REF-DM-KID-GFR-G5",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:18.047Z",
+      "note": "",
+      "ref": "REF-DM-KID-K-ACTION",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:18.530Z",
+      "note": "",
+      "ref": "REF-DM-KID-K-MODERATE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:19.071Z",
+      "note": "",
+      "ref": "REF-DM-KID-K-SEVERE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:37.034Z",
+      "note": "",
+      "ref": "REF-DM-KID-MONITOR-GRID",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:38.068Z",
+      "note": "",
+      "ref": "REF-DM-KID-NDKD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:33.526Z",
+      "note": "",
+      "ref": "REF-DM-KID-PERSIST",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:38.535Z",
+      "note": "",
+      "ref": "REF-DM-KID-RASI-CHECK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:17.524Z",
+      "note": "",
+      "ref": "REF-DM-KID-RASI-CREAT-RISE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:16.338Z",
+      "note": "",
+      "ref": "REF-DM-KID-REFER-ACR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:15.687Z",
+      "note": "",
+      "ref": "REF-DM-KID-REFER-EGFR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:16.954Z",
+      "note": "",
+      "ref": "REF-DM-KID-REFER-FALL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:37.484Z",
+      "note": "",
+      "ref": "REF-DM-KID-REFER-FALL-HAEMO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:39.554Z",
+      "note": "",
+      "ref": "REF-DM-KID-ROUTINE-REFER-EGFR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:15.180Z",
+      "note": "",
+      "ref": "REF-DM-KID-SCREEN-INTERVAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:36.535Z",
+      "note": "",
+      "ref": "REF-DM-KID-SCREEN-START-T1",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:12.870Z",
+      "note": "KDIGO 2012 Table 7, read from the kdigo.org PDF (PDF p. 44). The row is 'Protein reagent strip'. The table footnote says the relationships among measures are approximate and that the strip result depends on urine concentration. The pack wording matches the table; the attribution to KDIGO 2012 can stay. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-KID-STRIP-MAP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:36.054Z",
+      "note": "",
+      "ref": "REF-DM-KID-UACR-CONFIRM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:35.964Z",
+      "note": "",
+      "ref": "REF-DM-KID-UACR-COUNT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:56.340Z",
+      "note": "",
+      "ref": "REF-DM-NEU-ASYMPTOMATIC",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:57.581Z",
+      "note": "",
+      "ref": "REF-DM-NEU-ATYPICAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:58.694Z",
+      "note": "",
+      "ref": "REF-DM-NEU-AUTONOMIC",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:59.156Z",
+      "note": "",
+      "ref": "REF-DM-NEU-B12",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:56.902Z",
+      "note": "",
+      "ref": "REF-DM-NEU-EXCLUSION",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:23.225Z",
+      "note": "",
+      "ref": "REF-DM-NEU-INTERVAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:24.756Z",
+      "note": "",
+      "ref": "REF-DM-NEU-OH-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:24.231Z",
+      "note": "",
+      "ref": "REF-DM-NEU-OH-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:59.836Z",
+      "note": "",
+      "ref": "REF-DM-NEU-PAIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:23.728Z",
+      "note": "",
+      "ref": "REF-DM-NEU-TACHY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:55.745Z",
+      "note": "",
+      "ref": "REF-DM-NEU-TESTS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:58.065Z",
+      "note": "",
+      "ref": "REF-DM-NEU-TORONTO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:53.919Z",
+      "note": "",
+      "ref": "REF-DM-PAED-UG26-SCREEN-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:39.023Z",
+      "note": "",
+      "ref": "REF-DM-PREG-BP-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:38.469Z",
+      "note": "",
+      "ref": "REF-DM-PREG-BP-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:40.114Z",
+      "note": "",
+      "ref": "REF-DM-PREG-BP-SEVERE-DBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:39.525Z",
+      "note": "",
+      "ref": "REF-DM-PREG-BP-SEVERE-SBP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:44.971Z",
+      "note": "",
+      "ref": "REF-DM-PREG-CARE-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:43.313Z",
+      "note": "",
+      "ref": "REF-DM-PREG-DIP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:49.192Z",
+      "note": "",
+      "ref": "REF-DM-PREG-GDM-1H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:49.815Z",
+      "note": "",
+      "ref": "REF-DM-PREG-GDM-2H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:48.693Z",
+      "note": "",
+      "ref": "REF-DM-PREG-GDM-FPG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:41.624Z",
+      "note": "",
+      "ref": "REF-DM-PREG-PE-POSTPARTUM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:50.944Z",
+      "note": "",
+      "ref": "REF-DM-PREG-POSTPARTUM-FROM",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:44.452Z",
+      "note": "",
+      "ref": "REF-DM-PREG-POSTPARTUM-TO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:45.548Z",
+      "note": "",
+      "ref": "REF-DM-PREG-REVISION",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:22:51.194Z",
+      "note": "UCG 2023 section 16.2.5, printed pp. 708 to 709 (PDF pp. 774 to 775), not p. 711. Screening indications: BMI >35, age >40, GDM in a previous pregnancy, family history of diabetes, previous unexplained third-trimester death or baby >4 kg, polyhydramnios, glycosuria, fetus large for dates. Therapeutic targets: pre-prandial <5.3, 1-hour <7.8, 2-hour <6.4 mmol/L. These diagnostic values differ from WHO 2013 (5.1, 10.0, 8.5) and the 2-hour target differs from the 2026 Uganda guideline (<6.7). Medicine doses on the page are not copied here. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-PREG-UCG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:35.625Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UCG-2H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:44.582Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UCG-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:44.077Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UCG-BMI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:35.131Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UCG-FBS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:59.845Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-ASA-END",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:52.415Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-ASA-WEEKS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:50.038Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-EARLY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:51.941Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-PRECON",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:50.961Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-TGT-1H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:51.454Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-TGT-2H",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:50.511Z",
+      "note": "",
+      "ref": "REF-DM-PREG-UG26-TGT-FBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:43.918Z",
+      "note": "",
+      "ref": "REF-DM-PREG-WINDOW-END",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:50.288Z",
+      "note": "",
+      "ref": "REF-DM-PREG-WINDOW-START",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:59.363Z",
+      "note": "",
+      "ref": "REF-DM-PREV-UG26-BMI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:10.272Z",
+      "note": "",
+      "ref": "REF-DM-RX-CARDIORENAL",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:34.661Z",
+      "note": "",
+      "ref": "REF-DM-RX-DEESC-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:28.719Z",
+      "note": "HIV guidelines Nov 2022, drug interactions table, printed p. 282 (PDF p. 312): dolutegravir increases metformin levels, with a possible higher risk of hypoglycaemia and metabolic acidosis; close follow-up with electrolytes, BUN, creatinine and random blood sugar. The same entry is in UCG 2023 chapter 3, printed p. 210 (PDF p. 276), so the mirror was accurate. The HIV guideline also says (p. 189) that a lower metformin dose may be needed with dolutegravir, with no figure, and (pp. 187, 237, 243) that dolutegravir should not be used in known diabetics. No dose ceiling is recorded here. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-RX-DTG-METFORMIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:20.403Z",
+      "note": "EMHSLU 2023 section 18.5, p. 43, read from the list itself. Level of care and VEN class: insulin isophane HC4 V; soluble insulin HC4 V; insulin aspart HC4 V (printed 'Insulin isophane Aspert'); glimepiride H E; metformin HC3 V; pioglitazone RR N; biphasic insulin aspart H V; insulin glargine H V; specialist medicines gliclazide RR E, vildagliptin RR E, dapagliflozin RR E. Section 18.5.2: dextrose 50% HC3 V; glucagon H E. Laboratory section: glucometer test strips HC3 V; urinalysis strips 10-parameter HC3 and 3-parameter HC2; HbA1c tests at general hospital, regional referral and national referral only. Correction: glimepiride is listed at hospital level, so only metformin is a primary-care oral agent in this list. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-RX-EMHSLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:15.697Z",
+      "note": "",
+      "ref": "REF-DM-RX-EML",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:32.648Z",
+      "note": "",
+      "ref": "REF-DM-RX-GLIB-AGE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:12.570Z",
+      "note": "",
+      "ref": "REF-DM-RX-GLUCAGON",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:16.786Z",
+      "note": "",
+      "ref": "REF-DM-RX-INSULIN-CONTINUE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:12.109Z",
+      "note": "",
+      "ref": "REF-DM-RX-INSULIN-T1",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:09.189Z",
+      "note": "",
+      "ref": "REF-DM-RX-LADDER-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:15.093Z",
+      "note": "",
+      "ref": "REF-DM-RX-LOWCOST",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:09.754Z",
+      "note": "",
+      "ref": "REF-DM-RX-METFORMIN-CONTRA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:32.137Z",
+      "note": "",
+      "ref": "REF-DM-RX-METFORMIN-NOSTART-EGFR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:31.566Z",
+      "note": "",
+      "ref": "REF-DM-RX-METFORMIN-STOP-EGFR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:14.127Z",
+      "note": "",
+      "ref": "REF-DM-RX-OLDER",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:11.500Z",
+      "note": "",
+      "ref": "REF-DM-RX-PIO-HF",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:13.546Z",
+      "note": "",
+      "ref": "REF-DM-RX-PREG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:14.612Z",
+      "note": "",
+      "ref": "REF-DM-RX-REASSESS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:33.151Z",
+      "note": "",
+      "ref": "REF-DM-RX-SGLT2-EGFR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:10.900Z",
+      "note": "",
+      "ref": "REF-DM-RX-SGLT2-HOLD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:16.306Z",
+      "note": "",
+      "ref": "REF-DM-RX-SICKDAY-HOLD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:25:13.072Z",
+      "note": "",
+      "ref": "REF-DM-RX-TB-RIFAMPICIN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:26.935Z",
+      "note": "UCG 2023 section 8.1.3, printed pp. 473 to 476 (PDF pp. 539 to 542). Type 2: first line lifestyle modification, tried for 3 months if sugar is not very high (HC2), then metformin (HC3); second line glimepiride added, or used first if metformin is not tolerated or contraindicated (HC4, H); third line basal NPH insulin added (HC4); if still not controlled, a full insulin regimen (twice-daily biphasic or basal-bolus), stopping glimepiride and keeping metformin if possible. Type 1: insulin; oral agents are not used, metformin only on specialist advice. Cautions: metformin is contraindicated in advanced kidney disease; no oral agents in acute complications or acute illness. Section 8.1.3 names glimepiride as the only sulfonylurea. Doses are printed in the source and deliberately not copied here. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-RX-UCG-LADDER",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:55.439Z",
+      "note": "",
+      "ref": "REF-DM-RX-UG26-COMBO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:52.889Z",
+      "note": "",
+      "ref": "REF-DM-RX-UG26-CPEP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:55.926Z",
+      "note": "",
+      "ref": "REF-DM-RX-UG26-INS-FBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:57.890Z",
+      "note": "",
+      "ref": "REF-DM-SURG-UG26-HBA1C",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:52.549Z",
+      "note": "",
+      "ref": "REF-DM-SUS-AGE-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:51.439Z",
+      "note": "",
+      "ref": "REF-DM-SUS-AGE-WHO",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:33.683Z",
+      "note": "",
+      "ref": "REF-DM-SUS-ANTIPSYCH-WEEKS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:50.954Z",
+      "note": "",
+      "ref": "REF-DM-SUS-ANTIPSYCHOTIC",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:52.068Z",
+      "note": "",
+      "ref": "REF-DM-SUS-BMI",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:52.124Z",
+      "note": "",
+      "ref": "REF-DM-SUS-DRUGS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:53.589Z",
+      "note": "",
+      "ref": "REF-DM-SUS-GDM-RETEST-MAX",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:47.260Z",
+      "note": "",
+      "ref": "REF-DM-SUS-HIV-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:22:55.104Z",
+      "note": "Uganda HIV guidelines Nov 2022, primary text now read. Section 5.4.7.1 (p. 186): assess risk factors before ART, on ART and when indicated; re-screen all PLHIV every six months. Section 6.6 (p. 237): risk factors age 40 or over, BMI 24 or over, history of hypertension; known diabetics are not started on or moved to dolutegravir; two or more risk factors with high baseline RBS or FBS, no dolutegravir; two or more with normal baseline, dolutegravir with RBS or FBS every 3 months for 6 months. Fig. 44 (p. 189) prints a different list (age 30 or over, family history, hypertension, BMI 25 or over) and monitoring every 3 months for the first year. Pharmacovigilance table (p. 260): RBS every 3 months in the first 12 months for those at high risk. The text and the figure disagree on age, BMI and duration; the secondary source's 'age 45' is not what the 2022 text prints. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-SUS-HIV-UG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:54.095Z",
+      "note": "",
+      "ref": "REF-DM-SUS-HOSP-GLU",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:46.051Z",
+      "note": "",
+      "ref": "REF-DM-SUS-HOSP-HBA1C-LOOKBACK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:54.147Z",
+      "note": "",
+      "ref": "REF-DM-SUS-NO-SCORE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:54.626Z",
+      "note": "",
+      "ref": "REF-DM-SUS-ONE-TEST-WEAK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:55.115Z",
+      "note": "",
+      "ref": "REF-DM-SUS-PAED-4T",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:56.219Z",
+      "note": "",
+      "ref": "REF-DM-SUS-PAED-MIMIC",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:55.621Z",
+      "note": "",
+      "ref": "REF-DM-SUS-PAED-SAMEDAY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:51.438Z",
+      "note": "",
+      "ref": "REF-DM-SUS-PANCREATITIS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:53.070Z",
+      "note": "",
+      "ref": "REF-DM-SUS-RESCREEN",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:52.668Z",
+      "note": "",
+      "ref": "REF-DM-SUS-RISK-FACTORS-ADA",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:49.108Z",
+      "note": "",
+      "ref": "REF-DM-SUS-STEROID",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:49.737Z",
+      "note": "",
+      "ref": "REF-DM-SUS-STEROID-CBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:50.301Z",
+      "note": "",
+      "ref": "REF-DM-SUS-STEROID-HBA1C-DELAY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:46.680Z",
+      "note": "",
+      "ref": "REF-DM-SUS-STRESS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:47.893Z",
+      "note": "",
+      "ref": "REF-DM-SUS-TB",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:48.506Z",
+      "note": "",
+      "ref": "REF-DM-SUS-TB-RECHECK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:53.669Z",
+      "note": "",
+      "ref": "REF-DM-SUS-WAIST-F",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:53.161Z",
+      "note": "",
+      "ref": "REF-DM-SUS-WAIST-M",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:11:58.910Z",
+      "note": "",
+      "ref": "REF-DM-TB-UG26-RBG",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:55.152Z",
+      "note": "",
+      "ref": "REF-DM-VAL-ABI-HIGH",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:03.425Z",
+      "note": "",
+      "ref": "REF-DM-VAL-CAP-POSTLOAD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:05.038Z",
+      "note": "",
+      "ref": "REF-DM-VAL-EGFR-ARK",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:05.724Z",
+      "note": "",
+      "ref": "REF-DM-VAL-EGFR-EQUATION",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:03.286Z",
+      "note": "KDIGO 2024, Chapter 1 narrative, p. S176 (PDF p. 61): sources of error in estimating GFR from serum creatinine are listed as non-steady-state conditions, non-GFR determinants of creatinine, measurement error at higher GFR, and assay interferences. That sentence does not name acute kidney injury, hyperglycaemic crisis or pregnancy. Practice Point 4.2.5 (p. S249) covers drug dosing when GFR is not in a steady state. Table 8 (p. S179) is indications for cystatin C and does not list pregnancy. Read by Claude from the source on 5 Oct 2026; not yet checked by the CSO.",
+      "ref": "REF-DM-VAL-EGFR-STEADY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:02.384Z",
+      "note": "",
+      "ref": "REF-DM-VAL-FPG-CV",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:01.839Z",
+      "note": "",
+      "ref": "REF-DM-VAL-GLYCOLYSIS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T18:10:54.611Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-CKD-EGFR",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:01.154Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-DRUGS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:59.381Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-G6PD",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:00.528Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-HBSS",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:58.865Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-HIV",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:57.720Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-IRON",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:57.233Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-RBC",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:56.717Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-USE-GLUCOSE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:23:59.901Z",
+      "note": "",
+      "ref": "REF-DM-VAL-HBA1C-VARIANT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:02.930Z",
+      "note": "",
+      "ref": "REF-DM-VAL-METER",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:03.905Z",
+      "note": "",
+      "ref": "REF-DM-VAL-OGTT-PREP",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:06.842Z",
+      "note": "",
+      "ref": "REF-DM-VAL-OPHTHALMOSCOPY",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:06.328Z",
+      "note": "",
+      "ref": "REF-DM-VAL-UACR-TRANSIENT",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    },
+    {
+      "at": "2026-10-05T19:24:04.529Z",
+      "note": "",
+      "ref": "REF-DM-VAL-URINE-KETONE",
+      "status": "signed",
+      "uid": "u_4wBzWZUBLtug218RjtM5QQ"
+    }
+  ]
+}
