@@ -166,7 +166,7 @@ export function DeskClient({
   const [busy, setBusy] = useState<string | null>(null);
   const [signing, setSigning] = useState(false);
   const [sheet, setSheet] = useState<
-    null | "allergy" | "complete" | "sign" | "help" | "index" | "context"
+    null | "allergy" | "complete" | "sign" | "help" | "index" | "context" | "ncd"
   >(null);
   const [insertOpen, setInsertOpen] = useState(false);
   const [sheetMsg, setSheetMsg] = useState<Msg>(null);
@@ -915,8 +915,8 @@ export function DeskClient({
         | CaptureMap
         | undefined)
     : undefined;
-  const ncd =
-    ncdSection && ncdSeed && editable && current === ncdSection ? (
+  const ncdModule =
+    ncdSection && ncdSeed && editable ? (
       <NcdSection
         seed={{ ...ncdSeed, initialValues: { ...ncdSeed.initialValues, ...(ncdValues ?? {}) } }}
         onChange={(values) =>
@@ -930,11 +930,20 @@ export function DeskClient({
           )
         }
       />
+    ) : null;
+  const ncd =
+    ncdModule && current === ncdSection ? (
+      ncdModule
     ) : ncdSection ? (
       <Button variant="secondary" className="w-fit" onClick={() => go(ncdSection)}>
         Open the NCD module
       </Button>
     ) : null;
+  // Clerking desk v2 has no NCD step: the module opens in a wide dialog from the safety bar, and
+  // Impression offers it when diabetes is on this visit (ICD-11 5A10–5A14, or the words).
+  const dmOnVisit = p.diagnoses.some(
+    (d) => /diabet/i.test(d.display) || (d.code?.startsWith("5A1") ?? false),
+  );
 
   const at = index.findIndex((e) => e.id === current);
   const save = saveWords(
@@ -1134,15 +1143,37 @@ export function DeskClient({
           slots={{
             orders,
             tools: (
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-keyshortcuts="?"
-                onClick={() => setSheet("help")}
-              >
-                Keys <kbd className="font-mono">?</kbd>
-              </Button>
+              <>
+                {ncdModule ? (
+                  <Button variant="secondary" size="sm" onClick={() => setSheet("ncd")}>
+                    Diabetes module
+                  </Button>
+                ) : null}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-keyshortcuts="?"
+                  onClick={() => setSheet("help")}
+                >
+                  Keys <kbd className="font-mono">?</kbd>
+                </Button>
+              </>
             ),
+            // Phones have no safety bar, so the offer is always there below 640 px.
+            impression: ncdModule ? (
+              <div
+                className={`border-border bg-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-4 py-3 ${dmOnVisit ? "" : "sm:hidden"}`}
+              >
+                <p className="text-body-s text-foreground min-w-0 flex-1">
+                  {dmOnVisit
+                    ? "Diabetes is on this visit. The diabetes module checks the criteria, the medicines to review and what is due."
+                    : "The diabetes module checks the criteria, the medicines to review and what is due."}
+                </p>
+                <Button variant="secondary" size="sm" onClick={() => setSheet("ncd")}>
+                  Open the diabetes module
+                </Button>
+              </div>
+            ) : null,
           }}
         />
       ) : (
@@ -1197,6 +1228,19 @@ export function DeskClient({
           ) : null}
         </div>
       </EmrDialog>
+
+      {v2 && ncdModule ? (
+        <EmrDialog
+          open={sheet === "ncd"}
+          onOpenChange={(o) => setSheet(o ? "ncd" : null)}
+          title="Diabetes and NCD module"
+          description="Answers save with the note and are recorded when you sign."
+          width="xl"
+          sheet="tall"
+        >
+          {ncdModule}
+        </EmrDialog>
+      ) : null}
 
       <EmrDialog
         open={sheet === "help"}

@@ -84,7 +84,7 @@ let latest: NoteContent;
 let calls: { name: string; args: unknown[] }[] = [];
 let taps = 0;
 
-function Harness({ p }: { p: DeskPayload }) {
+function Harness({ p, offer }: { p: DeskPayload; offer?: string }) {
   const [content, setContent] = useState(p.draft!.content);
   const [diagnoses, setDiagnoses] = useState(p.diagnoses);
   const payloadNow = useMemo(() => ({ ...p, diagnoses }), [p, diagnoses]);
@@ -143,6 +143,7 @@ function Harness({ p }: { p: DeskPayload }) {
     actor: "u-1",
     on,
     loaders: { findings: async () => [], terms: async () => [] },
+    slots: offer ? { impression: h("p", null, offer) } : undefined,
   });
 }
 
@@ -203,6 +204,14 @@ const suggestionChips = () =>
   ] as HTMLButtonElement[];
 
 describe("step 09, Impression", () => {
+  it("shows the diabetes module's offer above the step when the desk passes one", () => {
+    act(() =>
+      root.render(h(Harness, { p: payload([DIABETES()]), offer: "Open the diabetes module" })),
+    );
+    expect(all()).toContain("Open the diabetes module");
+    expect(all().indexOf("Open the diabetes module")).toBeLessThan(all().indexOf("Diabetes, type"));
+  });
+
   it("offers a deferral with its reason when there is no leading diagnosis, and undoes it", () => {
     mount(payload([]));
     expect(all()).toContain("No leading diagnosis yet");

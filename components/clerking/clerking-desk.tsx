@@ -117,7 +117,8 @@ export interface ClerkingDeskProps {
   loaders: DeskViewProps["loaders"];
   busy?: string | null;
   signing?: boolean;
-  slots?: { orders?: ReactNode; tools?: ReactNode };
+  /** `impression`: shown above step 09 (the diabetes module's offer). */
+  slots?: { orders?: ReactNode; tools?: ReactNode; impression?: ReactNode };
 }
 
 const GROUPS = [
@@ -690,26 +691,31 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     }
     if (cur.id === "impression" && si && imp) {
       return (
-        <ImpressionStep
-          si={si}
-          v={imp}
-          dx={props.dx ?? null}
-          dxLoading={!props.dx && !props.dxFailed}
-          editable={editable}
-          act={act}
-          canFinal={p.viewer.canFinalDiagnosis}
-          actor={props.actor ?? "clinician"}
-          busy={props.busy ?? null}
-          loaders={{ terms: props.loaders.terms, searchTerms: props.loaders.searchTerms }}
-          on={on}
-          onImpression={onImpression}
-          onDeferral={onDeferral}
-          onHistory={onHistory}
-          onGo={goTo}
-          onDetails={setDetails}
-          wide={wide}
-          inPlan={inPlan}
-        />
+        <div className="flex flex-col gap-4">
+          {slots.impression ? (
+            <div className="max-sm:px-4 max-sm:pt-4">{slots.impression}</div>
+          ) : null}
+          <ImpressionStep
+            si={si}
+            v={imp}
+            dx={props.dx ?? null}
+            dxLoading={!props.dx && !props.dxFailed}
+            editable={editable}
+            act={act}
+            canFinal={p.viewer.canFinalDiagnosis}
+            actor={props.actor ?? "clinician"}
+            busy={props.busy ?? null}
+            loaders={{ terms: props.loaders.terms, searchTerms: props.loaders.searchTerms }}
+            on={on}
+            onImpression={onImpression}
+            onDeferral={onDeferral}
+            onHistory={onHistory}
+            onGo={goTo}
+            onDetails={setDetails}
+            wide={wide}
+            inPlan={inPlan}
+          />
+        </div>
       );
     }
     if (cur.id === "summary") {
