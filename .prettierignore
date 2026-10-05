@@ -55,3 +55,12 @@ docs/emr/clerking-v2/plan/drug-catalogue.v0.json
 docs/wards/ward-builder/PROMPT-WARD-BUILDER.md
 docs/wards/ward-builder/README.md
 docs/wards/ward-builder/prototype/
+# NCDSync: the build prompt, PRD and demo catalogue as handed over (byte-identical), and the documents
+# generated from lib/ncdreg/standard (npm run ncdreg:docs; a test re-renders and compares).
+docs/ncd/PROMPT-NCDSYNC-BUILD-v2.md
+docs/ncd/PRD-NCDREG-NCDSYNC.md
+docs/ncd/demo/ncd-demo-catalog.v1.json
+docs/ncd/NCDREG-v0.1-DRAFT.md
+docs/ncd/CONDITION-MODULES.md
+docs/ncd/INDICATORS.md
+docs/ncd/DATA-INVENTORY.md

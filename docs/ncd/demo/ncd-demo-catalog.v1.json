@@ -1,0 +1,4999 @@
+{
+ "catalogue": "ncd-demo-catalog",
+ "version": "1.0.0",
+ "standard": "NCDReg 0.1 draft",
+ "notice": "Synthetic data for previewing NCDSync. No record describes a real person. Names are random pairings from common name lists, phone numbers all begin 0700 00, are not checked against any operator's allocation, and must never be dialled or sent an SMS, and every clinical value is invented. Clinical codes, medicine names and classification names follow the build prompt and carry the same draft status.",
+ "schema_notes": {
+  "dates": "Every 'day' is a whole-day offset from day 0, the calendar day on which demo data is switched on, in the facility time zone. Negative is the past. Times such as '08:12' are local times on that day. Day 0 must behave as a clinic day even at a weekend.",
+  "age": "age_years_at_day_0 is an estimated age. Store the derived birth year with the estimated flag.",
+  "blood_pressure": "bp is a list of [systolic, diastolic] readings. The visit blood pressure is their mean.",
+  "geography": "Match district, sub-county and parish to the geography dataset where they exist. Where a name is not found, keep the district and store the remainder as village free text. Never fail a load on geography.",
+  "medicines": "Names refer to the draft medicine list. No doses are given, by design. An entry that begins 'other:' is the list's 'other' item, with the rest of the string as its free text.",
+  "expect": "Values the loaded record must produce. Use them as assertions. They are not inputs. review_due lists the review components of the person's condition modules that have never been recorded or were last recorded 12 months or more before day 0, in alphabetical order.",
+  "appointments": "An appointment is created only by closing a visit that has next_appointment_day. appointment_day in a 'today' block and missed_appointment_day in a 'recall' block restate that appointment. Assert them; do not create a second appointment from them.",
+  "missing_fields": "A baseline field that is absent was not recorded. Set the privacy notice acknowledgement time to the person's earliest registration day.",
+  "entered_by": "No record names who entered it. Label nurse parts with the triage_nurse actor, clinician parts, reviews and events with the clinician actor, and recall calls with the registry_officer actor.",
+  "registry_numbers": "The DEMO- series is reserved. The live number sequence must never issue it."
+ },
+ "modes": [
+  {
+   "id": "scenario",
+   "label": "Scenario patients",
+   "description": "The hand-written patients below. Loads in seconds. Every screen has content; dashboard counts are small.",
+   "persons": 26
+  },
+  {
+   "id": "full_clinic",
+   "label": "Full clinic",
+   "description": "Scenario patients plus a generated cohort that fills the registry to the size shown in the design preview. Runs as a background job.",
+   "persons": 1284,
+   "persons_note": "Registered persons not recorded as died. Persons recorded as died are loaded as well and are additional."
+  }
+ ],
+ "ui_copy": {
+  "switch_on": "Turn on demo data",
+  "switch_off": "Turn off demo data",
+  "empty_state": "No patients yet. Preview the registry with demo data.",
+  "banner": "Demo data is on. Nothing here is a real patient.",
+  "confirm_off": "This removes every demo patient and everything recorded against them. Real records are not touched.",
+  "blocked_after_go_live": "Demo data cannot be turned on once the registry is approved for patient data."
+ },
+ "safety_rules": [
+  "Load only while the facility is not approved for patient data. Refuse go-live approval while any synthetic record exists.",
+  "Every person loaded carries is_synthetic = true and a DEMO- registry number.",
+  "Never dispatch an SMS to a synthetic person, whatever transport is configured. Demo patients still appear on the recall list. Show their phone numbers with a do-not-call label and no dial link.",
+  "Removal deletes only records that belong to synthetic persons and must refuse any other person id.",
+  "Indicator values are always computed by the indicator engine from loaded records. Never write an indicator value directly.",
+  "Exports made while demo data is on are marked synthetic. The DHIS2 and FHIR exports refuse to run.",
+  "A monthly report cannot be signed while demo data is on."
+ ],
+ "facility": {
+  "name": "Demo NCD clinic",
+  "time_zone": "Africa/Kampala",
+  "reporting_units": [
+   "ncd_clinic",
+   "medical_ward",
+   "dialysis_unit"
+  ]
+ },
+ "demo_actors": [
+  {
+   "role": "triage_nurse",
+   "label": "Demo triage nurse"
+  },
+  {
+   "role": "clinician",
+   "label": "Demo medical officer"
+  },
+  {
+   "role": "registry_officer",
+   "label": "Demo registry officer"
+  },
+  {
+   "role": "registry_lead",
+   "label": "Demo registry lead"
+  }
+ ],
+ "condition_modules_enabled_while_on": [
+  "diabetes",
+  "hypertension",
+  "chronic_kidney_disease",
+  "heart_failure",
+  "asthma",
+  "epilepsy"
+ ],
+ "scenario_patients": [
+  {
+   "key": "AN",
+   "registry_number": "DEMO-00184",
+   "is_synthetic": true,
+   "given_name": "Amina",
+   "family_name": "Nakato",
+   "sex": "female",
+   "age_years_at_day_0": 54,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 314",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Kampala Central",
+    "parish": "Kisenyi II"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "hospital_number": "MRN-DEMO-04471",
+   "preview_role": "Featured patient on every preview screen",
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 7,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -609,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    },
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 5,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -609,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 163,
+    "tobacco": "never",
+    "alcohol": "occasional",
+    "known_cardiovascular_disease": [],
+    "known_kidney_disease": false,
+    "family_history_diabetes": true,
+    "family_history_hypertension": true
+   },
+   "visits": [
+    {
+     "day": -390,
+     "type": "scheduled",
+     "weight_kg": 86.0,
+     "bp": [
+      [
+       164,
+       100
+      ],
+      [
+       160,
+       96
+      ]
+     ],
+     "glucose": {
+      "value": 11.8,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -327,
+     "hba1c": {
+      "value_percent": 9.6,
+      "result_day": -390
+     }
+    },
+    {
+     "day": -327,
+     "type": "scheduled",
+     "weight_kg": 85.5,
+     "bp": [
+      [
+       156,
+       98
+      ],
+      [
+       152,
+       94
+      ]
+     ],
+     "glucose": {
+      "value": 10.2,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -264
+    },
+    {
+     "day": -264,
+     "type": "scheduled",
+     "weight_kg": 85.0,
+     "bp": [
+      [
+       152,
+       96
+      ],
+      [
+       148,
+       92
+      ]
+     ],
+     "glucose": {
+      "value": 9.9,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -208
+    },
+    {
+     "day": -208,
+     "type": "scheduled",
+     "weight_kg": 84.2,
+     "bp": [
+      [
+       146,
+       92
+      ],
+      [
+       142,
+       88
+      ]
+     ],
+     "glucose": {
+      "value": 8.7,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -145
+    },
+    {
+     "day": -145,
+     "type": "scheduled",
+     "weight_kg": 84.6,
+     "bp": [
+      [
+       148,
+       94
+      ],
+      [
+       144,
+       90
+      ]
+     ],
+     "glucose": {
+      "value": 9.1,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -83
+    },
+    {
+     "day": -83,
+     "type": "scheduled",
+     "weight_kg": 84.0,
+     "bp": [
+      [
+       150,
+       94
+      ],
+      [
+       146,
+       90
+      ]
+     ],
+     "glucose": {
+      "value": 9.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -208,
+     "creatinine_umol_l": 88,
+     "urine_test": "dipstick",
+     "dipstick": "negative"
+    },
+    {
+     "component": "feet",
+     "day": -208,
+     "loss_of_protective_sensation": false,
+     "absent_pulses": false,
+     "deformity": false,
+     "current_ulcer": false,
+     "previous_ulcer": false,
+     "amputation": "none"
+    },
+    {
+     "component": "eyes",
+     "day": -429,
+     "examined": true,
+     "method": "dilated_fundoscopy",
+     "retinopathy_grade": "no_apparent_retinopathy",
+     "macular_oedema": "absent",
+     "referred": false
+    }
+   ],
+   "events": [
+    {
+     "type": "admission",
+     "day": -125,
+     "main_reason": "severe_hypoglycaemia",
+     "reporting_unit": "medical_ward"
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "08:12",
+    "stage": "measurements_taken",
+    "nurse_part": {
+     "saved_at": "08:26",
+     "weight_kg": 83.6,
+     "bp": [
+      [
+       152,
+       94
+      ],
+      [
+       148,
+       90
+      ]
+     ],
+     "glucose": {
+      "value": 8.9,
+      "type": "fasting",
+      "method": "capillary"
+     }
+    }
+   },
+   "expect": {
+    "visit_bp_today": "150/92",
+    "bmi_today": 31.5,
+    "egfr_between": [
+     66,
+     68
+    ],
+    "kdigo_g": "G2",
+    "foot_risk_category": 0,
+    "review_due": [
+     "hba1c",
+     "eyes",
+     "lipids"
+    ],
+    "care_band": "both_without_complications",
+    "bp_class_last_closed_visit": "not_in_range",
+    "glucose_class_last_closed_visit": "moderately_raised",
+    "status_before_today": "active"
+   }
+  },
+  {
+   "key": "KT",
+   "registry_number": "DEMO-00932",
+   "is_synthetic": true,
+   "given_name": "Kenneth",
+   "family_name": "Tumusiime",
+   "sex": "male",
+   "age_years_at_day_0": 61,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 221",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Rubaga",
+    "parish": "Mengo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 9,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -430,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 172,
+    "tobacco": "former",
+    "alcohol": "occasional"
+   },
+   "visits": [
+    {
+     "day": -336,
+     "type": "scheduled",
+     "weight_kg": 80.3,
+     "bp": [
+      [
+       150,
+       94
+      ],
+      [
+       146,
+       90
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -266
+    },
+    {
+     "day": -266,
+     "type": "scheduled",
+     "weight_kg": 79.9,
+     "bp": [
+      [
+       146,
+       92
+      ],
+      [
+       142,
+       88
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -196
+    },
+    {
+     "day": -196,
+     "type": "scheduled",
+     "weight_kg": 79.6,
+     "bp": [
+      [
+       142,
+       90
+      ],
+      [
+       138,
+       86
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -126
+    },
+    {
+     "day": -126,
+     "type": "scheduled",
+     "weight_kg": 79.2,
+     "bp": [
+      [
+       138,
+       88
+      ],
+      [
+       134,
+       84
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -56
+    },
+    {
+     "day": -56,
+     "type": "scheduled",
+     "weight_kg": 78.8,
+     "bp": [
+      [
+       134,
+       86
+      ],
+      [
+       130,
+       82
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0
+    }
+   ],
+   "reviews": [],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "08:20",
+    "stage": "with_clinician",
+    "nurse_part": {
+     "saved_at": "08:31",
+     "weight_kg": 78.4,
+     "bp": [
+      [
+       136,
+       84
+      ],
+      [
+       132,
+       80
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "review_due": [
+     "kidney",
+     "lipids"
+    ],
+    "bp_class_last_closed_visit": "in_range"
+   }
+  },
+  {
+   "key": "OL",
+   "registry_number": "DEMO-00071",
+   "is_synthetic": true,
+   "given_name": "Olivia",
+   "family_name": "Lamwaka",
+   "sex": "female",
+   "age_years_at_day_0": 47,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 187",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Nansana",
+    "parish": "Nabweru North"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 3,
+     "basis_of_diagnosis": "hba1c",
+     "registered_day": -340,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 160,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -336,
+     "type": "scheduled",
+     "weight_kg": 70.5,
+     "bp": [
+      [
+       132,
+       84
+      ],
+      [
+       128,
+       80
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -252,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 7.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -252,
+     "type": "scheduled",
+     "weight_kg": 70.0,
+     "bp": [
+      [
+       131,
+       83
+      ],
+      [
+       127,
+       79
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -168,
+     "glucose": {
+      "value": 7.3,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none",
+     "hba1c": {
+      "value_percent": 6.8,
+      "result_day": -252
+     }
+    },
+    {
+     "day": -168,
+     "type": "scheduled",
+     "weight_kg": 69.5,
+     "bp": [
+      [
+       129,
+       81
+      ],
+      [
+       125,
+       77
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -84,
+     "glucose": {
+      "value": 7.1,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -84,
+     "type": "scheduled",
+     "weight_kg": 69.0,
+     "bp": [
+      [
+       128,
+       80
+      ],
+      [
+       124,
+       76
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0,
+     "glucose": {
+      "value": 6.8,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -168,
+     "creatinine_umol_l": 64,
+     "urine_test": "acr",
+     "acr_mg_mmol": 1.8
+    },
+    {
+     "component": "eyes",
+     "day": -168,
+     "examined": true,
+     "method": "fundus_photograph",
+     "retinopathy_grade": "no_apparent_retinopathy",
+     "macular_oedema": "absent",
+     "referred": false
+    },
+    {
+     "component": "feet",
+     "day": -168,
+     "loss_of_protective_sensation": false,
+     "absent_pulses": false,
+     "deformity": false,
+     "current_ulcer": false,
+     "previous_ulcer": false,
+     "amputation": "none"
+    },
+    {
+     "component": "lipids",
+     "day": -168,
+     "total_cholesterol_mmol_l": 4.6,
+     "ldl_mmol_l": 2.4
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "08:31",
+    "stage": "closed",
+    "nurse_part": {
+     "saved_at": "08:40",
+     "weight_kg": 68.6,
+     "bp": [
+      [
+       126,
+       80
+      ],
+      [
+       122,
+       76
+      ]
+     ],
+     "glucose": {
+      "value": 6.6,
+      "type": "fasting",
+      "method": "capillary"
+     }
+    },
+    "clinician_part": {
+     "saved_at": "09:02",
+     "medicines": [
+      "metformin",
+      "atorvastatin"
+     ],
+     "medicines_confirmed_unchanged": true,
+     "missed_doses": "none",
+     "hypoglycaemia": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 84
+    }
+   },
+   "expect": {
+    "review_due": [],
+    "glucose_class_today": "in_range"
+   }
+  },
+  {
+   "key": "MA",
+   "registry_number": "DEMO-00415",
+   "is_synthetic": true,
+   "given_name": "Moses",
+   "family_name": "Akena",
+   "sex": "male",
+   "age_years_at_day_0": 68,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 406",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Makindye",
+    "parish": "Kibuye I"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 12,
+     "basis_of_diagnosis": "on_treatment_at_referral",
+     "registered_day": -700,
+     "where_first_diagnosed": "other_facility",
+     "referral_source": "other_facility"
+    },
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 15,
+     "basis_of_diagnosis": "on_treatment_at_referral",
+     "registered_day": -700,
+     "where_first_diagnosed": "other_facility",
+     "referral_source": "other_facility"
+    }
+   ],
+   "baseline": {
+    "height_cm": 170,
+    "tobacco": "former",
+    "alcohol": "none",
+    "known_cardiovascular_disease": []
+   },
+   "visits": [
+    {
+     "day": -378,
+     "type": "scheduled",
+     "weight_kg": 92.5,
+     "bp": [
+      [
+       162,
+       100
+      ],
+      [
+       158,
+       96
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -315,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 11.0,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -315,
+     "type": "scheduled",
+     "weight_kg": 92.2,
+     "bp": [
+      [
+       161,
+       99
+      ],
+      [
+       157,
+       95
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -252,
+     "glucose": {
+      "value": 11.2,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -252,
+     "type": "scheduled",
+     "weight_kg": 91.9,
+     "bp": [
+      [
+       160,
+       98
+      ],
+      [
+       156,
+       94
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -189,
+     "glucose": {
+      "value": 11.4,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -189,
+     "type": "scheduled",
+     "weight_kg": 91.6,
+     "bp": [
+      [
+       160,
+       98
+      ],
+      [
+       156,
+       94
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -126,
+     "glucose": {
+      "value": 11.7,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -126,
+     "type": "scheduled",
+     "weight_kg": 91.3,
+     "bp": [
+      [
+       159,
+       97
+      ],
+      [
+       155,
+       93
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -63,
+     "medicines_not_obtained_reason": "stock_out",
+     "glucose": {
+      "value": 11.9,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -63,
+     "type": "scheduled",
+     "weight_kg": 91.0,
+     "bp": [
+      [
+       158,
+       96
+      ],
+      [
+       154,
+       92
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "glimepiride",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0,
+     "glucose": {
+      "value": 12.1,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [
+    {
+     "component": "eyes",
+     "day": -190,
+     "examined": true,
+     "method": "dilated_fundoscopy",
+     "retinopathy_grade": "mild_npdr",
+     "macular_oedema": "absent",
+     "referred": false
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "08:40",
+    "stage": "waiting"
+   },
+   "expect": {
+    "review_due": [
+     "feet",
+     "hba1c",
+     "kidney",
+     "lipids"
+    ],
+    "glucose_class_last_closed_visit": "not_classifiable",
+    "care_band": "either_with_complications"
+   }
+  },
+  {
+   "key": "RB",
+   "registry_number": "DEMO-00203",
+   "is_synthetic": true,
+   "given_name": "Ruth",
+   "family_name": "Birungi",
+   "sex": "female",
+   "age_years_at_day_0": 33,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 559",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Kira",
+    "parish": "Kireka"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_1",
+     "diagnosed_years_before_day_0": 14,
+     "basis_of_diagnosis": "on_treatment_at_referral",
+     "registered_day": -250,
+     "where_first_diagnosed": "other_facility",
+     "referral_source": "other_facility"
+    }
+   ],
+   "baseline": {
+    "height_cm": 165,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -245,
+     "type": "scheduled",
+     "weight_kg": 63.0,
+     "bp": [
+      [
+       118,
+       74
+      ],
+      [
+       114,
+       70
+      ]
+     ],
+     "medicines": [
+      "isophane insulin",
+      "soluble insulin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -182,
+     "glucose": {
+      "value": 9.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -182,
+     "type": "scheduled",
+     "weight_kg": 62.5,
+     "bp": [
+      [
+       119,
+       75
+      ],
+      [
+       115,
+       71
+      ]
+     ],
+     "medicines": [
+      "isophane insulin",
+      "soluble insulin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -119,
+     "glucose": {
+      "value": 8.9,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -119,
+     "type": "scheduled",
+     "weight_kg": 62.0,
+     "bp": [
+      [
+       119,
+       75
+      ],
+      [
+       115,
+       71
+      ]
+     ],
+     "medicines": [
+      "isophane insulin",
+      "soluble insulin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -56,
+     "glucose": {
+      "value": 8.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -56,
+     "type": "scheduled",
+     "weight_kg": 61.5,
+     "bp": [
+      [
+       120,
+       76
+      ],
+      [
+       116,
+       72
+      ]
+     ],
+     "medicines": [
+      "isophane insulin",
+      "soluble insulin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0,
+     "glucose": {
+      "value": 7.9,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -119,
+     "creatinine_umol_l": 58,
+     "urine_test": "acr",
+     "acr_mg_mmol": 2.1
+    },
+    {
+     "component": "eyes",
+     "day": -119,
+     "examined": true,
+     "method": "dilated_fundoscopy",
+     "retinopathy_grade": "no_apparent_retinopathy",
+     "macular_oedema": "absent",
+     "referred": false
+    },
+    {
+     "component": "feet",
+     "day": -119,
+     "loss_of_protective_sensation": false,
+     "absent_pulses": false,
+     "deformity": false,
+     "current_ulcer": false,
+     "previous_ulcer": false,
+     "amputation": "none"
+    },
+    {
+     "component": "lipids",
+     "day": -119,
+     "total_cholesterol_mmol_l": 4.1,
+     "ldl_mmol_l": 2.2
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "08:44",
+    "stage": "waiting"
+   },
+   "expect": {
+    "review_due": [
+     "hba1c"
+    ]
+   }
+  },
+  {
+   "key": "JO",
+   "registry_number": "DEMO-00611",
+   "is_synthetic": true,
+   "given_name": "James",
+   "family_name": "Okello",
+   "sex": "male",
+   "age_years_at_day_0": 59,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 630",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Mukono",
+    "sub_county": "Mukono Central",
+    "parish": "Ntawo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 4,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -395,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 175,
+    "tobacco": "current",
+    "alcohol": "regular"
+   },
+   "visits": [
+    {
+     "day": -350,
+     "type": "scheduled",
+     "weight_kg": 83.5,
+     "bp": [
+      [
+       160,
+       98
+      ],
+      [
+       156,
+       94
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -280
+    },
+    {
+     "day": -280,
+     "type": "scheduled",
+     "weight_kg": 83.1,
+     "bp": [
+      [
+       156,
+       96
+      ],
+      [
+       152,
+       92
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -210
+    },
+    {
+     "day": -210,
+     "type": "scheduled",
+     "weight_kg": 82.8,
+     "bp": [
+      [
+       152,
+       94
+      ],
+      [
+       148,
+       90
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -140,
+     "medicines_not_obtained_reason": "stock_out"
+    },
+    {
+     "day": -140,
+     "type": "scheduled",
+     "weight_kg": 82.4,
+     "bp": [
+      [
+       148,
+       92
+      ],
+      [
+       144,
+       88
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -70,
+     "medicines_not_obtained_reason": "stock_out"
+    },
+    {
+     "day": -70,
+     "type": "scheduled",
+     "weight_kg": 82.0,
+     "bp": [
+      [
+       144,
+       90
+      ],
+      [
+       140,
+       86
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -210,
+     "creatinine_umol_l": 97,
+     "urine_test": "dipstick",
+     "dipstick": "trace"
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "08:51",
+    "stage": "waiting"
+   },
+   "expect": {
+    "review_due": [
+     "lipids"
+    ]
+   }
+  },
+  {
+   "key": "SW",
+   "registry_number": "DEMO-00127",
+   "is_synthetic": true,
+   "given_name": "Sarah",
+   "family_name": "Wanyana",
+   "sex": "female",
+   "age_years_at_day_0": 72,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 742",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Kawempe",
+    "parish": "Bwaise II"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 18,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -990,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    },
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 20,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -990,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 156,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -504,
+     "type": "scheduled",
+     "weight_kg": 67.5,
+     "bp": [
+      [
+       146,
+       88
+      ],
+      [
+       142,
+       84
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -420,
+     "glucose": {
+      "value": 7.2,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -420,
+     "type": "scheduled",
+     "weight_kg": 67.2,
+     "bp": [
+      [
+       144,
+       87
+      ],
+      [
+       140,
+       83
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -336,
+     "glucose": {
+      "value": 7.0,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -336,
+     "type": "scheduled",
+     "weight_kg": 66.9,
+     "bp": [
+      [
+       143,
+       86
+      ],
+      [
+       139,
+       82
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -252,
+     "glucose": {
+      "value": 6.9,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -252,
+     "type": "scheduled",
+     "weight_kg": 66.6,
+     "bp": [
+      [
+       141,
+       86
+      ],
+      [
+       137,
+       82
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -168,
+     "glucose": {
+      "value": 6.7,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -168,
+     "type": "scheduled",
+     "weight_kg": 66.3,
+     "bp": [
+      [
+       140,
+       85
+      ],
+      [
+       136,
+       81
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -84,
+     "glucose": {
+      "value": 6.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none",
+     "hba1c": {
+      "value_percent": 6.9,
+      "result_day": -170
+     }
+    },
+    {
+     "day": -84,
+     "type": "scheduled",
+     "weight_kg": 66.0,
+     "bp": [
+      [
+       138,
+       84
+      ],
+      [
+       134,
+       80
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0,
+     "glucose": {
+      "value": 6.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -168,
+     "creatinine_umol_l": 79,
+     "urine_test": "acr",
+     "acr_mg_mmol": 2.4
+    },
+    {
+     "component": "feet",
+     "day": -168,
+     "loss_of_protective_sensation": false,
+     "absent_pulses": false,
+     "deformity": false,
+     "current_ulcer": false,
+     "previous_ulcer": false,
+     "amputation": "none"
+    },
+    {
+     "component": "lipids",
+     "day": -168,
+     "total_cholesterol_mmol_l": 4.9,
+     "ldl_mmol_l": 2.7
+    },
+    {
+     "component": "eyes",
+     "day": -520,
+     "examined": true,
+     "method": "dilated_fundoscopy",
+     "retinopathy_grade": "no_apparent_retinopathy",
+     "macular_oedema": "absent",
+     "referred": false
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": "09:05",
+    "stage": "waiting"
+   },
+   "expect": {
+    "review_due": [
+     "eyes"
+    ]
+   }
+  },
+  {
+   "key": "EK",
+   "registry_number": "DEMO-00298",
+   "is_synthetic": true,
+   "given_name": "Emmanuel",
+   "family_name": "Kato",
+   "sex": "male",
+   "age_years_at_day_0": 45,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 815",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Entebbe Division A",
+    "parish": "Kiwafu"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 1,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -230,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 178,
+    "tobacco": "never",
+    "alcohol": "occasional"
+   },
+   "visits": [
+    {
+     "day": -224,
+     "type": "scheduled",
+     "weight_kg": 89.5,
+     "bp": [
+      [
+       132,
+       84
+      ],
+      [
+       128,
+       80
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -168,
+     "glucose": {
+      "value": 12.8,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none",
+     "hba1c": {
+      "value_percent": 9.1,
+      "result_day": -224
+     }
+    },
+    {
+     "day": -168,
+     "type": "scheduled",
+     "weight_kg": 89.0,
+     "bp": [
+      [
+       131,
+       83
+      ],
+      [
+       127,
+       79
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -112,
+     "glucose": {
+      "value": 12.1,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -112,
+     "type": "scheduled",
+     "weight_kg": 88.5,
+     "bp": [
+      [
+       131,
+       83
+      ],
+      [
+       127,
+       79
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -56,
+     "glucose": {
+      "value": 11.3,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -56,
+     "type": "scheduled",
+     "weight_kg": 88.0,
+     "bp": [
+      [
+       130,
+       82
+      ],
+      [
+       126,
+       78
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0,
+     "glucose": {
+      "value": 10.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -168,
+     "creatinine_umol_l": 84,
+     "urine_test": "dipstick",
+     "dipstick": "negative"
+    },
+    {
+     "component": "eyes",
+     "day": -168,
+     "examined": true,
+     "method": "fundus_photograph",
+     "retinopathy_grade": "no_apparent_retinopathy",
+     "macular_oedema": "absent",
+     "referred": false
+    },
+    {
+     "component": "feet",
+     "day": -168,
+     "loss_of_protective_sensation": false,
+     "absent_pulses": false,
+     "deformity": false,
+     "current_ulcer": false,
+     "previous_ulcer": false,
+     "amputation": "none"
+    },
+    {
+     "component": "lipids",
+     "day": -168,
+     "total_cholesterol_mmol_l": 5.2,
+     "ldl_mmol_l": 3.1
+    }
+   ],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": null,
+    "stage": "not_arrived"
+   },
+   "expect": {
+    "review_due": [],
+    "glucose_class_last_closed_visit": "moderately_raised"
+   }
+  },
+  {
+   "key": "PN",
+   "registry_number": "DEMO-00754",
+   "is_synthetic": true,
+   "given_name": "Prossy",
+   "family_name": "Namutebi",
+   "sex": "female",
+   "age_years_at_day_0": 64,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 968",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Nakawa",
+    "parish": "Bukoto I"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 11,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -330,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 158,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -315,
+     "type": "scheduled",
+     "weight_kg": 75.5,
+     "bp": [
+      [
+       160,
+       98
+      ],
+      [
+       156,
+       94
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -252
+    },
+    {
+     "day": -252,
+     "type": "scheduled",
+     "weight_kg": 75.1,
+     "bp": [
+      [
+       162,
+       99
+      ],
+      [
+       158,
+       95
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -189
+    },
+    {
+     "day": -189,
+     "type": "scheduled",
+     "weight_kg": 74.8,
+     "bp": [
+      [
+       163,
+       100
+      ],
+      [
+       159,
+       96
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -126,
+     "medicines_not_obtained_reason": "stock_out"
+    },
+    {
+     "day": -126,
+     "type": "scheduled",
+     "weight_kg": 74.4,
+     "bp": [
+      [
+       164,
+       101
+      ],
+      [
+       160,
+       97
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -63
+    },
+    {
+     "day": -63,
+     "type": "scheduled",
+     "weight_kg": 74.0,
+     "bp": [
+      [
+       166,
+       102
+      ],
+      [
+       162,
+       98
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 0
+    }
+   ],
+   "reviews": [],
+   "today": {
+    "appointment_day": 0,
+    "arrived_at": null,
+    "stage": "not_arrived"
+   },
+   "expect": {
+    "review_due": [
+     "kidney",
+     "lipids"
+    ],
+    "bp_class_last_closed_visit": "not_in_range"
+   }
+  },
+  {
+   "key": "GW",
+   "registry_number": "DEMO-00436",
+   "is_synthetic": true,
+   "given_name": "George",
+   "family_name": "Wasswa",
+   "sex": "male",
+   "age_years_at_day_0": 66,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 418",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Rubaga",
+    "parish": "Mengo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -418,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -286,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       160,
+       102
+      ],
+      [
+       156,
+       98
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -230,
+     "medicines_not_obtained_reason": "cost"
+    },
+    {
+     "day": -230,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       158,
+       101
+      ],
+      [
+       154,
+       97
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -174,
+     "medicines_not_obtained_reason": "cost"
+    },
+    {
+     "day": -174,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       156,
+       99
+      ],
+      [
+       152,
+       95
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -118
+    },
+    {
+     "day": -118,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       154,
+       98
+      ],
+      [
+       150,
+       94
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -62
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -62,
+    "days_overdue_at_day_0": 62,
+    "calls": [
+     {
+      "day": -4,
+      "outcome": "no_answer"
+     }
+    ]
+   }
+  },
+  {
+   "key": "FN",
+   "registry_number": "DEMO-00781",
+   "is_synthetic": true,
+   "given_name": "Florence",
+   "family_name": "Nabirye",
+   "sex": "female",
+   "age_years_at_day_0": 58,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 902",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Mukono",
+    "sub_county": "Mukono Central",
+    "parish": "Ntawo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -404,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -272,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       166,
+       104
+      ],
+      [
+       162,
+       100
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -216,
+     "medicines_not_obtained_reason": "cost"
+    },
+    {
+     "day": -216,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       164,
+       103
+      ],
+      [
+       160,
+       99
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -160
+    },
+    {
+     "day": -160,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       162,
+       101
+      ],
+      [
+       158,
+       97
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -104
+    },
+    {
+     "day": -104,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       160,
+       100
+      ],
+      [
+       156,
+       96
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -48
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -48,
+    "days_overdue_at_day_0": 48,
+    "calls": []
+   },
+   "preview_role": "Selected row on the Recall screen"
+  },
+  {
+   "key": "CO",
+   "registry_number": "DEMO-00305",
+   "is_synthetic": true,
+   "given_name": "Charles",
+   "family_name": "Opio",
+   "sex": "male",
+   "age_years_at_day_0": 51,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 377",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Kira",
+    "parish": "Kireka"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -397,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -265,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       136,
+       88
+      ],
+      [
+       132,
+       84
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -209,
+     "glucose": {
+      "value": 13.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -209,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       134,
+       87
+      ],
+      [
+       130,
+       83
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -153,
+     "glucose": {
+      "value": 13.2,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -153,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       132,
+       85
+      ],
+      [
+       128,
+       81
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -97,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 12.8,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -97,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       130,
+       84
+      ],
+      [
+       126,
+       80
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -41,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 12.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -41,
+    "days_overdue_at_day_0": 41,
+    "calls": [
+     {
+      "day": -3,
+      "outcome": "call_later"
+     }
+    ]
+   }
+  },
+  {
+   "key": "VM",
+   "registry_number": "DEMO-00629",
+   "is_synthetic": true,
+   "given_name": "Violet",
+   "family_name": "Mbabazi",
+   "sex": "female",
+   "age_years_at_day_0": 49,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 150",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Nakawa",
+    "parish": "Bukoto I"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -390,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -258,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       142,
+       90
+      ],
+      [
+       138,
+       86
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -202,
+     "medicines_not_obtained_reason": "stock_out"
+    },
+    {
+     "day": -202,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       140,
+       89
+      ],
+      [
+       136,
+       85
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -146
+    },
+    {
+     "day": -146,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       138,
+       87
+      ],
+      [
+       134,
+       83
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -90
+    },
+    {
+     "day": -90,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       136,
+       86
+      ],
+      [
+       132,
+       82
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -34,
+     "medicines_not_obtained_reason": "stock_out"
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -34,
+    "days_overdue_at_day_0": 34,
+    "calls": [
+     {
+      "day": -1,
+      "outcome": "will_return",
+      "new_appointment_day": 3
+     }
+    ]
+   }
+  },
+  {
+   "key": "DK",
+   "registry_number": "DEMO-00088",
+   "is_synthetic": true,
+   "given_name": "David",
+   "family_name": "Kiggundu",
+   "sex": "male",
+   "age_years_at_day_0": 70,
+   "date_of_birth_estimated": true,
+   "phone_1": null,
+   "sms_allowed": false,
+   "calls_allowed": false,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Nansana",
+    "parish": "Nabweru North"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -383,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -251,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       146,
+       90
+      ],
+      [
+       142,
+       86
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -195,
+     "glucose": {
+      "value": 11.0,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -195,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       144,
+       89
+      ],
+      [
+       140,
+       85
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -139,
+     "glucose": {
+      "value": 10.6,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -139,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       142,
+       87
+      ],
+      [
+       138,
+       83
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -83,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 10.2,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -83,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       140,
+       86
+      ],
+      [
+       136,
+       82
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -27,
+     "glucose": {
+      "value": 9.8,
+      "type": "random",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -27,
+    "days_overdue_at_day_0": 27,
+    "calls": []
+   }
+  },
+  {
+   "key": "TL",
+   "registry_number": "DEMO-00340",
+   "is_synthetic": true,
+   "given_name": "Teddy",
+   "family_name": "Lakot",
+   "sex": "female",
+   "age_years_at_day_0": 44,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 664",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Kawempe",
+    "parish": "Bwaise II"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -376,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -244,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       132,
+       84
+      ],
+      [
+       128,
+       80
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -188,
+     "glucose": {
+      "value": 9.8,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -188,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       130,
+       83
+      ],
+      [
+       126,
+       79
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -132,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 9.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -132,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       128,
+       81
+      ],
+      [
+       124,
+       77
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -76,
+     "glucose": {
+      "value": 9.0,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -76,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       126,
+       80
+      ],
+      [
+       122,
+       76
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -20,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 8.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -20,
+    "days_overdue_at_day_0": 20,
+    "calls": []
+   }
+  },
+  {
+   "key": "HS",
+   "registry_number": "DEMO-00112",
+   "is_synthetic": true,
+   "given_name": "Hassan",
+   "family_name": "Ssebunya",
+   "sex": "male",
+   "age_years_at_day_0": 39,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 281",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Makindye",
+    "parish": "Kibuye I"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -369,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -237,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       136,
+       84
+      ],
+      [
+       132,
+       80
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -181
+    },
+    {
+     "day": -181,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       134,
+       83
+      ],
+      [
+       130,
+       79
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -125
+    },
+    {
+     "day": -125,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       132,
+       81
+      ],
+      [
+       128,
+       77
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -69
+    },
+    {
+     "day": -69,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       130,
+       80
+      ],
+      [
+       126,
+       76
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -13,
+     "medicines_not_obtained_reason": "cost"
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -13,
+    "days_overdue_at_day_0": 13,
+    "calls": [
+     {
+      "day": -2,
+      "outcome": "wrong_number"
+     }
+    ]
+   },
+   "phone_1_flagged_invalid": true
+  },
+  {
+   "key": "BA",
+   "registry_number": "DEMO-00519",
+   "is_synthetic": true,
+   "given_name": "Betty",
+   "family_name": "Auma",
+   "sex": "female",
+   "age_years_at_day_0": 62,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 733",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Entebbe Division A",
+    "parish": "Kiwafu"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 6,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -362,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 166,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -230,
+     "type": "scheduled",
+     "weight_kg": 77.5,
+     "bp": [
+      [
+       138,
+       86
+      ],
+      [
+       134,
+       82
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -174,
+     "medicines_not_obtained_reason": "stock_out",
+     "glucose": {
+      "value": 7.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -174,
+     "type": "scheduled",
+     "weight_kg": 77.0,
+     "bp": [
+      [
+       136,
+       85
+      ],
+      [
+       132,
+       81
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -118,
+     "glucose": {
+      "value": 7.0,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -118,
+     "type": "scheduled",
+     "weight_kg": 76.5,
+     "bp": [
+      [
+       134,
+       83
+      ],
+      [
+       130,
+       79
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -62,
+     "glucose": {
+      "value": 6.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -62,
+     "type": "scheduled",
+     "weight_kg": 76.0,
+     "bp": [
+      [
+       132,
+       82
+      ],
+      [
+       128,
+       78
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -6,
+     "glucose": {
+      "value": 6.2,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [],
+   "recall": {
+    "missed_appointment_day": -6,
+    "days_overdue_at_day_0": 6,
+    "calls": []
+   }
+  },
+  {
+   "key": "AK",
+   "registry_number": "DEMO-00761",
+   "is_synthetic": true,
+   "given_name": "Annet",
+   "family_name": "Nakato",
+   "sex": "female",
+   "age_years_at_day_0": 51,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 845",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Nakawa",
+    "parish": "Bukoto I"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 3,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -500,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 161,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -198,
+     "type": "scheduled",
+     "weight_kg": 71.5,
+     "bp": [
+      [
+       152,
+       96
+      ],
+      [
+       148,
+       92
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -142
+    },
+    {
+     "day": -142,
+     "type": "scheduled",
+     "weight_kg": 71.0,
+     "bp": [
+      [
+       147,
+       93
+      ],
+      [
+       143,
+       89
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -86,
+     "medicines_not_obtained_reason": "stock_out"
+    },
+    {
+     "day": -86,
+     "type": "scheduled",
+     "weight_kg": 70.5,
+     "bp": [
+      [
+       143,
+       89
+      ],
+      [
+       139,
+       85
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -30
+    },
+    {
+     "day": -30,
+     "type": "scheduled",
+     "weight_kg": 70.0,
+     "bp": [
+      [
+       138,
+       86
+      ],
+      [
+       134,
+       82
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 26
+    }
+   ],
+   "reviews": []
+  },
+  {
+   "key": "NN",
+   "registry_number": "DEMO-00044",
+   "is_synthetic": true,
+   "given_name": "Norah",
+   "family_name": "Nakatto",
+   "sex": "female",
+   "age_years_at_day_0": 58,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 093",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Entebbe Division A",
+    "parish": "Kiwafu"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 5,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -200,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 159,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -147,
+     "type": "scheduled",
+     "weight_kg": 73.5,
+     "bp": [
+      [
+       132,
+       84
+      ],
+      [
+       128,
+       80
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -84,
+     "medicines_not_obtained_reason": "cost",
+     "glucose": {
+      "value": 8.8,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -84,
+     "type": "scheduled",
+     "weight_kg": 72.8,
+     "bp": [
+      [
+       130,
+       83
+      ],
+      [
+       126,
+       79
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -21,
+     "glucose": {
+      "value": 8.1,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -21,
+     "type": "scheduled",
+     "weight_kg": 72.0,
+     "bp": [
+      [
+       128,
+       82
+      ],
+      [
+       124,
+       78
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 42,
+     "glucose": {
+      "value": 7.4,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": []
+  },
+  {
+   "key": "PK",
+   "registry_number": "DEMO-00021",
+   "is_synthetic": true,
+   "given_name": "Peter",
+   "family_name": "Kasozi",
+   "sex": "male",
+   "age_years_at_day_0": 74,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 512",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Rubaga",
+    "parish": "Mengo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 22,
+     "basis_of_diagnosis": "on_treatment_at_referral",
+     "registered_day": -1100,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    },
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 25,
+     "basis_of_diagnosis": "on_treatment_at_referral",
+     "registered_day": -1100,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 168,
+    "tobacco": "former",
+    "alcohol": "none",
+    "known_cardiovascular_disease": [
+     "heart_failure"
+    ],
+    "known_kidney_disease": true
+   },
+   "visits": [
+    {
+     "day": -327,
+     "type": "scheduled",
+     "weight_kg": 71.5,
+     "bp": [
+      [
+       156,
+       92
+      ],
+      [
+       152,
+       88
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -264,
+     "glucose": {
+      "value": 9.0,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -264,
+     "type": "scheduled",
+     "weight_kg": 71.1,
+     "bp": [
+      [
+       155,
+       92
+      ],
+      [
+       151,
+       88
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -201,
+     "glucose": {
+      "value": 9.2,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -201,
+     "type": "scheduled",
+     "weight_kg": 70.8,
+     "bp": [
+      [
+       154,
+       91
+      ],
+      [
+       150,
+       87
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -138,
+     "medicines_not_obtained_reason": "stock_out",
+     "glucose": {
+      "value": 9.3,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -138,
+     "type": "scheduled",
+     "weight_kg": 70.4,
+     "bp": [
+      [
+       153,
+       90
+      ],
+      [
+       149,
+       86
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -75,
+     "glucose": {
+      "value": 9.5,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -75,
+     "type": "scheduled",
+     "weight_kg": 70.0,
+     "bp": [
+      [
+       152,
+       90
+      ],
+      [
+       148,
+       86
+      ]
+     ],
+     "medicines": [
+      "metformin",
+      "amlodipine",
+      "losartan",
+      "atorvastatin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -12,
+     "glucose": {
+      "value": 9.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -201,
+     "creatinine_umol_l": 212,
+     "urine_test": "acr",
+     "acr_mg_mmol": 62
+    }
+   ],
+   "events": [
+    {
+     "type": "dialysis_start",
+     "day": -180,
+     "reporting_unit": "dialysis_unit"
+    },
+    {
+     "type": "admission",
+     "day": -44,
+     "main_reason": "heart_failure",
+     "reporting_unit": "medical_ward"
+    },
+    {
+     "type": "death",
+     "day": -40,
+     "place": "this_facility",
+     "information_source": "ward",
+     "reporting_unit": "medical_ward"
+    }
+   ],
+   "expect": {
+    "status": "died",
+    "reminders_pending": 0
+   }
+  },
+  {
+   "key": "JN",
+   "registry_number": "DEMO-00063",
+   "is_synthetic": true,
+   "given_name": "Joyce",
+   "family_name": "Nambi",
+   "sex": "female",
+   "age_years_at_day_0": 57,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 277",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Mukono",
+    "sub_county": "Mukono Central",
+    "parish": "Ntawo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 8,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -800,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 162,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -374,
+     "type": "scheduled",
+     "weight_kg": 69.5,
+     "bp": [
+      [
+       142,
+       90
+      ],
+      [
+       138,
+       86
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -304,
+     "medicines_not_obtained_reason": "stock_out"
+    },
+    {
+     "day": -304,
+     "type": "scheduled",
+     "weight_kg": 69.0,
+     "bp": [
+      [
+       139,
+       88
+      ],
+      [
+       135,
+       84
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "full",
+     "next_appointment_day": -234
+    },
+    {
+     "day": -234,
+     "type": "scheduled",
+     "weight_kg": 68.5,
+     "bp": [
+      [
+       137,
+       86
+      ],
+      [
+       133,
+       82
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -164
+    },
+    {
+     "day": -164,
+     "type": "scheduled",
+     "weight_kg": 68.0,
+     "bp": [
+      [
+       134,
+       84
+      ],
+      [
+       130,
+       80
+      ]
+     ],
+     "medicines": [
+      "amlodipine"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -94
+    }
+   ],
+   "reviews": [],
+   "events": [
+    {
+     "type": "transfer_out",
+     "day": -150,
+     "destination": "Health centre IV near home",
+     "reporting_unit": "ncd_clinic"
+    }
+   ],
+   "expect": {
+    "status": "transferred_out"
+   }
+  },
+  {
+   "key": "SO",
+   "registry_number": "DEMO-00009",
+   "is_synthetic": true,
+   "given_name": "Samuel",
+   "family_name": "Odongo",
+   "sex": "male",
+   "age_years_at_day_0": 63,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 190",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Kira",
+    "parish": "Kireka"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "diabetes",
+     "subtype": "type_2",
+     "diagnosed_years_before_day_0": 10,
+     "basis_of_diagnosis": "fasting_glucose",
+     "registered_day": -900,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 171,
+    "tobacco": "former",
+    "alcohol": "occasional"
+   },
+   "visits": [
+    {
+     "day": -550,
+     "type": "scheduled",
+     "weight_kg": 81.5,
+     "bp": [
+      [
+       140,
+       86
+      ],
+      [
+       136,
+       82
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -480,
+     "glucose": {
+      "value": 9.6,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -480,
+     "type": "scheduled",
+     "weight_kg": 80.8,
+     "bp": [
+      [
+       141,
+       87
+      ],
+      [
+       137,
+       83
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -410,
+     "glucose": {
+      "value": 9.9,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    },
+    {
+     "day": -410,
+     "type": "scheduled",
+     "weight_kg": 80.0,
+     "bp": [
+      [
+       142,
+       88
+      ],
+      [
+       138,
+       84
+      ]
+     ],
+     "medicines": [
+      "metformin"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -340,
+     "medicines_not_obtained_reason": "stock_out",
+     "glucose": {
+      "value": 10.2,
+      "type": "fasting",
+      "method": "capillary"
+     },
+     "hypoglycaemia": "none"
+    }
+   ],
+   "reviews": [],
+   "expect": {
+    "status": "lost_to_follow_up"
+   }
+  },
+  {
+   "key": "MK",
+   "registry_number": "DEMO-00801",
+   "is_synthetic": true,
+   "given_name": "Mary",
+   "family_name": "Kyomuhendo",
+   "sex": "female",
+   "age_years_at_day_0": 46,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 611",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Makindye",
+    "parish": "Kibuye I"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 9,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -420,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    },
+    {
+     "condition": "chronic_kidney_disease",
+     "subtype": "unknown",
+     "diagnosed_years_before_day_0": 2,
+     "basis_of_diagnosis": "unknown",
+     "registered_day": -300,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 164,
+    "tobacco": "never",
+    "alcohol": "none",
+    "known_kidney_disease": true
+   },
+   "visits": [
+    {
+     "day": -224,
+     "type": "scheduled",
+     "weight_kg": 68.5,
+     "bp": [
+      [
+       152,
+       94
+      ],
+      [
+       148,
+       90
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -161,
+     "recorded_control": {
+      "chronic_kidney_disease": "not_assessed"
+     },
+     "observations": {
+      "dialysis_status": "none"
+     }
+    },
+    {
+     "day": -161,
+     "type": "scheduled",
+     "weight_kg": 68.0,
+     "bp": [
+      [
+       151,
+       93
+      ],
+      [
+       147,
+       89
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -98,
+     "recorded_control": {
+      "chronic_kidney_disease": "partly_controlled"
+     },
+     "observations": {
+      "dialysis_status": "none"
+     }
+    },
+    {
+     "day": -98,
+     "type": "scheduled",
+     "weight_kg": 67.5,
+     "bp": [
+      [
+       149,
+       93
+      ],
+      [
+       145,
+       89
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -35,
+     "medicines_not_obtained_reason": "cost",
+     "recorded_control": {
+      "chronic_kidney_disease": "partly_controlled"
+     },
+     "observations": {
+      "dialysis_status": "none"
+     }
+    },
+    {
+     "day": -35,
+     "type": "scheduled",
+     "weight_kg": 67.0,
+     "bp": [
+      [
+       148,
+       92
+      ],
+      [
+       144,
+       88
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": 28,
+     "medicines_not_obtained_reason": "stock_out",
+     "recorded_control": {
+      "chronic_kidney_disease": "partly_controlled"
+     },
+     "observations": {
+      "dialysis_status": "none"
+     }
+    }
+   ],
+   "reviews": [
+    {
+     "component": "kidney",
+     "day": -98,
+     "creatinine_umol_l": 148,
+     "urine_test": "acr",
+     "acr_mg_mmol": 45
+    }
+   ],
+   "expect": {
+    "kdigo_g": "G3b",
+    "kdigo_a": "A3",
+    "care_band": "either_with_complications"
+   }
+  },
+  {
+   "key": "RA",
+   "registry_number": "DEMO-00802",
+   "is_synthetic": true,
+   "given_name": "Robert",
+   "family_name": "Angura",
+   "sex": "male",
+   "age_years_at_day_0": 67,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 428",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Mukono",
+    "sub_county": "Mukono Central",
+    "parish": "Ntawo"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "hypertension",
+     "subtype": "primary",
+     "diagnosed_years_before_day_0": 14,
+     "basis_of_diagnosis": "repeated_office_bp",
+     "registered_day": -380,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    },
+    {
+     "condition": "heart_failure",
+     "subtype": "unknown",
+     "diagnosed_years_before_day_0": 1,
+     "basis_of_diagnosis": "unknown",
+     "registered_day": -260,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 174,
+    "tobacco": "former",
+    "alcohol": "none",
+    "known_cardiovascular_disease": [
+     "heart_failure"
+    ]
+   },
+   "visits": [
+    {
+     "day": -196,
+     "type": "scheduled",
+     "weight_kg": 80.5,
+     "bp": [
+      [
+       140,
+       86
+      ],
+      [
+       136,
+       82
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -140,
+     "recorded_control": {
+      "heart_failure": "partly_controlled"
+     },
+     "observations": {
+      "nyha_class": "III",
+      "oedema": true
+     }
+    },
+    {
+     "day": -140,
+     "type": "scheduled",
+     "weight_kg": 80.0,
+     "bp": [
+      [
+       139,
+       85
+      ],
+      [
+       135,
+       81
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -84,
+     "medicines_not_obtained_reason": "stock_out",
+     "recorded_control": {
+      "heart_failure": "partly_controlled"
+     },
+     "observations": {
+      "nyha_class": "II",
+      "oedema": true
+     }
+    },
+    {
+     "day": -84,
+     "type": "scheduled",
+     "weight_kg": 79.5,
+     "bp": [
+      [
+       137,
+       85
+      ],
+      [
+       133,
+       81
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -28,
+     "recorded_control": {
+      "heart_failure": "controlled"
+     },
+     "observations": {
+      "nyha_class": "II",
+      "oedema": false
+     }
+    },
+    {
+     "day": -28,
+     "type": "scheduled",
+     "weight_kg": 79.0,
+     "bp": [
+      [
+       136,
+       84
+      ],
+      [
+       132,
+       80
+      ]
+     ],
+     "medicines": [
+      "amlodipine",
+      "losartan"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 28,
+     "recorded_control": {
+      "heart_failure": "controlled"
+     },
+     "observations": {
+      "nyha_class": "II",
+      "oedema": false
+     }
+    }
+   ],
+   "reviews": [],
+   "events": [
+    {
+     "type": "admission",
+     "day": -270,
+     "main_reason": "heart_failure",
+     "reporting_unit": "medical_ward"
+    }
+   ],
+   "expect": {
+    "care_band": "either_with_complications"
+   }
+  },
+  {
+   "key": "LN",
+   "registry_number": "DEMO-00803",
+   "is_synthetic": true,
+   "given_name": "Lydia",
+   "family_name": "Nansubuga",
+   "sex": "female",
+   "age_years_at_day_0": 29,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 356",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Kampala",
+    "sub_county": "Kawempe",
+    "parish": "Bwaise II"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "asthma",
+     "subtype": "unknown",
+     "diagnosed_years_before_day_0": 11,
+     "basis_of_diagnosis": "unknown",
+     "registered_day": -210,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 160,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -210,
+     "type": "scheduled",
+     "weight_kg": 59.5,
+     "bp": [
+      [
+       118,
+       74
+      ],
+      [
+       114,
+       70
+      ]
+     ],
+     "medicines": [
+      "other: recorded as free text in the demo"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -126,
+     "recorded_control": {
+      "asthma": "not_controlled"
+     },
+     "observations": {
+      "exacerbations_since_last_visit": 2
+     }
+    },
+    {
+     "day": -126,
+     "type": "scheduled",
+     "weight_kg": 58.8,
+     "bp": [
+      [
+       116,
+       73
+      ],
+      [
+       112,
+       69
+      ]
+     ],
+     "medicines": [
+      "other: recorded as free text in the demo"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": -42,
+     "recorded_control": {
+      "asthma": "partly_controlled"
+     },
+     "observations": {
+      "exacerbations_since_last_visit": 1
+     }
+    },
+    {
+     "day": -42,
+     "type": "scheduled",
+     "weight_kg": 58.0,
+     "bp": [
+      [
+       114,
+       72
+      ],
+      [
+       110,
+       68
+      ]
+     ],
+     "medicines": [
+      "other: recorded as free text in the demo"
+     ],
+     "missed_doses": "none",
+     "medicines_obtained": "full",
+     "next_appointment_day": 42,
+     "recorded_control": {
+      "asthma": "partly_controlled"
+     },
+     "observations": {
+      "exacerbations_since_last_visit": 1
+     }
+    }
+   ],
+   "reviews": [],
+   "expect": {
+    "care_band": null
+   }
+  },
+  {
+   "key": "TO",
+   "registry_number": "DEMO-00804",
+   "is_synthetic": true,
+   "given_name": "Tom",
+   "family_name": "Ojok",
+   "sex": "male",
+   "age_years_at_day_0": 35,
+   "date_of_birth_estimated": true,
+   "phone_1": "0700 000 079",
+   "sms_allowed": true,
+   "calls_allowed": true,
+   "residence": {
+    "district": "Wakiso",
+    "sub_county": "Nansana",
+    "parish": "Nabweru North"
+   },
+   "privacy_notice": {
+    "version": "0.1-draft"
+   },
+   "registrations": [
+    {
+     "condition": "epilepsy",
+     "subtype": "unknown",
+     "diagnosed_years_before_day_0": 16,
+     "basis_of_diagnosis": "unknown",
+     "registered_day": -190,
+     "where_first_diagnosed": "this_facility",
+     "referral_source": "outpatients"
+    }
+   ],
+   "baseline": {
+    "height_cm": 176,
+    "tobacco": "never",
+    "alcohol": "none"
+   },
+   "visits": [
+    {
+     "day": -189,
+     "type": "scheduled",
+     "weight_kg": 72.5,
+     "bp": [
+      [
+       124,
+       80
+      ],
+      [
+       120,
+       76
+      ]
+     ],
+     "medicines": [
+      "other: recorded as free text in the demo"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -119,
+     "medicines_not_obtained_reason": "cost",
+     "recorded_control": {
+      "epilepsy": "partly_controlled"
+     },
+     "observations": {
+      "seizures_since_last_visit": 2
+     }
+    },
+    {
+     "day": -119,
+     "type": "scheduled",
+     "weight_kg": 71.8,
+     "bp": [
+      [
+       122,
+       79
+      ],
+      [
+       118,
+       75
+      ]
+     ],
+     "medicines": [
+      "other: recorded as free text in the demo"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": -49,
+     "medicines_not_obtained_reason": "cost",
+     "recorded_control": {
+      "epilepsy": "controlled"
+     },
+     "observations": {
+      "seizures_since_last_visit": 0
+     }
+    },
+    {
+     "day": -49,
+     "type": "scheduled",
+     "weight_kg": 71.0,
+     "bp": [
+      [
+       120,
+       78
+      ],
+      [
+       116,
+       74
+      ]
+     ],
+     "medicines": [
+      "other: recorded as free text in the demo"
+     ],
+     "missed_doses": "1_to_2_days",
+     "medicines_obtained": "partial",
+     "next_appointment_day": 21,
+     "medicines_not_obtained_reason": "stock_out",
+     "recorded_control": {
+      "epilepsy": "controlled"
+     },
+     "observations": {
+      "seizures_since_last_visit": 0
+     }
+    }
+   ],
+   "reviews": [],
+   "expect": {
+    "care_band": null
+   }
+  }
+ ],
+ "duplicate_check_demo": {
+  "description": "Typing this new patient into Search and enrol must list the candidates in these tiers.",
+  "typed": {
+   "given_name": "Aminah",
+   "family_name": "Nakato",
+   "sex": "female",
+   "age_years_at_day_0": 54,
+   "phone_1": "0700 000 314"
+  },
+  "expected_candidates": [
+   {
+    "key": "AN",
+    "tier": "probable",
+    "matched": [
+     "phone",
+     "similar_name",
+     "sex",
+     "birth_year"
+    ]
+   },
+   {
+    "key": "AK",
+    "tier": "possible",
+    "matched": [
+     "similar_name",
+     "sex"
+    ]
+   },
+   {
+    "key": "NN",
+    "tier": "possible",
+    "matched": [
+     "similar_name",
+     "sex"
+    ]
+   }
+  ],
+  "expected_definite": []
+ },
+ "data_quality_demo": [
+  {
+   "rule": "type_1_without_insulin",
+   "how": "After loading, a demo-only edit removes insulin from the medicine list of RB at the latest closed visit in a second scenario step; the query list must then show one open query.",
+   "optional": true
+  },
+  {
+   "rule": "same_day_duplicate_visit",
+   "how": "Create a second visit for OL on day 0 through the offline path; both are kept and the pair appears on the query list.",
+   "optional": true
+  }
+ ],
+ "sms_templates_demo": [
+  {
+   "purpose": "appointment_reminder",
+   "language": "en",
+   "status": "draft",
+   "text": "You have an appointment at [HOSPITAL NAME] on [DATE]. Reply STOP to opt out."
+  },
+  {
+   "purpose": "missed_visit",
+   "language": "en",
+   "status": "draft",
+   "text": "You missed an appointment at [HOSPITAL NAME]. Please call [CLINIC PHONE] to book a new date. Reply STOP to opt out."
+  },
+  {
+   "purpose": "appointment_reminder",
+   "language": "lg",
+   "status": "pending_review",
+   "text": ""
+  },
+  {
+   "purpose": "missed_visit",
+   "language": "lg",
+   "status": "pending_review",
+   "text": ""
+  }
+ ],
+ "generator": {
+  "used_by_mode": "full_clinic",
+  "seed": 20261005,
+  "history_months": 18,
+  "registry_number_series": "DEMO-10000 upward",
+  "target_registered_excluding_died": 1284,
+  "registered_by_condition": {
+   "hypertension": 1046,
+   "diabetes": 624,
+   "both_of_the_above": 386
+  },
+  "registered_by_condition_note": "Targets within 2 percent, not exact counts. The registered total of 1,284 includes the scenario patients and every condition.",
+  "other_modules": {
+   "chronic_kidney_disease": 40,
+   "heart_failure": 25,
+   "asthma": 30,
+   "epilepsy": 15
+  },
+  "other_modules_note": "Totals across the registry, counting the scenario patients MK, RA, LN and TO. Every generated registration in these modules is added to a generated person who already holds a hypertension or diabetes registration. Each such person's visits carry a clinician-recorded control status and the module's observations.",
+  "name_pools": {
+   "note": "Random pairings for generated persons. Never pair to reproduce a scenario patient's full name.",
+   "given_female": [
+    "Agnes",
+    "Alice",
+    "Annet",
+    "Beatrice",
+    "Betty",
+    "Catherine",
+    "Christine",
+    "Doreen",
+    "Esther",
+    "Florence",
+    "Grace",
+    "Harriet",
+    "Irene",
+    "Jane",
+    "Joyce",
+    "Juliet",
+    "Lydia",
+    "Margaret",
+    "Mary",
+    "Norah",
+    "Olivia",
+    "Patience",
+    "Prossy",
+    "Rebecca",
+    "Rose",
+    "Ruth",
+    "Sarah",
+    "Stella",
+    "Susan",
+    "Violet"
+   ],
+   "given_male": [
+    "Andrew",
+    "Brian",
+    "Charles",
+    "Daniel",
+    "David",
+    "Denis",
+    "Emmanuel",
+    "Francis",
+    "Fred",
+    "Geoffrey",
+    "George",
+    "Hassan",
+    "Henry",
+    "Isaac",
+    "James",
+    "John",
+    "Joseph",
+    "Julius",
+    "Kenneth",
+    "Moses",
+    "Patrick",
+    "Paul",
+    "Peter",
+    "Richard",
+    "Robert",
+    "Ronald",
+    "Samuel",
+    "Simon",
+    "Stephen",
+    "Tom"
+   ],
+   "family": [
+    "Acen",
+    "Achieng",
+    "Akello",
+    "Akena",
+    "Angura",
+    "Atim",
+    "Auma",
+    "Babirye",
+    "Birungi",
+    "Byaruhanga",
+    "Kaggwa",
+    "Kasozi",
+    "Katende",
+    "Kato",
+    "Kiggundu",
+    "Kizito",
+    "Kyomuhendo",
+    "Lakot",
+    "Lubega",
+    "Mbabazi",
+    "Mugisha",
+    "Mukasa",
+    "Musoke",
+    "Mutebi",
+    "Nabirye",
+    "Nakimuli",
+    "Nalubega",
+    "Nambi",
+    "Namutebi",
+    "Nansubuga",
+    "Ocen",
+    "Odongo",
+    "Ojok",
+    "Okello",
+    "Okot",
+    "Opio",
+    "Ssebunya",
+    "Ssemakula",
+    "Tumusiime",
+    "Wasswa"
+   ]
+  },
+  "sex_female_percent": 62,
+  "age_bands_percent": {
+   "18_29": 8,
+   "30_49": 34,
+   "50_69": 42,
+   "70_plus": 16
+  },
+  "visit_interval_days": {
+   "typical": 56,
+   "min": 28,
+   "max": 84
+  },
+  "share_with_no_phone_percent": 8,
+  "phone_pattern": "0700 00N NNN, unique per generated person, never reusing a scenario patient's number",
+  "glucose_type_mix_percent": {
+   "fasting": 88,
+   "random": 10,
+   "post_meal": 2
+  },
+  "monthly_in_range_percent": {
+   "note": "Twelve complete months, oldest first. The last value is the month before day 0. Each value is the share the indicator engine should report for that month: C04 for hypertension and C07 for diabetes, whose denominators include patients with no visit. Set the per-visit probabilities needed to produce it.",
+   "hypertension": [
+    38,
+    40,
+    41,
+    43,
+    44,
+    46,
+    47,
+    48,
+    50,
+    51,
+    51,
+    52
+   ],
+   "diabetes": [
+    17,
+    18,
+    18,
+    19,
+    20,
+    20,
+    21,
+    22,
+    22,
+    23,
+    23,
+    24
+   ]
+  },
+  "calibration_targets": {
+   "note": "Measured by the real indicator engine for the last complete month. A load outside tolerance fails the calibration test; adjust generator probabilities, never the indicator code.",
+   "counts": [
+    {
+     "indicator": "C01",
+     "label": "Patients under care",
+     "target": 1112,
+     "tolerance": 45
+    },
+    {
+     "indicator": "C03",
+     "label": "New registrations in the month",
+     "target": 41,
+     "tolerance": 12
+    },
+    {
+     "indicator": "C13",
+     "label": "Overdue on the 1st of the month",
+     "target": 214,
+     "tolerance": 45
+    }
+   ],
+   "percentages": [
+    {
+     "indicator": "C04",
+     "label": "Blood pressure below 140/90",
+     "target": 52,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C05",
+     "label": "Blood pressure 140/90 or above",
+     "target": 29,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C06",
+     "label": "No visit in 3 months, hypertension",
+     "target": 19,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C07",
+     "label": "Blood sugar in range",
+     "target": 24,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C08",
+     "label": "Blood sugar moderately raised",
+     "target": 33,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C09",
+     "label": "Blood sugar very raised",
+     "target": 17,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C10",
+     "label": "Random glucose only",
+     "target": 8,
+     "tolerance": 3
+    },
+    {
+     "indicator": "C11",
+     "label": "No visit in 3 months, diabetes",
+     "target": 18,
+     "tolerance": 4
+    },
+    {
+     "indicator": "C12",
+     "label": "Lost to follow-up at 12 months",
+     "target": 10,
+     "tolerance": 3
+    },
+    {
+     "indicator": "C15",
+     "label": "Returned within 15 days of a call",
+     "target": 45,
+     "tolerance": 10
+    },
+    {
+     "indicator": "H01",
+     "label": "HbA1c tested",
+     "target": 31,
+     "tolerance": 5
+    },
+    {
+     "indicator": "H02",
+     "label": "Kidney review done",
+     "target": 44,
+     "tolerance": 5
+    },
+    {
+     "indicator": "H03",
+     "label": "Eye examination done",
+     "target": 22,
+     "tolerance": 5
+    },
+    {
+     "indicator": "H04",
+     "label": "Foot examination done",
+     "target": 47,
+     "tolerance": 5
+    },
+    {
+     "indicator": "H06",
+     "label": "Statin on the medicine list, diabetes aged 40 or above",
+     "target": 58,
+     "tolerance": 6
+    }
+   ],
+   "distributions": [
+    {
+     "indicator": "H07",
+     "label": "Kidney function categories, percent of those reviewed",
+     "target": {
+      "G1": 29,
+      "G2": 41,
+      "G3a": 16,
+      "G3b": 8,
+      "G4": 4,
+      "G5": 2
+     },
+     "tolerance": 5
+    },
+    {
+     "indicator": "H12",
+     "label": "Care bands, percent of patients under care with diabetes or hypertension",
+     "target": {
+      "hypertension_only": 49,
+      "diabetes_only": 17,
+      "both_without_complications": 20,
+      "either_with_complications": 14
+     },
+     "tolerance": 8
+    },
+    {
+     "indicator": "C16",
+     "label": "Hypertension cohorts, percent below 140/90 one quarter after registration, oldest first",
+     "target": [
+      41,
+      44,
+      48,
+      50
+     ],
+     "tolerance": 8
+    }
+   ],
+   "events_per_1000_under_care_past_12_months": {
+    "tolerance_percent": 40,
+    "admission": 55,
+    "death": 24,
+    "foot_ulcer_new": 20,
+    "stroke": 13,
+    "dialysis_start": 8,
+    "amputation_minor_plus_major": 5
+   }
+  }
+ },
+ "counts": {
+  "scenario_patients": 26,
+  "visits": 110,
+  "today_appointments": 9,
+  "overdue": 8
+ }
+}

@@ -30,7 +30,13 @@ const eslintConfig = defineConfig([
     // meets on a phone get jsx-a11y's strict set as errors. eslint-config-next
     // already registers the plugin (at "warn", a handful of rules); this only
     // widens the rule set for these trees, so the plugin is not re-declared.
-    files: ["app/patient/**/*.{ts,tsx}", "app/reception/**/*.{ts,tsx}"],
+    files: [
+      "app/patient/**/*.{ts,tsx}",
+      "app/reception/**/*.{ts,tsx}",
+      // NCDSync (§11.5): every screen keyboard-operable with labelled inputs.
+      "app/ncd/**/*.{ts,tsx}",
+      "app/ncd-offline/**/*.{ts,tsx}",
+    ],
     rules: jsxA11y.flatConfigs.strict.rules,
   },
   globalIgnores([
