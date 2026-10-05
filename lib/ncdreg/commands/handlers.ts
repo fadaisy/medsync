@@ -1032,8 +1032,8 @@ export async function logCall(tx: NcdTx, ctx: NcdContext, p: Payload<"call.log">
     enteredByLabel: ctx.actorLabel("registry_officer"),
     ...who(ctx),
   });
-  if (p.outcome === "will_return" && p.newAppointmentDate)
-    await createAppointment(tx, ctx, p.personId, p.newAppointmentDate, { callId: p.callId });
+  // D-22: a will-return date is a promise recorded on the call, not a booked appointment: the patient
+  // stays overdue (and on the recall list) until a visit happens.
   if (p.outcome === "wrong_number")
     await tx
       .update(ncdPerson)

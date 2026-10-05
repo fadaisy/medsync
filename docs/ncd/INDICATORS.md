@@ -131,8 +131,8 @@ Each indicator's definition and version, and the golden-dataset expectation it i
 - Numerator: Appointment date passed with no visit, on the 1st of the month; excluding removed from the list and no phone number
 - Denominator: Patients under care
 - Version: ind-0.1.0-draft (draft)
-- Golden `C13`: num 9, den 58
-  - num: R01, R02, R06, R07, R08, R09, R11, R13, L02
+- Golden `C13`: num 10, den 58
+  - num: R01, R02, R06, R07, R08, R09, R10, R11, R13, L02
   - den: H01, H02, H03, H04, H05, H06, H08, H09, H10, H11, H12, H15, H16, H17, D01, D02, D03, D04, D05, D06, D07, D08, D09, D10, D11, D14, D15, D16, B01, B02, B03, B04, B05, B08, A01, A02, A03, A04, K01, K02, K03, X01, X02, X05, R01, R02, R03, R04, R05, R06, R07, R08, R09, R10, R11, R12, R13, L02
 
 ## C14 — Overdue patients called
@@ -140,9 +140,9 @@ Each indicator's definition and version, and the golden-dataset expectation it i
 - Numerator: Unique overdue patients called in the month
 - Denominator: C13 numerator
 - Version: ind-0.1.0-draft (draft)
-- Golden `C14`: num 5, den 9
+- Golden `C14`: num 5, den 10
   - num: R01, R02, R07, R08, R09
-  - den: R01, R02, R06, R07, R08, R09, R11, R13, L02
+  - den: R01, R02, R06, R07, R08, R09, R10, R11, R13, L02
 
 ## C15 — Returned to care
 

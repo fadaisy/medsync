@@ -595,12 +595,14 @@ export const EXPECTED: Record<string, GExpect> = {
       ],
     },
   },
-  // Overdue on 09-01 with phone, not declined: R01 R02 R06 R07 R08 R09 R11 (appt 08-31) R13 L02. Excluded: R03 no phone, R04 declined Aug, R05 wrong number Aug, R10 reset to 09-05, R12 appt 09-01.
+  // Overdue on 09-01 with phone, not declined: R01 R02 R06 R07 R08 R09 R10 R11 (appt 08-31) R13 L02. Excluded: R03 no phone, R04 declined Aug, R05 wrong number Aug, R12 appt 09-01.
+  // R10 re-derived after D-22 (2026-10-05): a will_return date is a promise recorded on the call, not a booked
+  // appointment (the demo catalogue keeps VM overdue after one), so R10's missed 08-10 appointment stands on 09-01.
   C13: {
-    num: 9,
+    num: 10,
     den: 58,
     who: {
-      num: ["R01", "R02", "R06", "R07", "R08", "R09", "R11", "R13", "L02"],
+      num: ["R01", "R02", "R06", "R07", "R08", "R09", "R10", "R11", "R13", "L02"],
       den: [
         "H01",
         "H02",
@@ -663,13 +665,13 @@ export const EXPECTED: Record<string, GExpect> = {
       ],
     },
   },
-  // Called in September: R01 R02 R07 R08 R09.
+  // Called in September: R01 R02 R07 R08 R09. Denominator = C13's numerator (R10 joined it under D-22; no September call).
   C14: {
     num: 5,
-    den: 9,
+    den: 10,
     who: {
       num: ["R01", "R02", "R07", "R08", "R09"],
-      den: ["R01", "R02", "R06", "R07", "R08", "R09", "R11", "R13", "L02"],
+      den: ["R01", "R02", "R06", "R07", "R08", "R09", "R10", "R11", "R13", "L02"],
     },
   },
   // Visit within 15 days of first Sept call: R01 (call 09-03, visit 09-10). R02 came 09-25, too late.

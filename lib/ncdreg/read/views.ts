@@ -7,11 +7,12 @@ import "server-only";
 
 import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 
-import { ncdAccessEvent, ncdAppointment, ncdCall, ncdPerson, ncdVisit } from "@/db/schema";
+import { ncdAccessEvent, ncdAppointment, ncdCall, ncdObservation, ncdPerson, ncdVisit } from "@/db/schema";
 import { formatUgPhone } from "@/lib/onboarding/fields";
 
 import { authorize, can, type NcdContext } from "../context";
 import { dec } from "../crypto";
+import { facilitySettings } from "../commands/shared";
 import { withNcd, type NcdTx } from "../db";
 import { normalisePhone } from "../identity";
 import type { DPerson } from "../indicators/dataset";
@@ -192,7 +193,8 @@ export async function todayClinic(ctx: NcdContext, date = ctx.today): Promise<{ 
     const p = byId.get(personId);
     const idn = ids.get(personId);
     if (!p || !idn) continue;
-    const visit = visits.filter((v) => v.personId === personId).at(-1);
+    // A same-day duplicate (a data-quality query) never hides the first visit of the day.
+    const visit = visits.find((v) => v.personId === personId);
     const appt = appts.find((a) => a.personId === personId);
     const prior = closedVisits(p).filter((v) => v.id !== visit?.id);
     const lastBp = [...prior].reverse().find((v) => v.bp);
@@ -388,3 +390,109 @@ export async function callsToday(ctx: NcdContext) {
 }
 
 export { CLASS_LABELS, can, classesAtVisit };
+
+/* ─── B1–B9 Visit capture ──────────────────────────────────────────────── */
+
+export async function visitView(ctx: NcdContext, visitId: string) {
+  authorize(ctx, "nurse_visit_write", "clinician_visit_write", "person_search", "demo_write");
+  const data = await withNcd(
+    ctx,
+    "app",
+    async (tx) => {
+      const [visit] = await tx.select().from(ncdVisit).where(eq(ncdVisit.id, visitId));
+      if (!visit) return null;
+      const obs = await tx.select().from(ncdObservation).where(eq(ncdObservation.visitId, visitId));
+      const [prev] = await tx
+        .select({ medicines: ncdVisit.medicines, other: ncdVisit.medicinesOtherCiphertext, date: ncdVisit.visitDate })
+        .from(ncdVisit)
+        .where(and(eq(ncdVisit.personId, visit.personId), eq(ncdVisit.status, "closed"), eq(ncdVisit.isInvalid, false), sql`${ncdVisit.id} <> ${visitId}`))
+        .orderBy(desc(ncdVisit.visitDate), desc(ncdVisit.closedAt))
+        .limit(1);
+      const settings = await facilitySettings(tx, ctx);
+      const [h] = await tx.select({ height: ncdPerson.heightCm }).from(ncdPerson).where(eq(ncdPerson.id, visit.personId));
+      return { visit, obs, prev: prev ?? null, settings, heightCm: h?.height ?? null };
+    },
+    ctx.db,
+  );
+  if (!data) return null;
+  const person = await personView(ctx, data.visit.personId);
+  if (!person) return null;
+  const v = data.visit;
+  return {
+    person,
+    visit: {
+      id: v.id,
+      personId: v.personId,
+      date: v.visitDate,
+      type: v.visitType,
+      stage: v.stage,
+      status: v.status,
+      weightKg: v.weightKg,
+      bp: v.bpReadings,
+      visitBp: v.visitSystolic != null ? `${v.visitSystolic}/${v.visitDiastolic}` : null,
+      bmi: v.bmi,
+      glucose: v.glucoseMmol != null ? { value: v.glucoseMmol, type: v.glucoseType, method: v.glucoseMethod } : null,
+      hba1c: v.hba1cPercent != null ? { percent: v.hba1cPercent, resultDate: v.hba1cResultDate } : null,
+      medicines: v.medicines,
+      medicinesOther: dec(v.medicinesOtherCiphertext),
+      medicinesConfirmedUnchanged: v.medicinesConfirmedUnchanged,
+      missedDoses: v.missedDoses,
+      hypoglycaemia: v.hypoglycaemia,
+      medicinesObtained: v.medicinesObtained,
+      notObtainedReason: v.notObtainedReason,
+      nextAppointmentDate: v.nextAppointmentDate,
+      disposition: v.disposition,
+      nurseSavedAt: v.nurseSavedAt?.toISOString() ?? null,
+      clinicianSavedAt: v.clinicianSavedAt?.toISOString() ?? null,
+      observations: data.obs.map((o) => ({ registrationId: o.registrationId, code: o.code, value: o.valueText ?? o.valueNum })),
+    },
+    carried: data.prev ? { codes: data.prev.medicines, other: dec(data.prev.other), from: data.prev.date } : null,
+    intervalsWeeks: data.settings.defaultIntervalWeeks,
+    glucoseUnit: data.settings.glucoseUnit,
+    heightCm: data.heightCm,
+  };
+}
+export type VisitView = NonNullable<Awaited<ReturnType<typeof visitView>>>;
+
+/** Details tab: identifiers decrypted for the record view (already audited by personView). */
+export async function personDetails(ctx: NcdContext, personId: string) {
+  authorize(ctx, "person_search", "drill_down", "recall_work", "data_quality", "demo_write");
+  return withNcd(
+    ctx,
+    "app",
+    async (tx) => {
+      const [p] = await tx.select().from(ncdPerson).where(eq(ncdPerson.id, personId));
+      if (!p) return null;
+      const nin = dec(p.nationalIdCiphertext);
+      return {
+        hospitalNumber: dec(p.hospitalNumberCiphertext),
+        nationalIdMasked: nin ? `•••• ${nin.slice(-4)}` : null,
+        dateOfBirth: p.dateOfBirth,
+        birthYear: p.birthYear,
+        dobEstimated: p.dobEstimated,
+        nokName: dec(p.nokNameCiphertext),
+        nokPhoneMasked: (() => {
+          const n = dec(p.nokPhoneCiphertext);
+          return n ? mask(n) : null;
+        })(),
+        district: p.districtName,
+        subcounty: p.subcountyName,
+        parish: dec(p.parishCiphertext),
+        village: dec(p.villageCiphertext),
+        heightCm: p.heightCm,
+        tobacco: p.tobacco,
+        alcohol: p.alcohol,
+        knownCvd: p.knownCvd,
+        knownKidneyDisease: p.knownKidneyDisease,
+        familyHistoryDiabetes: p.familyHistoryDiabetes,
+        familyHistoryHypertension: p.familyHistoryHypertension,
+        privacyNoticeVersion: p.privacyNoticeVersion,
+        privacyNoticeAckAt: p.privacyNoticeAckAt.toISOString(),
+        smsOptedOutAt: p.smsOptedOutAt?.toISOString() ?? null,
+        mergedIntoId: p.mergedIntoId,
+        enteredByLabel: p.enteredByLabel,
+      };
+    },
+    ctx.db,
+  );
+}

@@ -1546,7 +1546,7 @@ export const PATIENTS: GPatient[] = [
     events: [{ type: "transfer_out", date: "2026-09-08" }],
   },
   {
-    id: "R10", // appointment 08-10 missed, but an August call reset it to 09-05 → not overdue on 09-01
+    id: "R10", // appointment 08-10 missed; an August will-return promise (09-05) books nothing (D-22) → overdue on 09-01
     sex: "male",
     dateOfBirth: "1966-10-10",
     phone: true,

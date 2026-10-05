@@ -1,0 +1,16 @@
+# Lane B: dashboard, drill-down, monthly report (decisions and deviations, one line each)
+
+- Presenter `lib/ncdreg/read/dashboard.ts` loads ONE dataset and runs `computeIndicators` 12 times (trend months; the last is the reporting month); a `ponytail:` note marks the full-engine reruns as the upgrade point if slow.
+- Default month = last complete month; picker max = current month; a month still running is computed with asOf = today.
+- F6: `isSuppressed(n, ids, isSynthetic, canDrill)`: 1–4 hidden unless canDrill or every id behind the count is synthetic; a count with no ids (signed snapshot) is never exempt. Suppressed counts show "1–4", carry no %, and are never drawn (bar/column length would reveal them); a bar whose denominator is suppressed is not drawn.
+- The "N more than last month" C01 basis is omitted when either month's count is 1–4 for non-drill roles (conservative: ignores the synthetic exemption).
+- F2 links only for drill_down holders (dashboard only; the printed report has no links). Drill-down page re-runs the engine with the same month + filters, logs `logAccess(ctx, "drilldown", null, {code, part, month, count})`, lists names + registry numbers via `identities`, links to /ncd/patients/[personId].
+- Signing (F5): `storeSnapshot` needs snapshot_compute, which no person holds, so the sign action (report_sign checked first) computes the snapshot under a `system` principal context (userId null, as the monthly job) and then calls `signSnapshot` as the lead. The DB refusal text is shown as written ("Not signed: …"). Only months that have ended can be signed.
+- A signed month's report reads the stored snapshot results; unsigned months compute live. Both render the same `IndicatorTable` as the dashboard's Table view.
+- Colour (§11.4): outcome ramp teal-700/400/200/100 (leading = 700), greys ink-200 not_recorded, ink-300 no_visit, ink-400 not_assessed/not_classifiable; care bands sky-200/400/600/800; kidney G1–G5 grape-200…900 ramp (ruling: one place hue, ordinal lightness); meters iris; events slate-solid. No labels inside bars (dark-mode contrast flag in the design notes); every segment is labelled in its legend.
+- Leading-figure descriptor uses the module's `outcome_label` ("In range" / "Recorded as controlled"); legends use RULE_CLASS_PHRASES ("Below 140/90", "140/90 or above").
+- C16 card: non-leading measured classes are pooled by the engine as "other" and shown as "Not in range".
+- Care-band labels are built from the two band modules' catalogue labels (no label map exists in the standard).
+- Charts/Table switch is client state (ViewSwitcher); not in the URL.
+- F7: frame is `xl:h-[calc(100svh-3.5rem)] xl:overflow-hidden` (3.5rem = the shell's notice banner at two lines; at lg+ the shell has no top bar); conditions card is `xl:flex-1 min-h-0` with an inner `overflow-y-auto`. No browser runner: the contract is asserted on static markup (tests/ncdreg/dashboard.test.ts); the "four rows visible at 1440×1000" figure is unverified in a real browser. A third banner line would cost ~18px of the conditions card.
+- Tooltips: CSS-only bubble on hover and :focus-visible; non-link marks are `tabIndex=0 role="img"` with the same text as aria-label.

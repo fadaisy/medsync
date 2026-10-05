@@ -108,7 +108,9 @@ const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString("en
 
 /** The persistent, calm sync line (§9): items waiting and the time of the last sync. */
 export function SyncState() {
-  const { sync } = useOutbox();
+  const v = useContext(Ctx);
+  if (!v) return null; // print and static renders have no device store
+  const { sync } = v;
   const Icon = !sync.online ? CloudOffIcon : sync.waiting ? RefreshCwIcon : CheckIcon;
   const text = !sync.online
     ? `Offline. ${sync.waiting} ${sync.waiting === 1 ? "entry" : "entries"} waiting to sync · last sync ${time(sync.lastSync)}`
