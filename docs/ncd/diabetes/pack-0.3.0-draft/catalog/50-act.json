@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.1-draft",
+  "version": "0.4.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -3089,7 +3089,7 @@
   },
   {
    "id": "DM-ACT-EDU-05",
-   "display": "On insulin: check storage and injection sites",
+   "display": "On insulin: check storage and injection sites. Storage (EADSG 2019): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use at room temperature in a clean plastic box, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never kept in water; avoid clay pots, which are hard to keep clean",
    "when": {
     "id": "edu_insulin",
     "label": "On insulin",
@@ -3146,6 +3146,10 @@
     },
     "note": "East Africa Diabetes Study Group guidance (2019), a regional professional body. Storage wording REF-DM-ACT-EDU-INSULIN-STORE; the clay-pot advice conflicts with a field study (D-DM-26).",
     "ages": "adult",
+    "signed": "D-DM-26 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "sources": [
+     "SRC-EADSG19-STORE"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -3944,7 +3948,7 @@
   },
   {
    "id": "DM-ACT-RX-02",
-   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride (check what this level of care stocks); never start glibenclamide",
+   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride; EMHSLU 2023 stocks it from general hospitals upward, so at a health centre refer for it. Never start glibenclamide (deleted from EMHSLU 2023)",
    "when": {
     "id": "rx_second",
     "label": "Type 2 diabetes recorded, on metformin, not on a sulfonylurea or insulin, above target at review despite taking it",
@@ -4240,7 +4244,11 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "D-DM-22 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "sources": [
+     "SRC-EMHSLU23-185",
+     "SRC-EMHSLU23-DEL"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }

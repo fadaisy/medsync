@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.1-draft",
+  "version": "0.4.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1290,6 +1290,12 @@
    "requires": null,
    "restrictedClass": null,
    "display": "The baby is large for gestational age in this pregnancy"
+  },
+  "hyperglycaemic_emergency_last_2_weeks": {
+   "valueType": "boolean",
+   "requires": null,
+   "restrictedClass": null,
+   "display": "Ketoacidosis or the hyperosmolar state in the last 2 weeks"
   }
  },
  "diagnosis": [
@@ -17737,6 +17743,181 @@
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
+  },
+  {
+   "id": "DM-ACU-ROUTE-35",
+   "display": "Pregnant with diabetes and unwell: ketoacidosis in pregnancy can come with only a modestly raised glucose (below 13.9 mmol/L). Ketones now, and same-day assessment by a medical or diabetes team (JBDS 2023)",
+   "condition": "dka",
+   "when": {
+    "id": "acu_preg_dm_unwell",
+    "label": "Pregnant with diabetes (gestational included); vomiting, abdominal pain or acutely unwell",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "March 2023",
+     "title": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+     "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+     "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-JBDS23-PREG",
+      "section": "DKA in pregnancy, p. 23",
+      "bodyProposed": "JBDS",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "bohb",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Ketosis of pregnancy or hyperemesis (JBDS: different from ketoacidosis)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "March 2023",
+    "title": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+    "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+    "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-JBDS23-PREG",
+     "section": "DKA in pregnancy, p. 23",
+     "bodyProposed": "JBDS",
+     "verified": true
+    }
+   },
+   "notes": "DM-ACU-ROUTE-23 owns type 1 and insulin (ketones today, whatever the glucose); this rule covers gestational diabetes and everyone else.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "notWhen": [
+     {
+      "id": "acu_preg_dm_unwell_insulin",
+      "label": "Type 1 recorded, or on insulin (DM-ACU-ROUTE-23 owns it)",
+      "any": [
+       {
+        "feature": "dm_type_recorded",
+        "op": "==",
+        "value": "type_1"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "March 2023",
+       "title": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+       "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+       "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-JBDS23-PREG",
+        "section": "DKA in pregnancy, p. 23",
+        "bodyProposed": "JBDS",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "signed": "D-DM-42 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
   }
  ],
  "management": [
@@ -20933,7 +21114,7 @@
   },
   {
    "id": "DM-ACT-EDU-05",
-   "display": "On insulin: check storage and injection sites",
+   "display": "On insulin: check storage and injection sites. Storage (EADSG 2019): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use at room temperature in a clean plastic box, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never kept in water; avoid clay pots, which are hard to keep clean",
    "when": {
     "id": "edu_insulin",
     "label": "On insulin",
@@ -20990,6 +21171,10 @@
     },
     "note": "East Africa Diabetes Study Group guidance (2019), a regional professional body. Storage wording REF-DM-ACT-EDU-INSULIN-STORE; the clay-pot advice conflicts with a field study (D-DM-26).",
     "ages": "adult",
+    "signed": "D-DM-26 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "sources": [
+     "SRC-EADSG19-STORE"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -21793,7 +21978,7 @@
   },
   {
    "id": "DM-ACT-RX-02",
-   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride (check what this level of care stocks); never start glibenclamide",
+   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride; EMHSLU 2023 stocks it from general hospitals upward, so at a health centre refer for it. Never start glibenclamide (deleted from EMHSLU 2023)",
    "when": {
     "id": "rx_second",
     "label": "Type 2 diabetes recorded, on metformin, not on a sulfonylurea or insulin, above target at review despite taking it",
@@ -22099,7 +22284,11 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "D-DM-22 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "sources": [
+     "SRC-EMHSLU23-185",
+     "SRC-EMHSLU23-DEL"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -31658,6 +31847,60 @@
        "ref": "REF-DM-CLS-AB-ORDER"
       }
      }
+    },
+    {
+     "id": "t1_cpeptide_low",
+     "label": "Random C-peptide below 200 pmol/L in a person on insulin, with no ketoacidosis or hyperosmolar state in the last 2 weeks, and either under 35 or more than 3 years since diagnosis",
+     "all": [
+      {
+       "feature": "c_peptide",
+       "op": "<",
+       "value": 200,
+       "_ref": "REF-DM-CLS-CPEP-LOW",
+       "unit": "pmol/L"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "hyperglycaemic_emergency_last_2_weeks",
+       "op": "absent"
+      }
+     ],
+     "any": [
+      {
+       "feature": "age_years",
+       "op": "<",
+       "value": 35,
+       "_ref": "REF-DM-CLS-CPEP-AGE",
+       "unit": "years"
+      },
+      {
+       "feature": "years_since_diagnosis",
+       "op": ">",
+       "value": 3,
+       "_ref": "REF-DM-CLS-CPEP-YEARS",
+       "unit": "years"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "2026",
+      "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Figure 2.1, adapted from Holt et al. 2021",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+      "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "SRC-ADA26-FIG21",
+       "section": "Fig. 2.1, p. S31 (read as an image and as the PDF's text layer)",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-CLS-CPEP-LOW"
+      }
+     }
     }
    ],
    "citation": {
@@ -31687,44 +31930,10 @@
      "F18",
      "H10"
     ],
+    "neverNotMet": true,
     "heldOut": {
-     "why": "Both C-peptide criteria are held out of the live rules. The thresholds' meanings sit inside a flowchart image nobody on this project has read (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), and the source's timing conditions (on insulin, more than 3 years from diagnosis, not within 2 weeks of a hyperglycaemic emergency) were not in the predicates. After ketoacidosis glucose toxicity suppresses C-peptide in ketosis-prone type 2; early type 1 can exceed 600.",
-     "restoreWhen": "A person has read the figure, the CSO has signed REF-DM-CLS-CPEP-LOW and REF-DM-CLS-CPEP-HIGH, and both criteria carry years_since_diagnosis and an 'emergency in the last 2 weeks' input.",
+     "why": "Only the high criterion stays out. ADA 2026 Fig. 2.1: 600 pmol/L or more after more than 3 years, antibody negative, aged 35 or over, reads as type 2. The runtime reads supporting criteria only, so a refuting one needs an engine change; its only use would be to argue against type 1, which the pack never acts on (it never proposes stopping insulin).",
      "criteria": [
-      {
-       "id": "t1_cpeptide_low",
-       "label": "Random C-peptide below 200 pmol/L in a person on insulin",
-       "all": [
-        {
-         "feature": "c_peptide",
-         "op": "<",
-         "value": 200,
-         "unit": "pmol/L"
-        },
-        {
-         "feature": "glucose_lowering_therapy",
-         "op": "==",
-         "value": "insulin"
-        }
-       ],
-       "citation": {
-        "standard": "ADA",
-        "version": "ADA/EASD consensus 2021",
-        "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
-        "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
-        "quote": "Beyond 3 years after diagnosis where there is uncertainty about diabetes type, a random C-peptide measurement is recommended. … Persistent C-peptide >600 pmol/l (non-fasting) is strongly suggestive of type 2 diabetes … C-peptide values 200–600 pmol/l are usually consistent with type 1 diabetes or maturity-onset diabetes of the young (MODY)",
-        "retrieved": "2026-10-03",
-        "csoSigned": false,
-        "needsCsoInput": "The 'below 200 pmol/L' band is printed inside the flowchart figure (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), which could not be read at verification. Readable text: 'low or absent C-peptide confirms the diagnosis of type 1 diabetes' and '200 to 600 pmol/L are usually consistent with type 1 diabetes or MODY'. A person must read the figure before this is signed.",
-        "x": {
-         "claim": "A10-51",
-         "section": "Diagnosis section; Fig. 1 footnotes",
-         "bodyProposed": "ADA",
-         "verified": true,
-         "ref": "REF-DM-CLS-CPEP-LOW"
-        }
-       }
-      },
       {
        "id": "t1_cpeptide_high",
        "label": "Random C-peptide 600 pmol/L or more",
@@ -31756,7 +31965,8 @@
       }
      ]
     },
-    "neverNotMet": true
+    "signed": "D-DM-11 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "caveat": "ADA 2026 Fig. 2.1 is based on data from White European adults. Ketosis-prone diabetes, common in Africa, can show a low C-peptide soon after ketoacidosis; the 2-week rule guards only part of that."
    }
   },
   {
@@ -33789,13 +33999,13 @@
    "value": 600,
    "unit": "pmol/L",
    "status": "draft",
-   "needsCsoInput": true
+   "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-LOW": {
    "value": 200,
    "unit": "pmol/L",
    "status": "draft",
-   "needsCsoInput": true
+   "needsCsoInput": false
   },
   "REF-DM-CLS-CPEP-VLOW": {
    "value": 80,
@@ -35360,6 +35570,18 @@
   "REF-DM-CTRL-PPG-UCG": {
    "value": 10.0,
    "unit": "mmol/L",
+   "status": "draft",
+   "needsCsoInput": false
+  },
+  "REF-DM-CLS-CPEP-AGE": {
+   "value": 35,
+   "unit": "years",
+   "status": "draft",
+   "needsCsoInput": false
+  },
+  "REF-DM-CLS-CPEP-YEARS": {
+   "value": 3,
+   "unit": "years",
    "status": "draft",
    "needsCsoInput": false
   }

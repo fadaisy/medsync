@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.1-draft",
+  "version": "0.4.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1597,6 +1597,14 @@
   },
   {
    "feature": "fetus_large_for_dates",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hyperglycaemic_emergency_last_2_weeks",
    "concept": null,
    "status": "none",
    "valueType": "boolean",

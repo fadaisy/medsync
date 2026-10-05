@@ -92,7 +92,9 @@ describe("MS-RX-CAT-001 generated module", () => {
     const moved: Record<string, Record<string, unknown>> = {
       oral_glucose_lowering: { note: expect.any(String) },
       metformin: { class: "oral_glucose_lowering.biguanide" },
-      gliclazide: { class: "oral_glucose_lowering.sulfonylurea" },
+      // EMHSLU 2023 §18.5, read at source (sources review, D-DM-22).
+      gliclazide: { class: "oral_glucose_lowering.sulfonylurea", onEmhsluDraft: true },
+      insulin_glargine: { onEmhsluDraft: true },
       glibenclamide: { class: "oral_glucose_lowering.sulfonylurea", onEmhsluDraft: false },
     };
     const now = new Map([...DRUG_CLASSES, ...FORMULARY_DRUGS].map((x) => [x.id, x]));

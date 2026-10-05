@@ -1,0 +1,128 @@
+[
+ {
+  "id": "SRC-ADA26-FIG21",
+  "topic": "C-peptide in suspected type 1 (flowchart)",
+  "standard": "ADA",
+  "version": "2026",
+  "document": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Figure 2.1, adapted from Holt et al. 2021",
+  "section": "Fig. 2.1, p. S31 (read as an image and as the PDF's text layer)",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+  "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+  "claim": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+  "values": {
+   "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and"
+  },
+  "population": "As stated in the section",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read at source on 2026-10-05 (pypdf text layer or Europe PMC full text); quote checked as a verbatim substring. Fig. 2.1 also read as a rendered image.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": null
+ },
+ {
+  "id": "SRC-HOLT21-FIG1",
+  "topic": "C-peptide testing conditions",
+  "standard": "ADA/EASD",
+  "version": "2021",
+  "document": "Holt RIG et al. The management of type 1 diabetes in adults. A consensus report by the ADA and the EASD. Diabetologia 2021;64:2609-2652",
+  "section": "Fig. 1 legend, footnotes 4 and 9 (Europe PMC full text PMC8481000)",
+  "url": "https://europepmc.org/article/PMC/PMC8481000",
+  "quote": "A C-peptide test is only indicated in people receiving insulin treatment. A random sample (with concurrent glucose) within 5 h of eating can replace a formal C-peptide stimulation test in the context of classification. If the result is ≥600 pmol/l, the circumstances of testing do not matter. If the result is <600 pmol/l and the concurrent glucose is <4 mmol/l (<72 mg/dl) or the person may have been fasting, consider repeating the test. Results showing very low levels (<80 pmol/l) do not need to be repeated. Where a person is insulin-treated, C-peptide must be measured prior to insulin discontinuation to exclude severe insulin deficiency. Do not test C-peptide within 2 weeks of a hyperglycaemic emergency.",
+  "claim": "A C-peptide test is only indicated in people receiving insulin treatment. A random sample (with concurrent glucose) within 5 h of eating can replace a formal C-peptide stimulation test in the context of classification. If the result is ≥600 pmol/l, the circumstances of testing do not matter. If the result is <600 pmol/l and the concurrent glucose is <4 mmol/l (<72 mg/dl) or the person may have been fasting, consider repeating the test. Results showing very low levels (<80 pmol/l) do not need to be repeated. Where a person is insulin-treated, C-peptide must be measured prior to insulin discontinuation to exclude severe insulin deficiency. Do not test C-peptide within 2 weeks of a hyperglycaemic emergency.",
+  "values": {
+   "quote": "A C-peptide test is only indicated in people receiving insulin treatment. A random sample (with concurrent glucose) within 5 h of eating can replace a formal C-peptide stimulation test in the context of classification. If the result is ≥600 pmol/l, the circumstances of testing do not matter. If the result is <600 pmol/l and the concurrent glucose is <4 mmol/l (<72 mg/dl) or the person may have been fasting, consider repeating the test. Results showing very low levels (<80 pmol/l) do not need to be repeated. Where a person is insulin-treated, C-peptide must be measured prior to insulin discontinuation to exclude severe insulin deficiency. Do not test C-peptide within 2 weeks of a hyperglycaemic emergency."
+  },
+  "population": "As stated in the section",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read at source on 2026-10-05 (pypdf text layer or Europe PMC full text); quote checked as a verbatim substring. Fig. 2.1 also read as a rendered image.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": null
+ },
+ {
+  "id": "SRC-EMHSLU23-185",
+  "topic": "Diabetes medicines by level of use",
+  "standard": "MoH-Uganda",
+  "version": "2023",
+  "document": "Essential Medicines and Health Supplies List for Uganda (EMHSLU) 2023, Ministry of Health",
+  "section": "18.5 Insulins and medicines used for diabetes, PDF p. 43; levels of use p. 23",
+  "url": "https://guluhospital.net/wp-content/uploads/2023/11/Uganda-Essential-Medicines-Health-Supplies-List-2023.pdf",
+  "quote": "18.5 Insulins and medicines used for diabetes Insulin isophane Injection 100 IU/ml HC4 V Soluble Insulin injection 100 IU/ml HC4 V Insulin isophane Aspert Injection 100 IU/ml HC4 V Glimepiride Tablet 2 mg H E Metformin Tablet 500 mg HC3 V Pioglitazone Tablet 30 mg RR N Bi-phasic protamine crystallised insulin aspart Injection 30%+70% in 100 U/ml H V Insulin glargine Injection 100IU/ml H V Specialist medicines Gliclazide Tablet 80mg RR E Vildagliptin Tablet 50mg RR E Dapagliflozin Tablet 5mg RR E",
+  "claim": "18.5 Insulins and medicines used for diabetes Insulin isophane Injection 100 IU/ml HC4 V Soluble Insulin injection 100 IU/ml HC4 V Insulin isophane Aspert Injection 100 IU/ml HC4 V Glimepiride Tablet 2 mg H E Metformin Tablet 500 mg HC3 V Pioglitazone Tablet 30 mg RR N Bi-phasic protamine crystallised insulin aspart Injection 30%+70% in 100 U/ml H V Insulin glargine Injection 100IU/ml H V Specialist medicines Gliclazide Tablet 80mg RR E Vildagliptin Tablet 50mg RR E Dapagliflozin Tablet 5mg RR E",
+  "values": {
+   "quote": "18.5 Insulins and medicines used for diabetes Insulin isophane Injection 100 IU/ml HC4 V Soluble Insulin injection 100 IU/ml HC4 V Insulin isophane Aspert Injection 100 IU/ml HC4 V Glimepiride Tablet 2 mg H E Metformin Tablet 500 mg HC3 V Pioglitazone Tablet 30 mg RR N Bi-phasic protamine crystallised insulin aspart Injection 30%+70% in 100 U/ml H V Insulin glargine Injection 100IU/ml H V Specialist medicines Gliclazide Tablet 80mg RR E Vildagliptin Tablet 50mg RR E Dapagliflozin Tablet 5mg RR E"
+  },
+  "population": "As stated in the section",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read at source on 2026-10-05 (pypdf text layer or Europe PMC full text); quote checked as a verbatim substring. Fig. 2.1 also read as a rendered image.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": null
+ },
+ {
+  "id": "SRC-EMHSLU23-DEL",
+  "topic": "Glibenclamide deleted",
+  "standard": "MoH-Uganda",
+  "version": "2023",
+  "document": "Essential Medicines and Health Supplies List for Uganda (EMHSLU) 2023, Ministry of Health",
+  "section": "Changes to the EMHSLU 2023, PDF p. 24",
+  "url": "https://guluhospital.net/wp-content/uploads/2023/11/Uganda-Essential-Medicines-Health-Supplies-List-2023.pdf",
+  "quote": "Essential medicines/formulations deleted from 2016 edition. … 16. Glibenclamide Tablet 5 mg",
+  "claim": "Essential medicines/formulations deleted from 2016 edition. … 16. Glibenclamide Tablet 5 mg",
+  "values": {
+   "quote": "Essential medicines/formulations deleted from 2016 edition. … 16. Glibenclamide Tablet 5 mg"
+  },
+  "population": "As stated in the section",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read at source on 2026-10-05 (pypdf text layer or Europe PMC full text); quote checked as a verbatim substring. Fig. 2.1 also read as a rendered image.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": null
+ },
+ {
+  "id": "SRC-EADSG19-STORE",
+  "topic": "Insulin storage without refrigeration",
+  "standard": "EADSG",
+  "version": "2019",
+  "document": "Bahendeka S et al. EADSG Guidelines: Insulin Storage and Optimisation of Injection Technique in Diabetes Management. Diabetes Ther 2019;10:341-366",
+  "section": "Recommendations (3), (5); storage section (Europe PMC PMC6437255)",
+  "url": "https://link.springer.com/article/10.1007/s13300-019-0574-x",
+  "quote": "(3) If insulin is to be stored at home for over 2 months, it should be stored at the recommended temperature of 2–8 °C. (4) Appropriate instructions should be given to patients while dispensing insulin. (5) Insulin in use should be kept at room temperature and should never be kept immersed under water. Immersing insulin under water after the vial has been pierced carries a high risk of contamination, leading to loss of potency and likelihood of causing injection abscesses. … Vials in use may be kept at room temperature (20–25 °C), protected from sunlight, for 6 weeks, and 4 weeks if the temperature goes up to 30 °C, in a clean plastic box … Keeping insulin in clay pots is likely to cause contamination as it is difficult to keep it clean: this should be avoided.",
+  "claim": "(3) If insulin is to be stored at home for over 2 months, it should be stored at the recommended temperature of 2–8 °C. (4) Appropriate instructions should be given to patients while dispensing insulin. (5) Insulin in use should be kept at room temperature and should never be kept immersed under water. Immersing insulin under water after the vial has been pierced carries a high risk of contamination, leading to loss of potency and likelihood of causing injection abscesses. … Vials in use may be kept at room temperature (20–25 °C), protected from sunlight, for 6 weeks, and 4 weeks if the temperature goes up to 30 °C, in a clean plastic box … Keeping insulin in clay pots is likely to cause contamination as it is difficult to keep it clean: this should be avoided.",
+  "values": {
+   "quote": "(3) If insulin is to be stored at home for over 2 months, it should be stored at the recommended temperature of 2–8 °C. (4) Appropriate instructions should be given to patients while dispensing insulin. (5) Insulin in use should be kept at room temperature and should never be kept immersed under water. Immersing insulin under water after the vial has been pierced carries a high risk of contamination, leading to loss of potency and likelihood of causing injection abscesses. … Vials in use may be kept at room temperature (20–25 °C), protected from sunlight, for 6 weeks, and 4 weeks if the temperature goes up to 30 °C, in a clean plastic box … Keeping insulin in clay pots is likely to cause contamination as it is difficult to keep it clean: this should be avoided."
+  },
+  "population": "As stated in the section",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read at source on 2026-10-05 (pypdf text layer or Europe PMC full text); quote checked as a verbatim substring. Fig. 2.1 also read as a rendered image.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": null
+ },
+ {
+  "id": "SRC-JBDS23-PREG",
+  "topic": "DKA in pregnancy",
+  "standard": "JBDS",
+  "version": "March 2023",
+  "document": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+  "section": "DKA in pregnancy, p. 23",
+  "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+  "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+  "claim": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+  "values": {
+   "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team."
+  },
+  "population": "As stated in the section",
+  "retrieved": "2026-10-05",
+  "verified": true,
+  "how_verified": "Read at source on 2026-10-05 (pypdf text layer or Europe PMC full text); quote checked as a verbatim substring. Fig. 2.1 also read as a rendered image.",
+  "from_memory": false,
+  "conflicts": null,
+  "notes": null
+ }
+]

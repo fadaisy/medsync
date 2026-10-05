@@ -4926,7 +4926,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "insulin_aspart",
@@ -4962,7 +4962,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "insulin_biphasic_aspart",
@@ -4998,7 +4998,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "metformin",
@@ -5106,7 +5106,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "glimepiride",
@@ -5142,7 +5142,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "dapagliflozin",
@@ -5178,7 +5178,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "empagliflozin",
@@ -5214,7 +5214,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: false,
   },
   {
     id: "vildagliptin",
@@ -5250,7 +5250,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "sitagliptin",
@@ -5286,7 +5286,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: false,
   },
   {
     id: "pioglitazone",
@@ -5322,7 +5322,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: true,
   },
   {
     id: "semaglutide",
@@ -5358,7 +5358,7 @@ export const FORMULARY_DRUGS: readonly Drug[] = [
       hepatic: null,
       pregnancy: null,
     },
-    onEmhsluDraft: null,
+    onEmhsluDraft: false,
   },
   {
     id: "levothyroxine",

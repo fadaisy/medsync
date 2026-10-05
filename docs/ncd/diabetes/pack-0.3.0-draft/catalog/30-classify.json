@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.1-draft",
+  "version": "0.4.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -41,6 +41,57 @@
        "ref": "REF-DM-CLS-AB-ORDER"
       }
      }
+    },
+    {
+     "id": "t1_cpeptide_low",
+     "label": "Random C-peptide below 200 pmol/L in a person on insulin, with no ketoacidosis or hyperosmolar state in the last 2 weeks, and either under 35 or more than 3 years since diagnosis",
+     "all": [
+      {
+       "feature": "c_peptide",
+       "op": "<",
+       "value": 200,
+       "unit": "pmol/L"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "hyperglycaemic_emergency_last_2_weeks",
+       "op": "absent"
+      }
+     ],
+     "any": [
+      {
+       "feature": "age_years",
+       "op": "<",
+       "value": 35,
+       "unit": "years"
+      },
+      {
+       "feature": "years_since_diagnosis",
+       "op": ">",
+       "value": 3,
+       "unit": "years"
+      }
+     ],
+     "citation": {
+      "standard": "ADA",
+      "version": "2026",
+      "title": "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Figure 2.1, adapted from Holt et al. 2021",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+      "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "SRC-ADA26-FIG21",
+       "section": "Fig. 2.1, p. S31 (read as an image and as the PDF's text layer)",
+       "bodyProposed": "ADA",
+       "verified": true,
+       "ref": "REF-DM-CLS-CPEP-LOW"
+      }
+     }
     }
    ],
    "citation": {
@@ -70,44 +121,10 @@
      "F18",
      "H10"
     ],
+    "neverNotMet": true,
     "heldOut": {
-     "why": "Both C-peptide criteria are held out of the live rules. The thresholds' meanings sit inside a flowchart image nobody on this project has read (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), and the source's timing conditions (on insulin, more than 3 years from diagnosis, not within 2 weeks of a hyperglycaemic emergency) were not in the predicates. After ketoacidosis glucose toxicity suppresses C-peptide in ketosis-prone type 2; early type 1 can exceed 600.",
-     "restoreWhen": "A person has read the figure, the CSO has signed REF-DM-CLS-CPEP-LOW and REF-DM-CLS-CPEP-HIGH, and both criteria carry years_since_diagnosis and an 'emergency in the last 2 weeks' input.",
+     "why": "Only the high criterion stays out. ADA 2026 Fig. 2.1: 600 pmol/L or more after more than 3 years, antibody negative, aged 35 or over, reads as type 2. The runtime reads supporting criteria only, so a refuting one needs an engine change; its only use would be to argue against type 1, which the pack never acts on (it never proposes stopping insulin).",
      "criteria": [
-      {
-       "id": "t1_cpeptide_low",
-       "label": "Random C-peptide below 200 pmol/L in a person on insulin",
-       "all": [
-        {
-         "feature": "c_peptide",
-         "op": "<",
-         "value": 200,
-         "unit": "pmol/L"
-        },
-        {
-         "feature": "glucose_lowering_therapy",
-         "op": "==",
-         "value": "insulin"
-        }
-       ],
-       "citation": {
-        "standard": "ADA",
-        "version": "ADA/EASD consensus 2021",
-        "title": "Holt RIG, DeVries JH, Hess-Fischl A, et al. The management of type 1 diabetes in adults. A consensus report by the American Diabetes Association (ADA) and the European Association for the Study of Diabetes (EASD). Diabetologia 2021;64:2609-2652 (co-published Diabetes Care 2021;44:2589-2625)",
-        "url": "https://link.springer.com/article/10.1007/s00125-021-05568-3",
-        "quote": "Beyond 3 years after diagnosis where there is uncertainty about diabetes type, a random C-peptide measurement is recommended. … Persistent C-peptide >600 pmol/l (non-fasting) is strongly suggestive of type 2 diabetes … C-peptide values 200–600 pmol/l are usually consistent with type 1 diabetes or maturity-onset diabetes of the young (MODY)",
-        "retrieved": "2026-10-03",
-        "csoSigned": false,
-        "needsCsoInput": "The 'below 200 pmol/L' band is printed inside the flowchart figure (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), which could not be read at verification. Readable text: 'low or absent C-peptide confirms the diagnosis of type 1 diabetes' and '200 to 600 pmol/L are usually consistent with type 1 diabetes or MODY'. A person must read the figure before this is signed.",
-        "x": {
-         "claim": "A10-51",
-         "section": "Diagnosis section; Fig. 1 footnotes",
-         "bodyProposed": "ADA",
-         "verified": true,
-         "ref": "REF-DM-CLS-CPEP-LOW"
-        }
-       }
-      },
       {
        "id": "t1_cpeptide_high",
        "label": "Random C-peptide 600 pmol/L or more",
@@ -139,7 +156,8 @@
       }
      ]
     },
-    "neverNotMet": true
+    "signed": "D-DM-11 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "caveat": "ADA 2026 Fig. 2.1 is based on data from White European adults. Ketosis-prone diabetes, common in Africa, can show a low C-peptide soon after ketoacidosis; the 2-week rule guards only part of that."
    }
   },
   {

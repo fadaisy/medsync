@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.1-draft",
+  "version": "0.4.2-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -8856,6 +8856,181 @@
       }
      }
     ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-35",
+   "display": "Pregnant with diabetes and unwell: ketoacidosis in pregnancy can come with only a modestly raised glucose (below 13.9 mmol/L). Ketones now, and same-day assessment by a medical or diabetes team (JBDS 2023)",
+   "condition": "dka",
+   "when": {
+    "id": "acu_preg_dm_unwell",
+    "label": "Pregnant with diabetes (gestational included); vomiting, abdominal pain or acutely unwell",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "March 2023",
+     "title": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+     "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+     "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-JBDS23-PREG",
+      "section": "DKA in pregnancy, p. 23",
+      "bodyProposed": "JBDS",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "bohb",
+    "urine_ketones"
+   ],
+   "mimicsToExclude": [
+    "Ketosis of pregnancy or hyperemesis (JBDS: different from ketoacidosis)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "March 2023",
+    "title": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+    "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+    "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-JBDS23-PREG",
+     "section": "DKA in pregnancy, p. 23",
+     "bodyProposed": "JBDS",
+     "verified": true
+    }
+   },
+   "notes": "DM-ACU-ROUTE-23 owns type 1 and insulin (ketones today, whatever the glucose); this rule covers gestational diabetes and everyone else.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "notWhen": [
+     {
+      "id": "acu_preg_dm_unwell_insulin",
+      "label": "Type 1 recorded, or on insulin (DM-ACU-ROUTE-23 owns it)",
+      "any": [
+       {
+        "feature": "dm_type_recorded",
+        "op": "==",
+        "value": "type_1"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "March 2023",
+       "title": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+       "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+       "quote": "DKA in pregnancy can occur with only very modest elevation of glucose levels, i.e. <13.9mmol/l, (‘euglycaemic DKA’) in women during pregnancy. Symptoms include nausea and/or vomiting, abdominal pain, polyuria and polydipsia, and leg cramps. Later signs/symptoms include dehydration (manifesting as dry skin and mouth), blurred eyesight, tachypnoea, rapid pulse, a distinct smell on the breath (sometimes described as ‘pear drops’) and coma. Ketoacidosis should always be considered when a pregnant woman with diabetes feels unwell. These women must be assessed by a medical or diabetes team.",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-JBDS23-PREG",
+        "section": "DKA in pregnancy, p. 23",
+        "bodyProposed": "JBDS",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "signed": "D-DM-42 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
     "restrictedClasses": [],
     "runWhen": "always"
    }

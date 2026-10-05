@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.4.1-draft",
+ "version": "0.4.2-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -73,7 +73,7 @@
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
   "DM-ACT-THERAPY": 35,
-  "DM-ACU-ROUTE": 49,
+  "DM-ACU-ROUTE": 50,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -105,7 +105,7 @@
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 49,
+  "acute_route": 50,
   "act": 84
  },
  "rules": [
@@ -5315,6 +5315,56 @@
    }
   },
   {
+   "id": "DM-ACU-ROUTE-35",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Pregnant with diabetes and unwell: ketoacidosis in pregnancy can come with only a modestly raised glucose (below 13.9 mmol/L). Ketones now, and same-day assessment by a medical or diabetes team (JBDS 2023)",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "ncd.pregnant (no CFC concept yet)",
+    "sx.vomiting",
+    "sx.abdominal_pain",
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_preg_dm_unwell",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "JBDS-IP 02: The Management of Diabetic Ketoacidosis in Adults, revised March 2023",
+     "section": "DKA in pregnancy, p. 23",
+     "url": "https://abcd.care/sites/default/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_DKA_Guideline_with_QR_code_March_2023.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "SRC-JBDS23-PREG"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_preg_dm_unwell_insulin"
+    ]
+   }
+  },
+  {
    "id": "DM-SUS-RECON-01",
    "family": "DM-SUS-RECON",
    "lane": "suspect",
@@ -6706,7 +6756,7 @@
    "id": "DM-ACT-EDU-05",
    "family": "DM-ACT-EDU",
    "lane": "act",
-   "title": "On insulin: check storage and injection sites",
+   "title": "On insulin: check storage and injection sites. Storage (EADSG 2019): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use at room temperature in a clean plastic box, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never kept in water; avoid clay pots, which are hard to keep clean",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7031,7 +7081,7 @@
    "id": "DM-ACT-RX-02",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride (check what this level of care stocks); never start glibenclamide",
+   "title": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride; EMHSLU 2023 stocks it from general hospitals upward, so at a health centre refer for it. Never start glibenclamide (deleted from EMHSLU 2023)",
    "appliesTo": {
     "ageBands": [
      "adult",

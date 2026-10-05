@@ -1,23 +1,23 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.4.1-draft",
+ "version": "0.4.2-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
- "count": 351,
+ "count": 353,
  "verification": {
-  "confirmed": 225,
-  "confirmed_with_note": 95,
-  "not_found": 8,
+  "confirmed": 227,
+  "confirmed_with_note": 94,
+  "not_found": 7,
   "could_not_open": 2,
   "wrong_attribution": 1,
-  "not_rechecked": 20
+  "not_rechecked": 22
  },
  "counts": {
-  "withValue": 204,
-  "needsCsoInput": 18,
+  "withValue": 206,
+  "needsCsoInput": 16,
   "withConflict": 39,
-  "usedByARule": 131
+  "usedByARule": 134
  },
  "entries": [
   {
@@ -2920,19 +2920,21 @@
     "section": "Figure 2.1 footnotes 4 and 9 (flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults)",
     "quote": "If the result is ≥600 pmol/L (≥1.8 ng/mL), the circumstances of testing do not matter. If the result is <600 pmol/L (<1.8 ng/mL) and the concurrent glucose is <4 mmol/L (<70 mg/dL) or the person may have been fasting, consider repeating the test. Results showing very low levels (e.g., <80 pmol/L [<0.24 ng/mL]) do not need to be repeated.",
     "claims": [
+     "SRC-ADA26-FIG21",
+     "SRC-HOLT21-FIG1",
      "A3-36",
      "A10-51"
     ],
     "verified": true,
     "note": "Applies only to people on insulin, not within 2 weeks of a hyperglycaemic emergency, and rests on White European data. Held out of the pack's rules.",
-    "needsCsoInput": "600 pmol/L is printed in the figure legend as the level above which 'the circumstances of testing do not matter'. The statement that it strongly suggests type 2 diabetes is inside the flowchart image (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), which could not be read. A person must read the figure before any rule uses it.",
     "verification": {
-     "verdict": "confirmed_with_note",
-     "note": "READ AS TEXT (Figure 2.1 legend footnotes 4 and 9): \"≥600 pmol/L (≥1.8 ng/mL)\"; \"<600 pmol/L (<1.8 ng/mL)\"; \"<80 pmol/L [<0.24 ng/mL]\"; \"200–600 pmol/L (0.6–1.8 ng/mL)\". The number 200 appears as text only as the lower end of the 200–600 range. NOT PRESENT AS TEXT: any statement that a C-peptide at or above 600 pmol/L \"strongly suggests\" or indicates type 2 diabetes, and any standalone \"<200 pmol/L = type 1\" statement. Those meanings sit only in the flowchart boxes inside the figure image, which I could not read (the figure page returned a CAPTCHA and the article page carries no separate image description). So the value, unit and the ≥ operator are verified as printed, but ≥600 is printed for \"the circumstances of testing do not matter\"; the classification meaning the entry gives it, and whether the image box uses >600 or ≥600, are unverified. A human should read the figure image before a rule fires on this value. Qualifiers the entry lacks: C-peptide is only indicated in people receiving insulin treatment; do not test within 2 weeks of a hyperglycemic emergency; if insulin treated, measure before insulin discontinuation. One early fetch reply rendered the footnote as \">600\"; two targeted re-reads returned \"≥600\". Whole legend was read as text. It opens \"Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations\" and ends \"Reprinted and adapted from Holt et al.\": the figure is the ADA/EASD type 1 consensus flowchart reprinted in the ADA Standards, and its thresholds were derived in White European populations, which matters for use in Uganda. The Springer copy of Holt et al. (other claim URL) was refused by the fetch proxy (rate limit) and not read.",
-     "foundQuote": "A C-peptide test is only indicated in people receiving insulin treatment. A random sample (with concurrent glucose) within 5 h of eating can replace a formal C-peptide stimulation test in the context of classification. If the result is ≥600 pmol/L (≥1.8 ng/mL), the circumstances of testing do not matter. If the result is <600 pmol/L (<1.8 ng/mL) and the concurrent glucose is <4 mmol/L (<70 mg/dL) or the person may have been fasting, consider repeating the test. ... Do not test C-peptide within 2 weeks of a hyperglycemic emergency. ... C-peptide values 200–600 pmol/L (0.6–1.8 ng/mL) are usually consistent with type 1 diabetes or maturity-onset diabetes of the young but may occur in insulin-treated type 2 diabetes, particularly in people with normal or low BMI or after long duration.",
-     "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader",
-     "batch": "V2"
+     "verdict": "confirmed",
+     "note": "Fig. 2.1 read as an image and as text on 2026-10-05.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
     },
+    "signed": "D-DM-11 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
     "usedByCriteria": []
    }
   },
@@ -2953,20 +2955,24 @@
     "section": "Diagnosis section; Fig. 1 footnotes",
     "quote": "Beyond 3 years after diagnosis where there is uncertainty about diabetes type, a random C-peptide measurement is recommended. … Persistent C-peptide >600 pmol/l (non-fasting) is strongly suggestive of type 2 diabetes … C-peptide values 200–600 pmol/l are usually consistent with type 1 diabetes or maturity-onset diabetes of the young (MODY)",
     "claims": [
+     "SRC-ADA26-FIG21",
+     "SRC-HOLT21-FIG1",
      "A10-51",
      "A3-36"
     ],
     "verified": true,
     "note": "200 or more does NOT mean 'not type 1': the 200 to 600 band is usually type 1 or MODY. Only 600 or more argues for type 2.",
-    "needsCsoInput": "The 'below 200 pmol/L' band is printed inside the flowchart figure (Holt 2021 Fig. 1; ADA 2026 Fig. 2.1), which could not be read at verification. Readable text: 'low or absent C-peptide confirms the diagnosis of type 1 diabetes' and '200 to 600 pmol/L are usually consistent with type 1 diabetes or MODY'. A person must read the figure before this is signed.",
     "verification": {
-     "verdict": "not_found",
-     "note": "I could not read any sentence that says C-peptide <200 pmol/l indicates type 1 diabetes. Three fetches of the consensus (Springer HTML twice, Springer PDF once) returned no such text and one stated explicitly that it is absent from the C-peptide subsection; the fetch tool reported that the Fig. 1 flowchart box text 'is not clearly readable'. The '<200 pmol/l' band is therefore most likely printed only inside the Fig. 1 image (and ADA 2026 Fig. 2.1), which I could not read; the ADA page fetch described it only as an inference from 'flowchart logic'. The recorded quote also contains no '<200'. Readable text is consistent with 200 as the lower edge of an indeterminate band, but note the safety point: 200 to 600 pmol/l is ALSO 'usually consistent with type 1 diabetes or MODY', so a rule must not read >=200 as 'not type 1'. Conditions that were read verbatim: test only in insulin-treated people; random sample with concurrent glucose within 5 h of eating; 'If the result is <600 pmol/l and the concurrent glucose is <4 mmol/l (<72 mg/dl) or the person may have been fasting, consider repeating the test.'; not within 2 weeks of a hyperglycaemic emergency. Needs a human to read Fig. 1 of Holt et al. (or ADA 2026 Fig. 2.1) directly. Springer figure page was blocked by robots.txt; PMC12690183 default and classic views and PMC8481000 returned reCAPTCHA; diabetesjournals.org fetch failed (session limit).",
-     "foundQuote": "\"C-peptide values 200–600 pmol/l are usually consistent with type 1 diabetes or maturity-onset diabetes of the young (MODY)\" ... \"Persistent C-peptide >600 pmol/l (non-fasting) is strongly suggestive of type 2 diabetes\" ... \"By contrast, low or absent C-peptide confirms the diagnosis of type 1 diabetes.\" ... \"Molecular genetic testing should only be considered if the antibodies are negative and non-fasting C-peptide is >200 pmol/l\"",
-     "urlUsed": "https://link.springer.com/article/10.1007/s00125-021-05568-3 ; https://link.springer.com/content/pdf/10.1007/s00125-021-05568-3.pdf ; https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/?report=reader",
-     "batch": "V6"
+     "verdict": "confirmed",
+     "note": "Fig. 2.1 read as an image and as text on 2026-10-05.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
     },
-    "usedByCriteria": []
+    "signed": "D-DM-11 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "usedByCriteria": [
+     "t1_cpeptide_low"
+    ]
    }
   },
   {
@@ -11368,6 +11374,70 @@
      "batch": null
     },
     "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-CLS-CPEP-AGE",
+   "text": "C-peptide flowchart (ADA 2026 Fig. 2.1): below this age, a low C-peptide reads as type 1 without waiting",
+   "value": 35,
+   "unit": "years",
+   "source": "ADA · 2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Figure 2.1, adapted from Holt et al. 2021 · 2026",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "classify",
+    "standard": "ADA",
+    "bodyProposed": "ADA",
+    "section": "Fig. 2.1, p. S31 (read as an image and as the PDF's text layer)",
+    "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+    "claims": [
+     "SRC-ADA26-FIG21"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "t1_cpeptide_low"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-CLS-CPEP-YEARS",
+   "text": "C-peptide flowchart (ADA 2026 Fig. 2.1): from this age, test C-peptide only after more than this many years since diagnosis",
+   "value": 3,
+   "unit": "years",
+   "source": "ADA · 2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Figure 2.1, adapted from Holt et al. 2021 · 2026",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "classify",
+    "standard": "ADA",
+    "bodyProposed": "ADA",
+    "section": "Fig. 2.1, p. S31 (read as an image and as the PDF's text layer)",
+    "quote": "Type 1 diabetes Indeterminate9 Consider repeat Type 2 diabetes Genetic testing for monogenic diabetes where available6 Are there features of type 2 diabetes?5Test C-peptide4 Are there features of monogenic diabetes? Islet autoantibody negativeIslet autoantibody positive Type 1 diabetes Age Unclear classification7 Make clinical decision as to how person with diabetes should be treated Trial of noninsulin therapy may be appropriate8 Consider C-peptide4 test >35 years Yes No No Test islet autoantibodies2 Yes Adult with suspected type 1 diabetes1 Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations (5–10% of adult-onset type 1 diabetes) <35 years after >3 years’ duration >200 pmol/L <200 pmol/L >600 pmol/L200–600 pmol/L<200 pmol/L C-peptide at >5 years Figure 2.1—Flowchart for investigation of suspected type 1 diabetes in newly diagnosed adults, based on data from White European populations. 1No single clinical feature confirms type 1 diabetes in isolation. 2Glutamic acid decarboxylase (GAD) should be the primary antibody measured and, if negative, should be followed by islet tyrosine phosphatase 2 (IA-2) and",
+    "claims": [
+     "SRC-ADA26-FIG21"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "t1_cpeptide_low"
+    ]
    }
   }
  ]

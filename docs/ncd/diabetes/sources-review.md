@@ -1,6 +1,8 @@
 # Sources review: the signed decisions that waited on a source
 
-For the Clinical Safety Officer. 2026-10-05. Each GATE A decision below was signed as "until this source is read, keep it off". The sources were retrieved and read at source on 2026-10-05; quotes are verbatim. **Nothing here is applied yet**: each section ends with a proposal for you to sign.
+For the Clinical Safety Officer. 2026-10-05. Each GATE A decision below was signed as "until this source is read, keep it off". The sources were retrieved and read at source on 2026-10-05; quotes are verbatim. Each section ends with a proposal for you to sign.
+
+**Signed 2026-10-05 ("go with your recommendations") and applied in pack 0.4.2-draft (`tools/build/k_sources.py`, claims `research/A14-sources-2026-10-05.json`):** §1 (the low C-peptide criterion restored with its conditions; the high one stays held, see `x.heldOut`), §2 (RX-02 wording; formulary essential-list flags), §3 (EDU-05), §5 (children and adults were already covered; new DM-ACU-ROUTE-35 for pregnant women with diabetes not on insulin who are unwell). §4 and §6 wait for the 2026 Uganda guideline comparison (`ug2026-vs-pack.md`).
 
 One source could not be retrieved: the **2026 Uganda Diabetes Management Guidelines** (comprehensive version, Ministry of Health, June 2026). The only copy is on library.health.go.ug, which refused the connection from this machine. It is Uganda's current diabetes guideline and may change several items below (targets for older adults, the treatment ladder, levels of care). See §7.
 

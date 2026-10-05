@@ -6749,7 +6749,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "insulin_aspart",
@@ -6798,7 +6798,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "insulin_biphasic_aspart",
@@ -6847,7 +6847,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "metformin",
@@ -7000,7 +7000,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "glimepiride",
@@ -7051,7 +7051,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "dapagliflozin",
@@ -7100,7 +7100,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "empagliflozin",
@@ -7149,7 +7149,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": false
     },
     {
       "id": "vildagliptin",
@@ -7198,7 +7198,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "sitagliptin",
@@ -7247,7 +7247,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": false
     },
     {
       "id": "pioglitazone",
@@ -7296,7 +7296,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": true
     },
     {
       "id": "semaglutide",
@@ -7345,7 +7345,7 @@
         "hepatic": null,
         "pregnancy": null
       },
-      "onEmhsluDraft": null
+      "onEmhsluDraft": false
     },
     {
       "id": "levothyroxine",
