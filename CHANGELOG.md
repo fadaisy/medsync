@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Diabetes knowledge pack, in shadow behind `NCD_DM_PACK_SHADOW` — 2026-10-05
+
+- **The diabetes pack** (MS-NCD-DM-PACK-001 0.4.0-draft, signed at GATE A for the shadow build) runs beside the live NCD catalog as data (`data/ncd/diabetes-pack.json`) on a port of its reference evaluator (`lib/ncd/pack`). On each NCD draft save, with the flag on, it logs the rule ids and counts it would have shown; nothing reaches a clinician (ADRs 0204–0207).
+- **Uganda first:** UCG 2023's diagnostic set is the default with WHO HEARTS-D alongside; WHO 2013 is the default gestational set with UCG's alongside; UCG's risk-based testing in pregnancy and its post-meal target. Treatment review prompts carry no dose.
+- **Checks in CI:** parity with the reference evaluator on 165 synthetic patients; an escalation-floor grid of 25,568 patients; a mutation test on every acute rule, red flag and blocking caveat; no dose text, no restricted word in neutral text, no number without its reference entry.
+- **Fact contract v1.5** (gated migration 0092, for the owner to apply after 0083 and 0085): ten concepts, two maculopathy answers, eight terms and nine tests for the diabetes menu, with no reference ranges.
+- **Formulary:** the oral glucose-lowering class is split into biguanide, sulfonylurea, SGLT2, DPP-4 and thiazolidinedione classes, GLP-1 agonists stand alone, and ten medicines are added (glimepiride, dapagliflozin, empagliflozin, vildagliptin, sitagliptin, pioglitazone, semaglutide, insulin aspart, biphasic insulin aspart, bendroflumethiazide), every dose still to verify. Glibenclamide stays, marked off the 2023 essential medicines list.
+
 ### Added — "Show all" medicines in the prescribing dialog — 2026-09-30
 
 - **Every medicine by class.** The Plan's prescribing dialog has a **Show all** beside the search. It opens every medicine of the general formulary MS-RX-CAT-001 (182 medicines in 68 classes) in a centred pop-up, under its body system and class as the catalogue classifies them. Medicines are A to Z within a class, never ranked, with their routes; the four with a signed regimen say so. Choosing one prescribes it. The filter matches the generic name, the class or the body system, as the search does; the body systems are jump links (one scrolling row on a phone).
