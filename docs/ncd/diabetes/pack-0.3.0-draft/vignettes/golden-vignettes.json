@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -19,7 +19,7 @@
    "device.bp_cuff_sizes"
   ]
  },
- "count": 169,
+ "count": 197,
  "vignettes": [
   {
    "id": "DMV-01",
@@ -69,17 +69,18 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "met",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "met",
      "who_2006_intermediate": "insufficient",
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
      "DM-SUS-INCID-01": "rule"
     },
     "metButDark": {},
@@ -94,7 +95,9 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-SUS-INCID-01": "routine"
+     "DM-SUS-INCID-01": "routine",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -158,8 +161,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -237,13 +239,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "not_met",
      "ug_ucg_2023": "not_met",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "not_met",
      "who_2006_intermediate": "not_met",
      "ada_2026_prediabetes": "not_met",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -324,8 +325,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -402,13 +402,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -488,17 +487,19 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -515,7 +516,10 @@
      "random_pg"
     ],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -578,8 +582,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_variant_trait"
@@ -654,12 +657,13 @@
      "ada_2026_prediabetes": "met",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-EDU-10B": "step"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -671,7 +675,9 @@
     "classification": {},
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-EDU-10B": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -726,12 +732,13 @@
      "ada_2026_prediabetes": "met",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-EDU-10B": "step"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -745,7 +752,9 @@
     "classification": {},
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-EDU-10B": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -817,8 +826,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "capillary_glucose_acute_illness"
@@ -864,7 +872,7 @@
     "interrupt": "DM-ACU-ROUTE-02",
     "foldedInto": {},
     "interruptActions": [
-     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now"
+     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -915,17 +923,18 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
      "DM-ACU-ROUTE-01": "rule",
      "DM-SUS-INCID-01": "rule"
     },
@@ -947,7 +956,9 @@
     "restrictedClasses": [],
     "urgency": {
      "DM-SUS-INCID-01": "routine",
-     "DM-ACU-ROUTE-01": "same_day"
+     "DM-ACU-ROUTE-01": "same_day",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -1003,17 +1014,18 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
      "DM-ACU-ROUTE-02": "rule",
      "DM-CLS-T1-01": "rule",
      "DM-SUS-INCID-01": "rule"
@@ -1037,12 +1049,14 @@
     "urgency": {
      "DM-SUS-INCID-01": "routine",
      "DM-CLS-T1-01": "same_day",
-     "DM-ACU-ROUTE-02": "immediate"
+     "DM-ACU-ROUTE-02": "immediate",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-02",
     "foldedInto": {},
     "interruptActions": [
-     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now"
+     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -1113,8 +1127,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_hiv_on_art"
@@ -1201,8 +1214,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -1210,7 +1222,8 @@
      "DM-ACU-ROUTE-04": "rule",
      "DM-ACU-ROUTE-15": "rule",
      "DM-SUS-PAED-01": "rule",
-     "DM-SUS-PAED-02": "rule"
+     "DM-SUS-PAED-02": "rule",
+     "DM-SUS-PAED-06": "rule"
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
@@ -1227,7 +1240,8 @@
      "DM-SUS-PAED-01": "folded",
      "DM-ACU-ROUTE-04": "immediate",
      "DM-ACU-ROUTE-15": "folded",
-     "DM-SUS-PAED-02": "same_day"
+     "DM-SUS-PAED-02": "same_day",
+     "DM-SUS-PAED-06": "same_day"
     },
     "interrupt": "DM-ACU-ROUTE-04",
     "foldedInto": {
@@ -1308,8 +1322,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -1426,8 +1439,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_overestimate_africa"
@@ -1526,8 +1538,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -1627,8 +1638,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -1650,7 +1660,8 @@
      "tgt_hba1c_ckd",
      "tgt_fpg_surrogate",
      "tgt_ppg_surrogate",
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {},
     "classification": {
@@ -1728,8 +1739,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -1826,8 +1836,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "unavailable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "unavailable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -1925,8 +1934,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "fundus_undilated_direct",
@@ -2027,8 +2035,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -2145,8 +2152,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "met",
      "who_2013_diabetes_in_pregnancy": "not_met",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "met"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -2218,8 +2224,7 @@
     ],
     "caveats_absent": [
      "egfr_not_steady_state"
-    ],
-    "no_targets": true
+    ]
    },
    "mapsToSpecVignettes": [],
    "story": null,
@@ -2236,8 +2241,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -2258,7 +2262,10 @@
     },
     "stages": {},
     "risk": {},
-    "targets": [],
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
     "bands": {},
     "classification": {
      "type_1": "insufficient",
@@ -2339,8 +2346,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -2368,7 +2374,8 @@
      "tgt_hba1c_ckd",
      "tgt_fpg_surrogate",
      "tgt_ppg_surrogate",
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {},
     "classification": {
@@ -2450,8 +2457,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "glucose_tb_at_diagnosis"
@@ -2553,8 +2559,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -2659,8 +2664,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -2684,7 +2688,8 @@
     },
     "targets": [
      "tgt_hba1c_relaxed",
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {
      "hba1c_control_relaxed": "at_target"
@@ -2763,15 +2768,16 @@
      "ada_2026_prediabetes": "met",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "fasting_glucose_on_steroids"
     ],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-EDU-10B": "step",
      "DM-CLS-DRUG-01": "rule",
+     "DM-SUS-INPT-02": "rule",
      "DM-SUS-POP-STEROID-01": "rule"
     },
     "metButDark": {},
@@ -2787,7 +2793,9 @@
     "restrictedClasses": [],
     "urgency": {
      "DM-SUS-POP-STEROID-01": "routine",
-     "DM-CLS-DRUG-01": "routine"
+     "DM-CLS-DRUG-01": "routine",
+     "DM-SUS-INPT-02": "routine",
+     "DM-ACT-EDU-10B": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -2856,8 +2864,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -2953,8 +2960,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "unavailable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "unavailable"
     },
     "caveatsInForce": [
      "who_chart_non_lab_in_diabetes"
@@ -3063,8 +3069,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -3153,8 +3158,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -3196,9 +3200,6 @@
       "pregnant"
      ],
      "who_2013_diabetes_in_pregnancy": [
-      "pregnant"
-     ],
-     "ug_ucg_2023_gdm": [
       "pregnant"
      ]
     },
@@ -3258,14 +3259,14 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "glucose_acute_illness"
     ],
     "blockedCriteria": [],
     "fired": {
+     "DM-SUS-INCID-05": "rule",
      "DM-SUS-INPT-01": "rule"
     },
     "metButDark": {},
@@ -3280,7 +3281,8 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-SUS-INPT-01": "routine"
+     "DM-SUS-INPT-01": "routine",
+     "DM-SUS-INCID-05": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -3353,8 +3355,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "hba1c_low_egfr"
@@ -3450,13 +3451,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -3487,7 +3487,7 @@
     "interrupt": "DM-ACU-ROUTE-11",
     "foldedInto": {},
     "interruptActions": [
-     "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones"
+     "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -3552,8 +3552,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -3594,7 +3593,7 @@
     "interrupt": "DM-ACU-ROUTE-14",
     "foldedInto": {},
     "interruptActions": [
-     "Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones"
+     "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -3643,19 +3642,19 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
      "DM-ACU-ROUTE-15": "rule",
-     "DM-ACU-ROUTE-18": "rule"
+     "DM-ACU-ROUTE-18": "rule",
+     "DM-SUS-PAED-06": "rule"
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
@@ -3675,7 +3674,8 @@
     "restrictedClasses": [],
     "urgency": {
      "DM-ACU-ROUTE-15": "immediate",
-     "DM-ACU-ROUTE-18": "same_day"
+     "DM-ACU-ROUTE-18": "same_day",
+     "DM-SUS-PAED-06": "same_day"
     },
     "interrupt": "DM-ACU-ROUTE-15",
     "foldedInto": {},
@@ -3734,13 +3734,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -3835,12 +3834,12 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-07": "rule",
      "DM-ACU-ROUTE-23": "rule",
      "DM-ACU-ROUTE-32B": "rule",
@@ -3867,7 +3866,8 @@
     "urgency": {
      "DM-ACU-ROUTE-07": "immediate",
      "DM-ACU-ROUTE-23": "same_day",
-     "DM-ACU-ROUTE-32B": "same_day"
+     "DM-ACU-ROUTE-32B": "same_day",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-07",
     "foldedInto": {},
@@ -3952,8 +3952,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -3962,6 +3961,7 @@
      "DM-ACT-EDU-02": "step",
      "DM-ACT-EDU-03": "step",
      "DM-ACT-RX-10": "step",
+     "DM-ACT-RX-14": "step",
      "DM-ACU-ROUTE-06": "rule",
      "glibenclamide_age_60": "therapyFlag",
      "glibenclamide_hypoglycaemia_concern": "therapyFlag",
@@ -3980,7 +3980,8 @@
     },
     "targets": [
      "tgt_hba1c_relaxed",
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {
      "fpg_control_who": "low"
@@ -3997,7 +3998,8 @@
      "DM-ACT-EDU-01": "routine",
      "DM-ACT-EDU-02": "routine",
      "DM-ACT-EDU-03": "routine",
-     "DM-ACT-RX-10": "same_day"
+     "DM-ACT-RX-10": "same_day",
+     "DM-ACT-RX-14": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-06",
     "foldedInto": {},
@@ -4054,8 +4056,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "unavailable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "unavailable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -4151,8 +4152,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "unavailable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "unavailable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -4253,19 +4253,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "unavailable",
      "who_2013_diabetes_in_pregnancy": "unavailable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "unavailable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-CON-PREG-03": "rule"
+     "DM-CON-PREG-03": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -4282,6 +4280,7 @@
     ],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-CON-PREG-03": "same_day"
     },
     "interrupt": null,
@@ -4319,14 +4318,15 @@
     "fires": [
      "DM-CON-PREG-04"
     ],
-    "dark": [
-     "DM-SUS-PREG-01"
-    ],
+    "dark": [],
     "silent": [
      "DM-CON-PREG-03",
      "DM-CON-PREG-05"
     ],
-    "something_fires": true
+    "something_fires": true,
+    "fires_or_site_gated": [
+     "DM-SUS-PREG-01"
+    ]
    },
    "mapsToSpecVignettes": [],
    "story": null,
@@ -4342,19 +4342,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "unavailable",
      "who_2013_diabetes_in_pregnancy": "unavailable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "unavailable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-CON-PREG-04": "rule"
+     "DM-CON-PREG-04": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -4371,6 +4369,7 @@
     ],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-CON-PREG-04": "urgent"
     },
     "interrupt": null,
@@ -4429,12 +4428,14 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -4446,7 +4447,10 @@
     "classification": {},
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -4472,9 +4476,6 @@
       "pregnant"
      ],
      "who_2013_diabetes_in_pregnancy": [
-      "pregnant"
-     ],
-     "ug_ucg_2023_gdm": [
       "pregnant"
      ]
     },
@@ -4533,8 +4534,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -4628,8 +4628,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_hiv_on_art"
@@ -4714,8 +4713,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -4823,17 +4821,18 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
      "DM-ACU-ROUTE-01": "rule",
      "DM-CLS-T1-04": "rule",
      "DM-SUS-INCID-01": "rule"
@@ -4857,7 +4856,9 @@
     "urgency": {
      "DM-SUS-INCID-01": "routine",
      "DM-ACU-ROUTE-01": "same_day",
-     "DM-CLS-T1-04": "same_day"
+     "DM-CLS-T1-04": "same_day",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -4910,8 +4911,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -4991,8 +4991,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_overestimate_africa"
@@ -5090,8 +5089,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "unavailable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "unavailable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -5191,8 +5189,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "hba1c_low_egfr"
@@ -5289,8 +5286,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "uacr_transient",
@@ -5384,8 +5380,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -5479,8 +5474,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -5541,7 +5535,6 @@
      "other_glucose_lowering_in_pregnancy",
      "DM-ACT-SCREEN-PREG-01"
     ],
-    "no_targets": true,
     "something_fires": true
    },
    "mapsToSpecVignettes": [],
@@ -5558,8 +5551,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -5581,7 +5573,10 @@
     },
     "stages": {},
     "risk": {},
-    "targets": [],
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
     "bands": {},
     "classification": {
      "type_1": "insufficient",
@@ -5646,8 +5641,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -5740,8 +5734,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -5846,8 +5839,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_low_egfr",
@@ -5859,6 +5851,7 @@
      "DM-ACT-REFER-EGFR-01": "step",
      "DM-ACT-REFER-FOOT-01": "step",
      "DM-ACT-REFER-FOOT-03": "step",
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACT-REFER-VISION-01": "step",
      "DM-ACT-SCREEN-PREG-01": "step",
      "ras_blocker_or_statin_in_pregnancy": "therapyFlag"
@@ -5882,6 +5875,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-ACT-REFER-PAED-T1-01": "routine",
      "DM-ACT-SCREEN-PREG-01": "same_day",
      "DM-ACT-REFER-VISION-01": "same_day",
      "DM-ACT-REFER-EGFR-01": "same_day",
@@ -5950,8 +5944,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_low_egfr"
@@ -5961,6 +5954,7 @@
      "DM-ACT-REFER-EGFR-01": "step",
      "DM-ACT-REFER-FOOT-01": "step",
      "DM-ACT-REFER-FOOT-03": "step",
+     "DM-ACT-TEST-VENOUS-01": "step",
      "DM-ACU-ROUTE-08": "rule",
      "DM-SUS-INCID-01": "rule"
     },
@@ -5980,14 +5974,22 @@
      "DM-ACU-ROUTE-08": "same_day",
      "DM-ACT-REFER-EGFR-01": "same_day",
      "DM-ACT-REFER-FOOT-01": "same_day",
-     "DM-ACT-REFER-FOOT-03": "same_day"
+     "DM-ACT-REFER-FOOT-03": "same_day",
+     "DM-ACT-TEST-VENOUS-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
     "metViaUnknown": {},
     "cautions": {},
-    "gaps": {},
+    "gaps": {
+     "DM-ACT-SCREEN-TB-02": [
+      "hba1c"
+     ],
+     "DM-ACT-INITIAL-01": [
+      "hba1c"
+     ]
+    },
     "pregnancyState": "not_pregnant",
     "actionOverride": {}
    }
@@ -6042,8 +6044,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -6135,13 +6136,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -6237,8 +6237,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "hba1c_hiv_on_art"
@@ -6323,7 +6322,6 @@
      "DM-ACT-SCREEN-PREG-01"
     ],
     "no_bands": true,
-    "no_targets": true,
     "something_fires": true
    },
    "mapsToSpecVignettes": [],
@@ -6341,8 +6339,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -6354,6 +6351,7 @@
      "DM-ACT-EDU-03": "step",
      "DM-ACT-EDU-04": "step",
      "DM-ACT-EDU-05": "step",
+     "DM-ACT-PREG-ASA-01": "step",
      "DM-ACT-SCREEN-PREG-01": "step"
     },
     "metButDark": {},
@@ -6365,7 +6363,10 @@
     },
     "stages": {},
     "risk": {},
-    "targets": [],
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
     "bands": {},
     "classification": {
      "type_1": "insufficient",
@@ -6380,7 +6381,8 @@
      "DM-ACT-EDU-02": "routine",
      "DM-ACT-EDU-03": "routine",
      "DM-ACT-EDU-04": "routine",
-     "DM-ACT-EDU-05": "routine"
+     "DM-ACT-EDU-05": "routine",
+     "DM-ACT-PREG-ASA-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -6443,8 +6445,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -6536,8 +6537,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -6641,8 +6641,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -6652,7 +6651,8 @@
      "DM-ACT-EDU-03": "step",
      "DM-ACT-EDU-04": "step",
      "DM-ACT-EDU-05": "step",
-     "DM-ACT-RX-11B": "step"
+     "DM-ACT-RX-11B": "step",
+     "DM-ACT-RX-14B": "step"
     },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
@@ -6667,7 +6667,8 @@
     },
     "targets": [
      "tgt_hba1c_relaxed",
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {
      "hba1c_control_relaxed": "at_target"
@@ -6685,7 +6686,8 @@
      "DM-ACT-EDU-03": "routine",
      "DM-ACT-EDU-04": "routine",
      "DM-ACT-EDU-05": "routine",
-     "DM-ACT-RX-11B": "routine"
+     "DM-ACT-RX-11B": "routine",
+     "DM-ACT-RX-14B": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -6750,12 +6752,13 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
      "DM-ACU-ROUTE-08": "rule",
      "DM-CLS-T1-04": "rule",
      "DM-SUS-INCID-01": "rule"
@@ -6774,7 +6777,9 @@
     "urgency": {
      "DM-SUS-INCID-01": "routine",
      "DM-CLS-T1-04": "same_day",
-     "DM-ACU-ROUTE-08": "same_day"
+     "DM-ACU-ROUTE-08": "same_day",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -6801,9 +6806,6 @@
       "pregnant"
      ],
      "who_2013_diabetes_in_pregnancy": [
-      "pregnant"
-     ],
-     "ug_ucg_2023_gdm": [
       "pregnant"
      ]
     },
@@ -6857,8 +6859,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -6947,13 +6948,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7030,8 +7030,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7124,8 +7123,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "fundus_undilated_direct",
@@ -7223,8 +7221,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7313,8 +7310,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7405,8 +7401,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7435,7 +7430,7 @@
      "DM-ACU-ROUTE-20": "DM-ACU-ROUTE-24"
     },
     "interruptActions": [
-     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
+     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
      "Diabetes and drowsy or worse, with no glucose on record: capillary glucose now"
     ],
     "metViaUnknown": {},
@@ -7499,8 +7494,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_overestimate_africa"
@@ -7581,13 +7575,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "insufficient",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7686,8 +7679,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7784,19 +7776,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "unavailable",
      "who_2013_diabetes_in_pregnancy": "unavailable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "unavailable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-CON-PREG-05": "rule"
+     "DM-CON-PREG-05": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -7813,6 +7803,7 @@
     ],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-CON-PREG-05": "same_day"
     },
     "interrupt": null,
@@ -7875,8 +7866,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -7967,8 +7957,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -8038,8 +8027,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -8089,8 +8077,8 @@
      "DM-ACU-ROUTE-24B": "DM-ACU-ROUTE-24"
     },
     "interruptActions": [
-     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
-     "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now"
+     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
+     "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -8137,8 +8125,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -8217,8 +8204,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -8318,8 +8304,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
@@ -8420,8 +8405,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
@@ -8520,8 +8504,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -8617,8 +8600,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_low_egfr"
@@ -8683,14 +8665,17 @@
      "who_2013_diabetes_in_pregnancy": [
       "pregnant"
      ],
-     "ug_ucg_2023_gdm": [
-      "pregnant"
-     ],
      "DM-ACU-ROUTE-28": [
       "pregnant"
      ],
      "DM-ACU-ROUTE-27D": [
       "pregnant"
+     ],
+     "DM-ACT-SCREEN-TB-02": [
+      "hba1c"
+     ],
+     "DM-ACT-INITIAL-01": [
+      "hba1c"
      ]
     },
     "pregnancyState": "unknown",
@@ -8736,12 +8721,13 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -8760,7 +8746,9 @@
     },
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-REFER-PAED-T1-01": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -8813,12 +8801,13 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -8839,7 +8828,9 @@
     },
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-REFER-PAED-T1-01": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -8889,8 +8880,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -8961,8 +8951,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9057,8 +9046,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [
      "hba1c_low_egfr"
@@ -9165,8 +9153,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_overestimate_africa"
@@ -9253,8 +9240,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9343,19 +9329,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-28": "rule"
+     "DM-ACU-ROUTE-28": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -9367,6 +9351,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-28": "immediate"
     },
     "interrupt": "DM-ACU-ROUTE-28",
@@ -9414,13 +9399,12 @@
     "diagnosis": {
      "who_hearts_d_2020": "unavailable",
      "ug_ucg_2023": "unavailable",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "unavailable",
      "who_2006_intermediate": "unavailable",
      "ada_2026_prediabetes": "unavailable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9500,8 +9484,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9554,7 +9537,7 @@
     },
     "interruptActions": [
      "Blood pressure above 180/110 with drowsiness, organ-damage signs, chest pain or stroke signs: hypertensive emergency. Route now",
-     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
+     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
      "Diabetes and drowsy or worse, with no glucose on record: capillary glucose now"
     ],
     "metViaUnknown": {},
@@ -9605,8 +9588,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9632,7 +9614,7 @@
     "interrupt": "DM-ACU-ROUTE-02",
     "foldedInto": {},
     "interruptActions": [
-     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now"
+     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -9687,8 +9669,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9716,7 +9697,7 @@
     "interrupt": "DM-ACU-ROUTE-02",
     "foldedInto": {},
     "interruptActions": [
-     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now"
+     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -9771,8 +9752,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
@@ -9868,8 +9848,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "insufficient",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "insufficient"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -9963,8 +9942,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -10009,7 +9987,7 @@
     },
     "interruptActions": [
      "Glucose below 3.9 mmol/L with drowsiness or worse: severe hypoglycaemia until proved otherwise. Route now",
-     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now"
+     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -10060,14 +10038,14 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
     ],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-23": "rule",
      "DM-ACU-ROUTE-32": "rule",
      "DM-ACU-ROUTE-32B": "rule"
@@ -10093,7 +10071,8 @@
     "urgency": {
      "DM-ACU-ROUTE-23": "same_day",
      "DM-ACU-ROUTE-32": "immediate",
-     "DM-ACU-ROUTE-32B": "same_day"
+     "DM-ACU-ROUTE-32B": "same_day",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-32",
     "foldedInto": {},
@@ -10147,8 +10126,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -10236,8 +10214,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -10279,7 +10256,7 @@
     "interrupt": "DM-ACU-ROUTE-02",
     "foldedInto": {},
     "interruptActions": [
-     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now"
+     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -10334,12 +10311,12 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-25": "rule"
     },
     "metButDark": {},
@@ -10361,7 +10338,8 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-25": "immediate"
+     "DM-ACU-ROUTE-25": "immediate",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-25",
     "foldedInto": {},
@@ -10418,8 +10396,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -10513,8 +10490,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -10589,8 +10565,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_overestimate_africa"
@@ -10676,8 +10651,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -10696,7 +10670,10 @@
     },
     "stages": {},
     "risk": {},
-    "targets": [],
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
     "bands": {},
     "classification": {
      "type_1": "insufficient",
@@ -10762,12 +10739,12 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-04": "rule",
      "DM-ACU-ROUTE-13B": "rule"
     },
@@ -10791,7 +10768,8 @@
     "restrictedClasses": [],
     "urgency": {
      "DM-ACU-ROUTE-04": "immediate",
-     "DM-ACU-ROUTE-13B": "same_day"
+     "DM-ACU-ROUTE-13B": "same_day",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-04",
     "foldedInto": {},
@@ -10845,19 +10823,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-28B": "rule"
+     "DM-ACU-ROUTE-28B": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -10869,6 +10845,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-28B": "immediate"
     },
     "interrupt": "DM-ACU-ROUTE-28B",
@@ -10923,8 +10900,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -11000,8 +10976,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -11049,7 +11024,7 @@
     "interrupt": "DM-ACU-ROUTE-24",
     "foldedInto": {},
     "interruptActions": [
-     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now"
+     "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -11101,8 +11076,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_overestimate_africa"
@@ -11190,8 +11164,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -11239,9 +11212,6 @@
       "pregnant"
      ],
      "who_2013_diabetes_in_pregnancy": [
-      "pregnant"
-     ],
-     "ug_ucg_2023_gdm": [
       "pregnant"
      ],
      "DM-ACU-ROUTE-28": [
@@ -11295,8 +11265,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
@@ -11391,19 +11360,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-27B": "rule"
+     "DM-ACU-ROUTE-27B": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -11415,6 +11382,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-27B": "same_day"
     },
     "interrupt": null,
@@ -11468,8 +11436,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -11545,8 +11512,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -11554,11 +11520,10 @@
     "blockedCriteria": [],
     "fired": {
      "DM-ACU-ROUTE-02": "rule",
-     "DM-ACU-ROUTE-35": "rule"
+     "DM-ACU-ROUTE-35": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -11572,13 +11537,14 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-02": "immediate",
      "DM-ACU-ROUTE-35": "same_day"
     },
     "interrupt": "DM-ACU-ROUTE-02",
     "foldedInto": {},
     "interruptActions": [
-     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now"
+     "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
     ],
     "metViaUnknown": {},
     "cautions": {},
@@ -11626,8 +11592,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -11660,7 +11625,7 @@
      "DM-ACU-ROUTE-28D": "DM-ACU-ROUTE-14"
     },
     "interruptActions": [
-     "Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones",
+     "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
      "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: severe pre-eclampsia or eclampsia until proved otherwise. Route now",
      "Pregnancy is not recorded: ask now. If pregnant or within 6 weeks of birth: route now. Blood pressure and glucose now if not already recorded (eclampsia, hypoglycaemia)"
     ],
@@ -11689,9 +11654,6 @@
       "pregnant"
      ],
      "who_2013_diabetes_in_pregnancy": [
-      "pregnant"
-     ],
-     "ug_ucg_2023_gdm": [
       "pregnant"
      ],
      "DM-ACU-ROUTE-28C": [
@@ -11742,8 +11704,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -11815,8 +11776,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -11824,11 +11784,10 @@
     "blockedCriteria": [],
     "fired": {
      "DM-ACU-ROUTE-15": "rule",
-     "DM-ACU-ROUTE-28D": "rule"
+     "DM-ACU-ROUTE-28D": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -11840,6 +11799,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-15": "folded",
      "DM-ACU-ROUTE-28D": "immediate"
     },
@@ -11902,19 +11862,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-27D": "rule"
+     "DM-ACU-ROUTE-27D": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -11926,6 +11884,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-27D": "immediate"
     },
     "interrupt": "DM-ACU-ROUTE-27D",
@@ -11984,8 +11943,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12075,8 +12033,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12172,8 +12129,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12245,8 +12201,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12296,9 +12251,6 @@
       "pregnant"
      ],
      "who_2013_diabetes_in_pregnancy": [
-      "pregnant"
-     ],
-     "ug_ucg_2023_gdm": [
       "pregnant"
      ],
      "DM-ACU-ROUTE-28D": [
@@ -12354,8 +12306,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12451,8 +12402,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12474,7 +12424,8 @@
      "tgt_hba1c_ckd",
      "tgt_fpg_surrogate",
      "tgt_ppg_surrogate",
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {
      "hba1c_control_ckd": "in_range"
@@ -12537,8 +12488,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12609,8 +12559,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "hba1c_b12_or_iron_deficiency"
@@ -12714,8 +12663,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
@@ -12809,8 +12757,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "urine_ketones_low_despite_picture"
@@ -12907,8 +12854,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -12963,9 +12909,6 @@
      "who_2013_diabetes_in_pregnancy": [
       "pregnant"
      ],
-     "ug_ucg_2023_gdm": [
-      "pregnant"
-     ],
      "DM-ACU-ROUTE-28": [
       "pregnant"
      ],
@@ -13015,8 +12958,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13099,8 +13041,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13122,7 +13063,8 @@
      "hypoglycaemia_risk_ada": "raised"
     },
     "targets": [
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {},
     "classification": {
@@ -13185,8 +13127,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13259,12 +13200,12 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-23D": "rule",
      "DM-ACU-ROUTE-32": "rule",
      "DM-ACU-ROUTE-32B": "rule"
@@ -13292,7 +13233,8 @@
     "urgency": {
      "DM-ACU-ROUTE-32": "immediate",
      "DM-ACU-ROUTE-23D": "same_day",
-     "DM-ACU-ROUTE-32B": "same_day"
+     "DM-ACU-ROUTE-32B": "same_day",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-32",
     "foldedInto": {},
@@ -13350,8 +13292,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13372,7 +13313,8 @@
      "hypoglycaemia_risk_ada": "raised"
     },
     "targets": [
-     "tgt_bp"
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
     ],
     "bands": {},
     "classification": {
@@ -13442,8 +13384,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13528,17 +13469,19 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "met",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "met",
      "who_2006_intermediate": "not_met",
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -13550,7 +13493,10 @@
     "classification": {},
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -13595,17 +13541,19 @@
     "diagnosis": {
      "who_hearts_d_2020": "met",
      "ug_ucg_2023": "insufficient",
-     "ug_integrated_dm_2026": "insufficient",
+     "ug_integrated_dm_2026": "met",
      "who_2006_intermediate": "not_met",
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
-    "fired": {},
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step"
+    },
     "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
@@ -13617,7 +13565,10 @@
     "classification": {},
     "unavailableFeatures": [],
     "restrictedClasses": [],
-    "urgency": {},
+    "urgency": {
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
     "interrupt": null,
     "foldedInto": {},
     "interruptActions": [],
@@ -13630,7 +13581,7 @@
   },
   {
    "id": "DMV-147",
-   "title": "28 weeks pregnant, fasting 5.4: gestational diabetes under WHO 2013 (default), not under UCG",
+   "title": "28 weeks pregnant, fasting 5.4: gestational diabetes under WHO 2013 (the 2026 guideline's values)",
    "covers": [
     "pregnancy",
     "P0-26",
@@ -13649,8 +13600,7 @@
    },
    "expect": {
     "diagnosis": {
-     "who_2013_gdm": "met",
-     "ug_ucg_2023_gdm": "insufficient"
+     "who_2013_gdm": "met"
     }
    },
    "mapsToSpecVignettes": [],
@@ -13665,19 +13615,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "met",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-CON-PREG-01": "rule"
+     "DM-CON-PREG-01": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -13689,6 +13637,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-CON-PREG-01": "same_day"
     },
     "interrupt": null,
@@ -13737,14 +13686,14 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
+     "DM-SUS-PREG-03": "rule",
      "DM-SUS-PREG-UCG": "rule"
     },
     "metButDark": {},
@@ -13759,7 +13708,8 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-SUS-PREG-UCG": "routine"
+     "DM-SUS-PREG-UCG": "routine",
+     "DM-SUS-PREG-03": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -13812,8 +13762,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13900,8 +13849,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -13987,8 +13935,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -14083,8 +14030,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -14178,19 +14124,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-27": "rule"
+     "DM-ACU-ROUTE-27": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -14202,6 +14146,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-27": "same_day"
     },
     "interrupt": null,
@@ -14254,8 +14199,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "capillary_glucose_acute_illness"
@@ -14344,19 +14288,17 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "insufficient",
      "who_2013_diabetes_in_pregnancy": "insufficient",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "insufficient"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
     ],
     "blockedCriteria": [],
     "fired": {
-     "DM-ACU-ROUTE-27C": "rule"
+     "DM-ACU-ROUTE-27C": "rule",
+     "DM-SUS-PREG-01": "rule"
     },
-    "metButDark": {
-     "DM-SUS-PREG-01": "D-DM-12"
-    },
+    "metButDark": {},
     "withheldForPregnancyAnswer": [],
     "bandsWithheldByCaveat": [],
     "complications": {},
@@ -14368,6 +14310,7 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
+     "DM-SUS-PREG-01": "routine",
      "DM-ACU-ROUTE-27C": "same_day"
     },
     "interrupt": null,
@@ -14419,12 +14362,12 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-13B": "rule",
      "DM-ACU-ROUTE-25B": "rule"
     },
@@ -14448,7 +14391,8 @@
     "restrictedClasses": [],
     "urgency": {
      "DM-ACU-ROUTE-25B": "immediate",
-     "DM-ACU-ROUTE-13B": "same_day"
+     "DM-ACU-ROUTE-13B": "same_day",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": "DM-ACU-ROUTE-25B",
     "foldedInto": {},
@@ -14502,8 +14446,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "capillary_glucose_acute_illness"
@@ -14595,12 +14538,12 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
     "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule",
      "DM-ACU-ROUTE-25C": "rule"
     },
     "metButDark": {},
@@ -14624,7 +14567,8 @@
     "unavailableFeatures": [],
     "restrictedClasses": [],
     "urgency": {
-     "DM-ACU-ROUTE-25C": "same_day"
+     "DM-ACU-ROUTE-25C": "same_day",
+     "DM-ACT-REFER-PAED-T1-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -14670,8 +14614,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_g6pd"
@@ -14738,8 +14681,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_sickle_cell_disease"
@@ -14806,8 +14748,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_haematinic_or_epo"
@@ -14874,8 +14815,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_dapsone_or_spleen"
@@ -14942,8 +14882,7 @@
      "ada_2026_prediabetes": "insufficient",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_red_cell_turnover"
@@ -15015,8 +14954,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "egfr_not_steady_state"
@@ -15107,8 +15045,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [
      "abi_calcified"
@@ -15196,8 +15133,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -15217,7 +15153,10 @@
     },
     "stages": {},
     "risk": {},
-    "targets": [],
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
     "bands": {},
     "classification": {
      "type_1": "insufficient",
@@ -15286,8 +15225,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_applicable",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_applicable"
     },
     "caveatsInForce": [
      "hba1c_pregnancy"
@@ -15299,6 +15237,7 @@
      "DM-ACT-EDU-03": "step",
      "DM-ACT-EDU-04": "step",
      "DM-ACT-EDU-05": "step",
+     "DM-ACT-PREG-ASA-01": "step",
      "DM-ACT-SCREEN-PREG-01": "step",
      "DM-ACU-ROUTE-23": "rule",
      "DM-ACU-ROUTE-23R": "rule"
@@ -15312,7 +15251,10 @@
     },
     "stages": {},
     "risk": {},
-    "targets": [],
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
     "bands": {},
     "classification": {
      "type_1": "insufficient",
@@ -15329,7 +15271,8 @@
      "DM-ACT-EDU-02": "routine",
      "DM-ACT-EDU-03": "routine",
      "DM-ACT-EDU-04": "routine",
-     "DM-ACT-EDU-05": "routine"
+     "DM-ACT-EDU-05": "routine",
+     "DM-ACT-PREG-ASA-01": "routine"
     },
     "interrupt": null,
     "foldedInto": {},
@@ -15381,8 +15324,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -15473,8 +15415,7 @@
      "ada_2026_prediabetes": "not_applicable",
      "who_2013_gdm": "not_applicable",
      "who_2013_diabetes_in_pregnancy": "not_applicable",
-     "consensus_2021_remission": "not_met",
-     "ug_ucg_2023_gdm": "not_applicable"
+     "consensus_2021_remission": "not_met"
     },
     "caveatsInForce": [],
     "blockedCriteria": [],
@@ -15514,6 +15455,2203 @@
      "DM-ACT-EDU-03": "routine",
      "DM-ACT-EDU-04": "routine",
      "DM-ACT-EDU-05": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-170",
+   "title": "Thirst and itching, fasting glucose exactly 7.0: diabetes under the 2026 set (not under UCG's '>')",
+   "covers": [
+    "met",
+    "UG-01",
+    "UG-02"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 44,
+    "sex": "male",
+    "polydipsia": true,
+    "pruritus": true,
+    "fasting_pg": 7.0
+   },
+   "expect": {
+    "diagnosis": {
+     "ug_integrated_dm_2026": "met",
+     "ug_ucg_2023": "insufficient"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "met",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "met",
+     "who_2006_intermediate": "not_met",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-171",
+   "title": "No symptoms; fasting 7.4 and laboratory HbA1c 6.9 on the same day",
+   "covers": [
+    "met",
+    "UG-03"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 51,
+    "sex": "female",
+    "pregnant": false,
+    "fasting_pg": 7.4,
+    "hba1c": 6.9,
+    "hba1c_point_of_care": false
+   },
+   "expect": {
+    "diagnosis": {
+     "ug_integrated_dm_2026": "met"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "met",
+     "who_2006_intermediate": "not_met",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-172",
+   "title": "No symptoms; fasting 7.3 and a point-of-care HbA1c 7.1: not diagnosed (2026 does not diagnose on a point-of-care HbA1c)",
+   "covers": [
+    "UG-04"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 51,
+    "sex": "male",
+    "fasting_pg": 7.3,
+    "hba1c": 7.1,
+    "hba1c_point_of_care": true
+   },
+   "expect": {
+    "diagnosis": {
+     "ug_integrated_dm_2026": "insufficient"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "not_met",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INCID-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-173",
+   "title": "Random glucose 9.2 at an outpatient visit, no symptoms",
+   "covers": [
+    "UG-05"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 39,
+    "sex": "male",
+    "random_pg": 9.2
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-INCID-05"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INCID-05": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-05": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-174",
+   "title": "12 weeks pregnant at her first antenatal visit, no glucose yet",
+   "covers": [
+    "pregnancy",
+    "UG-06"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 26,
+    "sex": "female",
+    "pregnant": true,
+    "gestation_weeks": 12
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-PREG-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "insufficient",
+     "who_2013_diabetes_in_pregnancy": "insufficient",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_pregnancy"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-PREG-03": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-PREG-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-175",
+   "title": "16 weeks pregnant, HbA1c 6.8% at booking",
+   "covers": [
+    "pregnancy",
+    "UG-08"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 31,
+    "sex": "female",
+    "pregnant": true,
+    "gestation_weeks": 16,
+    "hba1c": 6.8
+   },
+   "expect": {
+    "fires": [
+     "DM-CON-PREG-06"
+    ],
+    "urgency": {
+     "DM-CON-PREG-06": "same_day"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "insufficient",
+     "who_2013_diabetes_in_pregnancy": "insufficient",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_pregnancy"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-CON-PREG-06": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-CON-PREG-06": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-176",
+   "title": "Pregnant 20 weeks with type 2 diabetes",
+   "covers": [
+    "pregnancy",
+    "UG-09",
+    "UG-11"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 33,
+    "sex": "female",
+    "pregnant": true,
+    "gestation_weeks": 20,
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "fasting_pg": 6.0,
+    "on_antiplatelet": false
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-PREG-ASA-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_pregnancy"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step",
+     "DM-ACT-PREG-ASA-01": "step",
+     "DM-ACT-SCREEN-PREG-01": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_fpg_pregnancy",
+     "tgt_ppg_pregnancy"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-SCREEN-PREG-01": "same_day",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine",
+     "DM-ACT-PREG-ASA-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-177",
+   "title": "Type 2 on diet, 47, random C-peptide 420 pmol/L",
+   "covers": [
+    "UG-15"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 47,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "none"
+    ],
+    "c_peptide": 420
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-13"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "insufficient"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-RX-13": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-13": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-178",
+   "title": "68-year-old on metformin with heart disease, HbA1c 7.6%",
+   "covers": [
+    "UG-16"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "older_adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 68,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "cvd_established": true,
+    "hba1c": 7.6,
+    "months_since_hba1c": 1
+   },
+   "expect": {
+    "targets": [
+     "tgt_hba1c_elderly_2026"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-RX-05": "step",
+     "DM-ACT-RX-06D": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026",
+     "tgt_ldl_ascvd"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-05": "routine",
+     "DM-ACT-RX-06D": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-179",
+   "title": "HbA1c 8.4% four months ago, no treatment change since",
+   "covers": [
+    "UG-17"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 52,
+    "sex": "female",
+    "pregnant": false,
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "hba1c": 8.4,
+    "months_since_hba1c": 4,
+    "therapy_changed_recently": false
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-TEST-HBA1C-03"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-TEST-HBA1C-03": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "hba1c_control_general": "above_target"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-TEST-HBA1C-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-180",
+   "title": "13-year-old with type 1 diabetes at a routine visit",
+   "covers": [
+    "UG-17",
+    "UG-28",
+    "UG-29",
+    "paediatric"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adolescent",
+   "synthetic": true,
+   "values": {
+    "age_years": 13,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_1",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ]
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-REFER-PAED-T1-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-REFER-PAED-T1-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-PAED-T1-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-181",
+   "title": "79-year-old on insulin, frail, fasting 4.6",
+   "covers": [
+    "D-DM-40"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "older_adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 79,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "insulin"
+    ],
+    "frailty_or_limited_life_expectancy": true,
+    "fasting_pg": 4.6
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-14B"
+    ],
+    "silent": [
+     "DM-ACT-RX-14"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-EDU-04": "step",
+     "DM-ACT-EDU-05": "step",
+     "DM-ACT-RX-11B": "step",
+     "DM-ACT-RX-14B": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {
+     "hypoglycaemia_risk_ada": "raised"
+    },
+    "targets": [
+     "tgt_hba1c_relaxed",
+     "tgt_bp",
+     "tgt_hba1c_elderly_2026"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-EDU-04": "routine",
+     "DM-ACT-EDU-05": "routine",
+     "DM-ACT-RX-11B": "routine",
+     "DM-ACT-RX-14B": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-182",
+   "title": "70-year-old on gliclazide, well, fasting 4.1",
+   "covers": [
+    "D-DM-40"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "older_adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 70,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "gliclazide"
+    ],
+    "fasting_pg": 4.1
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-14"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "DM-ACT-RX-14": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_older_healthy",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "fpg_control_who": "at_target"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine",
+     "DM-ACT-RX-14": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-183",
+   "title": "New type 2, fasting 14.6, not on insulin",
+   "covers": [
+    "UG-22"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 45,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "fasting_pg": 14.6
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-04"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-RX-04": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "fpg_control_who": "above_target"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-04": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-184",
+   "title": "Type 2 on metformin, normal blood pressure, albuminuria on 2 tests, no ACE inhibitor",
+   "covers": [
+    "UG-25",
+    "UG-26"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 55,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "uacr_abnormal_count": 2,
+    "ras_blocker": "none",
+    "bp_systolic": 122,
+    "bp_diastolic": 74,
+    "on_statin": false
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-08",
+     "DM-ACT-RX-06C"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-REFER-ALB-01": "step",
+     "DM-ACT-RX-05": "step",
+     "DM-ACT-RX-06": "step",
+     "DM-ACT-RX-06C": "step",
+     "DM-ACT-RX-08": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {
+     "bp_systolic_who_hearts_d": "at_target",
+     "bp_diastolic_who_hearts_d": "at_target"
+    },
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-REFER-ALB-01": "routine",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-RX-05": "routine",
+     "DM-ACT-RX-06": "routine",
+     "DM-ACT-RX-08": "routine",
+     "DM-ACT-RX-06C": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-185",
+   "title": "Mild retinopathy, last eye check 14 months ago",
+   "covers": [
+    "UG-27"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 58,
+    "sex": "female",
+    "pregnant": false,
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "retinopathy_stage": "mild_npdr",
+    "months_since_eye_screen": 14
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-SCREEN-EYE-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-SCREEN-EYE-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "met",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {
+     "icdr_retinopathy": "mild_npdr"
+    },
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-SCREEN-EYE-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-186",
+   "title": "8-year-old, vomiting since this morning, no diarrhoea, no glucose yet",
+   "covers": [
+    "UG-30",
+    "paediatric"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "child",
+   "synthetic": true,
+   "values": {
+    "age_years": 8,
+    "sex": "male",
+    "vomiting": true,
+    "diarrhoea": false
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-PAED-06"
+    ],
+    "urgency": {
+     "DM-SUS-PAED-06": "same_day"
+    }
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-PAED-06": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-PAED-06": "same_day"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-187",
+   "title": "8-year-old with vomiting and diarrhoea",
+   "covers": [
+    "UG-30",
+    "paediatric"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "child",
+   "synthetic": true,
+   "values": {
+    "age_years": 8,
+    "sex": "male",
+    "vomiting": true,
+    "diarrhoea": true
+   },
+   "expect": {
+    "silent": [
+     "DM-SUS-PAED-06"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {},
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {},
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-188",
+   "title": "Type 2, glucose 31 at a health centre, alert",
+   "covers": [
+    "UG-31"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "older_adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 66,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "capillary_glucose": 31.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACU-ROUTE-14"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACU-ROUTE-01": "rule",
+     "DM-ACU-ROUTE-14": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_older_healthy",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACU-ROUTE-01": "same_day",
+     "DM-ACU-ROUTE-14": "immediate",
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": "DM-ACU-ROUTE-14",
+    "foldedInto": {},
+    "interruptActions": [
+     "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)"
+    ],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-189",
+   "title": "Admitted with pneumonia, no glucose yet",
+   "covers": [
+    "UG-34"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 50,
+    "sex": "male",
+    "care_setting": "inpatient"
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-INPT-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-INPT-02": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INPT-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-190",
+   "title": "Inpatient with type 2 on metformin and gliclazide",
+   "covers": [
+    "UG-34"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 61,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin",
+     "gliclazide"
+    ],
+    "care_setting": "inpatient",
+    "capillary_glucose": 9.0
+   },
+   "expect": {
+    "fires": [
+     "oral_agents_in_hospital"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-EDU-03": "step",
+     "oral_agents_in_hospital": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp",
+     "tgt_glucose_inpatient"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-EDU-03": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-191",
+   "title": "On metformin, hernia repair next week",
+   "covers": [
+    "UG-35"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 57,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "surgery_or_fasting_planned": true
+   },
+   "expect": {
+    "fires": [
+     "metformin_before_surgery"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "metformin_before_surgery": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-192",
+   "title": "On ART, last glucose 7 months ago",
+   "covers": [
+    "UG-36"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 38,
+    "sex": "female",
+    "pregnant": false,
+    "hiv_on_art": true,
+    "months_since_glucose_test": 7
+   },
+   "expect": {
+    "fires": [
+     "DM-SUS-POP-HIV-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [
+     "hba1c_hiv_on_art"
+    ],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-SUS-POP-HIV-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "urgency": {
+     "DM-SUS-POP-HIV-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-193",
+   "title": "On rifampicin for TB, type 2 on metformin",
+   "covers": [
+    "UG-40"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 44,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "on_rifampicin": true
+   },
+   "expect": {
+    "fires": [
+     "sulfonylurea_with_rifampicin"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "sulfonylurea_with_rifampicin": "therapyFlag"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [
+     "tb"
+    ],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-194",
+   "title": "On metformin 5 years, B12 never checked, regional referral hospital",
+   "covers": [
+    "UG-42"
+   ],
+   "site": "referral",
+   "established": true,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 60,
+    "sex": "male",
+    "dm_status": "known",
+    "dm_type_recorded": "type_2",
+    "glucose_lowering_therapy": [
+     "metformin"
+    ],
+    "months_since_b12": 60
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-SCREEN-B12-02"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "not_applicable",
+     "ug_ucg_2023": "not_applicable",
+     "ug_integrated_dm_2026": "not_applicable",
+     "who_2006_intermediate": "not_applicable",
+     "ada_2026_prediabetes": "not_applicable",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_met"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-01": "step",
+     "DM-ACT-EDU-02": "step",
+     "DM-ACT-SCREEN-B12-02": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {
+     "diabetic_retinopathy": "insufficient",
+     "peripheral_neuropathy_probable": "insufficient"
+    },
+    "stages": {},
+    "risk": {},
+    "targets": [
+     "tgt_hba1c_general",
+     "tgt_fpg_surrogate",
+     "tgt_ppg_surrogate",
+     "tgt_bp"
+    ],
+    "bands": {},
+    "classification": {
+     "type_1": "insufficient",
+     "slowly_evolving_immune_mediated": "insufficient",
+     "ketosis_prone_type_2": "insufficient"
+    },
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-01": "routine",
+     "DM-ACT-EDU-02": "routine",
+     "DM-ACT-SCREEN-B12-02": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-195",
+   "title": "Newly diagnosed today: thirst, random 15.2",
+   "covers": [
+    "UG-39",
+    "UG-43"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 41,
+    "sex": "male",
+    "polydipsia": true,
+    "random_pg": 15.2
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-SCREEN-TB-02",
+     "DM-ACT-INITIAL-01"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "met",
+     "ug_ucg_2023": "met",
+     "ug_integrated_dm_2026": "met",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-INITIAL-01": "step",
+     "DM-ACT-SCREEN-TB-02": "step",
+     "DM-ACU-ROUTE-08": "rule",
+     "DM-SUS-INCID-01": "rule"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-SUS-INCID-01": "routine",
+     "DM-ACU-ROUTE-08": "same_day",
+     "DM-ACT-SCREEN-TB-02": "routine",
+     "DM-ACT-INITIAL-01": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-196",
+   "title": "Prediabetes before, BMI 37",
+   "covers": [
+    "UG-45"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 33,
+    "sex": "female",
+    "pregnant": false,
+    "prior_intermediate_hyperglycaemia": true,
+    "bmi": 37
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-RX-15"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "insufficient",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-10": "step",
+     "DM-ACT-RX-15": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-10": "routine",
+     "DM-ACT-RX-15": "routine"
+    },
+    "interrupt": null,
+    "foldedInto": {},
+    "interruptActions": [],
+    "metViaUnknown": {},
+    "cautions": {},
+    "gaps": {},
+    "pregnancyState": "not_pregnant",
+    "actionOverride": {}
+   }
+  },
+  {
+   "id": "DMV-197",
+   "title": "Fasting 6.0 at a health check, no symptoms",
+   "covers": [
+    "UG-05",
+    "UG-45"
+   ],
+   "site": "referral",
+   "established": false,
+   "ageBand": "adult",
+   "synthetic": true,
+   "values": {
+    "age_years": 46,
+    "sex": "male",
+    "fasting_pg": 6.0
+   },
+   "expect": {
+    "fires": [
+     "DM-ACT-EDU-10B"
+    ]
+   },
+   "mapsToSpecVignettes": [],
+   "story": null,
+   "designB": null,
+   "computed": {
+    "diagnosis": {
+     "who_hearts_d_2020": "insufficient",
+     "ug_ucg_2023": "insufficient",
+     "ug_integrated_dm_2026": "insufficient",
+     "who_2006_intermediate": "insufficient",
+     "ada_2026_prediabetes": "met",
+     "who_2013_gdm": "not_applicable",
+     "who_2013_diabetes_in_pregnancy": "not_applicable",
+     "consensus_2021_remission": "not_applicable"
+    },
+    "caveatsInForce": [],
+    "blockedCriteria": [],
+    "fired": {
+     "DM-ACT-EDU-10B": "step"
+    },
+    "metButDark": {},
+    "withheldForPregnancyAnswer": [],
+    "bandsWithheldByCaveat": [],
+    "complications": {},
+    "stages": {},
+    "risk": {},
+    "targets": [],
+    "bands": {},
+    "classification": {},
+    "unavailableFeatures": [],
+    "restrictedClasses": [],
+    "urgency": {
+     "DM-ACT-EDU-10B": "routine"
     },
     "interrupt": null,
     "foldedInto": {},

@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Diabetes pack follows the 2026 Uganda diabetes guideline (shadow) — 2026-10-05
+
+- **Pack 0.5.0-draft**, still shadow only. The 2026 Integrated Diabetes Management Guideline (summarised, MoH June 2026) is the default diagnostic set ("≥", eight symptoms, two different tests on one day); every pregnant woman is screened; two medicines from HbA1c 7.5% at diagnosis; the second medicine by age and BMI, with where EMHSLU 2023 stocks it; pregnancy targets; HbA1c below 8% from 60 in the 2026 profile; HHS suspected from glucose 30; health centre III starts IV fluids before transfer; hospital, surgery, HIV and TB items; the Ugandan plate. 46 items signed (UG-01 to UG-46), five kept as the pack had them (two-antibody rule, two agents before insulin, ketone triage, dolutegravir, BP in PAD). The sources review (C-peptide, EMHSLU, insulin storage, DKA in pregnancy, older-adult glucose floor) is in too.
+- 197 synthetic patients, parity with the reference evaluator on all of them; the emergency-floor grid unchanged at zero.
+
 ### Changed — Pregnancy age range signed; diabetes clerking answers — 2026-10-05
 
 - **"Could be pregnant" is 12 to 50** (REF-PREG-AGE, signed). The EMR safety bar now shows "Pregnancy status not recorded" for a woman in that range with no record, and the imaging prompt can fire; nurse triage, the clerking desk and the diabetes pack read the same value instead of their own.

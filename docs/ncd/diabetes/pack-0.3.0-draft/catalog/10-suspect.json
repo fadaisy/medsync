@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1281,7 +1281,7 @@
   },
   {
    "id": "DM-SUS-PREG-02",
-   "display": "Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth",
+   "display": "Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth, with an OGTT where the site can run one, otherwise a fasting glucose; then every 1 to 3 years for life (2026)",
    "condition": "diabetes_undiagnosed",
    "when": {
     "id": "sus_gdm_postpartum",
@@ -1378,6 +1378,10 @@
        }
       }
      }
+    ],
+    "signed": "UG-12 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"
@@ -1597,11 +1601,11 @@
   },
   {
    "id": "DM-SUS-POP-HIV-01",
-   "display": "Living with HIV on ART: fasting glucose every year",
+   "display": "Living with HIV on ART: glucose every 6 months (2026)",
    "condition": "diabetes_undiagnosed",
    "when": {
     "id": "sus_hiv_annual",
-    "label": "On ART, and never tested or not tested in the last 12 months",
+    "label": "On ART, never tested or 6 months or more since the last glucose",
     "all": [
      {
       "feature": "hiv_on_art",
@@ -1616,7 +1620,7 @@
      {
       "feature": "months_since_glucose_test",
       "op": ">=",
-      "value": 12,
+      "value": 6,
       "unit": "months"
      }
     ],
@@ -1683,6 +1687,10 @@
      "tier": "routine",
      "code": "programme_review"
     },
+    "signed": "UG-36 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [
      "hiv"
     ],
@@ -1692,7 +1700,7 @@
   },
   {
    "id": "DM-SUS-POP-DTG-01",
-   "display": "On dolutegravir with thirst, polyuria or weight loss: check glucose today",
+   "display": "On dolutegravir with thirst, polyuria or weight loss: check glucose today. The 2026 diabetes guideline says 'Avoid dolutegravir in individuals with diabetes and HIV comorbidity': discuss with the ART clinic; never change ART here.",
    "condition": "drug_associated_hyperglycaemia",
    "when": {
     "id": "sus_dtg_symptoms",
@@ -1796,6 +1804,10 @@
      "tier": "today",
      "code": "programme_review"
     },
+    "signed": "UG-37 (D-DM-33 stands) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [
      "hiv"
     ],
@@ -1805,7 +1817,7 @@
   },
   {
    "id": "DM-SUS-POP-TB-01",
-   "display": "TB: offer a diabetes test to everyone who does not know their status",
+   "display": "TB: a random glucose at diagnosis; if it is 6.1 mmol/L or more, a fasting glucose (preferred) or HbA1c (2026). Re-check after the first month of TB treatment if raised",
    "condition": "diabetes_undiagnosed",
    "when": {
     "id": "sus_tb",
@@ -1893,6 +1905,13 @@
      "tier": "routine",
      "code": "programme_review"
     },
+    "refs": [
+     "REF-DM-TB-UG26-RBG"
+    ],
+    "signed": "UG-38 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [
      "tb"
     ],
@@ -2154,7 +2173,7 @@
   },
   {
    "id": "DM-SUS-PREG-01",
-   "display": "24 weeks or more pregnant: offer a 75 g OGTT",
+   "display": "24 weeks or more pregnant: offer a 75 g OGTT (the 2026 guideline screens every pregnant woman). Where an OGTT cannot be done: a fasting glucose, a random glucose and/or HbA1c",
    "condition": "gestational_diabetes",
    "when": {
     "id": "sus_preg_window",
@@ -2254,10 +2273,12 @@
       }
      }
     ],
-    "enabled": false,
-    "enabledBy": "D-DM-12",
+    "enabled": true,
     "enabledNote": "WHO makes no universal recommendation to test in pregnancy: off until the CSO decides.",
-    "signed": "D-DM-12 signed at GATE A 2026-10-05: stays off",
+    "signed": "UG-06 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
@@ -2614,7 +2635,7 @@
   },
   {
    "id": "DM-SUS-INCID-02",
-   "display": "One result in the diabetes range: confirm it. Repeat on another day (or, with symptoms, check a glucose today); do not leave it",
+   "display": "One result in the diabetes range: confirm it today with a second, different test (fasting glucose, laboratory HbA1c or an OGTT; the 2026 guideline accepts two tests at the same time), or repeat on another day; do not leave it",
    "condition": "diabetes_undiagnosed",
    "when": {
     "id": "sus_single_abnormal",
@@ -2755,6 +2776,10 @@
        }
       }
      }
+    ],
+    "signed": "UG-03 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"
@@ -3126,11 +3151,11 @@
   },
   {
    "id": "DM-SUS-INCID-04",
-   "display": "A fasting capillary glucose of 6.1 to below 7.0 mmol/L: repeat fasting on another day, and offer a 2-hour OGTT where one can be done",
+   "display": "A fasting capillary glucose of 5.6 to below 7.0 mmol/L (2026: prediabetes range): repeat fasting on another day, and offer a 2-hour OGTT where one can be done",
    "condition": "diabetes_undiagnosed",
    "when": {
     "id": "sus_fcap_ifg",
-    "label": "A fasting capillary glucose of 6.1 mmol/L or more and below 7.0 mmol/L",
+    "label": "A fasting capillary glucose of 5.6 mmol/L or more and below 7.0 mmol/L",
     "all": [
      {
       "feature": "capillary_glucose_context",
@@ -3140,7 +3165,7 @@
      {
       "feature": "capillary_glucose",
       "op": ">=",
-      "value": 6.1,
+      "value": 5.6,
       "unit": "mmol/L"
      },
      {
@@ -3151,20 +3176,19 @@
      }
     ],
     "citation": {
-     "standard": "WHO",
-     "version": "2006",
-     "title": "Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia: report of a WHO/IDF consultation",
-     "url": "https://medbox.org/index.php/dl/5e148832db60a2044c2d1cb7",
-     "quote": "Impaired Fasting Glucose (IFG) Fasting plasma glucose 2–h plasma glucose* 6.1 to 6.9mmol/l (110mg/dl to 125mg/dl) and (if measured) <7.8mmol/l (140mg/dl) [...] If 2–h plasma glucose is not measured, status is uncertain as diabetes or IGT cannot be excluded",
-     "retrieved": "2026-10-03",
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
      "csoSigned": false,
-     "needsCsoInput": "WHO's intermediate range is for plasma; reading it from a meter follows D-DM-04.",
      "x": {
-      "claim": "A2-10",
-      "section": "Summary table of diagnostic criteria (p.1)",
-      "bodyProposed": "WHO",
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
       "verified": true,
-      "ref": "REF-DM-IH-IFG-WHO"
+      "ref": "REF-DM-IH-UG26-FPG"
      }
     }
    },
@@ -3237,6 +3261,10 @@
        }
       }
      }
+    ],
+    "signed": "UG-05 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"
@@ -3649,7 +3677,7 @@
   },
   {
    "id": "DM-SUS-PREG-UCG",
-   "display": "Pregnant, with a risk factor for gestational diabetes (UCG 2023): test for it (a 75 g OGTT where the site can run one; otherwise a fasting glucose)",
+   "display": "Pregnant, with a risk factor for gestational diabetes (UCG 2023): test for it (a 75 g OGTT where the site can run one; otherwise a fasting glucose). With a risk factor, test at the first visit rather than waiting (2026 screens everyone)",
    "condition": "gestational_diabetes",
    "when": {
     "id": "sus_preg_ucg",
@@ -3749,7 +3777,7 @@
      "test": "test.ogtt",
      "tier": "routine"
     },
-    "signed": "D-DM-12 signed at GATE A 2026-10-05",
+    "signed": "UG-06 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "notWhen": [
      {
       "id": "sus_preg_ucg_known",
@@ -3835,8 +3863,511 @@
       }
      }
     ],
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-05",
+   "display": "A random glucose of 7.8 to below 11.1 mmol/L: test properly (a fasting glucose, laboratory HbA1c or an OGTT). The 2026 band is a reason to test, not a label",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_rbg_band",
+    "label": "A random plasma glucose of 7.8 mmol/L or more and below 11.1 mmol/L",
+    "all": [
+     {
+      "feature": "random_pg",
+      "op": ">=",
+      "value": 7.8,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "random_pg",
+      "op": "<",
+      "value": 11.1,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-IH-UG26-RBG"
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "fasting_pg",
+    "hba1c",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "A post-meal or stress value"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-DX-TABLE",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INCID",
+    "signed": "UG-05 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-03",
+   "display": "Pregnant, before 24 weeks, no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
+   "condition": "gestational_diabetes",
+   "when": {
+    "id": "sus_preg_first",
+    "label": "Pregnant, before 24 weeks",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     },
+     {
+      "feature": "gestation_weeks",
+      "op": "<",
+      "value": 24,
+      "unit": "weeks"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-PREG-SCREEN",
+      "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-UG26-EARLY"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "routine",
+   "confirmWith": [
+    "ogtt_2h_pg",
+    "fasting_pg",
+    "random_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Diabetes before the pregnancy, not yet recorded"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREG-SCREEN",
+     "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PREG",
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ogtt",
+     "tier": "routine"
+    },
+    "signed": "UG-06 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_preg_first_known",
+      "label": "Diabetes or gestational diabetes already recorded",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       },
+       {
+        "feature": "dm_type_recorded",
+        "op": "in",
+        "value": [
+         "type_1",
+         "type_2",
+         "unclassified",
+         "other",
+         "gestational"
+        ]
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "metformin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "sglt2_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "pioglitazone"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "dpp4_inhibitor"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glp1_ra"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "sus_preg_first_done",
+      "label": "A glucose result recorded at this visit (fasting, random, OGTT or HbA1c)",
+      "any": [
+       {
+        "feature": "fasting_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "hba1c",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-06",
+   "display": "A child or adolescent vomiting without diarrhoea, or with unexplained abdominal pain, and no glucose today: fingerstick glucose now (2026: new diabetes can present as gastroenteritis, malaria or pneumonia)",
+   "condition": "dka",
+   "when": {
+    "id": "sus_paed_vomit",
+    "label": "Under 16, vomiting or abdominal pain",
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "abdominal_pain",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-CHILD-VOMIT",
+      "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis (with diarrhoea), malaria, pneumonia"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-CHILD-VOMIT",
+     "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "child",
+    "adolescent"
+   ],
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-PAED",
+    "signed": "UG-30 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_paed_vomit_diarrhoea",
+      "label": "Diarrhoea",
+      "all": [
+       {
+        "feature": "diarrhoea",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-CHILD-VOMIT",
+        "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     },
+     {
+      "id": "sus_paed_vomit_glucose",
+      "label": "A glucose recorded at this visit",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       },
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "healthcare professionals should routinely perform fingerstick blood glucose measurement for children or adolescents presenting with unexplained reduced levels of consciousness, rapid breathing, abdominal pain, nausea, and vomiting without diarrhoea",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-CHILD-VOMIT",
+        "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-SUS-INPT-02",
+   "display": "Admitted: check a random glucose and, where valid, HbA1c (2026 screens every admitted medical and surgical patient)",
+   "condition": "diabetes_undiagnosed",
+   "when": {
+    "id": "sus_admitted",
+    "label": "Inpatient, no glucose at this visit",
+    "all": [
+     {
+      "feature": "care_setting",
+      "op": "==",
+      "value": "inpatient"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Routinely screen all admitted medical and surgical patients for hyperglycaemia by measuring random blood glucose (RBG) and glycated haemoglobin (HbA1c",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-INPT-SCREEN",
+      "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "posterior": "low",
+   "urgency": "routine",
+   "confirmWith": [
+    "random_pg",
+    "hba1c"
+   ],
+   "mimicsToExclude": [
+    "Stress hyperglycaemia"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Routinely screen all admitted medical and surgical patients for hyperglycaemia by measuring random blood glucose (RBG) and glycated haemoglobin (HbA1c",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-INPT-SCREEN",
+     "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "suspect",
+    "family": "DM-SUS-INPT",
+    "signed": "UG-34 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "sus_admitted_done",
+      "label": "A glucose recorded at this visit",
+      "any": [
+       {
+        "feature": "random_pg",
+        "op": "recorded"
+       },
+       {
+        "feature": "capillary_glucose",
+        "op": "recorded"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Routinely screen all admitted medical and surgical patients for hyperglycaemia by measuring random blood glucose (RBG) and glycated haemoglobin (HbA1c",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-INPT-SCREEN",
+        "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
    }
   }
  ],

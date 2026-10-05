@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -4966,7 +4966,7 @@
    "id": "tgt_hba1c_tight",
    "measure": "hba1c",
    "tier": "tight",
-   "display": "HbA1c below 6.5%",
+   "display": "HbA1c below 6.5% (2026: newly diagnosed, young, no comorbidities, a low risk of lows; never on insulin or a sulfonylurea here)",
    "when": {
     "id": "tgt_tight",
     "label": "A tight target agreed",
@@ -5177,6 +5177,636 @@
     "supersedes": [
      "tgt_hba1c_general",
      "tgt_hba1c_older_healthy"
+    ],
+    "signed": "UG-16 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "tgt_fpg_pregnancy",
+   "measure": "fasting_pg",
+   "tier": null,
+   "display": "Fasting glucose below 5.3 mmol/L in pregnancy (2026)",
+   "when": {
+    "id": "tgt_preg_dm",
+    "label": "Pregnant, with diabetes or gestational diabetes",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-PREG-TGT",
+      "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREG-TGT",
+     "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "upper": {
+    "ref": "REF-DM-PREG-UG26-TGT-FBG",
+    "value": 5.3,
+    "unit": "mmol/L"
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TARGET",
+    "appliesTo": {
+     "pregnancy": "pregnant"
+    },
+    "ages": "adult",
+    "signed": "UG-09 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "tgt_ppg_pregnancy",
+   "measure": "postprandial_pg",
+   "tier": null,
+   "display": "Glucose 2 hours after a meal below 6.7 mmol/L in pregnancy, or 1 hour after below 7.8 mmol/L (2026)",
+   "when": {
+    "id": "tgt_preg_dm",
+    "label": "Pregnant, with diabetes or gestational diabetes",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-PREG-TGT",
+      "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREG-TGT",
+     "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "upper": {
+    "ref": "REF-DM-PREG-UG26-TGT-2H",
+    "value": 6.7,
+    "unit": "mmol/L"
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TARGET",
+    "appliesTo": {
+     "pregnancy": "pregnant"
+    },
+    "ages": "adult",
+    "refs": [
+     "REF-DM-PREG-UG26-TGT-2H",
+     "REF-DM-PREG-UG26-TGT-1H"
+    ],
+    "signed": "UG-09 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "tgt_hba1c_elderly_2026",
+   "measure": "hba1c",
+   "tier": null,
+   "display": "HbA1c below 8.0% (2026: 60 or over with long-standing diabetes, a high risk of lows, kidney disease or atherosclerotic cardiovascular disease)",
+   "when": {
+    "id": "tgt_elderly_2026",
+    "label": "Aged 60 or over, with any of: a significant low in the last year, kidney disease (eGFR below 60), established cardiovascular disease, frailty",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 60,
+      "unit": "years"
+     }
+    ],
+    "any": [
+     {
+      "feature": "hypo_worst_12m",
+      "op": "in",
+      "value": [
+       "needed_help",
+       "measured_below_3",
+       "repeated"
+      ]
+     },
+     {
+      "feature": "egfr",
+      "op": "<",
+      "value": 60,
+      "unit": "mL/min/1.73m2"
+     },
+     {
+      "feature": "cvd_established",
+      "op": "present"
+     },
+     {
+      "feature": "frailty_or_limited_life_expectancy",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Newly diagnosed young individuals with a long-life expectancy (>10 years), no comorbidities, and a low risk of hypoglycaemia <6.5% (48 mmol/mol) Elderly individuals (≥60 years) with long-standing diabetes, a high risk of hypoglycaemia, short-life expectancy, and comorbidities such as renal dysfunction and atherosclerotic cardiovascular diseases <8% (64 mmol/mol)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-TGT-HBA1C",
+      "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-CTRL-UG26-ELDERLY"
+     }
+    }
+   },
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Newly diagnosed young individuals with a long-life expectancy (>10 years), no comorbidities, and a low risk of hypoglycaemia <6.5% (48 mmol/mol) Elderly individuals (≥60 years) with long-standing diabetes, a high risk of hypoglycaemia, short-life expectancy, and comorbidities such as renal dysfunction and atherosclerotic cardiovascular diseases <8% (64 mmol/mol)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-TGT-HBA1C",
+     "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "upper": {
+    "ref": "REF-DM-CTRL-HBA1C-RELAXED",
+    "value": 8.0,
+    "unit": "%"
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TARGET",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "ages": "adult",
+    "supersedes": [
+     "tgt_hba1c_general",
+     "tgt_hba1c_older_healthy"
+    ],
+    "signed": "UG-16 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "tgt_ldl_ascvd",
+   "measure": "ldl_cholesterol",
+   "tier": null,
+   "display": "LDL cholesterol below 1.8 mmol/L (2026: established cardiovascular disease or high risk)",
+   "when": {
+    "id": "tgt_ldl",
+    "label": "Established cardiovascular disease",
+    "all": [
+     {
+      "feature": "cvd_established",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-STATIN",
+      "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-STATIN",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "upper": {
+    "ref": "REF-DM-CVD-LDL-ASCVD",
+    "value": 1.8,
+    "unit": "mmol/L"
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TARGET",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "ages": "adult",
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "tgt_glucose_inpatient",
+   "measure": "capillary_glucose",
+   "tier": null,
+   "display": "In hospital: glucose 5.6 to 10.0 mmol/L (2026, not critically ill); treat only if persistently above 10.0",
+   "when": {
+    "id": "tgt_inpt",
+    "label": "Inpatient with diabetes",
+    "all": [
+     {
+      "feature": "care_setting",
+      "op": "==",
+      "value": "inpatient"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-INPT-TGT",
+      "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-INPT-TGT",
+     "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "upper": {
+    "ref": "REF-DM-INPT-UG26-HIGH",
+    "value": 10.0,
+    "unit": "mmol/L"
+   },
+   "lower": {
+    "ref": "REF-DM-INPT-UG26-LOW",
+    "value": 5.6,
+    "unit": "mmol/L"
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TARGET",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "ages": "adult",
+    "signed": "UG-34 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
     ],
     "restrictedClasses": []
    }

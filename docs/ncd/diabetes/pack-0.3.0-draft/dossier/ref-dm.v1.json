@@ -1,23 +1,23 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.4.2-draft",
+ "version": "0.5.0-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
- "count": 353,
+ "count": 380,
  "verification": {
   "confirmed": 227,
   "confirmed_with_note": 94,
   "not_found": 7,
   "could_not_open": 2,
   "wrong_attribution": 1,
-  "not_rechecked": 22
+  "not_rechecked": 49
  },
  "counts": {
-  "withValue": 206,
+  "withValue": 233,
   "needsCsoInput": 16,
   "withConflict": 39,
-  "usedByARule": 134
+  "usedByARule": 150
  },
  "entries": [
   {
@@ -640,7 +640,6 @@
      "batch": "V1"
     },
     "usedByCriteria": [
-     "sus_fcap_ifg",
      "who_ifg"
     ]
    }
@@ -839,7 +838,6 @@
     },
     "usedByCriteria": [
      "sus_antipsychotic_annual",
-     "sus_hiv_annual",
      "sus_ih_retest",
      "sus_pancreatitis",
      "sus_tb"
@@ -1264,6 +1262,7 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "rx_cardio",
      "sus_risk_ada",
      "sus_risk_who"
     ]
@@ -3543,6 +3542,7 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "due_hba1c_above",
      "rx_first"
     ]
    }
@@ -4020,7 +4020,8 @@
      "batch": "V1"
     },
     "usedByCriteria": [
-     "due_hba1c_3"
+     "due_hba1c_3",
+     "due_hba1c_above"
     ]
    }
   },
@@ -4694,7 +4695,7 @@
   {
    "id": "REF-DM-ACU-DKA-HCO3",
    "text": "DKA: bicarbonate below this value",
-   "value": 18,
+   "value": 15,
    "unit": "mmol/L",
    "source": "ADA-EASD-CONSENSUS · Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479 · 2024",
    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
@@ -4708,6 +4709,7 @@
     "section": "Figure 2A - The diagnosis criteria of DKA; section 'What are the diagnostic criteria of DKA and HHS?'",
     "quote": "Diabetes/hyperglycemia: Glucose ≥200 mg/dL (11.1 mmol/L) OR prior history of diabetes. Ketosis: β-Hydroxybutyrate concentration ≥3.0 mmol/L OR urine ketone strip 2+ or greater. Metabolic Acidosis: pH <7.3 and/or bicarbonate concentration <18 mmol/L. [...] All three components must be present to make this diagnosis.",
     "claims": [
+     "UG26-DKA",
      "A9-01"
     ],
     "verified": true,
@@ -4719,6 +4721,7 @@
      "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
      "batch": "V3"
     },
+    "signed": "UG-31/UG-32 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "usedByCriteria": []
    }
   },
@@ -4907,7 +4910,7 @@
   {
    "id": "REF-DM-ACU-HHS-GLU",
    "text": "HHS: plasma glucose at or above this value",
-   "value": 33.3,
+   "value": 30.0,
    "unit": "mmol/L",
    "source": "ADA-EASD-CONSENSUS · Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Umpierrez GE et al.; ADA/EASD/JBDS/AACE/DTS). Diabetes Care 2024;47(8):1257-1275; Diabetologia 2024;67:1455-1479 · 2024",
    "url": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
@@ -4921,6 +4924,7 @@
     "section": "Figure 2B - The diagnosis criteria of HHS",
     "quote": "Plasma glucose ≥600 mg/dL (33.3 mmol/L). Calculated effective serum osmolality >300 mOsm/kg (calculated as [2xNa+ (mmol/L) + glucose (mmol/L)]), OR total serum osmolality >320 mOsm/kg [(2xNa+ (mmol/L) + glucose (mmol/L) + urea (mmol/L)]. β-Hydroxybutyrate concentration <3.0 mmol/L OR urine ketone strip less than 2+. pH ≥7.3 and bicarbonate concentration ≥15 mmol/L",
     "claims": [
+     "UG26-HHS",
      "A9-07",
      "A2-40"
     ],
@@ -4933,6 +4937,7 @@
      "urlUsed": "https://profketandhatariya.com/wp-content/uploads/2024/08/Diabetes-Care-2024.pdf",
      "batch": "V3"
     },
+    "signed": "UG-31/UG-32 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "usedByCriteria": [
      "acu_hhs_glu",
      "acu_picture_hhs"
@@ -5570,12 +5575,14 @@
      "batch": "V4"
     },
     "usedByCriteria": [
+     "dm_act_rx_06c",
      "egfr_60_89",
      "hypo_raised",
      "ref_egfr_30_59",
      "rx_renal",
      "tf_glib_ckd",
-     "tgt_ckd"
+     "tgt_ckd",
+     "tgt_elderly_2026"
     ]
    }
   },
@@ -8081,6 +8088,7 @@
      "batch": "V1"
     },
     "usedByCriteria": [
+     "dm_act_rx_06b",
      "rx_statin"
     ]
    }
@@ -8119,7 +8127,7 @@
   {
    "id": "REF-DM-CVD-LDL-ASCVD",
    "text": "ADA: with established atherosclerotic disease the LDL cholesterol goal is below this value",
-   "value": 1.4,
+   "value": 1.8,
    "unit": "mmol/L",
    "source": "ADA · 10. Cardiovascular Disease and Risk Management: Standards of Care in Diabetes—2026 · 2026 (Diabetes Care 2026;49(Suppl. 1):S216–S245; doi 10.2337/dc26-S010)",
    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader",
@@ -8133,6 +8141,7 @@
     "section": "Recommendation 10.27",
     "quote": "10.27 For people with diabetes and ASCVD, treatment with high-intensity statin therapy is recommended to obtain an LDL cholesterol reduction of ≥50% from baseline and an LDL cholesterol goal of <55 mg/dL (<1.4 mmol/L). Addition of ezetimibe or a PCSK9 inhibitor with proven benefit in this population is recommended if this goal is not achieved on maximum tolerated statin therapy. B",
     "claims": [
+     "UG26-STATIN",
      "A5-28"
     ],
     "verified": true,
@@ -8143,6 +8152,7 @@
      "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader",
      "batch": "V4"
     },
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "usedByCriteria": []
    }
   },
@@ -8206,6 +8216,7 @@
      "batch": "V4"
     },
     "usedByCriteria": [
+     "due_b12",
      "due_lipids"
     ]
    }
@@ -8952,7 +8963,8 @@
      "batch": "V1"
     },
     "usedByCriteria": [
-     "tf_glib60"
+     "tf_glib60",
+     "tf_pio_60"
     ]
    }
   },
@@ -9759,7 +9771,7 @@
   {
    "id": "REF-DM-ACT-EDU-WEIGHT",
    "text": "With overweight or obesity aim for weight loss of at least this percentage",
-   "value": 5,
+   "value": 7,
    "unit": "%",
    "source": "ADA · 5. Facilitating Positive Health Behaviors and Well-being to Improve Health Outcomes: Standards of Care in Diabetes—2026 · Standards of Care in Diabetes—2026 (Diabetes Care 2026;49 Suppl 1)",
    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/",
@@ -9773,6 +9785,7 @@
     "section": "Recommendation 5.12",
     "quote": "Provide an overweight or obesity treatment plan based on their nutrition, physical activity, and behavioral health status for all people with overweight or obesity, aiming for at least 5–7% weight loss.",
     "claims": [
+     "UG26-PREVENT",
      "A12-29",
      "A12-55"
     ],
@@ -9785,6 +9798,7 @@
      "urlUsed": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/",
      "batch": "V2"
     },
+    "signed": "UG-45 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "usedByCriteria": []
    }
   },
@@ -10478,6 +10492,8 @@
      "batch": "V7"
     },
     "usedByCriteria": [
+     "dm_act_rx_14",
+     "dm_act_rx_14b",
      "tgt_older"
     ]
    }
@@ -10645,7 +10661,10 @@
     },
     "usedByCriteria": [
      "dkd_albuminuria_2of3",
+     "dm_act_rx_06b",
+     "dm_act_rx_06c",
      "ref_alb",
+     "rx_cardio",
      "rx_rasi",
      "rx_renal"
     ]
@@ -10807,7 +10826,9 @@
      "urlUsed": "",
      "batch": null
     },
-    "usedByCriteria": []
+    "usedByCriteria": [
+     "due_eye_mild"
+    ]
    }
   },
   {
@@ -11245,9 +11266,7 @@
      "urlUsed": "",
      "batch": null
     },
-    "usedByCriteria": [
-     "ucg_gdm_fpg"
-    ]
+    "usedByCriteria": []
    }
   },
   {
@@ -11277,9 +11296,7 @@
      "urlUsed": "",
      "batch": null
     },
-    "usedByCriteria": [
-     "ucg_gdm_2h"
-    ]
+    "usedByCriteria": []
    }
   },
   {
@@ -11437,6 +11454,870 @@
     },
     "usedByCriteria": [
      "t1_cpeptide_low"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UG26-FPG",
+   "text": "2026 Uganda guideline: fasting blood glucose at or above this value is in the diabetes range",
+   "value": 7.0,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "dm_act_edu_10b",
+     "edu_10c_fasting",
+     "ug26_fpg_hba1c",
+     "ug26_fpg_ogtt",
+     "ug26_fpg_repeat",
+     "ug26_rbg_fpg",
+     "ug26_sym_fpg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UG26-RBG",
+   "text": "2026 Uganda guideline: random blood glucose at or above this value is in the diabetes range",
+   "value": 11.1,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "sus_rbg_band",
+     "ug26_rbg_fpg",
+     "ug26_rbg_hba1c",
+     "ug26_sym_rbg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UG26-OGTT",
+   "text": "2026 Uganda guideline: 2-hour glucose after a 75 g OGTT at or above this value is in the diabetes range",
+   "value": 11.1,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "ug26_fpg_ogtt",
+     "ug26_ogtt_hba1c",
+     "ug26_ogtt_repeat"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-DX-UG26-HBA1C",
+   "text": "2026 Uganda guideline: HbA1c at or above this value is in the diabetes range",
+   "value": 6.5,
+   "unit": "%",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "con_preg_hba1c_early",
+     "dm_act_edu_10c",
+     "ug26_fpg_hba1c",
+     "ug26_hba1c_repeat",
+     "ug26_ogtt_hba1c",
+     "ug26_rbg_hba1c"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-IH-UG26-FPG",
+   "text": "2026 Uganda guideline: fasting blood glucose from this value (below 7.0) is prediabetes",
+   "value": 5.6,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "dm_act_edu_10b",
+     "edu_10c_fasting",
+     "sus_fcap_ifg"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-IH-UG26-RBG",
+   "text": "2026 Uganda guideline: random blood glucose from this value (below 11.1) is in the prediabetes band",
+   "value": 7.8,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "sus_rbg_band"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-IH-UG26-HBA1C",
+   "text": "2026 Uganda guideline: HbA1c from this value (below 6.5) is prediabetes",
+   "value": 5.7,
+   "unit": "%",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "diagnosis",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "claims": [
+     "UG26-DX-TABLE"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "dm_act_edu_10c"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-EARLY",
+   "text": "2026 Uganda guideline: before this gestation the first antenatal screen uses OGTT, FBS, RBG and/or HbA1c",
+   "value": 24,
+   "unit": "weeks",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+    "claims": [
+     "UG26-PREG-SCREEN"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "con_preg_hba1c_early",
+     "sus_preg_first"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-TGT-FBG",
+   "text": "2026 Uganda guideline: fasting glucose target in pregnancy, below this value",
+   "value": 5.3,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+    "claims": [
+     "UG26-PREG-TGT"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-TGT-1H",
+   "text": "2026 Uganda guideline: 1-hour post-meal glucose target in pregnancy, below this value",
+   "value": 7.8,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+    "claims": [
+     "UG26-PREG-TGT"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-TGT-2H",
+   "text": "2026 Uganda guideline: 2-hour post-meal glucose target in pregnancy, below this value",
+   "value": 6.7,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 74 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Women with GDM should be optimally managed to achieve these glycaemic targets: 1. FBG <5.3 mmol/l (95 mg/dl) and either 2. One-hour postprandial blood glucose level <7.8 mmol/l (140 mg/dl) or two- hour postprandial blood glucose level <6.7 mmol/l (120 mg/dl).",
+    "claims": [
+     "UG26-PREG-TGT"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-PRECON",
+   "text": "2026 Uganda guideline: HbA1c to reach before a planned pregnancy, below this value",
+   "value": 6.5,
+   "unit": "%",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 77 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Counsel all women with HIP to plan future pregnancies when glycaemic control is optimal (HbA1c <6.5% or 48 mmol/mol).",
+    "claims": [
+     "UG26-PREG-PRECON"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-PREG-UG26-ASA-WEEKS",
+   "text": "2026 Uganda guideline: aspirin to reduce pre-eclampsia risk is started from this gestation (to 16 weeks)",
+   "value": 12,
+   "unit": "weeks",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "pregnancy",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 76 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "from 12– 16 weeks of gestation to reduce the risk of preeclampsia.",
+    "claims": [
+     "UG26-PREG-ASA"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "preg_asa"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-RX-UG26-CPEP",
+   "text": "2026 Uganda guideline: a random C-peptide below this value (0.6 nmol/L) is biochemically confirmed insulin deficiency, an indication for insulin",
+   "value": 600,
+   "unit": "pmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "treatment",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Biochemically conﬁrmed insulin deﬁciency (fasting serum C-peptide <0.76 ng/ml [0.25 nmol/l] or random serum C-peptide concentration <1.80 ng/ml [0.6 nmol/l])",
+    "claims": [
+     "UG26-CPEP-INS",
+     "SRC-HOLT21-FIG1"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "rx_cpep"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-CTRL-UG26-ELDERLY",
+   "text": "2026 Uganda guideline: 'elderly' for the relaxed HbA1c target, from this age",
+   "value": 60,
+   "unit": "years",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "control",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Newly diagnosed young individuals with a long-life expectancy (>10 years), no comorbidities, and a low risk of hypoglycaemia <6.5% (48 mmol/mol) Elderly individuals (≥60 years) with long-standing diabetes, a high risk of hypoglycaemia, short-life expectancy, and comorbidities such as renal dysfunction and atherosclerotic cardiovascular diseases <8% (64 mmol/mol)",
+    "claims": [
+     "UG26-TGT-HBA1C"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "tgt_elderly_2026"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-PAED-UG26-SCREEN-AGE",
+   "text": "2026 Uganda guideline: in type 1, kidney, eye and nerve screening from puberty or this age, after 2 to 5 years",
+   "value": 11,
+   "unit": "years",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "paediatric",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 67 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "-Screen for DKD at puberty or from age 11 years, whichever is earlier, with 2–5 years of diabetes duration, and repeat it annually thereafter",
+    "claims": [
+     "UG26-T1-KIDNEY"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-CTRL-OLDER-FPG-COMPLEX",
+   "text": "ADA 2026 Table 13.2: fasting goal lower limit for an older adult with complex or intermediate health",
+   "value": 5.0,
+   "unit": "mmol/L",
+   "source": "ADA · 13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2 · 2026",
+   "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "control",
+    "standard": "ADA",
+    "bodyProposed": "ADA",
+    "section": "Table 13.2, p. S284",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "claims": [
+     "SRC-ADA26-T132"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "dm_act_rx_14b"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-CTRL-OLDER-FPG-HEALTHY",
+   "text": "ADA 2026 Table 13.2: fasting goal lower limit for a healthy older adult",
+   "value": 4.4,
+   "unit": "mmol/L",
+   "source": "ADA · 13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2 · 2026",
+   "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "control",
+    "standard": "ADA",
+    "bodyProposed": "ADA",
+    "section": "Table 13.2, p. S284",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "claims": [
+     "SRC-ADA26-T132"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "dm_act_rx_14"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-RX-UG26-COMBO",
+   "text": "2026 Uganda guideline: newly diagnosed type 2 with HbA1c at or above this value starts combination therapy",
+   "value": 7.5,
+   "unit": "%",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "treatment",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 33 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Initiate combination glucose-lowering therapy as clinically indicated in: 1. Individuals with newly diagnosed type 2 diabetes with glycated haemoglobin (HbA1c) ≥ 7.5% or 58 mmol/mol OR 2. Individuals with HbA1c levels 1.5 - 2.0% above target.",
+    "claims": [
+     "UG26-COMBO"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-RX-UG26-INS-FBG",
+   "text": "2026 Uganda guideline: fasting glucose above this value at diagnosis is an indication for insulin",
+   "value": 14,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "treatment",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Symptomatic patients with newly diagnosed type 2 diabetes and fasting blood glucose (FBG) >14 mmol/l (250 mg/dl), random blood glucose (RBG) >16.7 mmol/l (300 mg/dl), and/or HbA1c ≥10% (86 mmol/mol). Presence of secondary oral hypoglycaemic agent failure (failure to attain optimal glycaemic control despite using maximum doses of >2 oral hypoglycaemic agents)",
+    "claims": [
+     "UG26-INS-IND"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "rx_severe"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-CVD-UG26-STATIN-YOUNG",
+   "text": "2026 Uganda guideline: from this age (to 39) consider a statin when CVD risk factors coexist",
+   "value": 20,
+   "unit": "years",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "cvd",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+    "claims": [
+     "UG26-STATIN"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "dm_act_rx_06b"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-INPT-UG26-LOW",
+   "text": "2026 Uganda guideline: lower edge of the in-hospital glucose target (not critically ill)",
+   "value": 5.6,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "hospital",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+    "claims": [
+     "UG26-INPT-TGT"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-INPT-UG26-HIGH",
+   "text": "2026 Uganda guideline: upper edge of the in-hospital glucose target; treatment starts only if persistently above it",
+   "value": 10.0,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "hospital",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Initiate glucose-lowering therapy only if the blood glucose levels are persistently above 10 mmol/l (≥180 mg/dl).  Treat critically ill hospitalised medical and surgical patients with hyperglycaemia to a glycaemic target of 7.8-10.0 mmol/l (140-180 mg/dl).  Treat noncritically ill medical and surgical patients with in-hospital hyperglycaemia to a glycaemic target of 5.6-10.0 mmol/l (100-180 mg/dl).",
+    "claims": [
+     "UG26-INPT-TGT"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-SURG-UG26-HBA1C",
+   "text": "2026 Uganda guideline: HbA1c goal before elective surgery, below this value",
+   "value": 8.0,
+   "unit": "%",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "hospital",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 58 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Elective surgery HbA1c goal: <8% (64 mmol/mol)",
+    "claims": [
+     "UG26-SURG"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-HIV-UG26-INTERVAL",
+   "text": "2026 Uganda guideline: people living with HIV are screened for diabetes at this interval",
+   "value": 6,
+   "unit": "months",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "screening",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 79 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Screen all individuals living with HIV for type 2 diabetes every six months",
+    "claims": [
+     "UG26-HIV"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "sus_hiv_annual"
+    ]
+   }
+  },
+  {
+   "id": "REF-DM-TB-UG26-RBG",
+   "text": "2026 Uganda guideline: at TB diagnosis a random glucose at or above this value is followed by a fasting glucose or HbA1c",
+   "value": 6.1,
+   "unit": "mmol/L",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "screening",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 80 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "Screen for diabetes in individuals with tuberculosis (TB) by measuring random blood glucose (RBG) levels initially followed by the measurement of either the fasting blood glucose (preferably) or glycated haemoglobin levels if the RBG level is ≥6.1 mmol/l",
+    "claims": [
+     "UG26-TB-DM"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": []
+   }
+  },
+  {
+   "id": "REF-DM-PREV-UG26-BMI",
+   "text": "2026 Uganda guideline: metformin to prevent type 2 diabetes, especially at or above this BMI (or aged 25 to 44, or prior GDM)",
+   "value": 35,
+   "unit": "kg/m2",
+   "source": "UG-MOH · Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026) · 2026 (summarised version)",
+   "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+   "verifiedOn": "2026-10-05",
+   "confidence": "high",
+   "status": "draft",
+   "x": {
+    "group": "prevention",
+    "standard": "local",
+    "bodyProposed": "UG-MOH",
+    "section": "PDF p. 24 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+    "quote": "metformin therapy is an effective therapeutic agent in preventing the onset of type 2 diabetes, especially in individuals aged 25-44 years, with a BMI ≥35 kg/m",
+    "claims": [
+     "UG26-PREVENT-MET"
+    ],
+    "verified": true,
+    "verification": {
+     "verdict": "not_rechecked",
+     "note": "Added after the independent re-read, from a claim whose quote that re-read confirmed.",
+     "foundQuote": "",
+     "urlUsed": "",
+     "batch": null
+    },
+    "usedByCriteria": [
+     "rx_prevent"
     ]
    }
   }

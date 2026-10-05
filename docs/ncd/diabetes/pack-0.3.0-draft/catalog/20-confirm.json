@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -787,8 +787,8 @@
      "pregnancy": "not_pregnant",
      "runWhen": "not_established"
     },
-    "default": true,
-    "note": "Uganda's default set (D-NCD-11, D-DM-01), copied from UCG 2023 8.1.3 as printed: '>' for every threshold (P0-25) and UCG's four classical symptoms (D-DM-02). WHO HEARTS-D 2020 is computed alongside; a referral that waits for 'diabetes met at this visit' runs when either set is met.",
+    "default": false,
+    "note": "UCG 2023 8.1.3 as printed, kept alongside for reference; superseded as the default by the 2026 guideline (UG-01). Not counted for 'met at this visit'.",
     "signed": "D-DM-01, D-DM-02, P0-25 signed at GATE A 2026-10-05"
    }
   },
@@ -796,21 +796,435 @@
    "id": "ug_integrated_dm_2026",
    "standard": "local",
    "version": "2026",
-   "anyOf": [],
+   "anyOf": [
+    {
+     "id": "ug26_sym_fpg",
+     "label": "Fasting blood glucose 7.0 mmol/L or more with a classic symptom (passing a lot of urine, thirst, hunger, pins and needles, itching, weight loss, wasting or weakness) or ketoacidosis or the hyperosmolar state",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "polyphagia",
+       "op": "present"
+      },
+      {
+       "feature": "foot_numbness_burning",
+       "op": "present"
+      },
+      {
+       "feature": "pruritus",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      },
+      {
+       "feature": "wasting",
+       "op": "present"
+      },
+      {
+       "feature": "weakness",
+       "op": "present"
+      },
+      {
+       "feature": "hyperglycaemic_crisis_now",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-FPG"
+      }
+     }
+    },
+    {
+     "id": "ug26_sym_rbg",
+     "label": "Random blood glucose 11.1 mmol/L or more with a classic symptom (passing a lot of urine, thirst, hunger, pins and needles, itching, weight loss, wasting or weakness) or ketoacidosis or the hyperosmolar state",
+     "all": [
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "any": [
+      {
+       "feature": "polyuria",
+       "op": "present"
+      },
+      {
+       "feature": "polydipsia",
+       "op": "present"
+      },
+      {
+       "feature": "polyphagia",
+       "op": "present"
+      },
+      {
+       "feature": "foot_numbness_burning",
+       "op": "present"
+      },
+      {
+       "feature": "pruritus",
+       "op": "present"
+      },
+      {
+       "feature": "unexplained_weight_loss",
+       "op": "present"
+      },
+      {
+       "feature": "wasting",
+       "op": "present"
+      },
+      {
+       "feature": "weakness",
+       "op": "present"
+      },
+      {
+       "feature": "hyperglycaemic_crisis_now",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-RBG"
+      }
+     }
+    },
+    {
+     "id": "ug26_fpg_repeat",
+     "label": "Fasting blood glucose 7.0 mmol/L or more, confirmed by a repeat result in the diabetes range",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-FPG"
+      }
+     }
+    },
+    {
+     "id": "ug26_ogtt_repeat",
+     "label": "2-hour glucose after 75 g 11.1 mmol/L or more, confirmed by a repeat result",
+     "all": [
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-OGTT"
+      }
+     }
+    },
+    {
+     "id": "ug26_hba1c_repeat",
+     "label": "Laboratory HbA1c 6.5% or more (not point-of-care), confirmed by a repeat result",
+     "all": [
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 6.5,
+       "unit": "%"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
+      },
+      {
+       "feature": "repeat_abnormal_result",
+       "op": "present"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-HBA1C"
+      }
+     }
+    },
+    {
+     "id": "ug26_fpg_ogtt",
+     "label": "Two different tests in the diabetes range: fasting 7.0 mmol/L or more and 2-hour 11.1 mmol/L or more",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-FPG"
+      }
+     }
+    },
+    {
+     "id": "ug26_fpg_hba1c",
+     "label": "Two different tests in the diabetes range: fasting 7.0 mmol/L or more and laboratory HbA1c 6.5% or more",
+     "all": [
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 6.5,
+       "unit": "%"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-FPG"
+      }
+     }
+    },
+    {
+     "id": "ug26_ogtt_hba1c",
+     "label": "Two different tests in the diabetes range: 2-hour 11.1 mmol/L or more and laboratory HbA1c 6.5% or more",
+     "all": [
+      {
+       "feature": "ogtt_2h_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 6.5,
+       "unit": "%"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-OGTT"
+      }
+     }
+    },
+    {
+     "id": "ug26_rbg_fpg",
+     "label": "Random 11.1 mmol/L or more with a fasting 7.0 mmol/L or more (never two random values)",
+     "all": [
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "fasting_pg",
+       "op": ">=",
+       "value": 7.0,
+       "unit": "mmol/L"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-RBG"
+      }
+     }
+    },
+    {
+     "id": "ug26_rbg_hba1c",
+     "label": "Random 11.1 mmol/L or more with a laboratory HbA1c 6.5% or more (never two random values)",
+     "all": [
+      {
+       "feature": "random_pg",
+       "op": ">=",
+       "value": 11.1,
+       "unit": "mmol/L"
+      },
+      {
+       "feature": "hba1c",
+       "op": ">=",
+       "value": 6.5,
+       "unit": "%"
+      },
+      {
+       "feature": "hba1c_point_of_care",
+       "op": "absent"
+      }
+     ],
+     "citation": {
+      "standard": "local",
+      "version": "2026 (summarised version)",
+      "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+      "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+      "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+      "retrieved": "2026-10-05",
+      "csoSigned": false,
+      "x": {
+       "claim": "UG26-DX-TABLE",
+       "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+       "bodyProposed": "UG-MOH",
+       "verified": true,
+       "ref": "REF-DM-DX-UG26-RBG"
+      }
+     }
+    }
+   ],
    "citation": {
     "standard": "local",
-    "version": "2026",
-    "title": "Integrated Diabetes Management Guidelines for Uganda (comprehensive version)",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
-    "quote": "INTEGRATED DIABETES MANAGEMENT GUIDELINES FOR UGANDA:",
-    "retrieved": "2026-10-03",
+    "quote": "In the presence of classic symptoms of hyperglycaemia described above and/or a hyperglycaemic crisis such as diabetic ketoacidosis or hyperosmolar hyperglycaemic state, a single blood glucose test (RBG ≥11.1 mmol/l or 200 mg/dl or FBG ≥7.0 mmol/l or 126 mg/dl) is sufficient to diagnose diabetes.",
+    "retrieved": "2026-10-05",
     "csoSigned": false,
-    "needsCsoInput": "Source text was not opened during research; the value is from memory or a secondary source. Confirm against the primary document before signing.",
     "x": {
-     "claim": "A1-41",
-     "section": "whole document",
+     "claim": "UG26-DX-SINGLE",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
      "bodyProposed": "UG-MOH",
-     "verified": false
+     "verified": true
     }
    },
    "x": {
@@ -821,7 +1235,12 @@
      "pregnancy": "not_pregnant",
      "runWhen": "not_established"
     },
-    "pending": "'Integrated Diabetes Management Guidelines for Uganda' (MoH, 2026) is listed in the MoH library and was not opened. If it is in force it supersedes UCG 2023 for diabetes and becomes the default set (D-DM-01)."
+    "default": true,
+    "note": "Uganda's default set: the 2026 Integrated Diabetes Management Guideline (summarised), in force from June 2026 and superseding UCG 2023 for diabetes (D-DM-01). '≥' for every threshold; eight classic symptoms or a crisis; with symptoms one fasting or random value; without, a repeat or two different tests in range (UG-01 to UG-04).",
+    "signed": "UG-01, UG-02, UG-03, UG-04 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ]
    }
   },
   {
@@ -1056,12 +1475,17 @@
    "x": {
     "lane": "confirm",
     "family": "DM-CON-CRIT",
-    "verdict": "intermediate_hyperglycaemia",
+    "verdict": "intermediate",
     "appliesTo": {
      "pregnancy": "not_pregnant",
      "runWhen": "not_established"
     },
-    "pending": "Needs S-DM-02. WHO defines no HbA1c band below 6.5%."
+    "default": true,
+    "note": "The 2026 Uganda guideline's prediabetes bands (FBG 5.6 to 6.9, 2-hour 7.8 to 11.0, HbA1c 5.7 to 6.4), the same numbers as ADA (UG-05).",
+    "signed": "UG-05 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ]
    }
   },
   {
@@ -1203,7 +1627,10 @@
     },
     "pending": "Needs S-DM-02. WHO is revising these criteria (REF-DM-PREG-REVISION): version the set, do not overwrite it.",
     "default": true,
-    "signed": "P0-26 signed at GATE A 2026-10-05"
+    "signed": "UG-07 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ]
    }
   },
   {
@@ -1519,104 +1946,6 @@
      }
     ],
     "note": "Never evaluated for type 1 or an unclassified type, or with any glucose-lowering medicine on the list. Haemolysis, recent malaria and a recent transfusion block the HbA1c through the caveat hba1c_red_cell_turnover."
-   }
-  },
-  {
-   "id": "ug_ucg_2023_gdm",
-   "standard": "local",
-   "version": "UCG 2023 16.2.5",
-   "x": {
-    "lane": "confirm",
-    "family": "DM-CON-PREG",
-    "verdict": "gestational_diabetes",
-    "appliesTo": {
-     "pregnancy": "pregnant",
-     "runWhen": "not_established"
-    },
-    "default": false,
-    "note": "UCG 2023's gestational criteria, shown beside WHO 2013 (the default, P0-26)."
-   },
-   "anyOf": [
-    {
-     "id": "ucg_gdm_fpg",
-     "label": "Fasting blood sugar above 5.6 mmol/L in pregnancy",
-     "all": [
-      {
-       "feature": "pregnant",
-       "op": "present"
-      },
-      {
-       "feature": "fasting_pg",
-       "op": ">",
-       "value": 5.6,
-       "unit": "mmol/L"
-      }
-     ],
-     "citation": {
-      "standard": "local",
-      "version": "2023",
-      "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
-      "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
-      "quote": "Diagnostic criteria for gestational diabetes Fasting blood sugar >5.6 mmol/L or Plasma glucose >7.8 mmol/L 2 hours after 75 g glucose tol erance test",
-      "retrieved": "2026-10-05",
-      "csoSigned": false,
-      "x": {
-       "claim": "UCG-GDM-03",
-       "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
-       "bodyProposed": "UG-MOH",
-       "verified": true,
-       "ref": "REF-DM-PREG-UCG-FBS"
-      }
-     }
-    },
-    {
-     "id": "ucg_gdm_2h",
-     "label": "Plasma glucose above 7.8 mmol/L 2 hours after 75 g in pregnancy",
-     "all": [
-      {
-       "feature": "pregnant",
-       "op": "present"
-      },
-      {
-       "feature": "ogtt_2h_pg",
-       "op": ">",
-       "value": 7.8,
-       "unit": "mmol/L"
-      }
-     ],
-     "citation": {
-      "standard": "local",
-      "version": "2023",
-      "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
-      "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
-      "quote": "Diagnostic criteria for gestational diabetes Fasting blood sugar >5.6 mmol/L or Plasma glucose >7.8 mmol/L 2 hours after 75 g glucose tol erance test",
-      "retrieved": "2026-10-05",
-      "csoSigned": false,
-      "x": {
-       "claim": "UCG-GDM-03",
-       "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
-       "bodyProposed": "UG-MOH",
-       "verified": true,
-       "ref": "REF-DM-PREG-UCG-2H"
-      }
-     }
-    }
-   ],
-   "citation": {
-    "standard": "local",
-    "version": "2023",
-    "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions",
-    "url": "https://nms.go.ug/wp-content/uploads/2025/12/Uganda-Clinical-Guidelines-20231.pdf",
-    "quote": "Diagnostic criteria for gestational diabetes Fasting blood sugar >5.6 mmol/L or Plasma glucose >7.8 mmol/L 2 hours after 75 g glucose tol erance test",
-    "retrieved": "2026-10-05",
-    "csoSigned": false,
-    "x": {
-     "claim": "UCG-GDM-03",
-     "section": "16.2.5, PDF p. 775 of the CSO-supplied copy (UCG-2023-Publication-Final-PDF-Version-1.pdf)",
-     "bodyProposed": "UG-MOH",
-     "verified": true,
-     "ref": "REF-DM-PREG-UCG-FBS"
-    }
    }
   }
  ],
@@ -2205,7 +2534,7 @@
      }
     }
    },
-   "direction": "unpredictable",
+   "direction": "masks",
    "blocksDiagnosis": true,
    "citation": {
     "standard": "ADA",
@@ -2227,6 +2556,10 @@
     "lane": "confirm",
     "family": "DM-CON-VALID",
     "status": "reconcile",
+    "signed": "UG-08 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": []
    }
   },
@@ -3792,6 +4125,111 @@
     },
     "review": [
      "H44"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-CON-PREG-06",
+   "display": "Pregnant before 24 weeks with HbA1c 6.5% or more: probable diabetes before the pregnancy. Manage as hyperglycaemia in pregnancy: refer today for specialised antenatal care (2026)",
+   "condition": "diabetes_in_pregnancy",
+   "when": {
+    "id": "con_preg_hba1c_early",
+    "label": "Pregnant, before 24 weeks, HbA1c 6.5% or more",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     },
+     {
+      "feature": "gestation_weeks",
+      "op": "<",
+      "value": 24,
+      "unit": "weeks"
+     },
+     {
+      "feature": "hba1c",
+      "op": ">=",
+      "value": 6.5,
+      "unit": "%"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-DX-UG26-HBA1C"
+     }
+    }
+   },
+   "posterior": "high",
+   "urgency": "same_day",
+   "confirmWith": [
+    "fasting_pg",
+    "ogtt_2h_pg"
+   ],
+   "mimicsToExclude": [
+    "A low HbA1c is not reassuring in pregnancy (it reads low)"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREG-SCREEN",
+     "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "confirm",
+    "family": "DM-CON-PREG",
+    "signed": "UG-08 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "con_preg_hba1c_known",
+      "label": "Diabetes already recorded before this pregnancy",
+      "any": [
+       {
+        "feature": "dm_status",
+        "op": "==",
+        "value": "known"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Screen all pregnant women using OGTT, FBS, RBG, and/or HbA1c at first ANC contact or visit <24 weeks of gestation >24 weeks of gestation Unable to perform an OGTT Able to perform an OGTT Unable to perform an OGTT Unable to perform an OGTT Abnormal -FBG ≥5.1 mmol/l (92 mg/dl) -RBG ≥11.1 mmol/l (200 mg/dl) -HbA1c ≥6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -RBG <11.1 mmol/l (200 mg/dl) -HbA1c <6.5% (48 mmol/mol) Normal -FBG <5.1 mmol/l (92 mg/dl) -1-hour post- load blood glucose <10.0 mmol/l (180 mg/dl) -2-hour post- load blood glucose <8.5 mmol/l (153 mg/dl) Manage as HIP Perform an OGTT at 24-28 weeks",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-SCREEN",
+        "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
     ],
     "restrictedClasses": [],
     "runWhen": "not_established"

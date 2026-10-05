@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1609,6 +1609,62 @@
    "status": "none",
    "valueType": "boolean",
    "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "pruritus",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "wasting",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "weakness",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hyperglycaemic_crisis_now",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "hba1c_point_of_care",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "diarrhoea",
+   "concept": null,
+   "status": "none",
+   "valueType": "boolean",
+   "unit": null,
+   "restrictedClass": null
+  },
+  {
+   "feature": "months_since_b12",
+   "concept": null,
+   "status": "none",
+   "valueType": "number",
+   "unit": "months",
    "restrictedClass": null
   }
  ],

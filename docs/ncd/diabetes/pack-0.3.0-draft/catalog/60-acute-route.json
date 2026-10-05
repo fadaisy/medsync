@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -199,7 +199,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-02",
-   "display": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now",
+   "display": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "condition": "dka",
    "when": {
     "id": "acu_ketones",
@@ -389,6 +389,10 @@
      "L19"
     ],
     "interruptRank": 12,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -1241,7 +1245,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-11",
-   "display": "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones",
+   "display": "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "condition": "hyperglycaemic_crisis",
    "when": {
     "id": "acu_picture",
@@ -1384,42 +1388,42 @@
     "notWhen": [
      {
       "id": "acu_picture_hhs",
-      "label": "Glucose 33.3 mmol/L or more or a meter reading HI (rule 14 interrupts for this patient)",
+      "label": "Glucose 30.0 mmol/L or more or a meter reading HI (rule 14 interrupts for this patient)",
       "any": [
        {
         "feature": "capillary_glucose",
         "op": ">=",
-        "value": 33.3,
+        "value": 30.0,
         "unit": "mmol/L"
        },
        {
         "feature": "random_pg",
         "op": ">=",
-        "value": 33.3,
+        "value": 30.0,
         "unit": "mmol/L"
        },
        {
         "feature": "fasting_pg",
         "op": ">=",
-        "value": 33.3,
+        "value": 30.0,
         "unit": "mmol/L"
        },
        {
         "feature": "postprandial_pg",
         "op": ">=",
-        "value": 33.3,
+        "value": 30.0,
         "unit": "mmol/L"
        },
        {
         "feature": "ogtt_1h_pg",
         "op": ">=",
-        "value": 33.3,
+        "value": 30.0,
         "unit": "mmol/L"
        },
        {
         "feature": "ogtt_2h_pg",
         "op": ">=",
-        "value": 33.3,
+        "value": 30.0,
         "unit": "mmol/L"
        },
        {
@@ -1483,6 +1487,11 @@
      }
     ],
     "interruptRank": 15,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised",
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -1705,46 +1714,46 @@
   },
   {
    "id": "DM-ACU-ROUTE-14",
-   "display": "Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones",
+   "display": "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "condition": "hhs",
    "when": {
     "id": "acu_hhs_glu",
-    "label": "Any glucose 33.3 mmol/L or more, or a meter reading HI",
+    "label": "Any glucose 30.0 mmol/L or more, or a meter reading HI",
     "any": [
      {
       "feature": "capillary_glucose",
       "op": ">=",
-      "value": 33.3,
+      "value": 30.0,
       "unit": "mmol/L"
      },
      {
       "feature": "random_pg",
       "op": ">=",
-      "value": 33.3,
+      "value": 30.0,
       "unit": "mmol/L"
      },
      {
       "feature": "fasting_pg",
       "op": ">=",
-      "value": 33.3,
+      "value": 30.0,
       "unit": "mmol/L"
      },
      {
       "feature": "postprandial_pg",
       "op": ">=",
-      "value": 33.3,
+      "value": 30.0,
       "unit": "mmol/L"
      },
      {
       "feature": "ogtt_1h_pg",
       "op": ">=",
-      "value": 33.3,
+      "value": 30.0,
       "unit": "mmol/L"
      },
      {
       "feature": "ogtt_2h_pg",
       "op": ">=",
-      "value": 33.3,
+      "value": 30.0,
       "unit": "mmol/L"
      },
      {
@@ -1811,6 +1820,11 @@
      "F25"
     ],
     "interruptRank": 14,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised",
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -3110,7 +3124,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-24",
-   "display": "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
+   "display": "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "condition": "dka",
    "when": {
     "id": "acu_known_kussmaul",
@@ -3428,6 +3442,10 @@
      }
     ],
     "interruptRank": 18,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }
@@ -7205,7 +7223,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-24B",
-   "display": "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
+   "display": "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "condition": "dka",
    "when": {
     "id": "acu_t1_acetone",
@@ -7422,6 +7440,10 @@
      }
     ],
     "interruptRank": 19,
+    "signed": "UG-33 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "always"
    }

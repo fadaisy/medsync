@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -156,8 +156,12 @@
       }
      ]
     },
-    "signed": "D-DM-11 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
-    "caveat": "ADA 2026 Fig. 2.1 is based on data from White European adults. Ketosis-prone diabetes, common in Africa, can show a low C-peptide soon after ketoacidosis; the 2-week rule guards only part of that."
+    "signed": "UG-14 (keep the pack) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "caveat": "ADA 2026 Fig. 2.1 is based on data from White European adults. Ketosis-prone diabetes, common in Africa, can show a low C-peptide soon after ketoacidosis; the 2-week rule guards only part of that.",
+    "ug2026": "2026 diagnoses type 1 on '≥2 islet-cell autoantibodies' (p. 60). Not required here (UG-14, CSO): antibodies are rarely available and often negative in Ugandan type 1; insulin and ketone education never wait on the test.",
+    "sources": [
+     "UG 2026 summarised"
+    ]
    }
   },
   {

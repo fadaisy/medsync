@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -62,6 +62,41 @@
   "ucg_random_symptoms": [
    "REF-DM-DX-UCG-RBS"
   ],
+  "ug26_sym_fpg": [
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "ug26_sym_rbg": [
+   "REF-DM-DX-UG26-RBG"
+  ],
+  "ug26_fpg_repeat": [
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "ug26_ogtt_repeat": [
+   "REF-DM-DX-UG26-OGTT"
+  ],
+  "ug26_hba1c_repeat": [
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_fpg_ogtt": [
+   "REF-DM-DX-UG26-FPG",
+   "REF-DM-DX-UG26-OGTT"
+  ],
+  "ug26_fpg_hba1c": [
+   "REF-DM-DX-UG26-FPG",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_ogtt_hba1c": [
+   "REF-DM-DX-UG26-OGTT",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "ug26_rbg_fpg": [
+   "REF-DM-DX-UG26-RBG",
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "ug26_rbg_hba1c": [
+   "REF-DM-DX-UG26-RBG",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
   "who_ifg": [
    "REF-DM-IH-IFG-WHO",
    "REF-DM-DX-FPG"
@@ -116,12 +151,6 @@
   ],
   "remission_fasting_meter_high": [
    "REF-DM-DX-FPG"
-  ],
-  "ucg_gdm_fpg": [
-   "REF-DM-PREG-UCG-FBS"
-  ],
-  "ucg_gdm_2h": [
-   "REF-DM-PREG-UCG-2H"
   ],
   "t1_cpeptide_low": [
    "REF-DM-CLS-CPEP-LOW",
@@ -196,6 +225,9 @@
   ],
   "tf_k6": [
    "REF-DM-KID-K-MODERATE"
+  ],
+  "tf_pio_60": [
+   "REF-DM-RX-GLIB-AGE"
   ],
   "due_hba1c_6": [
    "REF-DM-CTRL-WINDOW-AT-TARGET"
@@ -293,7 +325,7 @@
   ],
   "rx_severe": [
    "REF-DM-CTRL-SEVERE-HBA1C",
-   "REF-DM-CTRL-SEVERE-GLU",
+   "REF-DM-RX-UG26-INS-FBG",
    "REF-DM-CTRL-SEVERE-GLU",
    "REF-DM-CTRL-SEVERE-GLU",
    "REF-DM-CTRL-SEVERE-GLU",
@@ -307,6 +339,10 @@
    "REF-DM-ACU-KETONE-TEST-GLU",
    "REF-DM-ACU-KETONE-TEST-GLU",
    "REF-DM-ACU-KETONE-TEST-GLU"
+  ],
+  "rx_cardio": [
+   "REF-DM-SUS-BMI",
+   "REF-DM-KID-UACR-COUNT"
   ],
   "contra_sglt2_egfr": [
    "REF-DM-RX-SGLT2-EGFR"
@@ -373,6 +409,54 @@
   "ref_glu18_pen_ket": [
    "REF-DM-ACU-KETONE-RISK"
   ],
+  "dm_act_edu_10b": [
+   "REF-DM-IH-UG26-FPG",
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "dm_act_edu_10c": [
+   "REF-DM-IH-UG26-HBA1C",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
+  "edu_10c_fasting": [
+   "REF-DM-IH-UG26-FPG",
+   "REF-DM-DX-UG26-FPG"
+  ],
+  "preg_asa": [
+   "REF-DM-PREG-UG26-ASA-WEEKS"
+  ],
+  "rx_cpep": [
+   "REF-DM-RX-UG26-CPEP"
+  ],
+  "due_hba1c_above": [
+   "REF-DM-CTRL-HBA1C-TARGET",
+   "REF-DM-CTRL-WINDOW-ABOVE"
+  ],
+  "dm_act_rx_14": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+  ],
+  "dm_act_rx_14b": [
+   "REF-DM-CTRL-OLDER-AGE",
+   "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+  ],
+  "dm_act_rx_06b": [
+   "REF-DM-CVD-UG26-STATIN-YOUNG",
+   "REF-DM-CVD-STATIN-AGE",
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "dm_act_rx_06c": [
+   "REF-DM-KID-GFR-G3A",
+   "REF-DM-KID-UACR-COUNT"
+  ],
+  "due_eye_mild": [
+   "REF-DM-EYE-RECALL-MILD-MIN"
+  ],
+  "due_b12": [
+   "REF-DM-CVD-LIPID-INTERVAL"
+  ],
+  "rx_prevent": [
+   "REF-DM-PREV-UG26-BMI"
+  ],
   "sus_risk_who": [
    "REF-DM-SUS-AGE-WHO",
    "REF-DM-SUS-BMI",
@@ -403,7 +487,7 @@
    "REF-DM-SUS-HOSP-GLU"
   ],
   "sus_hiv_annual": [
-   "REF-DM-IH-RETEST"
+   "REF-DM-HIV-UG26-INTERVAL"
   ],
   "sus_tb": [
    "REF-DM-IH-RETEST"
@@ -726,7 +810,7 @@
    "REF-DM-PREG-PE-POSTPARTUM"
   ],
   "sus_fcap_ifg": [
-   "REF-DM-IH-IFG-WHO",
+   "REF-DM-IH-UG26-FPG",
    "REF-DM-DX-FPG"
   ],
   "acu_htn_emerg": [
@@ -886,6 +970,17 @@
    "REF-DM-PREG-UCG-BMI",
    "REF-DM-PREG-UCG-AGE"
   ],
+  "sus_rbg_band": [
+   "REF-DM-IH-UG26-RBG",
+   "REF-DM-DX-UG26-RBG"
+  ],
+  "sus_preg_first": [
+   "REF-DM-PREG-UG26-EARLY"
+  ],
+  "con_preg_hba1c_early": [
+   "REF-DM-PREG-UG26-EARLY",
+   "REF-DM-DX-UG26-HBA1C"
+  ],
   "tgt_hba1c_general_relaxed_applies": [
    "REF-DM-HYPO-IAH",
    "REF-DM-HYPO-IAH",
@@ -902,6 +997,10 @@
    "REF-DM-HYPO-IAH"
   ],
   "tgt_ckd": [
+   "REF-DM-KID-GFR-G3A"
+  ],
+  "tgt_elderly_2026": [
+   "REF-DM-CTRL-UG26-ELDERLY",
    "REF-DM-KID-GFR-G3A"
   ]
  }

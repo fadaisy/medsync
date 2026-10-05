@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -355,7 +355,11 @@
   "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane, on routine (not same-day or urgent) referrals and on targets; a value hidden by it is named as a gap only where it changed a met result. Acute rules and referrals for danger are never suppressed (N8; ninth review, U11).",
   "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
   "adult": "Age bands are effective bands: where a numeric age is recorded, under 16 is never 'adult' or 'older_adult' and 16 or over is never 'child' or 'adolescent', for rules, steps, flags and targets alike. A therapy flag shown under 16 shows its `under16Action` (refer; do not change the medicine here) instead of its action (ninth review, U07, U12). A recorded age of 10 to 15 is 'adolescent' even if the band says 'child' (tenth review, V16).",
-  "defaultSets": "Diagnosis: UCG 2023 (`ug_ucg_2023`) is the default set, WHO HEARTS-D 2020 is shown alongside, and 'met at this visit' (for referrals) means either set met. Gestational diabetes: WHO 2013 is the default, UCG 2023's set alongside (P0-26).",
-  "signed": "Content changed by the GATE A signatures carries `x.signed`; see docs/ncd/diabetes/gate-a-signoff.json."
+  "defaultSets": "Diagnosis: the 2026 Uganda guideline (`ug_integrated_dm_2026`) is the default set; WHO HEARTS-D 2020 and UCG 2023 are shown alongside; 'met at this visit' (for referrals) means the 2026 or the WHO set met (`metNowSets`). Intermediate: the 2026 prediabetes bands (`ada_2026_prediabetes`, same numbers). Gestational: WHO 2013 (the 2026 guideline's own values); UCG 2023's gestational set retired (UG-07).",
+  "signed": "Content changed by the GATE A signatures carries `x.signed`; see docs/ncd/diabetes/gate-a-signoff.json.",
+  "metNowSets": [
+   "who_hearts_d_2020",
+   "ug_integrated_dm_2026"
+  ]
  }
 }

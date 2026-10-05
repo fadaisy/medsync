@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.4.2-draft",
+  "version": "0.5.0-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1981,7 +1981,7 @@
   },
   {
    "id": "DM-ACT-REFER-BP-02",
-   "display": "Blood pressure above 130/80 on two medicines: routine referral",
+   "display": "Blood pressure above 130/80 on two medicines: at a health centre, routine referral. At hospital level the 2026 guideline adds a third class and then a mineralocorticoid-receptor antagonist before referring to a hypertension specialist",
    "when": {
     "id": "ref_bp2",
     "label": "On 2 or more blood pressure medicines, with systolic above 130 or diastolic above 80",
@@ -2054,6 +2054,10 @@
     "ages": "adult",
     "review": [
      "H02"
+    ],
+    "signed": "UG-24 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
     ],
     "restrictedClasses": [],
     "runWhen": "established_or_met"
@@ -2696,7 +2700,7 @@
   },
   {
    "id": "DM-ACT-EDU-01",
-   "display": "Counsel at this visit: diet, physical activity, tobacco and alcohol, and taking medicines",
+   "display": "Counsel at this visit: diet, physical activity, tobacco and alcohol, and taking medicines. 2026: half the plate non-starchy vegetables (greens, tomatoes, onions), a quarter lean protein (fish, chicken, beans), a quarter whole grains or starchy food; avoid honey, processed juices and sugar; no chromium, vitamin D, cinnamon or aloe vera supplements",
    "when": {
     "id": "edu_core",
     "label": "Confirmed diabetes",
@@ -2815,6 +2819,10 @@
     "ages": "adult",
     "review": [
      "T10"
+    ],
+    "signed": "UG-44 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -3089,7 +3097,7 @@
   },
   {
    "id": "DM-ACT-EDU-05",
-   "display": "On insulin: check storage and injection sites. Storage (EADSG 2019): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use at room temperature in a clean plastic box, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never kept in water; avoid clay pots, which are hard to keep clean",
+   "display": "On insulin: check storage and injection sites. Storage (EADSG 2019 and the 2026 guideline): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use below 30 °C at room temperature in a clean plastic container with dry cotton wool, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never in water, on the floor or in sand; avoid clay pots. Injection: rotate abdomen, thigh, buttocks and outer arm; short needles (4 to 5 mm pen, 6 mm syringe); a new needle ideally every day",
    "when": {
     "id": "edu_insulin",
     "label": "On insulin",
@@ -3146,9 +3154,12 @@
     },
     "note": "East Africa Diabetes Study Group guidance (2019), a regional professional body. Storage wording REF-DM-ACT-EDU-INSULIN-STORE; the clay-pot advice conflicts with a field study (D-DM-26).",
     "ages": "adult",
-    "signed": "D-DM-26 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "signed": "UG-23 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
-     "SRC-EADSG19-STORE"
+     "SRC-EADSG19-STORE",
+     "UG26-STORE",
+     "UG26-STORE-WATER",
+     "UG 2026 summarised"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -3348,7 +3359,7 @@
   },
   {
    "id": "DM-ACT-EDU-08",
-   "display": "Could become pregnant: discuss pregnancy planning and which medicines must change first",
+   "display": "Could become pregnant: discuss pregnancy planning and which medicines must change first; plan a pregnancy when HbA1c is below 6.5% (2026), and use contraception until then",
    "when": {
     "id": "edu_preconception",
     "label": "Confirmed diabetes and could become pregnant",
@@ -3478,6 +3489,13 @@
      "kind": "education.offer",
      "code": "programme_review"
     },
+    "refs": [
+     "REF-DM-PREG-UG26-PRECON"
+    ],
+    "signed": "UG-09 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [
      "sexual_reproductive_health"
     ],
@@ -3616,7 +3634,7 @@
   },
   {
    "id": "DM-ACT-EDU-10",
-   "display": "Intermediate hyperglycaemia: weight, activity, and a test every year",
+   "display": "Intermediate hyperglycaemia: lose 7% of body weight, 150 minutes of activity a week, and a test every year (2026)",
    "when": {
     "id": "edu_ih",
     "label": "Previously in the intermediate range",
@@ -3670,13 +3688,17 @@
      "topic": "diabetes_prevention"
     },
     "ages": "adult",
+    "signed": "UG-45 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "not_established"
    }
   },
   {
    "id": "DM-ACT-RX-01",
-   "display": "Type 2 diabetes above target and not on medicine: review treatment. UCG 2023: if sugars are not very high and the person is willing, lifestyle for 3 months first; otherwise, or if that is not enough, metformin, with diet and activity",
+   "display": "Type 2 diabetes above target and not on medicine: review treatment. 2026 guideline: HbA1c 7.5% or more at diagnosis, or 1.5% or more above target, start two glucose-lowering medicines; below that, metformin with diet and activity",
    "when": {
     "id": "rx_first",
     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, with HbA1c 7.0% or more or fasting plasma glucose above 7.0 mmol/L",
@@ -3941,14 +3963,20 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-18 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "refs": [
+     "REF-DM-RX-UG26-COMBO"
+    ],
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-02",
-   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride; EMHSLU 2023 stocks it from general hospitals upward, so at a health centre refer for it. Never start glibenclamide (deleted from EMHSLU 2023)",
+   "display": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. 2026 guideline (Table 8): 60 or over, gliclazide or a DPP-4 inhibitor; BMI below 25, a sulfonylurea or a DPP-4 inhibitor; BMI 25 or more, an SGLT2 inhibitor or GLP-1 agonist. The 2026 guideline starts these at health centre IV and above; EMHSLU 2023 stocks glimepiride from general hospitals and gliclazide, DPP-4 and SGLT2 inhibitors at regional referral hospitals, so refer if this site does not stock it. Never start glibenclamide",
    "when": {
     "id": "rx_second",
     "label": "Type 2 diabetes recorded, on metformin, not on a sulfonylurea or insulin, above target at review despite taking it",
@@ -4244,10 +4272,15 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-22 sources review signed 2026-10-05 (docs/ncd/diabetes/sources-review.md)",
+    "signed": "UG-19, UG-21 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
     "sources": [
      "SRC-EMHSLU23-185",
-     "SRC-EMHSLU23-DEL"
+     "SRC-EMHSLU23-DEL",
+     "UG 2026 summarised"
+    ],
+    "refs": [
+     "REF-DM-RX-GLIB-AGE",
+     "REF-DM-SUS-BMI"
     ],
     "restrictedClasses": [],
     "runWhen": "established"
@@ -4455,17 +4488,20 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-22 (keep two agents) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-04",
-   "display": "Type 2 or unclassified diabetes, not on insulin, with HbA1c above 10% or glucose 16.7 mmol/L or more: ADA says consider insulin. Check ketones first",
+   "display": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin. Check ketones first",
    "when": {
     "id": "rx_severe",
-    "label": "Type 2 or unclassified diabetes, not on insulin, with HbA1c above 10% or any glucose 16.7 mmol/L or more",
+    "label": "Type 2 or unclassified, not on insulin, with HbA1c 10% or more, fasting glucose above 14 mmol/L, or random, meter or post-load glucose above 16.7 mmol/L",
     "all": [
      {
       "feature": "dm_type_recorded",
@@ -4484,43 +4520,43 @@
     "any": [
      {
       "feature": "hba1c",
-      "op": ">",
+      "op": ">=",
       "value": 10.0,
       "unit": "%"
      },
      {
-      "feature": "capillary_glucose",
-      "op": ">=",
-      "value": 16.7,
+      "feature": "fasting_pg",
+      "op": ">",
+      "value": 14,
       "unit": "mmol/L"
      },
      {
       "feature": "random_pg",
-      "op": ">=",
+      "op": ">",
       "value": 16.7,
       "unit": "mmol/L"
      },
      {
-      "feature": "fasting_pg",
-      "op": ">=",
+      "feature": "capillary_glucose",
+      "op": ">",
       "value": 16.7,
       "unit": "mmol/L"
      },
      {
       "feature": "postprandial_pg",
-      "op": ">=",
+      "op": ">",
       "value": 16.7,
       "unit": "mmol/L"
      },
      {
       "feature": "ogtt_1h_pg",
-      "op": ">=",
+      "op": ">",
       "value": 16.7,
       "unit": "mmol/L"
      },
      {
       "feature": "ogtt_2h_pg",
-      "op": ">=",
+      "op": ">",
       "value": 16.7,
       "unit": "mmol/L"
      }
@@ -4767,17 +4803,20 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-22 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-05",
-   "display": "Cardiovascular disease or heart failure with type 2 diabetes: ADA recommends an SGLT2 inhibitor or GLP-1 receptor agonist whatever the HbA1c",
+   "display": "Type 2 diabetes with established cardiovascular disease, heart failure, or a high cardiovascular risk (overweight, hypertension or albuminuria): the 2026 guideline puts an SGLT2 inhibitor or GLP-1 agonist first line with metformin. Refer for consideration (stocked at regional referral hospitals, EMHSLU 2023)",
    "when": {
     "id": "rx_cardio",
-    "label": "Type 2 diabetes recorded, with established cardiovascular disease or heart failure",
+    "label": "Type 2 diabetes with any of: established cardiovascular disease, heart failure, BMI 25 or more, hypertension, or albuminuria on 2 or more tests",
     "all": [
      {
       "feature": "dm_type_recorded",
@@ -4793,6 +4832,22 @@
      {
       "feature": "heart_failure_known",
       "op": "present"
+     },
+     {
+      "feature": "bmi",
+      "op": ">=",
+      "value": 25,
+      "unit": "kg/m2"
+     },
+     {
+      "feature": "hypertension_known",
+      "op": "present"
+     },
+     {
+      "feature": "uacr_abnormal_count",
+      "op": ">=",
+      "value": 2,
+      "unit": "results"
      }
     ],
     "citation": {
@@ -4950,7 +5005,10 @@
     "enabledBy": "D-DM-20 and D-DM-21",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
     "requiresCapability": "site.referral",
-    "signed": "D-DM-20, D-DM-21 signed at GATE A 2026-10-05",
+    "signed": "UG-20 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -5149,7 +5207,7 @@
   },
   {
    "id": "DM-ACT-RX-06",
-   "display": "Type 2 diabetes aged 40 or over, not on a statin: WHO recommends one",
+   "display": "Type 2 diabetes aged 40 or over, not on a statin: the 2026 guideline starts one: moderate intensity from 40 to 75, high intensity with any cardiovascular risk factor; over 75 after weighing the benefit. Re-check lipids 4 to 12 weeks after starting",
    "when": {
     "id": "rx_statin",
     "label": "Type 2 diabetes recorded, aged 40 or over, not on a statin",
@@ -5320,14 +5378,17 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-07",
-   "display": "Blood pressure at or above 130/80 on two occasions: review blood pressure treatment",
+   "display": "Blood pressure at or above 130/80 on two occasions: review treatment. 2026 guideline: below 150/90, one medicine (an ACE inhibitor or ARB with kidney disease or CVD; otherwise an ACE inhibitor, ARB, calcium-channel blocker or thiazide); 150/90 or more, two (an ACE inhibitor or ARB with a calcium-channel blocker or thiazide). Not a loop diuretic for blood pressure alone; a beta-blocker only with a compelling reason",
    "when": {
     "id": "rx_bp",
     "label": "Raised on two or more occasions, with systolic 130 or more, or diastolic 80 or more",
@@ -5473,27 +5534,30 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-24 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "refs": [
+     "REF-DM-CVD-BP-2DRUG-SBP",
+     "REF-DM-CVD-BP-2DRUG-DBP"
+    ],
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-08",
-   "display": "Albuminuria with raised blood pressure and no ACE inhibitor or ARB: one of them is the recommended class",
+   "display": "Confirmed albuminuria and no ACE inhibitor or ARB: the 2026 guideline starts one, whatever the blood pressure. Counsel a woman who could become pregnant first",
    "when": {
     "id": "rx_rasi",
-    "label": "Albuminuria on at least 2 of 3 specimens, raised blood pressure, and on neither an ACE inhibitor nor an ARB",
+    "label": "Albuminuria on 2 or more tests, and no ACE inhibitor or ARB",
     "all": [
      {
       "feature": "uacr_abnormal_count",
       "op": ">=",
       "value": 2,
       "unit": "results"
-     },
-     {
-      "feature": "bp_raised_two_occasions",
-      "op": "present"
      },
      {
       "feature": "ras_blocker",
@@ -5585,14 +5649,17 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-25 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
   },
   {
    "id": "DM-ACT-RX-09",
-   "display": "Established cardiovascular disease and not on an antiplatelet: it is for secondary prevention. Not after a bleeding stroke or a stroke of unknown type; check bleeding risk",
+   "display": "Established cardiovascular disease, peripheral arterial disease included, and not on an antiplatelet: it is for secondary prevention (with a high-intensity statin, 2026). Not after a bleeding stroke or a stroke of unknown type; check bleeding risk",
    "when": {
     "id": "rx_antiplatelet",
     "label": "Confirmed diabetes with established cardiovascular disease, recorded as not on an antiplatelet",
@@ -5729,7 +5796,10 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-46 (BP <130/80 kept) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    },
@@ -5960,7 +6030,7 @@
   },
   {
    "id": "DM-ACT-RX-12",
-   "display": "Numb, burning or tingling feet with a sign on examination: if it is painful, ADA names the first-line classes; opioids are not among them",
+   "display": "Numb, burning or tingling feet with a sign on examination: if it is painful, the 2026 guideline lists gabapentin, pregabalin, duloxetine, carbamazepine, valproate, tramadol and alpha-lipoic acid; opioids such as tramadol are not first line (ADA)",
    "when": {
     "id": "rx_pain",
     "label": "Probable neuropathy with numb or burning feet",
@@ -6112,7 +6182,10 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-41 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -6382,7 +6455,7 @@
   },
   {
    "id": "DM-ACT-RX-01B",
-   "display": "Type 2 diabetes above target on a fasting meter reading and not on medicine: UCG 2023: lifestyle for 3 months first unless sugars are very high, then metformin",
+   "display": "Type 2 diabetes above target on a fasting meter reading and not on medicine: review treatment. 2026 guideline: metformin with diet and activity; two medicines if HbA1c is 7.5% or more",
    "when": {
     "id": "rx_first_meter",
     "label": "Type 2 diabetes recorded, on no glucose-lowering medicine, with a fasting capillary glucose above 7.0 mmol/L",
@@ -6601,7 +6674,13 @@
     "enabled": true,
     "enabledBy": "D-DM-20",
     "enabledNote": "A class-level treatment review step: dark until the CSO has read it against Uganda's own ladder.",
-    "signed": "D-DM-20 signed at GATE A 2026-10-05",
+    "signed": "UG-18 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "refs": [
+     "REF-DM-RX-UG26-COMBO"
+    ],
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [],
     "runWhen": "established"
    }
@@ -7601,6 +7680,1860 @@
     "restrictedClasses": [],
     "runWhen": "always"
    }
+  },
+  {
+   "id": "DM-ACT-TEST-VENOUS-01",
+   "display": "If the diagnosis rests on a meter reading, confirm it with a laboratory venous plasma glucose (2026: the recommended method in hospitals); a point-of-care HbA1c does not diagnose",
+   "when": {
+    "id": "test_venous",
+    "label": "A meter reading recorded at this visit",
+    "all": [
+     {
+      "feature": "capillary_glucose",
+      "op": "recorded"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "In hospitals, venous plasma glucose measurement using clinical chemistry analyser machines, as opposed to capillary blood glucose measurement using glucometers, is the recommended method",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-METHOD",
+      "section": "PDF p. 19 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "In hospitals, venous plasma glucose measurement using clinical chemistry analyser machines, as opposed to capillary blood glucose measurement using glucometers, is the recommended method",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-DX-METHOD",
+     "section": "PDF p. 19 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TEST",
+    "kind": "test",
+    "urgency": "routine",
+    "ages": "adult",
+    "requiresCapability": "lab.glucose",
+    "signed": "UG-04 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "newly_met"
+   }
+  },
+  {
+   "id": "DM-ACT-EDU-10B",
+   "display": "In the prediabetes range (2026): lose 7% of body weight, 150 minutes of activity a week, and a test every year (2026)",
+   "when": {
+    "id": "dm_act_edu_10b",
+    "label": "A fasting blood glucose of 5.6 to below 7.0 mmol/L at this visit (2026 prediabetes)",
+    "all": [
+     {
+      "feature": "fasting_pg",
+      "op": ">=",
+      "value": 5.6,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": "<",
+      "value": 7.0,
+      "unit": "mmol/L"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-DX-TABLE",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-EDU",
+    "kind": "educate",
+    "urgency": "routine",
+    "ages": "adult",
+    "signed": "UG-45 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised",
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-ACT-EDU-10C",
+   "display": "In the prediabetes range (2026): lose 7% of body weight, 150 minutes of activity a week, and a test every year (2026)",
+   "when": {
+    "id": "dm_act_edu_10c",
+    "label": "A laboratory HbA1c of 5.7 to below 6.5% at this visit (2026 prediabetes)",
+    "all": [
+     {
+      "feature": "hba1c",
+      "op": ">=",
+      "value": 5.7,
+      "unit": "%"
+     },
+     {
+      "feature": "hba1c",
+      "op": "<",
+      "value": 6.5,
+      "unit": "%"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DX-TABLE",
+      "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-DX-TABLE",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-EDU",
+    "kind": "educate",
+    "urgency": "routine",
+    "ages": "adult",
+    "signed": "UG-45 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised",
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "edu_10c_fasting",
+      "label": "Fasting glucose 5.6 to below 7.0 mmol/L at this visit (DM-ACT-EDU-10B owns it)",
+      "all": [
+       {
+        "feature": "fasting_pg",
+        "op": ">=",
+        "value": 5.6,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": "<",
+        "value": 7.0,
+        "unit": "mmol/L"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "Fasting blood glucose (FBG) <5.6 mmol/l (<100 mg/dl) 5.6 - 6.9 mmol/l (100 -125 mg/dl) ≥ 7.0 mmol/l (≥126 mg/dl) 2-hour blood glucose (2h BG) after OGTT <7.8 mmol/l (<140 mg/dl) 7.8 - 11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl) Glycated haemoglobin (HbA1c) ≤5.6% (38 mmol/mol) 5.7-6.4% (39-47 mmol/mol) ≥ 6.5% (48 mmol/mol) Random blood glucose (RBG) <7.8 mmol/l (<140 mg/dl) 7.8-11.0 mmol/l (140-199 mg/dl) ≥ 11.1 mmol/l (200 mg/dl)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-DX-TABLE",
+        "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true,
+        "ref": "REF-DM-IH-UG26-FPG"
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
+  },
+  {
+   "id": "DM-ACT-PREG-ASA-01",
+   "display": "Pregnant with type 1 or type 2 diabetes, 12 weeks or more: review starting aspirin to reduce the risk of pre-eclampsia (2026: from 12 to 16 weeks); agree it with the antenatal team",
+   "when": {
+    "id": "preg_asa",
+    "label": "Pregnant, 12 weeks or more, with type 1 or type 2 diabetes recorded",
+    "all": [
+     {
+      "feature": "pregnant",
+      "op": "present"
+     },
+     {
+      "feature": "gestation_weeks",
+      "op": ">=",
+      "value": 12,
+      "unit": "weeks"
+     },
+     {
+      "feature": "dm_type_recorded",
+      "op": "in",
+      "value": [
+       "type_1",
+       "type_2"
+      ]
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "from 12– 16 weeks of gestation to reduce the risk of preeclampsia.",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-PREG-ASA",
+      "section": "PDF p. 76 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREG-UG26-ASA-WEEKS"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "from 12– 16 weeks of gestation to reduce the risk of preeclampsia.",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREG-ASA",
+     "section": "PDF p. 76 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "pregnant"
+    },
+    "signed": "UG-11 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "preg_asa_on",
+      "label": "Already on an antiplatelet",
+      "all": [
+       {
+        "feature": "on_antiplatelet",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "from 12– 16 weeks of gestation to reduce the risk of preeclampsia.",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-PREG-ASA",
+        "section": "PDF p. 76 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-13",
+   "display": "Random C-peptide below 600 pmol/L (0.6 nmol/L) and not on insulin: the 2026 guideline reads this as insulin deficiency. Consider insulin",
+   "when": {
+    "id": "rx_cpep",
+    "label": "Random C-peptide below 600 pmol/L, not on insulin",
+    "all": [
+     {
+      "feature": "c_peptide",
+      "op": "<",
+      "value": 600,
+      "unit": "pmol/L"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "insulin"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Biochemically conﬁrmed insulin deﬁciency (fasting serum C-peptide <0.76 ng/ml [0.25 nmol/l] or random serum C-peptide concentration <1.80 ng/ml [0.6 nmol/l])",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-CPEP-INS",
+      "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-RX-UG26-CPEP"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Biochemically conﬁrmed insulin deﬁciency (fasting serum C-peptide <0.76 ng/ml [0.25 nmol/l] or random serum C-peptide concentration <1.80 ng/ml [0.6 nmol/l])",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-CPEP-INS",
+     "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "requiresCapability": "lab.c_peptide",
+    "signed": "UG-15 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-TEST-HBA1C-03",
+   "display": "HbA1c is due (3 months since the last, which was above 7.0%): the 2026 guideline checks every 3 months until controlled",
+   "when": {
+    "id": "due_hba1c_above",
+    "label": "Confirmed diabetes, last HbA1c 7.0% or more, 3 months or more ago",
+    "all": [
+     {
+      "feature": "hba1c",
+      "op": ">=",
+      "value": 7.0,
+      "unit": "%"
+     },
+     {
+      "feature": "months_since_hba1c",
+      "op": ">=",
+      "value": 3,
+      "unit": "months"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "undated (accompanies WHO PEN 2020)",
+     "title": "Training manual: WHO Package of Essential NCD Interventions (PEN) — Management of Type 2 Diabetes",
+     "url": "https://www.who.int/docs/default-source/ncds/diabetes-training-manual.pdf?sfvrsn=99dd29a2_2",
+     "quote": "Monitor glycaemic control every three months until diabetes is controlled, then every six months",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A12-67",
+      "section": "Monitoring of glycaemic control",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-CTRL-WINDOW-ABOVE"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "All individuals with poorly controlled diabetes should have an HbA1c measurement every three months. o In individuals with well-controlled diabetes, the HbA1c measurement",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-TGT-FREQ",
+     "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-TEST",
+    "kind": "test",
+    "urgency": "routine",
+    "ages": "adult",
+    "signed": "UG-17 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "notWhen": [
+     {
+      "id": "due_hba1c_above_changed",
+      "label": "Treatment changed recently (DM-ACT-TEST-HBA1C-02 owns it)",
+      "all": [
+       {
+        "feature": "therapy_changed_recently",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "2026 (summarised version)",
+       "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+       "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+       "quote": "All individuals with poorly controlled diabetes should have an HbA1c measurement every three months. o In individuals with well-controlled diabetes, the HbA1c measurement",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "UG26-TGT-FREQ",
+        "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+        "bodyProposed": "UG-MOH",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14",
+   "display": "65 or over on insulin or a sulfonylurea, fasting glucose below 4.4: below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "when": {
+    "id": "dm_act_rx_14",
+    "label": "Aged 65 or over on insulin or a sulfonylurea, fasting glucose below 4.4 mmol/L",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 65,
+      "unit": "years"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": "<",
+      "value": 4.4,
+      "unit": "mmol/L"
+     }
+    ],
+    "any": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "insulin"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "glibenclamide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "gliclazide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "glimepiride"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026",
+     "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-ADA26-T132",
+      "section": "Table 13.2, p. S284",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026",
+    "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+    "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-ADA26-T132",
+     "section": "Table 13.2, p. S284",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "notWhen": [
+     {
+      "id": "rx_14_complex",
+      "label": "Frail or cognitively impaired (DM-ACT-RX-14B owns it)",
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "2026",
+       "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+       "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+       "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+       "retrieved": "2026-10-05",
+       "csoSigned": false,
+       "x": {
+        "claim": "SRC-ADA26-T132",
+        "section": "Table 13.2, p. S284",
+        "bodyProposed": "ADA",
+        "verified": true
+       }
+      }
+     }
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14B",
+   "display": "65 or over on insulin or a sulfonylurea, fasting glucose below 5.0 (frail or cognitively impaired): below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "when": {
+    "id": "dm_act_rx_14b",
+    "label": "Aged 65 or over on insulin or a sulfonylurea, frail or cognitively impaired, fasting glucose below 5.0 mmol/L",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 65,
+      "unit": "years"
+     },
+     {
+      "feature": "fasting_pg",
+      "op": "<",
+      "value": 5.0,
+      "unit": "mmol/L"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "in",
+      "value": [
+       "insulin",
+       "glibenclamide",
+       "gliclazide",
+       "glimepiride"
+      ]
+     }
+    ],
+    "any": [
+     {
+      "feature": "frailty_or_limited_life_expectancy",
+      "op": "present"
+     },
+     {
+      "feature": "cognitive_impairment",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026",
+     "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "SRC-ADA26-T132",
+      "section": "Table 13.2, p. S284",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+     }
+    }
+   },
+   "standard": "ADA",
+   "version": "2026",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "ADA",
+    "version": "2026",
+    "title": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+    "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+    "quote": "Healthy (few coexisting chronic illnesses, intact cognitive and functional status) Longer remaining life expectancy <7.0–7.5% (<53–58 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥70%, and TBR ≤70 mg/dL (≤3.9 mmol/L) of ≤4% 80–130 mg/dL (4.4–7.2 mmol/L) 80–180 mg/dL (4.4–10.0 mmol/L) <130/80 mmHg Statin, unless contraindicated or not tolerated Complex/intermediate (multiple coexisting chronic illnesses† or two or more ADL impairments or mild to moderate cognitive impairment) Variable life expectancy. Individualize goals, considering: • Severity of comorbidities • Cognitive and functional limitations • Frailty • Risk-to-benefit ratio of diabetes medications • Individual preference <8.0% (<64 mmol/mol) TIR 70–180 mg/dL (3.9–10.0 mmol) of ≥50% and TBR <70 mg/dL (<3.9 mmol/L) of <1% 90–150 mg/dL (5.0–8.3 mmol/L) 100–180 mg/dL (5.6–10.0 mmol/L)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "SRC-ADA26-T132",
+     "section": "Table 13.2, p. S284",
+     "bodyProposed": "ADA",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "D-DM-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-04B",
+   "display": "On high-dose steroids, with diabetes, not on insulin: the 2026 guideline lists this as an indication for insulin. Review treatment",
+   "when": {
+    "id": "rx_steroid_insulin",
+    "label": "On a glucocorticoid, with diabetes, not on insulin",
+    "all": [
+     {
+      "feature": "on_glucocorticoid",
+      "op": "present"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "insulin"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Symptomatic patients with newly diagnosed type 2 diabetes and fasting blood glucose (FBG) >14 mmol/l (250 mg/dl), random blood glucose (RBG) >16.7 mmol/l (300 mg/dl), and/or HbA1c ≥10% (86 mmol/mol). Presence of secondary oral hypoglycaemic agent failure (failure to attain optimal glycaemic control despite using maximum doses of >2 oral hypoglycaemic agents)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-INS-IND",
+      "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Symptomatic patients with newly diagnosed type 2 diabetes and fasting blood glucose (FBG) >14 mmol/l (250 mg/dl), random blood glucose (RBG) >16.7 mmol/l (300 mg/dl), and/or HbA1c ≥10% (86 mmol/mol). Presence of secondary oral hypoglycaemic agent failure (failure to attain optimal glycaemic control despite using maximum doses of >2 oral hypoglycaemic agents)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-INS-IND",
+     "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "UG-22 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06B",
+   "display": "Diabetes aged 20 to 39 with a cardiovascular risk factor (hypertension, smoking or albuminuria), not on a statin: the 2026 guideline considers one with lifestyle change",
+   "when": {
+    "id": "dm_act_rx_06b",
+    "label": "Aged 20 to 39, not on a statin, with hypertension, smoking or albuminuria on 2 or more tests",
+    "all": [
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 20,
+      "unit": "years"
+     },
+     {
+      "feature": "age_years",
+      "op": "<",
+      "value": 40,
+      "unit": "years"
+     },
+     {
+      "feature": "on_statin",
+      "op": "absent"
+     }
+    ],
+    "any": [
+     {
+      "feature": "hypertension_known",
+      "op": "present"
+     },
+     {
+      "feature": "smoking_current",
+      "op": "present"
+     },
+     {
+      "feature": "uacr_abnormal_count",
+      "op": ">=",
+      "value": 2,
+      "unit": "results"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-STATIN",
+      "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-CVD-UG26-STATIN-YOUNG"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-STATIN",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06C",
+   "display": "Diabetic kidney disease, not on a statin: the 2026 guideline puts everyone with kidney disease on one",
+   "when": {
+    "id": "dm_act_rx_06c",
+    "label": "Not on a statin, with eGFR below 60 or albuminuria on 2 or more tests",
+    "all": [
+     {
+      "feature": "on_statin",
+      "op": "absent"
+     }
+    ],
+    "any": [
+     {
+      "feature": "egfr",
+      "op": "<",
+      "value": 60,
+      "unit": "mL/min/1.73m2"
+     },
+     {
+      "feature": "uacr_abnormal_count",
+      "op": ">=",
+      "value": 2,
+      "unit": "results"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "KDIGO",
+     "version": "2024 (Kidney Int 2024;105(4S):S117-S314)",
+     "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+     "url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+     "quote": "G1 ≥90 Normal or high; G2 60–89 Mildly decreased; G3a 45–59 Mildly to moderately decreased; G3b 30–44 Moderately to severely decreased; G4 15–29 Severely decreased; G5 <15 Kidney failure",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A6-03",
+      "section": "Table 2 (GFR categories in CKD)",
+      "bodyProposed": "KDIGO",
+      "verified": true,
+      "ref": "REF-DM-KID-GFR-G3A"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-STATIN",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06D",
+   "display": "Established cardiovascular disease: the 2026 guideline uses a high-intensity statin with ezetimibe from the start, aiming for LDL below 1.8 mmol/L. Review the current lipid treatment",
+   "when": {
+    "id": "dm_act_rx_06d",
+    "label": "Established cardiovascular disease",
+    "all": [
+     {
+      "feature": "cvd_established",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-STATIN",
+      "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-CVD-LDL-ASCVD"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-STATIN",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06E",
+   "display": "Living with HIV, with diabetes, not on a statin: the 2026 guideline starts one at low to moderate cardiovascular risk",
+   "when": {
+    "id": "dm_act_rx_06e",
+    "label": "On antiretroviral therapy, not on a statin",
+    "all": [
+     {
+      "feature": "hiv_on_art",
+      "op": "present"
+     },
+     {
+      "feature": "on_statin",
+      "op": "absent"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_status",
+       "op": "==",
+       "value": "known"
+      },
+      {
+       "feature": "dm_type_recorded",
+       "op": "in",
+       "value": [
+        "type_1",
+        "type_2",
+        "unclassified",
+        "other",
+        "gestational"
+       ]
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "metformin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glibenclamide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "gliclazide"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glimepiride"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "sglt2_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "pioglitazone"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "dpp4_inhibitor"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "glp1_ra"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Statins are recommended for all people with type 2 diabetes 40 years old or older, but only if this does not negatively impact access to glucose-lowering and blood pressure-lowering medication.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-32",
+      "section": "Section 'Control of blood pressure and blood lipids' (p.17); 'Control of blood lipids' (pp.23-24)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-CVD-STATIN-AGE"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Initiate immediately combination therapy of high-intensity statin and ezetimibe therapy to achieve the optimal lipid treatment targets (LDLC <1.8 mmol/l or 70 mg/dl) If aged 20-39 years If aged 40-75 years If aged >75 years",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-STATIN",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "signed": "UG-26 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "neutralDisplay": "Not on a statin: review whether one is indicated (2026 guideline)",
+    "restrictedClasses": [
+     "hiv"
+    ],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-SCREEN-EYE-02",
+   "display": "Mild retinopathy: retinal examination every year (2026 guideline: annually for mild to moderate NPDR)",
+   "when": {
+    "id": "due_eye_mild",
+    "label": "Mild non-proliferative retinopathy, 12 months or more since the last retinal examination",
+    "all": [
+     {
+      "feature": "retinopathy_stage",
+      "op": "==",
+      "value": "mild_npdr"
+     },
+     {
+      "feature": "months_since_eye_screen",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2017 update (published 2018)",
+     "title": "Guidelines on Diabetic Eye Care: The International Council of Ophthalmology Recommendations for Screening, Follow-up, Referral, and Treatment Based on Resource Settings (Wong TY et al., Ophthalmology 2018;125:1608-1622; doi 10.1016/j.ophtha.2018.04.007)",
+     "url": "https://amomt.com.br/aula/pdf/22-11-24/PIIS0161642017335236.pdf",
+     "quote": "Mild nonproliferative DR | 1-2 yrs | Referral not required. Moderate nonproliferative DR | 6-12 mos | Referral required. Severe nonproliferative DR | <3 mos | Referral required. Proliferative DR | <1 mo | Referral required. Nonecenter-involving DME | 3 mos | Referral not required (referral recommended if laser sources available). Center-involving DME | 1 mo | Referral required",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A7-16",
+      "section": "Table 3, Screening and Referral Recommendations ... for Low- or Intermediate-Resource Settings",
+      "bodyProposed": "ICO",
+      "verified": true,
+      "ref": "REF-DM-EYE-RECALL-MILD-MIN"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Repeat every two years if there are no signs of DR  In the presence of signs of DR, repeat the screening depending on the severity of the DR (annually for mild to moderate NPDR, 3-6 monthly screening for severe NPDR, and <3 monthly screening for PDR)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-EYE",
+     "section": "PDF p. 51 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-SCREEN",
+    "kind": "screen",
+    "urgency": "routine",
+    "ages": "adult",
+    "signed": "UG-27 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-SCREEN-TB-02",
+   "display": "New diabetes: screen for TB now (symptom screen at least; sputum test or chest X-ray where available). Diabetes triples the odds of TB (2026)",
+   "when": {
+    "id": "screen_tb_new",
+    "label": "Diabetes met at this visit on a glucose or HbA1c result",
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": "recorded"
+     },
+     {
+      "feature": "random_pg",
+      "op": "recorded"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": "recorded"
+     },
+     {
+      "feature": "hba1c",
+      "op": "recorded"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "recorded"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Screen at the time of diagnosis or on presentation with symptoms of TB",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-DM-TB",
+      "section": "PDF p. 80 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Screen at the time of diagnosis or on presentation with symptoms of TB",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-DM-TB",
+     "section": "PDF p. 80 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-SCREEN",
+    "kind": "screen",
+    "urgency": "routine",
+    "ages": "adult",
+    "signed": "UG-39 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "newly_met"
+   }
+  },
+  {
+   "id": "DM-ACT-SCREEN-B12-02",
+   "display": "On metformin: vitamin B12 every year (2026: on long-term metformin)",
+   "when": {
+    "id": "due_b12",
+    "label": "On metformin, 12 months or more since the last B12",
+    "all": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "metformin"
+     },
+     {
+      "feature": "months_since_b12",
+      "op": ">=",
+      "value": 12,
+      "unit": "months"
+     }
+    ],
+    "citation": {
+     "standard": "ADA",
+     "version": "2026 (Diabetes Care 2026;49(Suppl. 1):S216–S245; doi 10.2337/dc26-S010)",
+     "title": "10. Cardiovascular Disease and Risk Management: Standards of Care in Diabetes—2026",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690187/?report=reader",
+     "quote": "10.16 In adults with prediabetes or diabetes not taking statins or other lipid-lowering therapy, it is reasonable to obtain a lipid profile at the time of diagnosis, at an initial medical evaluation, annually thereafter, or more frequently if indicated. E",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A5-18",
+      "section": "Recommendation 10.16 and body text 'Ongoing Therapy and Monitoring With Lipid Panel'",
+      "bodyProposed": "ADA",
+      "verified": true,
+      "ref": "REF-DM-CVD-LIPID-INTERVAL"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Serum vitamin B12 levels (if on long-term and high- dose metformin)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-B12",
+     "section": "PDF p. 28 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-SCREEN",
+    "kind": "screen",
+    "urgency": "routine",
+    "ages": "adult",
+    "requiresCapability": "lab.vitamin_b12",
+    "signed": "UG-42 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "established"
+   }
+  },
+  {
+   "id": "DM-ACT-INITIAL-01",
+   "display": "First diabetes visit (2026 Table 5): HIV test, full blood count, kidney and liver function, lipids, potassium if on an ACE inhibitor, ARB or diuretic, waist circumference, a psychosocial screen (depression, anxiety, diabetes distress) and a dental check",
+   "when": {
+    "id": "initial_visit",
+    "label": "Diabetes met at this visit on a glucose or HbA1c result",
+    "any": [
+     {
+      "feature": "fasting_pg",
+      "op": "recorded"
+     },
+     {
+      "feature": "random_pg",
+      "op": "recorded"
+     },
+     {
+      "feature": "ogtt_2h_pg",
+      "op": "recorded"
+     },
+     {
+      "feature": "hba1c",
+      "op": "recorded"
+     },
+     {
+      "feature": "capillary_glucose",
+      "op": "recorded"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Complete blood count X X HIV serology X",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-HIVSER",
+      "section": "PDF p. 28 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Complete blood count X X HIV serology X",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-HIVSER",
+     "section": "PDF p. 28 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-SCREEN",
+    "kind": "screen",
+    "urgency": "routine",
+    "ages": "adult",
+    "signed": "UG-43 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "newly_met"
+   }
+  },
+  {
+   "id": "DM-ACT-RX-15",
+   "display": "Prediabetes with BMI 35 or more or gestational diabetes before: the 2026 guideline considers metformin to prevent type 2 diabetes (especially aged 25 to 44), alongside weight loss and activity",
+   "when": {
+    "id": "rx_prevent",
+    "label": "Previously in the intermediate range, with BMI 35 or more or gestational diabetes before",
+    "all": [
+     {
+      "feature": "prior_intermediate_hyperglycaemia",
+      "op": "present"
+     }
+    ],
+    "any": [
+     {
+      "feature": "bmi",
+      "op": ">=",
+      "value": 35,
+      "unit": "kg/m2"
+     },
+     {
+      "feature": "prior_gdm",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "metformin therapy is an effective therapeutic agent in preventing the onset of type 2 diabetes, especially in individuals aged 25-44 years, with a BMI ≥35 kg/m",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-PREVENT-MET",
+      "section": "PDF p. 24 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true,
+      "ref": "REF-DM-PREV-UG26-BMI"
+     }
+    }
+   },
+   "standard": "local",
+   "version": "2026 (summarised version)",
+   "requiresPrescribing": false,
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "metformin therapy is an effective therapeutic agent in preventing the onset of type 2 diabetes, especially in individuals aged 25-44 years, with a BMI ≥35 kg/m",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-PREVENT-MET",
+     "section": "PDF p. 24 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-RX",
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "ages": "adult",
+    "appliesTo": {
+     "pregnancy": "not_pregnant"
+    },
+    "neutralDisplay": "Prediabetes with a high-risk feature: consider metformin to prevent type 2 diabetes (2026)",
+    "signed": "UG-45 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "not_established"
+   }
   }
  ],
  "therapyFlags": [
@@ -8221,11 +10154,11 @@
   },
   {
    "id": "sulfonylurea_with_rifampicin",
-   "display": "Sulfonylurea with rifampicin",
+   "display": "Metformin, a sulfonylurea or a DPP-4 inhibitor with rifampicin",
    "severity": "amber",
    "when": {
     "id": "tf_rif",
-    "label": "On a sulfonylurea and rifampicin",
+    "label": "On rifampicin, with metformin, a sulfonylurea or a DPP-4 inhibitor",
     "all": [
      {
       "feature": "on_rifampicin",
@@ -8233,6 +10166,16 @@
      }
     ],
     "any": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "metformin"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "dpp4_inhibitor"
+     },
      {
       "feature": "glucose_lowering_therapy",
       "op": "==",
@@ -8266,7 +10209,7 @@
      }
     }
    },
-   "action": "Rifampicin lowers sulfonylurea levels: glucose control may worsen, so monitor it. Insulin is not affected; WHO keeps metformin as the initial medicine during TB treatment.",
+   "action": "Rifampicin lowers metformin, sulfonylurea and DPP-4 inhibitor levels by 30 to 80% (2026): glucose control may worsen, so monitor it. 2026: insulin first if HbA1c is 10% or more or glucose is very high; otherwise metformin if overweight, a sulfonylurea or DPP-4 inhibitor if BMI is below 25.",
    "citation": {
     "standard": "WHO",
     "version": "2025 (3rd ed. handbook)",
@@ -8290,6 +10233,10 @@
      "F04"
     ],
     "ages": "adult",
+    "signed": "UG-40 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [
      "tb"
     ],
@@ -8332,7 +10279,7 @@
      }
     }
    },
-   "action": "ADA: stop the SGLT2 inhibitor before scheduled surgery and during prolonged fasting, because of ketoacidosis with near-normal glucose. Agree the plan with the prescriber.",
+   "action": "Stop the SGLT2 inhibitor 3 to 4 days before surgery (2026) and during a prolonged fast: ketoacidosis can come with a near-normal glucose. Agree the plan with the prescriber.",
    "citation": {
     "standard": "ADA",
     "version": "Standards of Care in Diabetes—2026",
@@ -8356,6 +10303,10 @@
      "F04"
     ],
     "ages": "adult",
+    "signed": "UG-35 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": []
    }
   },
@@ -8569,7 +10520,7 @@
      }
     }
    },
-   "action": "UCG 2023 HIV chapter: dolutegravir increases metformin levels and may increase the risk of hypoglycaemia and metabolic acidosis. Close follow-up is recommended (electrolytes, urea, creatinine, random blood sugar). Review with the prescriber and the ART clinic.",
+   "action": "UCG 2023 HIV chapter: dolutegravir increases metformin levels and may increase the risk of hypoglycaemia and metabolic acidosis. Close follow-up is recommended (electrolytes, urea, creatinine, random blood sugar). Review with the prescriber and the ART clinic. The 2026 diabetes guideline says 'Avoid dolutegravir in individuals with diabetes and HIV comorbidity': discuss with the ART clinic; never change ART here.",
    "citation": {
     "standard": "local",
     "version": "2023 (edition inferred)",
@@ -8596,6 +10547,10 @@
     ],
     "note": "Read verbatim at verification. Dolutegravir is first line, so this flag will show for most people with HIV and diabetes on metformin: whether it is shown once and acknowledged, or at every visit, is D-DM-33.",
     "ages": "adult",
+    "signed": "UG-37 (D-DM-33 stands) signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": [
      "hiv"
     ],
@@ -8902,7 +10857,7 @@
      }
     }
    },
-   "action": "WHO 2025: in pregnancy, medicines with safety concerns are replaced by insulin and/or metformin, under specialist care. Review today with the prescriber and the antenatal team.",
+   "action": "2026 Uganda guideline: in pregnancy insulin is first line; metformin if insulin is refused or cannot be accessed, or as an add-on. Sulfonylureas, DPP-4 inhibitors, SGLT2 inhibitors, pioglitazone and GLP-1 agonists are avoided. Review today with the prescriber and the antenatal team.",
    "citation": {
     "standard": "WHO",
     "version": "2025",
@@ -8929,6 +10884,10 @@
     ],
     "ages": "any",
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "signed": "UG-10 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
     "restrictedClasses": []
    }
   },
@@ -9128,6 +11087,221 @@
     "neutralDisplay": null,
     "neutralAction": null,
     "ages": "adult",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "pioglitazone_age_60",
+   "display": "Pioglitazone at 60 or over",
+   "severity": "amber",
+   "when": {
+    "id": "tf_pio_60",
+    "label": "On pioglitazone, aged 60 or over",
+    "all": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "pioglitazone"
+     },
+     {
+      "feature": "age_years",
+      "op": ">=",
+      "value": 60,
+      "unit": "years"
+     }
+    ],
+    "citation": {
+     "standard": "WHO",
+     "version": "2020 (WHO/UCN/NCD/20.1)",
+     "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+     "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+     "quote": "Glibenclamide is not recommended in: • people aged 60 years or older • people with severe liver disease • in patients for whom hypoglycaemia is a concern (people who are at risk of falls, who have impaired awareness of hypoglycaemia, who live alone) • people who drive or operate machinery as part of their job.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A2-27",
+      "section": "Section 'Control of blood glucose levels (glycaemia)' (p.15)",
+      "bodyProposed": "WHO",
+      "verified": true,
+      "ref": "REF-DM-RX-GLIB-AGE"
+     }
+    }
+   },
+   "action": "The 2026 guideline avoids pioglitazone where there is a risk of osteoporosis; at 60 or over prefer gliclazide or a DPP-4 inhibitor. Review with the prescriber.",
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "-Metformin -DPP-IV inhibitors such as sitagliptin, teneligliptin, and vildagliptin -SGLT2i such as dapagliflozin and empagliflozin -Gliclazide is the SU of choice",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-T8-ELDERLY",
+     "section": "PDF p. 31 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-THERAPY",
+    "status": "new",
+    "signed": "UG-19 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "oral_agents_in_hospital",
+   "display": "Metformin, a sulfonylurea or pioglitazone in an inpatient",
+   "severity": "amber",
+   "when": {
+    "id": "tf_inpt_oral",
+    "label": "Inpatient on metformin, a sulfonylurea or pioglitazone",
+    "all": [
+     {
+      "feature": "care_setting",
+      "op": "==",
+      "value": "inpatient"
+     }
+    ],
+    "any": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "metformin"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "pioglitazone"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "glibenclamide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "gliclazide"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "glimepiride"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Avoid using the sliding scale in administering insulin because it is associated with poor in-hospital glycaemic control, recurrent episodes of hypoglycaemia, and glycaemic variability.",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-INPT-AVOID",
+      "section": "PDF p. 57 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "action": "The 2026 guideline avoids metformin, sulfonylureas and pioglitazone in hospital, and avoids premixed insulin and a sliding scale on its own: basal insulin with correction doses instead. Review with the prescriber.",
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Avoid using the sliding scale in administering insulin because it is associated with poor in-hospital glycaemic control, recurrent episodes of hypoglycaemia, and glycaemic variability.",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-INPT-AVOID",
+     "section": "PDF p. 57 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-THERAPY",
+    "status": "new",
+    "signed": "UG-34 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "metformin_before_surgery",
+   "display": "Metformin before surgery",
+   "severity": "amber",
+   "when": {
+    "id": "tf_met_surg",
+    "label": "On metformin, surgery planned",
+    "all": [
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "==",
+      "value": "metformin"
+     },
+     {
+      "feature": "surgery_or_fasting_planned",
+      "op": "present"
+     }
+    ],
+    "citation": {
+     "standard": "local",
+     "version": "2026 (summarised version)",
+     "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "quote": "Elective surgery HbA1c goal: <8% (64 mmol/mol)",
+     "retrieved": "2026-10-05",
+     "csoSigned": false,
+     "x": {
+      "claim": "UG26-SURG",
+      "section": "PDF p. 58 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+      "bodyProposed": "UG-MOH",
+      "verified": true
+     }
+    }
+   },
+   "action": "2026 guideline: hold metformin on the day of surgery and other tablets that morning; aim for HbA1c below 8.0% before elective surgery.",
+   "citation": {
+    "standard": "local",
+    "version": "2026 (summarised version)",
+    "title": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+    "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+    "quote": "Elective surgery HbA1c goal: <8% (64 mmol/mol)",
+    "retrieved": "2026-10-05",
+    "csoSigned": false,
+    "x": {
+     "claim": "UG26-SURG",
+     "section": "PDF p. 58 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "bodyProposed": "UG-MOH",
+     "verified": true
+    }
+   },
+   "x": {
+    "lane": "act",
+    "family": "DM-ACT-THERAPY",
+    "status": "new",
+    "refs": [
+     "REF-DM-SURG-UG26-HBA1C"
+    ],
+    "signed": "UG-35 signed 2026-10-05 (docs/ncd/diabetes/ug2026-signoff.json)",
+    "sources": [
+     "UG 2026 summarised"
+    ],
+    "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
     "restrictedClasses": []
    }
   }

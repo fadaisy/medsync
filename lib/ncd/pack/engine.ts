@@ -286,7 +286,8 @@ export function runProtocol(pack: DiabetesPack, input: PackInput): PackResult {
     const cs = setById(id);
     return or(cs.anyOf.map((c) => guarded(c, cx.crit(c), true))) === MET && !suppressed(cs.x);
   };
-  const metNow = ["who_hearts_d_2020", "ug_ucg_2023"].some(
+  // UG-01: the sets that count as "met at this visit" are data (semantics.metNowSets).
+  const metNow = (pack.semantics.metNowSets as string[]).some(
     (id) => res.diagnosis[id] === MET || (ps === "unknown" && metIgnoringPregnancy(id)),
   );
   const gate = (rw?: string) =>

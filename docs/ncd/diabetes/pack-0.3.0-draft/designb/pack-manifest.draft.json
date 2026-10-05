@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.4.2-draft",
+ "version": "0.5.0-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -49,8 +49,12 @@
   "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane, on routine (not same-day or urgent) referrals and on targets; a value hidden by it is named as a gap only where it changed a met result. Acute rules and referrals for danger are never suppressed (N8; ninth review, U11).",
   "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
   "adult": "Age bands are effective bands: where a numeric age is recorded, under 16 is never 'adult' or 'older_adult' and 16 or over is never 'child' or 'adolescent', for rules, steps, flags and targets alike. A therapy flag shown under 16 shows its `under16Action` (refer; do not change the medicine here) instead of its action (ninth review, U07, U12). A recorded age of 10 to 15 is 'adolescent' even if the band says 'child' (tenth review, V16).",
-  "defaultSets": "Diagnosis: UCG 2023 (`ug_ucg_2023`) is the default set, WHO HEARTS-D 2020 is shown alongside, and 'met at this visit' (for referrals) means either set met. Gestational diabetes: WHO 2013 is the default, UCG 2023's set alongside (P0-26).",
-  "signed": "Content changed by the GATE A signatures carries `x.signed`; see docs/ncd/diabetes/gate-a-signoff.json."
+  "defaultSets": "Diagnosis: the 2026 Uganda guideline (`ug_integrated_dm_2026`) is the default set; WHO HEARTS-D 2020 and UCG 2023 are shown alongside; 'met at this visit' (for referrals) means the 2026 or the WHO set met (`metNowSets`). Intermediate: the 2026 prediabetes bands (`ada_2026_prediabetes`, same numbers). Gestational: WHO 2013 (the 2026 guideline's own values); UCG 2023's gestational set retired (UG-07).",
+  "signed": "Content changed by the GATE A signatures carries `x.signed`; see docs/ncd/diabetes/gate-a-signoff.json.",
+  "metNowSets": [
+   "who_hearts_d_2020",
+   "ug_integrated_dm_2026"
+  ]
  },
  "criteriaSets": [
   "who_hearts_d_2020",
@@ -60,19 +64,19 @@
   "ada_2026_prediabetes",
   "who_2013_gdm",
   "who_2013_diabetes_in_pregnancy",
-  "consensus_2021_remission",
-  "ug_ucg_2023_gdm"
+  "consensus_2021_remission"
  ],
  "defaultCriteriaSet": "who_hearts_d_2020",
  "defaultCriteriaSetNote": "D-NCD-11 names UCG 2023. Its text was not read, so the WHO set is the working default until D-DM-01 is decided.",
  "families": {
-  "DM-ACT-EDU": 10,
+  "DM-ACT-EDU": 12,
   "DM-ACT-RECALL": 2,
-  "DM-ACT-REFER": 24,
-  "DM-ACT-SCREEN": 9,
+  "DM-ACT-REFER": 25,
+  "DM-ACT-RX": 10,
+  "DM-ACT-SCREEN": 13,
   "DM-ACT-TARGET": 1,
-  "DM-ACT-TEST": 3,
-  "DM-ACT-THERAPY": 35,
+  "DM-ACT-TEST": 5,
+  "DM-ACT-THERAPY": 38,
   "DM-ACU-ROUTE": 50,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
@@ -80,7 +84,7 @@
   "DM-CLS-T1": 6,
   "DM-CON-CRIT": 1,
   "DM-CON-DISC": 3,
-  "DM-CON-PREG": 5,
+  "DM-CON-PREG": 6,
   "DM-CON-REPEAT": 3,
   "DM-CON-VALID": 26,
   "DM-STR-CKD": 1,
@@ -91,22 +95,22 @@
   "DM-STR-FOOT": 1,
   "DM-STR-HYPO": 2,
   "DM-STR-NEURO": 4,
-  "DM-SUS-INCID": 5,
-  "DM-SUS-INPT": 1,
-  "DM-SUS-PAED": 5,
+  "DM-SUS-INCID": 6,
+  "DM-SUS-INPT": 2,
+  "DM-SUS-PAED": 6,
   "DM-SUS-POP": 10,
-  "DM-SUS-PREG": 1,
+  "DM-SUS-PREG": 2,
   "DM-SUS-RECON": 2,
   "DM-SUS-RISK": 6,
   "DM-SUS-SYMP": 2
  },
  "lanes": {
-  "suspect": 32,
-  "confirm": 42,
+  "suspect": 36,
+  "confirm": 43,
   "classify": 11,
   "stratify": 12,
   "acute_route": 50,
-  "act": 84
+  "act": 106
  },
  "rules": [
   {
@@ -500,7 +504,7 @@
    "id": "DM-SUS-PREG-02",
    "family": "DM-SUS-POP",
    "lane": "suspect",
-   "title": "Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth",
+   "title": "Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth, with an OGTT where the site can run one, otherwise a fasting glucose; then every 1 to 3 years for life (2026)",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -659,7 +663,7 @@
    "id": "DM-SUS-POP-HIV-01",
    "family": "DM-SUS-POP",
    "lane": "suspect",
-   "title": "Living with HIV on ART: fasting glucose every year",
+   "title": "Living with HIV on ART: glucose every 6 months (2026)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -674,7 +678,7 @@
    ],
    "predicate": "catalog.rule:sus_hiv_annual",
    "params": {
-    "ih-retest": "REF-DM-IH-RETEST"
+    "hiv-ug26-interval": "REF-DM-HIV-UG26-INTERVAL"
    },
    "minTrust": 2,
    "emits": [
@@ -720,7 +724,7 @@
    "id": "DM-SUS-POP-DTG-01",
    "family": "DM-SUS-POP",
    "lane": "suspect",
-   "title": "On dolutegravir with thirst, polyuria or weight loss: check glucose today",
+   "title": "On dolutegravir with thirst, polyuria or weight loss: check glucose today. The 2026 diabetes guideline says 'Avoid dolutegravir in individuals with diabetes and HIV comorbidity': discuss with the ART clinic; never change ART here.",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -780,7 +784,7 @@
    "id": "DM-SUS-POP-TB-01",
    "family": "DM-SUS-POP",
    "lane": "suspect",
-   "title": "TB: offer a diabetes test to everyone who does not know their status",
+   "title": "TB: a random glucose at diagnosis; if it is 6.1 mmol/L or more, a fasting glucose (preferred) or HbA1c (2026). Re-check after the first month of TB treatment if raised",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -1006,7 +1010,7 @@
    "id": "DM-SUS-PREG-01",
    "family": "DM-SUS-POP",
    "lane": "suspect",
-   "title": "24 weeks or more pregnant: offer a 75 g OGTT",
+   "title": "24 weeks or more pregnant: offer a 75 g OGTT (the 2026 guideline screens every pregnant woman). Where an OGTT cannot be done: a fasting glucose, a random glucose and/or HbA1c",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "pregnant"
@@ -1786,7 +1790,7 @@
    "id": "DM-ACU-ROUTE-02",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now",
+   "title": "Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -2101,7 +2105,7 @@
    "id": "DM-ACU-ROUTE-11",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones",
+   "title": "Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -2217,7 +2221,7 @@
    "id": "DM-ACU-ROUTE-14",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones",
+   "title": "Glucose 30.0 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -2631,7 +2635,7 @@
    "id": "DM-SUS-INCID-02",
    "family": "DM-SUS-INCID",
    "lane": "suspect",
-   "title": "One result in the diabetes range: confirm it. Repeat on another day (or, with symptoms, check a glucose today); do not leave it",
+   "title": "One result in the diabetes range: confirm it today with a second, different test (fasting glucose, laboratory HbA1c or an OGTT; the 2026 guideline accepts two tests at the same time), or repeat on another day; do not leave it",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -3486,7 +3490,7 @@
    "id": "DM-ACU-ROUTE-24",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now",
+   "title": "Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -3935,7 +3939,7 @@
    "id": "DM-SUS-INCID-04",
    "family": "DM-SUS-INCID",
    "lane": "suspect",
-   "title": "A fasting capillary glucose of 6.1 to below 7.0 mmol/L: repeat fasting on another day, and offer a 2-hour OGTT where one can be done",
+   "title": "A fasting capillary glucose of 5.6 to below 7.0 mmol/L (2026: prediabetes range): repeat fasting on another day, and offer a 2-hour OGTT where one can be done",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -3949,7 +3953,7 @@
    ],
    "predicate": "catalog.rule:sus_fcap_ifg",
    "params": {
-    "ih-ifg-who": "REF-DM-IH-IFG-WHO",
+    "ih-ug26-fpg": "REF-DM-IH-UG26-FPG",
     "dx-fpg": "REF-DM-DX-FPG"
    },
    "minTrust": 2,
@@ -4659,7 +4663,7 @@
    "id": "DM-ACU-ROUTE-24B",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now",
+   "title": "Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now. If this site will transfer the patient, start intravenous fluids before transfer (2026: health centre III starts fluids, then refers)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -5258,7 +5262,7 @@
    "id": "DM-SUS-PREG-UCG",
    "family": "DM-SUS-PREG",
    "lane": "suspect",
-   "title": "Pregnant, with a risk factor for gestational diabetes (UCG 2023): test for it (a 75 g OGTT where the site can run one; otherwise a fasting glucose)",
+   "title": "Pregnant, with a risk factor for gestational diabetes (UCG 2023): test for it (a 75 g OGTT where the site can run one; otherwise a fasting glucose). With a risk factor, test at the first visit rather than waiting (2026 screens everyone)",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "pregnant"
@@ -5361,6 +5365,296 @@
     "unlessCapability": null,
     "notWhen": [
      "acu_preg_dm_unwell_insulin"
+    ]
+   }
+  },
+  {
+   "id": "DM-SUS-INCID-05",
+   "family": "DM-SUS-INCID",
+   "lane": "suspect",
+   "title": "A random glucose of 7.8 to below 11.1 mmol/L: test properly (a fasting glucose, laboratory HbA1c or an OGTT). The 2026 band is a reason to test, not a label",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose"
+   ],
+   "predicate": "catalog.rule:sus_rbg_band",
+   "params": {
+    "ih-ug26-rbg": "REF-DM-IH-UG26-RBG",
+    "dx-ug26-rbg": "REF-DM-DX-UG26-RBG"
+   },
+   "minTrust": 2,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-DX-TABLE"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "urgency": "routine",
+    "posterior": "low",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
+   }
+  },
+  {
+   "id": "DM-SUS-PREG-03",
+   "family": "DM-SUS-PREG",
+   "lane": "suspect",
+   "title": "Pregnant, before 24 weeks, no glucose result at this visit: screen for hyperglycaemia in pregnancy now (an OGTT, a fasting or random glucose, or HbA1c). The 2026 guideline screens every pregnant woman at her first antenatal contact",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.gestation_weeks (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:sus_preg_first",
+   "params": {
+    "preg-ug26-early": "REF-DM-PREG-UG26-EARLY"
+   },
+   "minTrust": 2,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-PREG-SCREEN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "test.order",
+     "test": "test.ogtt",
+     "tier": "routine"
+    },
+    "neutralProposal": null,
+    "urgency": "routine",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_preg_first_known",
+     "sus_preg_first_done"
+    ]
+   }
+  },
+  {
+   "id": "DM-CON-PREG-06",
+   "family": "DM-CON-PREG",
+   "lane": "confirm",
+   "title": "Pregnant before 24 weeks with HbA1c 6.5% or more: probable diabetes before the pregnancy. Manage as hyperglycaemia in pregnancy: refer today for specialised antenatal care (2026)",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "pregnant"
+   },
+   "reads": [
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.gestation_weeks (no CFC concept yet)",
+    "obs.hba1c"
+   ],
+   "predicate": "catalog.rule:con_preg_hba1c_early",
+   "params": {
+    "preg-ug26-early": "REF-DM-PREG-UG26-EARLY",
+    "dx-ug26-hba1c": "REF-DM-DX-UG26-HBA1C"
+   },
+   "minTrust": 3,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 71 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-PREG-SCREEN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "high",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "con_preg_hba1c_known"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACT-REFER-PAED-T1-01",
+   "family": "DM-ACT-REFER",
+   "lane": "act",
+   "title": "Type 1 diabetes under 16: make sure the paediatric diabetes clinic is following the 2026 guideline: HbA1c every 3 months with a target below 7%, glucose 4 to 6 times a day, and from age 11 (or puberty) after 2 years of diabetes yearly kidney and nerve checks and an eye check every 2 years",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.dm_type_recorded (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:paed_t1_clinic",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "flag",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 62 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-T1-TGT"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "urgency": "routine",
+    "posterior": "low",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": []
+   }
+  },
+  {
+   "id": "DM-SUS-PAED-06",
+   "family": "DM-SUS-PAED",
+   "lane": "suspect",
+   "title": "A child or adolescent vomiting without diarrhoea, or with unexplained abdominal pain, and no glucose today: fingerstick glucose now (2026: new diabetes can present as gastroenteritis, malaria or pneumonia)",
+   "appliesTo": {
+    "ageBands": [
+     "child",
+     "adolescent"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sx.vomiting",
+    "sx.abdominal_pain"
+   ],
+   "predicate": "catalog.rule:sus_paed_vomit",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 64 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-CHILD-VOMIT"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_paed_vomit_diarrhoea",
+     "sus_paed_vomit_glucose"
+    ]
+   }
+  },
+  {
+   "id": "DM-SUS-INPT-02",
+   "family": "DM-SUS-INPT",
+   "lane": "suspect",
+   "title": "Admitted: check a random glucose and, where valid, HbA1c (2026 screens every admitted medical and surgical patient)",
+   "appliesTo": {
+    "ageBands": null,
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.care_setting (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:sus_admitted",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "state",
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 56 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-INPT-SCREEN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "urgency": "routine",
+    "posterior": "low",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "sus_admitted_done"
     ]
    }
   },
@@ -6219,7 +6513,7 @@
    "id": "DM-ACT-REFER-BP-02",
    "family": "DM-ACT-REFER",
    "lane": "act",
-   "title": "Blood pressure above 130/80 on two medicines: routine referral",
+   "title": "Blood pressure above 130/80 on two medicines: at a health centre, routine referral. At hospital level the 2026 guideline adds a third class and then a mineralocorticoid-receptor antagonist before referring to a hypertension specialist",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -6580,7 +6874,7 @@
    "id": "DM-ACT-EDU-01",
    "family": "DM-ACT-EDU",
    "lane": "act",
-   "title": "Counsel at this visit: diet, physical activity, tobacco and alcohol, and taking medicines",
+   "title": "Counsel at this visit: diet, physical activity, tobacco and alcohol, and taking medicines. 2026: half the plate non-starchy vegetables (greens, tomatoes, onions), a quarter lean protein (fish, chicken, beans), a quarter whole grains or starchy food; avoid honey, processed juices and sugar; no chromium, vitamin D, cinnamon or aloe vera supplements",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -6756,7 +7050,7 @@
    "id": "DM-ACT-EDU-05",
    "family": "DM-ACT-EDU",
    "lane": "act",
-   "title": "On insulin: check storage and injection sites. Storage (EADSG 2019): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use at room temperature in a clean plastic box, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never kept in water; avoid clay pots, which are hard to keep clean",
+   "title": "On insulin: check storage and injection sites. Storage (EADSG 2019 and the 2026 guideline): unopened insulin kept more than 2 months goes in a fridge (2 to 8 °C), never frozen; the vial in use below 30 °C at room temperature in a clean plastic container with dry cotton wool, out of the sun, for up to 6 weeks (4 weeks if the room reaches 30 °C); never in water, on the floor or in sand; avoid clay pots. Injection: rotate abdomen, thigh, buttocks and outer arm; short needles (4 to 5 mm pen, 6 mm syringe); a new needle ideally every day",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -6888,7 +7182,7 @@
    "id": "DM-ACT-EDU-08",
    "family": "DM-ACT-EDU",
    "lane": "act",
-   "title": "Could become pregnant: discuss pregnancy planning and which medicines must change first",
+   "title": "Could become pregnant: discuss pregnancy planning and which medicines must change first; plan a pregnancy when HbA1c is below 6.5% (2026), and use contraception until then",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -6986,7 +7280,7 @@
    "id": "DM-ACT-EDU-10",
    "family": "DM-ACT-EDU",
    "lane": "act",
-   "title": "Intermediate hyperglycaemia: weight, activity, and a test every year",
+   "title": "Intermediate hyperglycaemia: lose 7% of body weight, 150 minutes of activity a week, and a test every year (2026)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7029,7 +7323,7 @@
    "id": "DM-ACT-RX-01",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Type 2 diabetes above target and not on medicine: review treatment. UCG 2023: if sugars are not very high and the person is willing, lifestyle for 3 months first; otherwise, or if that is not enough, metformin, with diet and activity",
+   "title": "Type 2 diabetes above target and not on medicine: review treatment. 2026 guideline: HbA1c 7.5% or more at diagnosis, or 1.5% or more above target, start two glucose-lowering medicines; below that, metformin with diet and activity",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7081,7 +7375,7 @@
    "id": "DM-ACT-RX-02",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. UCG 2023's second line is glimepiride; EMHSLU 2023 stocks it from general hospitals upward, so at a health centre refer for it. Never start glibenclamide (deleted from EMHSLU 2023)",
+   "title": "On metformin without a sulfonylurea or insulin, and above target despite taking it: review treatment. 2026 guideline (Table 8): 60 or over, gliclazide or a DPP-4 inhibitor; BMI below 25, a sulfonylurea or a DPP-4 inhibitor; BMI 25 or more, an SGLT2 inhibitor or GLP-1 agonist. The 2026 guideline starts these at health centre IV and above; EMHSLU 2023 stocks glimepiride from general hospitals and gliclazide, DPP-4 and SGLT2 inhibitors at regional referral hospitals, so refer if this site does not stock it. Never start glibenclamide",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7169,7 +7463,7 @@
    "id": "DM-ACT-RX-04",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Type 2 or unclassified diabetes, not on insulin, with HbA1c above 10% or glucose 16.7 mmol/L or more: ADA says consider insulin. Check ketones first",
+   "title": "Type 2 or unclassified diabetes, not on insulin, with HbA1c 10% or more, a fasting glucose above 14 or any other glucose above 16.7 mmol/L: the 2026 guideline starts insulin. Check ketones first",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7187,6 +7481,7 @@
    "predicate": "catalog.step:rx_severe",
    "params": {
     "ctrl-severe-hba1c": "REF-DM-CTRL-SEVERE-HBA1C",
+    "rx-ug26-ins-fbg": "REF-DM-RX-UG26-INS-FBG",
     "ctrl-severe-glu": "REF-DM-CTRL-SEVERE-GLU"
    },
    "minTrust": 2,
@@ -7218,7 +7513,7 @@
    "id": "DM-ACT-RX-05",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Cardiovascular disease or heart failure with type 2 diabetes: ADA recommends an SGLT2 inhibitor or GLP-1 receptor agonist whatever the HbA1c",
+   "title": "Type 2 diabetes with established cardiovascular disease, heart failure, or a high cardiovascular risk (overweight, hypertension or albuminuria): the 2026 guideline puts an SGLT2 inhibitor or GLP-1 agonist first line with metformin. Refer for consideration (stocked at regional referral hospitals, EMHSLU 2023)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7230,12 +7525,17 @@
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.cvd_established (no CFC concept yet)",
     "ncd.heart_failure_known (no CFC concept yet)",
+    "derived.bmi",
+    "ncd.hypertension_known (no CFC concept yet)",
+    "ncd.uacr_abnormal_count (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)",
     "derived.egfr"
    ],
    "predicate": "catalog.step:rx_cardio",
    "params": {
+    "sus-bmi": "REF-DM-SUS-BMI",
+    "kid-uacr-count": "REF-DM-KID-UACR-COUNT",
     "rx-sglt2-egfr": "REF-DM-RX-SGLT2-EGFR"
    },
    "minTrust": 2,
@@ -7318,7 +7618,7 @@
    "id": "DM-ACT-RX-06",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Type 2 diabetes aged 40 or over, not on a statin: WHO recommends one",
+   "title": "Type 2 diabetes aged 40 or over, not on a statin: the 2026 guideline starts one: moderate intensity from 40 to 75, high intensity with any cardiovascular risk factor; over 75 after weighing the benefit. Re-check lipids 4 to 12 weeks after starting",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7367,7 +7667,7 @@
    "id": "DM-ACT-RX-07",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Blood pressure at or above 130/80 on two occasions: review blood pressure treatment",
+   "title": "Blood pressure at or above 130/80 on two occasions: review treatment. 2026 guideline: below 150/90, one medicine (an ACE inhibitor or ARB with kidney disease or CVD; otherwise an ACE inhibitor, ARB, calcium-channel blocker or thiazide); 150/90 or more, two (an ACE inhibitor or ARB with a calcium-channel blocker or thiazide). Not a loop diuretic for blood pressure alone; a beta-blocker only with a compelling reason",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7417,7 +7717,7 @@
    "id": "DM-ACT-RX-08",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Albuminuria with raised blood pressure and no ACE inhibitor or ARB: one of them is the recommended class",
+   "title": "Confirmed albuminuria and no ACE inhibitor or ARB: the 2026 guideline starts one, whatever the blood pressure. Counsel a woman who could become pregnant first",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7427,7 +7727,6 @@
    },
    "reads": [
     "ncd.uacr_abnormal_count (no CFC concept yet)",
-    "ncd.bp_raised_two_occasions (no CFC concept yet)",
     "ncd.ras_blocker (no CFC concept yet)",
     "ncd.pregnant (no CFC concept yet)"
    ],
@@ -7464,7 +7763,7 @@
    "id": "DM-ACT-RX-09",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Established cardiovascular disease and not on an antiplatelet: it is for secondary prevention. Not after a bleeding stroke or a stroke of unknown type; check bleeding risk",
+   "title": "Established cardiovascular disease, peripheral arterial disease included, and not on an antiplatelet: it is for secondary prevention (with a high-intensity statin, 2026). Not after a bleeding stroke or a stroke of unknown type; check bleeding risk",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7602,7 +7901,7 @@
    "id": "DM-ACT-RX-12",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Numb, burning or tingling feet with a sign on examination: if it is painful, ADA names the first-line classes; opioids are not among them",
+   "title": "Numb, burning or tingling feet with a sign on examination: if it is painful, the 2026 guideline lists gabapentin, pregabalin, duloxetine, carbamazepine, valproate, tramadol and alpha-lipoic acid; opioids such as tramadol are not first line (ADA)",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -7783,7 +8082,7 @@
    "id": "DM-ACT-RX-01B",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Type 2 diabetes above target on a fasting meter reading and not on medicine: UCG 2023: lifestyle for 3 months first unless sugars are very high, then metformin",
+   "title": "Type 2 diabetes above target on a fasting meter reading and not on medicine: review treatment. 2026 guideline: metformin with diet and activity; two medicines if HbA1c is 7.5% or more",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -8161,6 +8460,801 @@
    }
   },
   {
+   "id": "DM-ACT-TEST-VENOUS-01",
+   "family": "DM-ACT-TEST",
+   "lane": "act",
+   "title": "If the diagnosis rests on a meter reading, confirm it with a laboratory venous plasma glucose (2026: the recommended method in hospitals); a point-of-care HbA1c does not diagnose",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose"
+   ],
+   "predicate": "catalog.step:test_venous",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 19 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-DX-METHOD"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "test",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-EDU-10B",
+   "family": "DM-ACT-EDU",
+   "lane": "act",
+   "title": "In the prediabetes range (2026): lose 7% of body weight, 150 minutes of activity a week, and a test every year (2026)",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose"
+   ],
+   "predicate": "catalog.step:dm_act_edu_10b",
+   "params": {
+    "ih-ug26-fpg": "REF-DM-IH-UG26-FPG",
+    "dx-ug26-fpg": "REF-DM-DX-UG26-FPG"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-DX-TABLE"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "educate",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-EDU-10C",
+   "family": "DM-ACT-EDU",
+   "lane": "act",
+   "title": "In the prediabetes range (2026): lose 7% of body weight, 150 minutes of activity a week, and a test every year (2026)",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.hba1c"
+   ],
+   "predicate": "catalog.step:dm_act_edu_10c",
+   "params": {
+    "ih-ug26-hba1c": "REF-DM-IH-UG26-HBA1C",
+    "dx-ug26-hba1c": "REF-DM-DX-UG26-HBA1C"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 18 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-DX-TABLE"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "educate",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-PREG-ASA-01",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Pregnant with type 1 or type 2 diabetes, 12 weeks or more: review starting aspirin to reduce the risk of pre-eclampsia (2026: from 12 to 16 weeks); agree it with the antenatal team",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.pregnant (no CFC concept yet)",
+    "ncd.gestation_weeks (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:preg_asa",
+   "params": {
+    "preg-ug26-asa-weeks": "REF-DM-PREG-UG26-ASA-WEEKS"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 76 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-PREG-ASA"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-13",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Random C-peptide below 600 pmol/L (0.6 nmol/L) and not on insulin: the 2026 guideline reads this as insulin deficiency. Consider insulin",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.c_peptide (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:rx_cpep",
+   "params": {
+    "rx-ug26-cpep": "REF-DM-RX-UG26-CPEP"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-CPEP-INS"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-TEST-HBA1C-03",
+   "family": "DM-ACT-TEST",
+   "lane": "act",
+   "title": "HbA1c is due (3 months since the last, which was above 7.0%): the 2026 guideline checks every 3 months until controlled",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.hba1c",
+    "ncd.months_since_hba1c (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:due_hba1c_above",
+   "params": {
+    "ctrl-hba1c-target": "REF-DM-CTRL-HBA1C-TARGET",
+    "ctrl-window-above": "REF-DM-CTRL-WINDOW-ABOVE"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 29 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-TGT-FREQ"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "test",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "65 or over on insulin or a sulfonylurea, fasting glucose below 4.4: below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.age_years (no CFC concept yet)",
+    "obs.glucose",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_14",
+   "params": {
+    "ctrl-older-age": "REF-DM-CTRL-OLDER-AGE",
+    "ctrl-older-fpg-healthy": "REF-DM-CTRL-OLDER-FPG-HEALTHY"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "section": "Table 13.2, p. S284",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "verifiedOn": "2026-10-05",
+     "claim": "SRC-ADA26-T132"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-14B",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "65 or over on insulin or a sulfonylurea, fasting glucose below 5.0 (frail or cognitively impaired): below ADA's goal for older adults, not 'at target'. Review the treatment to avoid lows",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.age_years (no CFC concept yet)",
+    "obs.glucose",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.frailty_or_limited_life_expectancy (no CFC concept yet)",
+    "ncd.cognitive_impairment (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_14b",
+   "params": {
+    "ctrl-older-age": "REF-DM-CTRL-OLDER-AGE",
+    "ctrl-older-fpg-complex": "REF-DM-CTRL-OLDER-FPG-COMPLEX"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "13. Older Adults: Standards of Care in Diabetes-2026 (Diabetes Care 2026;49(Suppl 1)), Table 13.2",
+     "section": "Table 13.2, p. S284",
+     "url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+     "verifiedOn": "2026-10-05",
+     "claim": "SRC-ADA26-T132"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-04B",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "On high-dose steroids, with diabetes, not on insulin: the 2026 guideline lists this as an indication for insulin. Review treatment",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.on_glucocorticoid (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:rx_steroid_insulin",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 34 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-INS-IND"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06B",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Diabetes aged 20 to 39 with a cardiovascular risk factor (hypertension, smoking or albuminuria), not on a statin: the 2026 guideline considers one with lifestyle change",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.age_years (no CFC concept yet)",
+    "ncd.on_statin (no CFC concept yet)",
+    "ncd.hypertension_known (no CFC concept yet)",
+    "soc.tobacco",
+    "ncd.uacr_abnormal_count (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_06b",
+   "params": {
+    "cvd-ug26-statin-young": "REF-DM-CVD-UG26-STATIN-YOUNG",
+    "cvd-statin-age": "REF-DM-CVD-STATIN-AGE",
+    "kid-uacr-count": "REF-DM-KID-UACR-COUNT"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-STATIN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06C",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Diabetic kidney disease, not on a statin: the 2026 guideline puts everyone with kidney disease on one",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.on_statin (no CFC concept yet)",
+    "derived.egfr",
+    "ncd.uacr_abnormal_count (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_06c",
+   "params": {
+    "kid-gfr-g3a": "REF-DM-KID-GFR-G3A",
+    "kid-uacr-count": "REF-DM-KID-UACR-COUNT"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-STATIN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06D",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Established cardiovascular disease: the 2026 guideline uses a high-intensity statin with ezetimibe from the start, aiming for LDL below 1.8 mmol/L. Review the current lipid treatment",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.cvd_established (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_06d",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-STATIN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-06E",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Living with HIV, with diabetes, not on a statin: the 2026 guideline starts one at low to moderate cardiovascular risk",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.hiv_on_art (no CFC concept yet)",
+    "ncd.on_statin (no CFC concept yet)",
+    "ncd.dm_status (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:dm_act_rx_06e",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 41 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-STATIN"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": [
+     "hiv"
+    ]
+   }
+  },
+  {
+   "id": "DM-ACT-SCREEN-EYE-02",
+   "family": "DM-ACT-SCREEN",
+   "lane": "act",
+   "title": "Mild retinopathy: retinal examination every year (2026 guideline: annually for mild to moderate NPDR)",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "exam.retinopathy_grade",
+    "ncd.months_since_eye_screen (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:due_eye_mild",
+   "params": {
+    "eye-recall-mild-min": "REF-DM-EYE-RECALL-MILD-MIN"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 51 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-EYE"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "screen",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-SCREEN-TB-02",
+   "family": "DM-ACT-SCREEN",
+   "lane": "act",
+   "title": "New diabetes: screen for TB now (symptom screen at least; sputum test or chest X-ray where available). Diabetes triples the odds of TB (2026)",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose",
+    "obs.hba1c"
+   ],
+   "predicate": "catalog.step:screen_tb_new",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 80 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-DM-TB"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "screen",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-SCREEN-B12-02",
+   "family": "DM-ACT-SCREEN",
+   "lane": "act",
+   "title": "On metformin: vitamin B12 every year (2026: on long-term metformin)",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.months_since_b12 (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:due_b12",
+   "params": {
+    "cvd-lipid-interval": "REF-DM-CVD-LIPID-INTERVAL"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 28 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-B12"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "screen",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-INITIAL-01",
+   "family": "DM-ACT-SCREEN",
+   "lane": "act",
+   "title": "First diabetes visit (2026 Table 5): HIV test, full blood count, kidney and liver function, lipids, potassium if on an ACE inhibitor, ARB or diuretic, waist circumference, a psychosocial screen (depression, anxiety, diabetes distress) and a dental check",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "obs.glucose",
+    "obs.hba1c"
+   ],
+   "predicate": "catalog.step:initial_visit",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 28 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-HIVSER"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "screen",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-RX-15",
+   "family": "DM-ACT-RX",
+   "lane": "act",
+   "title": "Prediabetes with BMI 35 or more or gestational diabetes before: the 2026 guideline considers metformin to prevent type 2 diabetes (especially aged 25 to 44), alongside weight loss and activity",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.prior_intermediate_hyperglycaemia (no CFC concept yet)",
+    "derived.bmi",
+    "ncd.prior_gdm (no CFC concept yet)"
+   ],
+   "predicate": "catalog.step:rx_prevent",
+   "params": {
+    "prev-ug26-bmi": "REF-DM-PREV-UG26-BMI"
+   },
+   "minTrust": 2,
+   "emits": [
+    "proposal"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 24 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-PREVENT-MET"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": null,
+    "neutralProposal": null,
+    "kind": "therapy_review",
+    "urgency": "routine",
+    "requiresPrescribing": false,
+    "restrictedClasses": []
+   }
+  },
+  {
    "id": "DM-ACT-FLAG-METFORMIN-EGFR-30-44",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
@@ -8485,7 +9579,7 @@
    "id": "DM-ACT-FLAG-SULFONYLUREA-WITH-RIFAMPICIN",
    "family": "DM-ACT-THERAPY",
    "lane": "act",
-   "title": "Sulfonylurea with rifampicin",
+   "title": "Metformin, a sulfonylurea or a DPP-4 inhibitor with rifampicin",
    "appliesTo": {
     "pregnancy": "any"
    },
@@ -8511,7 +9605,7 @@
    "status": "draft",
    "x": {
     "severity": "amber",
-    "action": "Rifampicin lowers sulfonylurea levels: glucose control may worsen, so monitor it. Insulin is not affected; WHO keeps metformin as the initial medicine during TB treatment.",
+    "action": "Rifampicin lowers metformin, sulfonylurea and DPP-4 inhibitor levels by 30 to 80% (2026): glucose control may worsen, so monitor it. 2026: insulin first if HbA1c is 10% or more or glucose is very high; otherwise metformin if overweight, a sulfonylurea or DPP-4 inhibitor if BMI is below 25.",
     "restrictedClasses": [
      "tb"
     ]
@@ -8547,7 +9641,7 @@
    "status": "draft",
    "x": {
     "severity": "amber",
-    "action": "ADA: stop the SGLT2 inhibitor before scheduled surgery and during prolonged fasting, because of ketoacidosis with near-normal glucose. Agree the plan with the prescriber.",
+    "action": "Stop the SGLT2 inhibitor 3 to 4 days before surgery (2026) and during a prolonged fast: ketoacidosis can come with a near-normal glucose. Agree the plan with the prescriber.",
     "restrictedClasses": []
    }
   },
@@ -8652,7 +9746,7 @@
    "status": "draft",
    "x": {
     "severity": "amber",
-    "action": "UCG 2023 HIV chapter: dolutegravir increases metformin levels and may increase the risk of hypoglycaemia and metabolic acidosis. Close follow-up is recommended (electrolytes, urea, creatinine, random blood sugar). Review with the prescriber and the ART clinic.",
+    "action": "UCG 2023 HIV chapter: dolutegravir increases metformin levels and may increase the risk of hypoglycaemia and metabolic acidosis. Close follow-up is recommended (electrolytes, urea, creatinine, random blood sugar). Review with the prescriber and the ART clinic. The 2026 diabetes guideline says 'Avoid dolutegravir in individuals with diabetes and HIV comorbidity': discuss with the ART clinic; never change ART here.",
     "restrictedClasses": [
      "hiv"
     ]
@@ -8798,7 +9892,7 @@
    "status": "draft",
    "x": {
     "severity": "red",
-    "action": "WHO 2025: in pregnancy, medicines with safety concerns are replaced by insulin and/or metformin, under specialist care. Review today with the prescriber and the antenatal team.",
+    "action": "2026 Uganda guideline: in pregnancy insulin is first line; metformin if insulin is refused or cannot be accessed, or as an add-on. Sulfonylureas, DPP-4 inhibitors, SGLT2 inhibitors, pioglitazone and GLP-1 agonists are avoided. Review today with the prescriber and the antenatal team.",
     "restrictedClasses": []
    }
   },
@@ -8870,6 +9964,110 @@
    "x": {
     "severity": "amber",
     "action": "Avoided in women who could conceive and are not using reliable contraception. Discuss pregnancy plans and contraception.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-FLAG-PIOGLITAZONE-AGE-60",
+   "family": "DM-ACT-THERAPY",
+   "lane": "act",
+   "title": "Pioglitazone at 60 or over",
+   "appliesTo": {
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.age_years (no CFC concept yet)"
+   ],
+   "predicate": "catalog.therapyFlag:pioglitazone_age_60",
+   "params": {
+    "rx-glib-age": "REF-DM-RX-GLIB-AGE"
+   },
+   "minTrust": 2,
+   "emits": [
+    "flag"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 31 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-T8-ELDERLY"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "severity": "amber",
+    "action": "The 2026 guideline avoids pioglitazone where there is a risk of osteoporosis; at 60 or over prefer gliclazide or a DPP-4 inhibitor. Review with the prescriber.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-FLAG-ORAL-AGENTS-IN-HOSPITAL",
+   "family": "DM-ACT-THERAPY",
+   "lane": "act",
+   "title": "Metformin, a sulfonylurea or pioglitazone in an inpatient",
+   "appliesTo": {
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.care_setting (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.therapyFlag:oral_agents_in_hospital",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "flag"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 57 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-INPT-AVOID"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "severity": "amber",
+    "action": "The 2026 guideline avoids metformin, sulfonylureas and pioglitazone in hospital, and avoids premixed insulin and a sliding scale on its own: basal insulin with correction doses instead. Review with the prescriber.",
+    "restrictedClasses": []
+   }
+  },
+  {
+   "id": "DM-ACT-FLAG-METFORMIN-BEFORE-SURGERY",
+   "family": "DM-ACT-THERAPY",
+   "lane": "act",
+   "title": "Metformin before surgery",
+   "appliesTo": {
+    "pregnancy": "any"
+   },
+   "reads": [
+    "ncd.glucose_lowering_therapy (no CFC concept yet)",
+    "ncd.surgery_or_fasting_planned (no CFC concept yet)"
+   ],
+   "predicate": "catalog.therapyFlag:metformin_before_surgery",
+   "params": {},
+   "minTrust": 2,
+   "emits": [
+    "flag"
+   ],
+   "citations": [
+    {
+     "source": "Integrated Diabetes Management Guideline for Uganda: the summarised version for healthcare professionals (Ministry of Health, June 2026)",
+     "section": "PDF p. 58 of the CSO-supplied copy (2026-Uganda-Diabetes-Management-Guidelines-Summarised-version_0-1-.pdf)",
+     "url": "https://library.health.go.ug/sites/default/files/resources/2026%20Uganda%20Diabetes%20Management%20Guidelines%20-%20Comprehensive%20version.pdf",
+     "verifiedOn": "2026-10-05",
+     "claim": "UG26-SURG"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "severity": "amber",
+    "action": "2026 guideline: hold metformin on the day of surgery and other tablets that morning; aim for HbA1c below 8.0% before elective surgery.",
     "restrictedClasses": []
    }
   },
@@ -9189,7 +10387,7 @@
    ],
    "status": "draft",
    "x": {
-    "direction": "unpredictable",
+    "direction": "masks",
     "blocksDiagnosis": true,
     "alternative": "Use the 75 g OGTT (fasting, 1-hour and 2-hour plasma glucose).",
     "restrictedClasses": []
