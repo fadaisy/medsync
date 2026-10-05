@@ -51,6 +51,7 @@ describe("planMigrations and the words when nothing is new", () => {
     expect(words).toMatch(/newest migration here: +0081_b\.sql/);
     expect(words).toMatch(/newest applied in the database: 0090_ward_builder\.sql/);
     expect(words).toMatch(/this folder is behind/);
+    expect(words).toMatch(/^ {4}0090_ward_builder\.sql$/m); // every one is named, not only the newest
   });
 
   it("the worktree that holds the new file: it is pending, in order", () => {

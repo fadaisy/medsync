@@ -116,9 +116,10 @@ export function nothingNewWords(
   ];
   if (plan.appliedElsewhere.length)
     lines.push(
-      `  The database has ${plan.appliedElsewhere.length} migration(s) this folder does not ` +
-        `(newest ${plan.appliedElsewhere.at(-1)}): this folder is behind. To apply a new ` +
-        "migration, run `npm run db:migrate` in the worktree or branch that holds it.",
+      `  The database has ${plan.appliedElsewhere.length} migration(s) this folder does not: this folder is ` +
+        "behind, or they were applied from another branch. To apply a new migration, run " +
+        "`npm run db:migrate` in the worktree or branch that holds it.",
+      ...plan.appliedElsewhere.map((f) => `    ${f}`),
     );
   return lines;
 }
@@ -178,7 +179,14 @@ async function main() {
       }
     }
 
-    if (appliedCount === 0) {
+    if (appliedCount === 0 && args.only.length) {
+      const done = files.filter(
+        (f) => args.only.some((p) => f.startsWith(p)) && appliedNames.has(f),
+      );
+      console.log(
+        done.length ? `\nAlready applied: ${done.join(", ")}. Nothing to do.` : "\nNothing to do.",
+      );
+    } else if (appliedCount === 0) {
       const words = nothingNewWords(plan, process.cwd(), git("branch", "--show-current"));
       console.log(`\n${words.join("\n")}`);
     } else {
