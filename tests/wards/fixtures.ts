@@ -9,6 +9,7 @@ import type { RegisterBed } from "@/lib/wards/reconcile";
 import type { BedState, WardLayout } from "@/supabase/functions/_shared/ward-layout";
 
 import { presetsFor } from "@/lib/wards/presets";
+import { arrivingTooLong } from "@/lib/wards/waiting";
 import { roomOfBed } from "@/supabase/functions/_shared/ward-layout";
 
 export const FX = {
@@ -116,7 +117,19 @@ export function editorData(
   };
 }
 
-/** A board with every state: occupied, free, cleaning, reserved and out (B17). */
+/** The board fixture's "now", for the needs-attention derivation (ADR 0199 §6). */
+export const BOARD_NOW = Date.parse("2026-09-29T08:00:00.000Z");
+
+/** Arriving beds (ADR 0199): one held 40 min, one held 5 h 30 min (past the 4 h threshold). */
+const ARRIVING: Record<number, { since: string; n: number }> = {
+  6: { since: "2026-09-29T07:20:00.000Z", n: 21 },
+  14: { since: "2026-09-29T02:30:00.000Z", n: 22 },
+};
+
+/**
+ * A board with every state: occupied, arriving, free, cleaning, reserved and out (B17), and two
+ * admitted patients waiting for a bed.
+ */
 export function boardData(
   doc: WardLayout = openWardDoc(),
   viewer: "names" | "mrn" = "names",
@@ -133,44 +146,60 @@ export function boardData(
           ? "cleaning"
           : RESERVED.includes(i)
             ? "reserved"
-            : "occupied",
+            : ARRIVING[i]
+              ? "arriving"
+              : "occupied",
   );
   let n = 0;
-  return {
-    ward: { id: FX.ward, name: "Medical Ward 1", wardType: "general", bedCount: doc.beds.length },
-    tabs: TABS,
-    doc,
-    published: { version: 3, publishedAt: "2026-09-28T16:20:00.000Z" },
-    beds: doc.beds.map((b, i) => {
-      const state = states[i]!;
-      const room = roomOfBed(b, doc.rooms);
-      const occupied = state === "occupied";
-      if (occupied) n++;
-      return {
-        key: b.key,
-        bedId: b.bedId!,
-        label: b.label,
-        state,
-        since: occupied
+  const beds: BoardData["beds"] = doc.beds.map((b, i) => {
+    const state = states[i]!;
+    const room = roomOfBed(b, doc.rooms);
+    const occupied = state === "occupied";
+    const arriving = state === "arriving" ? ARRIVING[i]! : null;
+    if (occupied) n++;
+    return {
+      key: b.key,
+      bedId: b.bedId!,
+      label: b.label,
+      state,
+      since: arriving
+        ? arriving.since
+        : occupied
           ? "2026-09-29T06:10:00.000Z"
           : state === "cleaning"
             ? "2026-09-29T07:30:00.000Z"
             : null,
-        reason: state === "reserved" ? "Transfer from HDU" : null,
-        services: [...b.services],
-        roomKind: room?.kind ?? null,
-        roomName: room?.name ?? null,
-        patient: occupied
+      reason: state === "reserved" ? "Transfer from HDU" : null,
+      services: [...b.services],
+      roomKind: room?.kind ?? null,
+      roomName: room?.name ?? null,
+      patient: arriving
+        ? {
+            name: viewer === "names" ? `Patient ${arriving.n}` : null,
+            mrn: `MRN-2026-${String(1000 + arriving.n).padStart(5, "0")}`,
+          }
+        : occupied
           ? {
               name: viewer === "names" ? `Patient ${n}` : null,
               mrn: `MRN-2026-${String(10000 + n * 37).padStart(5, "0")}`,
             }
           : null,
-        assignmentId: occupied
+      assignmentId:
+        occupied || arriving
           ? `00000000-0000-4000-8000-${String(5000 + i).padStart(12, "0")}`
           : null,
-      };
-    }),
+      admissionId: arriving
+        ? `00000000-0000-4000-8000-${String(7000 + i).padStart(12, "0")}`
+        : null,
+      admittedBy: arriving ? "Dr Example Admitting" : null,
+    };
+  });
+  return {
+    ward: { id: FX.ward, name: "Medical Ward 1", wardType: "general", bedCount: doc.beds.length },
+    tabs: TABS,
+    doc,
+    published: { version: 3, publishedAt: "2026-09-28T16:20:00.000Z" },
+    beds,
     candidates: [
       {
         patientUserId: "00000000-0000-4000-8000-000000009001",
@@ -179,5 +208,26 @@ export function boardData(
         arrivedAt: "2026-09-29T07:40:00.000Z",
       },
     ],
+    waiting: [
+      {
+        admissionId: "00000000-0000-4000-8000-000000007101",
+        patientUserId: "00000000-0000-4000-8000-000000009023",
+        name: viewer === "names" ? "Patient Twenty-Three" : null,
+        mrn: "MRN-2026-01023",
+        admittedBy: "Dr Example Admitting",
+        decidedAt: "2026-09-29T05:15:00.000Z",
+        waitReason: "no_free_bed",
+      },
+      {
+        admissionId: "00000000-0000-4000-8000-000000007102",
+        patientUserId: "00000000-0000-4000-8000-000000009024",
+        name: viewer === "names" ? "Patient Twenty-Four" : null,
+        mrn: "MRN-2026-01024",
+        admittedBy: null,
+        decidedAt: "2026-09-29T07:05:00.000Z",
+        waitReason: "floor",
+      },
+    ],
+    needsAttention: arrivingTooLong(beds, BOARD_NOW),
   };
 }

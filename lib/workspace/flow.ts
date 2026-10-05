@@ -88,6 +88,10 @@ export interface FlowEncounter {
   lastActivityAtMs: number;
   /** EMR: the last save of an unsigned note draft on this encounter; null/absent = none. */
   unsignedNoteAtMs?: number | null;
+  /** `encounters.encounter_type`; an `inpatient` stay is never idle-flagged (ADR 0200 §6). */
+  encounterType?: string;
+  /** "Admitted · {ward} · Bed 12" when the visit closed as admitted (ADR 0200, `admittedLabel`). */
+  admitted?: string | null;
 }
 
 /**
@@ -427,7 +431,9 @@ function buildRow(b: Bucket, ctx: Ctx): { row: PatientFlowRow; flags: IntegrityF
 
   const open = b.encounters.filter((e) => e.state !== "completed");
   const planned = open.filter((e) => e.state === "planned");
-  const idle = (e: FlowEncounter) => nowMs - e.lastActivityAtMs >= settings.encounterIdleMs;
+  // ADR 0200 §6: the 24 h idle rule is for visits; an inpatient stay is days.
+  const idle = (e: FlowEncounter) =>
+    e.encounterType !== "inpatient" && nowMs - e.lastActivityAtMs >= settings.encounterIdleMs;
 
   // Which open encounter answers each visit (the newest), and which visits already ended.
   const coveredBy = new Map<string, FlowEncounter>();
@@ -755,7 +761,7 @@ function buildRow(b: Bucket, ctx: Ctx): { row: PatientFlowRow; flags: IntegrityF
     lane = "done";
     primaryId = e.id;
     primary = { kind: "view", label: "View", encounterId: e.id };
-    stageDetail = "Visit ended";
+    stageDetail = e.admitted ?? "Visit ended";
     sinceMs = e.endedAtMs ?? e.startedAtMs;
     acuityTriage = acuityOf(e);
     reason = intakeOf(e)?.complaint ?? null;
@@ -994,7 +1000,7 @@ function timeline(b: Bucket, ctx: Ctx): TimelineEntry[] {
       out.push({ atMs: e.createdAtMs, text: `Assigned to ${who}` });
     }
     if (e.state !== "planned") out.push({ atMs: e.startedAtMs, text: `Encounter opened · ${who}` });
-    if (e.endedAtMs !== null) out.push({ atMs: e.endedAtMs, text: "Visit ended" });
+    if (e.endedAtMs !== null) out.push({ atMs: e.endedAtMs, text: e.admitted ?? "Visit ended" });
   }
   for (const r of b.resus) {
     // The board carries only the end of an ended episode, so no invented opening time.

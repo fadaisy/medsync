@@ -1,7 +1,7 @@
 "use client";
 
 import type { SimpleResult } from "@/components/wards/editor/ward-editor";
-import type { BoardBed, BoardData } from "@/lib/wards/board";
+import type { BoardBed, BoardData, BoardWaiting } from "@/lib/wards/board";
 import type { BedState, SettableState } from "@/supabase/functions/_shared/ward-layout";
 import type { PointerEvent } from "react";
 import Link from "next/link";
@@ -15,6 +15,8 @@ import { PlanZoomControls, PlanZoomFrame, usePlanZoom } from "@/components/wards
 import { WardHeader } from "@/components/wards/ward-header";
 import { cn } from "@/lib/utils";
 import { useBedBoardLive } from "@/lib/wards/use-board-live";
+import { ARRIVING_ATTENTION_MS, WAIT_REASON_WORDS } from "@/lib/wards/waiting";
+import { ago } from "@/lib/workspace/words";
 import {
   BED_STATES,
   bedStateMeta,
@@ -22,7 +24,7 @@ import {
   SERVICES,
   stateCounts,
 } from "@/supabase/functions/_shared/ward-layout";
-import { CautionNote, Chip, inputClass, Section } from "../ui";
+import { CautionNote, Chip, ChipChoice, inputClass, Section } from "../ui";
 
 export interface BoardActions {
   setState: (
@@ -37,6 +39,17 @@ export interface BoardActions {
     assignmentId: string,
     reason: string,
     next: "cleaning" | "free" | null,
+  ) => Promise<SimpleResult>;
+  /** ADR 0199: a free bed for an admission on the waiting list; the bed becomes Arriving. */
+  allocate: (wardId: string, admissionId: string, bedId: string) => Promise<SimpleResult>;
+  /** Arrived: the Arriving bed is Occupied and the inpatient encounter opens. */
+  confirmArrival: (wardId: string, assignmentId: string) => Promise<SimpleResult>;
+  /** Cancel an allocation (back to the waiting list, or the admission ends), or end a wait. */
+  releaseAdmission: (
+    wardId: string,
+    admissionId: string,
+    reason: string,
+    outcome: "wait" | "end",
   ) => Promise<SimpleResult>;
 }
 
@@ -54,9 +67,28 @@ const clock = (iso: string) =>
     timeZone: "Africa/Kampala",
   });
 
+/** "3 h" since an instant. Rendered on the server and again in the browser, so a minute may differ. */
+const heldFor = (iso: string) => ago(Date.now() - Date.parse(iso));
+
+const CANCEL_OUTCOMES = [
+  { value: "wait", label: "Still needs a bed (back to the waiting list)" },
+  { value: "end", label: "No longer needs one (end the admission)" },
+] as const;
+
+/** The patient as this viewer may see them: the name for the ward's staff, else the MRN. */
+function Who({ p }: { p: { name: string | null; mrn: string | null } }) {
+  return (
+    <>
+      {p.name ? <span className="text-body-s text-foreground truncate">{p.name}</span> : null}
+      <span className="text-mono-s text-ink-600 font-mono">{p.mrn ?? "No MRN"}</span>
+    </>
+  );
+}
+
 /** The legend's swatch for each state: the same paint as the plan, and the word. */
 const SWATCH: Record<BedState, string> = {
   occupied: "bg-teal-tint border-teal-700 text-teal-text",
+  arriving: "bg-card border-teal-700 border-dashed text-teal-text",
   free: "bg-card border-ink-700 text-foreground",
   cleaning: "bg-sky-tint border-sky-icon text-sky-text",
   reserved: "bg-ink-100 border-ink-600 border-dashed text-ink-700",
@@ -193,8 +225,9 @@ export function BedBoard({
               </ul>
             </Section>
             <p className="text-caption text-muted-foreground font-normal">
-              Occupied comes from putting a patient in a bed here; Out from the layout or the
-              register. Nurses on the ward set Cleaning and Reserved.
+              Occupied comes from putting a patient in a bed here; Arriving from a bed given to an
+              admitted patient who is not here yet; Out from the layout or the register. Nurses on
+              the ward set Cleaning and Reserved.
             </p>
             {links.layout ? (
               <Link
@@ -219,7 +252,7 @@ export function BedBoard({
                 <PlanView
                   doc={data.doc}
                   mode="live"
-                  label={`Bed board of ${data.ward.name}: ${counts.occupied} of ${inService} beds occupied, ${counts.free} free`}
+                  label={`Bed board of ${data.ward.name}: ${counts.occupied} of ${inService} beds occupied, ${counts.arriving} arriving, ${counts.free} free`}
                   states={states}
                   selected={selected ? { kind: "bed", key: selected.key } : null}
                   className="h-full w-full"
@@ -231,6 +264,7 @@ export function BedBoard({
               {(
                 [
                   [`${counts.occupied}/${inService}`, "occupied"],
+                  [String(counts.arriving), "arriving"],
                   [String(counts.free), "free"],
                   [String(counts.cleaning), "cleaning"],
                   [String(counts.reserved), "reserved"],
@@ -261,6 +295,7 @@ export function BedBoard({
                 wardId={data.ward.id}
                 mayAct={mayAct}
                 candidates={data.candidates}
+                waiting={data.waiting}
                 actions={actions}
                 autoFocus={focusPanel}
                 onClose={() => {
@@ -271,6 +306,51 @@ export function BedBoard({
               />
             ) : (
               <div className="flex flex-col gap-5">
+                {data.needsAttention.length ? (
+                  <Section title="Needs attention">
+                    <CautionNote>
+                      Held as Arriving for more than {ARRIVING_ATTENTION_MS / 3_600_000} h. Nothing
+                      releases a bed on its own: confirm the arrival or cancel it.
+                    </CautionNote>
+                    <ul className="flex flex-wrap gap-1">
+                      {data.needsAttention.map((b) => (
+                        <li key={b.key}>
+                          <button
+                            type="button"
+                            onClick={() => choose(b.key)}
+                            className="border-ink-300 bg-card text-foreground hover:bg-ink-50 focus-visible:shadow-focus text-caption inline-flex h-7 items-center gap-1.5 rounded-sm border px-2 outline-none"
+                          >
+                            <span className="font-mono">{b.label}</span>
+                            <span className="text-ink-600 font-normal" suppressHydrationWarning>
+                              Arriving · held {b.since ? heldFor(b.since) : ""}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </Section>
+                ) : null}
+                <Section title={`Waiting for a bed (${data.waiting.length})`}>
+                  {data.waiting.length ? (
+                    <ul className="flex flex-col gap-1.5">
+                      {data.waiting.map((w) => (
+                        <WaitingRow
+                          key={w.admissionId}
+                          w={w}
+                          wardId={data.ward.id}
+                          mayAct={mayAct}
+                          freeBeds={data.beds.filter((b) => b.state === "free")}
+                          actions={actions}
+                          onDone={() => router.refresh()}
+                        />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-caption text-muted-foreground font-normal">
+                      Nobody admitted to this ward is waiting for a bed.
+                    </p>
+                  )}
+                </Section>
                 <Section title="Free beds, by what the patient needs">
                   <ul className="flex flex-col">
                     {byNeed.map((n) => (
@@ -342,6 +422,7 @@ function BedPanel({
   wardId,
   mayAct,
   candidates,
+  waiting,
   actions,
   autoFocus,
   onClose,
@@ -351,6 +432,7 @@ function BedPanel({
   wardId: string;
   mayAct: boolean;
   candidates: BoardData["candidates"];
+  waiting: BoardData["waiting"];
   actions: BoardActions;
   /** Focus the bed's heading on mount: chosen from a list, or back after an action changed it. */
   autoFocus: boolean;
@@ -371,6 +453,8 @@ function BedPanel({
   const [reserving, setReserving] = useState(false);
   const [holdFor, setHoldFor] = useState("");
   const [why, setWhy] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [outcome, setOutcome] = useState<"wait" | "end" | null>(null);
   const run = (fn: () => Promise<SimpleResult>) => {
     setError(null);
     start(async () => {
@@ -391,7 +475,12 @@ function BedPanel({
     .join(" · ");
   const services = SERVICES.filter((s) => bed.services.includes(s.code));
   const occupied = bed.state === "occupied";
+  const arriving = bed.state === "arriving";
   const out = bed.state === "out";
+  // Free, Cleaning and Reserved: the states ward staff set, and where a patient can be put.
+  const settable = !occupied && !arriving && !out;
+  // An admission takes only a Free bed (the allocation refuses Cleaning and Reserved).
+  const offer = bed.state === "free" ? waiting : [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -434,13 +523,97 @@ function BedPanel({
         </section>
       ) : null}
 
+      {arriving ? (
+        <section
+          aria-label="Arriving patient"
+          className="border-border flex flex-col gap-1 rounded-lg border p-3"
+        >
+          <span className="text-caption text-ink-600">Arriving</span>
+          {bed.patient ? <Who p={bed.patient} /> : null}
+          {bed.admittedBy ? (
+            <span className="text-caption text-ink-700 font-normal">
+              Admitted by {bed.admittedBy}
+            </span>
+          ) : null}
+          {bed.since ? (
+            <span className="text-caption text-muted-foreground font-normal">
+              Bed held since {clock(bed.since)} ·{" "}
+              <span suppressHydrationWarning>{heldFor(bed.since)}</span>
+            </span>
+          ) : null}
+        </section>
+      ) : null}
+
+      {mayAct && arriving && bed.assignmentId && bed.admissionId ? (
+        <Section title="When the patient is here">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              disabled={pending}
+              onClick={() => run(() => actions.confirmArrival(wardId, bed.assignmentId!))}
+            >
+              Arrived
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={pending}
+              aria-expanded={cancelling}
+              onClick={() => setCancelling((v) => !v)}
+            >
+              Cancel…
+            </Button>
+          </div>
+          <p className="text-caption text-muted-foreground font-normal">
+            Arrived makes the bed Occupied and opens the patient&rsquo;s inpatient record.
+          </p>
+          {cancelling ? (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="cancel-why" className="text-caption text-ink-700">
+                Why the bed is no longer held
+              </label>
+              <input
+                id="cancel-why"
+                className={inputClass}
+                value={why}
+                maxLength={200}
+                placeholder="For example, went to another hospital"
+                onChange={(e) => setWhy(e.target.value)}
+              />
+              <ChipChoice
+                label="What happens to the admission"
+                value={outcome}
+                options={CANCEL_OUTCOMES}
+                onChange={setOutcome}
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  disabled={pending || why.trim().length < 3 || !outcome}
+                  onClick={() =>
+                    run(() =>
+                      actions.releaseAdmission(wardId, bed.admissionId!, why.trim(), outcome!),
+                    )
+                  }
+                >
+                  Cancel the allocation
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setCancelling(false)}>
+                  Keep it
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </Section>
+      ) : null}
+
       {out ? (
         <p className="text-body-s text-ink-700">
           Out of service. The hospital admin puts it back in service in the layout or the register.
         </p>
       ) : null}
 
-      {mayAct && !occupied && !out ? (
+      {mayAct && settable ? (
         <Section title="State">
           <div className="flex flex-wrap gap-1.5">
             {(["free", "cleaning", "reserved"] as const).map((s) => (
@@ -530,10 +703,39 @@ function BedPanel({
         </Section>
       ) : null}
 
-      {mayAct && !occupied && !out ? (
+      {mayAct && settable ? (
         <Section title="Put a patient in this bed">
-          {candidates.length ? (
+          {waiting.length && !offer.length ? (
+            <p className="text-caption text-ink-600 font-normal">
+              {waiting.length} admitted {waiting.length === 1 ? "patient is" : "patients are"}{" "}
+              waiting for a bed: set this bed Free to give it to one of them.
+            </p>
+          ) : null}
+          {offer.length || candidates.length ? (
             <ul className="flex flex-col gap-1.5">
+              {/* Admitted patients on the waiting list first (ADR 0200 §4): the bed becomes Arriving. */}
+              {offer.map((w) => (
+                <li
+                  key={w.admissionId}
+                  className="border-border flex items-center justify-between gap-2 rounded-md border px-2.5 py-2"
+                >
+                  <span className="flex min-w-0 flex-col">
+                    <Who p={w} />
+                    <span className="text-caption text-muted-foreground font-normal">
+                      Admitted, waiting since {clock(w.decidedAt)}
+                    </span>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={pending}
+                    onClick={() => run(() => actions.allocate(wardId, w.admissionId, bed.bedId))}
+                  >
+                    Give {bed.label}
+                  </Button>
+                </li>
+              ))}
+              {/* Sent straight to the ward by the desk (ADR 0194 §4): Occupied at once. */}
               {candidates.map((c) => (
                 <li
                   key={c.patientUserId}
@@ -559,10 +761,10 @@ function BedPanel({
                 </li>
               ))}
             </ul>
-          ) : (
+          ) : waiting.length ? null : (
             <p className="text-body-s text-ink-600">
-              Nobody is waiting for this ward. Patients appear here when their intake names this
-              ward as the receiving ward.
+              Nobody is waiting for this ward. Patients appear here when they are admitted to it, or
+              when their intake names it as the receiving ward.
             </p>
           )}
         </Section>
@@ -587,5 +789,110 @@ function BedPanel({
 
       {error ? <CautionNote alert>{error}</CautionNote> : null}
     </div>
+  );
+}
+
+/* ─── one admitted patient waiting for a bed ─────────────────────────── */
+
+function WaitingRow({
+  w,
+  wardId,
+  mayAct,
+  freeBeds,
+  actions,
+  onDone,
+}: {
+  w: BoardWaiting;
+  wardId: string;
+  mayAct: boolean;
+  freeBeds: BoardBed[];
+  actions: BoardActions;
+  onDone: () => void;
+}) {
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"give" | "remove" | null>(null);
+  const [why, setWhy] = useState("");
+  const run = (fn: () => Promise<SimpleResult>) => {
+    setError(null);
+    start(async () => {
+      const r = await fn();
+      if (!r.ok) setError(r.error);
+      else onDone();
+    });
+  };
+  const reason = w.waitReason ? WAIT_REASON_WORDS[w.waitReason] : null;
+  return (
+    <li className="border-border flex flex-col gap-2 rounded-md border px-2.5 py-2">
+      <span className="flex min-w-0 flex-col">
+        <Who p={w} />
+        <span className="text-caption text-muted-foreground font-normal">
+          <span suppressHydrationWarning>Waiting {heldFor(w.decidedAt)}</span>
+          {reason ? ` · ${reason}` : ""}
+          {w.admittedBy ? ` · admitted by ${w.admittedBy}` : ""}
+        </span>
+      </span>
+      {mayAct ? (
+        <div className="flex flex-wrap gap-1.5">
+          <Chip on={mode === "give"} onClick={() => setMode(mode === "give" ? null : "give")}>
+            Give a bed
+          </Chip>
+          <Chip on={mode === "remove"} onClick={() => setMode(mode === "remove" ? null : "remove")}>
+            Remove from the list…
+          </Chip>
+        </div>
+      ) : null}
+      {mode === "give" ? (
+        freeBeds.length ? (
+          <div
+            role="group"
+            aria-label={`Free beds for ${w.name ?? w.mrn ?? "this patient"}`}
+            className="flex flex-wrap gap-1"
+          >
+            {freeBeds.map((b) => (
+              <button
+                key={b.key}
+                type="button"
+                disabled={pending}
+                onClick={() => run(() => actions.allocate(wardId, w.admissionId, b.bedId))}
+                className="border-ink-300 bg-card text-foreground hover:bg-ink-50 focus-visible:shadow-focus h-7 rounded-sm border px-2 font-mono text-[12px] outline-none disabled:opacity-45"
+                aria-label={`Give bed ${b.label}`}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-caption text-ink-600 font-normal">No bed on this ward is free.</p>
+        )
+      ) : null}
+      {mode === "remove" ? (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`end-${w.admissionId}`} className="text-caption text-ink-700">
+            Why they no longer need a bed here
+          </label>
+          <input
+            id={`end-${w.admissionId}`}
+            className={inputClass}
+            value={why}
+            maxLength={200}
+            placeholder="For example, went home against advice"
+            onChange={(e) => setWhy(e.target.value)}
+          />
+          <Button
+            size="sm"
+            variant="secondary"
+            className="self-start"
+            disabled={pending || why.trim().length < 3}
+            onClick={() =>
+              run(() => actions.releaseAdmission(wardId, w.admissionId, why.trim(), "end"))
+            }
+          >
+            End the admission
+          </Button>
+        </div>
+      ) : null}
+      {error ? <CautionNote alert>{error}</CautionNote> : null}
+    </li>
   );
 }

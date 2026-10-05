@@ -49,10 +49,17 @@ describe("ha-services-hub: the ward ops", () => {
     }
   });
 
-  it("only the three live ops open to ward staff; everything else stays with the admin", () => {
+  it("only the live ops open to ward staff (ADR 0194, 0199); everything else stays with the admin", () => {
     const m = OPS.match(/WARD_STAFF_OPS = new Set\(\[([\s\S]*?)\]\)/);
     const ops = [...(m?.[1] ?? "").matchAll(/"([a-z_]+)"/g)].map((x) => x[1]).sort();
-    expect(ops).toEqual(["assign_bed", "release_bed", "set_bed_state"]);
+    expect(ops).toEqual([
+      "allocate_admission_bed",
+      "assign_bed",
+      "confirm_arrival",
+      "release_admission_bed",
+      "release_bed",
+      "set_bed_state",
+    ]);
     expect(INDEX).toMatch(/else if \(WARD_STAFF_OPS\.has\(input\.op\)\) \{\s*role = "ward_staff";/);
     expect(OPS).toMatch(
       /if \(ctx\.role === "hospital_admin" \|\| ctx\.role === "superadmin"\) return;/,
@@ -158,7 +165,7 @@ describe("the editor and the board", () => {
   });
 
   it("every bed state has its word on the bed (colour never alone)", () => {
-    expect(BED_STATES.map((s) => s.short)).toEqual(["Occ", "Free", "Clean", "Res", "Out"]);
+    expect(BED_STATES.map((s) => s.short)).toEqual(["Occ", "Arr", "Free", "Clean", "Res", "Out"]);
     expect(strip(read("components/wards/plan/plan-view.tsx"))).toMatch(
       /bedStateMeta\(state\)\.short/,
     );

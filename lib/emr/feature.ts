@@ -54,3 +54,24 @@ export function clerkingPlanV2LiveFor(hospitalId: string): boolean {
   if (!value || !clerkingV2LiveFor(hospitalId)) return false;
   return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
 }
+
+/**
+ * Closing the encounter (ADRs 0197–0202), per hospital, off by default: `ENCOUNTER_CLOSE_V2=1` or a comma list
+ * of hospital ids, and only where EMR v1 is on. Needs migration 0091. Off, "Complete visit" is the old sheet.
+ * The Plan prefill also needs CLERKING_PLAN_V2; beds also need WARD_BUILDER.
+ */
+export function encounterCloseV2LiveFor(hospitalId: string): boolean {
+  const value = process.env.ENCOUNTER_CLOSE_V2?.trim();
+  if (!value || !emrV1LiveFor(hospitalId)) return false;
+  return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}
+
+/**
+ * The patient's visit summary (ADR 0203), per hospital, off by default: `PATIENT_VISIT_SUMMARY=1` or a comma
+ * list of hospital ids, and only where ENCOUNTER_CLOSE_V2 is on. Off, nothing reaches the patient.
+ */
+export function patientVisitSummaryLiveFor(hospitalId: string): boolean {
+  const value = process.env.PATIENT_VISIT_SUMMARY?.trim();
+  if (!value || !encounterCloseV2LiveFor(hospitalId)) return false;
+  return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}

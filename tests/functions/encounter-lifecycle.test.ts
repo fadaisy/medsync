@@ -66,9 +66,13 @@ describe("ha-complete-encounter — the cascade is this encounter's, not the pat
     expect(src).toContain("caller.id === enc.clinician_user_id");
     expect(src).toContain('hasRole(caller.id, "hospital_admin", enc.hospital_id)');
     expect(src).toContain("requireHospitalAdminScope(caller.id, enc.hospital_id)");
-    expect(src.indexOf("recordSaAudit({")).toBeLessThan(
-      src.indexOf('.from("encounters")\n    .update('),
+    // Audit first: before the admission function (ADR 0200) and before any encounter update.
+    const firstWrite = Math.min(
+      src.search(/\.from\("encounters"\)\s*\.update\(/),
+      src.indexOf('sb.rpc("admit_from_encounter"'),
     );
+    expect(firstWrite).toBeGreaterThan(-1);
+    expect(src.indexOf("recordSaAudit({")).toBeLessThan(firstWrite);
     expect(src).toContain('.update({ status: "completed" })');
     expect(src).toContain('.in("status", ["arrived", "in_progress"])');
   });

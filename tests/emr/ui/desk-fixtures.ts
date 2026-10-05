@@ -159,6 +159,7 @@ function base(
         summary: `/doctor/encounters/${encounterId}/print/summary`,
         referral: `/doctor/encounters/${encounterId}/print/referral`,
         labRequest: `/doctor/encounters/${encounterId}/print/lab-request`,
+        patientCopy: `/doctor/encounters/${encounterId}/print/patient-copy`,
       },
     },
     settings: {

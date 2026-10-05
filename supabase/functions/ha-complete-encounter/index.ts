@@ -37,6 +37,12 @@
  *   - Either way an encounter_events 'disposition' row records who and why.
  *   A caller that sends none of these fields gets exactly the old behaviour.
  *
+ * Admission (0091, ADRs 0198–0200): `disposition: 'admitted'` with `admission` { ward_id, bed_id? or
+ *   bed_wait_reason } writes the admission, the bed (Arriving) or the waiting list, and the close in ONE SQL
+ *   transaction (`admit_from_encounter`); two callers on one bed get "was just taken" (409). The cascade then runs
+ *   as below, except step 4: a patient waiting for a bed is still nursed where they are, so nursing assignments end
+ *   on arrival (confirm_bed_arrival), not here. `follow_up` may be `booked` (ADR 0202).
+ *
  * Auth: the clinician on the encounter, hospital_admin (scoped), or
  * superadmin. (Nurses cannot complete a doctor's encounter; if a
  * nurse needs to close an encounter the doctor is the right caller.)
@@ -93,7 +99,27 @@ const InputSchema = z
         z.object({ kind: z.literal("none") }),
         z.object({ kind: z.literal("as_needed") }),
         z.object({ kind: z.literal("review_date"), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+        z.object({
+          kind: z.literal("booked"),
+          date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          appointment_id: z.string().uuid(),
+        }),
       ])
+      .optional(),
+    admission: z
+      .object({
+        ward_id: z.string().uuid(),
+        bed_id: z.string().uuid().optional(),
+        bed_wait_reason: z.enum(["no_free_bed", "extra_bed", "floor", "other"]).optional(),
+        bed_wait_note_ciphertext: z.string().max(20_000).optional(),
+        leading_condition_id: z.string().uuid().optional(),
+      })
+      .refine((a) => !!a.bed_id !== !!a.bed_wait_reason, {
+        message: "Send a bed, or why the patient waits for one.",
+      })
+      .refine((a) => a.bed_wait_reason !== "other" || !!a.bed_wait_note_ciphertext, {
+        message: "Waiting for 'other' needs a note.",
+      })
       .optional(),
     closure_kind: z.enum(["clinical", "administrative"]).optional(),
     closure_reason: z.enum(CLOSURE_REASONS).optional(),
@@ -110,6 +136,9 @@ const InputSchema = z
   })
   .refine((v) => v.closure_kind !== "administrative" || !v.disposition, {
     message: "An administrative closure records no disposition.",
+  })
+  .refine((v) => !v.admission || v.disposition === "admitted", {
+    message: "An admission closes the visit as admitted.",
   });
 
 Deno.serve(async (request: Request) => {
@@ -147,6 +176,7 @@ Deno.serve(async (request: Request) => {
   // An administrative closure may close a planned encounter too; everything else needs in_progress.
   const administrative = input.closure_kind === "administrative";
   const clinical = !administrative && !!input.disposition;
+  const admission = clinical ? (input.admission ?? null) : null;
   const fromStates = administrative ? ["planned", "in_progress"] : ["in_progress"];
   if (!fromStates.includes(enc.state)) {
     return badRequest(`Encounter is in '${enc.state}' — only in-progress can complete.`, init);
@@ -182,6 +212,7 @@ Deno.serve(async (request: Request) => {
         ...(administrative
           ? { closure_kind: "administrative", closure_reason: input.closure_reason }
           : {}),
+        ...(admission ? { ward_id: admission.ward_id, bed_id: admission.bed_id ?? null } : {}),
       },
     });
   } catch (e) {
@@ -192,6 +223,47 @@ Deno.serve(async (request: Request) => {
   const now = new Date().toISOString();
   // The hospital's today, not UTC's: a queue row from 01:00 EAT is today's.
   const startOfDay = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
+
+  // 1a. Admission: the admission, the bed or the waiting list, and the close, in one SQL transaction.
+  let admitted: Record<string, unknown> | null = null;
+  if (admission) {
+    const r = await sb.rpc("admit_from_encounter", {
+      p: {
+        encounter_id: enc.id,
+        actor: caller.id,
+        ward_id: admission.ward_id,
+        bed_id: admission.bed_id ?? null,
+        bed_wait_reason: admission.bed_wait_reason ?? null,
+        bed_wait_note_ciphertext: admission.bed_wait_note_ciphertext ?? null,
+        leading_condition_id: admission.leading_condition_id ?? null,
+        disposition_detail: input.disposition_detail ?? null,
+        completion_reason: input.completion_reason ?? null,
+      },
+    });
+    if (r.error) {
+      const m = /^AD(400|404|409) (.*)$/s.exec(r.error.message);
+      if (m) return badRequest(m[2]!, init);
+      log.error("admission failed", { requestId, reason: r.error.message });
+      return serverError("admission failed", init);
+    }
+    admitted = r.data as Record<string, unknown>;
+    try {
+      await recordSaAudit({
+        actorId: caller.id,
+        action: "admit_patient",
+        targetKind: "encounter",
+        targetId: enc.id,
+        reason: input.reason,
+        requestId,
+        ipAddress,
+        userAgent,
+        afterData: admitted,
+      });
+    } catch (e) {
+      // The admission is written; a missing second audit row is logged, never a lost admission.
+      log.warn("admit audit failed (non-fatal)", { requestId, reason: String(e) });
+    }
+  }
 
   // 1. Close the encounter. The state guard makes a double submit a no-op, not a second close.
   const emr = clinical
@@ -211,23 +283,33 @@ Deno.serve(async (request: Request) => {
           closure_note_ciphertext: input.closure_note_ciphertext ?? null,
         }
       : {};
-  const { data: closed, error: e1 } = await sb
-    .from("encounters")
-    .update({
-      state: "completed",
-      ended_at: now,
-      completion_reason: input.completion_reason ?? null,
-      ...emr,
-    })
-    .eq("id", enc.id)
-    .in("state", fromStates)
-    .select("id");
-  if (e1) {
-    log.error("encounter update failed", { requestId, reason: e1.message });
-    return serverError("encounter update failed", init);
+  if (admitted && input.follow_up) {
+    // admit_from_encounter wrote everything else; a follow-up rides along when one was booked.
+    const { error } = await sb
+      .from("encounters")
+      .update({ follow_up: input.follow_up })
+      .eq("id", enc.id);
+    if (error) log.warn("follow-up write failed (non-fatal)", { requestId, reason: error.message });
   }
-  if (!closed?.length) return badRequest("The encounter was closed meanwhile.", init);
-  if (clinical || administrative) {
+  if (!admitted) {
+    const { data: closed, error: e1 } = await sb
+      .from("encounters")
+      .update({
+        state: "completed",
+        ended_at: now,
+        completion_reason: input.completion_reason ?? null,
+        ...emr,
+      })
+      .eq("id", enc.id)
+      .in("state", fromStates)
+      .select("id");
+    if (e1) {
+      log.error("encounter update failed", { requestId, reason: e1.message });
+      return serverError("encounter update failed", init);
+    }
+    if (!closed?.length) return badRequest("The encounter was closed meanwhile.", init);
+  }
+  if (!admitted && (clinical || administrative)) {
     const { error: eEv } = await sb.from("encounter_events").insert({
       encounter_id: enc.id,
       kind: "disposition",
@@ -285,7 +367,12 @@ Deno.serve(async (request: Request) => {
   else if (enc.department_id) intakeLinks.push(`receiving_department_id.eq.${enc.department_id}`);
   const { error: e3, count: intakeCount } = await sb
     .from("patient_intakes")
-    .update({ status: "completed", encounter_id: enc.id })
+    .update({
+      status: "completed",
+      encounter_id: enc.id,
+      // Where the visit went, for the desk's record (ADR 0200 §4).
+      ...(admission ? { receiving_ward_id: admission.ward_id } : {}),
+    })
     .eq("patient_user_id", enc.patient_user_id)
     .eq("hospital_id", enc.hospital_id)
     .in("status", ["arrived", "awaiting_triage", "triaged"])
@@ -293,16 +380,21 @@ Deno.serve(async (request: Request) => {
     .select("id", { count: "exact", head: true });
   if (e3) log.warn("intake update failed (non-fatal)", { requestId, reason: e3.message });
 
-  // 4. Auto-end active nursing assignments for this patient at this hospital.
-  const { error: e4, count: naCount } = await sb
-    .from("nursing_assignments")
-    .update({ ends_at: now })
-    .eq("patient_user_id", enc.patient_user_id)
-    .eq("hospital_id", enc.hospital_id)
-    .is("ends_at", null)
-    .select("id", { count: "exact", head: true });
-  if (e4)
-    log.warn("nursing_assignments close failed (non-fatal)", { requestId, reason: e4.message });
+  // 4. Auto-end active nursing assignments for this patient at this hospital. Not for an admission: the
+  //    patient is nursed where they are until they arrive on the ward (ADR 0200 §3).
+  let naCount: number | null = 0;
+  if (!admitted) {
+    const { error: e4, count } = await sb
+      .from("nursing_assignments")
+      .update({ ends_at: now })
+      .eq("patient_user_id", enc.patient_user_id)
+      .eq("hospital_id", enc.hospital_id)
+      .is("ends_at", null)
+      .select("id", { count: "exact", head: true });
+    if (e4)
+      log.warn("nursing_assignments close failed (non-fatal)", { requestId, reason: e4.message });
+    naCount = count;
+  }
 
   // 5. Complete the linked appointment. Only from the two "in the building"
   //    statuses: a no_show or cancelled row stays what the desk said it was.
@@ -325,5 +417,5 @@ Deno.serve(async (request: Request) => {
     appointment_completed: appointmentCount ?? 0,
   };
   log.info("encounter completed + cascaded", { requestId, encounter_id: enc.id, ...cascade });
-  return ok({ encounter_id: enc.id, cascade }, init);
+  return ok({ encounter_id: enc.id, cascade, ...(admitted ? { admission: admitted } : {}) }, init);
 });

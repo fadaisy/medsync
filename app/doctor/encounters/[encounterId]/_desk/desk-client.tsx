@@ -12,6 +12,7 @@ import type { DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
 import type { BoardRow } from "@/lib/clerking/impression/board";
+import type { PlanDraft } from "@/lib/clerking/plan/draft";
 import type { ObsFrequency } from "@/lib/emr/charts/rules";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ActionResult } from "@/lib/emr/write/context";
@@ -36,6 +37,7 @@ import {
   useExamCatalogue,
 } from "@/components/clerking/use-catalogue";
 import { AllergyEditorView, substanceOf } from "@/components/emr/desk/allergy-editor";
+import { CloseVisitView } from "@/components/emr/desk/close-visit";
 import { CompleteVisitView } from "@/components/emr/desk/complete";
 import { ContextRailView } from "@/components/emr/desk/context-rail";
 import { DeskView } from "@/components/emr/desk/desk-view";
@@ -1296,8 +1298,30 @@ export function DeskClient({
         />
       </EmrDialog>
 
+      {p.close ? (
+        <EmrDialog
+          open={sheet === "complete"}
+          onOpenChange={(o) => setSheet(o ? "complete" : null)}
+          title={p.encounter.open ? "Close visit" : "Patient copy"}
+          width="wide"
+          description={
+            <>
+              <span>{p.patient.name}</span>{" "}
+              <span className="font-mono tabular-nums">{p.patient.mrn}</span>
+            </>
+          }
+        >
+          <CloseVisitView
+            p={{ ...p, close: p.close }}
+            plan={content.plan as PlanDraft | undefined}
+            surface={surface}
+            beforeClose={() => autosave.flush()}
+            onChanged={() => router.refresh()}
+          />
+        </EmrDialog>
+      ) : null}
       <EmrDialog
-        open={sheet === "complete"}
+        open={sheet === "complete" && !p.close}
         onOpenChange={(o) => setSheet(o ? "complete" : null)}
         title="Complete visit"
         description={

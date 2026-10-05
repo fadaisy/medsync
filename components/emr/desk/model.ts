@@ -2,6 +2,7 @@ import type { ClerkingDeskData } from "@/lib/clerking/desk-data";
 import type { PlanPayload } from "@/lib/clerking/plan/payload";
 import type { MedicineItem, OrderItem, ProblemItem, SafetyBar, Tone } from "@/lib/emr/chart";
 import type { NoteContent, NoteItem, SignRule, SignValidation } from "@/lib/emr/note-rules";
+import type { CloseContext } from "@/lib/emr/read/close";
 
 import { validateForSigning } from "@/lib/emr/note-rules";
 
@@ -163,6 +164,8 @@ export interface DeskNoteRow {
 }
 
 export interface DeskPayload {
+  /** Closing the encounter (ENCOUNTER_CLOSE_V2, ADRs 0197–0203): what the close dialog reads. */
+  close?: CloseContext;
   /** Clerking desk v2 only (CLERKING_V2 on and the v2 template in use). */
   clerking?: ClerkingDeskData;
   /** Step 10 by problem (ADR 0184), where CLERKING_PLAN_V2 is on. */
@@ -220,7 +223,7 @@ export interface DeskPayload {
     chart: string;
     results: string;
     orders: string | null;
-    print: { summary: string; referral: string; labRequest: string };
+    print: { summary: string; referral: string; labRequest: string; patientCopy: string };
   };
   settings: { autosaveDebounceMs: number; closureReasons: readonly string[] };
   serverTime: string;

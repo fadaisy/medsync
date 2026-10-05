@@ -347,7 +347,14 @@ describe("free beds by what the patient needs", () => {
     });
   });
   it("counts every state for the legend", () => {
-    expect(stateCounts(beds)).toEqual({ occupied: 1, free: 3, cleaning: 1, reserved: 1, out: 0 });
+    expect(stateCounts(beds)).toEqual({
+      occupied: 1,
+      arriving: 0,
+      free: 3,
+      cleaning: 1,
+      reserved: 1,
+      out: 0,
+    });
   });
 });
 
