@@ -11,7 +11,14 @@ import { FilterChip } from "@/components/ui/data-table";
 import { CALL_OUTCOME, labelOf } from "@/lib/ncdreg/standard/code-lists";
 import { cn } from "@/lib/utils";
 import { EventDialog } from "../../_components/event-dialog";
-import { ClassChip, fmtDate, fmtShort, Num, PhoneText } from "../../_components/kit";
+import {
+  ClassChip,
+  fmtDate,
+  fmtShort,
+  Num,
+  PatientMonogram,
+  PhoneText,
+} from "../../_components/kit";
 import { useOutbox } from "../../_components/outbox-provider";
 import { revealPhoneAction } from "../../actions";
 import { Seg } from "../../visit/[visitId]/_components/controls";
@@ -108,11 +115,14 @@ export function RecallBoard({
                         type="button"
                         aria-pressed={on}
                         onClick={() => setSelectedId(r.identity.id)}
-                        className="focus-visible:shadow-focus flex flex-col items-start rounded-sm text-left outline-none"
+                        className="focus-visible:shadow-focus flex items-center gap-2.5 rounded-sm text-left outline-none"
                       >
-                        <span className="text-foreground font-medium">{r.identity.name}</span>
-                        <span className="text-caption text-muted-foreground font-mono">
-                          {r.identity.registryNumber}
+                        <PatientMonogram name={r.identity.name} />
+                        <span className="flex min-w-0 flex-col items-start">
+                          <span className="text-foreground font-medium">{r.identity.name}</span>
+                          <span className="text-caption text-muted-foreground font-mono">
+                            {r.identity.registryNumber}
+                          </span>
                         </span>
                       </button>
                     </td>

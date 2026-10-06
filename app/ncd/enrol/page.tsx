@@ -21,6 +21,7 @@ export default async function EnrolPage({
   return (
     <Page>
       <PageTitle
+        place="enrol"
         title="Search and enrol"
         subline="Search first: a new record is created only after the search has run and every likely match is settled."
       />

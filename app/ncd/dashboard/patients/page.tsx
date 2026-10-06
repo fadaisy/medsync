@@ -50,6 +50,7 @@ export default async function DrillDownPage({ searchParams }: { searchParams: Pr
         Dashboard
       </Link>
       <PageTitle
+        place="dashboard"
         title={`${indicatorLabel(result.code)}${condition ? `, ${condition}` : ""}`}
         subline={
           <>

@@ -1,6 +1,8 @@
-import type { NavIcon } from "../_components/nav-item";
+import type { NavIcon } from "./places";
 import type { Domain } from "@/lib/design/domains";
 import type { Capability } from "@/lib/ncdreg/capabilities";
+
+import { PLACE } from "./places";
 
 export type NavItem = {
   href: string;
@@ -21,7 +23,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd",
         label: "Today's clinic",
         icon: "today",
-        domain: "operations",
+        domain: PLACE.today,
         caps: ["person_search"],
         count: "today",
         exact: true,
@@ -30,7 +32,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd/patients",
         label: "Patients",
         icon: "patients",
-        domain: "patients",
+        domain: PLACE.patients,
         caps: ["person_search"],
         count: "patients",
       },
@@ -38,7 +40,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd/recall",
         label: "Recall",
         icon: "recall",
-        domain: "patients",
+        domain: PLACE.recall,
         caps: ["recall_work"],
         count: "recall",
       },
@@ -46,14 +48,14 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd/reviews",
         label: "Reviews due",
         icon: "reviews",
-        domain: "clinical",
+        domain: PLACE.reviews,
         caps: ["person_search"],
       },
       {
         href: "/ncd/dashboard",
         label: "Dashboard",
         icon: "dashboard",
-        domain: "admin",
+        domain: PLACE.dashboard,
         caps: ["aggregate_view", "report_view"],
       },
     ],
@@ -65,10 +67,23 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd/my?list=not_leading",
         label: "Not in range at last visit",
         icon: "leading",
+        domain: PLACE.leading,
         caps: ["own_panel"],
       },
-      { href: "/ncd/my?list=review_due", label: "Review due", icon: "review", caps: ["own_panel"] },
-      { href: "/ncd/my?list=overdue", label: "Overdue", icon: "overdue", caps: ["own_panel"] },
+      {
+        href: "/ncd/my?list=review_due",
+        label: "Review due",
+        icon: "review",
+        domain: PLACE.review,
+        caps: ["own_panel"],
+      },
+      {
+        href: "/ncd/my?list=overdue",
+        label: "Overdue",
+        icon: "overdue",
+        domain: PLACE.overdue,
+        caps: ["own_panel"],
+      },
     ],
   },
   {
@@ -78,7 +93,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd/quality",
         label: "Data quality",
         icon: "quality",
-        domain: "admin",
+        domain: PLACE.quality,
         caps: ["data_quality", "merge_request", "merge_approve"],
         count: "queries",
       },
@@ -86,14 +101,14 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         href: "/ncd/exchange",
         label: "Exchange",
         icon: "exchange",
-        domain: "admin",
+        domain: PLACE.exchange,
         caps: ["export_request", "export_approve", "aggregate_export", "legacy_entry"],
       },
       {
         href: "/ncd/admin",
         label: "Administration",
         icon: "admin",
-        domain: "admin",
+        domain: PLACE.admin,
         caps: [
           "condition_catalogue_manage",
           "code_list_manage",

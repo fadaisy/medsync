@@ -25,6 +25,7 @@ export default async function TodaysClinic({
   return (
     <Page>
       <PageTitle
+        place="today"
         title="Today's clinic"
         subline={fmtDate(date)}
         right={

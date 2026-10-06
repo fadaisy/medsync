@@ -9,7 +9,7 @@ import { PlusIcon, SearchIcon } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { REVIEW_LABELS } from "@/lib/ncdreg/read/derive";
 import { cn } from "@/lib/utils";
-import { ConditionTags, fmtTime, Num, StageLabel } from "./kit";
+import { ConditionTags, fmtTime, Num, PatientMonogram, StageLabel } from "./kit";
 import { useOutbox } from "./outbox-provider";
 
 /** Today's clinic table (B8): roomy rows, stage with icon and word, a dash where a value does not apply. */
@@ -129,10 +129,13 @@ function Row({
       <td className="h-14 px-3.5">
         <Link
           href={`/ncd/patients/${r.personId}`}
-          className="flex flex-col focus-visible:underline"
+          className="flex items-center gap-2.5 focus-visible:underline"
         >
-          <span className="text-foreground font-medium">{r.identity.name}</span>
-          <Num className="text-muted-foreground text-[12px]">{r.identity.registryNumber}</Num>
+          <PatientMonogram name={r.identity.name} />
+          <span className="flex min-w-0 flex-col items-start">
+            <span className="text-foreground font-medium">{r.identity.name}</span>
+            <Num className="text-muted-foreground text-[12px]">{r.identity.registryNumber}</Num>
+          </span>
         </Link>
       </td>
       <td className="px-3.5">

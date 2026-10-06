@@ -39,6 +39,7 @@ export default async function QualityPage({
   return (
     <Page>
       <PageTitle
+        place="quality"
         title="Data quality"
         subline={`Queries, the monthly audit sample and duplicate records · as at ${fmtDate(ctx.today)}`}
       />

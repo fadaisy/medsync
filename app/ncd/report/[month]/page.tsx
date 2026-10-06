@@ -53,6 +53,7 @@ export default async function MonthlyReportPage({
         ) : null}
       </nav>
       <PageTitle
+        place="dashboard"
         title={`Monthly report, ${monthText}`}
         subline={`${hospitalName} · NCD registry · indicator definitions ${r.definitionVersion}`}
         right={<PrintButton />}
