@@ -7,9 +7,10 @@ only source of demo patients. Every date in it is a whole-day offset from day 0,
 ## Turning it on and off
 
 - **Administration › Demo data › Turn on demo data** (registry lead or administrator). Choose **Scenario patients** (the
-  catalogue's 26 hand-written patients; loads in seconds) or **Full clinic** (the scenario patients plus a generated cohort,
-  about 1,284 registered persons not recorded as died; the scenario patients load first, then the cohort continues in
-  chunks while the card is open, and through `app/api/cron/ncd-demo` once scheduled).
+  catalogue's 26 hand-written patients) or **Full clinic** (the scenario patients plus a generated cohort of 1,293). The
+  switch returns at once; the patients are then written in short chunks while the card is open, and the card shows
+  **Loading · n%** with "x of y demo patients written". Screens are usable as patients arrive. If the page is closed,
+  `app/api/cron/ncd-demo` continues the load once scheduled. Every write is idempotent, so an interrupted chunk resumes.
 - The banner "Demo data is on. Nothing here is a real patient." is on every NCD screen and print layout, with **Turn off
   demo data** for managers. Empty screens offer **Turn on demo data** to managers only.
 - **Turn off demo data** asks for confirmation ("This removes every demo patient and everything recorded against them.

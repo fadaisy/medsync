@@ -10,7 +10,7 @@ import type { NcdContext } from "@/lib/ncdreg/context";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { facilityStatus, requestGoLive } from "@/lib/ncdreg/admin";
-import { removeAllSynthetic, turnOff, turnOn } from "@/lib/ncdreg/demo/service";
+import { loadDemo, removeAllSynthetic, turnOff, turnOn } from "@/lib/ncdreg/demo/service";
 import { DEMO_CATALOGUE as CAT } from "@/lib/ncdreg/demo/source";
 import { dayIso, uuidv5, writeScenarioPatient } from "@/lib/ncdreg/demo/writer";
 import { loadDataset } from "@/lib/ncdreg/indicators/load";
@@ -42,7 +42,7 @@ describe.skipIf(!laneOn)("demo data: the acceptance walk (§10.7)", () => {
     lane = await bootLane();
     f = await ncdFacility(lane.pg, "Demo facility");
     lead = at(await ctxFor(lane.db, f, "registry_lead"), DAY0, "07:30");
-    loadId = (await turnOn(lead, "scenario")).id;
+    loadId = (await loadDemo(lead, "scenario")).id;
     lead = at(lead);
   }, 600_000);
 
