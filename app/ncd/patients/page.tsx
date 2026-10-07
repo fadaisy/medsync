@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/lib/ncdreg/context";
@@ -26,6 +27,7 @@ export default async function PatientsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { ctx } = await requireNcdScope();
+  if (!can(ctx, "person_search", "recall_work", "demo_write")) notFound();
   const sp = await searchParams;
   const page = Math.max(0, Number(sp.page ?? 0) || 0);
   const list = await patientsList(ctx, { limit: 50, offset: page * 50 });

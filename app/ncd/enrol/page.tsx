@@ -1,5 +1,7 @@
+import { notFound } from "next/navigation";
+
 import { facilityStatus } from "@/lib/ncdreg/admin";
-import { authorize } from "@/lib/ncdreg/context";
+import { can } from "@/lib/ncdreg/context";
 import { CODE_LISTS_FOR_ENROL } from "@/lib/ncdreg/read/enrol-options";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { Page, PageTitle } from "../_components/kit";
@@ -14,7 +16,7 @@ export default async function EnrolPage({
   searchParams: Promise<{ walkin?: string }>;
 }) {
   const { ctx } = await requireNcdScope();
-  authorize(ctx, "enrol", "legacy_entry");
+  if (!can(ctx, "enrol", "legacy_entry")) notFound();
   const sp = await searchParams;
   const status = await facilityStatus(ctx);
   const modules = ctx.catalogue.filter((m) => status.enabled.includes(m.code));

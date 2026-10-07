@@ -94,7 +94,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
         label: "Data quality",
         icon: "quality",
         domain: PLACE.quality,
-        caps: ["data_quality", "merge_request", "merge_approve"],
+        caps: ["data_quality", "merge_request", "merge_approve", "audit_view"],
         count: "queries",
       },
       {
@@ -121,3 +121,9 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     ],
   },
 ];
+
+/** The first screen this person may open, in sidebar order; null when they may open none. */
+export function firstAllowedHref(has: (...caps: Capability[]) => boolean): string | null {
+  for (const g of NAV) for (const item of g.items) if (has(...item.caps)) return item.href;
+  return null;
+}
