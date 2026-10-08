@@ -312,6 +312,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
   const b = si.board;
   const lead = b.leading;
   const [removing, setRemoving] = useState<string | null>(null);
+  // Which diagnosis the bucket ("Not yet explained") gives findings to: null is the leading.
+  const [bucketTo, setBucketTo] = useState<string | null>(null);
   // A diagnosis this clinician added at this visit comes off in one tap as "Added by mistake"
   // (ADR 0217); any other still asks why (D-SI-13). Both are entered in error, never deleted.
   const startRemove = (row: BoardRow) =>
@@ -404,26 +406,15 @@ export function ImpressionStep(props: ImpressionStepProps) {
       .filter(([, m]) => m.w === "for")
       .map(([ref]) => v.findings.get(ref as FindingRef))
       .filter((f): f is Finding => !!f);
-  const offerOf = (row: BoardRow, taken: readonly Finding[]) => {
-    const have = new Set(taken.map((f) => f.ref));
-    const suggested = [...(v.col(row.dx.logicalId)?.suggested ?? [])]
-      .filter(([, sign]) => sign === "for")
-      .map(([ref]) => v.findings.get(ref))
-      .filter((f): f is Finding => !!f);
-    const seen = new Set<string>();
-    return [...suggested, ...v.unexplained].filter(
-      (f) => !have.has(f.ref) && !seen.has(f.ref) && !!seen.add(f.ref),
-    );
-  };
   const chosen = chosenRows.map((row) => {
     const supports = supportsOf(row);
     return {
       row,
       type: leadAssoc.find((a) => a.dxId === row.dx.dxId)?.type ?? null,
       supports,
-      offer: offerOf(row, supports),
     };
   });
+  const target = chosenRows.find((r) => r.dx.logicalId === bucketTo) ?? null;
   const testName = (id: string) => dx?.tests[id] ?? id.replace(/^test\./, "").replace(/_/g, " ");
 
   const addSuggestion = (g: NamedSuggestion) => {
@@ -596,11 +587,79 @@ export function ImpressionStep(props: ImpressionStepProps) {
                       : "Nothing accepted yet."}
                   </p>
                 )}
+                <AssociatedContainer
+                  parent={lead.dx.display}
+                  chosen={chosen}
+                  candidates={leadAssoc.filter((a) => !a.linked)}
+                  canWrite={canWrite && !!props.on.onDiagnosis}
+                  finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
+                  findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
+                  testName={testName}
+                  active={target?.dx.logicalId ?? null}
+                  onActivate={(row) => setBucketTo(row?.dx.logicalId ?? null)}
+                  onUnsupport={(row, f) =>
+                    props.onImpression((d) =>
+                      withMark(d, row.dx.logicalId, f.ref, "blank", stamp()),
+                    )
+                  }
+                  onAdd={(a) => addAssociation(lead, a)}
+                  actions={(row) => (
+                    <>
+                      <StatusControl
+                        row={row}
+                        canFinal={props.canFinal}
+                        editable={canWrite}
+                        onDxStatus={props.on.onDxStatus}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => props.onDetails(row.dx.logicalId)}
+                      >
+                        Details
+                      </Button>
+                      {canWrite && props.on.onRemove ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title={removeTitle(row)}
+                          onClick={() => startRemove(row)}
+                        >
+                          Remove
+                        </Button>
+                      ) : null}
+                    </>
+                  )}
+                />
+                {chosenRows.map((row) =>
+                  removing === row.dx.logicalId ? (
+                    <RemoveForm
+                      key={row.dx.logicalId}
+                      row={row}
+                      onRemove={(r, why) => {
+                        setRemoving(null);
+                        props.on.onRemove?.(r, why);
+                      }}
+                      onCancel={() => setRemoving(null)}
+                    />
+                  ) : null,
+                )}
               </div>
               <div className="flex flex-col gap-1.5" aria-live="polite">
                 <span className="text-caption text-muted-foreground">
                   Not yet explained by any diagnosis
                 </span>
+                {chosenRows.length && canWrite ? (
+                  <Seg
+                    label="Add findings to"
+                    options={[lead, ...chosenRows].map((r) => ({
+                      id: r.dx.logicalId,
+                      label: r.dx.display,
+                    }))}
+                    value={target?.dx.logicalId ?? lead.dx.logicalId}
+                    onPick={(id) => setBucketTo(id === lead.dx.logicalId ? null : id)}
+                  />
+                ) : null}
                 {v.unexplained.length ? (
                   <ul className="flex flex-wrap gap-1.5">
                     {v.unexplained.map((f) => (
@@ -612,10 +671,16 @@ export function ImpressionStep(props: ImpressionStepProps) {
                             props.onImpression((d) =>
                               v
                                 .sameAs(f.ref)
-                                .reduce((acc, ref) => explainWithLeading(acc, b, ref, stamp()), d),
+                                .reduce(
+                                  (acc, ref) =>
+                                    target
+                                      ? withMark(acc, target.dx.logicalId, ref, "for", stamp())
+                                      : explainWithLeading(acc, b, ref, stamp()),
+                                  d,
+                                ),
                             )
                           }
-                          aria-label={`${f.text}: link it to ${lead.dx.display}`}
+                          aria-label={`${f.text}: link it to ${(target ?? lead).dx.display}`}
                           className={cn(
                             "text-caption border-border hover:bg-muted focus-visible:shadow-focus inline-flex min-h-7 items-center gap-1 rounded-sm border border-dashed px-2 outline-none pointer-coarse:min-h-11",
                             PRESS,
@@ -633,62 +698,6 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 )}
               </div>
             </div>
-            <AssociatedContainer
-              parent={lead.dx.display}
-              chosen={chosen}
-              candidates={leadAssoc.filter((a) => !a.linked)}
-              canWrite={canWrite && !!props.on.onDiagnosis}
-              finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
-              findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
-              testName={testName}
-              onSupport={(row, f) =>
-                props.onImpression((d) => withMark(d, row.dx.logicalId, f.ref, "for", stamp()))
-              }
-              onUnsupport={(row, f) =>
-                props.onImpression((d) => withMark(d, row.dx.logicalId, f.ref, "blank", stamp()))
-              }
-              onAdd={(a) => addAssociation(lead, a)}
-              actions={(row) => (
-                <>
-                  <StatusControl
-                    row={row}
-                    canFinal={props.canFinal}
-                    editable={canWrite}
-                    onDxStatus={props.on.onDxStatus}
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => props.onDetails(row.dx.logicalId)}
-                  >
-                    Details
-                  </Button>
-                  {canWrite && props.on.onRemove ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      title={removeTitle(row)}
-                      onClick={() => startRemove(row)}
-                    >
-                      Remove
-                    </Button>
-                  ) : null}
-                </>
-              )}
-            />
-            {chosenRows.map((row) =>
-              removing === row.dx.logicalId ? (
-                <RemoveForm
-                  key={row.dx.logicalId}
-                  row={row}
-                  onRemove={(r, why) => {
-                    setRemoving(null);
-                    props.on.onRemove?.(r, why);
-                  }}
-                  onCancel={() => setRemoving(null)}
-                />
-              ) : null,
-            )}
             <p
               aria-live="polite"
               className="text-caption text-muted-foreground flex flex-wrap gap-x-2"

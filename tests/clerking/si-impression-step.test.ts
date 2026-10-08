@@ -364,15 +364,17 @@ describe("step 09, Impression", () => {
     expect(box.textContent).toContain("Associated with Type 2 diabetes (1)");
     expect(box.textContent).toMatch(/Hypertension · goes with it/);
     expect(host.querySelector("#impression-also")).toBeNull();
-    // Its own supports: pick one from "Add support".
-    const offer = [...box.querySelectorAll("button")].find((x) =>
-      x.getAttribute("aria-label")?.endsWith("add it to the support of Hypertension"),
+    // Its own supports come from the leading diagnosis's bucket: make it the target, then tap.
+    tap(button("Add findings here, from the list on the right", box));
+    expect(box.querySelector('li[data-active="true"]')?.textContent).toContain("Hypertension");
+    const chip = [...host.querySelectorAll("button")].find((x) =>
+      x.getAttribute("aria-label")?.endsWith("link it to Hypertension"),
     );
-    if (offer) {
-      tap(offer);
-      const marks = Object.values(draft().evidence ?? {}).flatMap((col) => Object.values(col));
-      expect(marks.some((m) => m.w === "for")).toBe(true);
-    }
+    expect(chip).toBeTruthy();
+    tap(chip);
+    const hyp = Object.entries(draft().meta ?? {}).find(([, m]) => m.with)?.[0];
+    const marked = Object.entries(draft().evidence ?? {}).filter(([id]) => id !== hyp);
+    expect(marked.some(([, col]) => Object.values(col).some((m) => m.w === "for"))).toBe(true);
   });
 
   it("type 2 diabetes offers DKA and hypoglycaemia among its complications (CSO addition)", () => {
