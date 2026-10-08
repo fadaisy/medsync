@@ -1,5 +1,6 @@
 import type { SiView } from "../si-model";
 import type { DxData } from "../use-catalogue";
+import type { DxTerm } from "@/components/emr/desk/search";
 import type { AskRow } from "@/lib/clerking/impression/ask";
 import type { BoardRow } from "@/lib/clerking/impression/board";
 import type { Column, Matrix } from "@/lib/clerking/impression/evidence";
@@ -188,3 +189,41 @@ export function deriveImpression(
 }
 
 export const rowsOf = (si: SiView) => onBoard(si.board);
+
+/* ─── "Show all" diagnoses ──────────────────────────────────────── */
+
+export interface DxBrowseGroup {
+  id: string;
+  label: string;
+  terms: DxTerm[];
+}
+
+/** "Mental health and substance use (restricted)" → "Mental health and substance use": the lock on
+ *  each row says restricted, and the catalogue's notes in brackets are not headings. */
+const heading = (label: string) => label.replace(/\s*\([^)]*\)\s*$/, "");
+
+/**
+ * Every term in the index, grouped by its profile's category in the signed diagnosis catalogue, in
+ * the catalogue's category order (symptom-level first), A to Z within a group. A term with no
+ * profile goes under "Other diagnoses", last. Without the catalogue, one A-to-Z group.
+ */
+export function dxBrowseGroups(terms: readonly DxTerm[], dx: DxData | null): DxBrowseGroup[] {
+  const az = (a: DxTerm, b: DxTerm) => a.display.localeCompare(b.display, "en");
+  if (!dx)
+    return terms.length ? [{ id: "all", label: "All diagnoses", terms: [...terms].sort(az) }] : [];
+  const categories = dx.cat.data.categories;
+  const by = new Map<string, DxTerm[]>();
+  for (const t of terms) {
+    const profile = dx.cat.profile(dx.termIds[t.id] ?? "");
+    const key = profile && categories[profile.category] ? profile.category : "other";
+    const list = by.get(key);
+    if (list) list.push(t);
+    else by.set(key, [t]);
+  }
+  return [...Object.keys(categories), "other"].flatMap((id) => {
+    const list = by.get(id);
+    if (!list) return [];
+    const label = id === "other" ? "Other diagnoses" : heading(categories[id]!);
+    return [{ id, label, terms: list.sort(az) }];
+  });
+}

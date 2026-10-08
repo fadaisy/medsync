@@ -106,6 +106,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **Scoped keyboard shortcuts** ([ADR 0195](docs/adr/0195-scoped-keyboard-shortcuts-in-the-ward-builder.md)): on the editor's root, never global; text fields keep their keys; an Items list so drag is never the only way.
 - **Layout checks are proposed warnings** ([ADR 0196](docs/adr/0196-layout-checks-are-proposed-warnings.md)): only duplicate numbers and a bed on a bed block; the warnings shown are recorded.
 
+### Added — Impression: "Show all" diagnoses in a centred pop-up — 2026-09-28
+
+- Step 09's "Add a diagnosis" has a **Show all** button beside the search. It opens every diagnosis term in a centred pop-up, grouped by the 18 categories of the signed diagnosis catalogue (symptom-level terms first, A to Z within each group), with a filter by name, synonym or code.
+- A tap adds the term as the "Add as" choice shows (Leading, Differential or Also this visit, available inside the pop-up too), and the list stays open to add the next. Each row shows its ICD-11 code or "Not coded" and a lock when restricted; a term already on this visit is ticked and disabled.
+- Behind `CLERKING_V2`; no migration.
+
 ### Added — Clerking v2 step 10: the Plan by problem, prescribing and monitoring charts, dark behind `CLERKING_PLAN_V2` — 2026-09-28
 
 - **The Plan** answers four questions in order: where and how closely (disposition, observations against the signed NEWS2 response, senior review); one card per Impression problem (tests with Emergency priority and routine frequency, must not miss, suggested care, treatment by class, a note); medicines (Continue, Hold or Stop with a reason; new this visit with answered checks and edits); and a checklist before signing. Tests and prescriptions wait in one basket and are placed in one action; the server re-checks. Mark plan done; any change reopens it; signing waits for it.
