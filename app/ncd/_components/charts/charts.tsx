@@ -136,10 +136,16 @@ export function TrendLine({
   points,
   max,
   tip,
+  height = "h-14",
+  ticks,
 }: {
   points: (number | null)[];
   max: number;
   tip: string;
+  /** SVG height class: h-14 in rows, taller in a detail panel. */
+  height?: string;
+  /** One label per point (month names), shown under the line; alternate ones hide when narrow. */
+  ticks?: string[];
 }) {
   const W = 220;
   const H = 60;
@@ -171,7 +177,7 @@ export function TrendLine({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="h-14 w-full overflow-visible"
+        className={cn(height, "w-full overflow-visible")}
         aria-hidden
       >
         {[0, 0.5, 1].map((f) => (
@@ -213,14 +219,62 @@ export function TrendLine({
       <span className="text-label text-foreground self-center font-mono font-semibold tabular-nums">
         {last == null ? "–" : `${last}%`}
       </span>
+      {ticks?.length ? (
+        <span
+          aria-hidden
+          className="text-muted-foreground col-start-2 flex justify-between pt-1 font-mono text-[11px] [&>span:nth-child(even)]:hidden sm:[&>span:nth-child(even)]:inline"
+        >
+          {ticks.map((t, i) => (
+            <span key={`${t}-${i}`} className="flex w-0 justify-center whitespace-nowrap">
+              {t}
+            </span>
+          ))}
+        </span>
+      ) : null}
     </Tip>
   );
 }
 
-/** Care cascade (G06): four bars as shares of registered; the last step is the leading class. */
-export function Cascade({ marks }: { marks: Mark[] }) {
+/** A word-sized trend (no axes): the shape only, beside a figure that carries the number. */
+export function Sparkline({ points, max }: { points: (number | null)[]; max: number }) {
+  const W = 64;
+  const H = 20;
+  const pts = points
+    .map((p, i) =>
+      p == null
+        ? null
+        : `${(i * W) / Math.max(points.length - 1, 1)},${H - (p / Math.max(max, 1)) * H}`,
+    )
+    .filter((p): p is string => p != null);
   return (
-    <ul className="text-caption grid grid-cols-[6.5rem_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5">
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-5 w-16 shrink-0 overflow-visible" aria-hidden>
+      <line
+        x1={0}
+        x2={W}
+        y1={H}
+        y2={H}
+        className="stroke-ink-200"
+        strokeWidth={1}
+        vectorEffect="non-scaling-stroke"
+      />
+      {pts.length > 1 ? (
+        <polyline
+          points={pts.join(" ")}
+          fill="none"
+          className="stroke-teal-700"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      ) : null}
+    </svg>
+  );
+}
+
+/** Care cascade (G06): four bars as shares of registered; the last step is the leading class. */
+export function Cascade({ marks, thick = "h-2.5" }: { marks: Mark[]; thick?: string }) {
+  return (
+    <ul className="text-caption grid grid-cols-[7.5rem_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2">
       {marks.map((m, i) => {
         const lastStep = i === marks.length - 1;
         return (
@@ -231,7 +285,7 @@ export function Cascade({ marks }: { marks: Mark[] }) {
             >
               {m.label}
             </span>
-            <span className="bg-ink-50 block h-2.5 w-full">
+            <span className={cn("bg-ink-50 block w-full", thick)}>
               <span
                 className={cn("block h-full rounded-r-xs", lastStep ? "bg-teal-700" : "bg-ink-300")}
                 style={{ width: `${m.pct ?? (i === 0 && m.n > 0 ? 100 : 0)}%` }}

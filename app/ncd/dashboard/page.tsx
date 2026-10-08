@@ -199,8 +199,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         charts={
           <ChartBands
             strip={<HeadlineStrip b={b} catalogue={ctx.catalogue} />}
-            conditionsTitle="Outcomes by condition · ordered by patients under care · trends share one scale"
-            conditions={<ConditionRows b={b} />}
+            conditionsTitle="Outcomes by condition · ordered by patients under care · choose one to see it in full"
+            conditions={
+              <ConditionRows b={b} focus={typeof sp.focus === "string" ? sp.focus : undefined} />
+            }
             cards={<CompactCards b={b} catalogue={ctx.catalogue} glycaemicLabel={glycaemic} />}
           />
         }
