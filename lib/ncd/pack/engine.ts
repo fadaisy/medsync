@@ -155,6 +155,25 @@ class Ctx {
 }
 const EMPTY: ReadonlySet<string> = new Set();
 
+/**
+ * Each predicate of one criterion, judged exactly as the engine judges it (same values, same site):
+ * for showing a clinician which parts of a criterion are met. Display only; the verdict stays
+ * `result.criteria`, which also applies blocking caveats.
+ */
+export function explainCriterion(
+  pack: DiabetesPack,
+  input: PackInput,
+  c: PackCriterion,
+): { feature: string; state: State; value: PackValue | null; unit: string | null }[] {
+  const cx = new Ctx(pack, input.values, siteOf(pack, input.site));
+  return predicatesOf(c).map((p) => ({
+    feature: p.feature,
+    state: cx.pred(p),
+    value: cx.vstate(p.feature)[1],
+    unit: p.unit ?? null,
+  }));
+}
+
 export function pregnancyState(values: PackValues, band: string): PackResult["pregnancyState"] {
   if (values.pregnant === true) return "pregnant";
   if (

@@ -1,0 +1,425 @@
+{
+  "id": "MS-CLERK-VITAL-CLASS-001",
+  "version": "1.0.0-draft",
+  "status": "signed — CSO, 2026-10-08",
+  "generated": "2026-10-08",
+  "scope": "Adults only (age 18 and over, age known). Under 18 or age unknown: no label (paediatric norms are out of scope). Blood pressure is not classified in pregnancy (pregnancy has its own definitions). Labels sit beside NEWS2 in the clerking desk's context panel; they never change NEWS2.",
+  "conventions": {
+    "bands": "Ordered low to high. A band with `from` starts at that value (≥); a band with `above` starts above it (>); the first band has no lower bound. A value takes the last band it reaches.",
+    "bpCategories": "Ordered low to high. Each axis (systolic, diastolic) reaches the highest category whose threshold it meets (`systolicFrom` ≥, `systolicAbove` >, likewise diastolic). A category with no threshold on an axis cannot be reached by that axis. The reading takes the higher of the two axes' categories (the higher-category rule, quoted per scheme). Both values are needed.",
+    "tones": {
+      "normal": "Neutral, no alarm.",
+      "caution": "Amber: abnormal, not an emergency.",
+      "critical": "Red: a genuine emergency only. Always printed with its words."
+    }
+  },
+  "bp": {
+    "default": "aha",
+    "schemes": {
+      "aha": {
+        "short": "AHA",
+        "name": "ACC/AHA 2017",
+        "source": {
+          "title": "2017 ACC/AHA/AAPA/ABC/ACPM/AGS/APhA/ASH/ASPC/NMA/PCNA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults (Whelton PK et al. Hypertension 2018;71:e13–e115; J Am Coll Cardiol 2018;71:e127–e248)",
+          "year": 2017,
+          "section": "Table 6 'Categories of BP in Adults'; section 11.2 hypertensive crises",
+          "url": "https://www.ahajournals.org/doi/10.1161/HYP.0000000000000065",
+          "verified": "Cut-offs as given by the CSO brief and matched against secondary summaries; the publisher page refused retrieval (403), so the primary text was not quoted. Verify against Table 6 before signing.",
+          "higherCategoryRule": "Table 6 footnote: individuals with SBP and DBP in 2 categories should be designated to the higher BP category."
+        },
+        "categories": [
+          {
+            "id": "normal",
+            "label": "Normal",
+            "tone": "normal",
+            "cutoffs": "<120 and <80"
+          },
+          {
+            "id": "elevated",
+            "label": "Elevated",
+            "tone": "caution",
+            "systolicFrom": 120,
+            "cutoffs": "120–129 and <80"
+          },
+          {
+            "id": "stage1",
+            "label": "Stage 1 hypertension",
+            "tone": "caution",
+            "systolicFrom": 130,
+            "diastolicFrom": 80,
+            "cutoffs": "130–139 or 80–89"
+          },
+          {
+            "id": "stage2",
+            "label": "Stage 2 hypertension",
+            "tone": "caution",
+            "systolicFrom": 140,
+            "diastolicFrom": 90,
+            "cutoffs": "≥140 or ≥90"
+          },
+          {
+            "id": "crisis",
+            "label": "Hypertensive crisis",
+            "tone": "critical",
+            "systolicAbove": 180,
+            "diastolicAbove": 120,
+            "cutoffs": ">180 and/or >120"
+          }
+        ]
+      },
+      "esh": {
+        "short": "ESH",
+        "name": "ESC/ESH 2018",
+        "source": {
+          "title": "2018 ESC/ESH Guidelines for the management of arterial hypertension (Williams B, Mancia G et al. Eur Heart J 2018;39:3021–3104)",
+          "year": 2018,
+          "section": "Table 3 'Classification of office blood pressure and definitions of hypertension grade'",
+          "url": "https://academic.oup.com/eurheartj/article/39/33/3021/5079119",
+          "verified": "Table and footnotes retrieved from the publisher page 2026-10-08. The 2023 ESH guideline (J Hypertens 2023;41:1874–2071) was not retrieved; the brief says its table is unchanged: confirm before signing.",
+          "quote": "Optimal <120 and <80 | Normal 120–129 and/or 80–84 | High normal 130–139 and/or 85–89 | Grade 1 hypertension 140–159 and/or 90–99 | Grade 2 hypertension 160–179 and/or 100–109 | Grade 3 hypertension ≥180 and/or ≥110 | Isolated systolic hypertension ≥140 and <90",
+          "higherCategoryRule": "Footnote: \"BP category is defined according to seated clinic BP and by the highest level of BP, whether systolic or diastolic.\" \"Isolated systolic hypertension is graded 1, 2, or 3 according to SBP values in the ranges indicated.\""
+        },
+        "categories": [
+          {
+            "id": "optimal",
+            "label": "Optimal",
+            "tone": "normal",
+            "cutoffs": "<120 and <80"
+          },
+          {
+            "id": "normal",
+            "label": "Normal",
+            "tone": "normal",
+            "systolicFrom": 120,
+            "diastolicFrom": 80,
+            "cutoffs": "120–129 and/or 80–84"
+          },
+          {
+            "id": "high_normal",
+            "label": "High-normal",
+            "tone": "caution",
+            "systolicFrom": 130,
+            "diastolicFrom": 85,
+            "cutoffs": "130–139 and/or 85–89"
+          },
+          {
+            "id": "grade1",
+            "label": "Grade 1 hypertension",
+            "tone": "caution",
+            "systolicFrom": 140,
+            "diastolicFrom": 90,
+            "cutoffs": "140–159 and/or 90–99"
+          },
+          {
+            "id": "grade2",
+            "label": "Grade 2 hypertension",
+            "tone": "caution",
+            "systolicFrom": 160,
+            "diastolicFrom": 100,
+            "cutoffs": "160–179 and/or 100–109"
+          },
+          {
+            "id": "grade3",
+            "label": "Grade 3 hypertension",
+            "tone": "caution",
+            "systolicFrom": 180,
+            "diastolicFrom": 110,
+            "cutoffs": "≥180 and/or ≥110"
+          }
+        ],
+        "qualifier": {
+          "label": "isolated systolic",
+          "systolicFrom": 140,
+          "diastolicBelow": 90,
+          "cutoffs": "≥140 and <90"
+        }
+      },
+      "ish": {
+        "short": "ISH",
+        "name": "ISH 2020",
+        "source": {
+          "title": "2020 International Society of Hypertension Global Hypertension Practice Guidelines (Unger T et al. Hypertension 2020;75:1334–1357; J Hypertens 2020;38:982–1004)",
+          "year": 2020,
+          "section": "Classification of hypertension based on office BP",
+          "url": "https://www.ahajournals.org/doi/10.1161/HYPERTENSIONAHA.120.15026",
+          "verified": "Cut-offs as given by the CSO brief and matched against secondary summaries (AAFP 2021 summary of the ISH guideline: grade 1 below 160/100, grade 2 any higher); the primary text was not retrieved (publisher 403). Verify before signing.",
+          "higherCategoryRule": "The table's \"and/or\" wording; an explicit footnote was not retrieved. Applied as for ESC/ESH."
+        },
+        "categories": [
+          {
+            "id": "normal",
+            "label": "Normal",
+            "tone": "normal",
+            "cutoffs": "<130 and <85"
+          },
+          {
+            "id": "high_normal",
+            "label": "High-normal",
+            "tone": "caution",
+            "systolicFrom": 130,
+            "diastolicFrom": 85,
+            "cutoffs": "130–139 and/or 85–89"
+          },
+          {
+            "id": "grade1",
+            "label": "Grade 1 hypertension",
+            "tone": "caution",
+            "systolicFrom": 140,
+            "diastolicFrom": 90,
+            "cutoffs": "140–159 and/or 90–99"
+          },
+          {
+            "id": "grade2",
+            "label": "Grade 2 hypertension",
+            "tone": "caution",
+            "systolicFrom": 160,
+            "diastolicFrom": 100,
+            "cutoffs": "≥160 and/or ≥100"
+          }
+        ]
+      },
+      "ucg": {
+        "short": "Uganda",
+        "name": "Uganda Clinical Guidelines 2023",
+        "source": {
+          "title": "Uganda Clinical Guidelines 2023: National Guidelines for Management of Common Health Conditions (Ministry of Health, Uganda)",
+          "year": 2023,
+          "section": "4.1.6 Hypertension, 'Classification of blood pressure (BP)', printed page 310 (PDF page 376)",
+          "verified": "Quoted verbatim from the PDF text layer (UCG-2023-Publication-Final-PDF-Version-1.pdf), 2026-10-08.",
+          "quote": "Classification of blood pressure (BP) | Category Sbp Mmhg Dbp Mmhg | Normal <120 and <80 | Pre-hypertension 120-139 or 80-89 | Hypertension, stage 1 140-159 or 90-99 | Hypertension, stage 2 >160 or >100",
+          "higherCategoryRule": "Not stated in UCG; the table's \"or\" wording places a reading in a category when either value is in range, so the higher category applies.",
+          "gap": "CSO ruling needed: UCG prints stage 2 as \">160 or >100\", so 160 mmHg systolic and 100 mmHg diastolic fall in no row (stage 1 ends at 159 and 99). Implemented as ≥160 / ≥100, closing the gap upward as JNC 7 (the table's evident origin) does."
+        },
+        "categories": [
+          {
+            "id": "normal",
+            "label": "Normal",
+            "tone": "normal",
+            "cutoffs": "<120 and <80"
+          },
+          {
+            "id": "pre_hypertension",
+            "label": "Pre-hypertension",
+            "tone": "caution",
+            "systolicFrom": 120,
+            "diastolicFrom": 80,
+            "cutoffs": "120–139 or 80–89"
+          },
+          {
+            "id": "stage1",
+            "label": "Hypertension, stage 1",
+            "tone": "caution",
+            "systolicFrom": 140,
+            "diastolicFrom": 90,
+            "cutoffs": "140–159 or 90–99"
+          },
+          {
+            "id": "stage2",
+            "label": "Hypertension, stage 2",
+            "tone": "caution",
+            "systolicFrom": 160,
+            "diastolicFrom": 100,
+            "cutoffs": ">160 or >100 (as printed; see gap)"
+          }
+        ]
+      }
+    }
+  },
+  "pulse": {
+    "name": "AHA",
+    "source": {
+      "title": "American Heart Association, patient information: Tachycardia (fast heart rate) and Bradycardia (slow heart rate)",
+      "year": 2024,
+      "url": "https://www.heart.org/en/health-topics/arrhythmia/about-arrhythmia",
+      "verified": "Cut-offs as given by the CSO brief (resting adult rate 60–100). The page refused retrieval (403), so no quote. Note for the CSO: the 2018 ACC/AHA/HRS bradycardia guideline defines sinus bradycardia as below 50/min, and NEWS2's zero band is 51–90."
+    },
+    "bands": [
+      {
+        "label": "Bradycardia",
+        "tone": "caution",
+        "cutoffs": "<60"
+      },
+      {
+        "label": "Normal",
+        "tone": "normal",
+        "from": 60,
+        "cutoffs": "60–100"
+      },
+      {
+        "label": "Tachycardia",
+        "tone": "caution",
+        "above": 100,
+        "cutoffs": ">100"
+      }
+    ]
+  },
+  "respiratoryRate": {
+    "name": "RCP NEWS2",
+    "source": {
+      "title": "Royal College of Physicians. National Early Warning Score (NEWS) 2: Standardising the assessment of acute-illness severity in the NHS. London: RCP, 2017 (chart 1: respiration rate 12–20 scores 0)",
+      "year": 2017,
+      "verified": "Normal is NEWS2's zero-score band (lib/triage/constants.ts NEWS2_RESP_RATE). The words bradypnoea and tachypnoea are the brief's; NEWS2 does not name them."
+    },
+    "bands": [
+      {
+        "label": "Bradypnoea",
+        "tone": "caution",
+        "cutoffs": "<12"
+      },
+      {
+        "label": "Normal",
+        "tone": "normal",
+        "from": 12,
+        "cutoffs": "12–20"
+      },
+      {
+        "label": "Tachypnoea",
+        "tone": "caution",
+        "above": 20,
+        "cutoffs": ">20"
+      }
+    ]
+  },
+  "spo2": {
+    "scale1": {
+      "name": "WHO / UCG 2023",
+      "source": {
+        "title": "Uganda Clinical Guidelines 2023, 1.4 Hypoxaemia Management and Oxygen Therapy Guidelines, 'Interpreting pulse-oximetry results', printed page 89 (PDF page 155); WHO threshold for oxygen therapy SpO₂ <90%",
+        "year": 2023,
+        "verified": "UCG quoted verbatim: \"SpO2 > 90% without danger signs = Normal | SpO2 < 90% =Low oxygen concentration in blood (Hypoxaemia) | SpO2 < 94 % with danger signs = Low oxygen concentration in blood (Hypoxaemia\". The 95% lower edge of Normal is the brief's and is not in UCG (UCG calls >90% normal without danger signs, and <94% hypoxaemia with them): CSO to confirm the 90–94 caution band."
+      },
+      "bands": [
+        {
+          "label": "Hypoxaemia",
+          "tone": "critical",
+          "cutoffs": "<90"
+        },
+        {
+          "label": "Low",
+          "tone": "caution",
+          "from": 90,
+          "cutoffs": "90–94"
+        },
+        {
+          "label": "Normal",
+          "tone": "normal",
+          "from": 95,
+          "cutoffs": "≥95"
+        }
+      ]
+    },
+    "scale2": {
+      "name": "RCP NEWS2 scale 2",
+      "source": {
+        "title": "Royal College of Physicians. NEWS2, 2017: SpO₂ scale 2 for a prescribed target of 88–92% in hypercapnic respiratory failure (with BTS oxygen guideline 2017)",
+        "year": 2017,
+        "verified": "Target 88–92% as on the NEWS2 chart (lib/triage/constants.ts NEWS2_SPO2_SCALE2*). Used only when the clinician set the 88–92% target or scale 2 in the examination."
+      },
+      "bands": [
+        {
+          "label": "Below target",
+          "tone": "caution",
+          "cutoffs": "<88"
+        },
+        {
+          "label": "On target",
+          "tone": "normal",
+          "from": 88,
+          "cutoffs": "88–92"
+        },
+        {
+          "label": "Above target on oxygen",
+          "tone": "caution",
+          "above": 92,
+          "cutoffs": ">92 on oxygen"
+        }
+      ],
+      "aboveOnAir": {
+        "label": "Above 92% on air",
+        "tone": "normal",
+        "cutoffs": ">92 on air"
+      }
+    }
+  },
+  "temperature": {
+    "name": "Temperature",
+    "source": {
+      "title": "Hypothermia: core temperature below 35 °C (Brown DJA et al. Accidental hypothermia. N Engl J Med 2012;367:1930–8). Raised from 37.5 °C: Uganda Clinical Guidelines 2023, 2.5.2.1 Uncomplicated malaria, printed page 165: \"Fever: above 37.5°C (taken from the axilla)\". Fever 38.0 °C: the examination catalogue's operational CSO value (REF-EX-FEVER-TEMP: Uganda VHF surveillance uses > 38 °C).",
+      "year": 2023,
+      "verified": "Bands as given by the brief. CSO to rule: UCG calls above 37.5 °C fever (axillary), which this scheme labels 'Raised' until 38.0. Hyperpyrexia is not implemented: UCG's only figure (>39.5 °C) is a severe-malaria criterion with parasitaemia, and no general adult source for >40 °C was found."
+    },
+    "bands": [
+      {
+        "label": "Hypothermia",
+        "tone": "critical",
+        "cutoffs": "<35.0"
+      },
+      {
+        "label": "Normal",
+        "tone": "normal",
+        "from": 35.0,
+        "cutoffs": "35.0–37.4"
+      },
+      {
+        "label": "Raised",
+        "tone": "caution",
+        "from": 37.5,
+        "cutoffs": "37.5–37.9"
+      },
+      {
+        "label": "Fever",
+        "tone": "caution",
+        "from": 38.0,
+        "cutoffs": "≥38.0"
+      }
+    ]
+  },
+  "glucose": {
+    "name": "ADA 2026 hypoglycaemia levels",
+    "source": {
+      "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149), Table 6.4 'Classification of hypoglycemia', as quoted in data/ncd/diabetes-pack.json (DM-ACU-ROUTE-06, REF-DM-HYPO-L2) and the examination catalogue (REF-EX-HYPO-L1/L2)",
+      "year": 2026,
+      "quote": "Level 1: Glucose <70 mg/dL (<3.9 mmol/L) and ≥54 mg/dL (≥3.0 mmol/L) | Level 2: Glucose <54 mg/dL (<3.0 mmol/L)",
+      "verified": "Only the context-free bands: the pack's 'interpretation' glucose bands are glycaemic-control targets for a person with diabetes (At target / Above target) and are not applied to an unselected patient. A meter LO acts as level 2 (pack DM-ACU-ROUTE-06: 'a meter reading LO … Act now'); a meter HI is critical per the brief (beyond the meter's range). No label at 3.9 and above."
+    },
+    "bands": [
+      {
+        "label": "Hypoglycaemia, level 2",
+        "tone": "critical",
+        "cutoffs": "<3.0 mmol/L"
+      },
+      {
+        "label": "Hypoglycaemia, level 1",
+        "tone": "caution",
+        "from": 3.0,
+        "cutoffs": "3.0–3.8 mmol/L"
+      },
+      {
+        "label": null,
+        "tone": "normal",
+        "from": 3.9,
+        "cutoffs": "≥3.9 mmol/L: no label"
+      }
+    ],
+    "meter": {
+      "LO": {
+        "label": "Meter reads LO",
+        "tone": "critical"
+      },
+      "HI": {
+        "label": "Meter reads HI",
+        "tone": "critical"
+      }
+    }
+  },
+  "signoff": {
+    "signedBy": "CSO (owner)",
+    "signedOn": "2026-10-08",
+    "decision": "Sign as listed; ACC/AHA 2017 is the default BP scheme.",
+    "rulings": [
+      "Temperature: 38.0 °C is Fever (the clerking examination's signed fever line); 37.5–37.9 reads Raised, not UCG's 'above 37.5 = fever'.",
+      "UCG 2023 Stage 2 printed as '>160 or >100': exactly 160 or 100 is Stage 2 (as JNC 7).",
+      "ACC/AHA 2017 and ISH 2020 rows were checked against secondary summaries; the publishers' pages could not be fetched."
+    ]
+  }
+}

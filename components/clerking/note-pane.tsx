@@ -4,6 +4,7 @@ import { PencilIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Fold } from "./fold";
 
 /**
  * The note (§5.10): blocks the composer writes from the answers by fixed rules, the block of the
@@ -34,81 +35,89 @@ export function NotePane({
       shown.push({ key: key as BlockKey, head: key, text, edited: true });
   const cur = shown.find((b) => b.key === current);
   return (
-    <section aria-labelledby="clerking-note-heading" className="flex flex-col gap-3 px-5 py-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="clerking-note-heading" className="text-heading-s text-foreground">
-          Note
-        </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={!editable || !cur || cur.edited}
-          onClick={() => cur && onEdited?.(cur.key, cur.text)}
-        >
-          <PencilIcon aria-hidden />
-          Edit text
-        </Button>
-      </div>
-      <p className="text-caption text-muted-foreground">
-        Written from your entries as you go, by fixed rules. The part you are working on is
-        highlighted.
-      </p>
-      <div className="flex flex-col gap-2">
-        {shown.map((b) => {
-          const here = b.key === current;
-          return (
-            <div
-              key={b.key}
-              data-block={b.key}
-              data-current={here || undefined}
-              aria-current={here ? "true" : undefined}
-              className={cn(
-                "-mx-2 flex flex-col gap-1 rounded-md px-2 py-2",
-                here && "bg-iris-tint ring-iris-edge ring-1",
-              )}
-            >
-              <h3
-                className={cn(
-                  "text-caption tracking-[0.06em] uppercase",
-                  here ? "text-iris-text" : "text-muted-foreground",
-                )}
-              >
-                {b.head}
-              </h3>
-              {b.edited ? (
-                <>
-                  <textarea
-                    aria-label={`${b.head}, your text`}
-                    value={b.text}
-                    disabled={!editable}
-                    rows={Math.min(14, Math.max(3, Math.ceil(b.text.length / 48)))}
-                    onChange={(e) => onEdited?.(b.key, e.target.value)}
-                    className="border-input bg-card text-body-s text-foreground focus-visible:shadow-focus w-full rounded-sm border px-2 py-1.5 leading-relaxed outline-none"
-                  />
-                  <span className="text-caption text-muted-foreground inline-flex flex-wrap items-center gap-x-2">
-                    Edited, will not update
-                    {editable ? (
-                      <button
-                        type="button"
-                        onClick={() => onEdited?.(b.key, null)}
-                        className="focus-visible:shadow-focus rounded-xs font-medium text-teal-700 outline-none hover:underline"
-                      >
-                        Undo edits
-                      </button>
-                    ) : null}
-                  </span>
-                </>
-              ) : b.key === "summary" && current === "impression" && b.text.length > CLAMP_AT ? (
-                <Clamped text={b.text} />
-              ) : (
-                <p className="text-body-s text-foreground leading-relaxed whitespace-pre-wrap">
-                  {b.text}
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <section aria-labelledby="clerking-note-heading" className="px-5 py-4">
+      <Fold
+        title={<span id="clerking-note-heading">Note</span>}
+        aside={
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!editable || !cur || cur.edited}
+            onClick={(e) => {
+              e.preventDefault(); // inside the fold's summary: edit, do not fold
+              if (cur) onEdited?.(cur.key, cur.text);
+            }}
+          >
+            <PencilIcon aria-hidden />
+            Edit text
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-caption text-muted-foreground">
+            Written from your entries as you go, by fixed rules. The part you are working on is
+            highlighted.
+          </p>
+          <div className="flex flex-col gap-2">
+            {shown.map((b) => {
+              const here = b.key === current;
+              return (
+                <div
+                  key={b.key}
+                  data-block={b.key}
+                  data-current={here || undefined}
+                  aria-current={here ? "true" : undefined}
+                  className={cn(
+                    "-mx-2 flex flex-col gap-1 rounded-md px-2 py-2",
+                    here && "bg-iris-tint ring-iris-edge ring-1",
+                  )}
+                >
+                  <h3
+                    className={cn(
+                      "text-caption tracking-[0.06em] uppercase",
+                      here ? "text-iris-text" : "text-muted-foreground",
+                    )}
+                  >
+                    {b.head}
+                  </h3>
+                  {b.edited ? (
+                    <>
+                      <textarea
+                        aria-label={`${b.head}, your text`}
+                        value={b.text}
+                        disabled={!editable}
+                        rows={Math.min(14, Math.max(3, Math.ceil(b.text.length / 48)))}
+                        onChange={(e) => onEdited?.(b.key, e.target.value)}
+                        className="border-input bg-card text-body-s text-foreground focus-visible:shadow-focus w-full rounded-sm border px-2 py-1.5 leading-relaxed outline-none"
+                      />
+                      <span className="text-caption text-muted-foreground inline-flex flex-wrap items-center gap-x-2">
+                        Edited, will not update
+                        {editable ? (
+                          <button
+                            type="button"
+                            onClick={() => onEdited?.(b.key, null)}
+                            className="focus-visible:shadow-focus rounded-xs font-medium text-teal-700 outline-none hover:underline"
+                          >
+                            Undo edits
+                          </button>
+                        ) : null}
+                      </span>
+                    </>
+                  ) : b.key === "summary" &&
+                    current === "impression" &&
+                    b.text.length > CLAMP_AT ? (
+                    <Clamped text={b.text} />
+                  ) : (
+                    <p className="text-body-s text-foreground leading-relaxed whitespace-pre-wrap">
+                      {b.text}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Fold>
     </section>
   );
 }

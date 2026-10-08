@@ -13,7 +13,7 @@ import type { DiabetesPack, PackInput, PackResult } from "./types";
 import type { PackView } from "./view";
 import type { Flag } from "@/lib/clerking/flags";
 
-import { runProtocol } from "./engine";
+import { explainCriterion, runProtocol } from "./engine";
 import { buildPackView } from "./view";
 
 export interface DeskVerdict {
@@ -22,8 +22,24 @@ export interface DeskVerdict {
   words: string;
 }
 
+/** One criterion of a criteria set, with each of its parts judged (for the hover detail). */
+export interface DeskCriterion {
+  id: string;
+  label: string;
+  state: string;
+  parts: {
+    feature: string;
+    display: string;
+    state: string;
+    value: string | null;
+    unit: string | null;
+  }[];
+}
+
 export interface DeskDiabetes {
   view: PackView;
+  /** Criteria set id → its criteria, each part judged as the engine judges it. */
+  criteria: Record<string, DeskCriterion[]>;
   result: PackResult;
   flags: Flag[];
   verdict: DeskVerdict | null;
@@ -96,7 +112,23 @@ export function deskDiabetes(pack: DiabetesPack, input: PackInput): DeskDiabetes
     input.established ||
     Object.keys(result.fired).length > 0 ||
     view.diagnosis.some((d) => d.state === "met");
-  return { view, result, flags, verdict, show, established: input.established };
+  const shown = new Set(view.diagnosis.map((d) => d.id));
+  const criteria: Record<string, DeskCriterion[]> = {};
+  for (const s of [...pack.diagnosis, ...pack.diagnosisPending])
+    if (shown.has(s.id))
+      criteria[s.id] = s.anyOf.map((c) => ({
+        id: c.id,
+        label: c.label,
+        state: result.criteria[c.id] ?? "insufficient",
+        parts: explainCriterion(pack, input, c).map((x) => ({
+          feature: x.feature,
+          display: pack.features[x.feature]?.display ?? x.feature,
+          state: x.state,
+          value: x.value === null || x.value === undefined ? null : String(x.value),
+          unit: x.unit,
+        })),
+      }));
+  return { view, result, criteria, flags, verdict, show, established: input.established };
 }
 
 const SET_NAME: Record<string, string> = {
