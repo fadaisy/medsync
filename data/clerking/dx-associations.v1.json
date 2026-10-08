@@ -400,12 +400,20 @@
     "dx.dm_type1": {
       "complications": [
         "dx.dka",
-        "dx.hypoglycaemia_dm"
+        "dx.hypoglycaemia_dm",
+        "dx.hhs",
+        "dx.diabetic_foot",
+        "dx.diabetic_kidney_disease",
+        "dx.ckd",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
       ],
       "goes_with": []
     },
     "dx.dm_type2": {
       "complications": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm",
         "dx.hhs",
         "dx.diabetic_foot",
         "dx.ckd",
@@ -422,9 +430,19 @@
     "dx.dm_type_unknown": {
       "complications": [
         "dx.dka",
-        "dx.hhs"
+        "dx.hhs",
+        "dx.hypoglycaemia_dm",
+        "dx.diabetic_foot",
+        "dx.diabetic_kidney_disease",
+        "dx.ckd",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
       ],
-      "goes_with": []
+      "goes_with": [
+        "dx.obesity",
+        "dx.dyslipidaemia",
+        "dx.hypertension"
+      ]
     },
     "dx.drug_induced_liver_injury": {
       "complications": [
@@ -5683,5 +5701,45 @@
     "signedBy": "CSO (owner)",
     "signedOn": "2026-10-08",
     "decision": "Signed as drafted; triggers under a flare-up stay 'goes with'."
-  }
+  },
+  "cso_additions": [
+    {
+      "parent": "dx.dm_type2",
+      "add": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm"
+      ],
+      "as": "complications",
+      "why": "Owner/CSO 2026-10-08: DKA occurs in type 2 diabetes (ketosis-prone type 2, SGLT2 inhibitors); hypoglycaemia on insulin or a sulfonylurea. Not in the catalogue's related list, so added here."
+    },
+    {
+      "parent": "dx.dm_type1",
+      "add": [
+        "dx.hhs",
+        "dx.diabetic_foot",
+        "dx.diabetic_kidney_disease",
+        "dx.ckd",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
+      ],
+      "as": "complications",
+      "why": "Owner/CSO 2026-10-08: the same complication set for every diabetes type; type 2 and type not yet determined also go with obesity, dyslipidaemia and hypertension."
+    },
+    {
+      "parent": "dx.dm_type_unknown",
+      "add": [
+        "dx.hypoglycaemia_dm",
+        "dx.diabetic_foot",
+        "dx.diabetic_kidney_disease",
+        "dx.ckd",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy",
+        "dx.obesity",
+        "dx.dyslipidaemia",
+        "dx.hypertension"
+      ],
+      "as": "complications and goes_with",
+      "why": "Owner/CSO 2026-10-08: the same complication set for every diabetes type; type 2 and type not yet determined also go with obesity, dyslipidaemia and hypertension."
+    }
+  ]
 }

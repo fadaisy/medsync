@@ -1,5 +1,8 @@
 import type { Association } from "@/lib/clerking/impression/associations";
-import { ChevronDownIcon, PlusIcon } from "lucide-react";
+import type { BoardRow } from "@/lib/clerking/impression/board";
+import type { Finding } from "@/lib/clerking/impression/facts";
+import type { ReactNode } from "react";
+import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,6 +15,7 @@ import { cn } from "@/lib/utils";
  */
 export function AssociationsFold({
   parent,
+  title,
   items,
   findingText,
   testName,
@@ -25,6 +29,7 @@ export function AssociationsFold({
   canWrite: boolean;
   /** Add it to the visit (or, when already there, link it) as associated with the parent. */
   onAdd: (a: Association) => void;
+  title?: string;
 }) {
   if (!items.length) return null;
   const supported = items.filter((a) => a.supportedBy.length).length;
@@ -35,7 +40,7 @@ export function AssociationsFold({
           aria-hidden
           className="ease-expo-out size-3.5 -rotate-90 transition-transform duration-150 group-open/assoc:rotate-0 motion-reduce:transition-none"
         />
-        {`Associated with ${parent} (${items.length})`}
+        {`${title ?? `Associated with ${parent}`} (${items.length})`}
         {supported ? <span className="text-teal-text">{` · ${supported} supported`}</span> : null}
       </summary>
       <ul className="mt-1.5 flex flex-col gap-1.5">
@@ -82,5 +87,135 @@ export function AssociationsFold({
         })}
       </ul>
     </details>
+  );
+}
+
+/**
+ * The leading diagnosis's associations (owner, 2026-10-08): the ones the clinician chose, in their
+ * own container under the leading diagnosis and its supports. Each keeps its own supports: remove
+ * one, or add one from what the record suggests for it and from what no diagnosis explains yet.
+ * The candidates to choose from sit below ("Add an association").
+ */
+export function AssociatedContainer({
+  parent,
+  chosen,
+  candidates,
+  canWrite,
+  finding,
+  findingText,
+  testName,
+  onSupport,
+  onUnsupport,
+  onAdd,
+  actions,
+}: {
+  parent: string;
+  chosen: readonly {
+    row: BoardRow;
+    type: "complication" | "goes_with" | null;
+    supports: Finding[];
+    offer: Finding[];
+  }[];
+  candidates: readonly Association[];
+  canWrite: boolean;
+  /** A finding's words as the step writes them (with its NEWS2 number where it has one). */
+  finding: (f: Finding) => ReactNode;
+  findingText: (ref: string) => string | null;
+  testName: (id: string) => string;
+  onSupport: (row: BoardRow, f: Finding) => void;
+  onUnsupport: (row: BoardRow, f: Finding) => void;
+  onAdd: (a: Association) => void;
+  /** Status, Details and Remove for a chosen one (the step's own controls). */
+  actions: (row: BoardRow) => ReactNode;
+}) {
+  if (!chosen.length && !candidates.length) return null;
+  return (
+    <section
+      aria-label={`Associated with ${parent}`}
+      className="border-border bg-muted/30 flex flex-col gap-3 rounded-md border px-3 py-3"
+    >
+      <span className="text-caption text-muted-foreground font-medium tracking-[0.06em] uppercase">
+        {`Associated with ${parent}${chosen.length ? ` (${chosen.length})` : ""}`}
+      </span>
+      {chosen.length ? (
+        <ul className="flex flex-col gap-2">
+          {chosen.map(({ row, type, supports, offer }) => (
+            <li
+              key={row.dx.logicalId}
+              className="border-border bg-card flex flex-col gap-2 rounded-md border px-3 py-2.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-body-s text-foreground font-medium">
+                  {row.dx.display}
+                  <span className="text-caption text-muted-foreground font-normal">
+                    {type === "complication" ? " · complication" : type ? " · goes with it" : ""}
+                  </span>
+                </span>
+                <div className="flex flex-wrap items-center gap-1">{actions(row)}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-caption text-muted-foreground">Supports it</span>
+                {supports.length ? (
+                  <ul className="flex flex-wrap gap-1.5">
+                    {supports.map((f) => (
+                      <li key={f.ref}>
+                        <span className="bg-ink-100 dark:bg-ink-700 text-caption inline-flex min-h-7 items-center gap-1 rounded-sm pr-0.5 pl-2">
+                          <span className="font-mono">+</span>
+                          {finding(f)}
+                          {canWrite ? (
+                            <button
+                              type="button"
+                              aria-label={`Remove ${f.text} from the support of ${row.dx.display}`}
+                              onClick={() => onUnsupport(row, f)}
+                              className="hover:bg-card focus-visible:shadow-focus inline-flex size-6 items-center justify-center rounded-xs outline-none pointer-coarse:size-11"
+                            >
+                              <XIcon aria-hidden className="size-3" />
+                            </button>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-caption text-muted-foreground">Nothing selected yet.</p>
+                )}
+              </div>
+              {canWrite && offer.length ? (
+                <div className="flex flex-col gap-1">
+                  <span className="text-caption text-muted-foreground">Add support</span>
+                  <ul className="flex flex-wrap gap-1.5">
+                    {offer.map((f) => (
+                      <li key={f.ref}>
+                        <button
+                          type="button"
+                          onClick={() => onSupport(row, f)}
+                          aria-label={`${f.text}: add it to the support of ${row.dx.display}`}
+                          className="text-caption border-border hover:bg-muted focus-visible:shadow-focus inline-flex min-h-7 items-center gap-1 rounded-sm border border-dashed px-2 outline-none pointer-coarse:min-h-11"
+                        >
+                          {finding(f)}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-caption text-muted-foreground">
+          None chosen yet. Choose from the list below.
+        </p>
+      )}
+      <AssociationsFold
+        parent={parent}
+        items={candidates}
+        findingText={findingText}
+        testName={testName}
+        canWrite={canWrite}
+        onAdd={onAdd}
+        title="Add an association"
+      />
+    </section>
   );
 }
