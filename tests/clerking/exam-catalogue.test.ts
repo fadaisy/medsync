@@ -20,9 +20,9 @@ const handoff = JSON.parse(
 describe("the examination catalogue", () => {
   // The handed-over catalogue plus the GATE A edits, and the diabetes pack's merge: that it only
   // added is tested in ncd-dm-pack.test.ts.
-  it("is pinned by hash, at 1.1.1-draft", () => {
+  it("is pinned by hash, at 1.1.2-draft", () => {
     expect(createHash("sha256").update(runtime).digest("hex")).toBe(signoff.catalogueSha256);
-    expect(ecat.version).toBe("1.1.1-draft");
+    expect(ecat.version).toBe("1.1.2-draft");
     expect(signoff.catalogueVersion).toBe(ecat.version);
   });
 
@@ -30,8 +30,8 @@ describe("the examination catalogue", () => {
     const answerable = ecat.items.filter((i) => i.response.type !== "link");
     expect(ecat.systems).toHaveLength(10);
     expect(ecat.systems.reduce((n, s) => n + s.parts.length, 0)).toBe(41);
-    // + the diabetes pack (Phase 5): 2 items, 3 classifiers, 6 flags, 6 suggestions.
-    expect(answerable).toHaveLength(142);
+    // + the diabetes pack (Phase 5): 2 items, 3 classifiers, 6 flags, 6 suggestions; Core 12: 1 item.
+    expect(answerable).toHaveLength(143);
     expect(ecat.items.length - answerable.length).toBe(9);
     expect(Object.keys(ecat.data.scales)).toHaveLength(17);
     expect(Object.keys(ecat.data.classifiers)).toHaveLength(27);

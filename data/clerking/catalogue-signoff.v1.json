@@ -1,7 +1,7 @@
 {
   "catalogue": "MS-EMR-CLERK-CAT-001",
   "catalogueVersion": "1.0.0-draft",
-  "catalogueSha256": "e0c8568077115c5a9f6c5ef7f38d2a06fe0d644f3bf1457e8283f35be59c7ed4",
+  "catalogueSha256": "5426bb3bf4d9603cf402d8af7e84f89dbb3a708b50604e7d74094207ea1e55fb",
   "signedBy": "Fadhul (owner and CSO)",
   "signedOn": "2026-09-27",
   "gate": "GATE A, clerking desk v2 (docs/emr/clerking-v2/gate-a-proposal.md)",
@@ -25,6 +25,11 @@
       "date": "2026-10-05",
       "gate": "MS-NCD-DM-PACK-001 Phase 5, signed GATE A 2026-10-05 (docs/ncd/diabetes/gate-a-signoff.json)",
       "change": "Diabetes pack 04-history.amendment.json by merge: past_history.condition_details.diabetes (EC-2) with option set last_check; quick picks gliclazide, glimepiride, dapagliflozin, prednisolone; flags FLAG-DM-LOW-NEEDED-HELP and FLAG-DM-ADMITTED-RECENT (applies_to past_history); source ADA-SOC-2026. The version stays 1.0.0-draft: the legacy conversion table is pinned to it. Detail: docs/ncd/diabetes/phase-5/amend-diff.md."
+    },
+    {
+      "date": "2026-10-08",
+      "gate": "Owner decision 'Core 12', signed by the CSO 2026-10-08 (ADR 0216; docs/ncd/diabetes/desk/core-12.amendment.json)",
+      "change": "Diabetes pack questions moved into the clerking by merge: past_history conditions gestational_diabetes_before (female, sexual_reproductive_health), pcos (female), pancreatitis, sickle_cell_trait, g6pd_deficiency, iron_deficiency, b12_deficiency (applies_to_sex on conditions); condition_details pancreatitis (type) and hiv (ART regimen, restricted with HIV); About the diabetes: last HbA1c, last lipid profile (option set last_check) and awareness of lows (Gold score), composer extended; social_history exercise and food. The version stays 1.0.0-draft: the legacy conversion table is pinned to it."
     }
   ]
 }

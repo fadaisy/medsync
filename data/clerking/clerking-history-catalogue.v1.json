@@ -10871,6 +10871,37 @@
    {
     "id": "peptic_ulcer",
     "label": "Peptic ulcer"
+   },
+   {
+    "id": "gestational_diabetes_before",
+    "label": "Gestational diabetes in a previous pregnancy",
+    "sensitivity": "sexual_reproductive_health",
+    "applies_to_sex": "female"
+   },
+   {
+    "id": "pcos",
+    "label": "Polycystic ovary syndrome",
+    "applies_to_sex": "female"
+   },
+   {
+    "id": "pancreatitis",
+    "label": "Pancreatitis"
+   },
+   {
+    "id": "sickle_cell_trait",
+    "label": "Sickle cell trait or another haemoglobin variant"
+   },
+   {
+    "id": "g6pd_deficiency",
+    "label": "G6PD deficiency"
+   },
+   {
+    "id": "iron_deficiency",
+    "label": "Iron deficiency"
+   },
+   {
+    "id": "b12_deficiency",
+    "label": "Vitamin B12 deficiency"
    }
   ],
   "since_options_ref": "since",
@@ -11112,6 +11143,26 @@
       }
      },
      {
+      "id": "last_hba1c",
+      "label": "Last HbA1c",
+      "kind": "one",
+      "options_ref": "last_check",
+      "phrase": {
+       "pre": "last HbA1c ",
+       "post": ""
+      }
+     },
+     {
+      "id": "last_lipids",
+      "label": "Last lipid profile",
+      "kind": "one",
+      "options_ref": "last_check",
+      "phrase": {
+       "pre": "last lipid profile ",
+       "post": ""
+      }
+     },
+     {
       "id": "lows_12_months",
       "label": "Low blood sugar in the last 12 months",
       "kind": "one",
@@ -11143,6 +11194,45 @@
       ],
       "phrase": {
        "pre": "lows in the last year: ",
+       "post": ""
+      }
+     },
+     {
+      "id": "hypo_awareness",
+      "label": "Awareness of lows (Gold score, 1 to 7)",
+      "kind": "one",
+      "options": [
+       {
+        "id": "1",
+        "label": "1 (always aware)"
+       },
+       {
+        "id": "2",
+        "label": "2"
+       },
+       {
+        "id": "3",
+        "label": "3"
+       },
+       {
+        "id": "4",
+        "label": "4"
+       },
+       {
+        "id": "5",
+        "label": "5"
+       },
+       {
+        "id": "6",
+        "label": "6"
+       },
+       {
+        "id": "7",
+        "label": "7 (never aware)"
+       }
+      ],
+      "phrase": {
+       "pre": "awareness of lows: Gold score ",
        "post": ""
       }
      },
@@ -11204,10 +11294,117 @@
       ]
      }
     ],
-    "composer": "Diabetes ({type}) {year_diagnosed}, {treatment}; {complications_told}; {last_eye_check}; {lows_12_months}.",
+    "composer": "Diabetes ({type}) {year_diagnosed}, {treatment}; {complications_told}; {last_eye_check}; {last_hba1c}; {last_lipids}; {lows_12_months}; {hypo_awareness}.",
     "composer_rule": "A clause whose property is unanswered is omitted with its punctuation. An unanswered property is an absent key and leaves no mark in the note.",
     "rule": "Reported, not verified. Nothing here is charted; the type and the complications become qualifiers on the problem-list proposal the clinician confirms.",
     "not_here": "Gestational diabetes in a previous pregnancy is NOT an option under 'type': it would make the woman a known diabetic to every rule. It is a separate past-history question (below), a risk factor, and its restricted class is D-DM-30.",
+    "source": "ADA-SOC-2026",
+    "status": "draft"
+   },
+   "pancreatitis": {
+    "label": "About the pancreatitis",
+    "shown_when": {
+     "past_condition": "pancreatitis",
+     "answer": "yes"
+    },
+    "properties": [
+     {
+      "id": "type",
+      "label": "Type",
+      "kind": "one",
+      "options": [
+       {
+        "id": "acute",
+        "label": "Acute pancreatitis in the past"
+       },
+       {
+        "id": "chronic",
+        "label": "Chronic pancreatitis"
+       }
+      ],
+      "phrase": {
+       "pre": "",
+       "post": ""
+      }
+     }
+    ],
+    "composer": "{type}",
+    "source": "ADA-SOC-2026",
+    "status": "draft"
+   },
+   "hiv": {
+    "label": "About the HIV",
+    "shown_when": {
+     "past_condition": "hiv",
+     "answer": "yes"
+    },
+    "properties": [
+     {
+      "id": "art_regimen",
+      "label": "ART regimen",
+      "kind": "one",
+      "options": [
+       {
+        "id": "tdf_3tc_dtg",
+        "label": "TDF + 3TC + DTG (TLD)"
+       },
+       {
+        "id": "taf_ftc_dtg",
+        "label": "TAF + FTC + DTG"
+       },
+       {
+        "id": "tdf_3tc_efv",
+        "label": "TDF + 3TC + EFV (TLE)"
+       },
+       {
+        "id": "abc_3tc_dtg",
+        "label": "ABC + 3TC + DTG"
+       },
+       {
+        "id": "abc_3tc_efv",
+        "label": "ABC + 3TC + EFV"
+       },
+       {
+        "id": "abc_3tc_lpvr",
+        "label": "ABC + 3TC + LPV/r"
+       },
+       {
+        "id": "azt_3tc_dtg",
+        "label": "AZT + 3TC + DTG"
+       },
+       {
+        "id": "azt_3tc_efv",
+        "label": "AZT + 3TC + EFV"
+       },
+       {
+        "id": "azt_3tc_lpvr",
+        "label": "AZT + 3TC + LPV/r"
+       },
+       {
+        "id": "tdf_3tc_lpvr",
+        "label": "TDF + 3TC + LPV/r"
+       },
+       {
+        "id": "tdf_3tc_atvr",
+        "label": "TDF + 3TC + ATV/r"
+       },
+       {
+        "id": "other",
+        "label": "Other"
+       },
+       {
+        "id": "unknown",
+        "label": "Not known"
+       }
+      ],
+      "phrase": {
+       "pre": "ART regimen: ",
+       "post": ""
+      }
+     }
+    ],
+    "composer": "HIV, {art_regimen}",
+    "rule": "Restricted (hiv) with its condition: shown and written only where HIV is.",
     "source": "ADA-SOC-2026",
     "status": "draft"
    }
@@ -11794,6 +11991,26 @@
    {
     "id": "restricted",
     "label": "Restricted for a condition"
+   }
+  ],
+  "exercise": [
+   {
+    "id": "active",
+    "label": "Physically active"
+   },
+   {
+    "id": "inactive",
+    "label": "Physically inactive"
+   }
+  ],
+  "food": [
+   {
+    "id": "enough",
+    "label": "Always enough food at home"
+   },
+   {
+    "id": "not_enough",
+    "label": "Not always enough food at home"
    }
   ]
  },

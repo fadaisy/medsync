@@ -105,5 +105,9 @@ export interface ClerkingDeskData {
     pregnant: boolean | null;
     /** When that episode began (ISO): results on a pregnancy diagnosis are bounded to it (EC-5). */
     pregnancySince?: string | null;
+    /** Completed weeks of gestation from the episode's LNMP (diabetes pack), while pregnant. */
+    gestationWeeks?: number | null;
+    /** Completed weeks since the newest episode's birth (diabetes pack). */
+    weeksPostpartum?: number | null;
   };
 }

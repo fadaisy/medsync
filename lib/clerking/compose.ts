@@ -4,7 +4,7 @@ import type { Linked } from "./linkage";
 
 import CAGE from "@/data/clerking/cage.v1.json";
 import { cageScore, durationText, packYears } from "./answers";
-import { isRestricted, rosSystemsFor } from "./catalogue";
+import { appliesTo, isRestricted, rosSystemsFor } from "./catalogue";
 import { operationById } from "./pick-lists";
 
 /**
@@ -297,7 +297,9 @@ export function compose(i: ComposeInput): Block[] {
 
   // Past history, medicines, allergies
   const past: string[] = [];
-  const conds = cat.data.past_history.conditions.filter((c) => !hide(c.sensitivity));
+  const conds = cat.data.past_history.conditions.filter(
+    (c) => !hide(c.sensitivity) && appliesTo(c.applies_to_sex, patient.sex),
+  );
   const since = cat.data.option_sets[cat.data.past_history.since_options_ref] ?? [];
   const py = conds
     .filter((c) => h.past.conditions[c.id]?.answer === "yes")
@@ -437,6 +439,8 @@ export function compose(i: ComposeInput): Block[] {
     s.push(`${lc(travel)}${so.travelDetail?.trim() ? ` (${so.travelDetail.trim()})` : ""}`);
   const diet = labelOf(sh.diet, so.diet);
   if (diet) s.push(`diet: ${lc(diet)}`);
+  for (const l of [labelOf(sh.exercise, so.exercise), labelOf(sh.food, so.food)])
+    if (l) s.push(lc(l));
   blocks.push({
     key: "social",
     head: "Social history",

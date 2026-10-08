@@ -145,7 +145,8 @@
   "ex.spine_joints.spinal_tenderness": "sign.spinal_tenderness",
   "ex.spine_joints.step_deformity": "sign.spinal_step_deformity",
   "ex.spine_joints.straight_leg_raise": "sign.straight_leg_raise",
-  "ex.skin.injection_sites": "sign.lipohypertrophy"
+  "ex.skin.injection_sites": "sign.lipohypertrophy",
+  "ex.skin.acanthosis_nigricans": "sign.acanthosis_nigricans"
  },
  "options": [
   {

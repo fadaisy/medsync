@@ -1,7 +1,7 @@
 {
  "id": "MS-EMR-EXAM-CAT-001",
  "title": "MedSync clerking examination catalogue",
- "version": "1.1.1-draft",
+ "version": "1.1.2-draft",
  "status": "signed-gate-a",
  "generated": "2026-09-27",
  "scope": "Adult examination for the clerking desk: vital signs and anthropometry, General (appearance, distress, consciousness, attachments, signs, hydration and nutrition), nine systems and a diabetic foot screen. Paediatric, obstetric and gynaecological examination are out of scope.",
@@ -3175,7 +3175,8 @@
       "ex.skin.petechiae_purpura",
       "ex.skin.pressure_injury",
       "ex.skin.lesions",
-      "ex.skin.injection_sites"
+      "ex.skin.injection_sites",
+      "ex.skin.acanthosis_nigricans"
      ]
     },
     {
@@ -12922,6 +12923,53 @@
    ],
    "sensitivity": "standard",
    "applies_to_sex": null
+  },
+  "ex.skin.acanthosis_nigricans": {
+   "id": "ex.skin.acanthosis_nigricans",
+   "label": "Acanthosis nigricans",
+   "response": {
+    "type": "presence",
+    "negative_label": "Absent",
+    "positive_label": "Present"
+   },
+   "attributes": [
+    {
+     "id": "where",
+     "label": "Where",
+     "kind": "many",
+     "options": [
+      {
+       "id": "posterior_neck",
+       "label": "Posterior neck"
+      },
+      {
+       "id": "axillae",
+       "label": "Axillae"
+      },
+      {
+       "id": "groin",
+       "label": "Groin"
+      },
+      {
+       "id": "knuckles",
+       "label": "Knuckles"
+      },
+      {
+       "id": "under_breasts",
+       "label": "Under the breasts"
+      }
+     ]
+    }
+   ],
+   "phrase": {
+    "negative": "no acanthosis nigricans",
+    "positive": "acanthosis nigricans"
+   },
+   "sensitivity": "standard",
+   "applies_to_sex": null,
+   "hint": {
+    "text": "Lift the hair and look at the back of the neck, then the axillae, the groin, the knuckles and under the breasts. The sign is a velvety thickening of the skin; it does not scrape off."
+   }
   }
  },
  "shared_facts": [
@@ -17532,6 +17580,14 @@
     "FLAG-EX-INSULIN-STOPPED badge names the medicine ('Stopped {medicine}'), so it merges with FLAG-MED-ADHERENCE's badge for any insulin.",
     "dr_review: macular oedema not involving the centre reads 'Refer routinely, and re-examine in 3 months' (ICO; agrees with DM-ACT-REFER-EYE-03).",
     "Confirmed as written: the systemic-steroid exclude_words and the classifier wording."
+   ]
+  },
+  {
+   "version": "1.1.2-draft",
+   "date": "2026-10-08",
+   "by": "Owner decision 'Core 12', signed by the CSO 2026-10-08 (ADR 0216; docs/ncd/diabetes/desk/core-12.amendment.json)",
+   "changes": [
+    "ex.skin.acanthosis_nigricans (presence, where: posterior neck, axillae, groin, knuckles, under the breasts) added to Skin inspection; CFC sign.acanthosis_nigricans."
    ]
   }
  ]

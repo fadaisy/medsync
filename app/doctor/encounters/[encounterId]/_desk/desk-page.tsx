@@ -7,9 +7,16 @@ import { ArrowLeftIcon } from "lucide-react";
 import { sectionWith } from "@/components/emr/desk/model";
 import { EncounterPrescriptions } from "@/components/emr/prescribing/encounter-prescriptions";
 import { SafetyBarView } from "@/components/emr/safety-bar";
+import { ncdDmDeskFor } from "@/lib/emr/feature";
 import { loadDesk } from "@/lib/emr/read/desk";
 import { ncdPackLive } from "@/lib/encounter/feature";
-import { leanDiabetesPack, ncdCatalog, packFieldCodes } from "@/lib/ncd/pack/capture";
+import {
+  leanDiabetesPack,
+  ncdCatalog,
+  packCaptureCatalog,
+  packFieldCodes,
+} from "@/lib/ncd/pack/capture";
+import { moreQuestionsCatalog } from "@/lib/ncd/pack/more-questions";
 import { initialCapture, loadLatestVitals, loadPatientDemographics } from "@/lib/ncd/vitals";
 import { doctorWorkspace } from "@/lib/workspace/feature";
 import { EncounterOrders } from "../_orders/encounter-orders";
@@ -94,6 +101,17 @@ export async function DeskPage({
         : undefined,
     };
   }
+  // NCD_DM_DESK (ADR 0216): the pack reads the clerking; the module keeps only the questions the
+  // clerking does not ask, with no panel of its own (the desk shows the result).
+  const dmDesk = !!p.clerking && ncdDmDeskFor(scope.hospitalId);
+  if (dmDesk && ncdSeed) {
+    ncdSeed = {
+      ...ncdSeed,
+      catalog: moreQuestionsCatalog(packCaptureCatalog()),
+      pack: undefined,
+      formOnly: true,
+    };
+  }
 
   return (
     <div className="bg-background text-foreground flex min-h-svh flex-col xl:h-dvh xl:overflow-hidden">
@@ -125,6 +143,10 @@ export async function DeskPage({
         key={p.template.id}
         p={p}
         ncdSeed={ncdSeed}
+        dm={
+          // NCD_DM_DESK (ADR 0216): the diabetes pack runs on the ten-step clerking record.
+          dmDesk ? { pack: leanDiabetesPack(), fields: packFieldCodes() } : null
+        }
         orders={
           p.flags.actionsAllowed && p.draft ? (
             <Suspense fallback={null}>

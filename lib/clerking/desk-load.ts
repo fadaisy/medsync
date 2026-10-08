@@ -19,6 +19,7 @@ import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
 import { loadFactSnapshot } from "@/lib/facts/loader";
+import { PACK_RESULT_CONCEPTS } from "@/lib/ncd/pack/from-clerking";
 import { RESULT_CONCEPTS } from "./exam/context";
 import { EXAM_CATALOGUE, EXAM_SIGNOFF } from "./exam/load";
 import { DX_CATALOGUE, DX_SIGNOFF } from "./impression/load";
@@ -123,12 +124,28 @@ async function latestExamSet(
   };
 }
 
-async function pregnancyOf(
-  db: EmrDb,
-  patientUserId: string,
-): Promise<{ pregnant: boolean | null; since: string | null }> {
+type PregnancyRead = {
+  pregnant: boolean | null;
+  since: string | null;
+  gestationWeeks: number | null;
+  weeksPostpartum: number | null;
+};
+
+const WEEK_MS = 7 * 86_400_000;
+/** Completed weeks from a date to now; null without the date. */
+const weeksSince = (d: string | Date | null | undefined, now = Date.now()) =>
+  d ? Math.floor((now - new Date(d).getTime()) / WEEK_MS) : null;
+
+/** The newest pregnancy episode: its state, and the weeks the diabetes pack reads (gestation from
+ *  the LNMP only, as the fact projector does: no obstetric constant, MR-39; weeks since the birth). */
+async function pregnancyOf(db: EmrDb, patientUserId: string): Promise<PregnancyRead> {
   const [p] = await db
-    .select({ state: pregnancyEpisodes.pregnancyState, at: pregnancyEpisodes.effectiveAt })
+    .select({
+      state: pregnancyEpisodes.pregnancyState,
+      at: pregnancyEpisodes.effectiveAt,
+      lnmp: pregnancyEpisodes.lnmp,
+      deliveredAt: pregnancyEpisodes.deliveredAt,
+    })
     .from(pregnancyEpisodes)
     .where(
       and(
@@ -144,18 +161,32 @@ async function pregnancyOf(
       : p?.state === "not_pregnant" || p?.state === "postpartum"
         ? false
         : null;
-  return { pregnant, since: pregnant && p?.at ? new Date(p.at).toISOString() : null };
+  return {
+    pregnant,
+    since: pregnant && p?.at ? new Date(p.at).toISOString() : null,
+    gestationWeeks: pregnant ? weeksSince(p?.lnmp) : null,
+    weeksPostpartum: weeksSince(p?.deliveredAt),
+  };
 }
 
-/** An observation fact as the `result` atom reads it; null when it has no number. */
+/** A dipstick grade: negative 0, trace 0.5, plusN N. */
+const stripGrade = (code: string) =>
+  code === "negative" ? 0 : code === "trace" ? 0.5 : Number(/^plus(\d)$/.exec(code)?.[1] ?? NaN);
+
+/** An observation fact as the `result` atom reads it; null when it has no number (a dipstick's
+ *  grade counts as one, with its code). */
 export function resultFact(f: ObservationFact): ResultFact | null {
-  if (f.value.type !== "quantity" || !f.interpretable.ok) return null;
+  const v = f.value;
+  if (!f.interpretable.ok || v.type === "boolean") return null;
+  const grade = v.type === "coded" ? stripGrade(v.code) : 0;
+  if (Number.isNaN(grade)) return null;
   const c = f.context;
   const ch = c.challenge;
   return {
     concept: f.concept,
-    value: f.value.canonical.value,
-    ...(f.value.comparator ? { comparator: f.value.comparator } : {}),
+    ...(v.type === "quantity"
+      ? { value: v.canonical.value, ...(v.comparator ? { comparator: v.comparator } : {}) }
+      : { value: grade, code: v.code }),
     at: "at" in f.effective ? f.effective.at : f.effective.start,
     trust: f.trust,
     ...(c.fastingState ? { fastingState: c.fastingState } : {}),
@@ -249,13 +280,20 @@ export async function clerkingData(i: {
   const avpuWord = cells.avpu?.value.split(" ")[0]?.toLowerCase().replace(/ /g, "_");
   const [examSet, pregnancy, facts] = await Promise.all([
     latestExamSet(owner, i).catch(() => null),
-    pregnancyOf(owner, i.patientUserId).catch(() => ({ pregnant: null, since: null })),
+    pregnancyOf(owner, i.patientUserId).catch(
+      (): PregnancyRead => ({
+        pregnant: null,
+        since: null,
+        gestationWeeks: null,
+        weeksPostpartum: null,
+      }),
+    ),
     // Read under RLS as the clinician; a failure leaves every result atom unknown, never false.
     asClinicalReader(
       i.scope,
       (tx) =>
         loadFactSnapshot(tx, i.patientUserId, {
-          manifest: RESULT_CONCEPTS,
+          manifest: [...RESULT_CONCEPTS, ...PACK_RESULT_CONCEPTS],
           purpose: "interactive",
           perConceptCap: 20,
         }),
@@ -400,6 +438,8 @@ export async function clerkingData(i: {
       set: examSet,
       pregnant: pregnancy.pregnant,
       pregnancySince: pregnancy.since,
+      gestationWeeks: pregnancy.gestationWeeks,
+      weeksPostpartum: pregnancy.weeksPostpartum,
     },
     conversionFlags: CLERKING_LEGACY.flags,
     signoff: {

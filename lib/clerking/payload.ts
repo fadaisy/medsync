@@ -88,6 +88,8 @@ export const HistorySchema = z.object({
     travel: id.optional(),
     travelDetail: text(500).optional(),
     diet: id.optional(),
+    exercise: id.optional(),
+    food: id.optional(),
   }),
   converted: z
     .object({

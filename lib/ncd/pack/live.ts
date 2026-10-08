@@ -280,7 +280,12 @@ export interface PackContext {
 
 /** The pack's input for a live capture (go-live and shadow alike). */
 export function toPackInput(values: CaptureMap, ctx: PackContext): PackInput {
-  const v = toPackValues(values, ctx.packFields);
+  return packInputOf(toPackValues(values, ctx.packFields), ctx);
+}
+
+/** Pack values plus what the encounter knows (age band, care setting, pregnancy possible,
+ *  established); the clerking translator shares it (lib/ncd/pack/from-clerking.ts). */
+export function packInputOf(v: PackValues, ctx: PackContext): PackInput {
   if (typeof ctx.ageYears === "number") v.age_years = ctx.ageYears;
   if (ctx.careSetting) v.care_setting = ctx.careSetting;
   // P0-02: "could be pregnant" from sex and age (REF-PREG-AGE); unknown sex or age stays unknown.

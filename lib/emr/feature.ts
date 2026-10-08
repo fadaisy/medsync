@@ -45,6 +45,17 @@ export function clerkingV2LiveFor(hospitalId: string): boolean {
 }
 
 /**
+ * The diabetes pack inside the ten-step desk (ADR 0216), per hospital, off by default:
+ * `NCD_DM_DESK=1` or a comma list of hospital ids, and only where CLERKING_V2 is on. On, the pack
+ * reads the clerking as it is written: flags, the Impression's diabetes verdict, a profile card.
+ */
+export function ncdDmDeskFor(hospitalId: string): boolean {
+  const value = process.env.NCD_DM_DESK?.trim();
+  if (!value || !clerkingV2LiveFor(hospitalId)) return false;
+  return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}
+
+/**
  * Step 10 Plan by problem (ADR 0184), per hospital, off by default: `CLERKING_PLAN_V2=1` or a
  * comma list of hospital ids, and only where CLERKING_V2 is on. Needs migrations 0087–0089.
  * Prescribing from the Plan also needs EMR_PRESCRIBING. Off, step 10 is the v1 Plan unchanged.

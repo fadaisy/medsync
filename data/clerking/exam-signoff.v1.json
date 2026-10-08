@@ -1,7 +1,7 @@
 {
   "catalogue": "MS-EMR-EXAM-CAT-001",
-  "catalogueVersion": "1.1.1-draft",
-  "catalogueSha256": "86593599c51c93d0838568c1946850a36363312d894fc0cf30d9043fe22b25fb",
+  "catalogueVersion": "1.1.2-draft",
+  "catalogueSha256": "29d6839dca9cf0d6d1408bc4fe7c500c3b534176117920248b653f1e7dd0a203",
   "signedBy": "Fadhul (owner and CSO)",
   "signedOn": "2026-09-27",
   "gate": "GATE A, clerking examination v2 (docs/emr/clerking-v2/exam/gate-a-proposal.md)",
@@ -21,6 +21,11 @@
       "date": "2026-10-05",
       "gate": "STOP 5 answers, signed by the CSO 2026-10-05 (docs/ncd/diabetes/phase-5/stop5-signoff.json)",
       "change": "1.1.0-draft → 1.1.1-draft: the STOP 5 answers (see the catalogue's change_log)."
+    },
+    {
+      "date": "2026-10-08",
+      "gate": "Owner decision 'Core 12', signed by the CSO 2026-10-08 (ADR 0216; docs/ncd/diabetes/desk/core-12.amendment.json)",
+      "change": "1.1.1-draft → 1.1.2-draft: ex.skin.acanthosis_nigricans added to Skin inspection (see the catalogue's change_log)."
     }
   ]
 }

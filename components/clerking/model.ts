@@ -12,6 +12,8 @@ import type { Badge, Flag, Signoff } from "@/lib/clerking/flags";
 import type { Linked } from "@/lib/clerking/linkage";
 import type { SectionId, SectionStatus, Tone } from "@/lib/clerking/status";
 import type { NoteContent, SignValidation } from "@/lib/emr/note-rules";
+import type { DeskDiabetes } from "@/lib/ncd/pack/desk";
+import type { DiabetesPack } from "@/lib/ncd/pack/types";
 import type { AdultVitals, News2Result } from "@/lib/triage/types";
 
 import { deskValidation, hasContent, itemsOf, itemWords } from "@/components/emr/desk/model";
@@ -25,6 +27,10 @@ import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
 import { composeImpression } from "@/lib/clerking/impression/compose";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { doneCount, SECTIONS, sectionStatuses } from "@/lib/clerking/status";
+import { captureFromNote } from "@/lib/ncd/cfc-map";
+import { deskDiabetes } from "@/lib/ncd/pack/desk";
+import { packInputFromClerking } from "@/lib/ncd/pack/from-clerking";
+import { toPackValues } from "@/lib/ncd/pack/live";
 import {
   NEWS2_PULSE,
   NEWS2_RESP_RATE,
@@ -194,6 +200,30 @@ function impressionText(
 
 /* ─── Everything the shell derives, in one pure pass ─────────────── */
 
+/** The pack on the clerking record; answers typed in "More diabetes questions" fill only what
+ *  the record does not answer (the record wins). */
+function deskDiabetesOf(
+  dm: { pack: DiabetesPack; fields: readonly string[] },
+  p: DeskPayload,
+  c: NoteContent,
+  x: NonNullable<ExamView["x"]>,
+): DeskDiabetes {
+  const k = p.clerking!;
+  const { input } = packInputFromClerking({
+    x,
+    problems: p.context.problems,
+    diagnoses: p.diagnoses,
+    pregnancy: { gestationWeeks: k.exam.gestationWeeks, weeksPostpartum: k.exam.weeksPostpartum },
+    // Restricted classes (HIV, TB, mental health, SRH) only for a viewer who may see them.
+    viewer: k.canSeeRestricted ? undefined : { classes: new Set<string>() },
+  });
+  const typed = captureFromNote(c);
+  return deskDiabetes(
+    dm.pack,
+    typed ? { ...input, values: { ...toPackValues(typed, dm.fields), ...input.values } } : input,
+  );
+}
+
 export interface Derived {
   /** The structured examination (null while its catalogue loads, or for a previous-format draft). */
   exam: ExamView | null;
@@ -211,6 +241,8 @@ export interface Derived {
   si: SiView | null;
   /** Step 10 by problem (null where CLERKING_PLAN_V2 is off, or while 08–09 load). */
   plan: PlanView | null;
+  /** The diabetes pack on this record (NCD_DM_DESK; null when off or while the exam loads). */
+  diabetes: DeskDiabetes | null;
 }
 
 export function deriveDesk(
@@ -220,6 +252,8 @@ export function deriveDesk(
   ecat: ExamCatalogue | null = null,
   timeOf?: (iso: string) => string,
   dx: DxData | null = null,
+  /** NCD_DM_DESK: the lean diabetes pack (and its form's own field codes), run on the record. */
+  dm: { pack: DiabetesPack; fields: readonly string[] } | null = null,
 ): Derived {
   const k = p.clerking!;
   const history = historyOf(c);
@@ -230,6 +264,7 @@ export function deriveDesk(
       ? deriveExam({ ecat, cat, p, content: c, history, linked, timeOf })
       : null;
   const news2 = k.vitalsAt ? scoreNews2(k.vitals) : null;
+  const diabetes = dm && exam ? deskDiabetesOf(dm, p, c, exam.x) : null;
   const patient = { ageYears: k.ageYears, sex: k.sex };
   const flags = evaluateFlags(cat, {
     history,
@@ -245,7 +280,8 @@ export function deriveDesk(
     signoff: k.signoff,
   })
     .concat(conversionFlags(cat, k.conversionFlags ?? {}, history))
-    .concat(exam?.flags ?? []);
+    .concat(exam?.flags ?? [])
+    .concat(diabetes?.flags ?? []);
   const allergiesConfirmed = k.allergies.touchedThisVisit || !!history.past.allergiesConfirmed;
   const si = deriveSi({
     p,
@@ -259,7 +295,9 @@ export function deriveDesk(
     dx,
     signed: p.draft === null && !!p.signed,
   });
-  const imp = si ? deriveImpression(si, dx, { inPlan: () => new Set() }) : null;
+  const imp = si
+    ? deriveImpression(si, dx, { inPlan: () => new Set(), diabetes: diabetes?.verdict ?? null })
+    : null;
   const plan =
     si && p.plan
       ? derivePlan({ p, content: c, board: si.board, dx, news2: exam?.news2Latest ?? news2 })
@@ -351,6 +389,7 @@ export function deriveDesk(
     validation,
     si,
     plan,
+    diabetes,
   };
 }
 

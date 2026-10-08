@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — The diabetes pack reads the ten-step clerking, behind `NCD_DM_DESK` (off) — 2026-10-08
+
+- As the clinician clerks, the diabetes pack runs on the record itself (history, past history and "About the
+  diabetes", medicines, examination, vital signs with glucose, results): no separate form ([ADR 0216](docs/adr/0216-the-diabetes-pack-reads-the-clerking.md)).
+- Its interrupt, same-day items and medicines to review are Flags; Impression's diabetes suggestion is worded by the
+  pack's verdict; a Diabetes profile card appears beside the note once diabetes is known or suspected; the Plan lists
+  due checks and targets (read only).
+- The desk now loads potassium, creatinine, lipids, urine protein and pregnancy dates; eGFR by CKD-EPI 2021.
+- Questions the clerking does not ask go to a short "More diabetes questions" pop-up. 42 mapping rulings await the
+  CSO (`docs/ncd/diabetes/desk/mapping-rulings.md`). No migration.
+
 ### Changed — NCDSync: a superadmin can hold registry roles assigned explicitly — 2026-10-06
 
 - Migration **0094** (GATED, owner-applied) changes `private.ncd_user_roles`: a superadmin now holds the NCD roles
