@@ -13,8 +13,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   pack's verdict; a Diabetes profile card appears beside the note once diabetes is known or suspected; the Plan lists
   due checks and targets (read only).
 - The desk now loads potassium, creatinine, lipids, urine protein and pregnancy dates; eGFR by CKD-EPI 2021.
-- Questions the clerking does not ask go to a short "More diabetes questions" pop-up. 42 mapping rulings await the
-  CSO (`docs/ncd/diabetes/desk/mapping-rulings.md`). No migration.
+- Questions the clerking does not ask go to a short "More diabetes questions" pop-up. 46 mapping rulings signed by the CSO
+  (`docs/ncd/diabetes/desk/mapping-rulings.md`). Twelve clerking questions added (live on deploy). No migration.
 
 ### Changed — NCDSync: a superadmin can hold registry roles assigned explicitly — 2026-10-06
 
@@ -105,6 +105,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **Bed state and assignment** ([ADR 0194](docs/adr/0194-bed-state-and-assignment.md)): Occupied from an open assignment, Out from the register, Cleaning, Reserved or Free from append-only events; the admin, the in-charge and the ward's nurses act; a PHI-free live topic.
 - **Scoped keyboard shortcuts** ([ADR 0195](docs/adr/0195-scoped-keyboard-shortcuts-in-the-ward-builder.md)): on the editor's root, never global; text fields keep their keys; an Items list so drag is never the only way.
 - **Layout checks are proposed warnings** ([ADR 0196](docs/adr/0196-layout-checks-are-proposed-warnings.md)): only duplicate numbers and a bed on a bed block; the warnings shown are recorded.
+
+### Added — Impression: "Show all" diagnoses in a centred pop-up — 2026-09-28
+
+- Step 09's "Add a diagnosis" has a **Show all** button beside the search. It opens every diagnosis term in a centred pop-up, grouped by the 18 categories of the signed diagnosis catalogue (symptom-level terms first, A to Z within each group), with a filter by name, synonym or code.
+- A tap adds the term as the "Add as" choice shows (Leading, Differential or Also this visit, available inside the pop-up too), and the list stays open to add the next. Each row shows its ICD-11 code or "Not coded" and a lock when restricted; a term already on this visit is ticked and disabled.
+- Behind `CLERKING_V2`; no migration.
 
 ### Added — Clerking v2 step 10: the Plan by problem, prescribing and monitoring charts, dark behind `CLERKING_PLAN_V2` — 2026-09-28
 

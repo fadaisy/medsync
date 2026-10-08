@@ -17,6 +17,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   ClockIcon,
+  LayoutGridIcon,
   PlusIcon,
   ShieldAlertIcon,
   StarIcon,
@@ -45,6 +46,7 @@ import {
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
+import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
 import { EvidenceMatrix } from "./matrix";
 
@@ -150,6 +152,40 @@ const ADD_AS = (hasLeading: boolean) => [
   { id: "differential" as const, label: "Differential" },
   { id: "also" as const, label: "Also this visit" },
 ];
+type AddAsSlot = ReturnType<typeof ADD_AS>[number]["id"];
+
+/** "Add as", on the step and in "Show all". A phone takes the three choices as a select (§5.6). */
+function AddAs({
+  value,
+  hasLeading,
+  onPick,
+}: {
+  value: AddAsSlot;
+  hasLeading: boolean;
+  onPick: (v: AddAsSlot) => void;
+}) {
+  return (
+    <>
+      <div className="max-sm:hidden">
+        <Seg label="Add as" options={ADD_AS(hasLeading)} value={value} onPick={onPick} />
+      </div>
+      <label className="text-caption text-muted-foreground flex flex-col gap-1 sm:hidden">
+        Add as
+        <select
+          value={value}
+          onChange={(e) => onPick(e.target.value as AddAsSlot)}
+          className="border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-11 rounded-sm border px-2 outline-none"
+        >
+          {ADD_AS(hasLeading).map((o) => (
+            <option key={o.id} value={o.id} disabled={o.disabled}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </>
+  );
+}
 
 function MnmPill({ unlikely }: { unlikely?: boolean }) {
   return (
@@ -277,7 +313,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
   const [allRows, setAllRows] = useState(false);
   const [more, setMore] = useState(false);
   const [deferText, setDeferText] = useState("");
-  const [addAs, setAddAs] = useState<"leading" | "differential" | "also" | null>(null);
+  const [addAs, setAddAs] = useState<AddAsSlot | null>(null);
+  const [browse, setBrowse] = useState(false);
   const slot = addAs ?? (lead ? "differential" : "leading");
   const stamp = () => ({ by: props.actor, at: new Date().toISOString() });
   const matrixOn = view === "matrix" && props.wide && !!dx;
@@ -297,6 +334,16 @@ export function ImpressionStep(props: ImpressionStepProps) {
   const onAccept = (col: Column) => props.onImpression((d) => acceptColumn(d, col, stamp()));
   const setLik = (row: BoardRow, l: Likelihood) =>
     props.onImpression((d) => withLikelihood(d, row.dx.logicalId, l));
+
+  /** A term or typed words from the search or "Show all", added as "Add as" shows. */
+  const addPicked = (pick: DxPick) => {
+    props.on.onDiagnosis?.(pick, {
+      verification: slot === "differential" ? "differential" : "provisional",
+      primary: slot === "leading",
+      addToProblemList: null,
+    });
+    setAddAs(null);
+  };
 
   const addSuggestion = (g: NamedSuggestion) => {
     const asLeading = g.forLeading && !lead;
@@ -864,46 +911,47 @@ export function ImpressionStep(props: ImpressionStepProps) {
         </Section>
       ) : null}
 
-      {/* Add a diagnosis (§5.3) */}
+      {/* Add a diagnosis (§5.3), from the search or from "Show all" */}
       {canWrite && props.on.onDiagnosis ? (
         <Section id="impression-add-heading" title="Add a diagnosis">
-          {/* A phone takes the three choices as a select above the picker (§5.6). */}
-          <div className="max-sm:hidden">
-            <Seg label="Add as" options={ADD_AS(!!lead)} value={slot} onPick={setAddAs} />
-          </div>
-          <label className="text-caption text-muted-foreground flex flex-col gap-1 sm:hidden">
-            Add as
-            <select
-              value={slot}
-              onChange={(e) => setAddAs(e.target.value as typeof slot)}
-              className="border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-11 rounded-sm border px-2 outline-none"
+          <AddAs value={slot} hasLeading={!!lead} onPick={setAddAs} />
+          <div className="flex items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <DiagnosisPicker
+                id="impression-add"
+                label="Diagnosis"
+                load={props.loaders.terms}
+                search={props.loaders.searchTerms}
+                disabled={props.busy === "dx"}
+                typedRow
+                already={(t) => !!duplicateOf(si.recorded, { termId: t.id })}
+                alreadyTyped={(w) =>
+                  si.recorded.some((d) => normaliseTyped(d.display) === normaliseTyped(w))
+                }
+                onPick={addPicked}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              aria-haspopup="dialog"
+              className="min-h-9 shrink-0 pointer-coarse:min-h-11"
+              onClick={() => setBrowse(true)}
             >
-              {ADD_AS(!!lead).map((o) => (
-                <option key={o.id} value={o.id} disabled={o.disabled}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <DiagnosisPicker
-            id="impression-add"
-            label="Diagnosis"
+              <LayoutGridIcon aria-hidden />
+              Show all<span className="sr-only"> diagnoses</span>
+            </Button>
+          </div>
+          <DiagnosisBrowseDialog
+            open={browse}
+            onOpenChange={setBrowse}
             load={props.loaders.terms}
-            search={props.loaders.searchTerms}
-            disabled={props.busy === "dx"}
-            typedRow
+            dx={dx}
+            addAs={<AddAs value={slot} hasLeading={!!lead} onPick={setAddAs} />}
             already={(t) => !!duplicateOf(si.recorded, { termId: t.id })}
-            alreadyTyped={(w) =>
-              si.recorded.some((d) => normaliseTyped(d.display) === normaliseTyped(w))
-            }
-            onPick={(pick) => {
-              props.on.onDiagnosis!(pick, {
-                verification: slot === "differential" ? "differential" : "provisional",
-                primary: slot === "leading",
-                addToProblemList: null,
-              });
-              setAddAs(null);
-            }}
+            disabled={props.busy === "dx"}
+            onPick={(term) => addPicked({ term })}
           />
         </Section>
       ) : null}
