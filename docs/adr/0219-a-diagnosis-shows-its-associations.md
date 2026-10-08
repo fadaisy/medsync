@@ -27,3 +27,6 @@ differential (pneumonia → TB, PCP) as an association.
 4. **The link lives in this visit's Impression** (`meta.with` on the parent), not in the record: the note reads
    "Type 2 diabetes (…). With: diabetic retinopathy." and "Diabetic retinopathy, working, with type 2 diabetes."
    Both stay separate diagnoses. A record-level link can follow if this proves itself.
+5. **Arranged and flagged** (2026-10-08): the chosen associations can be moved up and down (their order is the note's)
+   and flagged (a "Flagged" word on the card, "(flagged)" in the note); "Add an association" is its own full-width
+   section under the leading diagnosis.

@@ -205,6 +205,7 @@ export const ImpressionSchema = z.object({
       severity: text(120).optional(),
       reasoning: text(10_000).optional(),
       with: z.array(z.string().max(80)).max(40).optional(),
+      flagged: z.array(z.string().max(80)).max(40).optional(),
     }),
   ),
   catalogueVersion: text(40),

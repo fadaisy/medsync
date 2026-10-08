@@ -29,7 +29,12 @@ import { DiagnosisPicker } from "@/components/emr/desk/pickers";
 import { PRESS } from "@/components/emr/orders/choice-chips";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
-import { associationsOf, withLink } from "@/lib/clerking/impression/associations";
+import {
+  associationsOf,
+  withFlag,
+  withLink,
+  withMoved,
+} from "@/lib/clerking/impression/associations";
 import {
   canMove,
   duplicateOf,
@@ -48,7 +53,7 @@ import {
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
-import { AssociatedContainer } from "./associations";
+import { AssociatedContainer, AssociationCandidates } from "./associations";
 import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
 import { EvidenceMatrix } from "./matrix";
@@ -396,10 +401,11 @@ export function ImpressionStep(props: ImpressionStepProps) {
   };
   // The leading diagnosis's chosen associations (meta.with) and their supports (owner, 2026-10-08).
   const leadAssoc = lead ? assocOf(lead) : [];
-  const linkedIds = new Set(lead ? (si.impression.meta[lead.dx.logicalId]?.with ?? []) : []);
-  const chosenRows = [...b.differential, ...b.also].filter(
-    (r) => !!r.dx.dxId && linkedIds.has(r.dx.dxId),
-  );
+  const leadLinks = lead ? (si.impression.meta[lead.dx.logicalId] ?? {}) : {};
+  // In the order the clinician arranged them (meta.with), which is their order in the note.
+  const chosenRows = (leadLinks.with ?? [])
+    .map((id) => [...b.differential, ...b.also].find((r) => r.dx.dxId === id))
+    .filter((r): r is BoardRow => !!r);
   const chosenSet = new Set(chosenRows);
   const supportsOf = (row: BoardRow) =>
     Object.entries(si.impression.evidence[row.dx.logicalId] ?? {})
@@ -412,6 +418,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
       row,
       type: leadAssoc.find((a) => a.dxId === row.dx.dxId)?.type ?? null,
       supports,
+      flagged: !!row.dx.dxId && (leadLinks.flagged ?? []).includes(row.dx.dxId),
     };
   });
   const target = chosenRows.find((r) => r.dx.logicalId === bucketTo) ?? null;
@@ -593,8 +600,6 @@ export function ImpressionStep(props: ImpressionStepProps) {
                   candidates={leadAssoc.filter((a) => !a.linked)}
                   canWrite={canWrite && !!props.on.onDiagnosis}
                   finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
-                  findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
-                  testName={testName}
                   active={target?.dx.logicalId ?? null}
                   onActivate={(row) => setBucketTo(row?.dx.logicalId ?? null)}
                   onUnsupport={(row, f) =>
@@ -602,7 +607,12 @@ export function ImpressionStep(props: ImpressionStepProps) {
                       withMark(d, row.dx.logicalId, f.ref, "blank", stamp()),
                     )
                   }
-                  onAdd={(a) => addAssociation(lead, a)}
+                  onMove={(row, by) =>
+                    props.onImpression((d) => withMoved(d, lead.dx.logicalId, row.dx.dxId!, by))
+                  }
+                  onFlag={(row) =>
+                    props.onImpression((d) => withFlag(d, lead.dx.logicalId, row.dx.dxId!))
+                  }
                   actions={(row) => (
                     <>
                       <StatusControl
@@ -803,6 +813,18 @@ export function ImpressionStep(props: ImpressionStepProps) {
           </div>
         )}
       </section>
+
+      {/* Add an association (owner, 2026-10-08): its own section, the whole width */}
+      {lead ? (
+        <AssociationCandidates
+          parent={lead.dx.display}
+          items={leadAssoc.filter((a) => !a.linked)}
+          findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
+          testName={testName}
+          canWrite={canWrite && !!props.on.onDiagnosis}
+          onAdd={(a) => addAssociation(lead, a)}
+        />
+      ) : null}
 
       {/* Differential (§5.3, §5.4) */}
       <Section

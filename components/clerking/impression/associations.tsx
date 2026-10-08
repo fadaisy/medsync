@@ -2,93 +2,10 @@ import type { Association } from "@/lib/clerking/impression/associations";
 import type { BoardRow } from "@/lib/clerking/impression/board";
 import type { Finding } from "@/lib/clerking/impression/facts";
 import type { ReactNode } from "react";
-import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, FlagIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-/**
- * "Associated" under a diagnosis on step 09 (owner, 2026-10-08): its complications and the
- * conditions that go with it. Each says what the record already supports, or what would check for
- * it, and comes onto the visit only when the clinician adds it, linked to this diagnosis ("with" in
- * the note). Folded unless something is supported. Native <details>: no state of ours.
- */
-export function AssociationsFold({
-  parent,
-  title,
-  items,
-  findingText,
-  testName,
-  canWrite,
-  onAdd,
-}: {
-  parent: string;
-  items: readonly Association[];
-  findingText: (ref: string) => string | null;
-  testName: (id: string) => string;
-  canWrite: boolean;
-  /** Add it to the visit (or, when already there, link it) as associated with the parent. */
-  onAdd: (a: Association) => void;
-  title?: string;
-}) {
-  if (!items.length) return null;
-  const supported = items.filter((a) => a.supportedBy.length).length;
-  return (
-    <details open={supported > 0} className="group/assoc">
-      <summary className="text-caption text-muted-foreground focus-visible:shadow-focus flex w-fit cursor-pointer list-none items-center gap-1 rounded-xs outline-none [&::-webkit-details-marker]:hidden">
-        <ChevronDownIcon
-          aria-hidden
-          className="ease-expo-out size-3.5 -rotate-90 transition-transform duration-150 group-open/assoc:rotate-0 motion-reduce:transition-none"
-        />
-        {`${title ?? `Associated with ${parent}`} (${items.length})`}
-        {supported ? <span className="text-teal-text">{` · ${supported} supported`}</span> : null}
-      </summary>
-      <ul className="mt-1.5 flex flex-col gap-1.5">
-        {items.map((a) => {
-          const why = a.supportedBy.map(findingText).filter((t): t is string => !!t);
-          return (
-            <li
-              key={a.dxId}
-              className="border-border flex flex-wrap items-start justify-between gap-x-3 gap-y-1 rounded-md border px-2.5 py-1.5"
-            >
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-body-s text-foreground">
-                  {a.display}
-                  <span className="text-caption text-muted-foreground">
-                    {a.type === "complication" ? " · complication" : " · goes with it"}
-                    {a.mustNotMiss ? " · must not miss" : ""}
-                  </span>
-                </span>
-                <span
-                  className={cn(
-                    "text-caption",
-                    why.length ? "text-teal-text" : "text-muted-foreground",
-                  )}
-                >
-                  {why.length
-                    ? `Supported by: ${why.join(", ")}`
-                    : a.checkFor.length
-                      ? `Check for: ${a.checkFor.map(testName).join(", ")}`
-                      : "Nothing recorded for it yet"}
-                </span>
-              </div>
-              {a.onVisit && a.linked ? (
-                <span className="text-caption text-muted-foreground shrink-0">
-                  On this visit, linked
-                </span>
-              ) : canWrite ? (
-                <Button size="sm" variant="ghost" onClick={() => onAdd(a)}>
-                  <PlusIcon aria-hidden />
-                  {a.onVisit ? "Link" : "Add"}
-                </Button>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-    </details>
-  );
-}
 
 /**
  * The leading diagnosis's associations (owner, 2026-10-08): the ones the clinician chose, in their
@@ -104,10 +21,9 @@ export function AssociatedContainer({
   candidates,
   canWrite,
   finding,
-  findingText,
-  testName,
   onUnsupport,
-  onAdd,
+  onMove,
+  onFlag,
   actions,
 }: {
   parent: string;
@@ -115,18 +31,20 @@ export function AssociatedContainer({
     row: BoardRow;
     type: "complication" | "goes_with" | null;
     supports: Finding[];
+    flagged: boolean;
   }[];
   /** The chosen association the bucket's findings go to (its logical id), or null (the leading). */
   active: string | null;
   onActivate: (row: BoardRow | null) => void;
+  /** Only to know whether to show the box at all (the list is its own section). */
   candidates: readonly Association[];
   canWrite: boolean;
   /** A finding's words as the step writes them (with its NEWS2 number where it has one). */
   finding: (f: Finding) => ReactNode;
-  findingText: (ref: string) => string | null;
-  testName: (id: string) => string;
   onUnsupport: (row: BoardRow, f: Finding) => void;
-  onAdd: (a: Association) => void;
+  /** Arrange (its place in the note) and flag a chosen one. */
+  onMove: (row: BoardRow, by: -1 | 1) => void;
+  onFlag: (row: BoardRow) => void;
   /** Status, Details and Remove for a chosen one (the step's own controls). */
   actions: (row: BoardRow) => ReactNode;
 }) {
@@ -141,7 +59,7 @@ export function AssociatedContainer({
       </span>
       {chosen.length ? (
         <ul className="flex flex-col gap-2">
-          {chosen.map(({ row, type, supports }) => {
+          {chosen.map(({ row, type, supports, flagged }, n) => {
             const on = active === row.dx.logicalId;
             return (
               <li
@@ -158,8 +76,58 @@ export function AssociatedContainer({
                     <span className="text-caption text-muted-foreground font-normal">
                       {type === "complication" ? " · complication" : type ? " · goes with it" : ""}
                     </span>
+                    {flagged ? (
+                      <span className="text-caption bg-status-caution-bg dark:text-status-caution-fg ml-1.5 inline-flex items-center gap-1 rounded-sm px-1.5 font-medium text-amber-800">
+                        <FlagIcon aria-hidden className="size-3" />
+                        Flagged
+                      </span>
+                    ) : null}
                   </span>
-                  <div className="flex flex-wrap items-center gap-1">{actions(row)}</div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {canWrite ? (
+                      <>
+                        <button
+                          type="button"
+                          aria-label={`Move ${row.dx.display} up`}
+                          disabled={n === 0}
+                          onClick={() => onMove(row, -1)}
+                          className="text-muted-foreground hover:bg-muted focus-visible:shadow-focus inline-flex size-7 items-center justify-center rounded-sm outline-none disabled:opacity-40 pointer-coarse:size-11"
+                        >
+                          <ArrowUpIcon aria-hidden className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Move ${row.dx.display} down`}
+                          disabled={n === chosen.length - 1}
+                          onClick={() => onMove(row, 1)}
+                          className="text-muted-foreground hover:bg-muted focus-visible:shadow-focus inline-flex size-7 items-center justify-center rounded-sm outline-none disabled:opacity-40 pointer-coarse:size-11"
+                        >
+                          <ArrowDownIcon aria-hidden className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={flagged}
+                          aria-label={
+                            flagged ? `Unflag ${row.dx.display}` : `Flag ${row.dx.display}`
+                          }
+                          title={flagged ? "Unflag" : "Flag"}
+                          onClick={() => onFlag(row)}
+                          className={cn(
+                            "hover:bg-muted focus-visible:shadow-focus inline-flex size-7 items-center justify-center rounded-sm outline-none pointer-coarse:size-11",
+                            flagged
+                              ? "dark:text-status-caution-fg text-amber-700"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          <FlagIcon
+                            aria-hidden
+                            className={cn("size-3.5", flagged && "fill-current")}
+                          />
+                        </button>
+                      </>
+                    ) : null}
+                    {actions(row)}
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-caption text-muted-foreground">Supports it</span>
@@ -206,18 +174,83 @@ export function AssociatedContainer({
         </ul>
       ) : (
         <p className="text-caption text-muted-foreground">
-          None chosen yet. Choose from the list below.
+          None chosen yet. Choose from &ldquo;Add an association&rdquo; below.
         </p>
       )}
-      <AssociationsFold
-        parent={parent}
-        items={candidates}
-        findingText={findingText}
-        testName={testName}
-        canWrite={canWrite}
-        onAdd={onAdd}
-        title="Add an association"
-      />
+    </section>
+  );
+}
+
+/**
+ * "Add an association" (owner, 2026-10-08): its own full-width section under the leading
+ * diagnosis, the candidates side by side. Supported first; each says what supports it or what
+ * would check for it; Add puts it on the visit, linked.
+ */
+export function AssociationCandidates({
+  parent,
+  items,
+  findingText,
+  testName,
+  canWrite,
+  onAdd,
+}: {
+  parent: string;
+  items: readonly Association[];
+  findingText: (ref: string) => string | null;
+  testName: (id: string) => string;
+  canWrite: boolean;
+  onAdd: (a: Association) => void;
+}) {
+  if (!items.length) return null;
+  return (
+    <section aria-labelledby="impression-add-association" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 id="impression-add-association" className="text-label text-foreground">
+          {`Add an association to ${parent}`}
+        </h3>
+        <span className="text-caption text-muted-foreground">
+          {`${items.filter((a) => a.supportedBy.length).length} of ${items.length} supported by the record`}
+        </span>
+      </div>
+      <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((a) => {
+          const why = a.supportedBy.map(findingText).filter((t): t is string => !!t);
+          return (
+            <li
+              key={a.dxId}
+              className="border-border flex items-start justify-between gap-3 rounded-md border px-3 py-2"
+            >
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="text-body-s text-foreground">
+                  {a.display}
+                  <span className="text-caption text-muted-foreground">
+                    {a.type === "complication" ? " · complication" : " · goes with it"}
+                    {a.mustNotMiss ? " · must not miss" : ""}
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    "text-caption",
+                    why.length ? "text-teal-text" : "text-muted-foreground",
+                  )}
+                >
+                  {why.length
+                    ? `Supported by: ${why.join(", ")}`
+                    : a.checkFor.length
+                      ? `Check for: ${a.checkFor.map(testName).join(", ")}`
+                      : "Nothing recorded for it yet"}
+                </span>
+              </div>
+              {canWrite ? (
+                <Button size="sm" variant="ghost" onClick={() => onAdd(a)}>
+                  <PlusIcon aria-hidden />
+                  {a.onVisit ? "Link" : "Add"}
+                </Button>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

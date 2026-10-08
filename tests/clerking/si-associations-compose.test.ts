@@ -2,7 +2,7 @@
 import type { Board, BoardRow, ImpressionDraft } from "@/lib/clerking/impression/board";
 import { describe, expect, it } from "vitest";
 
-import { withLink } from "@/lib/clerking/impression/associations";
+import { withFlag, withLink, withMoved } from "@/lib/clerking/impression/associations";
 import { composeImpression } from "@/lib/clerking/impression/compose";
 
 const row = (logicalId: string, dxId: string, display: string, slot: BoardRow["slot"]) =>
@@ -56,6 +56,31 @@ describe("associations in the note", () => {
     expect(t).toMatch(/Type 2 diabetes \(primary; working\)\. With: diabetic retinopathy\./);
     expect(t).toMatch(/Diabetic retinopathy, working, with type 2 diabetes\./);
   });
+  it("writes them in the arranged order and marks a flagged one", () => {
+    const d = withFlag(
+      withMoved(
+        withLink(withLink(empty, "L", "dx.diabetic_retinopathy"), "L", "dx.hypertension"),
+        "L",
+        "dx.hypertension",
+        -1,
+      ),
+      "L",
+      "dx.diabetic_retinopathy",
+    );
+    const b2: Board = {
+      ...board,
+      also: [retina, row("H", "dx.hypertension", "Hypertension", "also")],
+    };
+    const t = composeImpression({
+      board: b2,
+      draft: d,
+      findings: new Map(),
+      unexplained: [],
+      audience: "clinical",
+    });
+    expect(t).toContain("With: hypertension and diabetic retinopathy (flagged).");
+  });
+
   it("links once, however often it is added", () => {
     const d = withLink(withLink(empty, "L", "dx.hypertension"), "L", "dx.hypertension");
     expect(d.meta.L!.with).toEqual(["dx.hypertension"]);
