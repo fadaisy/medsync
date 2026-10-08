@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DownloadIcon, FileTextIcon } from "lucide-react";
+import { ChartColumnIcon, DownloadIcon, FileTextIcon } from "lucide-react";
 
+import { DomainTile } from "@/components/medsync/domain-tile";
 import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/lib/ncdreg/context";
 import {
@@ -19,6 +20,7 @@ import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { HOSPITAL_PARAMS } from "@/lib/ncdreg/standard/indicators";
 import { DemoEmpty } from "../_components/demo-empty";
 import { fmtDate } from "../_components/kit";
+import { PLACE } from "../_lib/places";
 import { CompactCards, ConditionRows, HeadlineStrip } from "./_components/bands";
 import { ChartBands, DashboardFrame } from "./_components/frame";
 import { IndicatorTable } from "./_components/indicator-table";
@@ -50,6 +52,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const title = (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <DomainTile
+        domain={PLACE.dashboard}
+        icon={<ChartColumnIcon />}
+        size="md"
+        className="self-center print:hidden"
+      />
       <h1 className="font-display text-display-s text-foreground">Dashboard</h1>
       <span className="text-body-s text-muted-foreground">
         {monthLong(month)} ·{" "}

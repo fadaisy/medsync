@@ -8,7 +8,7 @@ import { REVIEW_LABELS } from "@/lib/ncdreg/read/derive";
 import { reviewsDueList } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { DemoEmpty } from "../_components/demo-empty";
-import { EmptyState, fmtDate, Num, Page, PageTitle } from "../_components/kit";
+import { EmptyState, fmtDate, Num, Page, PageTitle, PatientMonogram } from "../_components/kit";
 
 export const metadata: Metadata = { title: "Reviews due" };
 
@@ -20,6 +20,7 @@ export default async function ReviewsPage() {
   return (
     <Page>
       <PageTitle
+        place="reviews"
         title="Reviews due"
         subline={`Due now or in the next 30 days, as at ${fmtDate(ctx.today)} · earliest first`}
       />
@@ -46,13 +47,16 @@ export default async function ReviewsPage() {
                   <td className="px-3.5 py-2">
                     <Link
                       href={`/ncd/patients/${r.identity.id}?tab=reviews`}
-                      className="focus-visible:shadow-focus flex flex-col rounded-sm outline-none"
+                      className="focus-visible:shadow-focus flex items-center gap-2.5 rounded-sm outline-none"
                     >
-                      <span className="text-foreground font-medium underline-offset-4 hover:underline">
-                        {r.identity.name}
-                      </span>
-                      <span className="text-caption text-muted-foreground font-mono">
-                        {r.identity.registryNumber}
+                      <PatientMonogram name={r.identity.name} />
+                      <span className="flex min-w-0 flex-col items-start">
+                        <span className="text-foreground font-medium underline-offset-4 hover:underline">
+                          {r.identity.name}
+                        </span>
+                        <span className="text-caption text-muted-foreground font-mono">
+                          {r.identity.registryNumber}
+                        </span>
                       </span>
                     </Link>
                   </td>

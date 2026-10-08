@@ -38,6 +38,7 @@ export default async function RecallPage() {
   return (
     <Page>
       <PageTitle
+        place="recall"
         title="Recall"
         subline={`Overdue list as at ${fmtDate(ctx.today)} · longest overdue first`}
         right={

@@ -26,6 +26,7 @@ export default async function TemplatesPage() {
   return (
     <Page>
       <PageTitle
+        place="recall"
         title="SMS templates"
         subline="Only an approved template is ever sent. Approval takes two different people. A message never names a condition, a measurement, a medicine or the department."
         right={

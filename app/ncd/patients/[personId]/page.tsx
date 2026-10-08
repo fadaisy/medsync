@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { UsersIcon } from "lucide-react";
 
+import { RecordHeader } from "@/components/medsync/record-header";
 import { facilityStatus } from "@/lib/ncdreg/admin";
 import { can } from "@/lib/ncdreg/context";
 import { REVIEW_LABELS } from "@/lib/ncdreg/read/derive";
@@ -105,53 +107,61 @@ export default async function PatientRecord({
 
   return (
     <Page>
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-display text-display-s">{id.name}</h1>
-          <p className="text-body-s text-ink-600 flex flex-wrap items-center gap-2">
-            <Num>{id.registryNumber}</Num> · {id.sex === "female" ? "Female" : "Male"} · {id.age} y
-            {details.dobEstimated ? " (estimated)" : ""}
-            {id.isSynthetic ? (
-              <span className="border-ink-300 rounded border px-1.5 text-[11px]">Synthetic</span>
-            ) : null}
-          </p>
-          <p className="text-body-s flex flex-wrap items-center gap-3">
-            <span>
-              Status: <strong className="font-medium">{STATUS[pv.status]}</strong>
-            </span>
-            {pv.careBand ? (
-              <span>
-                Care band: <strong className="font-medium">{BAND[pv.careBand]}</strong>
-              </span>
-            ) : null}
-            <ConditionTags conditions={mods.map((m) => ({ code: m.code, label: m.label }))} />
-          </p>
-          {details.mergedIntoId ? (
-            <p className="text-body-s text-ink-800">
-              This record was merged.{" "}
-              <Link href={`/ncd/patients/${details.mergedIntoId}`} className="underline">
-                Open the surviving record
-              </Link>
-              .
+      <RecordHeader
+        domain="patients"
+        icon={<UsersIcon />}
+        crumb="NCD registry"
+        title={id.name}
+        monogram={id.name}
+        actions={
+          <RecordActions
+            personId={personId}
+            personName={id.name}
+            modules={mods}
+            addable={addable}
+            reviewComponents={reviewComponents}
+            today={ctx.today}
+            alive={alive}
+            can={{
+              visit: can(ctx, "nurse_visit_write", "clinician_visit_write"),
+              event: can(ctx, "event_write"),
+              enrol: can(ctx, "enrol"),
+              review: can(ctx, "review_write"),
+            }}
+          />
+        }
+        meta={
+          <div className="flex flex-col gap-1">
+            <p className="text-body-s text-ink-600 flex flex-wrap items-center gap-2">
+              <Num>{id.registryNumber}</Num> · {id.sex === "female" ? "Female" : "Male"} · {id.age}{" "}
+              y{details.dobEstimated ? " (estimated)" : ""}
+              {id.isSynthetic ? (
+                <span className="border-ink-300 rounded border px-1.5 text-[11px]">Synthetic</span>
+              ) : null}
             </p>
-          ) : null}
-        </div>
-        <RecordActions
-          personId={personId}
-          personName={id.name}
-          modules={mods}
-          addable={addable}
-          reviewComponents={reviewComponents}
-          today={ctx.today}
-          alive={alive}
-          can={{
-            visit: can(ctx, "nurse_visit_write", "clinician_visit_write"),
-            event: can(ctx, "event_write"),
-            enrol: can(ctx, "enrol"),
-            review: can(ctx, "review_write"),
-          }}
-        />
-      </header>
+            <p className="text-body-s flex flex-wrap items-center gap-3">
+              <span>
+                Status: <strong className="font-medium">{STATUS[pv.status]}</strong>
+              </span>
+              {pv.careBand ? (
+                <span>
+                  Care band: <strong className="font-medium">{BAND[pv.careBand]}</strong>
+                </span>
+              ) : null}
+              <ConditionTags conditions={mods.map((m) => ({ code: m.code, label: m.label }))} />
+            </p>
+            {details.mergedIntoId ? (
+              <p className="text-body-s text-ink-800">
+                This record was merged.{" "}
+                <Link href={`/ncd/patients/${details.mergedIntoId}`} className="underline">
+                  Open the surviving record
+                </Link>
+                .
+              </p>
+            ) : null}
+          </div>
+        }
+      />
 
       <nav aria-label="Record sections" className="border-border flex gap-1 border-b">
         {TABS.map((t) => (

@@ -1,36 +1,10 @@
 "use client";
 
+import type { NavIcon } from "../_lib/places";
 import type { Domain } from "@/lib/design/domains";
-import {
-  ActivityIcon,
-  ArrowLeftRightIcon,
-  CalendarCheckIcon,
-  CalendarDaysIcon,
-  ChartColumnIcon,
-  ClockIcon,
-  FlaskConicalIcon,
-  PhoneIcon,
-  ShieldCheckIcon,
-  SlidersHorizontalIcon,
-  UsersIcon,
-} from "lucide-react";
 
 import { SidebarNavItem } from "@/components/medsync/sidebar-nav";
-
-const ICONS = {
-  today: CalendarDaysIcon,
-  patients: UsersIcon,
-  recall: PhoneIcon,
-  reviews: CalendarCheckIcon,
-  dashboard: ChartColumnIcon,
-  leading: ActivityIcon,
-  review: FlaskConicalIcon,
-  overdue: ClockIcon,
-  quality: ShieldCheckIcon,
-  exchange: ArrowLeftRightIcon,
-  admin: SlidersHorizontalIcon,
-} as const;
-export type NavIcon = keyof typeof ICONS;
+import { ICONS } from "../_lib/places";
 
 export function NcdNavItem(p: {
   href: string;

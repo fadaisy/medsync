@@ -55,6 +55,7 @@ export default async function AdminPage({
   return (
     <Page className="gap-8">
       <PageTitle
+        place="admin"
         title="Administration"
         subline="Registry settings for this facility. Every change is versioned and audited."
       />

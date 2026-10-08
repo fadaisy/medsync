@@ -47,6 +47,7 @@ export default async function ExchangePage({
   return (
     <Page className="gap-8">
       <PageTitle
+        place="exchange"
         title="Exchange"
         subline={
           demo

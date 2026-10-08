@@ -14,7 +14,15 @@ import {
 } from "@/lib/ncdreg/read/derive";
 import { identities, myPanel } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
-import { ClassChip, EmptyState, fmtDate, Num, Page, PageTitle } from "../_components/kit";
+import {
+  ClassChip,
+  EmptyState,
+  fmtDate,
+  Num,
+  Page,
+  PageTitle,
+  PatientMonogram,
+} from "../_components/kit";
 import { FilterChipLink } from "./_components/filter-link";
 
 export const metadata: Metadata = { title: "My patients" };
@@ -47,7 +55,7 @@ export default async function MyPatientsPage({
   const byId = new Map(persons.map((p) => [p.id, p]));
   return (
     <Page>
-      <PageTitle title="My patients" subline="Patients you closed a visit for" />
+      <PageTitle place="leading" title="My patients" subline="Patients you closed a visit for" />
       <nav aria-label="My patient lists" className="flex flex-wrap gap-2">
         {(Object.keys(LISTS) as ListKey[]).map((k) => (
           <FilterChipLink
@@ -95,13 +103,16 @@ export default async function MyPatientsPage({
                     <td className="px-3.5 py-2">
                       <Link
                         href={`/ncd/patients/${id}`}
-                        className="focus-visible:shadow-focus flex flex-col rounded-sm outline-none"
+                        className="focus-visible:shadow-focus flex items-center gap-2.5 rounded-sm outline-none"
                       >
-                        <span className="text-foreground font-medium underline-offset-4 hover:underline">
-                          {i.name}
-                        </span>
-                        <span className="text-caption text-muted-foreground font-mono">
-                          {i.registryNumber}
+                        <PatientMonogram name={i.name} />
+                        <span className="flex min-w-0 flex-col items-start">
+                          <span className="text-foreground font-medium underline-offset-4 hover:underline">
+                            {i.name}
+                          </span>
+                          <span className="text-caption text-muted-foreground font-mono">
+                            {i.registryNumber}
+                          </span>
                         </span>
                       </Link>
                     </td>

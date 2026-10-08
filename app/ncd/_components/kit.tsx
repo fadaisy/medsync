@@ -1,3 +1,5 @@
+import type { NavIcon } from "../_lib/places";
+import type { Hue } from "@/lib/design/domains";
 import type { ReactNode } from "react";
 import {
   CheckIcon,
@@ -9,8 +11,13 @@ import {
   UserIcon,
 } from "lucide-react";
 
+import { Avatar } from "@/components/medsync/avatar";
+import { DomainTile } from "@/components/medsync/domain-tile";
 import { Tag } from "@/components/medsync/tag";
+import { DOMAIN_HUE } from "@/lib/design/domains";
+import { CONDITION_CATALOGUE } from "@/lib/ncdreg/standard/conditions";
 import { cn } from "@/lib/utils";
+import { ICONS, PLACE } from "../_lib/places";
 
 /**
  * Shared pieces of the NCD screens (§11). Clinical classes pair a tone with a word and an icon,
@@ -22,16 +29,25 @@ export function PageTitle({
   title,
   subline,
   right,
+  place,
 }: {
   title: string;
   subline?: ReactNode;
   right?: ReactNode;
+  /** The screen's place: a domain tile in its hue beside the title (Chroma header tile). */
+  place?: NavIcon;
 }) {
+  const Icon = place ? ICONS[place] : null;
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-      <div className="flex min-w-0 flex-col gap-1">
-        <h1 className="font-display text-display-s text-foreground">{title}</h1>
-        {subline ? <p className="text-body-s text-muted-foreground">{subline}</p> : null}
+      <div className="flex min-w-0 items-center gap-3">
+        {place && Icon ? (
+          <DomainTile domain={PLACE[place]} icon={<Icon />} size="md" className="print:hidden" />
+        ) : null}
+        <div className="flex min-w-0 flex-col gap-1">
+          <h1 className="font-display text-display-s text-foreground">{title}</h1>
+          {subline ? <p className="text-body-s text-muted-foreground">{subline}</p> : null}
+        </div>
       </div>
       {right ? <div className="flex flex-wrap items-center gap-2 print:hidden">{right}</div> : null}
     </header>
@@ -52,11 +68,26 @@ export function Page({ children, className }: { children: ReactNode; className?:
 }
 
 /** Conditions as tags in one neutral place hue: identity, not a clinical state. */
+/**
+ * Each condition keeps one cool hue, in catalogue order (sky, iris, grape, plum, repeating), so a
+ * patient's conditions read apart at a glance. Tags only; never a status, a count or a button.
+ */
+const CONDITION_HUES: readonly Hue[] = ["sky", "iris", "grape", "plum"];
+export function conditionHue(code: string): Hue {
+  const i = CONDITION_CATALOGUE.findIndex((m) => m.code === code);
+  return i < 0 ? "slate" : CONDITION_HUES[i % CONDITION_HUES.length]!;
+}
+
+/** A patient's monogram (Chroma: patients wear the patients hue). Decorative; the name is beside it. */
+export function PatientMonogram({ name }: { name: string }) {
+  return <Avatar name={name} hue={DOMAIN_HUE.patients} size="md" />;
+}
+
 export function ConditionTags({ conditions }: { conditions: { code: string; label: string }[] }) {
   return (
     <span className="flex flex-wrap gap-1">
       {conditions.map((c) => (
-        <Tag key={c.code} hue="slate">
+        <Tag key={c.code} hue={conditionHue(c.code)}>
           {c.label}
         </Tag>
       ))}

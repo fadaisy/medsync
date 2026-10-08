@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { buttonVariants } from "@/components/ui/button";
 import { can } from "@/lib/ncdreg/context";
 import { patientsList } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
 import { DemoEmpty } from "../_components/demo-empty";
-import { ConditionTags, fmtDate, Num, Page, PageTitle } from "../_components/kit";
+import { ConditionTags, fmtDate, Num, Page, PageTitle, PatientMonogram } from "../_components/kit";
 import { PatientSearch } from "./_components/patient-search";
 
 export const dynamic = "force-dynamic";
@@ -26,12 +27,14 @@ export default async function PatientsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { ctx } = await requireNcdScope();
+  if (!can(ctx, "person_search", "recall_work", "demo_write")) notFound();
   const sp = await searchParams;
   const page = Math.max(0, Number(sp.page ?? 0) || 0);
   const list = await patientsList(ctx, { limit: 50, offset: page * 50 });
   return (
     <Page>
       <PageTitle
+        place="patients"
         title="Patients"
         subline={`${list.total.toLocaleString("en-GB")} registered`}
         right={
@@ -65,13 +68,16 @@ export default async function PatientsPage({
                 <td className="h-14 px-3.5">
                   <Link
                     href={`/ncd/patients/${r.identity.id}`}
-                    className="flex flex-col hover:underline"
+                    className="flex items-center gap-2.5 hover:underline"
                   >
-                    <span className="font-medium">{r.identity.name}</span>
-                    <Num className="text-muted-foreground text-[12px]">
-                      {r.identity.registryNumber} · {r.identity.sex === "female" ? "F" : "M"} ·{" "}
-                      {r.identity.age} y
-                    </Num>
+                    <PatientMonogram name={r.identity.name} />
+                    <span className="flex min-w-0 flex-col items-start">
+                      <span className="font-medium">{r.identity.name}</span>
+                      <Num className="text-muted-foreground text-[12px]">
+                        {r.identity.registryNumber} · {r.identity.sex === "female" ? "F" : "M"} ·{" "}
+                        {r.identity.age} y
+                      </Num>
+                    </span>
                   </Link>
                 </td>
                 <td className="px-3.5">
