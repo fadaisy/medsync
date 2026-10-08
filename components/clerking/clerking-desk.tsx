@@ -16,6 +16,7 @@ import type { HistoryHeader } from "@/lib/clerking/answers";
 import type { Catalogue } from "@/lib/clerking/catalogue";
 import type { BlockKey } from "@/lib/clerking/compose";
 import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
+import type { ExamSignoff } from "@/lib/clerking/exam/classifiers";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { DeskSection } from "@/lib/clerking/flags";
 import type { ImpressionDraft } from "@/lib/clerking/impression/board";
@@ -40,6 +41,7 @@ import { Button } from "@/components/ui/button";
 import { SECTION_BLOCK } from "@/lib/clerking/compose";
 import { ruleTarget } from "@/lib/clerking/exam/flags";
 import { emptyExam } from "@/lib/clerking/exam/payload";
+import { scale2 } from "@/lib/clerking/exam/vitals";
 import { acceptColumn, cellState, nextState, withMark } from "@/lib/clerking/impression/evidence";
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
@@ -55,6 +57,7 @@ import { ImpressionStep } from "./impression/impression-step";
 import { deriveImpression } from "./impression/model";
 import {
   BLURB,
+  bodyRows,
   deriveDesk,
   historyOf,
   sectionIndex,
@@ -75,7 +78,7 @@ import {
 } from "./phone-shell";
 import { planDraftOf, withPlan } from "./plan/model";
 import { PlanStatusPill, PlanStep } from "./plan/plan-step";
-import { ClerkingRail } from "./rail";
+import { ClerkingRail, useBpScheme } from "./rail";
 import { impressionDraftOf, summaryDraftOf, withImpression, withSummary } from "./si-model";
 import { SummaryStatusPill, SummaryStep } from "./summary/summary-step";
 import { SystemsBody } from "./systems-body";
@@ -514,6 +517,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const wide = useMedia("(min-width: 834px)");
   const xl = useMedia("(min-width: 1280px)");
   const [details, setDetailsId] = useState<string | null>(null);
+  const [bpScheme, setBpScheme] = useBpScheme();
   // Details returns focus to the control that opened it (§5.7), in place and in the dialog.
   const detailsFrom = useRef<HTMLElement | null>(null);
   const detailsPanel = useRef<HTMLDivElement | null>(null);
@@ -568,7 +572,18 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       withExam(content, fn(examOf(content, props.ecat?.version ?? "")), k.catalogueVersion),
     );
   const validation = derived?.validation ?? deskValidation(p, view);
-  const vitals = k.vitalsAt ? vitalsView(k.vitals, p.context.vitals) : null;
+  // Standard classifications beside NEWS2: SpO₂ against 88–92% where the examination set that
+  // target (the rail's NEWS2 still reads the stored scale).
+  const vitals = k.vitalsAt
+    ? vitalsView(k.vitals, p.context.vitals, {
+        ageYears: k.ageYears,
+        pregnant: k.exam.pregnant,
+        bpScheme,
+        dbp: k.exam.latest.dbp,
+        spo2Scale: derived?.exam && scale2(derived.exam.exam) ? "scale2" : k.vitals.spo2Scale,
+      })
+    : null;
+  const bodyMeasures = bodyRows(k.exam.latest, derived?.exam?.x, k.exam.signoff as ExamSignoff);
   const alarm = derived
     ? derived.flags.some((f) => f.section === "exam")
     : !!vitals?.news2.hasSingleParameterThree;
@@ -860,6 +875,8 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       p={p}
       fmt={fmt}
       vitals={vitals}
+      body={bodyMeasures}
+      bp={{ scheme: bpScheme, onScheme: setBpScheme }}
       alarm={alarm}
       onRecord={act ? () => go("exam") : undefined}
     />
