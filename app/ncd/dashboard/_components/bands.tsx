@@ -1,17 +1,11 @@
+import type { InsightOther } from "./condition-insight";
 import type { Mark } from "@/app/ncd/_components/charts/charts";
 import type { IndicatorResult } from "@/lib/ncdreg/indicators/engine";
-import type {
-  Cell,
-  ConditionRow,
-  DashboardBoard,
-  Segment,
-  View,
-} from "@/lib/ncdreg/read/dashboard";
+import type { Cell, ConditionRow, DashboardBoard, View } from "@/lib/ncdreg/read/dashboard";
 import type { ConditionModule } from "@/lib/ncdreg/standard/types";
 import type { ReactNode } from "react";
 
 import {
-  Cascade,
   Columns,
   Legend,
   Meter,
@@ -19,7 +13,6 @@ import {
   Sparkline,
   StackedBar,
   Tip,
-  TrendLine,
 } from "@/app/ncd/_components/charts/charts";
 import { CARE_BAND_TONES, KIDNEY_TONES, outcomeTone } from "@/app/ncd/_components/charts/tones";
 import { outcomeClasses } from "@/lib/ncdreg/indicators/engine";
@@ -35,20 +28,11 @@ import {
 } from "@/lib/ncdreg/read/dashboard";
 import { cn } from "@/lib/utils";
 import { ConditionExplorer } from "./condition-explorer";
+import { ConditionInsight } from "./condition-insight";
 import { CountCell } from "./indicator-table";
 
 /** A suppressed count (F6) is never drawn: its length would give it away. */
 const drawn = (c: Cell) => (c.suppressed ? 0 : c.n);
-const toMark = (s: Segment, tone: string): Mark => ({
-  key: s.key,
-  label: s.label,
-  text: s.cell.text,
-  n: drawn(s.cell),
-  pct: s.pct,
-  tone,
-  tip: s.tip,
-  href: s.cell.href,
-});
 const tipOf = (label: string, c: Cell, den: Cell | null, r: IndicatorResult | undefined) =>
   `${label}: ${c.text}${den ? ` of ${den.text}` : ""} · definition ${r?.version ?? ""}`;
 
@@ -225,7 +209,6 @@ export function ConditionRows({ b, focus }: { b: DashboardBoard; focus?: string 
         No condition is enabled for this hospital.
       </p>
     );
-  const window = `${monthLabel(b.trendMonths[9] ?? b.month)} to ${monthLabel(b.month)}`;
   return (
     <ConditionExplorer
       initial={focus}
@@ -233,7 +216,16 @@ export function ConditionRows({ b, focus }: { b: DashboardBoard; focus?: string 
         code: r.code,
         label: r.label,
         rail: <ConditionRail r={r} max={b.trendMax} />,
-        panel: <ConditionPanel r={r} max={b.trendMax} window={window} months={b.trendMonths} />,
+        panel: (
+          <ConditionPanel
+            r={r}
+            max={b.trendMax}
+            months={b.trendMonths}
+            others={b.rows
+              .filter((o) => o.code !== r.code)
+              .map((o) => ({ code: o.code, label: o.label, points: o.trend.map((t) => t.pct) }))}
+          />
+        ),
       }))}
     />
   );
@@ -276,23 +268,20 @@ function ConditionRail({ r, max }: { r: ConditionRow; max: number }) {
   );
 }
 
-/** The selected condition at full size: the figure, the distribution, the trend, the cascade. */
+/** The selected condition at full size: the headline figure, then three linked interactive modules. */
 function ConditionPanel({
   r,
   max,
-  window,
   months,
+  others,
 }: {
   r: ConditionRow;
   max: number;
-  window: string;
   months: string[];
+  others: InsightOther[];
 }) {
-  const ordered = r.distribution.map((s) => s.key);
-  const marks = r.distribution.map((s) => toMark(s, outcomeTone(s.key, ordered)));
-  const trendTip = `${r.outcomeLabel}, share by month: ${r.trend.map((t) => `${monthLabel(t.month)} ${t.pct == null ? "–" : `${t.pct}%`}`).join(", ")} · scale 0 to ${max}%`;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="text-heading-m text-foreground flex flex-wrap items-center gap-2 font-medium">
@@ -313,40 +302,14 @@ function ConditionPanel({
           {r.leading.pct == null ? null : <span className="text-ink-500 text-heading-s">%</span>}
         </Tip>
       </header>
-
-      <div className="grid gap-x-10 gap-y-5 xl:grid-cols-2">
-        <section className="flex min-w-0 flex-col gap-2" aria-label="Outcome at latest visit">
-          <span className="text-overline text-muted-foreground uppercase">
-            Latest visit, {window}
-          </span>
-          <StackedBar
-            marks={r.leading.den.suppressed ? [] : marks}
-            total={r.leading.den.n}
-            label={`${r.label}: outcome at latest visit`}
-            thick="h-6"
-          />
-          <Legend marks={marks} />
-        </section>
-        <section className="flex min-w-0 flex-col gap-2" aria-label="Care cascade">
-          <span className="text-overline text-muted-foreground uppercase">
-            Care cascade · share of registered
-          </span>
-          <Cascade marks={r.cascade.map((s) => toMark(s, ""))} thick="h-4" />
-        </section>
-      </div>
-
-      <section className="flex min-w-0 flex-col gap-2" aria-label="Trend">
-        <span className="text-overline text-muted-foreground uppercase">
-          {r.outcomeLabel}, past 12 months · scale shared by every condition
-        </span>
-        <TrendLine
-          points={r.trend.map((t) => t.pct)}
-          max={max}
-          tip={trendTip}
-          height="h-36"
-          ticks={months.map(monthLabel)}
-        />
-      </section>
+      <ConditionInsight
+        label={r.label}
+        outcomeLabel={r.outcomeLabel}
+        months={r.months}
+        monthLabels={months.map(monthLabel)}
+        max={max}
+        others={others}
+      />
     </div>
   );
 }

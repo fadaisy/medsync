@@ -218,6 +218,28 @@ export function filterQuery(f: Filters): string {
 /* ─── the board ───────────────────────────────────────────────────────── */
 
 export type Segment = { key: string; label: string; cell: Cell; pct: number | null; tip: string };
+
+/**
+ * A count safe to send to the browser: a suppressed count (F6) carries its text ("1–4") and no
+ * number, so the interactive charts can never leak it through the page payload.
+ */
+export type PubCount = { value: number | null; text: string; href: string | null };
+export const pub = (c: Cell): PubCount => ({
+  value: c.suppressed ? null : c.n,
+  text: c.text,
+  href: c.href,
+});
+export type PubPart = { key: string; label: string; count: PubCount; pct: number | null };
+/** One month of a condition, for the time-linked charts. */
+export type MonthSlice = {
+  month: string;
+  /** Leading-class share; null when hidden or no denominator. */
+  pct: number | null;
+  den: PubCount;
+  distribution: PubPart[];
+  cascade: PubPart[];
+  version: string;
+};
 export type ConditionRow = {
   code: string;
   label: string;
@@ -229,6 +251,8 @@ export type ConditionRow = {
   distribution: Segment[];
   trend: { month: string; pct: number | null }[];
   cascade: Segment[];
+  /** The 12 months of the trend, each with its own distribution and cascade (sanitised). */
+  months: MonthSlice[];
 };
 
 type Computed = {
@@ -300,7 +324,31 @@ export async function dashboardBoard(ctx: NcdContext, month: string, filters: Fi
       ["leading_class", classLabel(m, leading)],
     ];
     const g06den = cell(v, g06?.den, g06key, "den", g06?.ids.den);
+    // Each trend month with its own distribution and cascade; drill-down links open that month.
+    const months = trend.map((t): MonthSlice => {
+      const vm = { ...v, month: t.month };
+      const r4 = t.results[key];
+      const r6 = t.results[g06key];
+      const dist = ordered.map((cls) => line(vm, key, r4, cls, classLabel(m, cls)));
+      return {
+        month: t.month,
+        pct: dist[0]!.pct,
+        den: pub(cell(vm, r4?.den, key, "den", r4?.ids.den)),
+        distribution: ordered.map((cls, i) => ({
+          key: cls,
+          label: dist[i]!.label,
+          count: pub(dist[i]!.num),
+          pct: dist[i]!.pct,
+        })),
+        cascade: steps.map(([part, label]) => {
+          const l = line(vm, g06key, r6, part, label);
+          return { key: part, label, count: pub(l.num), pct: l.pct };
+        }),
+        version: r4?.version ?? INDICATOR_DEFINITION_VERSION,
+      };
+    });
     return {
+      months,
       code: m.code,
       label: m.label,
       outcomeLabel: m.outcome_label,

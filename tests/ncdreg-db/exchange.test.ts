@@ -25,6 +25,7 @@ import {
 } from "@/lib/ncdreg/exchange";
 import { LEGACY_TEMPLATE, legacyApply, legacyDryRun, parseCsv } from "@/lib/ncdreg/exchange/legacy";
 import { loadDataset } from "@/lib/ncdreg/indicators/load";
+import { dashboardBoard } from "@/lib/ncdreg/read/dashboard";
 import { identities } from "@/lib/ncdreg/read/views";
 import { ctxFor, enrol, ok } from "./_engine";
 import { bootLane, laneOn, ncdFacility } from "./_ncd";
@@ -348,6 +349,28 @@ describe.skipIf(!laneOn)("exchange", () => {
     expect(full.body.split("\n")[0]).toMatch(/SYNTHETIC DEMO DATA/);
     await refusesAll();
     await turnOff(gLead, true);
+  });
+
+  it("F6: the dashboard's monthly slices never carry a hidden count to the browser", async () => {
+    const month = admin.today.slice(0, 7);
+    const b = await dashboardBoard(admin, month, {});
+    const counts = b.rows.flatMap((r) =>
+      r.months.flatMap((m) => [
+        m.den,
+        ...m.distribution.map((d) => d.count),
+        ...m.cascade.map((c) => c.count),
+      ]),
+    );
+    const hidden = counts.filter((c) => c.text === "1–4");
+    expect(hidden.length).toBeGreaterThan(0);
+    for (const c of hidden) expect(c).toEqual({ value: null, text: "1–4", href: null });
+    // The latest slice is the month the panel opens on: the same figure as the headline.
+    for (const r of b.rows) expect(r.months.at(-1)!.pct).toBe(r.leading.pct);
+    // With drill-down nothing is hidden and every count has its number.
+    const full = await dashboardBoard(lead, month, {});
+    expect(
+      full.rows.flatMap((r) => r.months.flatMap((m) => m.distribution.map((d) => d.count.value))),
+    ).not.toContain(null);
   });
 
   it("F6: the aggregate CSV hides counts from 1 to 4 for a role without drill-down", async () => {
