@@ -53,8 +53,12 @@ const URGENCY: Record<string, Urgency> = {
   urgent: "soon",
 };
 
-export function buildPackView(pack: DiabetesPack, input: PackInput): PackView {
-  const r: PackResult = runProtocol(pack, input);
+export function buildPackView(
+  pack: DiabetesPack,
+  input: PackInput,
+  /** A result already computed for this input (the clerking desk runs the pack once). */
+  r: PackResult = runProtocol(pack, input),
+): PackView {
   const rules = new Map(pack.rules.map((x) => [x.id, x]));
   const steps = new Map(pack.management.map((x) => [x.id, x]));
   const flagsById = new Map(pack.therapyFlags.map((x) => [x.id, x]));

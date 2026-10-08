@@ -109,6 +109,7 @@ export function NcdClerkship({
   pulled,
   ageBand,
   pack,
+  formOnly,
 }: {
   catalog: NcdCatalog;
   site: SiteProfile;
@@ -145,6 +146,8 @@ export function NcdClerkship({
     ageYears?: number | null;
     careSetting?: "outpatient" | "emergency" | "inpatient" | null;
   };
+  /** NCD_DM_DESK (ADR 0216): the questions only; the clerking desk shows the pack's result. */
+  formOnly?: boolean;
 }) {
   const [values, setValues] = useState<CaptureMap>(initialValues ?? {});
   const [activeSite, setActiveSite] = useState<SiteProfile>(site);
@@ -267,7 +270,9 @@ export function NcdClerkship({
         ) : null}
       </header>
 
-      <div className="grid grid-cols-1 gap-3 lg:h-[calc(100svh-9rem)] lg:max-h-[52rem] lg:min-h-[32rem] lg:grid-cols-[13rem_minmax(0,1fr)_24rem]">
+      <div
+        className={`grid grid-cols-1 gap-3 lg:h-[calc(100svh-9rem)] lg:max-h-[52rem] lg:min-h-[32rem] ${formOnly ? "lg:grid-cols-[13rem_minmax(0,1fr)]" : "lg:grid-cols-[13rem_minmax(0,1fr)_24rem]"}`}
+      >
         {/* Rail — the whole protocol, so one-at-a-time never means hidden. */}
         <div className="border-border bg-card overflow-x-auto rounded-lg border p-1.5 shadow-xs lg:overflow-x-hidden lg:overflow-y-auto">
           <NcdSectionRail progress={progress} activeId={activeId} onPick={leave} />
@@ -299,13 +304,15 @@ export function NcdClerkship({
         </div>
 
         {/* Profile — never leaves the screen. */}
-        <div className="min-h-0 lg:overflow-y-auto lg:pr-1">
-          {packView ? (
-            <NcdPackView view={packView} profile={profile} />
-          ) : (
-            <NcdProfileView profile={profile} />
-          )}
-        </div>
+        {formOnly ? null : (
+          <div className="min-h-0 lg:overflow-y-auto lg:pr-1">
+            {packView ? (
+              <NcdPackView view={packView} profile={profile} />
+            ) : (
+              <NcdProfileView profile={profile} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

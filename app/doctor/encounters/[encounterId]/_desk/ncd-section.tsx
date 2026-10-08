@@ -20,6 +20,8 @@ export interface NcdSeed {
     ageYears?: number | null;
     careSetting?: "outpatient" | "emergency" | "inpatient" | null;
   };
+  /** NCD_DM_DESK (ADR 0216): only the questions the clerking does not ask, no decision panel. */
+  formOnly?: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ export default function NcdSection({
       ageBand={seed.ageBand}
       pulled={seed.pulled}
       onChange={onChange}
+      formOnly={seed.formOnly}
     />
   );
 }

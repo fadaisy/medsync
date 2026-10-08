@@ -23,6 +23,7 @@ import type { PlanDraft } from "@/lib/clerking/plan/draft";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
 import type { SummaryDraft } from "@/lib/clerking/summary/review";
 import type { NoteContent } from "@/lib/emr/note-rules";
+import type { DiabetesPack } from "@/lib/ncd/pack/types";
 import type { ReactNode } from "react";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
@@ -43,6 +44,7 @@ import { acceptColumn, cellState, nextState, withMark } from "@/lib/clerking/imp
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
 import { ConversionDialog, ConversionStrip } from "./conversion-dialog";
+import { DiabetesProfile } from "./diabetes-profile";
 import { ExamStep } from "./exam/exam-step";
 import { examOf, previousFormat, VITALS, withExam } from "./exam/model";
 import { FamilyBody, SocialBody } from "./family-social";
@@ -119,6 +121,9 @@ export interface ClerkingDeskProps {
   signing?: boolean;
   /** `impression`: shown above step 09 (the diabetes module's offer). */
   slots?: { orders?: ReactNode; tools?: ReactNode; impression?: ReactNode };
+  /** NCD_DM_DESK (ADR 0216): the diabetes pack runs on this record; `onMore` opens the questions
+   *  the clerking does not ask. */
+  dm?: { pack: DiabetesPack; fields: readonly string[]; onMore?: () => void } | null;
 }
 
 const GROUPS = [
@@ -467,8 +472,8 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const ecat = props.ecat ?? null;
   const dxData = props.dx ?? null;
   const derived: Derived | null = useMemo(
-    () => (cat ? deriveDesk(cat, p, view, ecat, fmt.time, dxData) : null),
-    [cat, p, view, ecat, fmt, dxData],
+    () => (cat ? deriveDesk(cat, p, view, ecat, fmt.time, dxData, props.dm ?? null) : null),
+    [cat, p, view, ecat, fmt, dxData, props.dm],
   );
   const si = derived?.si ?? null;
   // Step 08 on screen says what it is doing: Composed, Reviewed or Changed (§5.1).
@@ -522,8 +527,11 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   };
   const dxLoaded = props.dx !== undefined;
   const imp = useMemo(
-    () => (si && dxLoaded ? deriveImpression(si, dxData, { inPlan }) : null),
-    [si, dxLoaded, dxData, inPlan],
+    () =>
+      si && dxLoaded
+        ? deriveImpression(si, dxData, { inPlan, diabetes: derived?.diabetes?.verdict ?? null })
+        : null,
+    [si, dxLoaded, dxData, inPlan, derived?.diabetes?.verdict],
   );
   const detailsRow =
     details && si
@@ -686,6 +694,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           }}
           time={fmt.time}
           onBack={() => go("impression")}
+          diabetes={derived.diabetes?.show ? derived.diabetes.view : null}
         />
       );
     }
@@ -883,6 +892,12 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         }}
       />
       <div className="border-border border-t" />
+      {derived?.diabetes?.show ? (
+        <>
+          <DiabetesProfile d={derived.diabetes} onGo={go} onMore={props.dm?.onMore} />
+          <div className="border-border border-t" />
+        </>
+      ) : null}
       {derived ? (
         <NotePane
           blocks={derived.blocks}

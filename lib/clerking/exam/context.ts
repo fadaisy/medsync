@@ -110,8 +110,10 @@ export const RESULT_CONCEPTS = [
 /** One observation fact as the `result` atom reads it (the CFC fact model's own qualifiers). */
 export interface ResultFact {
   concept: string;
-  /** The canonical value. */
+  /** The canonical value; for a dipstick, its grade (negative 0, trace 0.5, 1+ 1 …). */
   value: number;
+  /** A dipstick's coded answer as charted ("negative", "trace", "plus1" …). */
+  code?: string;
   comparator?: "<" | "<=" | ">" | ">=";
   /** Effective time (ISO). */
   at: string;

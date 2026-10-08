@@ -46,6 +46,65 @@ export interface ImpressionView {
 export interface ImpressionExtras {
   /** Test ids already ordered for this diagnosis at this visit ("In plan"). */
   inPlan: (logicalId: string) => ReadonlySet<string>;
+  /** NCD_DM_DESK: the diabetes pack's verdict, which words the diabetes suggestion (ADR 0216). */
+  diabetes?: { state: string; words: string } | null;
+}
+
+const DM_TYPE1 = "dx.dm_type1";
+const DM_ANY_TYPE = "dx.dm_type_unknown";
+const DM_TYPES = new Set([DM_TYPE1, "dx.dm_type2", DM_ANY_TYPE]);
+
+/**
+ * One diabetes suggestion, worded by the pack (owner decision 2026-10-08): type 2 and "type not
+ * yet determined" become one chip whose first reason is the pack's verdict; type 1 keeps its own
+ * chip (must-not-miss) with the same first reason. A met verdict with no chip adds one.
+ */
+function withPackVerdict(
+  sugg: NamedSuggestion[],
+  verdict: { state: string; words: string },
+  dx: DxData,
+  onBoardIds: ReadonlySet<string>,
+): NamedSuggestion[] {
+  if ([...onBoardIds].some((id) => DM_TYPES.has(id))) return sugg;
+  const lead = (g: NamedSuggestion): NamedSuggestion => ({
+    ...g,
+    why: [verdict.words, ...g.why.filter((w) => w !== verdict.words)],
+  });
+  const merge = sugg.filter((g) => g.dxId !== DM_TYPE1 && DM_TYPES.has(g.dxId));
+  const out: NamedSuggestion[] = [];
+  let merged = false;
+  for (const g of sugg) {
+    if (g.dxId === DM_TYPE1) out.push(lead(g));
+    else if (!DM_TYPES.has(g.dxId)) out.push(g);
+    else if (!merged) {
+      merged = true;
+      const base = merge.find((m) => m.dxId === DM_ANY_TYPE) ?? g;
+      out.push(
+        lead({
+          ...base,
+          why: [...new Set(merge.flatMap((m) => m.why))],
+          rules: [...new Set(merge.flatMap((m) => m.rules))],
+          mustNotMiss: merge.some((m) => m.mustNotMiss),
+        }),
+      );
+    }
+  }
+  const profile = dx.cat.profile(DM_ANY_TYPE);
+  if (verdict.state === "met" && !out.some((g) => DM_TYPES.has(g.dxId)) && profile) {
+    const n = dx.names[DM_ANY_TYPE];
+    out.unshift({
+      dxId: DM_ANY_TYPE,
+      profile,
+      why: [verdict.words],
+      rules: ["NCD-DM-PACK"],
+      mustNotMiss: profile.must_not_miss,
+      forLeading: false,
+      display: n?.display ?? DM_ANY_TYPE,
+      coded: !!n?.coded,
+      restricted: !!n?.restricted,
+    });
+  }
+  return out;
 }
 
 export function deriveImpression(
@@ -74,6 +133,19 @@ export function deriveImpression(
         },
       )
     : [];
+  const sugg2 =
+    dx && extras.diabetes
+      ? withPackVerdict(
+          sugg,
+          extras.diabetes,
+          dx,
+          new Set(
+            onBoard(si.board)
+              .map((r) => r.dx.dxId)
+              .filter(Boolean) as string[],
+          ),
+        )
+      : sugg;
   const loose = dx ? unexplained(ctx) : [];
   const byText = new Map<string, FindingRef[]>();
   for (const f of loose) {
@@ -92,7 +164,7 @@ export function deriveImpression(
     findings,
     unexplained: loose.filter((f) => byText.get(f.text.toLowerCase())![0] === f.ref),
     sameAs: (ref) => byText.get(textOf.get(ref) ?? "") ?? [ref],
-    suggestions: sugg,
+    suggestions: sugg2,
     basis: (row) =>
       basisLine({
         row,

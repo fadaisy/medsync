@@ -84,6 +84,11 @@ export interface PlanStepProps {
   on: PlanHandlers;
   time: (iso: string) => string;
   onBack: () => void;
+  /** NCD_DM_DESK (ADR 0216): the diabetes pack's due checks and targets, read only. */
+  diabetes?: {
+    care: { id: string; display: string }[];
+    targets: { id: string; display: string }[];
+  } | null;
 }
 
 const DISPOSITION_OPTIONS = [
@@ -445,6 +450,23 @@ export function PlanStep(props: PlanStepProps) {
           </p>
         )}
       </Section>
+
+      {props.diabetes && (props.diabetes.care.length || props.diabetes.targets.length) ? (
+        <Section id="plan-diabetes" title="Diabetes: due and targets">
+          <p className="text-caption text-muted-foreground">
+            From the diabetes pack, as suggestions: nothing here is ordered. Order tests from the
+            problem above.
+          </p>
+          <ul className="text-body-s text-foreground flex flex-col gap-1">
+            {props.diabetes.care.map((c) => (
+              <li key={c.id}>{c.display}</li>
+            ))}
+            {props.diabetes.targets.map((t) => (
+              <li key={t.id}>{`Target: ${t.display}`}</li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
 
       <Section id="plan-medicines" title="Medicines">
         <MedicinesSection

@@ -17,6 +17,7 @@ import type { ObsFrequency } from "@/lib/emr/charts/rules";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ActionResult } from "@/lib/emr/write/context";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
+import type { DiabetesPack } from "@/lib/ncd/pack/types";
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -142,11 +143,14 @@ export function DeskClient({
   rail,
   ncdSeed,
   orders,
+  dm,
 }: {
   p: DeskPayload;
   rail?: ReactNode;
   ncdSeed?: NcdSeed | null;
   orders?: ReactNode;
+  /** NCD_DM_DESK (ADR 0216): the pack reads the clerking; the module is only its extra questions. */
+  dm?: { pack: DiabetesPack; fields: string[] } | null;
 }) {
   const router = useRouter();
   const fmt = useMemo(() => formatters(p.timeZone), [p.timeZone]);
@@ -941,6 +945,12 @@ export function DeskClient({
     ) : null;
   // Clerking desk v2 has no NCD step: the module opens in a wide dialog from the safety bar, and
   // Impression offers it when diabetes is on this visit (ICD-11 5A10–5A14, or the words).
+  // Stable, so the desk re-runs the pack only when the record changes.
+  const hasModule = !!ncdModule;
+  const dmDesk = useMemo(
+    () => (dm ? { ...dm, onMore: hasModule ? () => setSheet("ncd") : undefined } : null),
+    [dm, hasModule],
+  );
   const dmOnVisit = p.diagnoses.some(
     (d) => /diabet/i.test(d.display) || (d.code?.startsWith("5A1") ?? false),
   );
@@ -1140,11 +1150,12 @@ export function DeskClient({
           busy={busy}
           signing={signing}
           loaders={loaders}
+          dm={dmDesk}
           slots={{
             orders,
             tools: (
               <>
-                {ncdModule ? (
+                {ncdModule && !dm ? (
                   <Button variant="secondary" size="sm" onClick={() => setSheet("ncd")}>
                     Diabetes module
                   </Button>
@@ -1160,20 +1171,21 @@ export function DeskClient({
               </>
             ),
             // Phones have no safety bar, so the offer is always there below 640 px.
-            impression: ncdModule ? (
-              <div
-                className={`border-border bg-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-4 py-3 ${dmOnVisit ? "" : "sm:hidden"}`}
-              >
-                <p className="text-body-s text-foreground min-w-0 flex-1">
-                  {dmOnVisit
-                    ? "Diabetes is on this visit. The diabetes module checks the criteria, the medicines to review and what is due."
-                    : "The diabetes module checks the criteria, the medicines to review and what is due."}
-                </p>
-                <Button variant="secondary" size="sm" onClick={() => setSheet("ncd")}>
-                  Open the diabetes module
-                </Button>
-              </div>
-            ) : null,
+            impression:
+              ncdModule && !dm ? (
+                <div
+                  className={`border-border bg-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-4 py-3 ${dmOnVisit ? "" : "sm:hidden"}`}
+                >
+                  <p className="text-body-s text-foreground min-w-0 flex-1">
+                    {dmOnVisit
+                      ? "Diabetes is on this visit. The diabetes module checks the criteria, the medicines to review and what is due."
+                      : "The diabetes module checks the criteria, the medicines to review and what is due."}
+                  </p>
+                  <Button variant="secondary" size="sm" onClick={() => setSheet("ncd")}>
+                    Open the diabetes module
+                  </Button>
+                </div>
+              ) : null,
           }}
         />
       ) : (
@@ -1233,7 +1245,7 @@ export function DeskClient({
         <EmrDialog
           open={sheet === "ncd"}
           onOpenChange={(o) => setSheet(o ? "ncd" : null)}
-          title="Diabetes and NCD module"
+          title={dm ? "More diabetes questions" : "Diabetes and NCD module"}
           description="Answers save with the note and are recorded when you sign."
           width="xl"
           sheet="tall"
