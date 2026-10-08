@@ -42,45 +42,43 @@ export const requireNcdScope = cache(async (): Promise<NcdScope> => {
   if (state.aal !== "aal2") redirect("/sign-in/mfa?redirect=/ncd");
   const userId = state.user.id;
 
-  const [aff] = await db
-    .select({ hospitalId: staffAffiliations.hospitalId })
-    .from(staffAffiliations)
-    .where(
-      and(
-        eq(staffAffiliations.userId, userId),
-        inArray(staffAffiliations.state, ["active", "approved"]),
-      ),
-    )
-    .orderBy(desc(staffAffiliations.approvedAt))
-    .limit(1);
-  const [admin] = aff
-    ? []
-    : await db
-        .select({ hospitalId: hospitalAdminRoster.hospitalId })
-        .from(hospitalAdminRoster)
-        .where(and(eq(hospitalAdminRoster.userId, userId), isNull(hospitalAdminRoster.succeededAt)))
-        .limit(1);
-  const [assigned] =
-    aff || admin
-      ? []
-      : await db
-          .select({ hospitalId: ncdStaffRole.facilityId })
-          .from(ncdStaffRole)
-          .where(and(eq(ncdStaffRole.userId, userId), isNull(ncdStaffRole.revokedAt)))
-          .limit(1);
+  // The three ways a person belongs to a facility, looked up together (one round trip of latency),
+  // then chosen in order: an active affiliation, an admin seat, an explicit NCD role.
+  const [[aff], [admin], [assigned]] = await Promise.all([
+    db
+      .select({ hospitalId: staffAffiliations.hospitalId })
+      .from(staffAffiliations)
+      .where(
+        and(
+          eq(staffAffiliations.userId, userId),
+          inArray(staffAffiliations.state, ["active", "approved"]),
+        ),
+      )
+      .orderBy(desc(staffAffiliations.approvedAt))
+      .limit(1),
+    db
+      .select({ hospitalId: hospitalAdminRoster.hospitalId })
+      .from(hospitalAdminRoster)
+      .where(and(eq(hospitalAdminRoster.userId, userId), isNull(hospitalAdminRoster.succeededAt)))
+      .limit(1),
+    db
+      .select({ hospitalId: ncdStaffRole.facilityId })
+      .from(ncdStaffRole)
+      .where(and(eq(ncdStaffRole.userId, userId), isNull(ncdStaffRole.revokedAt)))
+      .limit(1),
+  ]);
   const facilityId = aff?.hospitalId ?? admin?.hospitalId ?? assigned?.hospitalId;
   if (!facilityId || !ncdRegistryLiveFor(facilityId)) notFound();
 
-  const ctx = await resolveContext({ userId, facilityId, principal: "user" });
+  const [ctx, [h], [u]] = await Promise.all([
+    resolveContext({ userId, facilityId, principal: "user" }),
+    db.select({ name: hospitals.name }).from(hospitals).where(eq(hospitals.id, facilityId)),
+    db
+      .select({ fullName: users.fullName, email: users.email })
+      .from(users)
+      .where(eq(users.id, userId)),
+  ]);
   if (!ctx.roles.length) notFound();
-  const [h] = await db
-    .select({ name: hospitals.name })
-    .from(hospitals)
-    .where(eq(hospitals.id, facilityId));
-  const [u] = await db
-    .select({ fullName: users.fullName, email: users.email })
-    .from(users)
-    .where(eq(users.id, userId));
   return {
     ctx,
     hospitalName: h?.name ?? "Hospital",

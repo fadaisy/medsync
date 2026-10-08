@@ -39,16 +39,13 @@ export async function withNcd<T>(
 ): Promise<T> {
   const conn = database ?? (await defaultDb());
   return conn.transaction(async (tx) => {
+    // One round trip: the identity GUCs and the role (set_config('role', …, true) is SET LOCAL ROLE).
     await tx.execute(
       sql`SELECT set_config('app.user_id', ${id.userId ?? ""}, true),
                  set_config('app.hospital_id', ${id.facilityId}, true),
                  set_config('app.ncd_principal', ${id.principal}, true),
-                 set_config('request.jwt.claim.sub', ${id.userId ?? ""}, true)`,
-    );
-    await tx.execute(
-      role === "app"
-        ? sql`SET LOCAL ROLE medsync_ncd_app`
-        : sql`SET LOCAL ROLE medsync_ncd_analytics`,
+                 set_config('request.jwt.claim.sub', ${id.userId ?? ""}, true),
+                 set_config('role', ${role === "app" ? "medsync_ncd_app" : "medsync_ncd_analytics"}, true)`,
     );
     return fn(tx);
   });
