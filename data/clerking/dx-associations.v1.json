@@ -1,0 +1,5682 @@
+{
+  "id": "MS-EMR-DX-ASSOC-001",
+  "version": "1.0.0-draft",
+  "status": "draft — awaiting CSO",
+  "generated": "2026-10-08",
+  "source": "data/clerking/clerking-diagnosis-catalogue.v1.json (profiles[*].related)",
+  "method": "Every pair in the clerking diagnosis catalogue's untyped `related` lists (MS-CLERK-DX v1) was typed by hand, by clinical judgement and each profile's note, into exactly one of three buckets, read in the parent-to-child direction. COMPLICATION: the child is a recognised consequence of the parent (diabetes → retinopathy; pneumonia → sepsis). GOES_WITH: the child commonly co-exists with the parent and finding the parent should prompt checking for or managing the child: shared-risk comorbidity (diabetes → hypertension), co-infection (HIV → TB), a chronic driver that needs its own ongoing care (heart failure → hypertension; AF → rheumatic heart disease; stroke → AF), and, only where the parent is the acute decompensation of a known disease, the precipitant that must be sought (DKA → sepsis). EXCLUDED: alternatives (differentials; another type, form, stage or umbrella term; the candidate causes of a not-yet-explained symptom-level entry, which are all excluded), the underlying condition of a complication when the parent already implies it (DKA → type 1 diabetes), acute or mutually exclusive candidate causes that are the parent's aetiology work-up (AKI → sepsis), not-yet-explained placeholders the parent replaces, and anything genuinely ambiguous. No pair outside `related` was added and no id outside `profiles` is used. Draft by Claude for the Clinical Safety Officer; not for use until signed.",
+  "counts": {
+    "pairs": 1377,
+    "complications": 315,
+    "goes_with": 152,
+    "excluded": 910,
+    "parents_with_associations": 195
+  },
+  "associations": {
+    "dx.aaa_rupture": {
+      "complications": [
+        "dx.hypovolaemic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.acs": {
+      "complications": [
+        "dx.cardiogenic_shock",
+        "dx.heart_failure_acute",
+        "dx.ventricular_arrhythmia"
+      ],
+      "goes_with": []
+    },
+    "dx.acute_limb_ischaemia": {
+      "complications": [
+        "dx.rhabdomyolysis"
+      ],
+      "goes_with": [
+        "dx.af",
+        "dx.rheumatic_heart_disease",
+        "dx.pad"
+      ]
+    },
+    "dx.acute_liver_failure": {
+      "complications": [
+        "dx.hepatic_encephalopathy"
+      ],
+      "goes_with": []
+    },
+    "dx.adrenal_insufficiency": {
+      "complications": [
+        "dx.hypoglycaemia_no_dm",
+        "dx.hyponatraemia",
+        "dx.hyperkalaemia"
+      ],
+      "goes_with": [
+        "dx.tb_extrapulmonary"
+      ]
+    },
+    "dx.af": {
+      "complications": [
+        "dx.stroke_ischaemic",
+        "dx.heart_failure_acute",
+        "dx.acute_limb_ischaemia"
+      ],
+      "goes_with": [
+        "dx.rheumatic_heart_disease",
+        "dx.thyrotoxicosis",
+        "dx.cardiomyopathy"
+      ]
+    },
+    "dx.aki": {
+      "complications": [
+        "dx.hyperkalaemia"
+      ],
+      "goes_with": [
+        "dx.ckd"
+      ]
+    },
+    "dx.alcohol_dependence": {
+      "complications": [
+        "dx.alcohol_withdrawal",
+        "dx.alcohol_intoxication",
+        "dx.wernicke",
+        "dx.alcoholic_hepatitis",
+        "dx.liver_cirrhosis"
+      ],
+      "goes_with": []
+    },
+    "dx.alcohol_intoxication": {
+      "complications": [
+        "dx.hypoglycaemia_no_dm"
+      ],
+      "goes_with": [
+        "dx.head_injury",
+        "dx.alcohol_dependence"
+      ]
+    },
+    "dx.alcohol_withdrawal": {
+      "complications": [
+        "dx.delirium"
+      ],
+      "goes_with": [
+        "dx.alcohol_dependence",
+        "dx.wernicke"
+      ]
+    },
+    "dx.alcoholic_hepatitis": {
+      "complications": [
+        "dx.hepatic_encephalopathy"
+      ],
+      "goes_with": [
+        "dx.liver_cirrhosis"
+      ]
+    },
+    "dx.anaphylaxis": {
+      "complications": [
+        "dx.upper_airway_obstruction"
+      ],
+      "goes_with": []
+    },
+    "dx.angina_stable": {
+      "complications": [
+        "dx.acs"
+      ],
+      "goes_with": [
+        "dx.dyslipidaemia",
+        "dx.pad"
+      ]
+    },
+    "dx.angioedema": {
+      "complications": [
+        "dx.upper_airway_obstruction"
+      ],
+      "goes_with": []
+    },
+    "dx.anxiety_disorder": {
+      "complications": [],
+      "goes_with": [
+        "dx.depression"
+      ]
+    },
+    "dx.aortic_dissection": {
+      "complications": [
+        "dx.cardiac_tamponade",
+        "dx.stroke_ischaemic"
+      ],
+      "goes_with": []
+    },
+    "dx.aortic_stenosis": {
+      "complications": [
+        "dx.angina_stable",
+        "dx.heart_failure",
+        "dx.infective_endocarditis"
+      ],
+      "goes_with": [
+        "dx.rheumatic_heart_disease"
+      ]
+    },
+    "dx.appendicitis": {
+      "complications": [
+        "dx.perforated_viscus"
+      ],
+      "goes_with": []
+    },
+    "dx.aspiration_pneumonia": {
+      "complications": [
+        "dx.lung_abscess_empyema",
+        "dx.respiratory_failure"
+      ],
+      "goes_with": [
+        "dx.stroke"
+      ]
+    },
+    "dx.asthma": {
+      "complications": [
+        "dx.asthma_exacerbation"
+      ],
+      "goes_with": []
+    },
+    "dx.asthma_exacerbation": {
+      "complications": [
+        "dx.respiratory_failure",
+        "dx.pneumothorax"
+      ],
+      "goes_with": []
+    },
+    "dx.bladder_cancer": {
+      "complications": [
+        "dx.obstructive_uropathy",
+        "dx.uti"
+      ],
+      "goes_with": [
+        "dx.schistosomiasis"
+      ]
+    },
+    "dx.bowel_obstruction": {
+      "complications": [
+        "dx.perforated_viscus"
+      ],
+      "goes_with": []
+    },
+    "dx.bph": {
+      "complications": [
+        "dx.urinary_retention",
+        "dx.obstructive_uropathy",
+        "dx.uti"
+      ],
+      "goes_with": []
+    },
+    "dx.breast_cancer": {
+      "complications": [
+        "dx.pleural_effusion",
+        "dx.tumour_lysis_or_hypercalcaemia_malignancy"
+      ],
+      "goes_with": []
+    },
+    "dx.bronchiectasis": {
+      "complications": [
+        "dx.chronic_pulmonary_aspergillosis",
+        "dx.pneumonia"
+      ],
+      "goes_with": [
+        "dx.post_tb_lung_disease"
+      ]
+    },
+    "dx.brucellosis": {
+      "complications": [
+        "dx.septic_arthritis",
+        "dx.osteomyelitis"
+      ],
+      "goes_with": []
+    },
+    "dx.burn": {
+      "complications": [
+        "dx.hypovolaemic_shock",
+        "dx.upper_airway_obstruction",
+        "dx.sepsis",
+        "dx.tetanus"
+      ],
+      "goes_with": [
+        "dx.epilepsy"
+      ]
+    },
+    "dx.cardiomyopathy": {
+      "complications": [
+        "dx.heart_failure",
+        "dx.heart_failure_acute",
+        "dx.af",
+        "dx.ventricular_arrhythmia"
+      ],
+      "goes_with": []
+    },
+    "dx.cellulitis": {
+      "complications": [
+        "dx.skin_abscess",
+        "dx.sepsis"
+      ],
+      "goes_with": [
+        "dx.lymphatic_filariasis"
+      ]
+    },
+    "dx.cerebral_toxoplasmosis": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.cholangitis": {
+      "complications": [
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.cholera": {
+      "complications": [
+        "dx.hypovolaemic_shock",
+        "dx.aki",
+        "dx.hypokalaemia"
+      ],
+      "goes_with": []
+    },
+    "dx.chronic_pulmonary_aspergillosis": {
+      "complications": [],
+      "goes_with": [
+        "dx.post_tb_lung_disease",
+        "dx.bronchiectasis"
+      ]
+    },
+    "dx.ckd": {
+      "complications": [
+        "dx.aki",
+        "dx.hyperkalaemia"
+      ],
+      "goes_with": [
+        "dx.hypertension",
+        "dx.nephrotic_syndrome",
+        "dx.obstructive_uropathy"
+      ]
+    },
+    "dx.colorectal_cancer": {
+      "complications": [
+        "dx.iron_deficiency_anaemia",
+        "dx.bowel_obstruction"
+      ],
+      "goes_with": []
+    },
+    "dx.copd": {
+      "complications": [
+        "dx.copd_exacerbation",
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": []
+    },
+    "dx.copd_exacerbation": {
+      "complications": [
+        "dx.respiratory_failure"
+      ],
+      "goes_with": [
+        "dx.pneumonia"
+      ]
+    },
+    "dx.covid19": {
+      "complications": [
+        "dx.pneumonia",
+        "dx.respiratory_failure",
+        "dx.pulmonary_embolism"
+      ],
+      "goes_with": []
+    },
+    "dx.cryptococcal_meningitis": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.delirium": {
+      "complications": [],
+      "goes_with": [
+        "dx.dementia"
+      ]
+    },
+    "dx.dementia": {
+      "complications": [],
+      "goes_with": [
+        "dx.delirium"
+      ]
+    },
+    "dx.dental_abscess": {
+      "complications": [
+        "dx.cellulitis",
+        "dx.upper_airway_obstruction",
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.depression": {
+      "complications": [
+        "dx.suicidal_ideation"
+      ],
+      "goes_with": [
+        "dx.anxiety_disorder",
+        "dx.alcohol_dependence"
+      ]
+    },
+    "dx.diabetic_foot": {
+      "complications": [
+        "dx.osteomyelitis",
+        "dx.necrotising_soft_tissue",
+        "dx.cellulitis",
+        "dx.sepsis"
+      ],
+      "goes_with": [
+        "dx.pad",
+        "dx.peripheral_neuropathy"
+      ]
+    },
+    "dx.diabetic_kidney_disease": {
+      "complications": [
+        "dx.aki"
+      ],
+      "goes_with": [
+        "dx.hypertension"
+      ]
+    },
+    "dx.diabetic_neuropathy": {
+      "complications": [
+        "dx.diabetic_foot"
+      ],
+      "goes_with": []
+    },
+    "dx.diabetic_retinopathy": {
+      "complications": [],
+      "goes_with": [
+        "dx.hypertension"
+      ]
+    },
+    "dx.dka": {
+      "complications": [],
+      "goes_with": [
+        "dx.sepsis"
+      ]
+    },
+    "dx.dm_type1": {
+      "complications": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm"
+      ],
+      "goes_with": []
+    },
+    "dx.dm_type2": {
+      "complications": [
+        "dx.hhs",
+        "dx.diabetic_foot",
+        "dx.ckd",
+        "dx.diabetic_kidney_disease",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
+      ],
+      "goes_with": [
+        "dx.obesity",
+        "dx.dyslipidaemia",
+        "dx.hypertension"
+      ]
+    },
+    "dx.dm_type_unknown": {
+      "complications": [
+        "dx.dka",
+        "dx.hhs"
+      ],
+      "goes_with": []
+    },
+    "dx.drug_induced_liver_injury": {
+      "complications": [
+        "dx.acute_liver_failure"
+      ],
+      "goes_with": []
+    },
+    "dx.dvt": {
+      "complications": [
+        "dx.pulmonary_embolism"
+      ],
+      "goes_with": []
+    },
+    "dx.dysentery": {
+      "complications": [
+        "dx.liver_abscess"
+      ],
+      "goes_with": []
+    },
+    "dx.dyslipidaemia": {
+      "complications": [],
+      "goes_with": [
+        "dx.dm_type2",
+        "dx.hypothyroidism",
+        "dx.nephrotic_syndrome",
+        "dx.obesity"
+      ]
+    },
+    "dx.eclampsia": {
+      "complications": [
+        "dx.status_epilepticus"
+      ],
+      "goes_with": []
+    },
+    "dx.ectopic_pregnancy": {
+      "complications": [
+        "dx.hypovolaemic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.encephalitis": {
+      "complications": [
+        "dx.status_epilepticus"
+      ],
+      "goes_with": []
+    },
+    "dx.epilepsy": {
+      "complications": [
+        "dx.status_epilepticus"
+      ],
+      "goes_with": [
+        "dx.neurocysticercosis"
+      ]
+    },
+    "dx.febrile_neutropenia": {
+      "complications": [
+        "dx.sepsis",
+        "dx.septic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.fracture": {
+      "complications": [
+        "dx.cord_compression",
+        "dx.hypovolaemic_shock"
+      ],
+      "goes_with": [
+        "dx.open_wound"
+      ]
+    },
+    "dx.gastric_cancer": {
+      "complications": [
+        "dx.iron_deficiency_anaemia"
+      ],
+      "goes_with": []
+    },
+    "dx.gastroenteritis": {
+      "complications": [
+        "dx.hypovolaemic_shock",
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.giant_cell_arteritis": {
+      "complications": [
+        "dx.stroke_ischaemic"
+      ],
+      "goes_with": []
+    },
+    "dx.gout": {
+      "complications": [],
+      "goes_with": [
+        "dx.ckd"
+      ]
+    },
+    "dx.haemolytic_anaemia": {
+      "complications": [
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.hcc": {
+      "complications": [],
+      "goes_with": [
+        "dx.hepatitis_b_chronic",
+        "dx.liver_cirrhosis"
+      ]
+    },
+    "dx.head_injury": {
+      "complications": [
+        "dx.subdural_haematoma"
+      ],
+      "goes_with": [
+        "dx.fracture",
+        "dx.open_wound",
+        "dx.alcohol_intoxication"
+      ]
+    },
+    "dx.heart_failure": {
+      "complications": [
+        "dx.heart_failure_acute"
+      ],
+      "goes_with": [
+        "dx.cardiomyopathy",
+        "dx.rheumatic_heart_disease",
+        "dx.hypertension",
+        "dx.af"
+      ]
+    },
+    "dx.heart_failure_acute": {
+      "complications": [
+        "dx.cardiogenic_shock"
+      ],
+      "goes_with": [
+        "dx.acs",
+        "dx.af",
+        "dx.hypertensive_crisis",
+        "dx.cardiomyopathy"
+      ]
+    },
+    "dx.heat_stroke": {
+      "complications": [
+        "dx.rhabdomyolysis",
+        "dx.aki",
+        "dx.dic"
+      ],
+      "goes_with": []
+    },
+    "dx.hepatic_encephalopathy": {
+      "complications": [],
+      "goes_with": [
+        "dx.sbp",
+        "dx.variceal_bleed"
+      ]
+    },
+    "dx.hepatitis_acute_viral": {
+      "complications": [
+        "dx.acute_liver_failure",
+        "dx.hepatitis_b_chronic"
+      ],
+      "goes_with": []
+    },
+    "dx.hepatitis_b_chronic": {
+      "complications": [
+        "dx.liver_cirrhosis",
+        "dx.hcc"
+      ],
+      "goes_with": [
+        "dx.hepatitis_c_chronic",
+        "dx.hiv"
+      ]
+    },
+    "dx.hepatitis_c_chronic": {
+      "complications": [
+        "dx.liver_cirrhosis",
+        "dx.hcc"
+      ],
+      "goes_with": [
+        "dx.hepatitis_b_chronic",
+        "dx.hiv"
+      ]
+    },
+    "dx.herpes_zoster": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv"
+      ]
+    },
+    "dx.hhs": {
+      "complications": [
+        "dx.aki"
+      ],
+      "goes_with": [
+        "dx.sepsis"
+      ]
+    },
+    "dx.hiv": {
+      "complications": [
+        "dx.pcp",
+        "dx.cryptococcal_meningitis",
+        "dx.kaposi_sarcoma"
+      ],
+      "goes_with": [
+        "dx.tb_pulmonary_clinical"
+      ]
+    },
+    "dx.hiv_acute": {
+      "complications": [],
+      "goes_with": [
+        "dx.syphilis",
+        "dx.sti_genital_ulcer"
+      ]
+    },
+    "dx.hiv_advanced": {
+      "complications": [
+        "dx.cryptococcal_meningitis",
+        "dx.pcp",
+        "dx.cerebral_toxoplasmosis",
+        "dx.kaposi_sarcoma",
+        "dx.oesophageal_candidiasis"
+      ],
+      "goes_with": [
+        "dx.tb_extrapulmonary"
+      ]
+    },
+    "dx.hookworm_helminth": {
+      "complications": [
+        "dx.iron_deficiency_anaemia"
+      ],
+      "goes_with": [
+        "dx.schistosomiasis",
+        "dx.undernutrition"
+      ]
+    },
+    "dx.hypercalcaemia": {
+      "complications": [
+        "dx.aki",
+        "dx.hypernatraemia"
+      ],
+      "goes_with": []
+    },
+    "dx.hyperemesis": {
+      "complications": [
+        "dx.hypokalaemia",
+        "dx.wernicke"
+      ],
+      "goes_with": []
+    },
+    "dx.hypertension": {
+      "complications": [
+        "dx.hypertensive_crisis",
+        "dx.ckd",
+        "dx.heart_failure",
+        "dx.stroke"
+      ],
+      "goes_with": []
+    },
+    "dx.hypertensive_crisis": {
+      "complications": [
+        "dx.stroke_haemorrhagic",
+        "dx.aortic_dissection",
+        "dx.heart_failure_acute",
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.hypoglycaemia_dm": {
+      "complications": [],
+      "goes_with": [
+        "dx.aki",
+        "dx.ckd",
+        "dx.sepsis",
+        "dx.malaria_severe"
+      ]
+    },
+    "dx.hypothyroidism": {
+      "complications": [
+        "dx.myxoedema_coma",
+        "dx.dyslipidaemia",
+        "dx.hyponatraemia"
+      ],
+      "goes_with": []
+    },
+    "dx.infective_endocarditis": {
+      "complications": [
+        "dx.heart_failure",
+        "dx.stroke",
+        "dx.sepsis"
+      ],
+      "goes_with": [
+        "dx.rheumatic_heart_disease"
+      ]
+    },
+    "dx.influenza": {
+      "complications": [
+        "dx.pneumonia"
+      ],
+      "goes_with": []
+    },
+    "dx.intermediate_hyperglycaemia": {
+      "complications": [],
+      "goes_with": [
+        "dx.obesity",
+        "dx.hypertension"
+      ]
+    },
+    "dx.interstitial_lung_disease": {
+      "complications": [
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": [
+        "dx.rheumatoid_arthritis",
+        "dx.sle"
+      ]
+    },
+    "dx.iron_deficiency_anaemia": {
+      "complications": [],
+      "goes_with": [
+        "dx.hookworm_helminth"
+      ]
+    },
+    "dx.kaposi_sarcoma": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.leptospirosis": {
+      "complications": [
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.leukaemia": {
+      "complications": [
+        "dx.febrile_neutropenia",
+        "dx.dic",
+        "dx.thrombocytopenia",
+        "dx.tumour_lysis_or_hypercalcaemia_malignancy"
+      ],
+      "goes_with": []
+    },
+    "dx.liver_abscess": {
+      "complications": [
+        "dx.sepsis",
+        "dx.pleural_effusion"
+      ],
+      "goes_with": []
+    },
+    "dx.liver_cirrhosis": {
+      "complications": [
+        "dx.variceal_bleed",
+        "dx.hepatic_encephalopathy",
+        "dx.sbp",
+        "dx.hcc"
+      ],
+      "goes_with": [
+        "dx.hepatitis_b_chronic"
+      ]
+    },
+    "dx.lung_cancer": {
+      "complications": [
+        "dx.pleural_effusion"
+      ],
+      "goes_with": []
+    },
+    "dx.lymphatic_filariasis": {
+      "complications": [
+        "dx.cellulitis"
+      ],
+      "goes_with": []
+    },
+    "dx.malaria_cerebral": {
+      "complications": [
+        "dx.hypoglycaemia_no_dm",
+        "dx.status_epilepticus"
+      ],
+      "goes_with": []
+    },
+    "dx.malaria_severe": {
+      "complications": [
+        "dx.aki",
+        "dx.hypoglycaemia_no_dm"
+      ],
+      "goes_with": [
+        "dx.sepsis"
+      ]
+    },
+    "dx.malaria_uncomplicated": {
+      "complications": [
+        "dx.malaria_severe",
+        "dx.malaria_cerebral"
+      ],
+      "goes_with": []
+    },
+    "dx.megaloblastic_anaemia": {
+      "complications": [
+        "dx.peripheral_neuropathy",
+        "dx.dementia"
+      ],
+      "goes_with": []
+    },
+    "dx.meningitis_bacterial": {
+      "complications": [
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.methanol_poisoning": {
+      "complications": [
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.mpox": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv"
+      ]
+    },
+    "dx.myasthenia": {
+      "complications": [
+        "dx.respiratory_failure"
+      ],
+      "goes_with": [
+        "dx.thyrotoxicosis"
+      ]
+    },
+    "dx.myeloma": {
+      "complications": [
+        "dx.hypercalcaemia",
+        "dx.aki",
+        "dx.ckd",
+        "dx.cord_compression",
+        "dx.fracture"
+      ],
+      "goes_with": []
+    },
+    "dx.myxoedema_coma": {
+      "complications": [
+        "dx.hyponatraemia"
+      ],
+      "goes_with": [
+        "dx.adrenal_insufficiency",
+        "dx.sepsis"
+      ]
+    },
+    "dx.necrotising_soft_tissue": {
+      "complications": [
+        "dx.sepsis",
+        "dx.septic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.nephritic_syndrome": {
+      "complications": [
+        "dx.aki",
+        "dx.hypertensive_crisis"
+      ],
+      "goes_with": []
+    },
+    "dx.nephrotic_syndrome": {
+      "complications": [
+        "dx.ckd",
+        "dx.aki",
+        "dx.dvt"
+      ],
+      "goes_with": [
+        "dx.hepatitis_b_chronic",
+        "dx.dm_type2"
+      ]
+    },
+    "dx.neurocysticercosis": {
+      "complications": [
+        "dx.epilepsy"
+      ],
+      "goes_with": []
+    },
+    "dx.obesity": {
+      "complications": [],
+      "goes_with": [
+        "dx.dm_type2",
+        "dx.hypertension",
+        "dx.dyslipidaemia",
+        "dx.gord"
+      ]
+    },
+    "dx.obstructive_uropathy": {
+      "complications": [
+        "dx.aki",
+        "dx.ckd"
+      ],
+      "goes_with": []
+    },
+    "dx.oesophageal_cancer": {
+      "complications": [
+        "dx.undernutrition",
+        "dx.aspiration_pneumonia"
+      ],
+      "goes_with": []
+    },
+    "dx.oesophageal_candidiasis": {
+      "complications": [],
+      "goes_with": [
+        "dx.oral_candidiasis",
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.open_wound": {
+      "complications": [
+        "dx.tetanus",
+        "dx.cellulitis",
+        "dx.necrotising_soft_tissue"
+      ],
+      "goes_with": [
+        "dx.fracture"
+      ]
+    },
+    "dx.opioid_sedative_toxicity": {
+      "complications": [
+        "dx.respiratory_failure",
+        "dx.aspiration_pneumonia"
+      ],
+      "goes_with": []
+    },
+    "dx.oral_candidiasis": {
+      "complications": [],
+      "goes_with": [
+        "dx.oesophageal_candidiasis",
+        "dx.hiv",
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.organophosphate_poisoning": {
+      "complications": [
+        "dx.respiratory_failure",
+        "dx.aspiration_pneumonia"
+      ],
+      "goes_with": []
+    },
+    "dx.otitis_media_acute": {
+      "complications": [
+        "dx.meningitis_bacterial",
+        "dx.cvst",
+        "dx.bells_palsy"
+      ],
+      "goes_with": []
+    },
+    "dx.pad": {
+      "complications": [
+        "dx.acute_limb_ischaemia"
+      ],
+      "goes_with": [
+        "dx.diabetic_foot",
+        "dx.angina_stable",
+        "dx.dyslipidaemia"
+      ]
+    },
+    "dx.pancreatic_biliary_cancer": {
+      "complications": [
+        "dx.cholangitis"
+      ],
+      "goes_with": []
+    },
+    "dx.paracetamol_overdose": {
+      "complications": [
+        "dx.acute_liver_failure"
+      ],
+      "goes_with": []
+    },
+    "dx.parkinsonism": {
+      "complications": [
+        "dx.dementia",
+        "dx.orthostatic_hypotension"
+      ],
+      "goes_with": []
+    },
+    "dx.pcp": {
+      "complications": [
+        "dx.respiratory_failure"
+      ],
+      "goes_with": [
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.peptic_ulcer": {
+      "complications": [
+        "dx.perforated_viscus"
+      ],
+      "goes_with": []
+    },
+    "dx.perforated_viscus": {
+      "complications": [
+        "dx.sepsis",
+        "dx.septic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.pericardial_effusion": {
+      "complications": [
+        "dx.cardiac_tamponade"
+      ],
+      "goes_with": [
+        "dx.ckd"
+      ]
+    },
+    "dx.pericarditis": {
+      "complications": [
+        "dx.pericardial_effusion",
+        "dx.cardiac_tamponade"
+      ],
+      "goes_with": [
+        "dx.ckd"
+      ]
+    },
+    "dx.peripheral_neuropathy": {
+      "complications": [
+        "dx.diabetic_foot"
+      ],
+      "goes_with": [
+        "dx.dm_type2"
+      ]
+    },
+    "dx.pid": {
+      "complications": [
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.pneumonia": {
+      "complications": [
+        "dx.sepsis",
+        "dx.lung_abscess_empyema",
+        "dx.respiratory_failure"
+      ],
+      "goes_with": []
+    },
+    "dx.pneumothorax": {
+      "complications": [
+        "dx.respiratory_failure"
+      ],
+      "goes_with": [
+        "dx.post_tb_lung_disease"
+      ]
+    },
+    "dx.poisoning_nonmedicinal": {
+      "complications": [
+        "dx.aspiration_pneumonia"
+      ],
+      "goes_with": []
+    },
+    "dx.post_tb_lung_disease": {
+      "complications": [
+        "dx.bronchiectasis",
+        "dx.chronic_pulmonary_aspergillosis",
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": []
+    },
+    "dx.pre_eclampsia": {
+      "complications": [
+        "dx.pre_eclampsia_severe",
+        "dx.eclampsia"
+      ],
+      "goes_with": []
+    },
+    "dx.pre_eclampsia_severe": {
+      "complications": [
+        "dx.eclampsia",
+        "dx.dic",
+        "dx.heart_failure_acute"
+      ],
+      "goes_with": []
+    },
+    "dx.pressure_injury": {
+      "complications": [
+        "dx.osteomyelitis",
+        "dx.cellulitis",
+        "dx.sepsis"
+      ],
+      "goes_with": [
+        "dx.undernutrition"
+      ]
+    },
+    "dx.prostate_cancer": {
+      "complications": [
+        "dx.urinary_retention",
+        "dx.obstructive_uropathy",
+        "dx.cord_compression"
+      ],
+      "goes_with": []
+    },
+    "dx.pulmonary_embolism": {
+      "complications": [
+        "dx.respiratory_failure",
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": [
+        "dx.dvt"
+      ]
+    },
+    "dx.pulmonary_hypertension": {
+      "complications": [
+        "dx.heart_failure"
+      ],
+      "goes_with": [
+        "dx.rheumatic_heart_disease",
+        "dx.post_tb_lung_disease",
+        "dx.copd",
+        "dx.schistosomiasis"
+      ]
+    },
+    "dx.pyelonephritis": {
+      "complications": [
+        "dx.sepsis",
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.pyomyositis": {
+      "complications": [
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.rabies_exposure": {
+      "complications": [
+        "dx.rabies",
+        "dx.tetanus",
+        "dx.cellulitis"
+      ],
+      "goes_with": [
+        "dx.open_wound"
+      ]
+    },
+    "dx.rhabdomyolysis": {
+      "complications": [
+        "dx.aki",
+        "dx.hyperkalaemia"
+      ],
+      "goes_with": []
+    },
+    "dx.rheumatic_fever": {
+      "complications": [
+        "dx.rheumatic_heart_disease"
+      ],
+      "goes_with": []
+    },
+    "dx.rheumatic_heart_disease": {
+      "complications": [
+        "dx.af",
+        "dx.heart_failure",
+        "dx.infective_endocarditis",
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": []
+    },
+    "dx.sbp": {
+      "complications": [
+        "dx.hepatic_encephalopathy",
+        "dx.sepsis",
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.scabies": {
+      "complications": [
+        "dx.cellulitis"
+      ],
+      "goes_with": []
+    },
+    "dx.schistosomiasis": {
+      "complications": [
+        "dx.variceal_bleed",
+        "dx.bladder_cancer"
+      ],
+      "goes_with": [
+        "dx.hookworm_helminth"
+      ]
+    },
+    "dx.sepsis": {
+      "complications": [
+        "dx.septic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.septic_arthritis": {
+      "complications": [
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.septic_shock": {
+      "complications": [
+        "dx.aki",
+        "dx.dic"
+      ],
+      "goes_with": []
+    },
+    "dx.sickle_cell_crisis": {
+      "complications": [
+        "dx.stroke"
+      ],
+      "goes_with": [
+        "dx.malaria_severe",
+        "dx.sepsis"
+      ]
+    },
+    "dx.sickle_cell_disease": {
+      "complications": [
+        "dx.sickle_cell_crisis",
+        "dx.cholecystitis",
+        "dx.stroke"
+      ],
+      "goes_with": []
+    },
+    "dx.sjs_ten": {
+      "complications": [
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.skin_abscess": {
+      "complications": [
+        "dx.cellulitis",
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.sle": {
+      "complications": [
+        "dx.nephritic_syndrome",
+        "dx.nephrotic_syndrome",
+        "dx.pericarditis",
+        "dx.thrombocytopenia"
+      ],
+      "goes_with": []
+    },
+    "dx.snakebite": {
+      "complications": [
+        "dx.aki",
+        "dx.dic",
+        "dx.anaphylaxis",
+        "dx.necrotising_soft_tissue",
+        "dx.tetanus",
+        "dx.respiratory_failure"
+      ],
+      "goes_with": []
+    },
+    "dx.sti_genital_ulcer": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv"
+      ]
+    },
+    "dx.sti_urethral_discharge": {
+      "complications": [],
+      "goes_with": [
+        "dx.sti_genital_ulcer",
+        "dx.syphilis",
+        "dx.hiv"
+      ]
+    },
+    "dx.stroke": {
+      "complications": [],
+      "goes_with": [
+        "dx.af",
+        "dx.rheumatic_heart_disease"
+      ]
+    },
+    "dx.stroke_haemorrhagic": {
+      "complications": [],
+      "goes_with": [
+        "dx.hypertensive_crisis"
+      ]
+    },
+    "dx.stroke_ischaemic": {
+      "complications": [],
+      "goes_with": [
+        "dx.af",
+        "dx.rheumatic_heart_disease",
+        "dx.infective_endocarditis"
+      ]
+    },
+    "dx.suicidal_ideation": {
+      "complications": [],
+      "goes_with": [
+        "dx.depression",
+        "dx.organophosphate_poisoning",
+        "dx.poisoning_medicine",
+        "dx.poisoning_nonmedicinal",
+        "dx.bipolar"
+      ]
+    },
+    "dx.syphilis": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv"
+      ]
+    },
+    "dx.tb_extrapulmonary": {
+      "complications": [],
+      "goes_with": [
+        "dx.tb_pulmonary_clinical",
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.tb_meningitis": {
+      "complications": [
+        "dx.hyponatraemia"
+      ],
+      "goes_with": []
+    },
+    "dx.tb_pericarditis": {
+      "complications": [
+        "dx.cardiac_tamponade",
+        "dx.heart_failure"
+      ],
+      "goes_with": []
+    },
+    "dx.tb_pulmonary_clinical": {
+      "complications": [
+        "dx.post_tb_lung_disease",
+        "dx.chronic_pulmonary_aspergillosis"
+      ],
+      "goes_with": []
+    },
+    "dx.tb_pulmonary_confirmed": {
+      "complications": [
+        "dx.post_tb_lung_disease",
+        "dx.pleural_effusion"
+      ],
+      "goes_with": [
+        "dx.tb_extrapulmonary",
+        "dx.hiv"
+      ]
+    },
+    "dx.tb_spine": {
+      "complications": [
+        "dx.cord_compression"
+      ],
+      "goes_with": []
+    },
+    "dx.thyroid_storm": {
+      "complications": [
+        "dx.af",
+        "dx.heart_failure_acute"
+      ],
+      "goes_with": [
+        "dx.sepsis"
+      ]
+    },
+    "dx.thyrotoxicosis": {
+      "complications": [
+        "dx.thyroid_storm",
+        "dx.af",
+        "dx.heart_failure"
+      ],
+      "goes_with": []
+    },
+    "dx.tia": {
+      "complications": [
+        "dx.stroke_ischaemic"
+      ],
+      "goes_with": [
+        "dx.af",
+        "dx.rheumatic_heart_disease"
+      ]
+    },
+    "dx.tinea": {
+      "complications": [
+        "dx.cellulitis"
+      ],
+      "goes_with": []
+    },
+    "dx.tonsillitis": {
+      "complications": [
+        "dx.rheumatic_fever",
+        "dx.upper_airway_obstruction"
+      ],
+      "goes_with": []
+    },
+    "dx.trypanosomiasis": {
+      "complications": [
+        "dx.encephalitis"
+      ],
+      "goes_with": []
+    },
+    "dx.tumour_lysis_or_hypercalcaemia_malignancy": {
+      "complications": [
+        "dx.aki"
+      ],
+      "goes_with": []
+    },
+    "dx.typhoid": {
+      "complications": [
+        "dx.perforated_viscus",
+        "dx.sepsis"
+      ],
+      "goes_with": []
+    },
+    "dx.undernutrition": {
+      "complications": [
+        "dx.wernicke",
+        "dx.hypoglycaemia_no_dm",
+        "dx.hypokalaemia"
+      ],
+      "goes_with": [
+        "dx.hiv_advanced"
+      ]
+    },
+    "dx.urinary_retention": {
+      "complications": [
+        "dx.obstructive_uropathy",
+        "dx.uti"
+      ],
+      "goes_with": []
+    },
+    "dx.urolithiasis": {
+      "complications": [
+        "dx.obstructive_uropathy",
+        "dx.pyelonephritis",
+        "dx.aki"
+      ],
+      "goes_with": [
+        "dx.gout"
+      ]
+    },
+    "dx.urti": {
+      "complications": [
+        "dx.otitis_media_acute"
+      ],
+      "goes_with": []
+    },
+    "dx.uti": {
+      "complications": [
+        "dx.pyelonephritis"
+      ],
+      "goes_with": []
+    },
+    "dx.vaginal_discharge": {
+      "complications": [
+        "dx.pid"
+      ],
+      "goes_with": []
+    },
+    "dx.variceal_bleed": {
+      "complications": [
+        "dx.hepatic_encephalopathy",
+        "dx.sbp",
+        "dx.hypovolaemic_shock"
+      ],
+      "goes_with": []
+    },
+    "dx.ventricular_arrhythmia": {
+      "complications": [
+        "dx.cardiogenic_shock"
+      ],
+      "goes_with": [
+        "dx.cardiomyopathy"
+      ]
+    },
+    "dx.vhf_suspected": {
+      "complications": [
+        "dx.dic"
+      ],
+      "goes_with": []
+    },
+    "dx.visceral_leishmaniasis": {
+      "complications": [],
+      "goes_with": [
+        "dx.hiv"
+      ]
+    },
+    "dx.wernicke": {
+      "complications": [],
+      "goes_with": [
+        "dx.alcohol_withdrawal",
+        "dx.undernutrition"
+      ]
+    },
+    "dx.yellow_fever": {
+      "complications": [
+        "dx.acute_liver_failure"
+      ],
+      "goes_with": []
+    }
+  },
+  "excluded": {
+    "dx.aaa_rupture": [
+      {
+        "id": "dx.urolithiasis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.aortic_dissection",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.abdominal_pain_unexplained": [
+      {
+        "id": "dx.appendicitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.bowel_obstruction",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.perforated_viscus",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.ectopic_pregnancy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pancreatitis_acute",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cholecystitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.sickle_cell_crisis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.acs": [
+      {
+        "id": "dx.angina_stable",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.aortic_dissection",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.acute_bronchitis": [
+      {
+        "id": "dx.pneumonia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.urti",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.influenza",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.covid19",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.asthma_exacerbation",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.acute_limb_ischaemia": [
+      {
+        "id": "dx.aortic_dissection",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.acute_liver_failure": [
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.paracetamol_overdose",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hepatitis_acute_viral",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.yellow_fever",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.vhf_suspected",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.adrenal_insufficiency": [
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.myxoedema_coma",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.aki": [
+      {
+        "id": "dx.sepsis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.obstructive_uropathy",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.rhabdomyolysis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.alcohol_intoxication": [
+      {
+        "id": "dx.methanol_poisoning",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.subdural_haematoma",
+        "why": "ambiguous: both a mimic of intoxication and an injury that co-exists with it"
+      },
+      {
+        "id": "dx.alcohol_withdrawal",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.alcohol_withdrawal": [
+      {
+        "id": "dx.hepatic_encephalopathy",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.subdural_haematoma",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.alcoholic_hepatitis": [
+      {
+        "id": "dx.hepatitis_b_chronic",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.alcohol_intoxication",
+        "why": "ambiguous: a recent binge often precedes it, but intoxication is not a standing association"
+      }
+    ],
+    "dx.anaemia_unexplained": [
+      {
+        "id": "dx.iron_deficiency_anaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.megaloblastic_anaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.haemolytic_anaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.sickle_cell_disease",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hookworm_helminth",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.ckd",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.anaphylaxis": [
+      {
+        "id": "dx.angioedema",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.asthma_exacerbation",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.angina_stable": [
+      {
+        "id": "dx.aortic_stenosis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.angioedema": [
+      {
+        "id": "dx.anaphylaxis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.nephrotic_syndrome",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.anxiety_disorder": [
+      {
+        "id": "dx.thyrotoxicosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.svt",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.alcohol_withdrawal",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.aortic_dissection": [
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypertensive_crisis",
+        "why": "ambiguous: dissection is itself a hypertensive emergency; driver or alternative label"
+      },
+      {
+        "id": "dx.aaa_rupture",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.aortic_stenosis": [
+      {
+        "id": "dx.syncope_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.appendicitis": [
+      {
+        "id": "dx.ectopic_pregnancy",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pyelonephritis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.ascites_unexplained": [
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.sbp",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.nephrotic_syndrome",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hcc",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.schistosomiasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.aspiration_pneumonia": [
+      {
+        "id": "dx.pneumonia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.organophosphate_poisoning",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.asthma": [
+      {
+        "id": "dx.copd",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.post_tb_lung_disease",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.asthma_exacerbation": [
+      {
+        "id": "dx.asthma",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.anaphylaxis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.back_pain_red_flags": [
+      {
+        "id": "dx.cord_compression",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.tb_spine",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.myeloma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.osteomyelitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.prostate_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pyelonephritis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.aaa_rupture",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.brucellosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.bells_palsy": [
+      {
+        "id": "dx.stroke",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.herpes_zoster",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.otitis_media_acute",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gbs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.bipolar": [
+      {
+        "id": "dx.depression",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.psychosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.substance_psychosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.thyrotoxicosis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.bladder_cancer": [
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.bowel_obstruction": [
+      {
+        "id": "dx.colorectal_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypokalaemia",
+        "why": "ambiguous: both a cause (ileus) and a consequence"
+      }
+    ],
+    "dx.bph": [
+      {
+        "id": "dx.prostate_cancer",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.bppv": [
+      {
+        "id": "dx.vestibular_neuritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.stroke_ischaemic",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.orthostatic_hypotension",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.breast_cancer": [
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.breathlessness_unexplained": [
+      {
+        "id": "dx.pneumonia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.heart_failure_acute",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.asthma_exacerbation",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pneumothorax",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pleural_effusion",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pcp",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.dka",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.bronchiectasis": [
+      {
+        "id": "dx.haemoptysis_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.brucellosis": [
+      {
+        "id": "dx.tb_spine",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cancer_suspected": [
+      {
+        "id": "dx.weight_loss_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lymphadenopathy_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lung_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hcc",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.oesophageal_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.gastric_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.colorectal_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pancreatic_biliary_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.prostate_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.breast_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.cardiac_tamponade": [
+      {
+        "id": "dx.pericardial_effusion",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.aortic_dissection",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.cardiogenic_shock",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cardiogenic_shock": [
+      {
+        "id": "dx.acs",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.heart_failure_acute",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.cardiac_tamponade",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.ventricular_arrhythmia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.cardiomyopathy": [
+      {
+        "id": "dx.rheumatic_heart_disease",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cellulitis": [
+      {
+        "id": "dx.necrotising_soft_tissue",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.dvt",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.diabetic_foot",
+        "why": "ambiguous: overlapping label (diabetic foot infection) rather than an association"
+      }
+    ],
+    "dx.cerebral_toxoplasmosis": [
+      {
+        "id": "dx.space_occupying_lesion",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tb_meningitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cryptococcal_meningitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.stroke",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.chest_pain_unexplained": [
+      {
+        "id": "dx.acs",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.aortic_dissection",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pneumothorax",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pericarditis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.msk_chest_pain",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.gord",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.cholangitis": [
+      {
+        "id": "dx.cholecystitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pancreatic_biliary_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.leptospirosis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cholecystitis": [
+      {
+        "id": "dx.cholangitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pancreatitis_acute",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.liver_abscess",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.sickle_cell_crisis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cholera": [
+      {
+        "id": "dx.gastroenteritis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.chronic_pulmonary_aspergillosis": [
+      {
+        "id": "dx.haemoptysis_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.lung_cancer",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.ckd": [
+      {
+        "id": "dx.diabetic_kidney_disease",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.colorectal_cancer": [
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.dysentery",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.confusion_unexplained": [
+      {
+        "id": "dx.delirium",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.dementia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.meningitis_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hepatic_encephalopathy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.wernicke",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.subdural_haematoma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hyponatraemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.conjunctivitis": [
+      {
+        "id": "dx.urti",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.herpes_zoster",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.copd": [
+      {
+        "id": "dx.post_tb_lung_disease",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.bronchiectasis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.copd_exacerbation": [
+      {
+        "id": "dx.copd",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.pneumothorax",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.heart_failure_acute",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cord_compression": [
+      {
+        "id": "dx.tb_spine",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.back_pain_red_flags",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.myeloma",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.prostate_cancer",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.osteomyelitis",
+        "why": "underlying condition, not an association of it"
+      }
+    ],
+    "dx.cough_unexplained": [
+      {
+        "id": "dx.pneumonia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.acute_bronchitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.asthma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.copd",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.post_tb_lung_disease",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.covid19": [
+      {
+        "id": "dx.influenza",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.viral_illness_nonspecific",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.cryptococcal_meningitis": [
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_meningitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cerebral_toxoplasmosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.meningitis_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.cvst": [
+      {
+        "id": "dx.headache_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.space_occupying_lesion",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.stroke_haemorrhagic",
+        "why": "ambiguous: venous haemorrhagic infarction is a complication, but ICH is mainly the differential"
+      },
+      {
+        "id": "dx.otitis_media_acute",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.delirium": [
+      {
+        "id": "dx.confusion_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.sepsis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hyponatraemia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.urinary_retention",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.wernicke",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hepatic_encephalopathy",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.dementia": [
+      {
+        "id": "dx.subdural_haematoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypothyroidism",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.parkinsonism",
+        "why": "ambiguous: Parkinson's dementia co-exists, but listed as an alternative cause"
+      },
+      {
+        "id": "dx.depression",
+        "why": "ambiguous: co-exists, but also the pseudodementia differential"
+      }
+    ],
+    "dx.depression": [
+      {
+        "id": "dx.bipolar",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypothyroidism",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.diabetes_in_pregnancy": [
+      {
+        "id": "dx.gestational_diabetes",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.diabetic_kidney_disease": [
+      {
+        "id": "dx.ckd",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.diabetic_neuropathy": [
+      {
+        "id": "dx.dm_type2",
+        "why": "underlying condition, not an association of it"
+      }
+    ],
+    "dx.diabetic_retinopathy": [
+      {
+        "id": "dx.dm_type2",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.dm_type1",
+        "why": "underlying condition, not an association of it"
+      }
+    ],
+    "dx.diarrhoea_unexplained": [
+      {
+        "id": "dx.gastroenteritis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cholera",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.dysentery",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hookworm_helminth",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.dic": [
+      {
+        "id": "dx.sepsis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.septic_shock",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.snakebite",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.vhf_suspected",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.thrombocytopenia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.dka": [
+      {
+        "id": "dx.hhs",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dm_type1",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "ambiguous: a precipitant to seek, but also a mimic (acidosis, reduced consciousness)"
+      }
+    ],
+    "dx.dm_type1": [
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dm_type2",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.dm_type2": [
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dm_type1",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.dm_type_unknown": [
+      {
+        "id": "dx.dm_type1",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dm_type2",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.hyperglycaemia_unconfirmed",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.intermediate_hyperglycaemia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.drug_induced_liver_injury": [
+      {
+        "id": "dx.paracetamol_overdose",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hepatitis_acute_viral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.drug_rash",
+        "why": "ambiguous: co-exists in DRESS, otherwise a separate drug reaction"
+      }
+    ],
+    "dx.drug_rash": [
+      {
+        "id": "dx.sjs_ten",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "ambiguous: co-exists in DRESS, otherwise a separate drug reaction"
+      },
+      {
+        "id": "dx.anaphylaxis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.dvt": [
+      {
+        "id": "dx.cellulitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pyomyositis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.dysentery": [
+      {
+        "id": "dx.gastroenteritis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.colorectal_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.perforated_viscus",
+        "why": "ambiguous: rare (fulminant amoebic colitis); typhoid perforation is the classic link"
+      }
+    ],
+    "dx.dyspepsia": [
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gord",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gastric_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.eclampsia": [
+      {
+        "id": "dx.pre_eclampsia_severe",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.pre_eclampsia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.ectopic_pregnancy": [
+      {
+        "id": "dx.pid",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.appendicitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.abdominal_pain_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.encephalitis": [
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.rabies",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.cerebral_toxoplasmosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.delirium",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.trypanosomiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.epilepsy": [
+      {
+        "id": "dx.seizure_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.fatigue_unexplained": [
+      {
+        "id": "dx.anaemia_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypothyroidism",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.ckd",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.febrile_neutropenia": [
+      {
+        "id": "dx.leukaemia",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.lymphoma",
+        "why": "underlying condition, not an association of it"
+      }
+    ],
+    "dx.fever_unexplained": [
+      {
+        "id": "dx.sepsis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.malaria_unconfirmed",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.infective_endocarditis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.viral_illness_nonspecific",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.vhf_suspected",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.fracture": [
+      {
+        "id": "dx.myeloma",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.tb_spine",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.gastric_cancer": [
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.dyspepsia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.gastroenteritis": [
+      {
+        "id": "dx.cholera",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dysentery",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.gbs": [
+      {
+        "id": "dx.cord_compression",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.myasthenia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypokalaemia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.peripheral_neuropathy",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.organophosphate_poisoning",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.gestational_diabetes": [
+      {
+        "id": "dx.diabetes_in_pregnancy",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.gi_bleed_unexplained": [
+      {
+        "id": "dx.variceal_bleed",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypovolaemic_shock",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.gastric_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.oesophageal_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.colorectal_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.giant_cell_arteritis": [
+      {
+        "id": "dx.headache_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.gord": [
+      {
+        "id": "dx.dyspepsia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.oesophageal_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.oesophageal_candidiasis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.gout": [
+      {
+        "id": "dx.septic_arthritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.osteoarthritis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.haemolytic_anaemia": [
+      {
+        "id": "dx.malaria_severe",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.sickle_cell_disease",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.sickle_cell_crisis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.anaemia_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.haemoptysis_unexplained": [
+      {
+        "id": "dx.post_tb_lung_disease",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.chronic_pulmonary_aspergillosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.bronchiectasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lung_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.rheumatic_heart_disease",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.hcc": [
+      {
+        "id": "dx.liver_abscess",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.ascites_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.head_injury": [
+      {
+        "id": "dx.seizure_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.headache_unexplained": [
+      {
+        "id": "dx.migraine",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.tension_headache",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.sah",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.meningitis_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.space_occupying_lesion",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cvst",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.giant_cell_arteritis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypertensive_crisis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.heart_block": [
+      {
+        "id": "dx.syncope_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.acs",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hyperkalaemia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypothyroidism",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.heart_failure_acute": [
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.heat_stroke": [
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.sepsis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.thyroid_storm",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hepatic_encephalopathy": [
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.acute_liver_failure",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.wernicke",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.subdural_haematoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hepatitis_acute_viral": [
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.yellow_fever",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.leptospirosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hepatitis_b_chronic": [
+      {
+        "id": "dx.hepatitis_acute_viral",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.herpes_zoster": [
+      {
+        "id": "dx.bells_palsy",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.mpox",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hhs": [
+      {
+        "id": "dx.dka",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dm_type2",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.hypernatraemia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.stroke",
+        "why": "ambiguous: both a precipitant and a thrombotic complication"
+      }
+    ],
+    "dx.hiv": [
+      {
+        "id": "dx.hiv_advanced",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.hiv_acute",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.hiv_acute": [
+      {
+        "id": "dx.hiv",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.viral_illness_nonspecific",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.drug_rash",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hiv_advanced": [
+      {
+        "id": "dx.hiv",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.hookworm_helminth": [
+      {
+        "id": "dx.anaemia_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.hypercalcaemia": [
+      {
+        "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.myeloma",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.breast_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hyperemesis": [
+      {
+        "id": "dx.gastroenteritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.uti",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.thyrotoxicosis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hyperglycaemia_unconfirmed": [
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.steroid_induced_hyperglycaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.hyperkalaemia": [
+      {
+        "id": "dx.aki",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.ckd",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.dka",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.rhabdomyolysis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hypernatraemia": [
+      {
+        "id": "dx.hhs",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.gastroenteritis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypercalcaemia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.head_injury",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hypertensive_crisis": [
+      {
+        "id": "dx.hypertension",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.pre_eclampsia_severe",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hypoglycaemia_dm": [
+      {
+        "id": "dx.dm_type1",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.dm_type2",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.hypoglycaemia_no_dm": [
+      {
+        "id": "dx.malaria_severe",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.sepsis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.acute_liver_failure",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.undernutrition",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.alcohol_intoxication",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hypokalaemia": [
+      {
+        "id": "dx.gastroenteritis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.cholera",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.dka",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.undernutrition",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.bowel_obstruction",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hyponatraemia": [
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypothyroidism",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.gastroenteritis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.tb_meningitis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hypothermia_accidental": [
+      {
+        "id": "dx.hypothermia_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.sepsis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.myxoedema_coma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "ambiguous: co-exists, but also a cause of the low temperature"
+      },
+      {
+        "id": "dx.alcohol_intoxication",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.hypothermia_unexplained": [
+      {
+        "id": "dx.hypothermia_accidental",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.sepsis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.myxoedema_coma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypoglycaemia_dm",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.opioid_sedative_toxicity",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.undernutrition",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.hypothyroidism": [
+      {
+        "id": "dx.dementia",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.hypovolaemic_shock": [
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.ectopic_pregnancy",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.cholera",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.gastroenteritis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.aaa_rupture",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.infective_endocarditis": [
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.influenza": [
+      {
+        "id": "dx.covid19",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.viral_illness_nonspecific",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.urti",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.intermediate_hyperglycaemia": [
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.interstitial_lung_disease": [
+      {
+        "id": "dx.post_tb_lung_disease",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.iron_deficiency_anaemia": [
+      {
+        "id": "dx.colorectal_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.gastric_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.anaemia_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.jaundice_unexplained": [
+      {
+        "id": "dx.hepatitis_acute_viral",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hepatitis_b_chronic",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cholangitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pancreatic_biliary_cancer",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.haemolytic_anaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.leptospirosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.kaposi_sarcoma": [
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_pulmonary_clinical",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.leptospirosis": [
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.vhf_suspected",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hepatitis_acute_viral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.yellow_fever",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.rickettsial",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.leukaemia": [
+      {
+        "id": "dx.splenomegaly_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.liver_abscess": [
+      {
+        "id": "dx.cholangitis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.dysentery",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hcc",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.liver_cirrhosis": [
+      {
+        "id": "dx.schistosomiasis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.liver_disease_unexplained": [
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hepatitis_b_chronic",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hepatitis_c_chronic",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hcc",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.alcoholic_hepatitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.schistosomiasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.low_back_pain": [
+      {
+        "id": "dx.back_pain_red_flags",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cord_compression",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_spine",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.lung_abscess_empyema": [
+      {
+        "id": "dx.pneumonia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.aspiration_pneumonia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.pleural_effusion",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tb_pulmonary_clinical",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.lung_cancer",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.lung_cancer": [
+      {
+        "id": "dx.haemoptysis_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.tb_pulmonary_clinical",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.post_tb_lung_disease",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.lymphadenopathy_unexplained": [
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.leukaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.trypanosomiasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lymphatic_filariasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.lymphatic_filariasis": [
+      {
+        "id": "dx.dvt",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.oedema_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.lymphoma": [
+      {
+        "id": "dx.lymphadenopathy_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.kaposi_sarcoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.splenomegaly_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.malaria_cerebral": [
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.encephalitis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.malaria_severe": [
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.malaria_uncomplicated",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.malaria_uncomplicated": [
+      {
+        "id": "dx.malaria_unconfirmed",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.malaria_unconfirmed": [
+      {
+        "id": "dx.malaria_uncomplicated",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.viral_illness_nonspecific",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.megaloblastic_anaemia": [
+      {
+        "id": "dx.haemolytic_anaemia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.anaemia_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.meningitis_bacterial": [
+      {
+        "id": "dx.cryptococcal_meningitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_meningitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.encephalitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.meningitis_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.sah",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.meningitis_unexplained": [
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cryptococcal_meningitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.tb_meningitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.encephalitis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.methanol_poisoning": [
+      {
+        "id": "dx.alcohol_intoxication",
+        "why": "ambiguous: co-ingestion is common, but also the main differential"
+      },
+      {
+        "id": "dx.poisoning_nonmedicinal",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.dka",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.migraine": [
+      {
+        "id": "dx.tension_headache",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.headache_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.tia",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.mpox": [
+      {
+        "id": "dx.herpes_zoster",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.syphilis",
+        "why": "ambiguous: STI co-infection, but listed as a genital-ulcer differential"
+      },
+      {
+        "id": "dx.sti_genital_ulcer",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.msk_chest_pain": [
+      {
+        "id": "dx.chest_pain_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.herpes_zoster",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.myasthenia": [
+      {
+        "id": "dx.gbs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.myeloma": [
+      {
+        "id": "dx.tb_spine",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.myxoedema_coma": [
+      {
+        "id": "dx.hypothyroidism",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.hypothermia_accidental",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.necrotising_soft_tissue": [
+      {
+        "id": "dx.cellulitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.diabetic_foot",
+        "why": "ambiguous: overlapping label (diabetic foot infection) rather than an association"
+      },
+      {
+        "id": "dx.pyomyositis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.nephritic_syndrome": [
+      {
+        "id": "dx.nephrotic_syndrome",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.sle",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.infective_endocarditis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.nephrotic_syndrome": [
+      {
+        "id": "dx.nephritic_syndrome",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.neurocysticercosis": [
+      {
+        "id": "dx.seizure_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.space_occupying_lesion",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cerebral_toxoplasmosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_meningitis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.obstructive_uropathy": [
+      {
+        "id": "dx.urinary_retention",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.bph",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.urolithiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.prostate_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.schistosomiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.oedema_unexplained": [
+      {
+        "id": "dx.heart_failure",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.nephrotic_syndrome",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.dvt",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.undernutrition",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lymphatic_filariasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.oesophageal_cancer": [
+      {
+        "id": "dx.oesophageal_candidiasis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gastric_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.oesophageal_candidiasis": [
+      {
+        "id": "dx.oesophageal_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.kaposi_sarcoma",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.open_wound": [
+      {
+        "id": "dx.rabies_exposure",
+        "why": "ambiguous: a bite is the wound itself; overlapping label"
+      }
+    ],
+    "dx.opioid_sedative_toxicity": [
+      {
+        "id": "dx.poisoning_medicine",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.alcohol_intoxication",
+        "why": "ambiguous: co-ingestion is common, but also the main differential"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.organophosphate_poisoning": [
+      {
+        "id": "dx.poisoning_nonmedicinal",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.poisoning_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.orthostatic_hypotension": [
+      {
+        "id": "dx.vasovagal_syncope",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hypovolaemic_shock",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.syncope_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.peripheral_neuropathy",
+        "why": "ambiguous: autonomic neuropathy is a chronic driver, but listed as a cause to work up"
+      }
+    ],
+    "dx.osteoarthritis": [
+      {
+        "id": "dx.gout",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.rheumatoid_arthritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.septic_arthritis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.osteomyelitis": [
+      {
+        "id": "dx.septic_arthritis",
+        "why": "ambiguous: contiguous spread happens, but mainly the differential"
+      },
+      {
+        "id": "dx.diabetic_foot",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.tb_spine",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.sickle_cell_crisis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pyomyositis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.otitis_media_acute": [
+      {
+        "id": "dx.urti",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.pancreatic_biliary_cancer": [
+      {
+        "id": "dx.jaundice_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.hcc",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pancreatitis_acute",
+        "why": "ambiguous: either a presentation or a differential"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.pancreatitis_acute": [
+      {
+        "id": "dx.cholecystitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cholangitis",
+        "why": "ambiguous: co-exists in gallstone disease, but listed as a differential"
+      },
+      {
+        "id": "dx.perforated_viscus",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.dka",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.paracetamol_overdose": [
+      {
+        "id": "dx.poisoning_medicine",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.pcp": [
+      {
+        "id": "dx.pneumonia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tb_pulmonary_clinical",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.peptic_ulcer": [
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.gastric_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.dyspepsia",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.variceal_bleed",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.perforated_viscus": [
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.appendicitis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.pericardial_effusion": [
+      {
+        "id": "dx.pericarditis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypothyroidism",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.pericarditis": [
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.peripheral_neuropathy": [
+      {
+        "id": "dx.gbs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.pid": [
+      {
+        "id": "dx.ectopic_pregnancy",
+        "why": "ambiguous: a late complication, but in the related list as the acute differential"
+      },
+      {
+        "id": "dx.appendicitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.vaginal_discharge",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.uti",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.pleural_effusion": [
+      {
+        "id": "dx.lung_abscess_empyema",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.pneumonia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.heart_failure",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.lung_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.nephrotic_syndrome",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.pneumonia": [
+      {
+        "id": "dx.pcp",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_pulmonary_clinical",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.aspiration_pneumonia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.covid19",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.pneumothorax": [
+      {
+        "id": "dx.copd_exacerbation",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.asthma_exacerbation",
+        "why": "underlying condition, not an association of it"
+      }
+    ],
+    "dx.poisoning_medicine": [
+      {
+        "id": "dx.paracetamol_overdose",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.opioid_sedative_toxicity",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.hypoglycaemia_dm",
+        "why": "ambiguous: insulin or sulfonylurea overdose causes it, but the term assumes diabetes"
+      },
+      {
+        "id": "dx.poisoning_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.poisoning_nonmedicinal": [
+      {
+        "id": "dx.organophosphate_poisoning",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.methanol_poisoning",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.poisoning_unknown",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.poisoning_unknown": [
+      {
+        "id": "dx.organophosphate_poisoning",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.paracetamol_overdose",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.opioid_sedative_toxicity",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.methanol_poisoning",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.poisoning_medicine",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.poisoning_nonmedicinal",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.alcohol_intoxication",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.post_tb_lung_disease": [
+      {
+        "id": "dx.copd",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.pre_eclampsia": [
+      {
+        "id": "dx.hypertension",
+        "why": "ambiguous: chronic hypertension with superimposed pre-eclampsia, or the alternative label"
+      }
+    ],
+    "dx.pre_eclampsia_severe": [
+      {
+        "id": "dx.pre_eclampsia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.prostate_cancer": [
+      {
+        "id": "dx.bph",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.psychosis": [
+      {
+        "id": "dx.substance_psychosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.bipolar",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.delirium",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.encephalitis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.pulmonary_embolism": [
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.acs",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.pulmonary_hypertension": [
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.pyelonephritis": [
+      {
+        "id": "dx.uti",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.urolithiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.obstructive_uropathy",
+        "why": "ambiguous: an obstructed infected kidney is both cause and consequence"
+      }
+    ],
+    "dx.pyomyositis": [
+      {
+        "id": "dx.skin_abscess",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.necrotising_soft_tissue",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.septic_arthritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.osteomyelitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.dvt",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.rabies": [
+      {
+        "id": "dx.rabies_exposure",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.encephalitis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tetanus",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gbs",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.delirium",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.reduced_consciousness_unexplained": [
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.meningitis_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.stroke",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypoglycaemia_no_dm",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.poisoning_unknown",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.organophosphate_poisoning",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hepatic_encephalopathy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.status_epilepticus",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.respiratory_failure": [
+      {
+        "id": "dx.pneumonia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.copd_exacerbation",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.asthma_exacerbation",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.heart_failure_acute",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.opioid_sedative_toxicity",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.gbs",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.rhabdomyolysis": [
+      {
+        "id": "dx.heat_stroke",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.snakebite",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.status_epilepticus",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.rheumatic_fever": [
+      {
+        "id": "dx.septic_arthritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tonsillitis",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.sle",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.infective_endocarditis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.rheumatic_heart_disease": [
+      {
+        "id": "dx.rheumatic_fever",
+        "why": "ambiguous: the antecedent, and recurrences matter, but not an association of established RHD"
+      },
+      {
+        "id": "dx.aortic_stenosis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.rheumatoid_arthritis": [
+      {
+        "id": "dx.sle",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.osteoarthritis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.gout",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.septic_arthritis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.rickettsial": [
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.malaria_uncomplicated",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.leptospirosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.viral_illness_nonspecific",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.brucellosis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.sah": [
+      {
+        "id": "dx.headache_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.stroke_haemorrhagic",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.meningitis_unexplained",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cvst",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.sbp": [
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.scabies": [
+      {
+        "id": "dx.tinea",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.schistosomiasis": [
+      {
+        "id": "dx.splenomegaly_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.seizure_unexplained": [
+      {
+        "id": "dx.epilepsy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.status_epilepticus",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.neurocysticercosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.eclampsia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.syncope_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.sepsis": [
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pneumonia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.pyelonephritis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.septic_arthritis": [
+      {
+        "id": "dx.gout",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.osteomyelitis",
+        "why": "ambiguous: contiguous spread happens, but mainly the differential"
+      },
+      {
+        "id": "dx.sickle_cell_crisis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.septic_shock": [
+      {
+        "id": "dx.sepsis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.shock_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.hypovolaemic_shock",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cardiogenic_shock",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.shock_unexplained": [
+      {
+        "id": "dx.septic_shock",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.hypovolaemic_shock",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cardiogenic_shock",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.cardiac_tamponade",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.anaphylaxis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.ectopic_pregnancy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pulmonary_embolism",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.pneumothorax",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.sickle_cell_crisis": [
+      {
+        "id": "dx.sickle_cell_disease",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.pneumonia",
+        "why": "ambiguous: acute chest syndrome versus pneumonia; trigger, complication or differential"
+      },
+      {
+        "id": "dx.cholecystitis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.sickle_cell_disease": [
+      {
+        "id": "dx.haemolytic_anaemia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.sjs_ten": [
+      {
+        "id": "dx.drug_rash",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.drug_induced_liver_injury",
+        "why": "ambiguous: co-exists in DRESS, otherwise a separate drug reaction"
+      }
+    ],
+    "dx.skin_abscess": [
+      {
+        "id": "dx.pyomyositis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.necrotising_soft_tissue",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.sle": [
+      {
+        "id": "dx.rheumatoid_arthritis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.space_occupying_lesion": [
+      {
+        "id": "dx.neurocysticercosis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.subdural_haematoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cvst",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.splenomegaly_unexplained": [
+      {
+        "id": "dx.schistosomiasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.visceral_leishmaniasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.leukaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.haemolytic_anaemia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.trypanosomiasis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.brucellosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.status_epilepticus": [
+      {
+        "id": "dx.epilepsy",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.seizure_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.malaria_cerebral",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.eclampsia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.steroid_induced_hyperglycaemia": [
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hyperglycaemia_unconfirmed",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.sti_genital_ulcer": [
+      {
+        "id": "dx.syphilis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hiv_acute",
+        "why": "ambiguous: test for HIV, but acute HIV as a label is an alternative"
+      },
+      {
+        "id": "dx.mpox",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.sti_urethral_discharge": [
+      {
+        "id": "dx.uti",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.stroke": [
+      {
+        "id": "dx.stroke_ischaemic",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.stroke_haemorrhagic",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.sah",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.stroke_haemorrhagic": [
+      {
+        "id": "dx.stroke",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.stroke_ischaemic",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.sah",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.thrombocytopenia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.stroke_ischaemic": [
+      {
+        "id": "dx.stroke",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.stroke_haemorrhagic",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.subdural_haematoma": [
+      {
+        "id": "dx.head_injury",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.delirium",
+        "why": "ambiguous: a presentation of subdural rather than an association"
+      },
+      {
+        "id": "dx.stroke_haemorrhagic",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.dementia",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.substance_psychosis": [
+      {
+        "id": "dx.psychosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.bipolar",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.alcohol_withdrawal",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.delirium",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.svt": [
+      {
+        "id": "dx.af",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.thyrotoxicosis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.ventricular_arrhythmia",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.syncope_unexplained": [
+      {
+        "id": "dx.vasovagal_syncope",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.orthostatic_hypotension",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.heart_block",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.ventricular_arrhythmia",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.aortic_stenosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.seizure_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.ectopic_pregnancy",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.syphilis": [
+      {
+        "id": "dx.sti_genital_ulcer",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.hiv_acute",
+        "why": "ambiguous: test for HIV, but acute HIV as a label is an alternative"
+      }
+    ],
+    "dx.tb_extrapulmonary": [
+      {
+        "id": "dx.tb_meningitis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tb_pericarditis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tb_spine",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.pleural_effusion",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.tb_meningitis": [
+      {
+        "id": "dx.cryptococcal_meningitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.space_occupying_lesion",
+        "why": "ambiguous: tuberculoma co-exists, but SOL is listed as a differential"
+      }
+    ],
+    "dx.tb_pericarditis": [
+      {
+        "id": "dx.pericardial_effusion",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.pericarditis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.tb_pulmonary_clinical": [
+      {
+        "id": "dx.tb_pulmonary_confirmed",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.pcp",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.lung_cancer",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.kaposi_sarcoma",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.tb_pulmonary_confirmed": [
+      {
+        "id": "dx.tb_pulmonary_clinical",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.tb_spine": [
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.brucellosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.myeloma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.osteomyelitis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.back_pain_red_flags",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.tension_headache": [
+      {
+        "id": "dx.migraine",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.headache_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.tetanus": [
+      {
+        "id": "dx.rabies_exposure",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.open_wound",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.meningitis_bacterial",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.status_epilepticus",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.poisoning_unknown",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.thrombocytopenia": [
+      {
+        "id": "dx.dic",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.vhf_suspected",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.leukaemia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.sle",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.thyroid_storm": [
+      {
+        "id": "dx.thyrotoxicosis",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "ambiguous: an infective precipitant, but also the fever-and-delirium differential"
+      }
+    ],
+    "dx.tia": [
+      {
+        "id": "dx.stroke",
+        "why": "ambiguous: duplicates ischaemic stroke as a broader umbrella term"
+      },
+      {
+        "id": "dx.migraine",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.tinea": [
+      {
+        "id": "dx.scabies",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.tonsillitis": [
+      {
+        "id": "dx.urti",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      }
+    ],
+    "dx.trypanosomiasis": [
+      {
+        "id": "dx.malaria_uncomplicated",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.delirium",
+        "why": "ambiguous: a presentation of stage-2 disease rather than an association"
+      },
+      {
+        "id": "dx.visceral_leishmaniasis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.tumour_lysis_or_hypercalcaemia_malignancy": [
+      {
+        "id": "dx.cord_compression",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.hypercalcaemia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.hyperkalaemia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.febrile_neutropenia",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.cancer_suspected",
+        "why": "underlying condition, not an association of it"
+      }
+    ],
+    "dx.typhoid": [
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.malaria_uncomplicated",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.undernutrition": [
+      {
+        "id": "dx.weight_loss_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.upper_airway_obstruction": [
+      {
+        "id": "dx.anaphylaxis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.angioedema",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.tonsillitis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.dental_abscess",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.urinary_retention": [
+      {
+        "id": "dx.bph",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.prostate_cancer",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.cord_compression",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.urolithiasis": [
+      {
+        "id": "dx.aaa_rupture",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.urti": [
+      {
+        "id": "dx.tonsillitis",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.influenza",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.covid19",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.pneumonia",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.uti": [
+      {
+        "id": "dx.urolithiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.urinary_retention",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.schistosomiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.vaginal_discharge": [
+      {
+        "id": "dx.uti",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.variceal_bleed": [
+      {
+        "id": "dx.liver_cirrhosis",
+        "why": "underlying condition, not an association of it"
+      },
+      {
+        "id": "dx.schistosomiasis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.gi_bleed_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.peptic_ulcer",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.vasovagal_syncope": [
+      {
+        "id": "dx.orthostatic_hypotension",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.syncope_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.seizure_unexplained",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.ventricular_arrhythmia",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.ventricular_arrhythmia": [
+      {
+        "id": "dx.acs",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hypokalaemia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.hyperkalaemia",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      },
+      {
+        "id": "dx.syncope_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      }
+    ],
+    "dx.vestibular_neuritis": [
+      {
+        "id": "dx.bppv",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.stroke_ischaemic",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.otitis_media_acute",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.vhf_suspected": [
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.typhoid",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.yellow_fever",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.leptospirosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.sepsis",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.viral_illness_nonspecific": [
+      {
+        "id": "dx.fever_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.malaria_unconfirmed",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.influenza",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.covid19",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hiv_acute",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.urti",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.visceral_leishmaniasis": [
+      {
+        "id": "dx.splenomegaly_unexplained",
+        "why": "a not-yet-explained placeholder that this diagnosis replaces, not an association"
+      },
+      {
+        "id": "dx.lymphoma",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.malaria_uncomplicated",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.schistosomiasis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.tb_extrapulmonary",
+        "why": "alternative: differential diagnosis"
+      }
+    ],
+    "dx.weight_loss_unexplained": [
+      {
+        "id": "dx.cancer_suspected",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.thyrotoxicosis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.dm_type_unknown",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.undernutrition",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.infective_endocarditis",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      },
+      {
+        "id": "dx.adrenal_insufficiency",
+        "why": "alternative: a possible cause of this not-yet-explained presentation"
+      }
+    ],
+    "dx.wernicke": [
+      {
+        "id": "dx.delirium",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hyperemesis",
+        "why": "possible cause of this condition (aetiology work-up), not an association of it"
+      }
+    ],
+    "dx.yellow_fever": [
+      {
+        "id": "dx.vhf_suspected",
+        "why": "alternative: another type, form, stage or umbrella term of the same condition"
+      },
+      {
+        "id": "dx.leptospirosis",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.hepatitis_acute_viral",
+        "why": "alternative: differential diagnosis"
+      },
+      {
+        "id": "dx.malaria_severe",
+        "why": "alternative: differential diagnosis"
+      }
+    ]
+  }
+}

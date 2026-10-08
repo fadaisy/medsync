@@ -7,9 +7,10 @@ import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxTerm } from "@/components/emr/desk/search";
 import type { DxOptions } from "@/components/emr/desk/sections";
 import type { History } from "@/lib/clerking/answers";
+import type { Association } from "@/lib/clerking/impression/associations";
 import type { BoardRow, ImpressionDraft, Likelihood } from "@/lib/clerking/impression/board";
 import type { Column } from "@/lib/clerking/impression/evidence";
-import type { Finding } from "@/lib/clerking/impression/facts";
+import type { Finding, FindingRef } from "@/lib/clerking/impression/facts";
 import type { SectionId } from "@/lib/clerking/status";
 import type { ReactNode } from "react";
 import { useEffect, useId, useMemo, useState } from "react";
@@ -28,6 +29,7 @@ import { DiagnosisPicker } from "@/components/emr/desk/pickers";
 import { PRESS } from "@/components/emr/orders/choice-chips";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
+import { associationsOf, withLink } from "@/lib/clerking/impression/associations";
 import {
   canMove,
   duplicateOf,
@@ -46,6 +48,7 @@ import {
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
+import { AssociationsFold } from "./associations";
 import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
 import { EvidenceMatrix } from "./matrix";
@@ -353,6 +356,53 @@ export function ImpressionStep(props: ImpressionStepProps) {
     setAddAs(null);
   };
 
+  /* Associations (owner, 2026-10-08): complications and conditions that go with a diagnosis. */
+  const assocOf = (row: BoardRow): Association[] =>
+    dx
+      ? associationsOf(
+          { dxId: row.dx.dxId, logicalId: row.dx.logicalId },
+          { x: si.x, dx, live: si.live, viewer: si.viewer, board: b, draft: si.impression },
+        )
+      : [];
+  const addAssociation = (row: BoardRow, a: Association) => {
+    props.onImpression((d) => withLink(d, row.dx.logicalId, a.dxId));
+    if (a.onVisit) return;
+    const uuid = termByDx.get(a.dxId);
+    const n = dx?.names[a.dxId];
+    const pick: DxPick =
+      n?.coded && uuid
+        ? {
+            term: {
+              id: uuid,
+              display: a.display,
+              synonyms: [],
+              icd11: null,
+              verified: false,
+              chronic: false,
+              symptomLevel: false,
+              restricted: n.restricted,
+              notifiable: false,
+            },
+          }
+        : { typed: a.display };
+    if (duplicateOf(si.recorded, "term" in pick ? { termId: pick.term.id } : pick)) return;
+    props.on.onDiagnosis?.(pick, {
+      verification: "provisional",
+      primary: false,
+      addToProblemList: null,
+    });
+  };
+  const assocFold = (row: BoardRow) => (
+    <AssociationsFold
+      parent={row.dx.display}
+      items={assocOf(row)}
+      findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
+      testName={(id) => dx?.tests[id] ?? id.replace(/^test\./, "").replace(/_/g, " ")}
+      canWrite={canWrite && !!props.on.onDiagnosis}
+      onAdd={(a) => addAssociation(row, a)}
+    />
+  );
+
   const addSuggestion = (g: NamedSuggestion) => {
     const asLeading = g.forLeading && !lead;
     const uuid = termByDx.get(g.dxId);
@@ -599,6 +649,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 </Button>
               ) : null}
             </div>
+            {assocFold(lead)}
             {removing === lead.dx.logicalId ? (
               <RemoveForm
                 row={lead}
@@ -801,6 +852,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                         />
                       </div>
                     ) : null}
+                    <div className="pl-[3.75rem]">{assocFold(row)}</div>
                     {removing === row.dx.logicalId ? (
                       <div className="pl-[3.75rem]">
                         <RemoveForm
@@ -925,6 +977,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                     </Button>
                   ) : null}
                 </div>
+                {assocFold(row)}
                 {removing === row.dx.logicalId ? (
                   <RemoveForm
                     row={row}

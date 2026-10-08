@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — A diagnosis shows its complications and what goes with it — 2026-10-08
+
+- Step 09: under each diagnosis, its complications and the conditions that go with it, each with what supports it
+  or what would check for it; one tap adds it linked, and the note reads "with …" ([ADR 0219](docs/adr/0219-a-diagnosis-shows-its-associations.md)).
+- 1,377 catalogue pairs typed (315 complications, 152 go with, 910 excluded); shows nothing until the CSO signs.
+
 ### Changed — A diagnosis added by mistake comes off in one tap — 2026-10-08
 
 - Step 09: a diagnosis this clinician added at this visit is removed in one tap, entered in error as "Added by

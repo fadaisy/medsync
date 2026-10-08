@@ -42,6 +42,19 @@ export function composeImpression(i: ImpressionComposeInput): string {
       .filter((f): f is Finding => !!f && !hideF(f))
       .map((f) => lc(f.text));
   const out: string[] = [];
+  // Associations linked at this visit (meta.with): the parent's line names them, each says its parent.
+  const rows = [i.board.leading, ...i.board.differential, ...i.board.also].filter(
+    (r): r is BoardRow => !!r && !hide(r),
+  );
+  const childrenOf = (r: BoardRow) =>
+    (i.draft.meta[r.dx.logicalId]?.with ?? [])
+      .map((id) => rows.find((c) => c.dx.dxId === id && c !== r))
+      .filter((c): c is BoardRow => !!c)
+      .map((c) => c.dx.display);
+  const parentOf = (r: BoardRow) =>
+    rows.find(
+      (p) => p !== r && !!r.dx.dxId && i.draft.meta[p.dx.logicalId]?.with?.includes(r.dx.dxId),
+    );
 
   const lead = i.board.leading;
   if (lead && !hide(lead)) {
@@ -59,6 +72,7 @@ export function composeImpression(i: ImpressionComposeInput): string {
         `${lead.dx.display} (${bits.join("; ")}).`,
         f.length ? `For: ${list(f)}.` : "",
         a.length ? `Against: ${list(a)}.` : "",
+        childrenOf(lead).length ? `With: ${list(childrenOf(lead).map(lc))}.` : "",
         m.reasoning?.trim() ?? "",
       ]
         .filter(Boolean)
@@ -92,7 +106,7 @@ export function composeImpression(i: ImpressionComposeInput): string {
           (r) =>
             `${r.dx.display}${r.dx.code ? ` (${r.dx.code})` : ""}, ${status(r)}${
               r.dx.onProblemList ? ", on problem list" : ""
-            }`,
+            }${parentOf(r) ? `, with ${lc(parentOf(r)!.dx.display)}` : ""}`,
         )
         .join("; ")}.`,
     );
