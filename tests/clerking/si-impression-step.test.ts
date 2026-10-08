@@ -211,6 +211,8 @@ const type = (el: HTMLInputElement | HTMLTextAreaElement, value: string) =>
     Object.getOwnPropertyDescriptor(proto.prototype, "value")!.set!.call(el, value);
     el.dispatchEvent(new Event("input", { bubbles: true }));
   });
+const removeButtons = () =>
+  [...host.querySelectorAll("button")].filter((b) => b.textContent === "Remove");
 const stepStatus = () => host.querySelector('[data-step="impression"]')?.textContent ?? "";
 const signButton = () => button(/^Sign note/) as HTMLButtonElement;
 const draft = () => (latest.impression ?? {}) as unknown as ImpressionDraft;
@@ -296,7 +298,7 @@ describe("step 09, Impression", () => {
 
   it("removes a diagnosis only with a reason, as entered in error (D-SI-13)", () => {
     mount(payload([DIABETES(), SEPSIS()]));
-    tap(button("Remove"));
+    tap(removeButtons()[1]); // [0] is the leading diagnosis's
     const go = button("Remove, entered in error") as HTMLButtonElement;
     expect(go.disabled).toBe(true);
     tap(option("Why remove Sepsis?", "Ruled out"));
@@ -311,6 +313,27 @@ describe("step 09, Impression", () => {
       { code: "ruled_out", text: "lactate normal, afebrile" },
     ]);
     expect(all()).toMatch(/Differential \(0\)/);
+  });
+
+  it("takes a diagnosis added here by mistake off in one tap, as entered in error (ADR 0217)", () => {
+    mount(payload([DIABETES(), { ...SEPSIS(), addedHere: true }]));
+    const remove = removeButtons()[1]!;
+    expect(remove.title).toBe("Added by mistake: remove");
+    tap(remove);
+    expect(calls.find((c) => c.name === "onRemove")?.args).toEqual([
+      "Sepsis",
+      { code: "added_by_mistake" },
+    ]);
+    expect(all()).not.toContain("Remove, entered in error");
+  });
+
+  it("the leading diagnosis has Remove too; one from before still asks why", () => {
+    mount(payload([DIABETES()]));
+    const remove = removeButtons()[0]!;
+    expect(remove.title).toBe("Remove with a reason");
+    tap(remove);
+    expect(all()).toContain("Remove, entered in error");
+    expect(calls.some((c) => c.name === "onRemove")).toBe(false);
   });
 
   it("sends a junior's Final for senior co-signature and says so (SI7, D-SI-09)", () => {

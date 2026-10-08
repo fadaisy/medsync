@@ -28,6 +28,7 @@ export interface VisitDiagnosis {
   restricted: boolean;
   onProblemList: boolean;
   cosignPending: boolean;
+  addedHere?: boolean;
 }
 
 const NAMES = new WeakMap<DxIndex, ReadonlyMap<string, string>>();
@@ -67,6 +68,7 @@ export function toRecorded(rows: readonly VisitDiagnosis[], dx: DxIndex | null):
       restricted: d.restricted || !!cls,
       onProblemList: d.onProblemList,
       cosignPending: d.cosignPending,
+      addedHere: !!d.addedHere,
     };
   });
 }

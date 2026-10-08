@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — A diagnosis added by mistake comes off in one tap — 2026-10-08
+
+- Step 09: a diagnosis this clinician added at this visit is removed in one tap, entered in error as "Added by
+  mistake"; others still ask why. The leading diagnosis has Remove too ([ADR 0217](docs/adr/0217-a-diagnosis-added-by-mistake-comes-off-in-one-tap.md)).
+
 ### Added — The diabetes pack reads the ten-step clerking, behind `NCD_DM_DESK` (off) — 2026-10-08
 
 - As the clinician clerks, the diabetes pack runs on the record itself (history, past history and "About the
