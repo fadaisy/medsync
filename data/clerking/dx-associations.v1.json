@@ -1,7 +1,7 @@
 {
   "id": "MS-EMR-DX-ASSOC-001",
   "version": "1.0.0-draft",
-  "status": "draft — awaiting CSO",
+  "status": "signed — CSO, 2026-10-08",
   "generated": "2026-10-08",
   "source": "data/clerking/clerking-diagnosis-catalogue.v1.json (profiles[*].related)",
   "method": "Every pair in the clerking diagnosis catalogue's untyped `related` lists (MS-CLERK-DX v1) was typed by hand, by clinical judgement and each profile's note, into exactly one of three buckets, read in the parent-to-child direction. COMPLICATION: the child is a recognised consequence of the parent (diabetes → retinopathy; pneumonia → sepsis). GOES_WITH: the child commonly co-exists with the parent and finding the parent should prompt checking for or managing the child: shared-risk comorbidity (diabetes → hypertension), co-infection (HIV → TB), a chronic driver that needs its own ongoing care (heart failure → hypertension; AF → rheumatic heart disease; stroke → AF), and, only where the parent is the acute decompensation of a known disease, the precipitant that must be sought (DKA → sepsis). EXCLUDED: alternatives (differentials; another type, form, stage or umbrella term; the candidate causes of a not-yet-explained symptom-level entry, which are all excluded), the underlying condition of a complication when the parent already implies it (DKA → type 1 diabetes), acute or mutually exclusive candidate causes that are the parent's aetiology work-up (AKI → sepsis), not-yet-explained placeholders the parent replaces, and anything genuinely ambiguous. No pair outside `related` was added and no id outside `profiles` is used. Draft by Claude for the Clinical Safety Officer; not for use until signed.",
@@ -5678,5 +5678,10 @@
         "why": "alternative: differential diagnosis"
       }
     ]
+  },
+  "signoff": {
+    "signedBy": "CSO (owner)",
+    "signedOn": "2026-10-08",
+    "decision": "Signed as drafted; triggers under a flare-up stay 'goes with'."
   }
 }

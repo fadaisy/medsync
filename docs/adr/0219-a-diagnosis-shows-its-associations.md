@@ -1,6 +1,7 @@
 # ADR 0219 — A diagnosis shows its complications and what goes with it
 
-**Status:** Accepted — 2026-10-08 (owner). Shows nothing until the CSO signs the association typing
+**Status:** Accepted — 2026-10-08 (owner). The association typing was signed by the CSO on 2026-10-08, as drafted,
+triggers under a flare-up kept as "goes with"
 (`data/clerking/dx-associations.v1.json`, review in `docs/emr/dx-associations-review.md`).
 
 ## Context
