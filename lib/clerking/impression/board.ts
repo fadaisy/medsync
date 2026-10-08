@@ -45,6 +45,8 @@ export interface DxMeta {
   onset?: OnsetId;
   severity?: string;
   reasoning?: string;
+  /** Associated diagnoses (dx ids) linked to this one at this visit: "with" in the note. */
+  with?: string[];
 }
 
 /** The draft's `impression` section (§8). Keys are condition logical ids. */

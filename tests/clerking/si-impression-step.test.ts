@@ -32,6 +32,11 @@ import { cat, v2Payload } from "./fixtures";
  */
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh() {}, push() {} }) }));
+// The association typing as the CSO signs it (the shipped file stays a draft until then).
+vi.mock("@/data/clerking/dx-associations.v1.json", async (orig) => {
+  const real = (await orig()) as { default: Record<string, unknown> };
+  return { default: { ...real.default, status: "signed — test" } };
+});
 const { ClerkingDesk } = await import("@/components/clerking/clerking-desk");
 
 const dx = {
@@ -64,6 +69,7 @@ const dxRow = (
 const DIABETES = () =>
   dxRow("dx.dm_type_unknown", "Diabetes, type not yet determined", "primary", "provisional");
 const SEPSIS = () => dxRow("dx.sepsis", "Sepsis", "secondary", "differential");
+const DM2 = () => dxRow("dx.dm_type2", "Type 2 diabetes", "primary", "provisional");
 
 function payload(diagnoses: DeskDiagnosis[], senior = true): DeskPayload {
   const p = v2Payload();
@@ -334,6 +340,24 @@ describe("step 09, Impression", () => {
     tap(remove);
     expect(all()).toContain("Remove, entered in error");
     expect(calls.some((c) => c.name === "onRemove")).toBe(false);
+  });
+
+  it("lists a diagnosis's complications and what goes with it, and adds one linked (associations)", () => {
+    mount(payload([DM2()]));
+    expect(all()).toContain("Associated with Type 2 diabetes");
+    expect(all()).toMatch(/Diabetic retinopathy[^]*complication/);
+    expect(all()).toMatch(/Hypertension[^]*goes with it/);
+    expect(all()).toContain("Check for:");
+    const row = [...host.querySelectorAll("li")].find((l) =>
+      l.textContent?.startsWith("Hypertension"),
+    )!;
+    tap(button("Add", row));
+    expect(calls.find((c) => c.name === "onDiagnosis")?.args[1]).toMatchObject({
+      verification: "provisional",
+      primary: false,
+    });
+    const lead = Object.entries(draft().meta ?? {}).find(([, m]) => m.with?.length);
+    expect(lead?.[1].with).toEqual(["dx.hypertension"]);
   });
 
   it("sends a junior's Final for senior co-signature and says so (SI7, D-SI-09)", () => {
