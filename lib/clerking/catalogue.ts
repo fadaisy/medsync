@@ -143,7 +143,7 @@ const CatalogueSchema = z
     flag_rules: z.array(Rule),
     past_history: z
       .object({
-        conditions: Labelled,
+        conditions: z.array(Opt.extend({ applies_to_sex: Sex.optional() })),
         since_options_ref: z.string(),
         condition_details: z.record(z.string(), ConditionDetails).optional(),
         transfusions: z
@@ -179,6 +179,8 @@ const CatalogueSchema = z
       occupation: z.object({ hints: z.array(z.string()) }).passthrough(),
       travel: z.object({ options: Labelled }).passthrough(),
       diet: Labelled,
+      exercise: Labelled,
+      food: Labelled,
     }),
   })
   .passthrough();

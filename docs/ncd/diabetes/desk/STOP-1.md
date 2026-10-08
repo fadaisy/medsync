@@ -5,7 +5,7 @@ Branch `feat/ncd-dm-desk`, worktree `medsync-ncd`, 2026-10-08. Built, off (`NCD_
 ## Built
 
 - `lib/ncd/pack/from-clerking.ts`: the clerking record → the pack's input. 142 of 208 pack features mapped (about 47
-  renames, 95 derived); 62 asked in "More diabetes questions"; 4 unused. Blank is never negative.
+  renames, 95 derived); 62 asked in "More diabetes questions" (46 after the Core 12, below); 4 unused. Blank is never negative.
 - Loader: creatinine, potassium, lipids, urine protein and ketone strips, pregnancy gestation and weeks post-partum.
   eGFR from creatinine with the registry's CKD-EPI 2021.
 - `lib/ncd/pack/desk.ts`: flags (interrupt urgent; today and medicines caution, red flag urgent), the Impression verdict,

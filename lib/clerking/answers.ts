@@ -72,6 +72,8 @@ export interface History {
     travel?: string;
     travelDetail?: string;
     diet?: string;
+    exercise?: string;
+    food?: string;
   };
   /** Set once, by "Continue in the new format" (lib/clerking/convert). */
   converted?: Conversion;

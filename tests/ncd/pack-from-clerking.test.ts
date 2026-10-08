@@ -327,6 +327,95 @@ describe("results the desk now loads", () => {
   });
 });
 
+describe("Core 12: the pack's questions in the clerking steps", () => {
+  const CORE = {
+    pmh: "prior_gdm pancreatitis_history pcos g6pd_deficiency sickle_cell_trait iron_deficiency b12_deficiency art_regimen months_since_hba1c never_hba1c months_since_lipids never_lipids hypo_awareness_score",
+    social: "physically_inactive food_insecurity",
+    exam: "acanthosis_nigricans",
+  };
+
+  it("past-history conditions: yes and no are answers, blank stays absent", () => {
+    const s = scenario({ patient: { ageYears: 30, sex: "female", pregnant: false } });
+    const c = s.history.past.conditions;
+    c.gestational_diabetes_before = { answer: "yes" };
+    c.pcos = { answer: "no" };
+    c.g6pd_deficiency = { answer: "yes" };
+    c.sickle_cell_trait = { answer: "no" };
+    c.iron_deficiency = { answer: "yes" };
+    const r = run(s);
+    expect(r.input.values).toMatchObject({
+      prior_gdm: true,
+      pcos: false,
+      g6pd_deficiency: true,
+      sickle_cell_trait: false,
+      iron_deficiency: true,
+    });
+    expect(r.input.values.b12_deficiency).toBeUndefined();
+    expect(r.from.g6pd_deficiency).toBe("Past history · g6pd deficiency");
+    expect(values(s, { viewer: { classes: new Set() } }).prior_gdm).toBeUndefined();
+  });
+
+  it("pancreatitis: no is none; a yes needs its type", () => {
+    const s = scenario();
+    s.history.past.conditions.pancreatitis = { answer: "no" };
+    expect(values(s).pancreatitis_history).toBe("none");
+    s.history.past.conditions.pancreatitis = { answer: "yes" };
+    expect(values(s).pancreatitis_history).toBeUndefined();
+    s.history.past.conditions.pancreatitis = { answer: "yes", details: { type: "chronic" } };
+    expect(values(s).pancreatitis_history).toBe("chronic");
+  });
+
+  it("the ART regimen under HIV, restricted (hiv)", () => {
+    const s = scenario();
+    s.history.past.conditions.hiv = { answer: "yes", details: { art_regimen: "abc_3tc_dtg" } };
+    expect(values(s).art_regimen).toBe("abc_3tc_dtg");
+    expect(values(s, { viewer: { classes: new Set(["tb"]) } }).art_regimen).toBeUndefined();
+  });
+
+  it("About the diabetes: last HbA1c and lipids (MR-34), Gold score; 'not sure' stays absent", () => {
+    const s = scenario();
+    s.history.past.conditions.diabetes = {
+      answer: "yes",
+      details: { last_hba1c: "1_to_2_years", last_lipids: "never", hypo_awareness: "4" },
+    };
+    expect(values(s)).toMatchObject({
+      months_since_hba1c: 12,
+      never_hba1c: false,
+      never_lipids: true,
+      hypo_awareness_score: 4,
+    });
+    expect(values(s).months_since_lipids).toBeUndefined();
+    s.history.past.conditions.diabetes!.details = { last_hba1c: "not_sure" };
+    const v = values(s);
+    expect(v.never_hba1c).toBeUndefined();
+    expect(v.months_since_hba1c).toBeUndefined();
+    expect(v.hypo_awareness_score).toBeUndefined();
+  });
+
+  it("social: exercise and food at home", () => {
+    const s = scenario();
+    s.history.social = { exercise: "inactive", food: "enough" };
+    expect(values(s)).toMatchObject({ physically_inactive: true, food_insecurity: false });
+    s.history.social = { exercise: "active", food: "not_enough" };
+    expect(values(s)).toMatchObject({ physically_inactive: false, food_insecurity: true });
+  });
+
+  it("examination: acanthosis nigricans", () => {
+    const s = scenario();
+    positive(s, "ex.skin.acanthosis_nigricans", { where: ["posterior_neck"] });
+    expect(run(s).from.acanthosis_nigricans).toBe("Examination · skin");
+    expect(values(s).acanthosis_nigricans).toBe(true);
+    const n = scenario();
+    negative(n, "ex.skin.acanthosis_nigricans");
+    expect(values(n).acanthosis_nigricans).toBe(false);
+  });
+
+  it("each lives in its step now, not in 'More diabetes questions'", () => {
+    for (const [home, list] of Object.entries(CORE))
+      for (const f of list.split(" ")) expect(PACK_FEATURE_HOME[f], f).toBe(home);
+  });
+});
+
 describe("context", () => {
   it("pregnancy_possible from sex and age; a man is never asked", () => {
     expect(

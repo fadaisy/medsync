@@ -19,7 +19,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { applyProp, toggleEntry } from "@/lib/clerking/answers";
-import { isRestricted } from "@/lib/clerking/catalogue";
+import { appliesTo, isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
 import { operationById, operationGroups } from "@/lib/clerking/pick-lists";
 import { REACTION_TO_MANIFESTATION } from "@/lib/clerking/record-map";
@@ -283,9 +283,12 @@ function Conditions({
   editable,
   act,
   problems,
+  sex,
   onConfirm,
 }: PastHistoryProps & { onConfirm: (id: string) => void }) {
-  const list = cat.data.past_history.conditions;
+  const list = cat.data.past_history.conditions.filter((c) =>
+    appliesTo(c.applies_to_sex, sex ?? null),
+  );
   const since = cat.data.option_sets[cat.data.past_history.since_options_ref] ?? [];
   const put = (fn: (c: History["past"]["conditions"]) => History["past"]["conditions"]) =>
     onHistory((h) => ({ ...h, past: { ...h.past, conditions: fn(h.past.conditions) } }));

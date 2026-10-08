@@ -283,17 +283,26 @@ export function packInputFromClerking(s: ClerkingPackSources): ClerkingPackResul
   orProblem("hypertension_known", "hypertension", "cond.hypertension");
   orProblem("heart_failure_known", "heart_failure", "cond.heart_failure");
   orProblem("sickle_cell_disease", "sickle_cell_disease", "cond.sickle_cell_disease");
-  for (const [f, concept] of [
-    ["iron_deficiency", "cond.iron_deficiency_anaemia"],
-    ["g6pd_deficiency", "cond.g6pd_deficiency"],
-    ["pcos", "cond.pcos"],
-    ["prior_intermediate_hyperglycaemia", "cond.intermediate_hyperglycaemia"],
-  ] as const) {
-    const p = problem(concept);
-    if (p) set(f, true, `Problem list · ${p.display}`);
-  }
+  orProblem("iron_deficiency", "iron_deficiency", "cond.iron_deficiency_anaemia");
+  orProblem("g6pd_deficiency", "g6pd_deficiency", "cond.g6pd_deficiency");
+  orProblem("pcos", "pcos", "cond.pcos");
+  const ipH = problem("cond.intermediate_hyperglycaemia");
+  if (ipH) set("prior_intermediate_hyperglycaemia", true, `Problem list · ${ipH.display}`);
   const gdm = problem(...GDM);
   if (gdm && pregnant !== true) set("prior_gdm", true, `Problem list · ${gdm.display}`); // MR-11
+  // Core 12 (2026-10-08): the pack's own questions, now past-history conditions.
+  set("prior_gdm", past("gestational_diabetes_before"), `${PMH} · gestational diabetes before`);
+  set("sickle_cell_trait", past("sickle_cell_trait"), `${PMH} · sickle cell trait`);
+  set("b12_deficiency", past("b12_deficiency"), `${PMH} · vitamin B12 deficiency`);
+  const panc = past("pancreatitis"),
+    pancType = h.past.conditions.pancreatitis?.details?.type;
+  set(
+    "pancreatitis_history",
+    panc === false ? "none" : panc && typeof pancType === "string" ? pancType : undefined,
+    `${PMH} · pancreatitis`,
+  );
+  const regimen = past("hiv") ? h.past.conditions.hiv?.details?.art_regimen : undefined;
+  if (typeof regimen === "string") set("art_regimen", regimen, `${PMH} · HIV`);
   const told = pd?.complications_told;
   const ascvd = problem("cond.ascvd");
   if (ascvd) set("cvd_established", true, `Problem list · ${ascvd.display}`);
@@ -326,6 +335,8 @@ export function packInputFromClerking(s: ClerkingPackSources): ClerkingPackResul
   }
   if (typeof pd?.lows_12_months === "string" && pd.lows_12_months !== "not_sure")
     set("hypo_worst_12m", pd.lows_12_months, ABOUT);
+  const gold = Number(pd?.hypo_awareness);
+  if (gold >= 1 && gold <= 7) set("hypo_awareness_score", gold, ABOUT);
   if (has(told, "foot_ulcer")) set("previous_foot_ulcer", true, ABOUT);
   if (has(told, "amputation")) set("previous_amputation", true, ABOUT);
 
@@ -356,6 +367,9 @@ export function packInputFromClerking(s: ClerkingPackSources): ClerkingPackResul
     set("alcohol_harmful", false, "Social history · alcohol"); // MR-17
   if (so.activity === "needs_help" || so.activity === "bedbound")
     set("frailty_or_limited_life_expectancy", true, "Social history · activity"); // MR-18: true only
+  if (so.exercise)
+    set("physically_inactive", so.exercise === "inactive", "Social history · exercise");
+  if (so.food) set("food_insecurity", so.food === "not_enough", "Social history · food at home");
   if (entryOf(x.cat, x.exam, "ex.general.mobility")?.choice === "bedbound")
     set("frailty_or_limited_life_expectancy", true, "Examination · mobility");
 
@@ -450,6 +464,7 @@ export function packInputFromClerking(s: ClerkingPackSources): ClerkingPackResul
     ["injection_site_lumps", "ex.skin.injection_sites", "injection sites"],
     ["splenomegaly", "ex.abdomen.spleen", "abdomen"],
     ["peripheral_oedema", "ex.general.oedema", "oedema"],
+    ["acanthosis_nigricans", "ex.skin.acanthosis_nigricans", "skin"],
   ] as const)
     set(f, state(id), `${EX} · ${where}`);
   if (state("ex.feet.ulcer")) set("slow_healing_wound", true, `${EX} · feet`);
@@ -823,6 +838,8 @@ export function packInputFromClerking(s: ClerkingPackSources): ClerkingPackResul
     ["last_eye_check", "months_since_eye_screen", "never_eye_screen"],
     ["last_foot_check", "months_since_foot_risk_assessment", "never_foot_assessment"],
     ["last_kidney_test", "months_since_kidney_screen", "never_kidney_screen"],
+    ["last_hba1c", "months_since_hba1c", "never_hba1c"],
+    ["last_lipids", "months_since_lipids", "never_lipids"],
   ] as const) {
     const ans = pd?.[key];
     if (typeof ans !== "string" || ans === "not_sure") continue;
@@ -872,15 +889,15 @@ export function packInputFromClerking(s: ClerkingPackSources): ClerkingPackResul
 const HOMES: Record<string, string> = {
   systems:
     "polyuria polydipsia unexplained_weight_loss fatigue vomiting abdominal_pain blurred_vision recurrent_infections foot_numbness_burning sudden_vision_loss chest_pain_or_stroke_symptoms orthostatic_dizziness cough_over_2_weeks autonomic_symptoms anuria hypertensive_symptoms pruritus weakness diarrhoea",
-  pmh: "dm_status glucose_lowering_therapy hiv_on_art recent_transfusion hypertension_known age_at_diagnosis years_since_diagnosis sickle_cell_disease heart_failure_known on_glucocorticoid on_second_gen_antipsychotic tb_current cvd_established on_dapsone on_iron_b12_or_epo hypo_worst_12m months_since_eye_screen months_since_kidney_screen months_since_foot_risk_assessment bp_medicines_count on_statin ras_blocker on_rifampicin dm_type_recorded never_eye_screen never_kidney_screen never_foot_assessment insulin_omitted on_antiplatelet haemorrhagic_or_unknown_stroke",
+  pmh: "dm_status glucose_lowering_therapy hiv_on_art recent_transfusion hypertension_known age_at_diagnosis years_since_diagnosis sickle_cell_disease heart_failure_known on_glucocorticoid on_second_gen_antipsychotic tb_current cvd_established on_dapsone on_iron_b12_or_epo hypo_worst_12m months_since_eye_screen months_since_kidney_screen months_since_foot_risk_assessment bp_medicines_count on_statin ras_blocker on_rifampicin dm_type_recorded never_eye_screen never_kidney_screen never_foot_assessment insulin_omitted on_antiplatelet haemorrhagic_or_unknown_stroke prior_gdm pancreatitis_history pcos g6pd_deficiency sickle_cell_trait iron_deficiency b12_deficiency art_regimen months_since_hba1c never_hba1c months_since_lipids never_lipids hypo_awareness_score",
   fh: "first_degree_relative_diabetes parent_with_diabetes fh_diabetes_first_degree",
-  social: "smoking_current alcohol_harmful",
-  exam: "capillary_glucose bohb urine_ketones mental_status deep_rapid_breathing acetone_breath dehydration bp_systolic bp_diastolic pulse respiratory_rate temperature weight_kg height_cm waist_cm bmi pedal_pulses monofilament_10g retinopathy_stage foot_deformity active_foot_ulcer foot_infection_grade peripheral_oedema previous_foot_ulcer previous_amputation end_stage_kidney_disease vibration_128hz ipswich_sites_missed foot_hot_swollen foot_gangrene injection_site_lumps splenomegaly fundus_method capillary_glucose_context postprandial_pg macular_oedema visual_acuity_worse_6_12 retina_view pinprick_feet ankle_reflexes postural_sbp_fall postural_dbp_fall months_since_neuropathy_screen limb_ischaemia_signs glucose_meter_extreme wasting",
+  social: "smoking_current alcohol_harmful physically_inactive food_insecurity",
+  exam: "capillary_glucose bohb urine_ketones mental_status deep_rapid_breathing acetone_breath dehydration bp_systolic bp_diastolic pulse respiratory_rate temperature weight_kg height_cm waist_cm bmi pedal_pulses monofilament_10g retinopathy_stage foot_deformity active_foot_ulcer foot_infection_grade peripheral_oedema previous_foot_ulcer previous_amputation end_stage_kidney_disease vibration_128hz ipswich_sites_missed foot_hot_swollen foot_gangrene injection_site_lumps splenomegaly fundus_method capillary_glucose_context postprandial_pg macular_oedema visual_acuity_worse_6_12 retina_view pinprick_feet ankle_reflexes postural_sbp_fall postural_dbp_fall months_since_neuropathy_screen limb_ischaemia_signs glucose_meter_extreme wasting acanthosis_nigricans",
   summary: "age_years sex care_setting pregnancy_possible",
   impression: "hyperglycaemic_crisis_now",
   results:
-    "random_pg hba1c venous_ph bicarbonate sodium urea effective_osmolality egfr urine_acr urine_protein_strip fasting_pg ogtt_2h_pg ogtt_1h_pg potassium haematuria_strip total_cholesterol ldl_cholesterol triglycerides months_since_glucose_test months_since_hba1c months_since_any_control_measure uacr_abnormal_count months_since_lipids ogtt_normal ogtt_done_this_pregnancy hba1c_point_of_care",
-  more: "polyphagia slow_healing_wound kidney_abnormality_3_months art_regimen haemolysis malaria_current acanthosis_nigricans pregnant gestation_weeks repeat_abnormal_result acute_illness_current ketosis_at_presentation c_peptide islet_autoantibodies sickle_cell_trait iron_deficiency on_dialysis prior_gdm postpartum_weeks prior_intermediate_hyperglycaemia weeks_since_antipsychotic_start months_since_art_start_or_switch pancreatitis_history pcos physically_inactive secondary_enuresis g6pd_deficiency b12_deficiency uacr_transient_cause creatinine_unstable insulin_stopped_without_relapse childhood_undernutrition steatorrhoea recurrent_abdominal_pain pancreatic_calcification glucose_at_presentation months_off_glucose_lowering glycaemic_target_tier therapy_changed_recently hypo_awareness_score frailty_or_limited_life_expectancy cognitive_impairment food_insecurity egfr_fall_percent creatinine_rise_percent_4w nephrotic_or_active_sediment neuropathy_atypical abi ulcer_area_reduction_4w bp_raised_two_occasions who_cvd_risk_percent who_cvd_chart_used overt_nephropathy surgery_or_fasting_planned could_conceive fasting_ramadan_planned glucose_goal_unmet_on_oral meals_irregular months_since_dental non_diabetic_kidney_clue never_glucose_tested never_hba1c never_neuropathy_screen never_lipids hypoglycaemia_not_resolving glucose_test_since_antipsychotic_start ras_or_sglt2_started_recently glucose_tested_since_birth hypertensive_organ_damage hba1c_method_variant_free prior_macrosomia_or_stillbirth polyhydramnios glycosuria fetus_large_for_dates hyperglycaemic_emergency_last_2_weeks months_since_b12 never_b12",
+    "random_pg hba1c venous_ph bicarbonate sodium urea effective_osmolality egfr urine_acr urine_protein_strip fasting_pg ogtt_2h_pg ogtt_1h_pg potassium haematuria_strip total_cholesterol ldl_cholesterol triglycerides months_since_glucose_test months_since_any_control_measure uacr_abnormal_count ogtt_normal ogtt_done_this_pregnancy hba1c_point_of_care",
+  more: "polyphagia slow_healing_wound kidney_abnormality_3_months haemolysis malaria_current pregnant gestation_weeks repeat_abnormal_result acute_illness_current ketosis_at_presentation c_peptide islet_autoantibodies on_dialysis postpartum_weeks prior_intermediate_hyperglycaemia weeks_since_antipsychotic_start months_since_art_start_or_switch secondary_enuresis uacr_transient_cause creatinine_unstable insulin_stopped_without_relapse childhood_undernutrition steatorrhoea recurrent_abdominal_pain pancreatic_calcification glucose_at_presentation months_off_glucose_lowering glycaemic_target_tier therapy_changed_recently frailty_or_limited_life_expectancy cognitive_impairment egfr_fall_percent creatinine_rise_percent_4w nephrotic_or_active_sediment neuropathy_atypical abi ulcer_area_reduction_4w bp_raised_two_occasions who_cvd_risk_percent who_cvd_chart_used overt_nephropathy surgery_or_fasting_planned could_conceive fasting_ramadan_planned glucose_goal_unmet_on_oral meals_irregular months_since_dental non_diabetic_kidney_clue never_glucose_tested never_neuropathy_screen hypoglycaemia_not_resolving glucose_test_since_antipsychotic_start ras_or_sglt2_started_recently glucose_tested_since_birth hypertensive_organ_damage hba1c_method_variant_free prior_macrosomia_or_stillbirth polyhydramnios glycosuria fetus_large_for_dates hyperglycaemic_emergency_last_2_weeks months_since_b12 never_b12",
 };
 
 /** Where each pack feature is asked: a clerking step id ("complaint"|"history"|"systems"|"pmh"|"fh"|"social"|"exam"|"summary"|"impression"|"plan"), "results" (comes from lab results), or "more" (no home in the clerking: the 'More diabetes questions' pop-up). Every pack feature appears. */

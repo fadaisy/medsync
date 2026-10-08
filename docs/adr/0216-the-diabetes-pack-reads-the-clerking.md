@@ -1,8 +1,8 @@
 # ADR 0216 — The diabetes pack reads the ten-step clerking, behind a flag
 
 **Status:** Built, off — 2026-10-08. Owner-set flag `NCD_DM_DESK` (`1` or a comma list of hospital ids; only where
-`CLERKING_V2` is on). Mapping judgement calls await the CSO (`docs/ncd/diabetes/desk/mapping-rulings.md`); clinical
-use also needs the four-eyes second reviewer (D-NCD-17). Builds on ADRs 0204–0208; replaces the module button of
+`CLERKING_V2` is on). The 42 mapping rulings were signed by the CSO on 2026-10-08
+(`docs/ncd/diabetes/desk/mapping-rulings.md`); clinical use also needs the four-eyes second reviewer (D-NCD-17). Builds on ADRs 0204–0208; replaces the module button of
 PR #201 where the flag is on.
 
 ## Context

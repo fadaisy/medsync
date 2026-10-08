@@ -157,8 +157,22 @@ describe("catalogue", () => {
       edition: src.edition,
       retrieved: src.retrieved,
     };
+    // Owner decision "Core 12" (CSO, 2026-10-08): docs/ncd/diabetes/desk/core-12.amendment.json.
+    const core = JSON.parse(
+      readFileSync("docs/ncd/diabetes/desk/core-12.amendment.json", "utf8"),
+    ).history;
+    const ph = handoff.past_history;
+    ph.conditions.push(...core["past_history.conditions.add"]);
+    Object.assign(ph.condition_details, core["past_history.condition_details.add"]);
+    const dm = ph.condition_details.diabetes;
+    for (const [after, props] of Object.entries(
+      core["past_history.condition_details.diabetes.insert_after"] as Record<string, Prop[]>,
+    ))
+      dm.properties.splice(dm.properties.findIndex((q: Prop) => q.id === after) + 1, 0, ...props);
+    dm.composer = core["past_history.condition_details.diabetes.composer"];
+    Object.assign(handoff.social_history, core["social_history.add"]);
     expect(JSON.parse(a.toString("utf8"))).toEqual(handoff);
-    expect(signoff.amendments).toHaveLength(3);
+    expect(signoff.amendments).toHaveLength(4);
     expect(createHash("sha256").update(a).digest("hex")).toBe(signoff.catalogueSha256);
   });
   it("rejects a malformed catalogue", () => {
@@ -736,6 +750,48 @@ describe("past, family and social answers", () => {
     expect(run([])).toContain("No regular medicines, including herbal.");
     expect(run(medicines)).not.toContain("No regular medicines");
     expect(run([])).toContain("Operations: Appendicectomy (1990).");
+  });
+
+  it("Core 12: the diabetes questions are written; women-only conditions only for women", () => {
+    const h = patientThree3();
+    h.past.conditions.gestational_diabetes_before = { answer: "no" };
+    h.past.conditions.pancreatitis = { answer: "yes", details: { type: "chronic" } };
+    h.past.conditions.hiv = { answer: "yes", details: { art_regimen: "tdf_3tc_dtg" } };
+    h.past.conditions.diabetes = {
+      answer: "yes",
+      details: { last_hba1c: "within_1_year", last_lipids: "never", hypo_awareness: "5" },
+    };
+    h.social.exercise = "inactive";
+    h.social.food = "not_enough";
+    const text = (sex: "female" | "male", audience: "clinical" | "patient" = "clinical") =>
+      compose({
+        cat,
+        header,
+        history: h,
+        linked: linkedAnswers(cat, h.complaints),
+        patient: { ...patient, sex },
+        medicines,
+        allergies,
+        sectionText: {},
+        edited: {},
+        audience,
+      })
+        .map((b) => b.text)
+        .join(" ");
+    const woman = text("female");
+    expect(woman).toContain("chronic pancreatitis");
+    expect(woman).toContain("HIV, ART regimen: TDF + 3TC + DTG (TLD)");
+    expect(woman).toContain(
+      "last HbA1c in the last year; last lipid profile never; awareness of lows: Gold score 5",
+    );
+    expect(woman).toMatch(/No [^.]*gestational diabetes in a previous pregnancy/);
+    expect(woman).toContain("physically inactive; not always enough food at home");
+    expect(text("male")).not.toMatch(/gestational/);
+    expect(text("female", "patient")).not.toMatch(/gestational|HIV|ART/);
+    expect(HistorySchema.parse(h).social).toMatchObject({
+      exercise: "inactive",
+      food: "not_enough",
+    });
   });
 
   it("the patient audience drops restricted past, family and substance answers (Law 10)", () => {

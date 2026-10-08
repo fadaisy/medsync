@@ -516,6 +516,24 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
           disabled={off}
         />
       </Row>
+      <Row label="Exercise">
+        <Chips
+          label="Exercise"
+          options={sh.exercise}
+          selected={(id) => so.exercise === id}
+          onPress={(id) => one("exercise", id)}
+          disabled={off}
+        />
+      </Row>
+      <Row label="Food at home">
+        <Chips
+          label="Food at home"
+          options={sh.food}
+          selected={(id) => so.food === id}
+          onPress={(id) => one("food", id)}
+          disabled={off}
+        />
+      </Row>
     </div>
   );
 }
