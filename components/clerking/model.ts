@@ -8,9 +8,12 @@ import type { History, HistoryHeader, SymptomEntry, YesNo } from "@/lib/clerking
 import type { Catalogue, PatientSex, Symptom } from "@/lib/clerking/catalogue";
 import type { Block } from "@/lib/clerking/compose";
 import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
+import type { ClassifierResult, ExamSignoff } from "@/lib/clerking/exam/classifiers";
+import type { ExamContext, VitalValues } from "@/lib/clerking/exam/context";
 import type { Badge, Flag, Signoff } from "@/lib/clerking/flags";
 import type { Linked } from "@/lib/clerking/linkage";
 import type { SectionId, SectionStatus, Tone } from "@/lib/clerking/status";
+import type { VitalClass, VitalCtx } from "@/lib/clerking/vital-classification";
 import type { NoteContent, SignValidation } from "@/lib/emr/note-rules";
 import type { DeskDiabetes } from "@/lib/ncd/pack/desk";
 import type { DiabetesPack } from "@/lib/ncd/pack/types";
@@ -23,10 +26,13 @@ import { appliesTo, rosSystemsFor } from "@/lib/clerking/catalogue";
 import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { compose, lc, list } from "@/lib/clerking/compose";
 import { conversionFlags } from "@/lib/clerking/convert";
+import { bmiClass, classifierIsLive, waistRisk } from "@/lib/clerking/exam/classifiers";
+import { bmiOf } from "@/lib/clerking/exam/vitals";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
 import { composeImpression } from "@/lib/clerking/impression/compose";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { doneCount, SECTIONS, sectionStatuses } from "@/lib/clerking/status";
+import { classifyVital } from "@/lib/clerking/vital-classification";
 import { captureFromNote } from "@/lib/ncd/cfc-map";
 import { deskDiabetes } from "@/lib/ncd/pack/desk";
 import { packInputFromClerking } from "@/lib/ncd/pack/from-clerking";
@@ -533,6 +539,8 @@ export interface VitalRow {
   arrow: "low" | "high" | null;
   /** A prompt beside the value ("Air or oxygen?"); caution when something is missing. */
   note: { text: string; caution: boolean } | null;
+  /** The standard classification beside NEWS2 ("Stage 2 hypertension"); absent when none. */
+  cls?: VitalClass | null;
 }
 
 export interface VitalsView {
@@ -575,7 +583,13 @@ function arrowFor(parameter: string, value: unknown, points: number): VitalRow["
   return zero && zero.min !== null && value < zero.min ? "low" : "high";
 }
 
-export function vitalsView(v: AdultVitals, context: DeskPayload["context"]["vitals"]): VitalsView {
+/** `ctx` adds each reading's standard classification (adults); without it, NEWS2 only. */
+export function vitalsView(
+  v: AdultVitals,
+  context: DeskPayload["context"]["vitals"],
+  /** `dbp`: the chart's newest diastolic, when the context list carries none. */
+  ctx?: VitalCtx & { dbp?: number | null },
+): VitalsView {
   const news2 = scoreNews2(v);
   const pt = (id: string) => news2.parameters.find((x) => x.parameter === id);
   const row = (
@@ -584,6 +598,7 @@ export function vitalsView(v: AdultVitals, context: DeskPayload["context"]["vita
     value: string | null,
     unit: string,
     note: VitalRow["note"] = null,
+    c: VitalClass | null = null,
   ): VitalRow => {
     const s = pt(key);
     const points = s?.present ? s.points : null;
@@ -595,23 +610,46 @@ export function vitalsView(v: AdultVitals, context: DeskPayload["context"]["vita
       points,
       arrow: s ? arrowFor(key, s.value, s.points) : null,
       note,
+      cls: c,
     };
   };
-  const dia = context.find((c) => c.conceptId === "obs.bp_diastolic")?.value;
+  const dia =
+    context.find((c) => c.conceptId === "obs.bp_diastolic")?.value ??
+    (ctx?.dbp != null ? String(ctx.dbp) : undefined);
   const glucose = context.find((c) => /glucose/.test(c.conceptId));
+  const cls = (
+    kind: Parameters<typeof classifyVital>[0],
+    value: Parameters<typeof classifyVital>[1],
+  ) =>
+    ctx ? classifyVital(kind, value, { spo2Scale: v.spo2Scale, oxygen: v.oxygen, ...ctx }) : null;
+  const sbpDbp =
+    v.systolicBp !== null && dia && Number.isFinite(Number(dia))
+      ? { sbp: v.systolicBp, dbp: Number(dia) }
+      : null;
   const rows: VitalRow[] = [
     row(
       "systolic_bp",
       "Blood pressure",
       v.systolicBp === null ? null : `${v.systolicBp}${dia ? `/${dia}` : ""}`,
       "mmHg",
+      null,
+      cls("bp", sbpDbp),
     ),
-    row("pulse", "Pulse", v.pulse === null ? null : String(v.pulse), "/min"),
+    row(
+      "pulse",
+      "Pulse",
+      v.pulse === null ? null : String(v.pulse),
+      "/min",
+      null,
+      cls("pulse", v.pulse),
+    ),
     row(
       "respiratory_rate",
       "Respiratory rate",
       v.respiratoryRate === null ? null : String(v.respiratoryRate),
       "/min",
+      null,
+      cls("rr", v.respiratoryRate),
     ),
     row(
       "spo2",
@@ -621,12 +659,15 @@ export function vitalsView(v: AdultVitals, context: DeskPayload["context"]["vita
       v.oxygen === null
         ? { text: "Air or oxygen?", caution: true }
         : { text: v.oxygen === "oxygen" ? "on oxygen" : "on air", caution: false },
+      cls("spo2", v.spo2),
     ),
     row(
       "temperature",
       "Temperature",
       v.temperature === null ? null : v.temperature.toFixed(1),
       "°C",
+      null,
+      cls("temp", v.temperature),
     ),
     row(
       "consciousness",
@@ -644,6 +685,7 @@ export function vitalsView(v: AdultVitals, context: DeskPayload["context"]["vita
             points: null,
             arrow: null,
             note: { text: "Random or fasting?", caution: true },
+            cls: cls("glucose", glucose.value),
           },
         ]
       : []),
@@ -665,6 +707,48 @@ export function vitalsView(v: AdultVitals, context: DeskPayload["context"]["vita
       : null,
     missing: missing.length ? `Missing: ${list(missing)}.` : null,
   };
+}
+
+/** Exam classifier tones in the rail's words: never red (the exam's "strong" stays amber). */
+const fromExam = (r: ClassifierResult | undefined): VitalClass | null =>
+  r?.status === "result" && r.text
+    ? {
+        label: r.text,
+        tone: r.tone === "ok" || r.tone === "neutral" ? "normal" : "caution",
+        scheme: r.label,
+      }
+    : null;
+
+/**
+ * Weight, height, BMI and waist from the chart's newest readings, one row for each that is recorded. BMI and
+ * waist carry the examination's own classifiers (WHO BMI class, waist risk) when `x` is loaded and
+ * the classifier is signed; no new thresholds.
+ */
+export function bodyRows(
+  latest: VitalValues,
+  x?: ExamContext | null,
+  signoff?: ExamSignoff,
+): VitalRow[] {
+  const sx = x ? { ...x, vitals: latest } : null;
+  const live = (r: ClassifierResult) =>
+    sx && signoff && classifierIsLive(sx, r.id, signoff) ? fromExam(r) : null;
+  const bmi = bmiOf(latest.weight, latest.height);
+  const r = (
+    key: string,
+    label: string,
+    value: number | null,
+    unit: string,
+    cls: VitalClass | null = null,
+  ): VitalRow[] =>
+    value === null
+      ? []
+      : [{ key, label, value: String(value), unit, points: null, arrow: null, note: null, cls }];
+  return [
+    ...r("weight", "Weight", latest.weight, "kg"),
+    ...r("height", "Height", latest.height, "cm"),
+    ...r("bmi", "BMI", bmi, "kg/m²", sx ? live(bmiClass(sx)) : null),
+    ...r("waist", "Waist", latest.waist, "cm", sx ? live(waistRisk(sx)) : null),
+  ];
 }
 
 /* ─── Keyboard (§5.13, H9) ─────────────────────────────────────── */

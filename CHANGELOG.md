@@ -11,6 +11,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   or what would check for it; one tap adds it linked, and the note reads "with …" ([ADR 0219](docs/adr/0219-a-diagnosis-shows-its-associations.md)).
 - 1,377 catalogue pairs typed (315 complications, 152 go with, 910 excluded); signed by the CSO.
 
+### Changed — Vital-sign classification, body measurements and a calmer side panel — 2026-10-08
+
+- Each vital sign carries a standard classification beside NEWS2; blood pressure switches between ACC/AHA 2017,
+  ESC/ESH 2018, ISH 2020 and UCG 2023 ([ADR 0218](docs/adr/0218-vital-signs-carry-a-standard-classification.md)).
+  Bands signed by the CSO.
+- Saved weight, height and waist stay visible; the left panel lists body measurements with BMI and waist classes.
+- Flag badges are squarer with a styled hover card; diabetes criteria sets show which parts are met; "Due or to
+  consider" is shorter; Flags, Diabetes and Note fold.
+
 ### Changed — A diagnosis added by mistake comes off in one tap — 2026-10-08
 
 - Step 09: a diagnosis this clinician added at this visit is removed in one tap, entered in error as "Added by

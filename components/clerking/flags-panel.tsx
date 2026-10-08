@@ -2,8 +2,10 @@ import type { Badge, DeskSection } from "@/lib/clerking/flags";
 import { useId } from "react";
 import { LockIcon, OctagonAlertIcon, TriangleAlertIcon } from "lucide-react";
 
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { lc } from "@/lib/clerking/compose";
 import { cn } from "@/lib/utils";
+import { Fold } from "./fold";
 
 /**
  * The Flags panel (§5.9, D-CV-03, Law 8 as amended): the one place flag badges live. Urgent badges
@@ -33,57 +35,82 @@ export function FlagsPanel({
   const urgent = badges.filter((b) => b.level === "urgent").length;
   const Count = urgent ? OctagonAlertIcon : TriangleAlertIcon;
   return (
-    <section aria-labelledby="clerking-flags-heading" className="flex flex-col gap-3 px-5 py-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="clerking-flags-heading" className="text-heading-s text-foreground">
-          Flags
-        </h2>
+    <section aria-labelledby="clerking-flags-heading" className="px-5 py-4">
+      <Fold
+        title={<span id="clerking-flags-heading">Flags</span>}
+        aside={
+          badges.length ? (
+            <span
+              className={cn(
+                "text-caption inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold",
+                urgent ? URGENT : CAUTION,
+              )}
+            >
+              <Count aria-hidden className="size-3" />
+              {badges.length}
+              <span className="sr-only">{`${badges.length === 1 ? " flag" : " flags"}, ${urgent} urgent`}</span>
+            </span>
+          ) : null
+        }
+      >
         {badges.length ? (
-          <span
-            className={cn(
-              "text-caption inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold",
-              urgent ? URGENT : CAUTION,
-            )}
-          >
-            <Count aria-hidden className="size-3" />
-            {badges.length}
-            <span className="sr-only">{`${badges.length === 1 ? " flag" : " flags"}, ${urgent} urgent`}</span>
-          </span>
-        ) : null}
-      </div>
-      {badges.length ? (
-        <ul aria-label="Flags" className="flex flex-wrap gap-2">
-          {badges.map((b, i) => {
-            const Icon = b.level === "urgent" ? OctagonAlertIcon : TriangleAlertIcon;
-            const reasons = reasonsOf(b);
-            return (
-              <li key={b.label}>
-                <button
-                  type="button"
-                  data-level={b.level}
-                  title={reasons}
-                  aria-label={`${b.label}, ${b.level === "urgent" ? "urgent" : "needs attention"}`}
-                  aria-describedby={`${id}-${i}`}
-                  onClick={() => onGo?.(b.section, b)}
-                  className={cn(
-                    "text-caption focus-visible:shadow-focus inline-flex h-[26px] items-center gap-1.5 rounded-full px-2.5 font-semibold outline-none pointer-coarse:h-11",
-                    b.level === "urgent" ? URGENT : CAUTION,
-                  )}
-                >
-                  <Icon aria-hidden className="size-3.5 shrink-0" />
-                  {b.label}
-                  {b.restricted ? <LockIcon aria-hidden className="size-3 shrink-0" /> : null}
-                </button>
-                <span id={`${id}-${i}`} hidden>
-                  {reasons}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className="text-caption text-muted-foreground">Nothing flagged so far.</p>
-      )}
+          <ul aria-label="Flags" className="flex flex-wrap gap-2">
+            {badges.map((b, i) => {
+              const Icon = b.level === "urgent" ? OctagonAlertIcon : TriangleAlertIcon;
+              const reasons = reasonsOf(b);
+              return (
+                <li key={b.label}>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <button
+                          type="button"
+                          data-level={b.level}
+                          aria-label={`${b.label}, ${b.level === "urgent" ? "urgent" : "needs attention"}`}
+                          aria-describedby={`${id}-${i}`}
+                          onClick={() => onGo?.(b.section, b)}
+                          className={cn(
+                            "text-caption focus-visible:shadow-focus inline-flex h-[26px] items-center gap-1.5 rounded-md px-2 font-semibold outline-none pointer-coarse:h-11",
+                            b.level === "urgent" ? URGENT : CAUTION,
+                          )}
+                        />
+                      }
+                    >
+                      <Icon aria-hidden className="size-3.5 shrink-0" />
+                      {b.label}
+                      {b.restricted ? <LockIcon aria-hidden className="size-3 shrink-0" /> : null}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-caption text-foreground flex items-center gap-1.5 font-medium">
+                        <Icon aria-hidden className="size-3.5 shrink-0" />
+                        {b.level === "urgent" ? "Urgent" : "Needs attention"}
+                      </p>
+                      <ul className="mt-1.5 flex flex-col gap-1.5">
+                        {b.reasons.map((r) => (
+                          <li key={`${r.where}:${r.reason}`} className="flex flex-col">
+                            <span className="text-muted-foreground text-[10.5px] tracking-[0.06em] uppercase">
+                              {r.where}
+                            </span>
+                            <span className="text-body-s text-foreground leading-snug">
+                              {r.reason}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-caption text-muted-foreground mt-2">Select to go there.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <span id={`${id}-${i}`} hidden>
+                    {reasons}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="text-caption text-muted-foreground">Nothing flagged so far.</p>
+        )}
+      </Fold>
     </section>
   );
 }
@@ -104,7 +131,7 @@ export function InlineBadges({ badges }: { badges: readonly Badge[] }) {
             key={b.label}
             title={reasonsOf(b)}
             className={cn(
-              "text-body-s inline-flex h-6 items-center gap-1.5 rounded-full px-2 font-semibold",
+              "text-body-s inline-flex h-6 items-center gap-1.5 rounded-md px-2 font-semibold",
               b.level === "urgent" ? URGENT : CAUTION,
             )}
           >

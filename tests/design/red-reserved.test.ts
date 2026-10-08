@@ -355,7 +355,9 @@ describe("red is reserved — clerking desk v2", () => {
    */
   const RED_ALLOWED: Record<string, readonly string[]> = {
     "components/clerking/flags-panel.tsx": ["URGENT"],
-    "components/clerking/rail.tsx": ["SCORE3", "SCORE3_TEXT"],
+    // Vital-sign classification (2026-10-08): "critical" only for a genuine emergency (hypertensive
+    // crisis, SpO2 below 90, hypothermia, glucose below 3.0 or HI/LO), always with its word.
+    "components/clerking/rail.tsx": ["SCORE3", "SCORE3_TEXT", "CLS_TONE"],
     // Step 08: a vital carried from the examination that scores 3 in NEWS2 (SI §10), as on the rail.
     "components/clerking/summary/summary-step.tsx": ["SCORE3_TEXT"],
     // Step 10 (ADR 0185): the Emergency test priority, always with its word.

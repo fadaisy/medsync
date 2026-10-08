@@ -54,6 +54,28 @@ describe("the diabetes pack in the clerking desk", () => {
     expect(d.show).toBe(true);
   });
 
+  it("explains a met criterion part by part, as the engine judged it", () => {
+    const d = deskDiabetes(pack, {
+      values: { age_years: 46, sex: "male", polyuria: true, random_pg: 14.2 },
+      site: "referral",
+      established: false,
+      ageBand: "adult",
+    });
+    const met = d.criteria.ug_integrated_dm_2026!.filter((c) => c.state === "met");
+    expect(met.length).toBeGreaterThan(0);
+    const parts = met.flatMap((c) => c.parts);
+    expect(parts).toContainEqual(
+      expect.objectContaining({ feature: "random_pg", state: "met", value: "14.2" }),
+    );
+    expect(parts).toContainEqual(
+      expect.objectContaining({ feature: "polyuria", state: "met", value: "true" }),
+    );
+    // A part with nothing recorded is "insufficient", never "not met".
+    expect(parts.find((p) => p.feature === "polydipsia")?.state ?? "insufficient").toBe(
+      "insufficient",
+    );
+  });
+
   it("calls one high glucose without a symptom possible, not diabetes", () => {
     const d = deskDiabetes(pack, {
       values: { age_years: 46, sex: "male", random_pg: 14.2 },

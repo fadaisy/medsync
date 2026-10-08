@@ -557,7 +557,21 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
     }
   };
 
-  /* Anthropometry */
+  /* Anthropometry: the chart's newest value under each "Now" field, as the main rows' previous
+   * column, so a saved measurement stays in sight once the draft clears. */
+  const lastSaved = (f: "weight" | "height" | "waist", unit: string) => {
+    const n = p.triage.values[f];
+    return (
+      <p className="text-caption text-muted-foreground" data-last={f}>
+        {`${p.triage.label}: `}
+        {n === null ? (
+          "not recorded"
+        ) : (
+          <span className="text-foreground font-mono tabular-nums">{`${fmt(n)} ${unit}`}</span>
+        )}
+      </p>
+    );
+  };
   const bmi = bmiOf(v.x.vitals.weight, v.x.vitals.height);
   const whtr = whtrOf(v.x.vitals.waist, v.x.vitals.height);
   const muac = v.exam.entries["ex.general.nutrition"]?.attrs?.muac;
@@ -987,6 +1001,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
                   disabled={off}
                 />
               </FieldRow>
+              {lastSaved(f, f === "weight" ? "kg" : "cm")}
               {checks(f)}
             </div>
           );
@@ -1002,6 +1017,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
             <Unit>cm</Unit>
             <ResultPill r={v.results.get("waist_risk")} />
           </FieldRow>
+          {lastSaved("waist", "cm")}
           {checks("waist")}
         </div>
         <FieldRow label="Waist-to-height" group={false}>
