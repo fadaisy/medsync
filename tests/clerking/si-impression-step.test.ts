@@ -186,6 +186,7 @@ beforeEach(() => {
   root = createRoot(host);
   calls = [];
   taps = 0;
+  latest = undefined as unknown as typeof latest; // no draft carries over between tests
   width = 1440;
   termsLoader = async () => [];
 });
@@ -358,6 +359,25 @@ describe("step 09, Impression", () => {
     });
     const lead = Object.entries(draft().meta ?? {}).find(([, m]) => m.with?.length);
     expect(lead?.[1].with).toEqual(["dx.hypertension"]);
+    // Chosen: in its own container under the leading diagnosis, not under "Also this visit".
+    const box = host.querySelector('section[aria-label="Associated with Type 2 diabetes"]')!;
+    expect(box.textContent).toContain("Associated with Type 2 diabetes (1)");
+    expect(box.textContent).toMatch(/Hypertension · goes with it/);
+    expect(host.querySelector("#impression-also")).toBeNull();
+    // Its own supports: pick one from "Add support".
+    const offer = [...box.querySelectorAll("button")].find((x) =>
+      x.getAttribute("aria-label")?.endsWith("add it to the support of Hypertension"),
+    );
+    if (offer) {
+      tap(offer);
+      const marks = Object.values(draft().evidence ?? {}).flatMap((col) => Object.values(col));
+      expect(marks.some((m) => m.w === "for")).toBe(true);
+    }
+  });
+
+  it("type 2 diabetes offers DKA and hypoglycaemia among its complications (CSO addition)", () => {
+    mount(payload([DM2()]));
+    expect(all()).toMatch(/Diabetic ketoacidosis[^]*complication/);
   });
 
   it("sends a junior's Final for senior co-signature and says so (SI7, D-SI-09)", () => {

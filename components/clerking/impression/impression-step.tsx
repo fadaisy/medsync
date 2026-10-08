@@ -48,7 +48,7 @@ import {
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
-import { AssociationsFold } from "./associations";
+import { AssociatedContainer } from "./associations";
 import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
 import { EvidenceMatrix } from "./matrix";
@@ -392,16 +392,39 @@ export function ImpressionStep(props: ImpressionStepProps) {
       addToProblemList: null,
     });
   };
-  const assocFold = (row: BoardRow) => (
-    <AssociationsFold
-      parent={row.dx.display}
-      items={assocOf(row)}
-      findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
-      testName={(id) => dx?.tests[id] ?? id.replace(/^test\./, "").replace(/_/g, " ")}
-      canWrite={canWrite && !!props.on.onDiagnosis}
-      onAdd={(a) => addAssociation(row, a)}
-    />
+  // The leading diagnosis's chosen associations (meta.with) and their supports (owner, 2026-10-08).
+  const leadAssoc = lead ? assocOf(lead) : [];
+  const linkedIds = new Set(lead ? (si.impression.meta[lead.dx.logicalId]?.with ?? []) : []);
+  const chosenRows = [...b.differential, ...b.also].filter(
+    (r) => !!r.dx.dxId && linkedIds.has(r.dx.dxId),
   );
+  const chosenSet = new Set(chosenRows);
+  const supportsOf = (row: BoardRow) =>
+    Object.entries(si.impression.evidence[row.dx.logicalId] ?? {})
+      .filter(([, m]) => m.w === "for")
+      .map(([ref]) => v.findings.get(ref as FindingRef))
+      .filter((f): f is Finding => !!f);
+  const offerOf = (row: BoardRow, taken: readonly Finding[]) => {
+    const have = new Set(taken.map((f) => f.ref));
+    const suggested = [...(v.col(row.dx.logicalId)?.suggested ?? [])]
+      .filter(([, sign]) => sign === "for")
+      .map(([ref]) => v.findings.get(ref))
+      .filter((f): f is Finding => !!f);
+    const seen = new Set<string>();
+    return [...suggested, ...v.unexplained].filter(
+      (f) => !have.has(f.ref) && !seen.has(f.ref) && !!seen.add(f.ref),
+    );
+  };
+  const chosen = chosenRows.map((row) => {
+    const supports = supportsOf(row);
+    return {
+      row,
+      type: leadAssoc.find((a) => a.dxId === row.dx.dxId)?.type ?? null,
+      supports,
+      offer: offerOf(row, supports),
+    };
+  });
+  const testName = (id: string) => dx?.tests[id] ?? id.replace(/^test\./, "").replace(/_/g, " ");
 
   const addSuggestion = (g: NamedSuggestion) => {
     const asLeading = g.forLeading && !lead;
@@ -610,6 +633,62 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 )}
               </div>
             </div>
+            <AssociatedContainer
+              parent={lead.dx.display}
+              chosen={chosen}
+              candidates={leadAssoc.filter((a) => !a.linked)}
+              canWrite={canWrite && !!props.on.onDiagnosis}
+              finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
+              findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
+              testName={testName}
+              onSupport={(row, f) =>
+                props.onImpression((d) => withMark(d, row.dx.logicalId, f.ref, "for", stamp()))
+              }
+              onUnsupport={(row, f) =>
+                props.onImpression((d) => withMark(d, row.dx.logicalId, f.ref, "blank", stamp()))
+              }
+              onAdd={(a) => addAssociation(lead, a)}
+              actions={(row) => (
+                <>
+                  <StatusControl
+                    row={row}
+                    canFinal={props.canFinal}
+                    editable={canWrite}
+                    onDxStatus={props.on.onDxStatus}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => props.onDetails(row.dx.logicalId)}
+                  >
+                    Details
+                  </Button>
+                  {canWrite && props.on.onRemove ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      title={removeTitle(row)}
+                      onClick={() => startRemove(row)}
+                    >
+                      Remove
+                    </Button>
+                  ) : null}
+                </>
+              )}
+            />
+            {chosenRows.map((row) =>
+              removing === row.dx.logicalId ? (
+                <RemoveForm
+                  key={row.dx.logicalId}
+                  row={row}
+                  onRemove={(r, why) => {
+                    setRemoving(null);
+                    props.on.onRemove?.(r, why);
+                  }}
+                  onCancel={() => setRemoving(null)}
+                />
+              ) : null,
+            )}
             <p
               aria-live="polite"
               className="text-caption text-muted-foreground flex flex-wrap gap-x-2"
@@ -649,7 +728,6 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 </Button>
               ) : null}
             </div>
-            {assocFold(lead)}
             {removing === lead.dx.logicalId ? (
               <RemoveForm
                 row={lead}
@@ -852,7 +930,6 @@ export function ImpressionStep(props: ImpressionStepProps) {
                         />
                       </div>
                     ) : null}
-                    <div className="pl-[3.75rem]">{assocFold(row)}</div>
                     {removing === row.dx.logicalId ? (
                       <div className="pl-[3.75rem]">
                         <RemoveForm
@@ -930,66 +1007,71 @@ export function ImpressionStep(props: ImpressionStepProps) {
       ) : null}
 
       {/* Also this visit */}
-      {b.also.length ? (
+      {b.also.some((r) => !chosenSet.has(r)) ? (
         <Section id="impression-also" title="Also this visit">
           <ul className="divide-border flex flex-col divide-y">
-            {b.also.map((row) => (
-              <li key={row.dx.logicalId} className="flex flex-col gap-2 py-2.5">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-body-m text-foreground font-medium">
-                      {row.dx.display}
-                    </span>
-                    <span className="text-caption text-muted-foreground">{subLine(row, dx)}</span>
-                  </div>
-                  {row.dx.cosignPending ? (
-                    <StatusWord tone="caution">Final · awaiting senior co-signature</StatusWord>
-                  ) : null}
-                  <StatusControl
-                    row={row}
-                    canFinal={props.canFinal}
-                    editable={canWrite}
-                    onDxStatus={props.on.onDxStatus}
-                  />
-                  {row.dx.onProblemList ? (
-                    <span className="text-caption text-muted-foreground">On problem list</span>
-                  ) : canWrite && props.on.onProblemList && !row.dx.typed ? (
-                    <Button size="sm" variant="ghost" onClick={() => props.on.onProblemList!(row)}>
-                      Add to problem list
-                    </Button>
-                  ) : null}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => props.onDetails(row.dx.logicalId)}
-                  >
-                    Details
-                  </Button>
-                  {canWrite && props.on.onRemove ? (
+            {b.also
+              .filter((r) => !chosenSet.has(r))
+              .map((row) => (
+                <li key={row.dx.logicalId} className="flex flex-col gap-2 py-2.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <span className="text-body-m text-foreground font-medium">
+                        {row.dx.display}
+                      </span>
+                      <span className="text-caption text-muted-foreground">{subLine(row, dx)}</span>
+                    </div>
+                    {row.dx.cosignPending ? (
+                      <StatusWord tone="caution">Final · awaiting senior co-signature</StatusWord>
+                    ) : null}
+                    <StatusControl
+                      row={row}
+                      canFinal={props.canFinal}
+                      editable={canWrite}
+                      onDxStatus={props.on.onDxStatus}
+                    />
+                    {row.dx.onProblemList ? (
+                      <span className="text-caption text-muted-foreground">On problem list</span>
+                    ) : canWrite && props.on.onProblemList && !row.dx.typed ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => props.on.onProblemList!(row)}
+                      >
+                        Add to problem list
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="ghost"
-                      aria-label={`Remove ${row.dx.display}`}
-                      title={removeTitle(row)}
-                      onClick={() => startRemove(row)}
+                      onClick={() => props.onDetails(row.dx.logicalId)}
                     >
-                      <XIcon aria-hidden />
+                      Details
                     </Button>
+                    {canWrite && props.on.onRemove ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={`Remove ${row.dx.display}`}
+                        title={removeTitle(row)}
+                        onClick={() => startRemove(row)}
+                      >
+                        <XIcon aria-hidden />
+                      </Button>
+                    ) : null}
+                  </div>
+                  {removing === row.dx.logicalId ? (
+                    <RemoveForm
+                      row={row}
+                      onRemove={(r, why) => {
+                        setRemoving(null);
+                        props.on.onRemove?.(r, why);
+                      }}
+                      onCancel={() => setRemoving(null)}
+                    />
                   ) : null}
-                </div>
-                {assocFold(row)}
-                {removing === row.dx.logicalId ? (
-                  <RemoveForm
-                    row={row}
-                    onRemove={(r, why) => {
-                      setRemoving(null);
-                      props.on.onRemove?.(r, why);
-                    }}
-                    onCancel={() => setRemoving(null)}
-                  />
-                ) : null}
-              </li>
-            ))}
+                </li>
+              ))}
           </ul>
         </Section>
       ) : null}

@@ -406,6 +406,8 @@
     },
     "dx.dm_type2": {
       "complications": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm",
         "dx.hhs",
         "dx.diabetic_foot",
         "dx.ckd",
@@ -5683,5 +5685,16 @@
     "signedBy": "CSO (owner)",
     "signedOn": "2026-10-08",
     "decision": "Signed as drafted; triggers under a flare-up stay 'goes with'."
-  }
+  },
+  "cso_additions": [
+    {
+      "parent": "dx.dm_type2",
+      "add": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm"
+      ],
+      "as": "complications",
+      "why": "Owner/CSO 2026-10-08: DKA occurs in type 2 diabetes (ketosis-prone type 2, SGLT2 inhibitors); hypoglycaemia on insulin or a sulfonylurea. Not in the catalogue's related list, so added here."
+    }
+  ]
 }
