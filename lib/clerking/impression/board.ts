@@ -31,6 +31,8 @@ export interface RecordedDx {
   onProblemList: boolean;
   /** A `confirm_diagnosis` co-signature request is open for it (D-SI-09). */
   cosignPending: boolean;
+  /** First recorded at this visit by the viewer (ADR 0217). */
+  addedHere?: boolean;
 }
 
 export interface AcceptedMark {

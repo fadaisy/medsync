@@ -120,6 +120,8 @@ export interface DeskDiagnosis {
   onProblemList: boolean;
   /** A confirm_diagnosis co-signature request is open: "Final · awaiting senior co-signature". */
   cosignPending: boolean;
+  /** First recorded at this visit by the viewer: Remove takes a slip off in one tap (ADR 0217). */
+  addedHere?: boolean;
 }
 
 export type ProblemAnswer = "pending" | "confirmed" | "resolved";

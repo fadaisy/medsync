@@ -309,6 +309,7 @@ export async function loadDeskFor(
           verification: conditions.verification,
           status: conditions.status,
           encounterId: conditions.encounterId,
+          recordedByUserId: conditions.recordedByUserId,
           rank: conditions.rank,
           termId: conditions.termId,
           textCiphertext: conditions.textCiphertext,
@@ -680,6 +681,7 @@ export async function loadDeskFor(
     textOf: (c) => safeDecrypt(c.textCiphertext),
     displayOf: conditionName,
     cosignPending: pendingCosignIds(rec.cosign.map((r) => r.payload)),
+    viewerId: actor.userId,
   });
   const orders = chart.orders
     .filter((o) => o.encounterId === enc.id)

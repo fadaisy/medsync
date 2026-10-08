@@ -31,7 +31,7 @@ export type DxRow = Pick<
   | "termId"
   | "icd11Code"
   | "sensitivity"
->;
+> & { recordedByUserId?: string | null };
 export type DxTermRow = Pick<DiagnosisTerm, "id" | "display" | "icd11Code" | "verifiedOn">;
 
 export interface EncounterDiagnosisView {
@@ -46,6 +46,8 @@ export interface EncounterDiagnosisView {
   restricted: boolean;
   onProblemList: boolean;
   cosignPending: boolean;
+  /** First recorded at this visit by the viewer: a slip comes off in one tap (ADR 0217). */
+  addedHere: boolean;
 }
 
 export function newestVersions<R extends { logicalId: string; version: number }>(
@@ -91,8 +93,21 @@ export function encounterDiagnoses<R extends DxRow>(input: {
   displayOf: (r: R) => string;
   /** Logical ids with an open confirm_diagnosis request. */
   cosignPending: ReadonlySet<string>;
+  /** The viewer: a diagnosis whose version 1 they recorded at this visit is `addedHere`. */
+  viewerId?: string;
 }): EncounterDiagnosisView[] {
   const onList = problemListKeys(input.rows, input.textOf);
+  const mine = new Set(
+    input.rows
+      .filter(
+        (r) =>
+          !!input.viewerId &&
+          r.version === 1 &&
+          r.encounterId === input.encounterId &&
+          r.recordedByUserId === input.viewerId,
+      )
+      .map((r) => r.logicalId),
+  );
   return newestVersions(input.rows)
     .filter(
       (c) =>
@@ -115,6 +130,7 @@ export function encounterDiagnoses<R extends DxRow>(input: {
         restricted: c.sensitivity === "restricted",
         onProblemList: key !== null && onList.has(key),
         cosignPending: input.cosignPending.has(c.logicalId),
+        addedHere: mine.has(c.logicalId),
       };
     })
     .sort((a, b) => (a.rank === "primary" ? -1 : b.rank === "primary" ? 1 : 0));

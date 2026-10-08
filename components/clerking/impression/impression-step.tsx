@@ -309,6 +309,14 @@ export function ImpressionStep(props: ImpressionStepProps) {
   const b = si.board;
   const lead = b.leading;
   const [removing, setRemoving] = useState<string | null>(null);
+  // A diagnosis this clinician added at this visit comes off in one tap as "Added by mistake"
+  // (ADR 0217); any other still asks why (D-SI-13). Both are entered in error, never deleted.
+  const startRemove = (row: BoardRow) =>
+    row.dx.addedHere
+      ? props.on.onRemove?.(row, { code: "added_by_mistake" })
+      : setRemoving(row.dx.logicalId);
+  const removeTitle = (row: BoardRow) =>
+    row.dx.addedHere ? "Added by mistake: remove" : "Remove with a reason";
   const [view, setView] = useState<"list" | "matrix">("list");
   const [allRows, setAllRows] = useState(false);
   const [more, setMore] = useState(false);
@@ -580,7 +588,27 @@ export function ImpressionStep(props: ImpressionStepProps) {
               <Button size="sm" variant="ghost" onClick={() => props.onDetails(lead.dx.logicalId)}>
                 Details
               </Button>
+              {canWrite && props.on.onRemove ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  title={removeTitle(lead)}
+                  onClick={() => startRemove(lead)}
+                >
+                  Remove
+                </Button>
+              ) : null}
             </div>
+            {removing === lead.dx.logicalId ? (
+              <RemoveForm
+                row={lead}
+                onRemove={(r, why) => {
+                  setRemoving(null);
+                  props.on.onRemove?.(r, why);
+                }}
+                onCancel={() => setRemoving(null)}
+              />
+            ) : null}
           </div>
         ) : b.deferred ? (
           <div className="flex flex-wrap items-center gap-3">
@@ -757,7 +785,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setRemoving(row.dx.logicalId)}
+                          title={removeTitle(row)}
+                          onClick={() => startRemove(row)}
                         >
                           Remove
                         </Button>
@@ -889,7 +918,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
                       size="sm"
                       variant="ghost"
                       aria-label={`Remove ${row.dx.display}`}
-                      onClick={() => setRemoving(row.dx.logicalId)}
+                      title={removeTitle(row)}
+                      onClick={() => startRemove(row)}
                     >
                       <XIcon aria-hidden />
                     </Button>
