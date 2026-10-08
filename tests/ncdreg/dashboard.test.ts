@@ -171,16 +171,15 @@ describe("F7 layout contract", () => {
     html.match(new RegExp(`class="([^"]+)"[^>]*data-region="${name}"`))?.[1] ??
     "";
 
-  it("the frame is fixed to the viewport at xl and never scrolls", () => {
-    expect(region("frame")).toContain("xl:h-[calc(100svh");
-    expect(region("frame")).toContain("xl:overflow-hidden");
+  it("the frame fills the viewport at xl and may grow past it (D-37)", () => {
+    expect(region("frame")).toContain("xl:min-h-[calc(100svh");
+    expect(region("frame")).not.toContain("overflow-hidden");
   });
-  it("strip and cards keep their height; the conditions card takes the rest and scrolls inside", () => {
+  it("strip and cards keep their height; the conditions card takes the rest, with a floor", () => {
     expect(region("strip")).toContain("shrink-0");
     expect(region("cards")).toContain("shrink-0");
     expect(region("conditions")).toMatch(/xl:flex-1/);
-    expect(region("conditions")).toContain("min-h-0");
-    expect(region("conditions-scroll")).toContain("overflow-y-auto");
+    expect(region("conditions")).toContain("min-h-[30rem]");
     expect(region("conditions-scroll")).toContain("min-h-0");
     expect(html.match(/row \d/g)).toHaveLength(6);
   });

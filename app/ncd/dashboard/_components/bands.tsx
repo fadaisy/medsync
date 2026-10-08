@@ -16,6 +16,7 @@ import {
   Legend,
   Meter,
   RankedBars,
+  Sparkline,
   StackedBar,
   Tip,
   TrendLine,
@@ -33,6 +34,7 @@ import {
   pctOf,
 } from "@/lib/ncdreg/read/dashboard";
 import { cn } from "@/lib/utils";
+import { ConditionExplorer } from "./condition-explorer";
 import { CountCell } from "./indicator-table";
 
 /** A suppressed count (F6) is never drawn: its length would give it away. */
@@ -216,7 +218,7 @@ export function HeadlineStrip({
 
 /* ─── band 2 ──────────────────────────────────────────────────────────── */
 
-export function ConditionRows({ b }: { b: DashboardBoard }) {
+export function ConditionRows({ b, focus }: { b: DashboardBoard; focus?: string }) {
   if (!b.rows.length)
     return (
       <p className="text-body-s text-muted-foreground px-5 py-6">
@@ -225,21 +227,57 @@ export function ConditionRows({ b }: { b: DashboardBoard }) {
     );
   const window = `${monthLabel(b.trendMonths[9] ?? b.month)} to ${monthLabel(b.month)}`;
   return (
-    <ul className="divide-ink-150 divide-y">
-      {b.rows.map((r) => (
-        <ConditionRowView
-          key={r.code}
-          r={r}
-          max={b.trendMax}
-          window={window}
-          months={b.trendMonths}
-        />
-      ))}
-    </ul>
+    <ConditionExplorer
+      initial={focus}
+      items={b.rows.map((r) => ({
+        code: r.code,
+        label: r.label,
+        rail: <ConditionRail r={r} max={b.trendMax} />,
+        panel: <ConditionPanel r={r} max={b.trendMax} window={window} months={b.trendMonths} />,
+      }))}
+    />
   );
 }
 
-function ConditionRowView({
+const ClinicianTag = () => (
+  <span
+    className="text-ink-600 border-ink-200 inline-flex h-5 items-center rounded-xs border px-1.5 text-[11px] font-normal"
+    title="Recorded by the clinician, not measured"
+  >
+    Clinician-recorded
+  </span>
+);
+
+/** The rail entry: phrasing content only (it sits inside the tab button). */
+function ConditionRail({ r, max }: { r: ConditionRow; max: number }) {
+  const underCare = r.cascade.find((c) => c.key === "under_care")?.cell.text ?? "–";
+  return (
+    <span className="flex flex-col gap-1.5">
+      <span className="flex items-baseline justify-between gap-2">
+        <span className="text-label text-foreground truncate font-medium">{r.label}</span>
+        <span className="text-heading-s text-foreground font-mono font-medium tabular-nums">
+          {r.leading.pct == null ? r.leading.num.text : `${r.leading.pct}%`}
+        </span>
+      </span>
+      <span className="flex items-center gap-2">
+        <span className="bg-ink-100 block h-1.5 flex-1 overflow-hidden rounded-full">
+          <span
+            className="block h-full rounded-full bg-teal-700"
+            style={{ width: `${r.leading.pct ?? 0}%` }}
+          />
+        </span>
+        <Sparkline points={r.trend.map((t) => t.pct)} max={max} />
+      </span>
+      <span className="text-caption text-muted-foreground truncate">
+        {underCare} under care · {r.outcomeLabel.toLowerCase()}
+        {r.clinicianRecorded ? " · clinician-recorded" : ""}
+      </span>
+    </span>
+  );
+}
+
+/** The selected condition at full size: the figure, the distribution, the trend, the cascade. */
+function ConditionPanel({
   r,
   max,
   window,
@@ -254,63 +292,62 @@ function ConditionRowView({
   const marks = r.distribution.map((s) => toMark(s, outcomeTone(s.key, ordered)));
   const trendTip = `${r.outcomeLabel}, share by month: ${r.trend.map((t) => `${monthLabel(t.month)} ${t.pct == null ? "–" : `${t.pct}%`}`).join(", ")} · scale 0 to ${max}%`;
   return (
-    <li className="grid gap-x-7 gap-y-3 px-5 py-2.5 sm:grid-cols-2 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1.1fr)]">
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <h3 className="text-heading-s text-foreground flex flex-wrap items-center gap-1.5 font-medium">
-          {r.label}
-          {r.clinicianRecorded ? (
-            <span
-              className="text-ink-600 border-ink-200 inline-flex h-5 items-center rounded-xs border px-1.5 text-[11px] font-normal"
-              title="Recorded by the clinician, not measured"
-            >
-              Clinician-recorded
-            </span>
-          ) : null}
-        </h3>
+    <div className="flex flex-col gap-5">
+      <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="text-heading-m text-foreground flex flex-wrap items-center gap-2 font-medium">
+            {r.label}
+            {r.clinicianRecorded ? <ClinicianTag /> : null}
+          </h3>
+          <span className="text-body-s text-muted-foreground">
+            {r.outcomeLabel} at the latest visit · <CountCell c={r.leading.num} /> of{" "}
+            <CountCell c={r.leading.den} /> patients
+          </span>
+        </div>
         <Tip
           tip={r.distribution[0]!.tip}
           href={r.leading.num.href}
-          className="text-stat text-foreground w-fit font-mono font-medium tabular-nums"
+          className="text-display-s text-foreground w-fit font-mono font-medium tabular-nums"
         >
           {r.leading.pct == null ? r.leading.num.text : r.leading.pct}
-          {r.leading.pct == null ? null : <span className="text-ink-500 text-body-m">%</span>}
+          {r.leading.pct == null ? null : <span className="text-ink-500 text-heading-s">%</span>}
         </Tip>
-        <span className="text-label text-foreground">{r.outcomeLabel} at latest visit</span>
-        <span className="text-caption text-muted-foreground">
-          <CountCell c={r.leading.num} /> of <CountCell c={r.leading.den} />
-        </span>
+      </header>
+
+      <div className="grid gap-x-10 gap-y-5 xl:grid-cols-2">
+        <section className="flex min-w-0 flex-col gap-2" aria-label="Outcome at latest visit">
+          <span className="text-overline text-muted-foreground uppercase">
+            Latest visit, {window}
+          </span>
+          <StackedBar
+            marks={r.leading.den.suppressed ? [] : marks}
+            total={r.leading.den.n}
+            label={`${r.label}: outcome at latest visit`}
+            thick="h-6"
+          />
+          <Legend marks={marks} />
+        </section>
+        <section className="flex min-w-0 flex-col gap-2" aria-label="Care cascade">
+          <span className="text-overline text-muted-foreground uppercase">
+            Care cascade · share of registered
+          </span>
+          <Cascade marks={r.cascade.map((s) => toMark(s, ""))} thick="h-4" />
+        </section>
       </div>
-      <div className="flex min-w-0 flex-col gap-1.5">
+
+      <section className="flex min-w-0 flex-col gap-2" aria-label="Trend">
         <span className="text-overline text-muted-foreground uppercase">
-          Latest visit, {window}
+          {r.outcomeLabel}, past 12 months · scale shared by every condition
         </span>
-        <StackedBar
-          marks={r.leading.den.suppressed ? [] : marks}
-          total={r.leading.den.n}
-          label={`${r.label}: outcome at latest visit`}
+        <TrendLine
+          points={r.trend.map((t) => t.pct)}
+          max={max}
+          tip={trendTip}
+          height="h-36"
+          ticks={months.map(monthLabel)}
         />
-        <Legend marks={marks} columns={marks.length > 3 ? 2 : 1} />
-      </div>
-      <div className="flex min-w-0 flex-col gap-1">
-        <span className="text-overline text-muted-foreground uppercase">
-          {r.outcomeLabel}, past 12 months
-        </span>
-        <TrendLine points={r.trend.map((t) => t.pct)} max={max} tip={trendTip} />
-        <span
-          aria-hidden
-          className="text-muted-foreground flex justify-between pr-[3.125rem] pl-[2.375rem] font-mono text-[11px]"
-        >
-          <span>{monthLabel(months[0]!)}</span>
-          <span>{monthLabel(months.at(-1)!)}</span>
-        </span>
-      </div>
-      <div className="flex min-w-0 flex-col gap-1.5">
-        <span className="text-overline text-muted-foreground uppercase">
-          Care cascade · share of registered
-        </span>
-        <Cascade marks={r.cascade.map((s) => toMark(s, ""))} />
-      </div>
-    </li>
+      </section>
+    </div>
   );
 }
 
