@@ -9,7 +9,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { assignRole } from "@/lib/ncdreg/admin";
 import { resolveContext } from "@/lib/ncdreg/context";
-import { turnOff, turnOn } from "@/lib/ncdreg/demo/service";
+import { loadDemo, turnOff } from "@/lib/ncdreg/demo/service";
 import { patientsList, personDetails } from "@/lib/ncdreg/read/views";
 import { searchPersons } from "@/lib/ncdreg/search";
 import { ctxFor, enrol, ok, randomName, run } from "../ncdreg-db/_engine";
@@ -212,7 +212,7 @@ describe.skipIf(!laneOn)("review attacks", () => {
   it("I6/§10.5: a demo person's visits do not survive turning demo data off via a merge into a hand-entered synthetic person", async () => {
     const g = await ncdFacility(lane.pg, "Review demo facility");
     const lead = at(await ctxFor(lane.db, g, "registry_lead"), "07:30");
-    const loadId = (await turnOn(lead, "scenario")).id;
+    const loadId = (await loadDemo(lead, "scenario")).id;
     const clin = at(await ctxFor(lane.db, g, "clinician"));
     const hand = await enrol(clin, { conditions: [{ condition: "hypertension" }] });
     const demoPerson = (

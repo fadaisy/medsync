@@ -91,7 +91,8 @@ export const decideGoLiveAction = async (id: string, approve: boolean) =>
   act((ctx) => decideGoLive(ctx, uuid.parse(id), z.boolean().parse(approve)));
 export const demoOnAction = async (mode: string) =>
   act((ctx) => turnOn(ctx, z.enum(["scenario", "full_clinic"]).parse(mode)));
-export const demoContinueAction = async () => act((ctx) => continueLoad(ctx, 20_000));
+// Short chunks: the card's progress bar moves after each one (the cron route writes in 40 s runs).
+export const demoContinueAction = async () => act((ctx) => continueLoad(ctx, 3_000));
 export const demoOffAction = async (confirmed: boolean) =>
   act((ctx) => turnOff(ctx, z.boolean().parse(confirmed)), "Demo data removed.");
 export const removeAllSyntheticAction = async () =>

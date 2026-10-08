@@ -11,7 +11,7 @@ import type { NcdContext } from "@/lib/ncdreg/context";
 import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { turnOff, turnOn } from "@/lib/ncdreg/demo/service";
+import { loadDemo, turnOff } from "@/lib/ncdreg/demo/service";
 import {
   aggregateCsv,
   approveRelease,
@@ -339,7 +339,7 @@ describe.skipIf(!laneOn)("exchange", () => {
     // A hand-entered synthetic person alone, demo data off, already counts (finding 12).
     await enrol(await ctxFor(lane.db, g, "clinician"));
     await refusesAll();
-    await turnOn(gLead, "scenario");
+    await loadDemo(gLead, "scenario");
     const csv = await aggregateCsv(gAdmin, "2026-09");
     expect(csv.fileName.startsWith("SYNTHETIC-DEMO-")).toBe(true);
     expect(csv.body.split("\n")[0]).toMatch(/SYNTHETIC DEMO DATA/);

@@ -413,4 +413,33 @@ describe.skipIf(!laneOn)("requirements without a test until P11", () => {
         /Needs one of/,
       );
   });
+
+  it("demo load: turning on returns at once, chunks report progress, the last chunk turns it on", async () => {
+    const g = await ncdFacility(lane.pg, "Progress facility");
+    const lead = await ctxFor(lane.db, g, "registry_lead");
+    const persons = async () =>
+      (
+        await lane.pg.query(`SELECT 1 FROM public.ncd_person WHERE facility_id = $1`, [
+          g.facilityId,
+        ])
+      ).rows.length;
+    const load = async () =>
+      (
+        await lane.pg.query<{ status: string; progress: { next: number; total: number } }>(
+          `SELECT status, progress FROM public.ncd_demo_load WHERE facility_id = $1`,
+          [g.facilityId],
+        )
+      ).rows[0]!;
+    await turnOn(lead, "scenario");
+    expect(await persons()).toBe(0);
+    expect(await load()).toMatchObject({ status: "loading", progress: { next: 0, total: 27 } });
+    const first = await continueLoad(lead, 50);
+    expect(first.done).toBe(false);
+    expect((await load()).progress.next).toBe(first.next);
+    expect(first.next).toBeGreaterThan(0);
+    let done = first.done;
+    while (!done) done = (await continueLoad(lead, 600_000)).done;
+    expect(await load()).toMatchObject({ status: "on", progress: { next: 27, total: 27 } });
+    expect(await persons()).toBe(26);
+  });
 });

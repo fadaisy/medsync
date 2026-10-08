@@ -128,17 +128,14 @@ export async function turnOn(ctx: NcdContext, mode: DemoMode, cat: DemoCatalogue
           })),
         );
     });
-    for (const p of cat.scenario_patients)
-      await writeScenarioPatient(loader, p, { day0, demoLoadId: id });
-    await dataQualitySteps(loader, cat, day0, id);
-    const total = mode === "full_clinic" ? generatedCohort(cat, day0).length : 0;
+    // Patients are written by continueLoad in short chunks, so the card can show real progress.
+    const cohort = mode === "full_clinic" ? generatedCohort(cat, day0).length : 0;
     await run(ctx, (tx) =>
       tx
         .update(ncdDemoLoad)
-        .set({ progress: { next: 0, total, scenario: cat.scenario_patients.length } })
+        .set({ progress: progressOf(0, cat.scenario_patients.length, cohort) })
         .where(eq(ncdDemoLoad.id, id)),
     );
-    if (mode === "scenario") await finishLoad(ctx, id, day0);
   } catch (e) {
     await run(ctx, (tx) =>
       tx
@@ -155,6 +152,25 @@ export async function turnOn(ctx: NcdContext, mode: DemoMode, cat: DemoCatalogue
  * Full clinic: write the next chunk of the generated cohort (resumable, idempotent by command id).
  * Called by the administration card and the cron route until the load is done.
  */
+export type LoadProgress = {
+  /** Steps done: each scenario patient, the data-quality step, then each generated patient. */
+  next: number;
+  total: number;
+  scenario: number;
+  cohort: number;
+};
+const progressOf = (next: number, scenario: number, cohort: number): LoadProgress => ({
+  next,
+  total: scenario + 1 + cohort,
+  scenario,
+  cohort,
+});
+
+/**
+ * Writes the next steps of a loading demo load for up to `budgetMs`, then records its progress. The
+ * admin card calls it in short chunks while open (so its bar moves), the cron route in long ones.
+ * Every write is idempotent by command id, so a chunk cut short is simply resumed.
+ */
 export async function continueLoad(
   ctx: NcdContext,
   budgetMs = 20_000,
@@ -167,11 +183,13 @@ export async function continueLoad(
       .from(ncdDemoLoad)
       .where(and(eq(ncdDemoLoad.facilityId, ctx.facilityId), eq(ncdDemoLoad.status, "loading"))),
   );
-  if (!load || load.mode !== "full_clinic") return { done: true, next: 0, total: 0 };
-  const cohort = generatedCohort(cat, load.day0);
-  const progress = load.progress as { next?: number; total?: number };
-  let next = progress.next ?? 0;
+  if (!load) return { done: true, next: 0, total: 0 };
+  const scenario = cat.scenario_patients;
+  const cohort = load.mode === "full_clinic" ? generatedCohort(cat, load.day0) : [];
+  const total = scenario.length + 1 + cohort.length;
+  let next = (load.progress as Partial<LoadProgress>).next ?? 0;
   const loader = loaderContext({ ...ctx, userId: load.startedBy }, load.id, load.day0);
+  const opts = { day0: load.day0, demoLoadId: load.id };
   const started = Date.now();
   const stillLoading = async () =>
     (
@@ -182,22 +200,44 @@ export async function continueLoad(
           .where(and(eq(ncdDemoLoad.id, load.id), eq(ncdDemoLoad.status, "loading"))),
       )
     ).length > 0;
-  while (next < cohort.length && Date.now() - started < budgetMs) {
-    // Turned off (or failed) meanwhile: write nothing more against this load (finding 6).
-    // ponytail: checked per patient, not locked; a patient in flight at removal is caught by removal's residue check.
-    if (!(await stillLoading())) return { done: true, next, total: cohort.length };
-    await writeScenarioPatient(loader, cohort[next]!, { day0: load.day0, demoLoadId: load.id });
-    next++;
+  try {
+    while (next < total && Date.now() - started < budgetMs) {
+      // Turned off (or failed) meanwhile: write nothing more against this load (finding 6).
+      // ponytail: checked per step, not locked; a patient in flight at removal is caught by removal's residue check.
+      if (!(await stillLoading())) return { done: true, next, total };
+      if (next < scenario.length) await writeScenarioPatient(loader, scenario[next]!, opts);
+      else if (next === scenario.length) await dataQualitySteps(loader, cat, load.day0, load.id);
+      else await writeScenarioPatient(loader, cohort[next - scenario.length - 1]!, opts);
+      next++;
+    }
+  } catch (e) {
+    await run(ctx, (tx) =>
+      tx
+        .update(ncdDemoLoad)
+        .set({ status: "failed", progress: { error: e instanceof Error ? e.message : String(e) } })
+        .where(eq(ncdDemoLoad.id, load.id)),
+    );
+    throw e;
   }
   await run(ctx, (tx) =>
     tx
       .update(ncdDemoLoad)
-      .set({ progress: { ...progress, next, total: cohort.length } })
+      .set({ progress: progressOf(next, scenario.length, cohort.length) })
       .where(and(eq(ncdDemoLoad.id, load.id), eq(ncdDemoLoad.status, "loading"))),
   );
-  if (next >= cohort.length)
-    await finishLoad({ ...ctx, userId: load.startedBy }, load.id, load.day0);
-  return { done: next >= cohort.length, next, total: cohort.length };
+  if (next >= total) await finishLoad({ ...ctx, userId: load.startedBy }, load.id, load.day0);
+  return { done: next >= total, next, total };
+}
+
+/** Turn demo data on and write it all, in this call (tests, scripts). The admin card chunks instead. */
+export async function loadDemo(
+  ctx: NcdContext,
+  mode: DemoMode,
+  cat: DemoCatalogue = DEMO_CATALOGUE,
+) {
+  const r = await turnOn(ctx, mode, cat);
+  while (!(await continueLoad(ctx, 600_000, cat)).done);
+  return r;
 }
 
 /** §10.3 optional steps: a same-day duplicate visit for the catalogue's patient, kept and queried. */

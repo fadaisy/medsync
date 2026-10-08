@@ -1,6 +1,7 @@
 "use client";
 
 import type { AdminResult } from "../actions";
+import type { LoadProgress } from "@/lib/ncdreg/demo/service";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
@@ -13,6 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { loadPercent, patientsLine } from "../_lib/progress";
 import { Seg } from "../../visit/[visitId]/_components/controls";
 import {
   assignRoleAction,
@@ -82,7 +84,8 @@ export function DemoCard({
   const [mode, setMode] = useState("scenario");
   const on = demo && ["loading", "on"].includes(demo.status);
   const loading = demo?.status === "loading";
-  const progress = demo?.progress as { next?: number; total?: number } | undefined;
+  const progress = demo?.progress as Partial<LoadProgress> | undefined;
+  const pct = loading ? loadPercent(progress) : null;
   // Full clinic: keep loading in chunks while the card is open (the cron route does the same).
   useEffect(() => {
     if (!loading || a.pending) return;
@@ -99,28 +102,30 @@ export function DemoCard({
         Demo data
       </h2>
       <p className="text-body-s">
-        {on ? (loading ? "Loading" : "On") : "Off"}
+        {on ? (loading ? `Loading · ${pct}%` : "On") : "Off"}
         {demo && on
           ? ` · ${modes.find((m) => m.id === demo.mode)?.label ?? demo.mode} · since ${new Date(demo.startedAt).toLocaleString("en-GB")}`
           : ""}
       </p>
-      {loading && progress?.total ? (
-        <div className="flex flex-col gap-1">
+      {loading ? (
+        <div className="flex flex-col gap-1.5">
           <div
             className="bg-ink-100 h-2 overflow-hidden rounded-full"
             role="progressbar"
+            aria-label="Demo data loading"
             aria-valuemin={0}
-            aria-valuemax={progress.total}
-            aria-valuenow={progress.next ?? 0}
+            aria-valuemax={100}
+            aria-valuenow={pct ?? 0}
+            aria-valuetext={`${pct ?? 0}% · ${patientsLine(progress)}`}
           >
             <div
-              className="h-full bg-teal-600"
-              style={{ width: `${Math.round((100 * (progress.next ?? 0)) / progress.total)}%` }}
+              className="ease-expo-out h-full bg-teal-600 transition-[width] duration-[var(--duration-reveal)] motion-reduce:transition-none"
+              style={{ width: `${pct ?? 0}%` }}
             />
           </div>
-          <p className="text-caption text-ink-600">
-            {progress.next ?? 0} of {progress.total} generated patients written. Capture screens are
-            usable already.
+          <p className="text-caption text-ink-600 tabular-nums">
+            {pct ?? 0}% · {patientsLine(progress)}. Keep this page open; screens are usable as
+            patients arrive.
           </p>
         </div>
       ) : null}
@@ -188,7 +193,7 @@ export function DemoCard({
               )
             }
           >
-            {copy.switch_on}
+            {a.pending ? "Starting…" : copy.switch_on}
           </Button>
         </SheetFooter>
       </EditorDialog>
