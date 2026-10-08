@@ -218,6 +218,8 @@ const type = (el: HTMLInputElement | HTMLTextAreaElement, value: string) =>
     Object.getOwnPropertyDescriptor(proto.prototype, "value")!.set!.call(el, value);
     el.dispatchEvent(new Event("input", { bubbles: true }));
   });
+const labelled = (name: string) =>
+  host.querySelector<HTMLButtonElement>(`button[aria-label="${name}"]`);
 const removeButtons = () =>
   [...host.querySelectorAll("button")].filter((b) => b.textContent === "Remove");
 const stepStatus = () => host.querySelector('[data-step="impression"]')?.textContent ?? "";
@@ -364,15 +366,45 @@ describe("step 09, Impression", () => {
     expect(box.textContent).toContain("Associated with Type 2 diabetes (1)");
     expect(box.textContent).toMatch(/Hypertension · goes with it/);
     expect(host.querySelector("#impression-also")).toBeNull();
-    // Its own supports: pick one from "Add support".
-    const offer = [...box.querySelectorAll("button")].find((x) =>
-      x.getAttribute("aria-label")?.endsWith("add it to the support of Hypertension"),
+    // Its own supports come from the leading diagnosis's bucket: make it the target, then tap.
+    tap(button("Add findings here, from the list on the right", box));
+    expect(box.querySelector('li[data-active="true"]')?.textContent).toContain("Hypertension");
+    const chip = [...host.querySelectorAll("button")].find((x) =>
+      x.getAttribute("aria-label")?.endsWith("link it to Hypertension"),
     );
-    if (offer) {
-      tap(offer);
-      const marks = Object.values(draft().evidence ?? {}).flatMap((col) => Object.values(col));
-      expect(marks.some((m) => m.w === "for")).toBe(true);
-    }
+    expect(chip).toBeTruthy();
+    tap(chip);
+    const hyp = Object.entries(draft().meta ?? {}).find(([, m]) => m.with)?.[0];
+    const marked = Object.entries(draft().evidence ?? {}).filter(([id]) => id !== hyp);
+    expect(marked.some(([, col]) => Object.values(col).some((m) => m.w === "for"))).toBe(true);
+  });
+
+  it("arranges and flags the chosen associations; 'Add an association' is its own section", () => {
+    mount(payload([DM2()]));
+    expect(host.querySelector("#impression-add-association")?.textContent).toBe(
+      "Add an association to Type 2 diabetes",
+    );
+    const addFor = (name: string) =>
+      tap(
+        button(
+          "Add",
+          [
+            ...host.querySelectorAll('section[aria-labelledby="impression-add-association"] li'),
+          ].find((l) => l.textContent?.startsWith(name))!,
+        ),
+      );
+    addFor("Hypertension");
+    addFor("Obesity");
+    const links = () => Object.values(draft().meta ?? {}).find((m) => m.with?.length)!;
+    expect(links().with).toEqual(["dx.hypertension", "dx.obesity"]);
+    tap(labelled("Move Obesity up"));
+    expect(links().with).toEqual(["dx.obesity", "dx.hypertension"]);
+    expect((labelled("Move Obesity up") as HTMLButtonElement).disabled).toBe(true);
+    tap(labelled("Flag Hypertension"));
+    expect(links().flagged).toEqual(["dx.hypertension"]);
+    expect(all()).toContain("Flagged");
+    tap(labelled("Unflag Hypertension"));
+    expect(links().flagged).toEqual([]);
   });
 
   it("type 2 diabetes offers DKA and hypoglycaemia among its complications (CSO addition)", () => {

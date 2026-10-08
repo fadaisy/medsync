@@ -17,8 +17,8 @@ differential (pneumonia → TB, PCP) as an association.
    a cause, a placeholder, or ambiguous): 315, 152 and 910. No pair outside `related`, except additions the CSO makes by name (`cso_additions`: every diabetes type gets
    the same complication set, 2026-10-08). A draft typing offers nothing.
 2. **Under the leading diagnosis on step 09** (revised 2026-10-08), the chosen associations sit in their own
-   container below its supports, each with its own supports (remove one, or add from what the record suggests for
-   it and what no diagnosis explains); the candidates to choose from are listed below them. Originally: an "Associated with …" fold lists its complications and what goes with it,
+   container in the leading card's left column, under its supports; each keeps its own supports, picked from the
+   same bucket as the leading diagnosis's ("Not yet explained by any diagnosis", with an "Add findings to" switch); the candidates to choose from are listed below them. Originally: an "Associated with …" fold lists its complications and what goes with it,
    each with what the record already supports (the profile's own `suggest_for`, judged as the evidence matrix judges
    it) or what would check for it (`tests_to_decide`). Supported first, then must-not-miss. Folded unless something
    is supported.
@@ -27,3 +27,6 @@ differential (pneumonia → TB, PCP) as an association.
 4. **The link lives in this visit's Impression** (`meta.with` on the parent), not in the record: the note reads
    "Type 2 diabetes (…). With: diabetic retinopathy." and "Diabetic retinopathy, working, with type 2 diabetes."
    Both stay separate diagnoses. A record-level link can follow if this proves itself.
+5. **Arranged and flagged** (2026-10-08): the chosen associations can be moved up and down (their order is the note's)
+   and flagged (a "Flagged" word on the card, "(flagged)" in the note); "Add an association" is its own full-width
+   section under the leading diagnosis.

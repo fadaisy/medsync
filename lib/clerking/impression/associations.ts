@@ -112,3 +112,32 @@ export function withLink(
     meta: { ...d.meta, [parentLogicalId]: { ...m, with: [...(m.with ?? []), dxId] } },
   };
 }
+
+/** Move a linked association one place up (-1) or down (+1): its place in the note. */
+export function withMoved(
+  d: ImpressionDraft,
+  parentLogicalId: string,
+  dxId: string,
+  by: -1 | 1,
+): ImpressionDraft {
+  const m = d.meta[parentLogicalId] ?? {};
+  const list = [...(m.with ?? [])];
+  const i = list.indexOf(dxId);
+  const j = i + by;
+  if (i < 0 || j < 0 || j >= list.length) return d;
+  [list[i], list[j]] = [list[j]!, list[i]!];
+  return { ...d, meta: { ...d.meta, [parentLogicalId]: { ...m, with: list } } };
+}
+
+/** Flag or unflag a linked association. */
+export function withFlag(
+  d: ImpressionDraft,
+  parentLogicalId: string,
+  dxId: string,
+): ImpressionDraft {
+  const m = d.meta[parentLogicalId] ?? {};
+  const set = new Set(m.flagged ?? []);
+  if (set.has(dxId)) set.delete(dxId);
+  else set.add(dxId);
+  return { ...d, meta: { ...d.meta, [parentLogicalId]: { ...m, flagged: [...set] } } };
+}

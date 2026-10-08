@@ -46,11 +46,14 @@ export function composeImpression(i: ImpressionComposeInput): string {
   const rows = [i.board.leading, ...i.board.differential, ...i.board.also].filter(
     (r): r is BoardRow => !!r && !hide(r),
   );
-  const childrenOf = (r: BoardRow) =>
-    (i.draft.meta[r.dx.logicalId]?.with ?? [])
+  // In the order the clinician arranged them; a flagged one says so.
+  const childrenOf = (r: BoardRow) => {
+    const m = i.draft.meta[r.dx.logicalId];
+    return (m?.with ?? [])
       .map((id) => rows.find((c) => c.dx.dxId === id && c !== r))
       .filter((c): c is BoardRow => !!c)
-      .map((c) => c.dx.display);
+      .map((c) => `${lc(c.dx.display)}${m?.flagged?.includes(c.dx.dxId!) ? " (flagged)" : ""}`);
+  };
   const parentOf = (r: BoardRow) =>
     rows.find(
       (p) => p !== r && !!r.dx.dxId && i.draft.meta[p.dx.logicalId]?.with?.includes(r.dx.dxId),
@@ -72,7 +75,7 @@ export function composeImpression(i: ImpressionComposeInput): string {
         `${lead.dx.display} (${bits.join("; ")}).`,
         f.length ? `For: ${list(f)}.` : "",
         a.length ? `Against: ${list(a)}.` : "",
-        childrenOf(lead).length ? `With: ${list(childrenOf(lead).map(lc))}.` : "",
+        childrenOf(lead).length ? `With: ${list(childrenOf(lead))}.` : "",
         m.reasoning?.trim() ?? "",
       ]
         .filter(Boolean)

@@ -47,6 +47,8 @@ export interface DxMeta {
   reasoning?: string;
   /** Associated diagnoses (dx ids) linked to this one at this visit: "with" in the note. */
   with?: string[];
+  /** Associations (dx ids) the clinician flagged: marked in the note. */
+  flagged?: string[];
 }
 
 /** The draft's `impression` section (§8). Keys are condition logical ids. */
