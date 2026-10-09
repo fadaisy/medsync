@@ -1,9 +1,19 @@
 import type { InsightOther } from "./condition-insight";
 import type { Mark } from "@/app/ncd/_components/charts/charts";
+import type { Domain } from "@/lib/design/domains";
 import type { IndicatorResult } from "@/lib/ncdreg/indicators/engine";
 import type { Cell, ConditionRow, DashboardBoard, View } from "@/lib/ncdreg/read/dashboard";
 import type { ConditionModule } from "@/lib/ncdreg/standard/types";
 import type { ReactNode } from "react";
+import {
+  ActivityIcon,
+  ClockIcon,
+  FlaskConicalIcon,
+  PhoneIcon,
+  StethoscopeIcon,
+  UserPlusIcon,
+  UsersIcon,
+} from "lucide-react";
 
 import {
   Columns,
@@ -15,6 +25,9 @@ import {
   Tip,
 } from "@/app/ncd/_components/charts/charts";
 import { CARE_BAND_TONES, KIDNEY_TONES, outcomeTone } from "@/app/ncd/_components/charts/tones";
+import { conditionHue } from "@/app/ncd/_components/kit";
+import { DomainTile } from "@/components/medsync/domain-tile";
+import { HUE } from "@/lib/design/domains";
 import { outcomeClasses } from "@/lib/ncdreg/indicators/engine";
 import {
   careBandLabels,
@@ -42,7 +55,10 @@ function Card({
   hint,
   children,
   className,
+  tile,
 }: {
+  /** A soft domain tile beside the title (Chroma place colour). */
+  tile?: { domain: Domain; icon: ReactNode };
   title: string;
   sub?: ReactNode;
   hint?: ReactNode;
@@ -56,9 +72,12 @@ function Card({
         className,
       )}
     >
-      <div>
-        <h3 className="text-heading-s text-foreground font-medium">{title}</h3>
-        {sub ? <p className="text-caption text-muted-foreground">{sub}</p> : null}
+      <div className="flex items-start gap-2.5">
+        {tile ? <DomainTile domain={tile.domain} icon={tile.icon} size="md" tone="soft" /> : null}
+        <div className="min-w-0">
+          <h3 className="text-heading-s text-foreground font-medium">{title}</h3>
+          {sub ? <p className="text-caption text-muted-foreground">{sub}</p> : null}
+        </div>
       </div>
       {children}
       {hint ? <p className="text-muted-foreground mt-auto text-[11px]">{hint}</p> : null}
@@ -67,6 +86,7 @@ function Card({
 }
 
 function Figure({
+  tile,
   label,
   value,
   suffix,
@@ -74,6 +94,7 @@ function Figure({
   tip,
   href,
 }: {
+  tile?: { domain: Domain; icon: ReactNode };
   label: string;
   value: string;
   suffix?: string;
@@ -83,7 +104,10 @@ function Figure({
 }) {
   return (
     <div className="border-ink-150 flex min-w-0 flex-col gap-1 border-b px-4 py-3 sm:border-r sm:border-b-0">
-      <span className="text-overline text-muted-foreground uppercase">{label}</span>
+      <span className="text-overline text-muted-foreground flex items-center gap-2 uppercase">
+        {tile ? <DomainTile domain={tile.domain} icon={tile.icon} size="sm" /> : null}
+        {label}
+      </span>
       <Tip
         tip={tip}
         href={href}
@@ -136,6 +160,7 @@ export function HeadlineStrip({
   return (
     <div className="bg-card border-border grid overflow-hidden rounded-lg border shadow-xs sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,2.4fr)]">
       <Figure
+        tile={{ domain: "patients", icon: <UsersIcon /> }}
         label="Under care"
         value={c01.text}
         tip={tipOf(indicatorLabel("C01"), c01, null, R.C01)}
@@ -149,6 +174,7 @@ export function HeadlineStrip({
         }
       />
       <Figure
+        tile={{ domain: "patients", icon: <UserPlusIcon /> }}
         label={`New in ${monthLabel(b.month)}`}
         value={c03.text}
         tip={tipOf(indicatorLabel("C03"), c03, null, R.C03)}
@@ -160,6 +186,7 @@ export function HeadlineStrip({
         }
       />
       <Figure
+        tile={{ domain: "operations", icon: <ClockIcon /> }}
         label="Lost to follow-up"
         value={c12.pct == null ? c12.num.text : String(c12.pct)}
         suffix={c12.pct == null ? undefined : "%"}
@@ -172,6 +199,7 @@ export function HeadlineStrip({
         }
       />
       <Figure
+        tile={{ domain: "operations", icon: <PhoneIcon /> }}
         label="Back after a call"
         value={c15.pct == null ? c15.num.text : String(c15.pct)}
         suffix={c15.pct == null ? undefined : "%"}
@@ -215,6 +243,7 @@ export function ConditionRows({ b, focus }: { b: DashboardBoard; focus?: string 
       items={b.rows.map((r) => ({
         code: r.code,
         label: r.label,
+        hue: conditionHue(r.code),
         rail: <ConditionRail r={r} max={b.trendMax} />,
         panel: (
           <ConditionPanel
@@ -246,7 +275,13 @@ function ConditionRail({ r, max }: { r: ConditionRow; max: number }) {
   return (
     <span className="flex flex-col gap-1.5">
       <span className="flex items-baseline justify-between gap-2">
-        <span className="text-label text-foreground truncate font-medium">{r.label}</span>
+        <span className="text-label text-foreground flex min-w-0 items-center gap-2 font-medium">
+          <span
+            aria-hidden
+            className={cn("size-2 shrink-0 rounded-full", HUE[conditionHue(r.code)].dot)}
+          />
+          <span className="truncate">{r.label}</span>
+        </span>
         <span className="text-heading-s text-foreground font-mono font-medium tabular-nums">
           {r.leading.pct == null ? r.leading.num.text : `${r.leading.pct}%`}
         </span>
@@ -282,7 +317,12 @@ function ConditionPanel({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2">
+      <header
+        className={cn(
+          "flex flex-wrap items-end justify-between gap-x-8 gap-y-2 rounded-lg border px-4 py-3",
+          HUE[conditionHue(r.code)].band,
+        )}
+      >
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="text-heading-m text-foreground flex flex-wrap items-center gap-2 font-medium">
             {r.label}
@@ -346,6 +386,7 @@ const SCREENING: [string, string][] = [
 function Screening({ b, glycaemicLabel }: { b: DashboardBoard; glycaemicLabel: string }) {
   return (
     <Card
+      tile={{ domain: "clinical", icon: <StethoscopeIcon /> }}
       title="Complication screening"
       sub="Done in the past 12 months"
       hint={`Of patients with ${glycaemicLabel.toLowerCase()} under care, except kidney review: everyone under care whose condition calls for it.`}
@@ -384,6 +425,7 @@ function Cohorts({ b, catalogue }: { b: DashboardBoard; catalogue: readonly Cond
     .filter((g) => g.r);
   return (
     <Card
+      tile={{ domain: "patients", icon: <UsersIcon /> }}
       title="Quarterly cohorts"
       sub="Outcome one quarter after registering"
       hint="Darkest: the module's in-range class. Lighter: not in range. Grey: not recorded, then no visit."
@@ -481,6 +523,7 @@ function Kidney({ b }: { b: DashboardBoard }) {
   });
   return (
     <Card
+      tile={{ domain: "pharmacy", icon: <FlaskConicalIcon /> }}
       title="Kidney function categories"
       sub={
         <>
@@ -534,7 +577,11 @@ function Events({ b }: { b: DashboardBoard }) {
     .sort((a, b2) => b2.n - a.n)
     .slice(0, 6);
   return (
-    <Card title="Events in 12 months" sub="Per 1,000 under care · count after the dot">
+    <Card
+      tile={{ domain: "operations", icon: <ActivityIcon /> }}
+      title="Events in 12 months"
+      sub="Per 1,000 under care · count after the dot"
+    >
       {marks.length ? (
         <RankedBars marks={marks} value={(m) => `${m.pct ?? "–"} · ${m.text}`} />
       ) : (
