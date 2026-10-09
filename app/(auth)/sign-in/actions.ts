@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { SIGN_IN } from "@/content/auth";
 import { DOCTOR_CADRE_CODES } from "@/lib/doctor/scope";
+import { LAB_TECH_CADRE_CODES } from "@/lib/lab-tech/scope";
 import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -113,6 +114,9 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       if (doctorAff && doctorAff.length > 0) {
         defaultTarget = "/doctor";
         routeReason = "doctor-cadre";
+      } else if (roles.some((r) => r.role === "lab_tech")) {
+        defaultTarget = "/lab";
+        routeReason = "lab-tech-role";
       } else {
         defaultTarget = "/clinician";
         routeReason = "clinician-role";
@@ -170,6 +174,9 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
           const isNurseCadre =
             cadreCode != null && ["NURSE", "MIDWIFE", "SPECIALIST_NURSE"].includes(cadreCode);
           const isReceptionCadre = cadreCode === "RECEPTION";
+          const isLabCadre =
+            cadreCode != null &&
+            (LAB_TECH_CADRE_CODES as ReadonlyArray<string>).includes(cadreCode);
           if (["approved", "active"].includes(aff.state)) {
             if (isDoctorCadre) {
               defaultTarget = "/doctor";
@@ -180,6 +187,9 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
             } else if (isReceptionCadre) {
               defaultTarget = "/reception";
               routeReason = `staff-affiliation-${aff.state}-reception-cadre`;
+            } else if (isLabCadre) {
+              defaultTarget = "/lab";
+              routeReason = `staff-affiliation-${aff.state}-lab-cadre`;
             } else {
               defaultTarget = "/clinician";
               routeReason = `staff-affiliation-${aff.state}-non-doctor`;
