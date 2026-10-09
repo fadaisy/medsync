@@ -66,10 +66,10 @@ export const DX_NAMES: Readonly<
     t.id,
     { display: t.display, restricted: t.sensitivity === "restricted", coded: false },
   ]),
-  // REF-DX-TERMS v1.2 (ADR 0220, migration 0095): typed until the owner applies 0095, then coded.
+  // REF-DX-TERMS v1.2 (ADR 0220): seeded coded by migration 0095, applied by the owner 2026-10-09.
   ...V12_TERMS.terms.map((t) => [
     t.id,
-    { display: t.display, restricted: t.sensitivity === "restricted", coded: false },
+    { display: t.display, restricted: t.sensitivity === "restricted", coded: true },
   ]),
 ]);
 
