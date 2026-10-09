@@ -252,7 +252,7 @@ describe("dx-relations vignettes (ADR 0220)", () => {
       "  Risk factors on record: type 2 diabetes, hypertension, dyslipidaemia; current tobacco use.",
     );
     expect(r.clinical).toContain(
-      "Aortic dissection (must not miss), unlikely (pain not tearing, equal arm pulses and BP, normal mediastinum)",
+      "Considered and unlikely: aortic dissection (pain not tearing, equal arm pulses and BP, normal mediastinum).",
     );
     expect(r.clinical).toContain("Known conditions: type 2 diabetes");
     expect(r.clinical).not.toMatch(/^Acute coronary syndrome/m);
@@ -549,9 +549,7 @@ describe("dx-relations vignettes (ADR 0220)", () => {
       stage: { ...adultMan(40), creatinineUmol: 290 },
     });
     expectBoard(vignette("DXV-13"), r);
-    expect(r.clinical).toContain(
-      "Acute kidney injury, stage not yet known (needs baseline creatinine) (primary; working).",
-    );
+    expect(r.clinical).toContain("Acute kidney injury (primary; working).");
     expect(r.clinical).not.toMatch(/stage 1/);
     const items = [{ logicalId: "rel", conditionId: "dx.aki", causeDisplay: "Malaria, severe" }];
     expect(causeRemovedBlocks(items, { reviewed: [] }, name)).toHaveLength(1);
@@ -626,9 +624,7 @@ describe("dx-relations vignettes (ADR 0220)", () => {
       stage: { ...adultMan(52), creatinineUmol: 320 },
     });
     expectBoard(vignette("DXV-16"), r);
-    expect(r.clinical).toContain(
-      "  Acute kidney injury, stage not yet known (needs baseline creatinine) (working), secondary to malaria, severe.",
-    );
+    expect(r.clinical).toContain("  Acute kidney injury (working), secondary to malaria, severe.");
     expect(cataloguedRelation("dx.aki", "dx.malaria_severe")?.type).toBe("due_to");
   });
 

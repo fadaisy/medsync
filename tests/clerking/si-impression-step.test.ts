@@ -359,7 +359,7 @@ describe("step 09, Impression", () => {
     expect(stepStatus()).not.toContain("Reason needed");
     expect(signButton().disabled).toBe(false);
     expect(host.querySelector('[data-block="impression"]')?.textContent).toMatch(
-      /Sepsis \(must not miss\), unlikely \(no source found\)/,
+      /Considered and unlikely: sepsis \(no source found\)/,
     );
   });
 
@@ -916,16 +916,12 @@ describe("step 09, relations on the board (dx-relations Phase 3)", () => {
     const text = host.querySelector('[data-block="impression"]')?.textContent ?? "";
     const at = (s: string) => text.indexOf(s);
     expect(at("Malaria, severe (primary; final)")).toBeGreaterThan(-1);
-    // Its stage is written, blank as blank (D-REL-14): no haemoglobin here.
-    expect(at("Anaemia, severity not yet known (needs haemoglobin")).toBeGreaterThan(
-      at("Malaria, severe (primary"),
-    );
+    // A stage not yet computable stays on the desk, never in the note (CSO, 2026-10-09).
+    expect(text).not.toContain("not yet known (needs");
     expect(at("(working), secondary to malaria, severe.")).toBeGreaterThan(
       at("Malaria, severe (primary"),
     );
-    expect(at("Also this visit, co-existing: Pneumonia, CURB-65 not yet known")).toBeGreaterThan(
-      at("Anaemia"),
-    );
+    expect(at("Also this visit, co-existing: Pneumonia (")).toBeGreaterThan(at("Anaemia"));
     expect(at("Known conditions: type 1 diabetes (on record since 2019).")).toBeGreaterThan(
       at("Pneumonia"),
     );

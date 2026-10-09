@@ -571,7 +571,9 @@ describe("the impression composer", () => {
       "Hypothermia, cause not yet known (primary; working; acute). For: temperature 32.5 °C",
     );
     expect(text).toContain("1. Sepsis (must not miss), likely [1 for, 0 against].");
-    expect(text).toContain("(glucose 5.8 mmol/L on arrival, no insulin taken) [0 for, 1 against]");
+    expect(text).toContain(
+      "Considered and unlikely: hypoglycaemia in a person with diabetes (glucose 5.8 mmol/L on arrival, no insulin taken).",
+    );
     expect(text).toContain("on problem list");
     expect(text).toMatch(/Not yet explained: .*tiredness/);
     // Suggestions are never written: the myxoedema column has suggestions but no marks.

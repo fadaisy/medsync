@@ -110,7 +110,8 @@ export function composeImpression(i: ImpressionComposeInput): string {
         (e) => e.relationType === "due_to" && e.conditionId === card.row.dx.logicalId,
       );
     const n = noteName(card.row.dx, { stage: words, caused });
-    return s && !n.stageUsed ? `${n.name}, ${stageNote(s)}` : n.name;
+    // A stage not yet computable is the desk's to show, never the note's (CSO, 2026-10-09).
+    return s && !("insufficient" in s) && !n.stageUsed ? `${n.name}, ${stageNote(s)}` : n.name;
   };
   /** The included risk-factor line under a diagnosis; a classed line never reaches the patient. */
   const riskOf = (card: Card, pad: string) => {
@@ -180,22 +181,29 @@ export function composeImpression(i: ImpressionComposeInput): string {
     );
   }
 
-  const diff = i.board.differential.filter((r) => !hide(r));
+  // A must-not-miss marked Unlikely with its reason was actively excluded: its own line after the
+  // differential (CSO, 2026-10-09; design §2.3), not a numbered alternative.
+  const excluded = (r: BoardRow) =>
+    r.mustNotMiss && r.likelihood === "unlikely" && !!r.reason.trim();
+  const unlikely = i.board.differential.filter((r) => !hide(r) && excluded(r));
+  const diff = i.board.differential.filter((r) => !hide(r) && !excluded(r));
   if (diff.length)
     out.push(
       `Differential: ${diff
         .map((r, n) => {
           const f = marks(r, "for").length;
           const a = marks(r, "against").length;
-          const reason =
-            r.mustNotMiss && r.likelihood === "unlikely" && r.reason.trim()
-              ? ` (${r.reason.trim()})`
-              : "";
           return `${n + 1}. ${r.dx.display}${r.mustNotMiss ? " (must not miss)" : ""}${
             r.likelihood ? `, ${r.likelihood}` : ""
-          }${reason}${f || a ? ` [${f} for, ${a} against]` : ""}.`;
+          }${f || a ? ` [${f} for, ${a} against]` : ""}.`;
         })
         .join(" ")}`,
+    );
+  if (unlikely.length)
+    out.push(
+      `Considered and unlikely: ${unlikely
+        .map((r) => `${lc(r.dx.display)} (${r.reason.trim()})`)
+        .join("; ")}.`,
     );
 
   const ruled = (i.ruledOut ?? []).filter((r) => !(patient && r.restricted));

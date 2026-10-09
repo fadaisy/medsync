@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Diagnoses relate to each other: secondary to, refined, co-existing, known — 2026-10-09
+
+- Step 09 places: leading, co-existing, linked (secondary to, complication of, precipitated by, with), differential,
+  known conditions (problem-list chips, "Active this visit"), with drag and drop (mouse, touch, keyboard) and a
+  "Relate to…" menu ([ADR 0220](docs/adr/0220-diagnoses-relate-to-each-other.md)).
+- Refine (ACS → NSTE-ACS → NSTEMI) and Replace; severity stages (anaemia WHO 2024, CKD and AKI KDIGO, CURB-65); the
+  derived risk-factor line; "Considered and unlikely"; 90-day look-back to earlier diagnoses.
+- Record-level `condition_relations` (migration 0096, GATED) and REF-DX-TERMS v1.2, 12 terms coded on the WHO
+  ICD-11 API (0095, GATED). Signed catalogues: subtypes, causes, risk factors. 19 vignettes as acceptance tests.
+
 ### Added — A diagnosis shows its complications and what goes with it — 2026-10-08
 
 - Step 09: under each diagnosis, its complications and the conditions that go with it, each with what supports it
