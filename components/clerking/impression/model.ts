@@ -12,6 +12,7 @@ import { basisLine } from "@/lib/clerking/impression/basis";
 import { onBoard, signBlocks } from "@/lib/clerking/impression/board";
 import { counts, matrix, unexplained } from "@/lib/clerking/impression/evidence";
 import { recordedFindings } from "@/lib/clerking/impression/facts";
+import { causeRemovedBlocks } from "@/lib/clerking/impression/relations";
 import { suggestions } from "@/lib/clerking/impression/suggest";
 
 /**
@@ -43,6 +44,8 @@ export interface ImpressionView {
   /** Must-not-miss diagnoses marked unlikely without a reason (the leading meta line). */
   missingReasons: number;
   signBlocks: string[];
+  /** Of signBlocks: each "Cause removed: review" not yet acknowledged (DXV-13). */
+  causeBlocks: string[];
 }
 
 export interface ImpressionExtras {
@@ -155,6 +158,11 @@ export function deriveImpression(
     byText.set(k, [...(byText.get(k) ?? []), f.ref]);
   }
   const textOf = new Map(loose.map((f) => [f.ref, f.text.toLowerCase()]));
+  const causeBlocks = causeRemovedBlocks(
+    si.causeRemoved,
+    si.impression,
+    (id) => si.recorded.find((d) => d.logicalId === id)?.display ?? null,
+  );
   return {
     cols,
     col: (id) => byId.get(id),
@@ -185,7 +193,8 @@ export function deriveImpression(
     },
     asksFor: (id) => si.asks.filter((a) => a.forIds.includes(id)),
     missingReasons: si.board.differential.filter((r) => r.reasonMissing).length,
-    signBlocks: signBlocks(si.board),
+    signBlocks: [...signBlocks(si.board), ...causeBlocks],
+    causeBlocks,
   };
 }
 

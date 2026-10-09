@@ -3,6 +3,7 @@
 import type { SiView } from "../si-model";
 import type { DxData } from "../use-catalogue";
 import type { ImpressionView, NamedSuggestion } from "./model";
+import type { RelateChoice, RelateRequest } from "./relations-ui";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxTerm } from "@/components/emr/desk/search";
 import type { DxOptions } from "@/components/emr/desk/sections";
@@ -11,6 +12,15 @@ import type { Association } from "@/lib/clerking/impression/associations";
 import type { BoardRow, ImpressionDraft, Likelihood } from "@/lib/clerking/impression/board";
 import type { Column } from "@/lib/clerking/impression/evidence";
 import type { Finding, FindingRef } from "@/lib/clerking/impression/facts";
+import type {
+  Card,
+  DragSource,
+  DropContext,
+  DropTarget,
+  Edge,
+  Known,
+} from "@/lib/clerking/impression/relations";
+import type { DueLabel } from "@/lib/clerking/impression/relations-catalogue";
 import type { SectionId } from "@/lib/clerking/status";
 import type { ReactNode } from "react";
 import { useEffect, useId, useMemo, useState } from "react";
@@ -29,12 +39,7 @@ import { DiagnosisPicker } from "@/components/emr/desk/pickers";
 import { PRESS } from "@/components/emr/orders/choice-chips";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
-import {
-  associationsOf,
-  withFlag,
-  withLink,
-  withMoved,
-} from "@/lib/clerking/impression/associations";
+import { associationsOf } from "@/lib/clerking/impression/associations";
 import {
   canMove,
   duplicateOf,
@@ -50,13 +55,33 @@ import {
   nextState,
   withMark,
 } from "@/lib/clerking/impression/evidence";
+import {
+  descendants,
+  dropOutcome,
+  isFlagged,
+  places,
+  proposeRelations,
+  refusal,
+  relWord,
+  withFlagOn,
+} from "@/lib/clerking/impression/relations";
+import { precipitantName } from "@/lib/clerking/impression/relations-catalogue";
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
 import { AssociatedContainer, AssociationCandidates } from "./associations";
+import { dropKey, sameTarget, useBoardDrag } from "./board-drag";
 import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
 import { EvidenceMatrix } from "./matrix";
+import {
+  BackgroundRow,
+  DemoteDialog,
+  Grip,
+  LinkButton,
+  RelateDialog,
+  RelationLine,
+} from "./relations-ui";
 
 /**
  * Step 09, Impression (PROMPT-CLERKING-SUMMARY-IMPRESSION §4, §5.3–5.4): the leading diagnosis (the
@@ -75,10 +100,22 @@ const REMOVE: { id: RemoveCode; label: string; text: boolean }[] = [
   { id: "other", label: "Other", text: true },
 ];
 
+/** A relation write's outcome, when the handler reports one (the desk's chart actions do). */
+export type RelationResult = void | Promise<unknown>;
+
 export interface ImpressionHandlers {
   onDiagnosis?: (pick: DxPick, opts: DxOptions) => void;
-  onLeading?: (row: BoardRow) => void;
-  onToDifferential?: (row: BoardRow) => void;
+  /** `retireLinks`: the old leading goes to the differential and its links are retired (Gate B). */
+  onLeading?: (row: BoardRow, opts?: { retireLinks?: boolean }) => void;
+  onToDifferential?: (row: BoardRow, opts?: { retireLinks?: boolean }) => void;
+  /** Relations (dx-relations Phase 3, migration 0096). */
+  onRelate?: (c: RelateChoice & { origin?: "backfill_confirmed" }) => RelationResult;
+  onUnlink?: (e: Edge, reason: "unlinked" | "undone") => RelationResult;
+  onMoveRelation?: (e: Edge, position: number) => RelationResult;
+  onRelabel?: (e: Edge, label: DueLabel, qualifiers: string[]) => RelationResult;
+  onActiveThisVisit?: (k: Known, rank: "primary" | "secondary") => RelationResult;
+  /** "Add a linked diagnosis": on the visit (if not already) and linked, in one write. */
+  onAddLinked?: (parent: BoardRow, a: Association) => RelationResult;
   onDxStatus?: (row: BoardRow, to: "working" | "final") => void;
   onRemove?: (row: BoardRow, reason: { code: RemoveCode; text?: string }) => void;
   onAddToPlan?: (testId: string, row: BoardRow) => void;
@@ -106,6 +143,12 @@ export interface ImpressionStepProps {
   /** 834 px and up: the evidence matrix exists (D-SI-14). */
   wide: boolean;
   inPlan: (logicalId: string) => ReadonlySet<string>;
+  /** Seams for refinement (Phase 4): a stage beside each diagnosis's name, and menu items
+   *  ("Refine to…", "Replace…") among each card's actions. */
+  cardSlots?: {
+    stage?: (row: BoardRow) => ReactNode;
+    menu?: (row: BoardRow) => ReactNode;
+  };
 }
 
 const LIKELIHOOD: { id: Likelihood; label: string; key: string }[] = [
@@ -363,66 +406,530 @@ export function ImpressionStep(props: ImpressionStepProps) {
     setAddAs(null);
   };
 
-  /* Associations (owner, 2026-10-08): complications and conditions that go with a diagnosis. */
+  /* ─── Relations (dx-relations-design §2, §4; ADR 0220) ─────────── */
+  const on = props.on;
+  const edges = si.relations as Edge[];
+  const pl = useMemo(() => places(b, edges, si.background), [b, edges, si.background]);
+  const known = si.background;
+  const knownDx = (k: Known) => (k.termId ? (dx?.termIds[k.termId] ?? null) : null);
+  const nameOf = (id: string) =>
+    pl.cardOf.get(id)?.row.dx.display ??
+    b.differential.find((r) => r.dx.logicalId === id)?.dx.display ??
+    known.find((k) => k.logicalId === id)?.display ??
+    "it";
+  const dropCtx: DropContext = { places: pl, board: b, edges, known, knownDx };
+  const linked = [...pl.cardOf.values()].filter((c) => !!c.via);
+  const canRelate = canWrite && !!on.onRelate;
+
+  // The polite live region: every outcome and refusal, in words (§4.3).
+  const [msg, setMsg] = useState<string | null>(null);
+  const say = (words: string) => setMsg(words);
+  /** Await a handler; a refusal from the server is said as a plain message. */
+  const report = async (r: RelationResult, ok: string) => {
+    const out = (await r) as { ok?: boolean; error?: string } | undefined;
+    if (out && out.ok === false)
+      say(
+        (out.error ?? "").startsWith("Relation refused")
+          ? out.error!
+          : `Relation refused: ${out.error ?? "it was not saved"}`,
+      );
+    else say(ok);
+  };
+
+  // The last relation change, shown inline on its card with Undo while the note is a draft (§4.3).
+  const [last, setLast] = useState<{
+    cardId: string;
+    text: string;
+    /** Which relation it was, matched against the record as it now stands. */
+    match: (e: Edge) => boolean;
+    undo: (e: Edge | undefined) => void;
+  } | null>(null);
+  const findEdge =
+    (c: Pick<Edge, "conditionId" | "relatedConditionId" | "relationType">) => (e: Edge) =>
+      e.relationType === c.relationType &&
+      ((e.conditionId === c.conditionId && e.relatedConditionId === c.relatedConditionId) ||
+        (c.relationType === "associated_with" &&
+          e.conditionId === c.relatedConditionId &&
+          e.relatedConditionId === c.conditionId));
+  /** The last change's relation in the record as it now stands (after the refresh). */
+  const lastEdge = last ? edges.find(last.match) : undefined;
+  const phrase = (e: Pick<Edge, "relationType" | "label" | "qualifiers">, other: string) =>
+    `${relWord(e)} ${other}${
+      e.qualifiers.length
+        ? `; precipitated by ${e.qualifiers.map((q) => precipitantName(q).toLowerCase()).join(" and by ")}`
+        : ""
+    }`;
+
+  const doRelate = (c: RelateChoice) => {
+    setRelate(null);
+    const words = `${nameOf(c.conditionId)} linked to ${nameOf(c.relatedConditionId)}, as ${relWord(c)}. Undo available.`;
+    void report(on.onRelate?.(c), words);
+    setLast({
+      cardId: c.conditionId,
+      text: `Linked as: ${phrase(c, nameOf(c.relatedConditionId))}`,
+      match: findEdge(c),
+      undo: (e) => e && void report(on.onUnlink?.(e, "undone"), "Link undone."),
+    });
+  };
+  const doUnlink = (e: Edge) => {
+    const lower = pl.cardOf.get(e.conditionId)?.via === e ? e.conditionId : e.relatedConditionId;
+    const other = lower === e.conditionId ? e.relatedConditionId : e.conditionId;
+    void report(
+      on.onUnlink?.(e, "unlinked"),
+      `${nameOf(lower)} unlinked from ${nameOf(other)}. Undo available.`,
+    );
+    setLast({
+      cardId: lower,
+      text: `Unlinked from ${nameOf(other)}`,
+      match: () => false,
+      undo: () =>
+        void report(
+          on.onRelate?.({
+            conditionId: e.conditionId,
+            relatedConditionId: e.relatedConditionId,
+            relationType: e.relationType as "due_to" | "associated_with",
+            label: e.label,
+            qualifiers: e.qualifiers,
+            catalogueRef: null,
+          }),
+          "Unlink undone.",
+        ),
+    });
+  };
+  const doRelabel = (e: Edge, label: DueLabel, qualifiers: string[]) => {
+    setRelate(null);
+    void report(
+      on.onRelabel?.(e, label, qualifiers),
+      `Link changed to ${relWord({ relationType: "due_to", label })}.`,
+    );
+    setLast({
+      cardId: e.conditionId,
+      text: `Linked as: ${phrase({ relationType: "due_to", label, qualifiers }, nameOf(e.relatedConditionId))}`,
+      match: (x) => x.logicalId === e.logicalId,
+      undo: (now) =>
+        now && void report(on.onRelabel?.(now, e.label!, e.qualifiers), "Change undone."),
+    });
+  };
+  /** Renumber a parent's linked list in the order given (the note follows it, D-REL-12). */
+  const reorder = (order: Edge[]) => {
+    order.forEach((e, n) => {
+      if (e.position !== n + 1) void report(on.onMoveRelation?.(e, n + 1), "Moved.");
+    });
+  };
+  const moveChild = (card: Card, by: -1 | 1) => {
+    const parent = card.parentId ? pl.cardOf.get(card.parentId) : undefined;
+    if (!parent || !card.via) return;
+    const order = parent.children.map((k) => k.via!);
+    const i = order.indexOf(card.via);
+    const j = i + by;
+    if (j < 0 || j >= order.length) return;
+    [order[i], order[j]] = [order[j]!, order[i]!];
+    reorder(order);
+  };
+
+  const [relate, setRelate] = useState<RelateRequest | null>(null);
+  /** Close the chooser; focus returns to the card it came from (§4.2). */
+  const closeRelate = () => {
+    const id = relate?.src.id;
+    setRelate(null);
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLElement>(`[data-grip="${id ? dropKey({ kind: "dx", id }) : ""}"]`)
+        ?.focus(),
+    );
+  };
+  const end = (id: string) => ({
+    id,
+    name: nameOf(id),
+    dxId: pl.cardOf.get(id)?.row.dx.dxId ?? null,
+  });
+  const relateTargets = (srcId: string) => [
+    ...[...pl.cardOf.values()]
+      .filter((c) => c.row.dx.logicalId !== srcId)
+      .map((c) => ({
+        ...end(c.row.dx.logicalId),
+        refused: refusal(dropCtx, srcId, c.row.dx.logicalId, nameOf),
+      })),
+    ...known.map((k) => ({
+      id: k.logicalId,
+      name: k.display,
+      dxId: knownDx(k),
+      known: true,
+      refused: refusal(dropCtx, srcId, k.logicalId, nameOf),
+    })),
+  ];
+  const activate = (k: Known, rank: "primary" | "secondary") =>
+    void report(on.onActiveThisVisit?.(k, rank), `${k.display} is active this visit.`);
+
+  /* Drag and drop (§4.1): what a drop means, and the keyboard's targets. */
+  const describe = (src: DragSource, t: DropTarget): string => {
+    const o = dropOutcome(dropCtx, src, t);
+    const tn = "id" in t ? nameOf(t.id) : "";
+    switch (o.kind) {
+      case "refuse":
+        return o.message;
+      case "none":
+        return "Nothing to do here.";
+      case "unlink":
+        return `Drop to unlink ${nameOf(src.id)}: it becomes co-existing.`;
+      case "reorder":
+        return `Drop to move ${nameOf(src.id)} to this place.`;
+      case "active":
+        return `Drop to make ${o.known.display} active this visit.`;
+      case "relate":
+        return o.apply
+          ? `Drop to link under ${tn}, as ${relWord(o.apply)}.`
+          : `Drop to link to ${tn}: you choose how.`;
+    }
+  };
+  const onDrop = (src: DragSource, t: DropTarget) => {
+    const o = dropOutcome(dropCtx, src, t);
+    if (o.kind === "refuse") return say(o.message);
+    if (o.kind === "none") return say("Nothing changed.");
+    if (o.kind === "unlink") return doUnlink(o.edge);
+    if (o.kind === "reorder") {
+      reorder(o.order);
+      return say(`${nameOf(src.id)} moved.`);
+    }
+    if (o.kind === "active") return activate(o.known, o.rank);
+    if (o.apply)
+      return doRelate({
+        conditionId: o.conditionId,
+        relatedConditionId: o.relatedConditionId,
+        relationType: o.apply.type,
+        label: o.apply.label,
+        qualifiers: [],
+        catalogueRef: o.apply.ref,
+      });
+    const tk = known.find((k) => k.logicalId === o.relatedConditionId);
+    setRelate({
+      src: end(o.conditionId),
+      tgt: tk
+        ? { id: tk.logicalId, name: tk.display, dxId: knownDx(tk), known: true }
+        : end(o.relatedConditionId),
+    });
+  };
+  const dragTargets = (src: DragSource): DropTarget[] => {
+    if (src.kind === "known")
+      return [
+        lead ? { kind: "dx", id: lead.dx.logicalId } : { kind: "leading" },
+        { kind: "coexisting" },
+      ];
+    const cards = [...pl.cardOf.keys()].filter((id) => id !== src.id);
+    return [
+      ...cards.map((id) => ({ kind: "dx", id }) as DropTarget),
+      ...(pl.cardOf.get(src.id)?.via ? [{ kind: "coexisting" } as DropTarget] : []),
+      ...known.map((k) => ({ kind: "known", id: k.logicalId }) as DropTarget),
+    ];
+  };
+  const helpId = useId();
+  const drag = useBoardDrag({
+    enabled: canRelate,
+    helpId,
+    targets: dragTargets,
+    describe,
+    onDrop,
+    announce: say,
+  });
+  /** The words on a target while a card is over it ("Drop to link under Malaria"). */
+  const overWords = (t: DropTarget) =>
+    drag.src && sameTarget(drag.over, t) ? describe(drag.src, t) : null;
+  const overLine = (t: DropTarget) => {
+    const w = overWords(t);
+    return w ? <span className="text-caption text-teal-text">{w}</span> : null;
+  };
+  const gripFor = (row: BoardRow) =>
+    canRelate ? (
+      <Grip {...drag.grip({ kind: "dx", id: row.dx.logicalId }, row.dx.display)} />
+    ) : null;
+
+  /* Demotion to the differential (Gate B): a confirm naming the links to be retired. */
+  const [demote, setDemote] = useState<{ name: string; links: string[]; go: () => void } | null>(
+    null,
+  );
+  const linksOf = (id: string) =>
+    edges.filter(
+      (e) =>
+        (e.relationType === "due_to" || e.relationType === "associated_with") &&
+        (e.conditionId === id || e.relatedConditionId === id),
+    );
+  const linkText = (e: Edge) =>
+    `${nameOf(e.conditionId)}, ${relWord(e)} ${nameOf(e.relatedConditionId)}`;
+  const toDifferential = (row: BoardRow) => {
+    const ls = linksOf(row.dx.logicalId);
+    if (!ls.length) return on.onToDifferential?.(row);
+    setDemote({
+      name: row.dx.display,
+      links: ls.map(linkText),
+      go: () => on.onToDifferential?.(row, { retireLinks: true }),
+    });
+  };
+  /** A differential promoted: the leading goes to the differential (links confirmed); a
+   *  co-existing one swaps with the leading and both stay working. */
+  const makeLeading = (row: BoardRow) => {
+    const ls = lead && row.slot === "differential" ? linksOf(lead.dx.logicalId) : [];
+    if (!ls.length || !lead) return on.onLeading?.(row);
+    setDemote({
+      name: lead.dx.display,
+      links: ls.map(linkText),
+      go: () => on.onLeading?.(row, { retireLinks: true }),
+    });
+  };
+
+  /* "Cause removed: review" (DXV-13): acknowledged in the draft before signing. */
+  const reviewed = new Set(si.impression.reviewed ?? []);
+  const causeMarker = (row: BoardRow) =>
+    si.causeRemoved
+      .filter((c) => c.conditionId === row.dx.logicalId && !reviewed.has(c.logicalId))
+      .map((c) => (
+        <span key={c.logicalId} className="flex flex-wrap items-center gap-2">
+          <StatusWord tone="caution">Cause removed: review</StatusWord>
+          <span className="text-caption text-muted-foreground">
+            {`Its cause, ${c.causeDisplay}, was ${c.reason === "refuted" ? "ruled out" : "entered in error"}; the link was retired.`}
+          </span>
+          {editable ? (
+            <LinkButton
+              onClick={() =>
+                props.onImpression((d) => ({
+                  ...d,
+                  reviewed: [...new Set([...(d.reviewed ?? []), c.logicalId])],
+                }))
+              }
+            >
+              Reviewed
+            </LinkButton>
+          ) : null}
+        </span>
+      ));
+
+  /** A card's relations in words (clauses shown on it, §2.3), the inline last change, the marker. */
+  const relationBlock = (card: Card) => {
+    const row = card.row;
+    const lines = [
+      ...card.clauses.map((c) => (
+        <RelationLine
+          key={c.edge.id}
+          text={
+            c.fromCondition
+              ? `${phrase(c.edge, `${c.known ? "known " : ""}${c.other}`).replace(/^./, (x) => x.toUpperCase())}`
+              : `${c.other}, ${relWord(c.edge)} this`
+          }
+        >
+          {canRelate && on.onRelabel && c.fromCondition && c.edge.relationType === "due_to" ? (
+            <LinkButton
+              onClick={() =>
+                setRelate({
+                  src: end(row.dx.logicalId),
+                  tgt: { id: c.otherId, name: c.other, dxId: null, known: c.known },
+                  edit: c.edge,
+                })
+              }
+            >
+              Change
+            </LinkButton>
+          ) : null}
+          {canRelate && on.onUnlink ? (
+            <LinkButton
+              aria-label={`Unlink ${row.dx.display} and ${c.other}`}
+              onClick={() => doUnlink(c.edge)}
+            >
+              Unlink
+            </LinkButton>
+          ) : null}
+        </RelationLine>
+      )),
+      ...(card.episodeOf
+        ? [
+            <RelationLine
+              key="episode"
+              text={`Known condition, on record since ${card.episodeOf.since.slice(0, 4)}: active this visit`}
+            />,
+          ]
+        : []),
+      ...(last?.cardId === row.dx.logicalId
+        ? [
+            <RelationLine key="last" text={last.text}>
+              {canRelate && on.onRelabel && lastEdge?.relationType === "due_to" ? (
+                <LinkButton
+                  onClick={() => {
+                    const e = lastEdge!;
+                    setRelate({
+                      src: end(e.conditionId),
+                      tgt: {
+                        ...end(e.relatedConditionId),
+                        known: !pl.cardOf.has(e.relatedConditionId),
+                      },
+                      edit: e,
+                    });
+                  }}
+                >
+                  Change
+                </LinkButton>
+              ) : null}
+              {editable ? (
+                <LinkButton
+                  onClick={() => {
+                    last.undo(lastEdge);
+                    setLast(null);
+                  }}
+                >
+                  Undo
+                </LinkButton>
+              ) : null}
+            </RelationLine>,
+          ]
+        : []),
+      ...causeMarker(row),
+    ];
+    return lines.length ? <div className="flex flex-col gap-1">{lines}</div> : null;
+  };
+
+  /** Relate to… (keyboard and touch, §4.3), the Phase 4 menu items, for every card. */
+  const cardMenu = (row: BoardRow) => (
+    <>
+      {canRelate ? (
+        <Button
+          size="sm"
+          variant="ghost"
+          aria-haspopup="dialog"
+          onClick={() => setRelate({ src: end(row.dx.logicalId) })}
+        >
+          Relate to…
+        </Button>
+      ) : null}
+      {props.cardSlots?.menu?.(row)}
+    </>
+  );
+
+  /* "Add a linked diagnosis" (§2.4): complications, effects it causes and what goes with it. */
   const assocOf = (row: BoardRow): Association[] =>
     dx
       ? associationsOf(
           { dxId: row.dx.dxId, logicalId: row.dx.logicalId },
-          { x: si.x, dx, live: si.live, viewer: si.viewer, board: b, draft: si.impression },
+          { x: si.x, dx, live: si.live, viewer: si.viewer, board: b, relations: edges },
         )
       : [];
-  const addAssociation = (row: BoardRow, a: Association) => {
-    props.onImpression((d) => withLink(d, row.dx.logicalId, a.dxId));
-    if (a.onVisit) return;
-    const uuid = termByDx.get(a.dxId);
-    const n = dx?.names[a.dxId];
-    const pick: DxPick =
-      n?.coded && uuid
-        ? {
-            term: {
-              id: uuid,
-              display: a.display,
-              synonyms: [],
-              icd11: null,
-              verified: false,
-              chronic: false,
-              symptomLevel: false,
-              restricted: n.restricted,
-              notifiable: false,
-            },
-          }
-        : { typed: a.display };
-    if (duplicateOf(si.recorded, "term" in pick ? { termId: pick.term.id } : pick)) return;
-    props.on.onDiagnosis?.(pick, {
-      verification: "provisional",
-      primary: false,
-      addToProblemList: null,
-    });
-  };
-  // The leading diagnosis's chosen associations (meta.with) and their supports (owner, 2026-10-08).
   const leadAssoc = lead ? assocOf(lead) : [];
-  const leadLinks = lead ? (si.impression.meta[lead.dx.logicalId] ?? {}) : {};
-  // In the order the clinician arranged them (meta.with), which is their order in the note.
-  const chosenRows = (leadLinks.with ?? [])
-    .map((id) => [...b.differential, ...b.also].find((r) => r.dx.dxId === id))
-    .filter((r): r is BoardRow => !!r);
-  const chosenSet = new Set(chosenRows);
   const supportsOf = (row: BoardRow) =>
     Object.entries(si.impression.evidence[row.dx.logicalId] ?? {})
       .filter(([, m]) => m.w === "for")
       .map(([ref]) => v.findings.get(ref as FindingRef))
       .filter((f): f is Finding => !!f);
-  const chosen = chosenRows.map((row) => {
-    const supports = supportsOf(row);
-    return {
-      row,
-      type: leadAssoc.find((a) => a.dxId === row.dx.dxId)?.type ?? null,
-      supports,
-      flagged: !!row.dx.dxId && (leadLinks.flagged ?? []).includes(row.dx.dxId),
-    };
-  });
-  const target = chosenRows.find((r) => r.dx.logicalId === bucketTo) ?? null;
+  /** A parent's linked diagnoses, depth first, as the container lists them. */
+  const chosenOf = (parent: Card) =>
+    descendants(parent).map((card) => {
+      const sibs = card.parentId ? (pl.cardOf.get(card.parentId)?.children ?? []) : [];
+      const at = sibs.indexOf(card);
+      return {
+        row: card.row,
+        words: `${relWord(card.via!)} ${nameOf(card.parentId!)}`,
+        supports: supportsOf(card.row),
+        flagged: isFlagged(si.impression, card.row),
+        depth: card.depth - parent.depth,
+        first: at <= 0,
+        last: at === sibs.length - 1,
+      };
+    });
+  const target = linked.find((c) => c.row.dx.logicalId === bucketTo)?.row ?? null;
   const testName = (id: string) => dx?.tests[id] ?? id.replace(/^test\./, "").replace(/_/g, " ");
+
+  /* D-REL-17: the earlier format's links (meta.with), offered once as relations to confirm. */
+  const proposals = useMemo(
+    () =>
+      si.impression.backfill
+        ? []
+        : proposeRelations(
+            si.impression.meta,
+            si.recorded.map((d) => ({
+              logicalId: d.logicalId,
+              dxId: d.dxId,
+              verification: d.verification,
+            })),
+            new Set(edges.map((e) => `${e.relationType}|${e.conditionId}|${e.relatedConditionId}`)),
+          ),
+    [si.impression, si.recorded, edges],
+  );
+  const proposalText = (p: (typeof proposals)[number]) =>
+    p.kind === "ask"
+      ? `${dx?.names[p.childDxId]?.display ?? p.childDxId} with ${nameOf(p.parentLogicalId)}: choose how with "Relate to…"`
+      : `${nameOf(p.conditionId)}, ${relWord({ relationType: p.kind, label: p.label })} ${nameOf(p.relatedConditionId)}`;
+  const backfillDone = () => props.onImpression((d) => ({ ...d, backfill: "done" }));
+  const confirmBackfill = () => {
+    for (const p of proposals)
+      if (p.kind !== "ask")
+        void report(
+          on.onRelate?.({
+            conditionId: p.conditionId,
+            relatedConditionId: p.relatedConditionId,
+            relationType: p.kind,
+            label: p.label,
+            qualifiers: [],
+            catalogueRef: p.catalogueRef,
+            origin: "backfill_confirmed",
+          }),
+          "Links confirmed.",
+        );
+    backfillDone();
+  };
+
+  /** Under a linked card: its own link's controls, then its relations. */
+  const linkedBelow = (card: Card) => {
+    const via = card.via!;
+    return (
+      <div className="flex flex-col gap-1">
+        {canRelate ? (
+          <span className="flex flex-wrap gap-x-3">
+            {on.onRelabel && via.relationType === "due_to" ? (
+              <LinkButton
+                onClick={() =>
+                  setRelate({
+                    src: end(via.conditionId),
+                    tgt: end(via.relatedConditionId),
+                    edit: via,
+                  })
+                }
+              >
+                {`Change: ${relWord(via)}`}
+              </LinkButton>
+            ) : null}
+            {on.onUnlink ? (
+              <LinkButton
+                aria-label={`Unlink ${card.row.dx.display}`}
+                onClick={() => doUnlink(via)}
+              >
+                Unlink
+              </LinkButton>
+            ) : null}
+          </span>
+        ) : null}
+        {relationBlock(card)}
+        {overLine({ kind: "dx", id: card.row.dx.logicalId })}
+      </div>
+    );
+  };
+  /** Status, Details, Remove and Relate to… for a linked card. */
+  const linkedActions = (row: BoardRow) => (
+    <>
+      <StatusControl
+        row={row}
+        canFinal={props.canFinal}
+        editable={canWrite}
+        onDxStatus={props.on.onDxStatus}
+      />
+      <Button size="sm" variant="ghost" onClick={() => props.onDetails(row.dx.logicalId)}>
+        Details
+      </Button>
+      {canWrite && props.on.onRemove ? (
+        <Button size="sm" variant="ghost" title={removeTitle(row)} onClick={() => startRemove(row)}>
+          Remove
+        </Button>
+      ) : null}
+      {cardMenu(row)}
+    </>
+  );
+
+  /** Make a known condition active this visit by its button: co-existing, or leading if none. */
+  const activeByButton = (k: Known) => activate(k, lead ? "secondary" : "primary");
 
   const addSuggestion = (g: NamedSuggestion) => {
     const asLeading = g.forLeading && !lead;
@@ -527,10 +1034,42 @@ export function ImpressionStep(props: ImpressionStepProps) {
         </p>
       ) : null}
 
+      <p aria-live="polite" role="status" className="text-body-s text-foreground empty:hidden">
+        {msg}
+      </p>
+      <p id={helpId} className="sr-only">
+        Press Space to lift a diagnosis, the arrow keys to choose where it goes, Enter to drop it
+        and Escape to cancel. Or use its Relate to… button.
+      </p>
+      {proposals.length && canRelate ? (
+        <section
+          aria-labelledby="impression-backfill"
+          className="border-border flex flex-col gap-2 rounded-md border border-dashed px-4 py-3"
+        >
+          <h3 id="impression-backfill" className="text-body-s text-foreground">
+            Links from this draft&rsquo;s earlier format
+          </h3>
+          <ul className="text-body-s text-foreground flex list-disc flex-col gap-0.5 pl-5">
+            {proposals.map((p, n) => (
+              <li key={n}>{proposalText(p)}</li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" onClick={confirmBackfill}>
+              Confirm
+            </Button>
+            <Button size="sm" variant="ghost" onClick={backfillDone}>
+              Dismiss
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
       {/* Leading (§4 Impression, 2) */}
       <section
         aria-labelledby="impression-leading"
-        className="border-border rounded-lg border px-4 py-4"
+        {...drag.target(lead ? { kind: "dx", id: lead.dx.logicalId } : { kind: "leading" })}
+        className="border-border rounded-lg border px-4 py-4 data-[over=true]:ring-2 data-[over=true]:ring-teal-600"
       >
         {lead ? (
           <div className="flex flex-col gap-3">
@@ -549,9 +1088,17 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 onDxStatus={props.on.onDxStatus}
               />
             </div>
-            <div className="flex flex-col gap-0.5">
-              <h3 className="text-heading-s text-foreground">{lead.dx.display}</h3>
-              <span className="text-caption text-muted-foreground">{subLine(lead, dx)}</span>
+            <div data-card="" className="flex items-start gap-2 data-[dragging=true]:opacity-60">
+              {gripFor(lead)}
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="flex flex-wrap items-baseline gap-x-2">
+                  <h3 className="text-heading-s text-foreground">{lead.dx.display}</h3>
+                  {props.cardSlots?.stage?.(lead)}
+                </span>
+                <span className="text-caption text-muted-foreground">{subLine(lead, dx)}</span>
+                {pl.leading ? relationBlock(pl.leading) : null}
+                {overLine({ kind: "dx", id: lead.dx.logicalId })}
+              </div>
             </div>
             {lead.dx.cosignPending ? (
               <StatusWord tone="caution">Final · awaiting senior co-signature</StatusWord>
@@ -594,54 +1141,32 @@ export function ImpressionStep(props: ImpressionStepProps) {
                       : "Nothing accepted yet."}
                   </p>
                 )}
-                <AssociatedContainer
-                  parent={lead.dx.display}
-                  chosen={chosen}
-                  candidates={leadAssoc.filter((a) => !a.linked)}
-                  canWrite={canWrite && !!props.on.onDiagnosis}
-                  finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
-                  active={target?.dx.logicalId ?? null}
-                  onActivate={(row) => setBucketTo(row?.dx.logicalId ?? null)}
-                  onUnsupport={(row, f) =>
-                    props.onImpression((d) =>
-                      withMark(d, row.dx.logicalId, f.ref, "blank", stamp()),
-                    )
-                  }
-                  onMove={(row, by) =>
-                    props.onImpression((d) => withMoved(d, lead.dx.logicalId, row.dx.dxId!, by))
-                  }
-                  onFlag={(row) =>
-                    props.onImpression((d) => withFlag(d, lead.dx.logicalId, row.dx.dxId!))
-                  }
-                  actions={(row) => (
-                    <>
-                      <StatusControl
-                        row={row}
-                        canFinal={props.canFinal}
-                        editable={canWrite}
-                        onDxStatus={props.on.onDxStatus}
-                      />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => props.onDetails(row.dx.logicalId)}
-                      >
-                        Details
-                      </Button>
-                      {canWrite && props.on.onRemove ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          title={removeTitle(row)}
-                          onClick={() => startRemove(row)}
-                        >
-                          Remove
-                        </Button>
-                      ) : null}
-                    </>
-                  )}
-                />
-                {chosenRows.map((row) =>
+                {pl.leading ? (
+                  <AssociatedContainer
+                    parent={lead.dx.display}
+                    chosen={chosenOf(pl.leading)}
+                    candidates={leadAssoc.filter((a) => !a.linked)}
+                    canWrite={canWrite}
+                    finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
+                    active={target?.dx.logicalId ?? null}
+                    onActivate={(row) => setBucketTo(row?.dx.logicalId ?? null)}
+                    onUnsupport={(row, f) =>
+                      props.onImpression((d) =>
+                        withMark(d, row.dx.logicalId, f.ref, "blank", stamp()),
+                      )
+                    }
+                    onMove={(row, by) => moveChild(pl.cardOf.get(row.dx.logicalId)!, by)}
+                    onFlag={(row) => props.onImpression((d) => withFlagOn(d, row))}
+                    grip={gripFor}
+                    stage={props.cardSlots?.stage}
+                    card={(row) => ({
+                      ...drag.target({ kind: "dx", id: row.dx.logicalId }),
+                    })}
+                    below={(row) => linkedBelow(pl.cardOf.get(row.dx.logicalId)!)}
+                    actions={linkedActions}
+                  />
+                ) : null}
+                {linked.map(({ row }) =>
                   removing === row.dx.logicalId ? (
                     <RemoveForm
                       key={row.dx.logicalId}
@@ -659,10 +1184,10 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 <span className="text-caption text-muted-foreground">
                   Not yet explained by any diagnosis
                 </span>
-                {chosenRows.length && canWrite ? (
+                {linked.length && canWrite ? (
                   <Seg
                     label="Add findings to"
-                    options={[lead, ...chosenRows].map((r) => ({
+                    options={[lead, ...linked.map((c) => c.row)].map((r) => ({
                       id: r.dx.logicalId,
                       label: r.dx.display,
                     }))}
@@ -725,14 +1250,11 @@ export function ImpressionStep(props: ImpressionStepProps) {
             </p>
             <div className="flex flex-wrap gap-2">
               {canWrite && props.on.onToDifferential ? (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => props.on.onToDifferential!(lead)}
-                >
+                <Button size="sm" variant="secondary" onClick={() => toDifferential(lead)}>
                   Move to differential
                 </Button>
               ) : null}
+              {cardMenu(lead)}
               <Button size="sm" variant="ghost" onClick={() => props.onDetails(lead.dx.logicalId)}>
                 Details
               </Button>
@@ -782,6 +1304,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
             <span id="impression-leading" className="text-label text-foreground">
               No leading diagnosis yet
             </span>
+            {overLine({ kind: "leading" })}
             <p className="text-body-s text-muted-foreground">
               Add the diagnosis you would treat for now below, or pick it from what the findings
               suggest. If it is too early to name one, defer it with the reason.
@@ -814,16 +1337,154 @@ export function ImpressionStep(props: ImpressionStepProps) {
         )}
       </section>
 
-      {/* Add an association (owner, 2026-10-08): its own section, the whole width */}
+      {/* Add a linked diagnosis (§2.4): its own section, the whole width */}
       {lead ? (
         <AssociationCandidates
           parent={lead.dx.display}
           items={leadAssoc.filter((a) => !a.linked)}
           findingText={(ref) => v.findings.get(ref as FindingRef)?.text ?? null}
           testName={testName}
-          canWrite={canWrite && !!props.on.onDiagnosis}
-          onAdd={(a) => addAssociation(lead, a)}
+          canWrite={canWrite && !!on.onAddLinked}
+          onAdd={(a) =>
+            void report(
+              on.onAddLinked?.(lead, a),
+              `${a.display} added, linked to ${lead.dx.display}.`,
+            )
+          }
         />
+      ) : null}
+
+      {/* Also this visit: co-existing (R4) — the header takes an unlinked card (§4.1) */}
+      {pl.coexisting.length || linked.length || drag.src?.kind === "known" ? (
+        <section aria-labelledby="impression-also" className="flex flex-col gap-3">
+          <div
+            {...drag.target({ kind: "coexisting" })}
+            className="flex flex-wrap items-center gap-3 rounded-md data-[over=true]:ring-2 data-[over=true]:ring-teal-600"
+          >
+            <h3 id="impression-also" className="text-label text-foreground">
+              Also this visit: co-existing
+            </h3>
+            {overLine({ kind: "coexisting" })}
+          </div>
+          {pl.coexisting.length ? (
+            <ul className="divide-border flex flex-col divide-y">
+              {pl.coexisting.map((card) => {
+                const row = card.row;
+                return (
+                  <li
+                    key={row.dx.logicalId}
+                    data-card=""
+                    {...drag.target({ kind: "dx", id: row.dx.logicalId })}
+                    className="flex flex-col gap-2 rounded-md py-2.5 data-[dragging=true]:opacity-60 data-[over=true]:ring-2 data-[over=true]:ring-teal-600"
+                  >
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                      {gripFor(row)}
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <span className="flex flex-wrap items-baseline gap-x-2">
+                          <span className="text-body-m text-foreground font-medium">
+                            {row.dx.display}
+                          </span>
+                          {props.cardSlots?.stage?.(row)}
+                        </span>
+                        <span className="text-caption text-muted-foreground">
+                          {subLine(row, dx)}
+                        </span>
+                      </div>
+                      {row.dx.cosignPending ? (
+                        <StatusWord tone="caution">Final · awaiting senior co-signature</StatusWord>
+                      ) : null}
+                      <StatusControl
+                        row={row}
+                        canFinal={props.canFinal}
+                        editable={canWrite}
+                        onDxStatus={props.on.onDxStatus}
+                      />
+                      {row.dx.onProblemList ? (
+                        <span className="text-caption text-muted-foreground">On problem list</span>
+                      ) : canWrite && props.on.onProblemList && !row.dx.typed ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => props.on.onProblemList!(row)}
+                        >
+                          Add to problem list
+                        </Button>
+                      ) : null}
+                      {canWrite && on.onLeading ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Swap with the leading diagnosis: both stay working"
+                          onClick={() => makeLeading(row)}
+                        >
+                          Make leading
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => props.onDetails(row.dx.logicalId)}
+                      >
+                        Details
+                      </Button>
+                      {cardMenu(row)}
+                      {canWrite && props.on.onRemove ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label={`Remove ${row.dx.display}`}
+                          title={removeTitle(row)}
+                          onClick={() => startRemove(row)}
+                        >
+                          <XIcon aria-hidden />
+                        </Button>
+                      ) : null}
+                    </div>
+                    {relationBlock(card)}
+                    {overLine({ kind: "dx", id: row.dx.logicalId })}
+                    {removing === row.dx.logicalId ? (
+                      <RemoveForm
+                        row={row}
+                        onRemove={(r, why) => {
+                          setRemoving(null);
+                          props.on.onRemove?.(r, why);
+                        }}
+                        onCancel={() => setRemoving(null)}
+                      />
+                    ) : null}
+                    {card.children.length ? (
+                      <AssociatedContainer
+                        parent={row.dx.display}
+                        chosen={chosenOf(card)}
+                        candidates={[]}
+                        canWrite={canWrite}
+                        finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
+                        active={target?.dx.logicalId ?? null}
+                        onActivate={(r) => setBucketTo(r?.dx.logicalId ?? null)}
+                        onUnsupport={(r, f) =>
+                          props.onImpression((d) =>
+                            withMark(d, r.dx.logicalId, f.ref, "blank", stamp()),
+                          )
+                        }
+                        onMove={(r, by) => moveChild(pl.cardOf.get(r.dx.logicalId)!, by)}
+                        onFlag={(r) => props.onImpression((d) => withFlagOn(d, r))}
+                        grip={gripFor}
+                        stage={props.cardSlots?.stage}
+                        card={(r) => ({ ...drag.target({ kind: "dx", id: r.dx.logicalId }) })}
+                        below={(r) => linkedBelow(pl.cardOf.get(r.dx.logicalId)!)}
+                        actions={linkedActions}
+                      />
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-caption text-muted-foreground">
+              Drop a linked diagnosis here to unlink it.
+            </p>
+          )}
+        </section>
       ) : null}
 
       {/* Differential (§5.3, §5.4) */}
@@ -871,7 +1532,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
                   <li
                     key={row.dx.logicalId}
                     data-dx-row={row.dx.logicalId}
-                    className="flex flex-col gap-2 py-3"
+                    {...drag.target({ kind: "dx", id: row.dx.logicalId })}
+                    className="flex flex-col gap-2 rounded-md py-3 data-[over=true]:ring-2 data-[over=true]:ring-teal-600"
                   >
                     <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
                       <span className="flex shrink-0 flex-col">
@@ -916,6 +1578,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                         <span className="text-caption text-muted-foreground">
                           {row.awaitingSignoff ? "Reasoning aids awaiting sign-off" : v.basis(row)}
                         </span>
+                        {overLine({ kind: "dx", id: row.dx.logicalId })}
                       </div>
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <Seg
@@ -937,7 +1600,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                         Details
                       </Button>
                       {canWrite && props.on.onLeading ? (
-                        <Button size="sm" variant="ghost" onClick={() => props.on.onLeading!(row)}>
+                        <Button size="sm" variant="ghost" onClick={() => makeLeading(row)}>
                           Make leading
                         </Button>
                       ) : null}
@@ -1037,75 +1700,36 @@ export function ImpressionStep(props: ImpressionStepProps) {
         </section>
       ) : null}
 
-      {/* Also this visit */}
-      {b.also.some((r) => !chosenSet.has(r)) ? (
-        <Section id="impression-also" title="Also this visit">
-          <ul className="divide-border flex flex-col divide-y">
-            {b.also
-              .filter((r) => !chosenSet.has(r))
-              .map((row) => (
-                <li key={row.dx.logicalId} className="flex flex-col gap-2 py-2.5">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="text-body-m text-foreground font-medium">
-                        {row.dx.display}
-                      </span>
-                      <span className="text-caption text-muted-foreground">{subLine(row, dx)}</span>
-                    </div>
-                    {row.dx.cosignPending ? (
-                      <StatusWord tone="caution">Final · awaiting senior co-signature</StatusWord>
-                    ) : null}
-                    <StatusControl
-                      row={row}
-                      canFinal={props.canFinal}
-                      editable={canWrite}
-                      onDxStatus={props.on.onDxStatus}
-                    />
-                    {row.dx.onProblemList ? (
-                      <span className="text-caption text-muted-foreground">On problem list</span>
-                    ) : canWrite && props.on.onProblemList && !row.dx.typed ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => props.on.onProblemList!(row)}
-                      >
-                        Add to problem list
-                      </Button>
-                    ) : null}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => props.onDetails(row.dx.logicalId)}
-                    >
-                      Details
-                    </Button>
-                    {canWrite && props.on.onRemove ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        aria-label={`Remove ${row.dx.display}`}
-                        title={removeTitle(row)}
-                        onClick={() => startRemove(row)}
-                      >
-                        <XIcon aria-hidden />
-                      </Button>
-                    ) : null}
-                  </div>
-                  {removing === row.dx.logicalId ? (
-                    <RemoveForm
-                      row={row}
-                      onRemove={(r, why) => {
-                        setRemoving(null);
-                        props.on.onRemove?.(r, why);
-                      }}
-                      onCancel={() => setRemoving(null)}
-                    />
-                  ) : null}
-                </li>
-              ))}
-          </ul>
-        </Section>
-      ) : null}
+      {/* Background: known conditions (R5): read-only chips, drop targets, "Active this visit" */}
+      <BackgroundRow
+        items={pl.background}
+        canWrite={canRelate}
+        drag={{
+          grip: (k) => drag.grip({ kind: "known", id: k.logicalId }, k.display),
+          target: (k) => drag.target({ kind: "known", id: k.logicalId }),
+        }}
+        overWords={(k) => overWords({ kind: "known", id: k.logicalId })}
+        onActive={on.onActiveThisVisit ? activeByButton : null}
+      />
+
+      <RelateDialog
+        req={relate}
+        targets={relate && !relate.tgt ? relateTargets(relate.src.id) : []}
+        onClose={closeRelate}
+        onLink={(c) => {
+          if (relate?.edit) doRelabel(relate.edit, c.label!, c.qualifiers);
+          else doRelate(c);
+          closeRelate();
+        }}
+      />
+      <DemoteDialog
+        ask={demote}
+        onCancel={() => setDemote(null)}
+        onConfirm={() => {
+          demote?.go();
+          setDemote(null);
+        }}
+      />
 
       {/* Add a diagnosis (§5.3), from the search or from "Show all" */}
       {canWrite && props.on.onDiagnosis ? (

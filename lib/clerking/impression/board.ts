@@ -45,10 +45,13 @@ export interface DxMeta {
   onset?: OnsetId;
   severity?: string;
   reasoning?: string;
-  /** Associated diagnoses (dx ids) linked to this one at this visit: "with" in the note. */
+  /** Earlier format (before condition_relations, D-REL-17): associated diagnoses (dx ids) linked
+   *  to this one in the note; read only to propose relations when the draft opens. */
   with?: string[];
-  /** Associations (dx ids) the clinician flagged: marked in the note. */
+  /** Earlier format: the linked associations (dx ids) the clinician flagged. */
   flagged?: string[];
+  /** This diagnosis is flagged (design §5.2: a property of the diagnosis, not of its link). */
+  flag?: boolean;
 }
 
 /** The draft's `impression` section (§8). Keys are condition logical ids. */
@@ -59,6 +62,10 @@ export interface ImpressionDraft {
   evidence: Record<string, Record<FindingRef, AcceptedMark>>;
   meta: Record<string, DxMeta>;
   catalogueVersion: string;
+  /** "Cause removed: review" acknowledged: the retired relations' logical ids (DXV-13). */
+  reviewed?: string[];
+  /** The earlier format's links were confirmed or dismissed (D-REL-17): not offered again. */
+  backfill?: "done";
 }
 
 export const EMPTY_IMPRESSION: ImpressionDraft = {

@@ -28,6 +28,7 @@ import {
   updateProblemStatus,
 } from "./facts";
 import { openEncounter, ORDERING_CADRES, replayed, requireCadre } from "./orders";
+import { retireLinksForDemotion } from "./relations";
 
 /**
  * The Impression step's diagnosis writes (PROMPT-CLERKING-SUMMARY-IMPRESSION §9, gate-a-proposal
@@ -58,14 +59,20 @@ export interface SetLeadingDiagnosisInput {
   encounterId: string;
   /** The current version (as the clinician saw it) of the diagnosis to lead. */
   id: string;
+  /** The old leading diagnosis goes to the differential and the clinician confirmed that its
+   *  links are retired (Gate B). Without it, a linked one going there is refused. */
+  retireLinks?: boolean;
   clientKey: string;
 }
 
 /**
  * Make a diagnosis on this visit the leading one, in one transaction: the visit's current primary
- * first becomes secondary + differential, then the chosen one becomes primary + provisional (a
- * Final keeps its verification: promotion never takes a Final away). Already leading: nothing to
- * write.
+ * first takes the chosen one's place, then the chosen one becomes primary + provisional (a Final
+ * keeps its verification: promotion never takes a Final away). Already leading: nothing to write.
+ * - The chosen one is a differential: the old primary becomes secondary + differential (D-SI-05),
+ *   and its links are retired, once the clinician confirmed them (Gate B, D-REL-08).
+ * - The chosen one is co-existing (a swap, dx-relations Gate B): the old primary becomes
+ *   co-existing and keeps its verification, so both stay working and no link is lost.
  */
 export async function setLeadingDiagnosis(
   ctx: WriteCtx,
@@ -92,13 +99,25 @@ export async function setLeadingDiagnosis(
   const old = await currentPrimary(ctx, visit, chosen.logicalId);
   if (old) {
     const prev = await currentVersion(ctx, "condition", old.id, input.patientUserId);
-    if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
-      throw new EmrWriteError("forbidden", DEMOTE_FINAL);
+    const swap = chosen.verification !== "differential";
+    if (!swap) {
+      if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
+        throw new EmrWriteError("forbidden", DEMOTE_FINAL);
+      await retireLinksForDemotion(
+        ctx,
+        input.patientUserId,
+        prev.logicalId,
+        !!input.retireLinks,
+        input.clientKey,
+      );
+    }
     demotedId = await insertNextVersion(
       ctx,
       "condition",
       prev,
-      { rank: "secondary", verification: "differential", ...NO_REASON },
+      swap
+        ? { rank: "secondary", ...NO_REASON }
+        : { rank: "secondary", verification: "differential", ...NO_REASON },
       input.clientKey,
     );
   }
@@ -121,10 +140,13 @@ export interface MoveToDifferentialInput {
   patientUserId: string;
   /** The current version the clinician saw. */
   id: string;
+  /** The clinician confirmed that its links are retired (Gate B); without it, refused if linked. */
+  retireLinks?: boolean;
   clientKey: string;
 }
 
-/** The diagnosis becomes secondary + differential; the visit is left with no leading diagnosis. */
+/** The diagnosis becomes secondary + differential (a leading one leaves the visit with none); its
+ *  links are retired with it, once confirmed (D-REL-08). */
 export async function moveToDifferential(
   ctx: WriteCtx,
   input: MoveToDifferentialInput,
@@ -138,6 +160,13 @@ export async function moveToDifferential(
     throw invalid("This diagnosis is already in the differential.");
   if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
     throw new EmrWriteError("forbidden", DEMOTE_FINAL);
+  await retireLinksForDemotion(
+    ctx,
+    input.patientUserId,
+    prev.logicalId,
+    !!input.retireLinks,
+    input.clientKey,
+  );
   const id = await insertNextVersion(
     ctx,
     "condition",

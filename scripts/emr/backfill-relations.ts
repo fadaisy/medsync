@@ -17,84 +17,16 @@
 import type { EmrDb } from "@/lib/emr/db";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
-import ASSOCIATIONS from "@/data/clerking/dx-associations.v1.json";
 import { clinicalNotes, conditionRelations, conditions } from "@/db/schema/emr";
 import { DX_TERM_IDS } from "@/lib/clerking/impression/load";
+import { proposeRelations } from "@/lib/clerking/impression/relations";
 import { newestVersions } from "@/lib/emr/diagnoses";
 import { decrypt } from "@/lib/encryption";
 import { runCli } from "./_cli";
 
-type Assoc = { complications?: string[]; goes_with?: string[] };
-const DATA = ASSOCIATIONS as {
-  id: string;
-  version: string;
-  status: string;
-  associations: Record<string, Assoc>;
-};
-
-export interface VisitDx {
-  logicalId: string;
-  /** The `dx.*` id of its term, when it has one. */
-  dxId: string | null;
-  verification: string;
-}
-
-export type Proposal =
-  | {
-      kind: "due_to" | "associated_with";
-      conditionId: string;
-      relatedConditionId: string;
-      label: "complication" | null;
-      catalogueRef: string;
-    }
-  | { kind: "ask"; parentLogicalId: string; childDxId: string };
-
-/** The proposals for one draft's Impression. Pure. */
-export function proposeRelations(
-  meta: Record<string, { with?: string[] } | undefined>,
-  visit: readonly VisitDx[],
-  related: ReadonlySet<string> = new Set(),
-  data = DATA,
-): Proposal[] {
-  if (!data.status.startsWith("signed")) return [];
-  const byLogical = new Map(visit.map((d) => [d.logicalId, d]));
-  const byDx = new Map(visit.flatMap((d) => (d.dxId ? [[d.dxId, d] as const] : [])));
-  const live = (d?: VisitDx) =>
-    !!d && d.verification !== "differential" && d.verification !== "refuted";
-  const out: Proposal[] = [];
-  for (const [parentId, m] of Object.entries(meta)) {
-    const parent = byLogical.get(parentId);
-    for (const childDx of m?.with ?? []) {
-      const child = byDx.get(childDx);
-      const entry = parent?.dxId ? data.associations[parent.dxId] : undefined;
-      const ref = `${data.id}@${data.version}:${parent?.dxId}>${childDx}`;
-      const ask = { kind: "ask", parentLogicalId: parentId, childDxId: childDx } as const;
-      if (!live(parent) || !live(child) || child!.logicalId === parentId) {
-        out.push(ask);
-      } else if (entry?.complications?.includes(childDx)) {
-        if (!related.has(`due_to|${child!.logicalId}|${parentId}`))
-          out.push({
-            kind: "due_to",
-            conditionId: child!.logicalId,
-            relatedConditionId: parentId,
-            label: "complication",
-            catalogueRef: ref,
-          });
-      } else if (entry?.goes_with?.includes(childDx)) {
-        const [a, b] = [child!.logicalId, parentId].sort() as [string, string];
-        if (!related.has(`associated_with|${a}|${b}`))
-          out.push({
-            kind: "associated_with",
-            conditionId: a,
-            relatedConditionId: b,
-            label: null,
-            catalogueRef: ref,
-          });
-      } else out.push(ask);
-    }
-  }
-  return out;
-}
+// The pure proposal lives with the board, which offers it when the draft opens (Phase 3).
+export { proposeRelations } from "@/lib/clerking/impression/relations";
+export type { Proposal, VisitDx } from "@/lib/clerking/impression/relations";
 
 /** Every unsigned clerking draft's proposals, counted. Reads only. */
 export async function backfillRelationsReport(db: EmrDb): Promise<{

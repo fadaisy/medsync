@@ -21,6 +21,7 @@ import * as dx from "@/lib/emr/write/diagnoses";
 import * as facts from "@/lib/emr/write/facts";
 import * as notes from "@/lib/emr/write/notes";
 import * as orders from "@/lib/emr/write/orders";
+import * as rel from "@/lib/emr/write/relations";
 import { decrypt, encrypt, generateKey } from "@/lib/encryption";
 import { siCounts } from "@/scripts/emr/si-counts";
 import {
@@ -662,6 +663,102 @@ describe.skipIf(!laneOn)("Summary and Impression: the server (PGlite lane)", () 
     expect(still!.state).toBe("draft");
     // Three words release it.
     await save(content({ [sepsis.id]: "afebrile, lactate normal" }), draft);
+    await as(mo, (ctx) => notes.signNote(ctx, { patientUserId: v.q, noteId: draft.id }), v.q);
+    const [signed] = await rows<{ state: string }>(
+      "SELECT state FROM public.clinical_notes WHERE id = $1",
+      [draft.id],
+    );
+    expect(signed!.state).toBe("signed");
+  });
+
+  it("DXV-13: the server refuses to sign while a removed cause is not acknowledged", async () => {
+    const v = await newVisit();
+    const ana = await record(mo, v, { termId: dxTermUuid("dx.anaemia"), rank: "primary" });
+    const mal = await record(mo, v, {
+      termId: dxTermUuid("dx.malaria_severe"),
+      verification: "confirmed",
+    });
+    const link = await as(
+      mo,
+      (ctx) =>
+        rel.createRelation(ctx, {
+          patientUserId: v.q,
+          encounterId: v.e,
+          conditionId: ana.id,
+          relatedConditionId: mal.id,
+          relationType: "due_to",
+          label: "secondary",
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    await as(
+      mo,
+      (ctx) =>
+        facts.markFactEnteredInError(ctx, {
+          patientUserId: v.q,
+          kind: "condition",
+          id: mal.id,
+          clientKey: key(),
+          reasonCode: "ruled_out",
+          reasonText: "film negative twice",
+        }),
+      v.q,
+    );
+    const content = (reviewed: string[]): NoteContent => ({
+      schema: 2,
+      catalogueVersion: "1.0.0-draft",
+      header: { historian: "patient" },
+      history: {
+        ...emptyHistory(),
+        complaints: [{ key: "c", symptom: "sym.cough", props: {}, flags: {} }],
+      } as unknown as NoteContent["history"],
+      sections: {
+        s13: {
+          items: [
+            {
+              kind: "encounter_diagnosis",
+              conditionId: ana.id,
+              logicalId: ana.id,
+              display: "Anaemia",
+            },
+          ],
+        },
+        s14: { items: [{ kind: "plan_statement", text: "Review" }] },
+      },
+      impression: {
+        order: [],
+        likelihood: {},
+        reasons: {},
+        evidence: {},
+        meta: {},
+        catalogueVersion: "1.0.1-draft",
+        reviewed,
+      },
+      edited: {},
+    });
+    const save = (c: NoteContent, at?: { id: string; revision: number }) =>
+      as(
+        mo,
+        (ctx) =>
+          notes.saveNoteDraft(ctx, {
+            patientUserId: v.q,
+            encounterId: v.e,
+            templateId: "tpl.clerking.adult_v2",
+            content: c,
+            clientKey: key(),
+            ...(at ? { noteId: at.id, revision: at.revision } : {}),
+          }),
+        v.q,
+      );
+    const draft = await save(content([]));
+    await expect(
+      as(mo, (ctx) => notes.signNote(ctx, { patientUserId: v.q, noteId: draft.id }), v.q),
+    ).rejects.toMatchObject({
+      code: "invalid",
+      message: expect.stringMatching(/Anaemia: its cause was removed; review it/),
+    });
+    await save(content([link.id]), draft);
     await as(mo, (ctx) => notes.signNote(ctx, { patientUserId: v.q, noteId: draft.id }), v.q);
     const [signed] = await rows<{ state: string }>(
       "SELECT state FROM public.clinical_notes WHERE id = $1",

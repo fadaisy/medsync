@@ -263,9 +263,11 @@ export async function moveRelation(ctx: WriteCtx, input: MoveRelationInput): Pro
 
 export interface RelabelRelationInput extends VersionInput {
   label: RelationLabel;
+  /** Coded non-diagnosis causes (D-REL-11); absent: unchanged. */
+  qualifiers?: string[];
 }
 
-/** "Change" on a cause link: secondary, complication or precipitated by. */
+/** "Change" on a cause link: secondary, complication or precipitated by, and its precipitants. */
 export async function relabelRelation(
   ctx: WriteCtx,
   input: RelabelRelationInput,
@@ -275,8 +277,10 @@ export async function relabelRelation(
     input,
     (prev) => {
       if (prev.relationType !== "due_to") throw invalid("Only a cause link has a wording.");
-      if (prev.label === input.label) throw invalid("The link already reads so.");
-      return { label: input.label };
+      const qualifiers = input.qualifiers ?? prev.qualifiers;
+      if (prev.label === input.label && qualifiers.join() === prev.qualifiers.join())
+        throw invalid("The link already reads so.");
+      return { label: input.label, qualifiers };
     },
     { openVisit: true },
   );
@@ -332,4 +336,104 @@ export async function activeThisVisit(
     clientKey: linkKey,
   });
   return { id: link.id, conditionId: dx.id, warnings: dx.warnings };
+}
+
+/* ─── A linked diagnosis added from the catalogue (design §2.4) ───── */
+
+export interface AddLinkedDiagnosisInput {
+  patientUserId: string;
+  encounterId: string;
+  /** The logical id of the diagnosis it hangs under (this visit's, or a known condition). */
+  parentId: string;
+  /** Already on the visit: link only. Otherwise the new diagnosis, by term or typed words. */
+  conditionId?: string;
+  termId?: string;
+  text?: string;
+  relationType: "due_to" | "associated_with";
+  label?: RelationLabel | null;
+  catalogueRef?: string | null;
+  clientKey: string;
+}
+
+/**
+ * "Add a linked diagnosis": this visit's diagnosis (Working, co-existing rank) and its relation to
+ * the parent, in this one transaction, so a refused link leaves no orphan diagnosis. The new one is
+ * the condition (the complication, the effect); its parent the related one. Keys: `key` for the
+ * diagnosis, `key:link` for the relation.
+ */
+export async function addLinkedDiagnosis(
+  ctx: WriteCtx,
+  input: AddLinkedDiagnosisInput,
+): Promise<WriteResult & { conditionId: string }> {
+  let conditionId = input.conditionId;
+  let warnings: string[] | undefined;
+  if (!conditionId) {
+    if (!input.termId && !input.text) throw invalid("Pick the diagnosis to add.");
+    const dx = await recordEncounterDiagnosis(ctx, {
+      patientUserId: input.patientUserId,
+      encounterId: input.encounterId,
+      clientKey: input.clientKey,
+      ...(input.termId ? { termId: input.termId } : { text: input.text }),
+      verification: "provisional",
+      rank: "secondary",
+      addToProblemList: false,
+    });
+    conditionId = dx.id; // a first version's id is its logical id
+    warnings = dx.warnings;
+  }
+  const link = await createRelation(ctx, {
+    patientUserId: input.patientUserId,
+    encounterId: input.encounterId,
+    conditionId,
+    relatedConditionId: input.parentId,
+    relationType: input.relationType,
+    label: input.relationType === "due_to" ? input.label : null,
+    catalogueRef: input.catalogueRef,
+    clientKey: input.conditionId ? input.clientKey : `${input.clientKey}:link`,
+  });
+  return { id: link.id, conditionId, warnings };
+}
+
+/* ─── Demotion to the differential (Gate B, 2026-10-09) ─────────────── */
+
+/** The active cause and association links a diagnosis is an end of (episode links stay). */
+export async function linksOf(ctx: WriteCtx, patientUserId: string, logicalId: string) {
+  return ctx.tx
+    .select({ id: conditionRelations.id })
+    .from(conditionRelations)
+    .where(
+      and(
+        eq(conditionRelations.patientUserId, patientUserId),
+        eq(conditionRelations.state, "active"),
+        inArray(conditionRelations.relationType, ["due_to", "associated_with"]),
+        sql`(${conditionRelations.conditionId} = ${logicalId} OR ${conditionRelations.relatedConditionId} = ${logicalId})`,
+        notSuperseded,
+      ),
+    );
+}
+
+export const LINKS_TO_RETIRE =
+  "This diagnosis is linked to others: confirm that the links are retired, then move it.";
+
+/**
+ * A diagnosis going to the differential cannot keep its links (D-REL-08): the clinician confirmed
+ * the list the desk named, and each is retired here with the reason, in the caller's transaction.
+ * Not confirmed and links exist: `conflict`, nothing written.
+ */
+export async function retireLinksForDemotion(
+  ctx: WriteCtx,
+  patientUserId: string,
+  logicalId: string,
+  confirmed: boolean,
+  clientKey: string,
+): Promise<void> {
+  const links = await linksOf(ctx, patientUserId, logicalId);
+  if (links.length && !confirmed) throw new EmrWriteError("conflict", LINKS_TO_RETIRE);
+  for (const [n, l] of links.entries())
+    await retireRelation(ctx, {
+      patientUserId,
+      id: l.id,
+      reasonCode: "moved_to_differential",
+      clientKey: `${clientKey}:unlink${n}`,
+    });
 }

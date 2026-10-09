@@ -201,6 +201,9 @@ function impressionText(
     findings: imp.findings,
     unexplained: imp.unexplained,
     audience: "clinical",
+    relations: si.relations,
+    background: si.background,
+    ruledOut: si.ruledOut,
   });
 }
 
@@ -350,7 +353,10 @@ export function deriveDesk(
     canSign: base.canSign && siBlocks.length === 0 && planBlocks.length === 0,
     missing: [
       ...base.missing,
-      ...siBlocks.map((message) => ({ id: "si.mnm_reason", message })),
+      ...siBlocks.map((message) => ({
+        id: imp?.causeBlocks.includes(message) ? "si.cause_removed" : "si.mnm_reason",
+        message,
+      })),
       ...planBlocks.map((message) => ({ id: "plan.done", message })),
     ],
     warnings: [

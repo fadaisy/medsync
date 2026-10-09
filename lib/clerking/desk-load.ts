@@ -15,6 +15,7 @@ import {
   pregnancyEpisodes,
 } from "@/db/schema/emr";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
+import { STAGE_RESULT_CONCEPTS } from "@/lib/clerking/impression/stage-inputs";
 import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
@@ -293,7 +294,7 @@ export async function clerkingData(i: {
       i.scope,
       (tx) =>
         loadFactSnapshot(tx, i.patientUserId, {
-          manifest: [...RESULT_CONCEPTS, ...PACK_RESULT_CONCEPTS],
+          manifest: [...RESULT_CONCEPTS, ...PACK_RESULT_CONCEPTS, ...STAGE_RESULT_CONCEPTS],
           purpose: "interactive",
           perConceptCap: 20,
         }),

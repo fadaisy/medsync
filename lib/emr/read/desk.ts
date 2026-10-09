@@ -5,10 +5,12 @@ import type {
   CarriedProblem,
   ContextVital,
   DeskBackground,
+  DeskCauseRemoved,
   DeskDiagnosis,
   DeskNoteRow,
   DeskPayload,
   DeskRelation,
+  DeskRuledOut,
   Suggestion,
 } from "@/components/emr/desk/model";
 import type { EmrActor } from "@/lib/emr/actor";
@@ -319,6 +321,8 @@ export async function loadDeskFor(
           icd11Code: conditions.icd11Code,
           sensitivity: conditions.sensitivity,
           effectiveAt: conditions.effectiveAt,
+          reasonCode: conditions.reasonCode,
+          reasonCiphertext: conditions.reasonCiphertext,
         })
         .from(conditions)
         .where(eq(conditions.patientUserId, enc.patientUserId));
@@ -338,12 +342,21 @@ export async function loadDeskFor(
           sensitivity: conditionRelations.sensitivity,
           origin: conditionRelations.origin,
           encounterId: conditionRelations.encounterId,
+          state: conditionRelations.state,
+          reasonCode: conditionRelations.reasonCode,
         })
         .from(conditionRelations)
         .where(
           and(
             eq(conditionRelations.patientUserId, enc.patientUserId),
-            eq(conditionRelations.state, "active"),
+            // Active ones, and cause links the system retired when the cause went ("Cause removed").
+            or(
+              eq(conditionRelations.state, "active"),
+              and(
+                eq(conditionRelations.origin, "system_end_removed"),
+                eq(conditionRelations.relationType, "due_to"),
+              ),
+            ),
             sql`NOT EXISTS (SELECT 1 FROM public.condition_relations s WHERE s.supersedes_id = ${conditionRelations.id})`,
           ),
         );
@@ -733,9 +746,57 @@ export async function loadDeskFor(
   const onVisit = new Set(diagnoses.map((d) => d.logicalId));
   const onBoard = new Set([...onVisit, ...background.map((b) => b.logicalId)]);
   const relations: DeskRelation[] = rec.relationRows
-    .filter((r) => onBoard.has(r.conditionId) && onBoard.has(r.relatedConditionId))
-    .map(({ sensitivity, ...r }) => ({ ...r, restricted: sensitivity === "restricted" }))
+    .filter(
+      (r) =>
+        r.state === "active" && onBoard.has(r.conditionId) && onBoard.has(r.relatedConditionId),
+    )
+    .map(({ sensitivity, state: _s, reasonCode: _r, ...r }) => ({
+      ...r,
+      restricted: sensitivity === "restricted",
+    }))
     .sort((a, b) => a.position - b.position);
+  const lastOf = new Map<string, (typeof rec.conditionRows)[number]>();
+  for (const c of rec.conditionRows)
+    if ((lastOf.get(c.logicalId)?.version ?? 0) < c.version) lastOf.set(c.logicalId, c);
+  // "Ruled out" in the note (design §2.3, 4): this visit's diagnoses refuted (Replace), or removed
+  // as ruled out (D-SI-13), with the reason.
+  const ruledOut: DeskRuledOut[] = [...lastOf.values()]
+    .filter(
+      (c) =>
+        c.category === "encounter_diagnosis" &&
+        c.encounterId === enc.id &&
+        ((c.verification === "refuted" &&
+          c.status !== "entered_in_error" &&
+          c.status !== "cancelled") ||
+          (c.status === "entered_in_error" && c.reasonCode === "ruled_out")),
+    )
+    .map((c) => ({
+      logicalId: c.logicalId,
+      display: conditionName(c),
+      reason: safeDecrypt(c.reasonCiphertext),
+      restricted: c.sensitivity === "restricted",
+    }));
+  // "Cause removed: review" (DXV-13): a cause link the system retired when its cause was ruled out
+  // or entered in error, on an effect still on this visit; the draft acknowledges it.
+  const causeRemoved: DeskCauseRemoved[] = rec.relationRows
+    .filter(
+      (r) =>
+        r.state === "retired" && r.origin === "system_end_removed" && onVisit.has(r.conditionId),
+    )
+    .flatMap((r) => {
+      const cause = lastOf.get(r.relatedConditionId);
+      return cause
+        ? [
+            {
+              logicalId: r.logicalId,
+              conditionId: r.conditionId,
+              causeDisplay: conditionName(cause),
+              label: r.label,
+              reason: r.reasonCode === "end_refuted" ? ("refuted" as const) : ("in_error" as const),
+            },
+          ]
+        : [];
+    });
 
   const orders = chart.orders
     .filter((o) => o.encounterId === enc.id)
@@ -907,6 +968,8 @@ export async function loadDeskFor(
       diagnoses,
       relations,
       background,
+      causeRemoved,
+      ruledOut,
       orders,
       substances: SUBSTANCES,
       completionWarnings: warnings,

@@ -2,6 +2,7 @@
 
 import type { NcdSeed } from "./ncd-section";
 import type { PregnancyWrite } from "@/components/clerking/conversion-dialog";
+import type { RelateChoice } from "@/components/clerking/impression/relations-ui";
 import type {
   AllergyWrite,
   MedicineAdd,
@@ -11,7 +12,10 @@ import type { PlacePlanRequest } from "@/components/clerking/plan/plan-step";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
+import type { Association } from "@/lib/clerking/impression/associations";
 import type { BoardRow } from "@/lib/clerking/impression/board";
+import type { Edge, Known } from "@/lib/clerking/impression/relations";
+import type { DueLabel } from "@/lib/clerking/impression/relations-catalogue";
 import type { PlanDraft } from "@/lib/clerking/plan/draft";
 import type { ObsFrequency } from "@/lib/emr/charts/rules";
 import type { NoteContent } from "@/lib/emr/note-rules";
@@ -107,6 +111,14 @@ import {
 } from "@/lib/emr/actions/notes";
 import { placeOrders } from "@/lib/emr/actions/orders";
 import { placePlan, syncPlanCharts } from "@/lib/emr/actions/plan";
+import {
+  activeThisVisit,
+  addLinkedDiagnosis,
+  createRelation,
+  moveRelation,
+  relabelRelation,
+  retireRelation,
+} from "@/lib/emr/actions/relations";
 import { clockWarning, correctedNow, initialClock, observe } from "@/lib/emr/sync/clock";
 import { attachToWindow, createWriteQueue } from "@/lib/emr/sync/queue";
 import { deskFindingIndex, deskTermIndex, deskTermSearch } from "./actions";
@@ -129,6 +141,15 @@ const NcdSection = dynamic(() => import("./ncd-section"), {
 });
 
 type Msg = { ok: boolean; text: string } | null;
+
+/** The relation guard's refusal, as the clinician reads it ("Relation refused: …", §4.4). */
+const refused = <T,>(p: Promise<ActionResult<T>>) =>
+  p.then(
+    (r): ActionResult<T> =>
+      r.ok || r.code !== "invalid" || r.error.startsWith("Relation refused")
+        ? r
+        : { ...r, error: `Relation refused: ${r.error}` },
+  );
 
 /** The words of a removal reason (D-SI-13) when the clinician chose one with no text. */
 const REMOVE_WORD: Record<string, string> = {
@@ -761,20 +782,94 @@ export function DeskClient({
           }),
         `${row.dx.display} added to the problem list`,
       ),
-    // One action writes both versions: the old leading becomes a differential (D-SI-21).
-    onLeading: (row: BoardRow) =>
+    // One action writes both versions: the old leading takes the chosen one's place (D-SI-21; a
+    // co-existing one swaps and both stay working; a linked one going to the differential retires
+    // its links once confirmed, dx-relations Gate B).
+    onLeading: (row: BoardRow, o?: { retireLinks?: boolean }) =>
       void run(
         `dx-leading:${row.dx.logicalId}`,
         (clientKey) =>
-          setLeadingDiagnosis({ ...base, clientKey, encounterId, id: row.dx.versionId }),
+          setLeadingDiagnosis({
+            ...base,
+            clientKey,
+            encounterId,
+            id: row.dx.versionId,
+            retireLinks: o?.retireLinks,
+          }),
         `${row.dx.display} is now the leading diagnosis`,
       ),
-    onToDifferential: (row: BoardRow) =>
+    onToDifferential: (row: BoardRow, o?: { retireLinks?: boolean }) =>
       void run(
         `dx-move:${row.dx.logicalId}`,
-        (clientKey) => moveToDifferential({ ...base, clientKey, id: row.dx.versionId }),
+        (clientKey) =>
+          moveToDifferential({
+            ...base,
+            clientKey,
+            id: row.dx.versionId,
+            retireLinks: o?.retireLinks,
+          }),
         "Moved to the differential",
       ),
+    // Relations (dx-relations Phase 3, 0096): each one chart action; a refusal reads as such.
+    onRelate: (c: RelateChoice & { origin?: "backfill_confirmed" }) =>
+      run(
+        `rel:${c.conditionId}:${c.relatedConditionId}`,
+        (clientKey) => refused(createRelation({ ...base, clientKey, encounterId, ...c })),
+        "Diagnoses linked",
+        c,
+      ),
+    onUnlink: (e: Edge, reason: "unlinked" | "undone") =>
+      run(
+        `rel-retire:${e.id}`,
+        (clientKey) =>
+          refused(retireRelation({ ...base, clientKey, id: e.id, reasonCode: reason })),
+        reason === "undone" ? "Link undone" : "Unlinked",
+      ),
+    onMoveRelation: (e: Edge, position: number) =>
+      run(
+        `rel-move:${e.id}`,
+        (clientKey) => refused(moveRelation({ ...base, clientKey, id: e.id, position })),
+        "Link moved",
+        position,
+      ),
+    onRelabel: (e: Edge, label: DueLabel, qualifiers: string[]) =>
+      run(
+        `rel-label:${e.id}`,
+        (clientKey) =>
+          refused(relabelRelation({ ...base, clientKey, id: e.id, label, qualifiers })),
+        "Link changed",
+        [label, qualifiers],
+      ),
+    onActiveThisVisit: (k: Known, rank: "primary" | "secondary") =>
+      run(
+        `rel-active:${k.logicalId}`,
+        (clientKey) => activeThisVisit({ ...base, clientKey, encounterId, problemId: k.id, rank }),
+        `${k.display} is active this visit`,
+      ),
+    onAddLinked: (parent: BoardRow, a: Association) => {
+      const termId = Object.entries(dx?.termIds ?? {}).find(([, id]) => id === a.dxId)?.[0];
+      return run(
+        `rel-add:${parent.dx.logicalId}:${a.dxId}`,
+        (clientKey) =>
+          refused(
+            addLinkedDiagnosis({
+              ...base,
+              clientKey,
+              encounterId,
+              parentId: parent.dx.logicalId,
+              ...(a.onVisit
+                ? { conditionId: a.onVisit }
+                : termId && dx?.names[a.dxId]?.coded
+                  ? { termId }
+                  : { text: a.display }),
+              relationType: a.relationType,
+              label: a.label,
+              catalogueRef: a.ref,
+            }),
+          ),
+        `${a.display} added and linked`,
+      );
+    },
     onRemove: (row: BoardRow, why: { code: string; text?: string }) =>
       void run(
         `dx-remove:${row.dx.logicalId}`,

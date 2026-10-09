@@ -204,3 +204,7 @@ export function stageScaleOf(dx: string) {
     if (id === dx || (st.applies_also_to ?? []).includes(dx)) return { id, ...st };
   return null;
 }
+
+/** A coded non-diagnosis cause in words ("Missed or stopped insulin"); the id if unknown. */
+export const precipitantName = (id: string) =>
+  C.non_diagnosis_causes.find((c) => c.id === id)?.display ?? id;

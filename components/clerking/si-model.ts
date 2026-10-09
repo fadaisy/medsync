@@ -1,5 +1,11 @@
 import type { DxData } from "./use-catalogue";
-import type { DeskPayload } from "@/components/emr/desk/model";
+import type {
+  DeskBackground,
+  DeskCauseRemoved,
+  DeskPayload,
+  DeskRelation,
+  DeskRuledOut,
+} from "@/components/emr/desk/model";
 import type { History } from "@/lib/clerking/answers";
 import type { Catalogue } from "@/lib/clerking/catalogue";
 import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
@@ -135,6 +141,12 @@ export interface SiView {
   asks: AskRow[];
   /** The Summary block of the note. */
   noteText: string;
+  /** Relations among the board and the background, the problem list, the cause links the system
+   *  retired, and this visit's ruled-out diagnoses (0096, dx-relations Phase 3). */
+  relations: DeskRelation[];
+  background: DeskBackground[];
+  causeRemoved: DeskCauseRemoved[];
+  ruledOut: DeskRuledOut[];
 }
 
 const NONE_SIGNED: DxSignoff = {
@@ -264,5 +276,9 @@ export function deriveSi(i: SiInput): SiView | null {
     composedMoved,
     asks: dx ? asks({ x, dx: dx.cat, board, viewer }) : [],
     noteText,
+    relations: i.p.relations ?? [],
+    background: i.p.background ?? [],
+    causeRemoved: i.p.causeRemoved ?? [],
+    ruledOut: i.p.ruledOut ?? [],
   };
 }

@@ -29,8 +29,13 @@ const clientKey = z
   .refine((k) => !k.includes(":"), "That key is reserved.");
 const base = { surface, patientUserId: uuid, clientKey };
 
-const SetLeadingDiagnosis = z.object({ ...base, encounterId: uuid, id: uuid });
-const MoveToDifferential = z.object({ ...base, id: uuid });
+const SetLeadingDiagnosis = z.object({
+  ...base,
+  encounterId: uuid,
+  id: uuid,
+  retireLinks: z.boolean().optional(),
+});
+const MoveToDifferential = z.object({ ...base, id: uuid, retireLinks: z.boolean().optional() });
 const RequestDiagnosisCosign = z.object({ ...base, id: uuid });
 const term = {
   termId: uuid.optional(),
@@ -67,7 +72,8 @@ const DecideDiagnosisCosign = z.object({
   reviewNote: z.string().trim().max(1000).optional(),
 });
 
-/** Make a diagnosis on this visit the leading one: the old primary moves to the differential. */
+/** Make a diagnosis on this visit the leading one: the old primary takes its place (the
+ *  differential, its links retired once confirmed; or co-existing, a swap). */
 export async function setLeadingDiagnosis(raw: unknown) {
   return runEmrWrite(SetLeadingDiagnosis, raw, dx.setLeadingDiagnosis);
 }

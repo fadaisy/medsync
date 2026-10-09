@@ -143,6 +143,27 @@ export interface DeskRelation {
   encounterId: string;
 }
 
+/** A cause link the system retired because its cause was ruled out or entered in error, on an
+ *  effect still on this visit: "Cause removed: review" until the draft acknowledges it (DXV-13). */
+export interface DeskCauseRemoved {
+  /** The relation's logical id (the draft's acknowledgement keys on it). */
+  logicalId: string;
+  /** The effect, on this visit. */
+  conditionId: string;
+  causeDisplay: string;
+  label: "complication" | "secondary" | "precipitated_by" | null;
+  reason: "refuted" | "in_error";
+}
+
+/** This visit's diagnosis ruled out (refuted by Replace, or removed as ruled out), for the note's
+ *  "Ruled out" line (dx-relations-design §2.3). */
+export interface DeskRuledOut {
+  logicalId: string;
+  display: string;
+  reason: string | null;
+  restricted: boolean;
+}
+
 /** A known condition (the problem list) on the board's Background (design §2.1, R5). */
 export interface DeskBackground {
   /** The condition's current version. */
@@ -246,6 +267,10 @@ export interface DeskPayload {
   relations?: DeskRelation[];
   /** The patient's problem list, for the Background row (0096). */
   background?: DeskBackground[];
+  /** Cause links retired by the system on this visit's diagnoses (0096, DXV-13). */
+  causeRemoved?: DeskCauseRemoved[];
+  /** This visit's diagnoses ruled out, with the reason (the note's "Ruled out"). */
+  ruledOut?: DeskRuledOut[];
   orders: DeskOrder[];
   /** The allergy editor's coded substances: the formulary's ingredients and classes. */
   substances: { kind: "drug_ingredient" | "drug_class"; code: string; label: string }[];

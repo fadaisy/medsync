@@ -591,6 +591,159 @@ describe.skipIf(!laneOn)("0096 condition_relations (PGlite lane)", () => {
       ]);
     });
 
+    it("Phase 3: 'Add a linked diagnosis' writes the diagnosis and its link together, or neither", async () => {
+      const v = await newVisit();
+      const dm = await record(v, { termId: dxTermUuid("dx.dm_type2"), verification: "confirmed" });
+      const k = key();
+      const add = () =>
+        as(v.q, (ctx) =>
+          rel.addLinkedDiagnosis(ctx, {
+            patientUserId: v.q,
+            encounterId: v.e,
+            parentId: dm,
+            termId: dxTermUuid("dx.diabetic_retinopathy"),
+            relationType: "due_to",
+            label: "complication",
+            catalogueRef: "MS-EMR-DX-ASSOC-001@test:dx.diabetic_retinopathy<-dx.dm_type2",
+            clientKey: k,
+          }),
+        );
+      const r = await add();
+      expect(await current(r.id)).toMatchObject({ state: "active", label: "complication" });
+      const [c] = await rows<{ rank: string; verification: string }>(
+        `SELECT rank, verification FROM public.conditions WHERE logical_id = $1`,
+        [r.conditionId],
+      );
+      expect(c).toEqual({ rank: "secondary", verification: "provisional" });
+      expect(await add()).toMatchObject({ id: r.id, conditionId: r.conditionId });
+      // A refused link (onto a differential) leaves no orphan diagnosis.
+      const sep = await record(v, { text: "Sepsis", verification: "differential" });
+      const n = async () =>
+        (
+          await rows<{ n: number }>(
+            `SELECT count(*)::int AS n FROM public.conditions WHERE patient_user_id = $1`,
+            [v.q],
+          )
+        )[0]!.n;
+      const before = await n();
+      await expect(
+        as(v.q, (ctx) =>
+          rel.addLinkedDiagnosis(ctx, {
+            patientUserId: v.q,
+            encounterId: v.e,
+            parentId: sep,
+            termId: dxTermUuid("dx.aki"),
+            relationType: "due_to",
+            label: "secondary",
+            clientKey: key(),
+          }),
+        ),
+      ).rejects.toMatchObject({ code: "invalid" });
+      expect(await n()).toBe(before);
+    });
+
+    it("Phase 3: demotion retires links only once confirmed; a swap keeps both working", async () => {
+      const v = await newVisit();
+      const mal = await record(v, {
+        termId: dxTermUuid("dx.malaria_severe"),
+        verification: "confirmed",
+        rank: "primary",
+      });
+      const ana = await record(v, {
+        termId: dxTermUuid("dx.anaemia"),
+        verification: "provisional",
+      });
+      const pn = await record(v, {
+        termId: dxTermUuid("dx.pneumonia"),
+        verification: "provisional",
+      });
+      const r = await link(v, ana, mal);
+      // Swap with a co-existing diagnosis: the old leading stays working (co-existing), the link stays.
+      await as(v.q, (ctx) =>
+        dx.setLeadingDiagnosis(ctx, {
+          patientUserId: v.q,
+          encounterId: v.e,
+          id: pn,
+          clientKey: key(),
+        }),
+      );
+      const now = await rows<{ logical_id: string; rank: string; verification: string }>(
+        `SELECT DISTINCT ON (logical_id) logical_id, rank, verification FROM public.conditions
+         WHERE encounter_id = $1 ORDER BY logical_id, version DESC`,
+        [v.e],
+      );
+      const by = new Map(now.map((c) => [c.logical_id, c]));
+      expect(by.get(mal)).toMatchObject({ rank: "secondary", verification: "confirmed" });
+      expect(by.get(pn)).toMatchObject({ rank: "primary" });
+      expect(await current(r.id)).toMatchObject({ state: "active" });
+      // To the differential: refused while linked, unless the clinician confirmed the retirement.
+      const malNow = (
+        await rows<{ id: string }>(
+          `SELECT id FROM public.conditions WHERE logical_id = $1 ORDER BY version DESC LIMIT 1`,
+          [mal],
+        )
+      )[0]!.id;
+      await expect(
+        as(v.q, (ctx) =>
+          dx.moveToDifferential(ctx, { patientUserId: v.q, id: malNow, clientKey: key() }),
+        ),
+      ).rejects.toMatchObject({ code: "conflict", message: rel.LINKS_TO_RETIRE });
+      expect(await current(r.id)).toMatchObject({ state: "active" });
+      await as(v.q, (ctx) =>
+        dx.moveToDifferential(ctx, {
+          patientUserId: v.q,
+          id: malNow,
+          retireLinks: true,
+          clientKey: key(),
+        }),
+      );
+      expect(await current(r.id)).toMatchObject({
+        state: "retired",
+        origin: "clinician",
+        reason_code: "moved_to_differential",
+      });
+    });
+
+    it("Phase 3: Change keeps the label and sets the precipitants; the desk names a removed cause", async () => {
+      const v = await newVisit();
+      const dka = await record(v, { termId: dxTermUuid("dx.dka"), verification: "confirmed" });
+      const pn = await record(v, { termId: dxTermUuid("dx.pneumonia"), verification: "confirmed" });
+      const r = await link(v, dka, pn, { label: "precipitated_by" });
+      await as(v.q, (ctx) =>
+        rel.relabelRelation(ctx, {
+          patientUserId: v.q,
+          id: r.id,
+          label: "precipitated_by",
+          qualifiers: ["cause.insulin_omission"],
+          clientKey: key(),
+        }),
+      );
+      const [q] = await rows<{ qualifiers: string[] }>(
+        `SELECT qualifiers FROM public.condition_relations_current WHERE logical_id = $1`,
+        [r.id],
+      );
+      expect(q!.qualifiers).toEqual(["cause.insulin_omission"]);
+      await as(v.q, (ctx) =>
+        facts.markFactEnteredInError(ctx, {
+          kind: "condition",
+          patientUserId: v.q,
+          id: pn,
+          reasonCode: "wrong_patient",
+          clientKey: key(),
+        }),
+      );
+      const desk = await loadDeskFor(mo, v.e, { database: lane.db });
+      expect(desk!.payload.causeRemoved).toEqual([
+        expect.objectContaining({
+          logicalId: r.id,
+          conditionId: dka,
+          causeDisplay: expect.stringMatching(/pneumonia/i),
+          reason: "in_error",
+        }),
+      ]);
+      expect(desk!.payload.relations).toEqual([]);
+    });
+
     it("D-REL-17 report: an unsigned draft's links become proposals; nothing is written", async () => {
       const v = await newVisit();
       const dm = await record(v, { termId: dxTermUuid("dx.dm_type2"), verification: "confirmed" });

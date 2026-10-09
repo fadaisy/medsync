@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { ImpressionHandlers } from "@/components/clerking/impression/impression-step";
-import type { DeskDiagnosis, DeskPayload } from "@/components/emr/desk/model";
+import type { DeskDiagnosis, DeskPayload, DeskRelation } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxTerm } from "@/components/emr/desk/search";
 import type { DxOptions } from "@/components/emr/desk/sections";
@@ -105,10 +105,32 @@ const TERMS: DxTerm[] = Object.entries(DX_NAMES).map(([id, n]) => ({
 }));
 let termsLoader: () => Promise<DxTerm[]> = async () => [];
 
+/** A relation as the server returns it (DeskRelation). */
+const rel = (
+  condition: { logicalId: string },
+  related: { logicalId: string },
+  relationType: DeskRelation["relationType"] = "due_to",
+  label: DeskRelation["label"] = relationType === "due_to" ? "secondary" : null,
+  position = 1,
+): DeskRelation => ({
+  id: uuid(),
+  logicalId: uuid(),
+  conditionId: condition.logicalId,
+  relatedConditionId: related.logicalId,
+  relationType,
+  label,
+  position,
+  qualifiers: [],
+  restricted: false,
+  origin: "clinician",
+  encounterId: "enc",
+});
+
 function Harness({ p, offer }: { p: DeskPayload; offer?: string }) {
   const [content, setContent] = useState(p.draft!.content);
   const [diagnoses, setDiagnoses] = useState(p.diagnoses);
-  const payloadNow = useMemo(() => ({ ...p, diagnoses }), [p, diagnoses]);
+  const [relations, setRelations] = useState(p.relations ?? []);
+  const payloadNow = useMemo(() => ({ ...p, diagnoses, relations }), [p, diagnoses, relations]);
   const shown = useMemo(() => syncRecorded(content, payloadNow), [content, payloadNow]);
   const log = (name: string, ...args: unknown[]) => calls.push({ name, args });
   const on: ImpressionHandlers & Record<string, unknown> = {
@@ -150,8 +172,42 @@ function Harness({ p, offer }: { p: DeskPayload; offer?: string }) {
       log("onRemove", row.dx.display, why);
       setDiagnoses((ds) => ds.filter((d) => d.logicalId !== row.dx.logicalId));
     },
-    onLeading: (row) => log("onLeading", row.dx.display),
-    onToDifferential: (row) => log("onToDifferential", row.dx.display),
+    onLeading: (row, o) => log("onLeading", row.dx.display, o),
+    onToDifferential: (row, o) => log("onToDifferential", row.dx.display, o),
+    // Relations as the record would hold them after the write.
+    onRelate: (c) => {
+      log("onRelate", c);
+      setRelations((rs) => [
+        ...rs,
+        {
+          ...rel(
+            { logicalId: c.conditionId },
+            { logicalId: c.relatedConditionId },
+            c.relationType,
+            c.label,
+          ),
+          qualifiers: c.qualifiers,
+        },
+      ]);
+    },
+    onUnlink: (e, why) => {
+      log("onUnlink", e.id, why);
+      setRelations((rs) => rs.filter((r) => r.id !== e.id));
+    },
+    onMoveRelation: (e, position) => {
+      log("onMoveRelation", e.id, position);
+      setRelations((rs) =>
+        rs
+          .map((r) => (r.id === e.id ? { ...r, position } : r))
+          .sort((a, b) => a.position - b.position),
+      );
+    },
+    onRelabel: (e, label, qualifiers) => {
+      log("onRelabel", e.id, label, qualifiers);
+      setRelations((rs) => rs.map((r) => (r.id === e.id ? { ...r, label, qualifiers } : r)));
+    },
+    onActiveThisVisit: (k, rank) => void log("onActiveThisVisit", k.display, rank),
+    onAddLinked: (parent, a) => void log("onAddLinked", parent.dx.display, a.dxId, a.relationType),
   };
   return h(ClerkingDesk, {
     p: payloadNow,
@@ -345,9 +401,11 @@ describe("step 09, Impression", () => {
     expect(calls.some((c) => c.name === "onRemove")).toBe(false);
   });
 
-  it("lists a diagnosis's complications and what goes with it, and adds one linked (associations)", () => {
+  it("lists a diagnosis's complications and what goes with it; Add puts it on the visit, linked", () => {
     mount(payload([DM2()]));
-    expect(all()).toContain("Associated with Type 2 diabetes");
+    expect(host.querySelector("#impression-add-association")?.textContent).toBe(
+      "Add a linked diagnosis to Type 2 diabetes",
+    );
     expect(all()).toMatch(/Diabetic retinopathy[^]*complication/);
     expect(all()).toMatch(/Hypertension[^]*goes with it/);
     expect(all()).toContain("Check for:");
@@ -355,18 +413,28 @@ describe("step 09, Impression", () => {
       l.textContent?.startsWith("Hypertension"),
     )!;
     tap(button("Add", row));
-    expect(calls.find((c) => c.name === "onDiagnosis")?.args[1]).toMatchObject({
-      verification: "provisional",
-      primary: false,
-    });
-    const lead = Object.entries(draft().meta ?? {}).find(([, m]) => m.with?.length);
-    expect(lead?.[1].with).toEqual(["dx.hypertension"]);
-    // Chosen: in its own container under the leading diagnosis, not under "Also this visit".
-    const box = host.querySelector('section[aria-label="Associated with Type 2 diabetes"]')!;
-    expect(box.textContent).toContain("Associated with Type 2 diabetes (1)");
-    expect(box.textContent).toMatch(/Hypertension · goes with it/);
-    expect(host.querySelector("#impression-also")).toBeNull();
-    // Its own supports come from the leading diagnosis's bucket: make it the target, then tap.
+    // One write: on the visit and linked (the server does both in one transaction).
+    expect(calls.find((c) => c.name === "onAddLinked")?.args).toEqual([
+      "Type 2 diabetes",
+      "dx.hypertension",
+      "associated_with",
+    ]);
+    expect(calls.some((c) => c.name === "onDiagnosis")).toBe(false);
+  });
+
+  it("shows a linked diagnosis under its parent with its own supports from the bucket", () => {
+    const dm = DM2();
+    const htn = dxRow("dx.hypertension", "Hypertension", "secondary", "provisional");
+    const p = payload([dm, htn]);
+    p.relations = [rel(dm, htn, "associated_with")];
+    mount(p);
+    const box = host.querySelector('section[aria-label="Linked to Type 2 diabetes"]')!;
+    expect(box.textContent).toContain("Linked to Type 2 diabetes (1)");
+    expect(box.textContent).toMatch(/Hypertension· with Type 2 diabetes/);
+    // Linked, so not co-existing.
+    expect(
+      host.querySelector('[aria-labelledby="impression-also"]')?.textContent ?? "",
+    ).not.toMatch(/Hypertension.*Working/);
     tap(button("Add findings here, from the list on the right", box));
     expect(box.querySelector('li[data-active="true"]')?.textContent).toContain("Hypertension");
     const chip = [...host.querySelectorAll("button")].find((x) =>
@@ -374,37 +442,31 @@ describe("step 09, Impression", () => {
     );
     expect(chip).toBeTruthy();
     tap(chip);
-    const hyp = Object.entries(draft().meta ?? {}).find(([, m]) => m.with)?.[0];
-    const marked = Object.entries(draft().evidence ?? {}).filter(([id]) => id !== hyp);
-    expect(marked.some(([, col]) => Object.values(col).some((m) => m.w === "for"))).toBe(true);
+    const col = draft().evidence[htn.logicalId] ?? {};
+    expect(Object.values(col).some((m) => m.w === "for")).toBe(true);
   });
 
-  it("arranges and flags the chosen associations; 'Add an association' is its own section", () => {
-    mount(payload([DM2()]));
-    expect(host.querySelector("#impression-add-association")?.textContent).toBe(
-      "Add an association to Type 2 diabetes",
-    );
-    const addFor = (name: string) =>
-      tap(
-        button(
-          "Add",
-          [
-            ...host.querySelectorAll('section[aria-labelledby="impression-add-association"] li'),
-          ].find((l) => l.textContent?.startsWith(name))!,
-        ),
-      );
-    addFor("Hypertension");
-    addFor("Obesity");
-    const links = () => Object.values(draft().meta ?? {}).find((m) => m.with?.length)!;
-    expect(links().with).toEqual(["dx.hypertension", "dx.obesity"]);
+  it("arranges linked diagnoses (the relation's position) and flags one (the diagnosis's own)", () => {
+    const dm = DM2();
+    const htn = dxRow("dx.hypertension", "Hypertension", "secondary", "provisional");
+    const ob = dxRow("dx.obesity", "Obesity", "secondary", "provisional");
+    const p = payload([dm, htn, ob]);
+    const e1 = rel(htn, dm, "associated_with", null, 1);
+    const e2 = rel(ob, dm, "associated_with", null, 2);
+    p.relations = [e1, e2];
+    mount(p);
+    expect(labelled("Move Hypertension up")?.disabled).toBe(true);
     tap(labelled("Move Obesity up"));
-    expect(links().with).toEqual(["dx.obesity", "dx.hypertension"]);
-    expect((labelled("Move Obesity up") as HTMLButtonElement).disabled).toBe(true);
+    expect(calls.filter((c) => c.name === "onMoveRelation").map((c) => c.args)).toEqual([
+      [e2.id, 1],
+      [e1.id, 2],
+    ]);
+    expect(labelled("Move Obesity up")?.disabled).toBe(true);
     tap(labelled("Flag Hypertension"));
-    expect(links().flagged).toEqual(["dx.hypertension"]);
+    expect(draft().meta[htn.logicalId]?.flag).toBe(true);
     expect(all()).toContain("Flagged");
     tap(labelled("Unflag Hypertension"));
-    expect(links().flagged).toEqual([]);
+    expect(draft().meta[htn.logicalId]?.flag).toBe(false);
   });
 
   it("type 2 diabetes offers DKA and hypoglycaemia among its complications (CSO addition)", () => {
@@ -546,5 +608,346 @@ describe('step 09, "Show all" diagnoses', () => {
     expect(dialog().querySelectorAll("li button")).toHaveLength(1);
     type(filter, "zzzz");
     expect(dialog().textContent).toContain("Nothing matches");
+  });
+});
+
+describe("step 09, relations on the board (dx-relations Phase 3)", () => {
+  const MAL = () => dxRow("dx.malaria_severe", "Malaria, severe", "primary", "confirmed");
+  const ANA = () => dxRow("dx.anaemia", "Anaemia", "secondary", "provisional");
+  const PNEU = () => dxRow("dx.pneumonia", "Pneumonia", "secondary", "provisional");
+  const T1 = {
+    id: uuid(),
+    logicalId: uuid(),
+    termId: dxTermUuid("dx.dm_type1"),
+    display: "Type 1 diabetes",
+    code: null,
+    restricted: false,
+    since: "2019-04-02T00:00:00.000Z",
+  };
+  const dialog = () => document.querySelector('[role="dialog"]') as HTMLElement | null;
+  const grip = (name: string) => labelled(`Move ${name}`)!;
+  const key = (el: Element, k: string) =>
+    act(() => {
+      el.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true }));
+    });
+  /** Lift a card with Space, step with the arrows to the target named, drop with Enter. */
+  const keyDrop = (name: string, words: RegExp) => {
+    const g = grip(name);
+    key(g, " ");
+    for (let i = 0; i < 12 && !words.test(status()); i++) key(g, "ArrowDown");
+    expect(status()).toMatch(words);
+    key(g, "Enter");
+  };
+  const status = () => host.querySelector('p[role="status"]')?.textContent ?? "";
+  const section = (id: string) => host.querySelector(`[aria-labelledby="${id}"]`) as HTMLElement;
+  const radio = (text: RegExp) =>
+    [...(dialog()?.querySelectorAll('[role="radio"]') ?? [])].find((r) =>
+      text.test(r.textContent ?? ""),
+    ) as HTMLButtonElement | undefined;
+
+  it("places: leading, linked under it, co-existing and the background", () => {
+    const mal = MAL();
+    const ana = ANA();
+    const p = payload([mal, ana, PNEU()]);
+    p.relations = [rel(ana, mal)];
+    p.background = [T1];
+    mount(p);
+    const box = host.querySelector('section[aria-label="Linked to Malaria, severe"]')!;
+    expect(box.textContent).toMatch(/Anaemia· secondary to Malaria, severe/);
+    const also = section("impression-also");
+    expect(also.querySelector("h3")?.textContent).toBe("Also this visit: co-existing");
+    expect(also.textContent).toContain("Pneumonia");
+    expect(also.textContent).not.toContain("Anaemia");
+    const bg = section("impression-background");
+    expect(bg.textContent).toMatch(/Type 1 diabetes\s*On record since 2019\s*Active this visit/);
+  });
+
+  it("shows a relation once, from the higher side: a clause on the effect, a child under the cause", () => {
+    const dka = dxRow("dx.dka", "Diabetic ketoacidosis", "primary", "provisional");
+    const pneu = PNEU();
+    const p = payload([dka, pneu]);
+    p.background = [T1];
+    p.relations = [
+      rel(dka, T1, "due_to", "complication"),
+      rel(dka, pneu, "due_to", "precipitated_by"),
+    ];
+    mount(p);
+    const lead = section("impression-leading");
+    expect(lead.textContent).toContain("Complication of known Type 1 diabetes");
+    expect(lead.textContent).toContain("Precipitated by Pneumonia");
+    // The cause stays co-existing and does not repeat the arrow.
+    const also = section("impression-also");
+    expect(also.textContent).toContain("Pneumonia");
+    expect(also.textContent).not.toMatch(/precipitated/i);
+    expect(all().match(/Precipitated by Pneumonia/g)).toHaveLength(1);
+  });
+
+  it("a catalogued drop applies at once, says so inline, and Undo retires it", async () => {
+    const mal = MAL();
+    const ana = ANA();
+    mount(payload([mal, ana]));
+    keyDrop("Anaemia", /link under Malaria, severe, as secondary to/);
+    await act(async () => {});
+    expect(calls.find((c) => c.name === "onRelate")?.args[0]).toMatchObject({
+      conditionId: ana.logicalId,
+      relatedConditionId: mal.logicalId,
+      relationType: "due_to",
+      label: "secondary",
+      catalogueRef: expect.stringContaining("dx.anaemia<-dx.malaria_severe"),
+    });
+    expect(status()).toBe("Anaemia linked to Malaria, severe, as secondary to. Undo available.");
+    expect(all()).toContain("Linked as: secondary to Malaria, severe");
+    expect(
+      host.querySelector('section[aria-label="Linked to Malaria, severe"]')?.textContent,
+    ).toContain("Anaemia");
+    tap(button("Undo"));
+    expect(calls.find((c) => c.name === "onUnlink")?.args[1]).toBe("undone");
+    expect(dialog()).toBeNull();
+  });
+
+  it("the reverse direction opens the chooser with 'Did you mean …?' first", () => {
+    const mal = { ...MAL(), rank: "secondary" as const };
+    const ana = ANA();
+    mount(payload([DM2(), mal, ana]));
+    keyDrop("Malaria, severe", /Drop to link to Anaemia: you choose how/);
+    expect(dialog()?.textContent).toContain("How does Malaria, severe relate to Anaemia?");
+    const first = dialog()!.querySelector('[role="radio"]')!;
+    expect(first.textContent).toBe("Did you mean: Anaemia secondary to Malaria, severe?");
+    expect(first.getAttribute("aria-checked")).toBe("false");
+    tap(first);
+    tap(button("Link", dialog()!));
+    expect(calls.find((c) => c.name === "onRelate")?.args[0]).toMatchObject({
+      conditionId: ana.logicalId,
+      relatedConditionId: mal.logicalId,
+      label: "secondary",
+    });
+  });
+
+  it("a direction-ambiguous pair always asks, with nothing chosen", () => {
+    const hf = dxRow("dx.heart_failure", "Heart failure", "secondary", "provisional");
+    const af = dxRow("dx.af", "Atrial fibrillation", "secondary", "provisional");
+    mount(payload([DM2(), hf, af]));
+    keyDrop("Heart failure", /Drop to link to Atrial fibrillation: you choose how/);
+    expect(dialog()?.textContent).toContain("both ways round");
+    const radios = [...dialog()!.querySelectorAll('[role="radio"]')];
+    expect(radios.every((r) => r.getAttribute("aria-checked") === "false")).toBe(true);
+    expect((button("Link", dialog()!) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("an uncatalogued pair opens the chooser with no preselection; Leave unrelated changes nothing", () => {
+    const a = { ...dxRow("dx.x", "Back pain", "secondary", "provisional"), termId: null };
+    const b2 = { ...dxRow("dx.y", "Insomnia", "secondary", "provisional"), termId: null };
+    mount(payload([DM2(), a, b2]));
+    keyDrop("Back pain", /Drop to link to Insomnia: you choose how/);
+    const texts = [...dialog()!.querySelectorAll('[role="radio"]')].map((r) => r.textContent);
+    expect(texts).toEqual([
+      "Back pain is secondary to Insomnia",
+      "Back pain is a complication of Insomnia",
+      "Back pain was precipitated by Insomnia",
+      "Back pain is associated with (not a cause) Insomnia",
+    ]);
+    expect(texts.some((t) => /Did you mean/.test(t ?? ""))).toBe(false);
+    tap(button("Leave unrelated (co-existing)", dialog()!));
+    expect(calls.some((c) => c.name === "onRelate")).toBe(false);
+  });
+
+  it("'Relate to…' lists targets with the catalogue's suggestion and preselects it", () => {
+    const mal = MAL();
+    const ana = ANA();
+    mount(payload([mal, ana]));
+    const card = [...section("impression-also").querySelectorAll("li")].find((l) =>
+      l.textContent?.includes("Anaemia"),
+    )!;
+    tap(button("Relate to…", card));
+    const target = [...dialog()!.querySelectorAll("li button")].find((b) =>
+      b.textContent?.startsWith("Malaria, severe"),
+    )!;
+    expect(target.textContent).toContain("Suggested: secondary to");
+    tap(target);
+    expect(radio(/is secondary to/)?.getAttribute("aria-checked")).toBe("true");
+    tap(button("Link", dialog()!));
+    expect(calls.find((c) => c.name === "onRelate")?.args[0]).toMatchObject({
+      conditionId: ana.logicalId,
+      label: "secondary",
+    });
+  });
+
+  it("unlinks by its button and by a drop on the co-existing header", () => {
+    const mal = MAL();
+    const ana = ANA();
+    const p = payload([mal, ana]);
+    const e = rel(ana, mal);
+    p.relations = [e];
+    mount(p);
+    tap(labelled("Unlink Anaemia"));
+    expect(calls.find((c) => c.name === "onUnlink")?.args).toEqual([e.id, "unlinked"]);
+    expect(section("impression-also").textContent).toContain("Anaemia");
+    expect(all()).toContain("Unlinked from Malaria, severe");
+    calls = [];
+    act(() => root.unmount());
+    root = createRoot(host);
+    const p2 = payload([mal, ana]);
+    p2.relations = [e];
+    mount(p2);
+    keyDrop("Anaemia", /Drop to unlink Anaemia: it becomes co-existing/);
+    expect(calls.find((c) => c.name === "onUnlink")?.args).toEqual([e.id, "unlinked"]);
+  });
+
+  it("refuses a drop on a differential, in words", () => {
+    const sep = SEPSIS();
+    mount(payload([DIABETES(), PNEU(), sep]));
+    const g = grip("Pneumonia");
+    key(g, " ");
+    // The keyboard offers no differential; a pointer drop on one says why.
+    const row = host.querySelector(`[data-drop="dx:${sep.logicalId}"]`)!;
+    document.elementFromPoint = () => row;
+    key(g, "Escape");
+    act(() => {
+      g.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          clientX: 0,
+          clientY: 0,
+          pointerType: "mouse",
+        }),
+      );
+    });
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointermove", { clientX: 30, clientY: 30 }));
+    });
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointerup", { clientX: 30, clientY: 30 }));
+    });
+    expect(status()).toBe("Drop refused: Sepsis is a differential. Promote it first.");
+    expect(calls.some((c) => c.name === "onRelate")).toBe(false);
+  });
+
+  it("a background chip: 'Active this visit' by its button, or dropped on the co-existing header", () => {
+    const p = payload([MAL(), PNEU()]);
+    p.background = [T1];
+    mount(p);
+    tap(button("Active this visit", section("impression-background")));
+    expect(calls.find((c) => c.name === "onActiveThisVisit")?.args).toEqual([
+      "Type 1 diabetes",
+      "secondary",
+    ]);
+    calls = [];
+    keyDrop("Type 1 diabetes", /Drop to make Type 1 diabetes active this visit/);
+    expect(calls.find((c) => c.name === "onActiveThisVisit")).toBeTruthy();
+  });
+
+  it("demotion to the differential names the links, and retires them on confirm", () => {
+    const mal = MAL();
+    const ana = ANA();
+    const p = payload([mal, ana]);
+    p.relations = [rel(ana, mal)];
+    mount(p);
+    tap(button("Move to differential"));
+    expect(dialog()?.textContent).toContain("Anaemia, secondary to Malaria, severe");
+    expect(calls.some((c) => c.name === "onToDifferential")).toBe(false);
+    tap(button("Retire the links and move", dialog()!));
+    expect(calls.find((c) => c.name === "onToDifferential")?.args).toEqual([
+      "Malaria, severe",
+      { retireLinks: true },
+    ]);
+  });
+
+  it("swaps a co-existing diagnosis with the leading one in one action, no confirm", () => {
+    const mal = MAL();
+    const ana = ANA();
+    const p = payload([mal, ana, PNEU()]);
+    p.relations = [rel(ana, mal)];
+    mount(p);
+    const card = [...section("impression-also").querySelectorAll("li")].find((l) =>
+      l.textContent?.includes("Pneumonia"),
+    )!;
+    tap(button("Make leading", card));
+    expect(calls.find((c) => c.name === "onLeading")?.args).toEqual(["Pneumonia", undefined]);
+    expect(dialog()).toBeNull();
+  });
+
+  it("a restricted end the viewer cannot see drops out with its clause, and no placeholder", () => {
+    const ana = { ...ANA(), rank: "primary" as const };
+    const hiv = { ...dxRow("dx.hiv", "HIV infection", "secondary", "confirmed"), restricted: true };
+    const p = payload([ana, hiv]);
+    p.clerking!.canSeeRestricted = false;
+    p.relations = [{ ...rel(ana, hiv), restricted: true }];
+    mount(p);
+    expect(all()).not.toMatch(/HIV/);
+    expect(section("impression-leading").textContent).not.toMatch(/secondary to|cannot view/i);
+    expect(host.querySelector('[data-block="impression"]')?.textContent).not.toMatch(
+      /HIV|secondary to/,
+    );
+  });
+
+  it("'Cause removed: review' holds signing until it is acknowledged", () => {
+    const ana = { ...ANA(), rank: "primary" as const };
+    const p = payload([ana]);
+    p.causeRemoved = [
+      {
+        logicalId: "rel-1",
+        conditionId: ana.logicalId,
+        causeDisplay: "Malaria, severe",
+        label: "secondary",
+        reason: "refuted",
+      },
+    ];
+    mount(p);
+    expect(section("impression-leading").textContent).toContain("Cause removed: review");
+    expect(all()).toContain("Its cause, Malaria, severe, was ruled out; the link was retired.");
+    expect(signButton().disabled).toBe(true);
+    expect(stepStatus()).toContain("Review needed");
+    tap(button("Reviewed"));
+    expect(draft().reviewed).toEqual(["rel-1"]);
+    expect(all()).not.toContain("Cause removed: review");
+    expect(signButton().disabled).toBe(false);
+  });
+
+  it("writes the note in the design's order: leading, its links, co-existing, known conditions", () => {
+    const mal = MAL();
+    const ana = ANA();
+    const p = payload([mal, ana, PNEU()]);
+    p.relations = [rel(ana, mal)];
+    p.background = [T1];
+    mount(p);
+    const text = host.querySelector('[data-block="impression"]')?.textContent ?? "";
+    const at = (s: string) => text.indexOf(s);
+    expect(at("Malaria, severe (primary; final)")).toBeGreaterThan(-1);
+    expect(at("Anaemia (working), secondary to malaria, severe.")).toBeGreaterThan(
+      at("Malaria, severe (primary"),
+    );
+    expect(at("Also this visit, co-existing: Pneumonia (working).")).toBeGreaterThan(at("Anaemia"));
+    expect(at("Known conditions: type 1 diabetes (on record since 2019).")).toBeGreaterThan(
+      at("Pneumonia"),
+    );
+  });
+
+  it("offers the earlier format's links once: Confirm writes them as backfill_confirmed", () => {
+    const dm = DM2();
+    const ret = dxRow(
+      "dx.diabetic_retinopathy",
+      "Diabetic retinopathy",
+      "secondary",
+      "provisional",
+    );
+    const p = payload([dm, ret]);
+    p.draft!.content = {
+      ...p.draft!.content,
+      impression: { meta: { [dm.logicalId]: { with: ["dx.diabetic_retinopathy"] } } },
+    } as NoteContent;
+    mount(p);
+    const row = section("impression-backfill");
+    expect(row.textContent).toContain("Diabetic retinopathy, complication of Type 2 diabetes");
+    tap(button("Confirm", row));
+    expect(calls.find((c) => c.name === "onRelate")?.args[0]).toMatchObject({
+      conditionId: ret.logicalId,
+      relatedConditionId: dm.logicalId,
+      relationType: "due_to",
+      label: "complication",
+      origin: "backfill_confirmed",
+    });
+    expect(draft().backfill).toBe("done");
+    expect(section("impression-backfill")).toBeNull();
   });
 });

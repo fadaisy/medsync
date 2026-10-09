@@ -1,17 +1,30 @@
 import type { Association } from "@/lib/clerking/impression/associations";
 import type { BoardRow } from "@/lib/clerking/impression/board";
 import type { Finding } from "@/lib/clerking/impression/facts";
+import type { DueLabel } from "@/lib/clerking/impression/relations-catalogue";
 import type { ReactNode } from "react";
 import { ArrowDownIcon, ArrowUpIcon, FlagIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+/** A link's own links sit indented under it (the 4 levels a cause chain may have). */
+const INDENT = ["", "ml-6", "ml-12", "ml-18"];
+
+const CANDIDATE_WORDS: Record<DueLabel | "associated", string> = {
+  complication: "complication",
+  secondary: "secondary to it",
+  precipitated_by: "precipitated by it",
+  associated: "goes with it",
+};
+
 /**
- * The leading diagnosis's associations (owner, 2026-10-08): the ones the clinician chose, in their
- * own container under the leading diagnosis's supports. Each keeps its own supports, picked from
- * the same bucket as the leading diagnosis's ("Not yet explained by any diagnosis"): "Add findings
- * here" makes it the bucket's target. The candidates to choose from sit below ("Add an association").
+ * The diagnoses linked under one (owner, 2026-10-08; dx-relations-design §2.1 "Linked"): relation
+ * rows from the record, in their own container under the parent, depth first (a link's own links
+ * indented). Each keeps its own supports, picked from the same bucket as the leading diagnosis's
+ * ("Not yet explained by any diagnosis"): "Add findings here" makes it the bucket's target. Move up
+ * and down set its place among its siblings (the note follows it); flag is the diagnosis's own.
+ * Under the leading diagnosis the candidates sit below ("Add a linked diagnosis").
  */
 export function AssociatedContainer({
   parent,
@@ -25,13 +38,23 @@ export function AssociatedContainer({
   onMove,
   onFlag,
   actions,
+  grip,
+  stage,
+  card,
+  below,
 }: {
   parent: string;
   chosen: readonly {
     row: BoardRow;
-    type: "complication" | "goes_with" | null;
+    /** Its link, in words: "secondary to Malaria", "with Type 2 diabetes". */
+    words: string;
     supports: Finding[];
     flagged: boolean;
+    /** 1 under the parent, 2 under one of its links… */
+    depth: number;
+    /** First or last among its siblings (move up or down is off). */
+    first: boolean;
+    last: boolean;
   }[];
   /** The chosen association the bucket's findings go to (its logical id), or null (the leading). */
   active: string | null;
@@ -45,37 +68,45 @@ export function AssociatedContainer({
   /** Arrange (its place in the note) and flag a chosen one. */
   onMove: (row: BoardRow, by: -1 | 1) => void;
   onFlag: (row: BoardRow) => void;
-  /** Status, Details and Remove for a chosen one (the step's own controls). */
+  /** Status, Details, Remove and Relate to… for a linked one (the step's own controls). */
   actions: (row: BoardRow) => ReactNode;
+  /** Its drag grip, its stage (Phase 4), its drop-target attributes and what goes under it. */
+  grip?: (row: BoardRow) => ReactNode;
+  stage?: (row: BoardRow) => ReactNode;
+  card?: (row: BoardRow) => Record<string, string>;
+  below?: (row: BoardRow) => ReactNode;
 }) {
   if (!chosen.length && !candidates.length) return null;
   return (
     <section
-      aria-label={`Associated with ${parent}`}
+      aria-label={`Linked to ${parent}`}
       className="border-border bg-muted/30 flex flex-col gap-3 rounded-md border px-3 py-3"
     >
       <span className="text-caption text-muted-foreground font-medium tracking-[0.06em] uppercase">
-        {`Associated with ${parent}${chosen.length ? ` (${chosen.length})` : ""}`}
+        {`Linked to ${parent}${chosen.length ? ` (${chosen.length})` : ""}`}
       </span>
       {chosen.length ? (
         <ul className="flex flex-col gap-2">
-          {chosen.map(({ row, type, supports, flagged }, n) => {
+          {chosen.map(({ row, words, supports, flagged, depth, first, last }) => {
             const on = active === row.dx.logicalId;
             return (
               <li
                 key={row.dx.logicalId}
                 data-active={on || undefined}
+                data-card=""
+                {...card?.(row)}
                 className={cn(
-                  "border-border bg-card flex flex-col gap-2 rounded-md border px-3 py-2.5",
+                  "border-border bg-card flex flex-col gap-2 rounded-md border px-3 py-2.5 data-[dragging=true]:opacity-60 data-[over=true]:ring-2 data-[over=true]:ring-teal-600",
                   on && "bg-iris-tint ring-iris-edge ring-1",
+                  INDENT[Math.min(depth, 4) - 1],
                 )}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-body-s text-foreground font-medium">
+                  <span className="text-body-s text-foreground inline-flex flex-wrap items-center gap-x-1.5 font-medium">
+                    {grip?.(row)}
                     {row.dx.display}
-                    <span className="text-caption text-muted-foreground font-normal">
-                      {type === "complication" ? " · complication" : type ? " · goes with it" : ""}
-                    </span>
+                    {stage?.(row)}
+                    <span className="text-caption text-muted-foreground font-normal">{`· ${words}`}</span>
                     {flagged ? (
                       <span className="text-caption bg-status-caution-bg dark:text-status-caution-fg ml-1.5 inline-flex items-center gap-1 rounded-sm px-1.5 font-medium text-amber-800">
                         <FlagIcon aria-hidden className="size-3" />
@@ -89,7 +120,7 @@ export function AssociatedContainer({
                         <button
                           type="button"
                           aria-label={`Move ${row.dx.display} up`}
-                          disabled={n === 0}
+                          disabled={first}
                           onClick={() => onMove(row, -1)}
                           className="text-muted-foreground hover:bg-muted focus-visible:shadow-focus inline-flex size-7 items-center justify-center rounded-sm outline-none disabled:opacity-40 pointer-coarse:size-11"
                         >
@@ -98,7 +129,7 @@ export function AssociatedContainer({
                         <button
                           type="button"
                           aria-label={`Move ${row.dx.display} down`}
-                          disabled={n === chosen.length - 1}
+                          disabled={last}
                           onClick={() => onMove(row, 1)}
                           className="text-muted-foreground hover:bg-muted focus-visible:shadow-focus inline-flex size-7 items-center justify-center rounded-sm outline-none disabled:opacity-40 pointer-coarse:size-11"
                         >
@@ -156,6 +187,7 @@ export function AssociatedContainer({
                     <p className="text-caption text-muted-foreground">Nothing selected yet.</p>
                   )}
                 </div>
+                {below?.(row)}
                 {canWrite ? (
                   <button
                     type="button"
@@ -174,7 +206,8 @@ export function AssociatedContainer({
         </ul>
       ) : (
         <p className="text-caption text-muted-foreground">
-          None chosen yet. Choose from &ldquo;Add an association&rdquo; below.
+          None linked yet. Choose from &ldquo;Add a linked diagnosis&rdquo; below, or drag a
+          co-existing diagnosis onto this one.
         </p>
       )}
     </section>
@@ -182,9 +215,10 @@ export function AssociatedContainer({
 }
 
 /**
- * "Add an association" (owner, 2026-10-08): its own full-width section under the leading
- * diagnosis, the candidates side by side. Supported first; each says what supports it or what
- * would check for it; Add puts it on the visit, linked.
+ * "Add a linked diagnosis" (owner, 2026-10-08; dx-relations-design §2.4): its own full-width
+ * section under the leading diagnosis, the candidates side by side: its complications, what it can
+ * cause (with the catalogue's "suggest when") and what goes with it. Supported first; each says
+ * what supports it or what would check for it; Add puts it on the visit and links it, in one write.
  */
 export function AssociationCandidates({
   parent,
@@ -206,7 +240,7 @@ export function AssociationCandidates({
     <section aria-labelledby="impression-add-association" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 id="impression-add-association" className="text-label text-foreground">
-          {`Add an association to ${parent}`}
+          {`Add a linked diagnosis to ${parent}`}
         </h3>
         <span className="text-caption text-muted-foreground">
           {`${items.filter((a) => a.supportedBy.length).length} of ${items.length} supported by the record`}
@@ -224,10 +258,13 @@ export function AssociationCandidates({
                 <span className="text-body-s text-foreground">
                   {a.display}
                   <span className="text-caption text-muted-foreground">
-                    {a.type === "complication" ? " · complication" : " · goes with it"}
+                    {` · ${CANDIDATE_WORDS[a.label ?? "associated"]}`}
                     {a.mustNotMiss ? " · must not miss" : ""}
                   </span>
                 </span>
+                {a.suggestWhen ? (
+                  <span className="text-caption text-muted-foreground">{`Suggest when: ${a.suggestWhen}`}</span>
+                ) : null}
                 <span
                   className={cn(
                     "text-caption",
