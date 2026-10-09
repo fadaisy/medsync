@@ -7,6 +7,7 @@ import type { OrderFrequency, OrderPriority, OrderRecords, OrderStatus } from "@
 import type { FactConcept } from "@/lib/facts/types";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { z } from "zod";
+import { refresh } from "next/cache";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
@@ -408,6 +409,9 @@ export async function runEmrWrite<
   schema: z.ZodType<I>,
   raw: unknown,
   write: (ctx: WriteCtx, input: I) => Promise<R>,
+  /** `refresh`: send the refreshed page back in this action's own response, so the desk needs no
+   *  second round trip (board actions). Never for autosave: the desk would reload while typing. */
+  opts: { refresh?: boolean } = {},
 ): Promise<ActionResult<R>> {
   const parsed = schema.safeParse(raw);
   if (!parsed.success)
@@ -429,12 +433,21 @@ export async function runEmrWrite<
       if (!isUniqueViolation(e)) throw e;
       result = await attempt();
     }
+    let refreshed = false;
+    if (opts.refresh)
+      try {
+        refresh();
+        refreshed = true;
+      } catch {
+        // Outside a server action (a test, a script): the caller refreshes as before.
+      }
     return {
       ok: true,
       id: result.id,
       serverTime: new Date().toISOString(),
       data: result,
       ...(result.warnings?.length ? { warnings: result.warnings } : {}),
+      ...(refreshed ? { refreshed } : {}),
     };
   } catch (e) {
     return actionError(e);

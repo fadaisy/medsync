@@ -253,13 +253,15 @@ export async function assertAllergyStatus(raw: unknown) {
   return runEmrWrite(AssertAllergyStatus, raw, facts.assertAllergyStatus);
 }
 export async function recordProblem(raw: unknown) {
-  return runEmrWrite(RecordProblem, raw, facts.recordProblem);
+  return runEmrWrite(RecordProblem, raw, facts.recordProblem, { refresh: true });
 }
 export async function updateProblemStatus(raw: unknown) {
-  return runEmrWrite(UpdateProblemStatus, raw, facts.updateProblemStatus);
+  return runEmrWrite(UpdateProblemStatus, raw, facts.updateProblemStatus, { refresh: true });
 }
 export async function recordEncounterDiagnosis(raw: unknown) {
-  return runEmrWrite(RecordEncounterDiagnosis, raw, facts.recordEncounterDiagnosis);
+  return runEmrWrite(RecordEncounterDiagnosis, raw, facts.recordEncounterDiagnosis, {
+    refresh: true,
+  });
 }
 export async function recordMedicationStatements(raw: unknown) {
   return runEmrWrite(RecordMedicationStatements, raw, facts.recordMedicationStatements);
@@ -285,5 +287,5 @@ export async function recordProcedure(raw: unknown) {
   return runEmrWrite(RecordProcedure, raw, facts.recordProcedure);
 }
 export async function markFactEnteredInError(raw: unknown) {
-  return runEmrWrite(MarkFactEnteredInError, raw, facts.markFactEnteredInError);
+  return runEmrWrite(MarkFactEnteredInError, raw, facts.markFactEnteredInError, { refresh: true });
 }

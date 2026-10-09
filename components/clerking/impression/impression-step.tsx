@@ -70,7 +70,7 @@ import { precipitantName } from "@/lib/clerking/impression/relations-catalogue";
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
-import { AssociatedContainer, AssociationCandidates } from "./associations";
+import { AssociatedContainer, AssociationCandidates, CollapseButton } from "./associations";
 import { dropKey, sameTarget, useBoardDrag } from "./board-drag";
 import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
@@ -370,6 +370,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
   const b = si.board;
   const lead = b.leading;
   const [removing, setRemoving] = useState<string | null>(null);
+  // The whole leading card folds to its name (owner, 2026-10-09).
+  const [leadOpen, setLeadOpen] = useState(true);
   // Which diagnosis the bucket ("Not yet explained") gives findings to: null is the leading.
   const [bucketTo, setBucketTo] = useState<string | null>(null);
   // A diagnosis this clinician added at this visit comes off in one tap as "Added by mistake"
@@ -1095,12 +1097,19 @@ export function ImpressionStep(props: ImpressionStepProps) {
         {lead ? (
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span
-                id="impression-leading"
-                className="text-caption inline-flex items-center gap-1.5 font-medium tracking-[0.06em] text-teal-700 uppercase dark:text-teal-300"
-              >
-                <StarIcon aria-hidden className="size-3.5 fill-current" />
-                Leading · primary for this visit
+              <span className="inline-flex items-center gap-1">
+                <CollapseButton
+                  open={leadOpen}
+                  name={lead.dx.display}
+                  onToggle={() => setLeadOpen(!leadOpen)}
+                />
+                <span
+                  id="impression-leading"
+                  className="text-caption inline-flex items-center gap-1.5 font-medium tracking-[0.06em] text-teal-700 uppercase dark:text-teal-300"
+                >
+                  <StarIcon aria-hidden className="size-3.5 fill-current" />
+                  Leading · primary for this visit
+                </span>
               </span>
               <StatusControl
                 row={lead}
@@ -1117,8 +1126,8 @@ export function ImpressionStep(props: ImpressionStepProps) {
                   {props.cardSlots?.stage?.(lead)}
                 </span>
                 <span className="text-caption text-muted-foreground">{subLine(lead, dx)}</span>
-                {pl.leading ? relationBlock(pl.leading) : null}
-                {props.cardSlots?.below?.(lead)}
+                {leadOpen && pl.leading ? relationBlock(pl.leading) : null}
+                {leadOpen ? props.cardSlots?.below?.(lead) : null}
                 {overLine({ kind: "dx", id: lead.dx.logicalId })}
               </div>
             </div>
@@ -1128,178 +1137,186 @@ export function ImpressionStep(props: ImpressionStepProps) {
             {lead.awaitingSignoff ? (
               <p className="text-caption text-muted-foreground">Reasoning aids awaiting sign-off</p>
             ) : null}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <span className="text-caption text-muted-foreground">Supports it</span>
-                {supports.length ? (
-                  <ul className="flex flex-wrap gap-1.5">
-                    {supports.map((f) => (
-                      <li key={f.ref}>
-                        <span className="bg-ink-100 dark:bg-ink-700 text-caption inline-flex min-h-7 items-center gap-1 rounded-sm pr-0.5 pl-2">
-                          <span className="font-mono">+</span>
-                          <FindingText item={f} news2={si.x.news2Latest} />
-                          {canWrite ? (
+            {leadOpen ? (
+              <>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-caption text-muted-foreground">Supports it</span>
+                    {supports.length ? (
+                      <ul className="flex flex-wrap gap-1.5">
+                        {supports.map((f) => (
+                          <li key={f.ref}>
+                            <span className="bg-ink-100 dark:bg-ink-700 text-caption inline-flex min-h-7 items-center gap-1 rounded-sm pr-0.5 pl-2">
+                              <span className="font-mono">+</span>
+                              <FindingText item={f} news2={si.x.news2Latest} />
+                              {canWrite ? (
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${f.text} from the support`}
+                                  onClick={() =>
+                                    props.onImpression((d) =>
+                                      withMark(d, lead.dx.logicalId, f.ref, "blank", stamp()),
+                                    )
+                                  }
+                                  className="hover:bg-card focus-visible:shadow-focus inline-flex size-6 items-center justify-center rounded-xs outline-none pointer-coarse:size-11"
+                                >
+                                  <XIcon aria-hidden className="size-3" />
+                                </button>
+                              ) : null}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-body-s text-muted-foreground">
+                        {leadCol && leadCol.suggested.size
+                          ? "Nothing accepted yet. Open the matrix or Details to accept."
+                          : "Nothing accepted yet."}
+                      </p>
+                    )}
+                    {pl.leading ? (
+                      <AssociatedContainer
+                        parent={lead.dx.display}
+                        chosen={chosenOf(pl.leading)}
+                        candidates={leadAssoc.filter((a) => !a.linked)}
+                        canWrite={canWrite}
+                        finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
+                        active={target?.dx.logicalId ?? null}
+                        onActivate={(row) => setBucketTo(row?.dx.logicalId ?? null)}
+                        onUnsupport={(row, f) =>
+                          props.onImpression((d) =>
+                            withMark(d, row.dx.logicalId, f.ref, "blank", stamp()),
+                          )
+                        }
+                        onMove={(row, by) => moveChild(pl.cardOf.get(row.dx.logicalId)!, by)}
+                        onFlag={(row) => props.onImpression((d) => withFlagOn(d, row))}
+                        grip={gripFor}
+                        stage={props.cardSlots?.stage}
+                        card={(row) => ({
+                          ...drag.target({ kind: "dx", id: row.dx.logicalId }),
+                        })}
+                        below={(row) => linkedBelow(pl.cardOf.get(row.dx.logicalId)!)}
+                        actions={linkedActions}
+                      />
+                    ) : null}
+                    {linked.map(({ row }) =>
+                      removing === row.dx.logicalId ? (
+                        <RemoveForm
+                          key={row.dx.logicalId}
+                          row={row}
+                          onRemove={(r, why) => {
+                            setRemoving(null);
+                            props.on.onRemove?.(r, why);
+                          }}
+                          onCancel={() => setRemoving(null)}
+                        />
+                      ) : null,
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5" aria-live="polite">
+                    <span className="text-caption text-muted-foreground">
+                      Not yet explained by any diagnosis
+                    </span>
+                    {linked.length && canWrite ? (
+                      <Seg
+                        label="Add findings to"
+                        options={[lead, ...linked.map((c) => c.row)].map((r) => ({
+                          id: r.dx.logicalId,
+                          label: r.dx.display,
+                        }))}
+                        value={target?.dx.logicalId ?? lead.dx.logicalId}
+                        onPick={(id) => setBucketTo(id === lead.dx.logicalId ? null : id)}
+                      />
+                    ) : null}
+                    {v.unexplained.length ? (
+                      <ul className="flex flex-wrap gap-1.5">
+                        {v.unexplained.map((f) => (
+                          <li key={f.ref}>
                             <button
                               type="button"
-                              aria-label={`Remove ${f.text} from the support`}
+                              disabled={!canWrite}
                               onClick={() =>
                                 props.onImpression((d) =>
-                                  withMark(d, lead.dx.logicalId, f.ref, "blank", stamp()),
+                                  v
+                                    .sameAs(f.ref)
+                                    .reduce(
+                                      (acc, ref) =>
+                                        target
+                                          ? withMark(acc, target.dx.logicalId, ref, "for", stamp())
+                                          : explainWithLeading(acc, b, ref, stamp()),
+                                      d,
+                                    ),
                                 )
                               }
-                              className="hover:bg-card focus-visible:shadow-focus inline-flex size-6 items-center justify-center rounded-xs outline-none pointer-coarse:size-11"
+                              aria-label={`${f.text}: link it to ${(target ?? lead).dx.display}`}
+                              className={cn(
+                                "text-caption border-border hover:bg-muted focus-visible:shadow-focus inline-flex min-h-7 items-center gap-1 rounded-sm border border-dashed px-2 outline-none pointer-coarse:min-h-11",
+                                PRESS,
+                              )}
                             >
-                              <XIcon aria-hidden className="size-3" />
+                              <FindingText item={f} news2={si.x.news2Latest} />
                             </button>
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-body-s text-muted-foreground">
-                    {leadCol && leadCol.suggested.size
-                      ? "Nothing accepted yet. Open the matrix or Details to accept."
-                      : "Nothing accepted yet."}
-                  </p>
-                )}
-                {pl.leading ? (
-                  <AssociatedContainer
-                    parent={lead.dx.display}
-                    chosen={chosenOf(pl.leading)}
-                    candidates={leadAssoc.filter((a) => !a.linked)}
-                    canWrite={canWrite}
-                    finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
-                    active={target?.dx.logicalId ?? null}
-                    onActivate={(row) => setBucketTo(row?.dx.logicalId ?? null)}
-                    onUnsupport={(row, f) =>
-                      props.onImpression((d) =>
-                        withMark(d, row.dx.logicalId, f.ref, "blank", stamp()),
-                      )
-                    }
-                    onMove={(row, by) => moveChild(pl.cardOf.get(row.dx.logicalId)!, by)}
-                    onFlag={(row) => props.onImpression((d) => withFlagOn(d, row))}
-                    grip={gripFor}
-                    stage={props.cardSlots?.stage}
-                    card={(row) => ({
-                      ...drag.target({ kind: "dx", id: row.dx.logicalId }),
-                    })}
-                    below={(row) => linkedBelow(pl.cardOf.get(row.dx.logicalId)!)}
-                    actions={linkedActions}
-                  />
-                ) : null}
-                {linked.map(({ row }) =>
-                  removing === row.dx.logicalId ? (
-                    <RemoveForm
-                      key={row.dx.logicalId}
-                      row={row}
-                      onRemove={(r, why) => {
-                        setRemoving(null);
-                        props.on.onRemove?.(r, why);
-                      }}
-                      onCancel={() => setRemoving(null)}
-                    />
-                  ) : null,
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5" aria-live="polite">
-                <span className="text-caption text-muted-foreground">
-                  Not yet explained by any diagnosis
-                </span>
-                {linked.length && canWrite ? (
-                  <Seg
-                    label="Add findings to"
-                    options={[lead, ...linked.map((c) => c.row)].map((r) => ({
-                      id: r.dx.logicalId,
-                      label: r.dx.display,
-                    }))}
-                    value={target?.dx.logicalId ?? lead.dx.logicalId}
-                    onPick={(id) => setBucketTo(id === lead.dx.logicalId ? null : id)}
-                  />
-                ) : null}
-                {v.unexplained.length ? (
-                  <ul className="flex flex-wrap gap-1.5">
-                    {v.unexplained.map((f) => (
-                      <li key={f.ref}>
-                        <button
-                          type="button"
-                          disabled={!canWrite}
-                          onClick={() =>
-                            props.onImpression((d) =>
-                              v
-                                .sameAs(f.ref)
-                                .reduce(
-                                  (acc, ref) =>
-                                    target
-                                      ? withMark(acc, target.dx.logicalId, ref, "for", stamp())
-                                      : explainWithLeading(acc, b, ref, stamp()),
-                                  d,
-                                ),
-                            )
-                          }
-                          aria-label={`${f.text}: link it to ${(target ?? lead).dx.display}`}
-                          className={cn(
-                            "text-caption border-border hover:bg-muted focus-visible:shadow-focus inline-flex min-h-7 items-center gap-1 rounded-sm border border-dashed px-2 outline-none pointer-coarse:min-h-11",
-                            PRESS,
-                          )}
-                        >
-                          <FindingText item={f} news2={si.x.news2Latest} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-body-s text-muted-foreground">
-                    Everything recorded is explained by a diagnosis.
-                  </p>
-                )}
-              </div>
-            </div>
-            <p
-              aria-live="polite"
-              className="text-caption text-muted-foreground flex flex-wrap gap-x-2"
-            >
-              {[
-                leadMeta.onset ? leadMeta.onset.replace(/_/g, " ") : null,
-                leadMeta.severity ? `${leadMeta.severity} (your grading)` : null,
-                `${leadTests} ${leadTests === 1 ? "test" : "tests"} in plan`,
-                v.missingReasons
-                  ? `${v.missingReasons} must-not-miss ${v.missingReasons === 1 ? "needs" : "need"} a reason`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {canWrite && props.on.onToDifferential ? (
-                <Button size="sm" variant="secondary" onClick={() => toDifferential(lead)}>
-                  Move to differential
-                </Button>
-              ) : null}
-              {cardMenu(lead)}
-              <Button size="sm" variant="ghost" onClick={() => props.onDetails(lead.dx.logicalId)}>
-                Details
-              </Button>
-              {canWrite && props.on.onRemove ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  title={removeTitle(lead)}
-                  onClick={() => startRemove(lead)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-body-s text-muted-foreground">
+                        Everything recorded is explained by a diagnosis.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p
+                  aria-live="polite"
+                  className="text-caption text-muted-foreground flex flex-wrap gap-x-2"
                 >
-                  Remove
-                </Button>
-              ) : null}
-            </div>
-            {removing === lead.dx.logicalId ? (
-              <RemoveForm
-                row={lead}
-                onRemove={(r, why) => {
-                  setRemoving(null);
-                  props.on.onRemove?.(r, why);
-                }}
-                onCancel={() => setRemoving(null)}
-              />
+                  {[
+                    leadMeta.onset ? leadMeta.onset.replace(/_/g, " ") : null,
+                    leadMeta.severity ? `${leadMeta.severity} (your grading)` : null,
+                    `${leadTests} ${leadTests === 1 ? "test" : "tests"} in plan`,
+                    v.missingReasons
+                      ? `${v.missingReasons} must-not-miss ${v.missingReasons === 1 ? "needs" : "need"} a reason`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {canWrite && props.on.onToDifferential ? (
+                    <Button size="sm" variant="secondary" onClick={() => toDifferential(lead)}>
+                      Move to differential
+                    </Button>
+                  ) : null}
+                  {cardMenu(lead)}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => props.onDetails(lead.dx.logicalId)}
+                  >
+                    Details
+                  </Button>
+                  {canWrite && props.on.onRemove ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      title={removeTitle(lead)}
+                      onClick={() => startRemove(lead)}
+                    >
+                      Remove
+                    </Button>
+                  ) : null}
+                </div>
+                {removing === lead.dx.logicalId ? (
+                  <RemoveForm
+                    row={lead}
+                    onRemove={(r, why) => {
+                      setRemoving(null);
+                      props.on.onRemove?.(r, why);
+                    }}
+                    onCancel={() => setRemoving(null)}
+                  />
+                ) : null}
+              </>
             ) : null}
           </div>
         ) : b.deferred ? (

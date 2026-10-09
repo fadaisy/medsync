@@ -80,25 +80,25 @@ const ActiveThisVisit = z.object({
 
 /** Link two diagnoses: secondary to, complication of, precipitated by, associated with… */
 export async function createRelation(raw: unknown) {
-  return runEmrWrite(CreateRelation, raw, rel.createRelation);
+  return runEmrWrite(CreateRelation, raw, rel.createRelation, { refresh: true });
 }
 /** Unlink (or mark the link entered in error), with a reason. */
 export async function retireRelation(raw: unknown) {
-  return runEmrWrite(RetireRelation, raw, rel.retireRelation);
+  return runEmrWrite(RetireRelation, raw, rel.retireRelation, { refresh: true });
 }
 /** Reorder a link under its parent. */
 export async function moveRelation(raw: unknown) {
-  return runEmrWrite(MoveRelation, raw, rel.moveRelation);
+  return runEmrWrite(MoveRelation, raw, rel.moveRelation, { refresh: true });
 }
 /** Change a cause link's wording. */
 export async function relabelRelation(raw: unknown) {
-  return runEmrWrite(RelabelRelation, raw, rel.relabelRelation);
+  return runEmrWrite(RelabelRelation, raw, rel.relabelRelation, { refresh: true });
 }
 /** A known condition is active this visit: its visit diagnosis and episode_of link, together. */
 export async function activeThisVisit(raw: unknown) {
-  return runEmrWrite(ActiveThisVisit, raw, rel.activeThisVisit);
+  return runEmrWrite(ActiveThisVisit, raw, rel.activeThisVisit, { refresh: true });
 }
 /** "Add a linked diagnosis": the diagnosis on the visit and its link, in one transaction. */
 export async function addLinkedDiagnosis(raw: unknown) {
-  return runEmrWrite(AddLinkedDiagnosis, raw, rel.addLinkedDiagnosis);
+  return runEmrWrite(AddLinkedDiagnosis, raw, rel.addLinkedDiagnosis, { refresh: true });
 }

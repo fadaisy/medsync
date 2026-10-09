@@ -11,6 +11,7 @@ import type {
 } from "@/components/clerking/past-history-body";
 import type { PlacePlanRequest } from "@/components/clerking/plan/plan-step";
 import type { DeskPayload } from "@/components/emr/desk/model";
+import type { BoardOp } from "@/components/emr/desk/optimistic";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
 import type { Association } from "@/lib/clerking/impression/associations";
@@ -26,7 +27,16 @@ import type { DiabetesPack } from "@/lib/ncd/pack/types";
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { ClerkingDesk } from "@/components/clerking/clerking-desk";
 import { examOf, withExam } from "@/components/clerking/exam/model";
@@ -74,6 +84,7 @@ import {
   sectionWith,
   syncRecorded,
 } from "@/components/emr/desk/model";
+import { applyBoardOp, PENDING } from "@/components/emr/desk/optimistic";
 import { SignCheckView } from "@/components/emr/desk/sign";
 import { EmrDialog } from "@/components/emr/emr-dialog";
 import { formatters } from "@/components/emr/format";
@@ -164,7 +175,7 @@ const REMOVE_WORD: Record<string, string> = {
 };
 
 export function DeskClient({
-  p,
+  p: serverP,
   rail,
   ncdSeed,
   orders,
@@ -178,6 +189,8 @@ export function DeskClient({
   dm?: { pack: DiabetesPack; fields: string[] } | null;
 }) {
   const router = useRouter();
+  // The board as tapped, before the server answers (applyBoardOp); the server's payload replaces it.
+  const [p, applyOp] = useOptimistic(serverP, applyBoardOp);
   const fmt = useMemo(() => formatters(p.timeZone), [p.timeZone]);
   const patientUserId = p.encounter.patientUserId;
   const encounterId = p.encounter.id;
@@ -278,15 +291,15 @@ export function DeskClient({
   // or signing: opening someone's encounter to review it must not leave a draft in their name.
   const firstSave = useRef(p.draft !== null && p.draft.noteId === null);
   useEffect(() => {
-    if (p.draft === null) return;
-    const next = syncRecorded(contentRef.current, p);
+    if (serverP.draft === null) return;
+    const next = syncRecorded(contentRef.current, serverP);
     if (next !== contentRef.current || (firstSave.current && Object.keys(next.sections).length)) {
       firstSave.current = false;
       contentRef.current = next;
       setContent(next);
       autosave.adopt(next);
     }
-  }, [p, autosave]);
+  }, [serverP, autosave]);
 
   /* ─── Sections and keys (instant, never animated) ──────────────── */
 
@@ -332,7 +345,7 @@ export function DeskClient({
   const doSign = useCallback(async () => {
     // D-REL-14: the stages as computed now go with the signature; a changed one is versioned.
     let stages: ReturnType<typeof signingStages> = [];
-    if (p.clerking) {
+    if (serverP.clerking) {
       // D-CV-05: the Flags panel as the clinician sees it goes into the note before signing.
       if (!cat) {
         setSheetMsg({ ok: false, text: "The clerking catalogue is still loading. Try again." });
@@ -340,11 +353,11 @@ export function DeskClient({
       }
       // D-SI-20: the Summary and Impression as written go into the note with it, so the signed note
       // never recomposes when the record changes.
-      const d = deriveDesk(cat, p, contentRef.current, ecat, undefined, dx);
+      const d = deriveDesk(cat, serverP, contentRef.current, ecat, undefined, dx);
       const text = (key: string) => d.blocks.find((b) => b.key === key)?.text;
       if (d.si)
         stages = signingStages(
-          refinementOf(d.si, p.clerking.exam.gestationWeeks ?? null, dx).stages,
+          refinementOf(d.si, serverP.clerking.exam.gestationWeeks ?? null, dx).stages,
         );
       change({
         ...contentRef.current,
@@ -380,7 +393,7 @@ export function DeskClient({
     setSheet(null);
     setAnnounce({ ok: true, text: [r.message, ...r.warnings].join(" ") });
     router.refresh();
-  }, [autosave, patientUserId, router, p, cat, ecat, dx, change]);
+  }, [autosave, patientUserId, router, serverP, cat, ecat, dx, change]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -470,28 +483,40 @@ export function DeskClient({
 
   // One client key per intent (the entry as tapped), reused when a tap got no reply.
   const [intents] = useState(() => createIntentKeys(newKey));
+  // A board op shows the result at once and holds until the action's response (which refreshes
+  // the page itself) brings the real rows; a refusal drops it. A row still saving is not acted on.
   const run = useCallback(
-    async (
+    (
       key: string,
       act: (clientKey: string) => Promise<ActionResult<unknown>>,
       words: string,
       entry?: unknown,
-    ) => {
-      setBusy(key);
-      let r: ActionResult<unknown>;
-      try {
-        r = await intents.run(`${key}:${JSON.stringify(entry ?? null)}`, act);
-      } catch {
-        r = { ok: false, code: "conflict", error: UNKNOWN_OUTCOME };
-      }
-      setBusy(null);
-      if (r.ok) {
-        setAnnounce({ ok: true, text: [words, ...(r.warnings ?? [])].join(" ") });
-        router.refresh();
-      } else setAnnounce({ ok: false, text: r.error });
-      return r;
-    },
-    [router, intents],
+      op?: BoardOp,
+    ) =>
+      new Promise<ActionResult<unknown>>((resolve) => {
+        if (key.includes(PENDING)) {
+          const error = "Still saving the last change. Try again in a moment.";
+          setAnnounce({ ok: false, text: error });
+          return resolve({ ok: false, code: "conflict", error });
+        }
+        if (!op) setBusy(key);
+        startTransition(async () => {
+          if (op) applyOp(op);
+          let r: ActionResult<unknown>;
+          try {
+            r = await intents.run(`${key}:${JSON.stringify(entry ?? null)}`, act);
+          } catch {
+            r = { ok: false, code: "conflict", error: UNKNOWN_OUTCOME };
+          }
+          if (!op) setBusy(null);
+          if (r.ok) {
+            setAnnounce({ ok: true, text: [words, ...(r.warnings ?? [])].join(" ") });
+            if (!r.refreshed) router.refresh();
+          } else setAnnounce({ ok: false, text: r.error });
+          resolve(r);
+        });
+      }),
+    [router, intents, applyOp],
   );
   const base = { surface, patientUserId };
   const termOf = (to: RefineTo): { termId: string } | { text: string } => {
@@ -762,6 +787,14 @@ export function DeskClient({
           }),
         "Diagnosis added",
         [pick, o],
+        {
+          kind: "add-dx",
+          key: newKey(),
+          termId: "term" in pick ? pick.term.id : null,
+          display: "term" in pick ? pick.term.display : pick.typed,
+          verification: o.verification,
+          primary: !!o.primary,
+        },
       ),
     // Step 09 (PROMPT-CLERKING-SUMMARY-IMPRESSION §5.3): every write through an existing action.
     // A junior's Final is a co-signature request; the diagnosis stays Working until a senior
@@ -814,6 +847,8 @@ export function DeskClient({
             retireLinks: o?.retireLinks,
           }),
         `${row.dx.display} is now the leading diagnosis`,
+        undefined,
+        { kind: "leading", logicalId: row.dx.logicalId },
       ),
     onToDifferential: (row: BoardRow, o?: { retireLinks?: boolean }) =>
       void run(
@@ -826,6 +861,8 @@ export function DeskClient({
             retireLinks: o?.retireLinks,
           }),
         "Moved to the differential",
+        undefined,
+        { kind: "to-differential", logicalId: row.dx.logicalId, retireLinks: !!o?.retireLinks },
       ),
     // Relations (dx-relations Phase 3, 0096): each one chart action; a refusal reads as such.
     onRelate: (c: RelateChoice & { origin?: "backfill_confirmed" }) =>
@@ -834,6 +871,7 @@ export function DeskClient({
         (clientKey) => refused(createRelation({ ...base, clientKey, encounterId, ...c })),
         "Diagnoses linked",
         c,
+        { kind: "relate", key: newKey(), ...c },
       ),
     onUnlink: (e: Edge, reason: "unlinked" | "undone") =>
       run(
@@ -841,6 +879,8 @@ export function DeskClient({
         (clientKey) =>
           refused(retireRelation({ ...base, clientKey, id: e.id, reasonCode: reason })),
         reason === "undone" ? "Link undone" : "Unlinked",
+        undefined,
+        { kind: "unlink", id: e.id },
       ),
     onMoveRelation: (e: Edge, position: number) =>
       run(
@@ -848,6 +888,7 @@ export function DeskClient({
         (clientKey) => refused(moveRelation({ ...base, clientKey, id: e.id, position })),
         "Link moved",
         position,
+        { kind: "move", id: e.id, position },
       ),
     onRelabel: (e: Edge, label: DueLabel, qualifiers: string[]) =>
       run(
@@ -885,6 +926,17 @@ export function DeskClient({
             }),
           ),
         `${a.display} added and linked`,
+        undefined,
+        {
+          kind: "add-linked",
+          key: newKey(),
+          parentId: parent.dx.logicalId,
+          ...(a.onVisit ? { conditionId: a.onVisit } : {}),
+          termId: termId ?? null,
+          display: a.display,
+          relationType: a.relationType,
+          label: a.label,
+        },
       );
     },
     // Refine and Replace (D-REL-05): a catalogue diagnosis is its term where seeded, else typed
@@ -932,6 +984,8 @@ export function DeskClient({
             reasonText: why.text ?? REMOVE_WORD[why.code] ?? why.code,
           }),
         "Removed, entered in error",
+        undefined,
+        { kind: "remove-dx", logicalId: row.dx.logicalId },
       ),
     onAddToPlan: (testId: string, row: BoardRow) => {
       const uuid = dx?.testIds[testId];

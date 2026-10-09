@@ -75,25 +75,25 @@ const DecideDiagnosisCosign = z.object({
 /** Make a diagnosis on this visit the leading one: the old primary takes its place (the
  *  differential, its links retired once confirmed; or co-existing, a swap). */
 export async function setLeadingDiagnosis(raw: unknown) {
-  return runEmrWrite(SetLeadingDiagnosis, raw, dx.setLeadingDiagnosis);
+  return runEmrWrite(SetLeadingDiagnosis, raw, dx.setLeadingDiagnosis, { refresh: true });
 }
 /** Move a diagnosis (the leading one, usually) to the differential: no leading diagnosis. */
 export async function moveToDifferential(raw: unknown) {
-  return runEmrWrite(MoveToDifferential, raw, dx.moveToDifferential);
+  return runEmrWrite(MoveToDifferential, raw, dx.moveToDifferential, { refresh: true });
 }
 /** A junior's Final: stored Working, "Final · awaiting senior co-signature". */
 export async function requestDiagnosisCosign(raw: unknown) {
-  return runEmrWrite(RequestDiagnosisCosign, raw, dx.requestDiagnosisCosign);
+  return runEmrWrite(RequestDiagnosisCosign, raw, dx.requestDiagnosisCosign, { refresh: true });
 }
 /** The co-signature inbox: approve (the diagnosis becomes Final) or return with a note. */
 export async function decideDiagnosisCosign(raw: unknown) {
-  return runEmrWrite(DecideDiagnosisCosign, raw, dx.decideDiagnosisCosign);
+  return runEmrWrite(DecideDiagnosisCosign, raw, dx.decideDiagnosisCosign, { refresh: true });
 }
 /** Refine: the same diagnosis, narrower term, "refined from …" (D-REL-05). */
 export async function refineDiagnosis(raw: unknown) {
-  return runEmrWrite(RefineDiagnosis, raw, dx.refineDiagnosis);
+  return runEmrWrite(RefineDiagnosis, raw, dx.refineDiagnosis, { refresh: true });
 }
 /** Replace: rule the diagnosis out with a reason and record the new one in its place (D-REL-05). */
 export async function replaceDiagnosis(raw: unknown) {
-  return runEmrWrite(ReplaceDiagnosis, raw, dx.replaceDiagnosis);
+  return runEmrWrite(ReplaceDiagnosis, raw, dx.replaceDiagnosis, { refresh: true });
 }
