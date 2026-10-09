@@ -177,6 +177,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "RADIOGRAPHER",
     grade: null,
     role: "RADIOGRAPHER_GENERAL",
+    department: "RADIOLOGY_IMAGING",
     keywords: "x-ray xray imaging",
   },
   {
@@ -213,6 +214,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "PHARMACIST",
     grade: null,
     role: "PHARMACIST_GENERAL",
+    department: "PHARMACY",
     keywords: "pharmacy",
   },
   {
@@ -222,6 +224,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "PHARMACY_TECH",
     grade: null,
     role: "PHARMACY_TECH_GENERAL",
+    department: "PHARMACY",
     keywords: "pharmacy",
   },
 ];

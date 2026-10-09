@@ -45,7 +45,7 @@ export function WorkFields({
 }: {
   hospitals: readonly HospitalOption[];
   departmentLabel: string;
-  /** A catalogue code (LABORATORY): when the hospital has it live, it is chosen and not asked. */
+  /** A catalogue code (LABORATORY, PHARMACY…): when the hospital has it live, it is chosen and not asked. */
   fixedDepartment?: string;
   afterHospital?: ReactNode;
   children?: ReactNode;

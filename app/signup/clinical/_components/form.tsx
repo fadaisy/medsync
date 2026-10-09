@@ -96,7 +96,7 @@ export function ClinicalSignupForm({
   );
 }
 
-/** A profession tied to one department (the laboratory) has it chosen for them. */
+/** A profession tied to one department (laboratory, imaging, pharmacy) has it chosen for them. */
 function ClinicalWorkFields({ hospitals }: { hospitals: readonly HospitalOption[] }) {
   const profession = professionById(useFieldValue("profession") ?? "");
   return (
