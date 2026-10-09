@@ -10,7 +10,7 @@ const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 
 describe("lab staff are routed to /lab", () => {
   it("sign-in routes the lab role and the lab cadres with the shared constant", () => {
-    const signIn = read("app/(auth)/sign-in/actions.ts");
+    const signIn = read("app/(auth)/sign-in/landing.ts");
     expect(signIn).toMatch(/import \{ LAB_TECH_CADRE_CODES \} from "@\/lib\/lab-tech\/scope"/);
     expect(signIn).not.toMatch(/"LAB_TECHNOLOGIST"/);
     expect(signIn.match(/defaultTarget = "\/lab"/g)?.length).toBe(2);
@@ -23,5 +23,14 @@ describe("lab staff are routed to /lab", () => {
     expect(read("lib/lab-tech/scope.ts")).toMatch(
       /export async function isLabTechUser[\s\S]*findLabTechAffiliation\(userId\)/,
     );
+  });
+});
+
+describe("the authenticator-code step lands like the password step", () => {
+  it("both steps fall back to the shared landingFor, never a bare '/'", () => {
+    for (const f of ["app/(auth)/sign-in/actions.ts", "app/(auth)/sign-in/mfa/actions.ts"]) {
+      expect(read(f), f).toMatch(/import \{ landingFor \} from "\.{1,2}\/landing"/);
+      expect(read(f), f).toMatch(/safeRedirect\(parsed\.data\.redirect\) \?\? landing/);
+    }
   });
 });
