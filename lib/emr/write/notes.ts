@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import type { WriteCtx } from "./context";
+import type { StageInput } from "./diagnoses";
 import type { ObservationInput } from "./facts";
 import type { WriteResult } from "./orders";
 import type { ClinicalNote } from "@/db/schema/emr";
@@ -53,7 +54,7 @@ import { CONCEPTS } from "@/lib/facts/catalogue.generated";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { captureFromNote, factsFromCapture } from "@/lib/ncd/cfc-map";
 import { EmrWriteError, stampActivity } from "./context";
-import { loadEncounterDiagnoses } from "./diagnoses";
+import { loadEncounterDiagnoses, writeStages } from "./diagnoses";
 import {
   insertObservations,
   recordProblem,
@@ -424,6 +425,8 @@ export interface SignNoteInput {
   revision?: number;
   /** Concepts whose unit-mismatch or plausibility question the clinician confirmed at signing. */
   confirmed?: string[];
+  /** The severity stages the desk computed (D-REL-14); a changed one is written as a version. */
+  stages?: StageInput[];
 }
 
 export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<WriteResult> {
@@ -442,6 +445,14 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
   const snapshotted =
     content.schema === 2 && typeof content.impression === "object" && content.impression !== null;
   if (snapshotted) {
+    // D-REL-14: changed stages first, so the snapshot names the versions that carry them.
+    await writeStages(ctx, {
+      hospitalId: note.hospitalId,
+      patientUserId: note.patientUserId,
+      encounterId: note.encounterId,
+      stages: input.stages ?? [],
+      keyPrefix: note.id,
+    });
     const dx = await loadEncounterDiagnoses(ctx.tx, {
       hospitalId: note.hospitalId,
       patientUserId: note.patientUserId,

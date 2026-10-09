@@ -59,6 +59,7 @@ import {
   descendants,
   dropOutcome,
   isFlagged,
+  knownWords,
   places,
   proposeRelations,
   refusal,
@@ -120,7 +121,14 @@ export interface ImpressionHandlers {
   onRemove?: (row: BoardRow, reason: { code: RemoveCode; text?: string }) => void;
   onAddToPlan?: (testId: string, row: BoardRow) => void;
   onProblemList?: (row: BoardRow) => void;
+  /** Refine (D-REL-05): the same diagnosis, a narrower term; `decidedBy`: the deciding results'
+   *  chart ids. Replace: ruled out with the reason, the other one recorded in its place. */
+  onRefine?: (row: BoardRow, to: RefineTo, decidedBy: string[]) => RelationResult;
+  onReplace?: (row: BoardRow, to: RefineTo, reason: string) => RelationResult;
 }
+
+/** A catalogue diagnosis (`dx.*`) or what the search picked. */
+export type RefineTo = { dxId: string } | DxPick;
 
 export interface ImpressionStepProps {
   si: SiView;
@@ -143,11 +151,13 @@ export interface ImpressionStepProps {
   /** 834 px and up: the evidence matrix exists (D-SI-14). */
   wide: boolean;
   inPlan: (logicalId: string) => ReadonlySet<string>;
-  /** Seams for refinement (Phase 4): a stage beside each diagnosis's name, and menu items
-   *  ("Refine to…", "Replace…") among each card's actions. */
+  /** Seams for refinement (Phase 4): a stage beside each diagnosis's name, menu items
+   *  ("Refine or replace…") among each card's actions, and lines under each card (refined from,
+   *  the deciding tests, a placeholder's offer, the risk-factor line). */
   cardSlots?: {
     stage?: (row: BoardRow) => ReactNode;
     menu?: (row: BoardRow) => ReactNode;
+    below?: (row: BoardRow) => ReactNode;
   };
 }
 
@@ -552,7 +562,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
       })),
     ...known.map((k) => ({
       id: k.logicalId,
-      name: k.display,
+      name: k.earlier ? `${k.display} (${k.earlier.words})` : k.display,
       dxId: knownDx(k),
       known: true,
       refused: refusal(dropCtx, srcId, k.logicalId, nameOf),
@@ -619,7 +629,9 @@ export function ImpressionStep(props: ImpressionStepProps) {
     return [
       ...cards.map((id) => ({ kind: "dx", id }) as DropTarget),
       ...(pl.cardOf.get(src.id)?.via ? [{ kind: "coexisting" } as DropTarget] : []),
-      ...known.map((k) => ({ kind: "known", id: k.logicalId }) as DropTarget),
+      ...known
+        .filter((k) => !k.earlier) // an earlier visit's diagnosis: "Relate to…" only
+        .map((k) => ({ kind: "known", id: k.logicalId }) as DropTarget),
     ];
   };
   const helpId = useId();
@@ -711,7 +723,15 @@ export function ImpressionStep(props: ImpressionStepProps) {
           key={c.edge.id}
           text={
             c.fromCondition
-              ? `${phrase(c.edge, `${c.known ? "known " : ""}${c.other}`).replace(/^./, (x) => x.toUpperCase())}`
+              ? `${phrase(
+                  c.edge,
+                  c.known
+                    ? knownWords(
+                        known.find((k) => k.logicalId === c.otherId) ?? { display: c.other },
+                        (x) => x,
+                      )
+                    : c.other,
+                ).replace(/^./, (x) => x.toUpperCase())}`
               : `${c.other}, ${relWord(c.edge)} this`
           }
         >
@@ -903,6 +923,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
           </span>
         ) : null}
         {relationBlock(card)}
+        {props.cardSlots?.below?.(card.row)}
         {overLine({ kind: "dx", id: card.row.dx.logicalId })}
       </div>
     );
@@ -1097,6 +1118,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                 </span>
                 <span className="text-caption text-muted-foreground">{subLine(lead, dx)}</span>
                 {pl.leading ? relationBlock(pl.leading) : null}
+                {props.cardSlots?.below?.(lead)}
                 {overLine({ kind: "dx", id: lead.dx.logicalId })}
               </div>
             </div>
@@ -1441,6 +1463,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
                       ) : null}
                     </div>
                     {relationBlock(card)}
+                    {props.cardSlots?.below?.(row)}
                     {overLine({ kind: "dx", id: row.dx.logicalId })}
                     {removing === row.dx.logicalId ? (
                       <RemoveForm
@@ -1702,7 +1725,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
 
       {/* Background: known conditions (R5): read-only chips, drop targets, "Active this visit" */}
       <BackgroundRow
-        items={pl.background}
+        items={pl.background.filter((x) => !x.item.earlier)}
         canWrite={canRelate}
         drag={{
           grip: (k) => drag.grip({ kind: "known", id: k.logicalId }, k.display),

@@ -323,6 +323,8 @@ export async function loadDeskFor(
           effectiveAt: conditions.effectiveAt,
           reasonCode: conditions.reasonCode,
           reasonCiphertext: conditions.reasonCiphertext,
+          refinedFrom: conditions.refinedFrom,
+          abatementAt: conditions.abatementAt,
         })
         .from(conditions)
         .where(eq(conditions.patientUserId, enc.patientUserId));
@@ -717,6 +719,17 @@ export async function loadDeskFor(
     }));
 
   // This visit's diagnoses (current versions, with their logical ids: D-SI-19) and orders.
+  // Refined (D-REL-05): the term it was first refined from (versions carry refined_from forward)
+  // and the deciding tests, named by their orders on the chart.
+  const rowById = new Map(rec.conditionRows.map((c) => [c.id, c]));
+  const orderName = new Map(chart.orders.map((o) => [`encounter_orders:${o.id}`, o.display]));
+  const refined = new Map<string, { from: string; decided: Set<string> }>();
+  for (const c of [...rec.conditionRows].sort((a, b) => a.version - b.version)) {
+    if (!c.refinedFrom) continue;
+    const r = refined.get(c.logicalId) ?? { from: c.refinedFrom.versionId, decided: new Set() };
+    for (const id of c.refinedFrom.decidedBy) r.decided.add(id);
+    refined.set(c.logicalId, r);
+  }
   const diagnoses: DeskDiagnosis[] = encounterDiagnoses({
     rows: rec.conditionRows,
     encounterId: enc.id,
@@ -725,10 +738,21 @@ export async function loadDeskFor(
     displayOf: conditionName,
     cosignPending: pendingCosignIds(rec.cosign.map((r) => r.payload)),
     viewerId: actor.userId,
+  }).map((d) => {
+    const r = refined.get(d.logicalId);
+    const src = r && rowById.get(r.from);
+    return src
+      ? {
+          ...d,
+          refinedFrom: {
+            display: conditionName(src),
+            termId: src.termId,
+            decided: [...new Set([...r.decided].flatMap((id) => orderName.get(id) ?? []))],
+          },
+        }
+      : d;
   });
   // The Background row (the problem list, R5) and the relations among it and this visit (0096).
-  // ponytail: a relation to an earlier visit's diagnosis (design §5.4) is not shown until its window
-  // is signed (proposed 90 days, CSO to confirm).
   const termOf = new Map(rec.terms.map((t) => [t.id, t]));
   const firstSeen = new Map<string, Date>();
   for (const c of rec.conditionRows)
@@ -743,6 +767,48 @@ export async function loadDeskFor(
     restricted: c.sensitivity === "restricted",
     since: (firstSeen.get(c.logicalId) ?? c.effectiveAt).toISOString(),
   }));
+  const lastOf = new Map<string, (typeof rec.conditionRows)[number]>();
+  for (const c of rec.conditionRows)
+    if ((lastOf.get(c.logicalId)?.version ?? 0) < c.version) lastOf.set(c.logicalId, c);
+  // Gate B look-back (design §5.4): an earlier visit's diagnosis that is still active, or was
+  // resolved within 90 days, is a "Relate to…" target; the note says when it was treated. Once per
+  // term, the newest; a term on the problem list is related there instead.
+  // ponytail: every unresolved earlier diagnosis qualifies; cap the list if old visits crowd it.
+  const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", timeZone: tz });
+  const listed = new Set(background.map((b) => b.termId ?? b.display));
+  for (const c of [...lastOf.values()].sort((a, b) => +b.effectiveAt - +a.effectiveAt)) {
+    const resolvedAt = c.clinicalStatus === "resolved" ? (c.abatementAt ?? c.effectiveAt) : null;
+    const key = c.termId ?? conditionName(c);
+    if (
+      c.category !== "encounter_diagnosis" ||
+      c.encounterId === enc.id ||
+      c.subjectRelation !== "self" ||
+      c.status === "entered_in_error" ||
+      c.status === "cancelled" ||
+      c.verification === "refuted" ||
+      c.verification === "differential" ||
+      listed.has(key) ||
+      !(
+        ["active", "recurrence", "relapse"].includes(c.clinicalStatus) ||
+        (resolvedAt && +now - +resolvedAt <= 90 * 86_400_000)
+      )
+    )
+      continue;
+    listed.add(key);
+    const since = firstSeen.get(c.logicalId) ?? c.effectiveAt;
+    background.push({
+      id: c.id,
+      logicalId: c.logicalId,
+      termId: c.termId,
+      display: conditionName(c),
+      code: c.termId && termOf.get(c.termId)?.verifiedOn && c.icd11Code ? c.icd11Code : null,
+      restricted: c.sensitivity === "restricted",
+      since: since.toISOString(),
+      earlier: {
+        words: resolvedAt ? `treated ${day.format(resolvedAt)}` : `diagnosed ${day.format(since)}`,
+      },
+    });
+  }
   const onVisit = new Set(diagnoses.map((d) => d.logicalId));
   const onBoard = new Set([...onVisit, ...background.map((b) => b.logicalId)]);
   const relations: DeskRelation[] = rec.relationRows
@@ -755,9 +821,6 @@ export async function loadDeskFor(
       restricted: sensitivity === "restricted",
     }))
     .sort((a, b) => a.position - b.position);
-  const lastOf = new Map<string, (typeof rec.conditionRows)[number]>();
-  for (const c of rec.conditionRows)
-    if ((lastOf.get(c.logicalId)?.version ?? 0) < c.version) lastOf.set(c.logicalId, c);
   // "Ruled out" in the note (design §2.3, 4): this visit's diagnoses refuted (Replace), or removed
   // as ruled out (D-SI-13), with the reason.
   const ruledOut: DeskRuledOut[] = [...lastOf.values()]

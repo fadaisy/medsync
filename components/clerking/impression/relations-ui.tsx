@@ -28,7 +28,8 @@ import { cn } from "@/lib/utils";
 export interface RelateChoice {
   conditionId: string;
   relatedConditionId: string;
-  relationType: "due_to" | "associated_with";
+  /** risk_factor_for: an included risk-factor line (D-REL-04), never from the chooser. */
+  relationType: "due_to" | "associated_with" | "risk_factor_for";
   label: DueLabel | null;
   qualifiers: string[];
   catalogueRef: string | null;

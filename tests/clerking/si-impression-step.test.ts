@@ -208,6 +208,8 @@ function Harness({ p, offer }: { p: DeskPayload; offer?: string }) {
     },
     onActiveThisVisit: (k, rank) => void log("onActiveThisVisit", k.display, rank),
     onAddLinked: (parent, a) => void log("onAddLinked", parent.dx.display, a.dxId, a.relationType),
+    onRefine: (row, to, decidedBy) => void log("onRefine", row.dx.display, to, decidedBy),
+    onReplace: (row, to, reason) => void log("onReplace", row.dx.display, to, reason),
   };
   return h(ClerkingDesk, {
     p: payloadNow,
@@ -653,7 +655,7 @@ describe("step 09, relations on the board (dx-relations Phase 3)", () => {
     p.background = [T1];
     mount(p);
     const box = host.querySelector('section[aria-label="Linked to Malaria, severe"]')!;
-    expect(box.textContent).toMatch(/Anaemia· secondary to Malaria, severe/);
+    expect(box.textContent).toMatch(/Anaemia(Anaemia severity.*)?· secondary to Malaria, severe/);
     const also = section("impression-also");
     expect(also.querySelector("h3")?.textContent).toBe("Also this visit: co-existing");
     expect(also.textContent).toContain("Pneumonia");
@@ -914,10 +916,16 @@ describe("step 09, relations on the board (dx-relations Phase 3)", () => {
     const text = host.querySelector('[data-block="impression"]')?.textContent ?? "";
     const at = (s: string) => text.indexOf(s);
     expect(at("Malaria, severe (primary; final)")).toBeGreaterThan(-1);
-    expect(at("Anaemia (working), secondary to malaria, severe.")).toBeGreaterThan(
+    // Its stage is written, blank as blank (D-REL-14): no haemoglobin here.
+    expect(at("Anaemia, severity not yet known (needs haemoglobin")).toBeGreaterThan(
       at("Malaria, severe (primary"),
     );
-    expect(at("Also this visit, co-existing: Pneumonia (working).")).toBeGreaterThan(at("Anaemia"));
+    expect(at("(working), secondary to malaria, severe.")).toBeGreaterThan(
+      at("Malaria, severe (primary"),
+    );
+    expect(at("Also this visit, co-existing: Pneumonia, CURB-65 not yet known")).toBeGreaterThan(
+      at("Anaemia"),
+    );
     expect(at("Known conditions: type 1 diabetes (on record since 2019).")).toBeGreaterThan(
       at("Pneumonia"),
     );
@@ -949,5 +957,123 @@ describe("step 09, relations on the board (dx-relations Phase 3)", () => {
     });
     expect(draft().backfill).toBe("done");
     expect(section("impression-backfill")).toBeNull();
+  });
+
+  /* ─── Refinement (dx-relations Phase 4, ADR 0220) ─────────────── */
+
+  it("Refine or replace…: subtypes with their deciding tests; the clinician picks; Replace needs a reason", () => {
+    const acs = dxRow("dx.acs", "Acute coronary syndrome", "primary", "provisional");
+    mount(payload([acs]));
+    const lead = section("impression-leading");
+    expect(lead.textContent).toMatch(/Type to be decided by: .*\(not ordered\)/);
+    tap(button("Refine or replace…", lead));
+    const nste = DX_NAMES["dx.nste_acs"]!.display;
+    tap(button(`Refine to ${nste}`, dialog()!));
+    expect(calls.find((c) => c.name === "onRefine")?.args).toEqual([
+      "Acute coronary syndrome",
+      { dxId: "dx.nste_acs" },
+      [],
+    ]);
+    expect(dialog()).toBeNull();
+    tap(button("Refine or replace…", lead));
+    tap(button(DX_NAMES["dx.pericarditis"]!.display, dialog()!));
+    const go = button(/^Replace with /, dialog()!) as HTMLButtonElement;
+    expect(go.disabled).toBe(true);
+    type(dialog()!.querySelector("#replace-reason") as HTMLInputElement, "widespread ST elevation");
+    tap(go);
+    expect(calls.find((c) => c.name === "onReplace")?.args).toEqual([
+      "Acute coronary syndrome",
+      { dxId: "dx.pericarditis" },
+      "widespread ST elevation",
+    ]);
+  });
+
+  it("a refined diagnosis says what it was refined from, and the note writes it", () => {
+    const n = {
+      ...dxRow("dx.nstemi", "Non-ST-elevation myocardial infarction", "primary", "provisional"),
+      refinedFrom: {
+        display: "Acute coronary syndrome",
+        termId: dxTermUuid("dx.acs"),
+        decided: ["ECG", "Troponin"],
+      },
+    };
+    mount(payload([n]));
+    expect(section("impression-leading").textContent).toContain(
+      "Refined from Acute coronary syndrome after ECG and Troponin",
+    );
+    expect(host.querySelector('[data-block="impression"]')?.textContent).toContain(
+      "(refined from acute coronary syndrome after ECG and troponin)",
+    );
+  });
+
+  it("a placeholder with its cause linked offers 'Refine … into Anaemia'; Keep it declines", () => {
+    const mal = MAL();
+    const ph = dxRow(
+      "dx.anaemia_unexplained",
+      "Anaemia, cause not yet known",
+      "secondary",
+      "provisional",
+    );
+    const p = payload([mal, ph]);
+    p.relations = [rel(ph, mal)];
+    mount(p);
+    const offer = button("Refine 'Anaemia, cause not yet known' into Anaemia")!;
+    tap(offer);
+    expect(calls.find((c) => c.name === "onRefine")?.args).toEqual([
+      "Anaemia, cause not yet known",
+      { dxId: "dx.anaemia" },
+      [],
+    ]);
+    tap(button("Keep it"));
+    expect(draft().meta[ph.logicalId]?.keep).toBe(true);
+    expect(button(/^Refine 'Anaemia/)).toBeUndefined();
+  });
+
+  it("the risk-factor line: Include in note links each condition and writes the line; off retires", () => {
+    const acs = dxRow("dx.acs", "Acute coronary syndrome", "primary", "provisional");
+    const p = payload([acs]);
+    const dm = {
+      ...T1,
+      logicalId: uuid(),
+      termId: dxTermUuid("dx.dm_type2"),
+      display: "Type 2 diabetes",
+    };
+    p.background = [dm];
+    mount(p);
+    const lead = section("impression-leading");
+    expect(lead.textContent).toContain("Risk factors on record: type 2 diabetes.");
+    const box = lead.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const note = () => host.querySelector('[data-block="impression"]')?.textContent ?? "";
+    expect(note()).not.toContain("Risk factors on record");
+    tap(box);
+    expect(calls.find((c) => c.name === "onRelate")?.args[0]).toMatchObject({
+      conditionId: dm.logicalId,
+      relatedConditionId: acs.logicalId,
+      relationType: "risk_factor_for",
+      label: null,
+    });
+    expect(draft().meta[acs.logicalId]?.risk).toBe(true);
+    expect(note()).toContain("Risk factors on record: type 2 diabetes.");
+    tap(section("impression-leading").querySelector('input[type="checkbox"]'));
+    expect(calls.find((c) => c.name === "onUnlink")).toBeTruthy();
+    expect(note()).not.toContain("Risk factors on record");
+  });
+
+  it("linked lists collapse after three: 'Show 1 more'", () => {
+    const mal = MAL();
+    const kids = [
+      ANA(),
+      dxRow("dx.aki", "Acute kidney injury", "secondary", "provisional"),
+      PNEU(),
+      dxRow("dx.sepsis", "Sepsis", "secondary", "provisional"),
+    ];
+    const p = payload([mal, ...kids]);
+    p.relations = kids.map((k, i) => rel(k, mal, "due_to", "secondary", i + 1));
+    mount(p);
+    const box = () => host.querySelector('section[aria-label="Linked to Malaria, severe"]')!;
+    expect(box().textContent).not.toContain("Sepsis");
+    tap(button("Show 1 more", box()));
+    expect(box().textContent).toContain("Sepsis");
+    expect(button("Show fewer", box())).toBeTruthy();
   });
 });

@@ -2,6 +2,7 @@
 
 import type { NcdSeed } from "./ncd-section";
 import type { PregnancyWrite } from "@/components/clerking/conversion-dialog";
+import type { RefineTo } from "@/components/clerking/impression/impression-step";
 import type { RelateChoice } from "@/components/clerking/impression/relations-ui";
 import type {
   AllergyWrite,
@@ -36,6 +37,7 @@ import {
   v2CommittedWords,
   withConditionOnList,
 } from "@/components/clerking/model";
+import { refinementOf, signingStages } from "@/components/clerking/si-model";
 import {
   useCatalogue,
   useDxCatalogue,
@@ -83,6 +85,8 @@ import { ALLERGY_SOURCE_TO_INFORMANT, medicationSourceFor } from "@/lib/clerking
 import { SECTIONS } from "@/lib/clerking/status";
 import {
   moveToDifferential,
+  refineDiagnosis,
+  replaceDiagnosis,
   requestDiagnosisCosign,
   setLeadingDiagnosis,
 } from "@/lib/emr/actions/diagnoses";
@@ -326,6 +330,8 @@ export function DeskClient({
   }, [editable]);
 
   const doSign = useCallback(async () => {
+    // D-REL-14: the stages as computed now go with the signature; a changed one is versioned.
+    let stages: ReturnType<typeof signingStages> = [];
     if (p.clerking) {
       // D-CV-05: the Flags panel as the clinician sees it goes into the note before signing.
       if (!cat) {
@@ -336,6 +342,10 @@ export function DeskClient({
       // never recomposes when the record changes.
       const d = deriveDesk(cat, p, contentRef.current, ecat, undefined, dx);
       const text = (key: string) => d.blocks.find((b) => b.key === key)?.text;
+      if (d.si)
+        stages = signingStages(
+          refinementOf(d.si, p.clerking.exam.gestationWeeks ?? null, dx).stages,
+        );
       change({
         ...contentRef.current,
         flags: d.badges,
@@ -360,7 +370,7 @@ export function DeskClient({
     setSigning(true);
     const r = await signFlow({
       autosave,
-      sign: (i) => signNote({ surface, patientUserId, ...i }),
+      sign: (i) => signNote({ surface, patientUserId, ...i, ...(stages.length ? { stages } : {}) }),
     });
     setSigning(false);
     if (!r.ok) {
@@ -484,6 +494,13 @@ export function DeskClient({
     [router, intents],
   );
   const base = { surface, patientUserId };
+  const termOf = (to: RefineTo): { termId: string } | { text: string } => {
+    if ("term" in to) return { termId: to.term.id };
+    if ("typed" in to) return { text: to.typed };
+    const termId = Object.entries(dx?.termIds ?? {}).find(([, id]) => id === to.dxId)?.[0];
+    const name = dx?.names[to.dxId];
+    return termId && name?.coded ? { termId } : { text: name?.display ?? to.dxId };
+  };
   const problemSection = sectionWith(p.template, "problem_list");
   const vitalsSection = sectionWith(p.template, "vital_signs");
   const primaryId = p.diagnoses.find((d) => d.rank === "primary")?.id;
@@ -870,6 +887,38 @@ export function DeskClient({
         `${a.display} added and linked`,
       );
     },
+    // Refine and Replace (D-REL-05): a catalogue diagnosis is its term where seeded, else typed
+    // words (the v1.2 terms until 0095 is applied).
+    onRefine: (row: BoardRow, to: RefineTo, decidedBy: string[]) =>
+      run(
+        `dx-refine:${row.dx.logicalId}`,
+        (clientKey) =>
+          refineDiagnosis({
+            ...base,
+            clientKey,
+            id: row.dx.versionId,
+            ...termOf(to),
+            ...(decidedBy.length ? { decidedBy } : {}),
+          }),
+        `${row.dx.display} refined`,
+        to,
+      ),
+    onReplace: (row: BoardRow, to: RefineTo, reason: string) =>
+      run(
+        `dx-replace:${row.dx.logicalId}`,
+        (clientKey) =>
+          replaceDiagnosis({
+            ...base,
+            clientKey,
+            encounterId,
+            id: row.dx.versionId,
+            ...termOf(to),
+            reasonCode: "ruled_out",
+            reasonText: reason,
+          }),
+        `${row.dx.display} ruled out and replaced`,
+        [to, reason],
+      ),
     onRemove: (row: BoardRow, why: { code: string; text?: string }) =>
       void run(
         `dx-remove:${row.dx.logicalId}`,

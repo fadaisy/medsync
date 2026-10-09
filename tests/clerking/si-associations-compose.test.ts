@@ -105,9 +105,9 @@ const HOOK = row("H", "dx.hookworm_helminth", "Hookworm infection", "also");
 const PNEU = row("P", "dx.pneumonia", "Pneumonia", "also");
 
 describe("relations in the note", () => {
-  it("writes nothing extra with no relation", () => {
+  it("writes no relation with none; an unexplained broad diagnosis reads as the subtype file's note_before", () => {
     expect(text(B(MAL, [ANA]), [])).toBe(
-      "Malaria, severe (primary; working).\nAlso this visit, co-existing: Anaemia (working).",
+      "Malaria, severe (primary; working).\nAlso this visit, co-existing: Anaemia, cause being investigated (working).",
     );
   });
 
@@ -194,6 +194,17 @@ describe("relations in the note", () => {
       "Ruled out: typhoid fever (blood culture negative).",
       "Known conditions: hypertension (on record since 2019).",
     ]);
+  });
+
+  it("an earlier visit's cause (Gate B look-back) names when it was treated, never 'known'", () => {
+    const ana = row("A", "dx.anaemia", "Anaemia", "leading");
+    const mal = {
+      ...known("M", "Malaria, uncomplicated"),
+      earlier: { words: "treated 3 October" },
+    };
+    expect(text(B(ana, []), [edge("A", "M")], { background: [mal] })).toBe(
+      "Anaemia (primary; working), secondary to malaria, uncomplicated (treated 3 October).",
+    );
   });
 
   it("the patient audience drops a restricted end and its clause, leaving grammatical text", () => {

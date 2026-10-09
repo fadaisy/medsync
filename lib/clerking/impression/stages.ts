@@ -152,3 +152,28 @@ export function stageOf(dx: string, i: StageInputs): Stage | null {
   if (scale === "dx.pneumonia" || dx === "dx.pneumonia_community") return curb65(i);
   return null; // hypertension: the hypertension pack's; TB resistance: from the Xpert result (Phase 4)
 }
+
+/** A stage in the note's words, after the diagnosis: "severe (WHO 2024)", "CURB-65 0"; blank
+ *  is said as such, never the lowest band: "stage not yet known (needs baseline creatinine)". */
+export function stageNote(s: Stage): string {
+  if ("insufficient" in s)
+    return `${s.scale
+      .replace(/\s*\(.*\)/, "")
+      .split(" ")
+      .pop()} not yet known (needs ${s.insufficient.join(", ")})`;
+  const src = /\(([^)]+)\)/.exec(s.scale)?.[1];
+  return src ? `${s.words} (${src})` : s.words;
+}
+
+/** The stage of every staged diagnosis among these rows, by logical id. */
+export function stagesOf(
+  rows: readonly { dx: { logicalId: string; dxId: string | null } }[],
+  i: StageInputs,
+): Map<string, Stage> {
+  const out = new Map<string, Stage>();
+  for (const r of rows) {
+    const s = r.dx.dxId ? stageOf(r.dx.dxId, i) : null;
+    if (s) out.set(r.dx.logicalId, s);
+  }
+  return out;
+}

@@ -60,7 +60,10 @@ interface RiskFile {
   id: string;
   version: string;
   status: string;
-  outcomes: Record<string, { risk_factors: { id: string; restricted_class?: string | null }[] }>;
+  outcomes: Record<
+    string,
+    { risk_factors?: { id: string; restricted_class?: string | null }[]; same_as?: string }
+  >;
 }
 export interface SubtypeEntry {
   id: string;
@@ -194,7 +197,9 @@ export function refinesFrom(dx: string): string | null {
 
 /** Risk factors for an outcome (R2): shown as one derived line, never stored unless asked (D-REL-04). */
 export function riskFactorsOf(outcome: string) {
-  return signed(R) ? (R.outcomes[outcome]?.risk_factors ?? []) : [];
+  if (!signed(R)) return [];
+  const o = R.outcomes[outcome];
+  return (o?.same_as ? R.outcomes[o.same_as] : o)?.risk_factors ?? [];
 }
 
 /** The severity scale a diagnosis is staged by (D-REL-14), by its own id or `applies_also_to`. */

@@ -15,6 +15,8 @@ import type { Board, ImpressionDraft, RecordedDx } from "@/lib/clerking/impressi
 import type { DxLive, DxSignoff } from "@/lib/clerking/impression/catalogue";
 import type { Column } from "@/lib/clerking/impression/evidence";
 import type { FindingRef, Viewer } from "@/lib/clerking/impression/facts";
+import type { Known } from "@/lib/clerking/impression/relations";
+import type { Stage } from "@/lib/clerking/impression/stages";
 import type { Linked } from "@/lib/clerking/linkage";
 import type { SummaryView } from "@/lib/clerking/summary/compose";
 import type {
@@ -32,8 +34,13 @@ import { asks } from "@/lib/clerking/impression/ask";
 import { buildBoard, EMPTY_IMPRESSION } from "@/lib/clerking/impression/board";
 import { dxLive } from "@/lib/clerking/impression/catalogue";
 import { columns } from "@/lib/clerking/impression/evidence";
-import { atomRef, CLINICAL_VIEWER, NO_CLASSES } from "@/lib/clerking/impression/facts";
+import { atomRef, canSee, CLINICAL_VIEWER, NO_CLASSES } from "@/lib/clerking/impression/facts";
 import { toRecorded } from "@/lib/clerking/impression/recorded";
+import { riskLinesOf } from "@/lib/clerking/impression/refine";
+import { places } from "@/lib/clerking/impression/relations";
+import { exposuresFrom } from "@/lib/clerking/impression/risk-line";
+import { stageInputsFrom } from "@/lib/clerking/impression/stage-inputs";
+import { stagesOf } from "@/lib/clerking/impression/stages";
 import { composeSummary } from "@/lib/clerking/summary/compose";
 import {
   diff,
@@ -282,3 +289,38 @@ export function deriveSi(i: SiInput): SiView | null {
     ruledOut: i.p.ruledOut ?? [],
   };
 }
+
+/**
+ * Refinement's derived parts (dx-relations Phase 4, ADR 0220), as the step shows them, the note
+ * writes them and signing persists the stages: each diagnosis's severity stage from the record
+ * (D-REL-14) and the risk-factor line of the leading and co-existing ones (D-REL-04).
+ */
+export function refinementOf(si: SiView, gestationWeeks: number | null, dx: DxData | null) {
+  const pl = places(si.board, si.relations, si.background);
+  const knownDx = (k: Known) => (k.termId ? (dx?.termIds[k.termId] ?? null) : null);
+  return {
+    pl,
+    knownDx,
+    stages: stagesOf(
+      [...pl.cardOf.values()].map((c) => c.row),
+      stageInputsFrom(si.x, { gestationWeeks }),
+    ),
+    risk: riskLinesOf({
+      pl,
+      edges: si.relations,
+      known: si.background,
+      knownDx,
+      exposures: exposuresFrom(si.x.history.answers.social),
+      classOf: (id) => dx?.cat.profile(id)?.restricted_class ?? null,
+      canSee: (c) => canSee(si.viewer, c as Parameters<typeof canSee>[1]),
+    }),
+  };
+}
+
+/** The stages signing sends (D-REL-14): computed ones only; an insufficient stage is never written. */
+export const signingStages = (stages: ReadonlyMap<string, Stage>) =>
+  [...stages].flatMap(([logicalId, s]) =>
+    "insufficient" in s
+      ? []
+      : [{ logicalId, scale: s.scale, code: s.code, words: s.words, source: s.source }],
+  );

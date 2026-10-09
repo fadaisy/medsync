@@ -767,6 +767,155 @@ describe.skipIf(!laneOn)("Summary and Impression: the server (PGlite lane)", () 
     expect(signed!.state).toBe("signed");
   });
 
+  it("D-REL-14: a changed stage is the next version, once; a scale not its own is refused; signing writes it before the snapshot", async () => {
+    const v = await newVisit();
+    const ana = await record(mo, v, { termId: dxTermUuid("dx.anaemia"), rank: "primary" });
+    const stage = {
+      logicalId: ana.id,
+      scale: "Anaemia severity (WHO 2024)",
+      code: "severe",
+      words: "severe",
+      source: "WHO 2024, Table 3 (men 15–65)",
+    };
+    const write = (stages: dx.StageInput[]) =>
+      as(
+        mo,
+        (ctx) =>
+          dx.writeStages(ctx, {
+            hospitalId: h,
+            patientUserId: v.q,
+            encounterId: v.e,
+            stages,
+            keyPrefix: key(),
+          }),
+        v.q,
+      );
+    await expect(write([{ ...stage, scale: "CURB-65" }])).rejects.toMatchObject({
+      code: "invalid",
+    });
+    expect(await write([stage])).toBe(1);
+    expect(await write([stage])).toBe(0); // unchanged: no version on every keystroke
+    const head = async () =>
+      (
+        await rows<{ id: string; version: number; stage: Record<string, string> }>(
+          "SELECT id, version, stage FROM public.conditions WHERE logical_id = $1 ORDER BY version DESC LIMIT 1",
+          [ana.id],
+        )
+      )[0]!;
+    expect(await head()).toMatchObject({
+      version: 2,
+      stage: { scale: stage.scale, code: "severe", computedAt: expect.any(String) },
+    });
+
+    const draft = await as(
+      mo,
+      (ctx) =>
+        notes.saveNoteDraft(ctx, {
+          patientUserId: v.q,
+          encounterId: v.e,
+          templateId: "tpl.clerking.adult_v2",
+          content: {
+            schema: 2,
+            catalogueVersion: "1.0.0-draft",
+            header: { historian: "patient" },
+            history: {
+              ...emptyHistory(),
+              complaints: [{ key: "c", symptom: "sym.cough", props: {}, flags: {} }],
+            } as unknown as NoteContent["history"],
+            sections: {
+              s13: {
+                items: [
+                  {
+                    kind: "encounter_diagnosis",
+                    conditionId: ana.id,
+                    logicalId: ana.id,
+                    display: "Anaemia",
+                  },
+                ],
+              },
+              s14: { items: [{ kind: "plan_statement", text: "Review" }] },
+            },
+            impression: {
+              order: [],
+              likelihood: {},
+              reasons: {},
+              evidence: {},
+              meta: {},
+              catalogueVersion: "1.0.1-draft",
+            },
+            edited: {},
+          },
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    await as(
+      mo,
+      (ctx) =>
+        notes.signNote(ctx, {
+          patientUserId: v.q,
+          noteId: draft.id,
+          stages: [{ ...stage, code: "moderate", words: "moderate" }],
+        }),
+      v.q,
+    );
+    const now = await head();
+    expect(now).toMatchObject({ version: 3, stage: { code: "moderate" } });
+    const note = (await lane.db.query.clinicalNotes.findFirst({
+      where: (n, { eq }) => eq(n.id, draft.id),
+    }))!;
+    const snap = (JSON.parse(decrypt(note.contentCiphertext)) as NoteContent).impression as {
+      snapshot: SignedDiagnosis[];
+    };
+    expect(snap.snapshot[0]!.versionId).toBe(now.id);
+  });
+
+  it("Gate B look-back: an earlier visit's active diagnosis is a relation target; the link reaches the desk", async () => {
+    const v = await newVisit();
+    const mal = await record(mo, v, {
+      termId: dxTermUuid("dx.malaria_uncomplicated"),
+      rank: "primary",
+    });
+    const e2 = await encounter(lane.pg, {
+      hospitalId: h,
+      patientUserId: v.q,
+      clinicianUserId: mo.userId,
+      departmentId: dept,
+    });
+    const ana = await record(
+      mo,
+      { q: v.q, e: e2 },
+      {
+        termId: dxTermUuid("dx.anaemia"),
+        rank: "primary",
+      },
+    );
+    await as(
+      mo,
+      (ctx) =>
+        rel.createRelation(ctx, {
+          patientUserId: v.q,
+          encounterId: e2,
+          conditionId: ana.id,
+          relatedConditionId: mal.id,
+          relationType: "due_to",
+          label: "secondary",
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    const desk = (await loadDeskFor(mo, e2, { database: lane.db }))!.payload;
+    expect(desk.background).toContainEqual(
+      expect.objectContaining({
+        logicalId: mal.id,
+        earlier: { words: expect.stringMatching(/^diagnosed \d{1,2} [A-Z][a-z]+$/) },
+      }),
+    );
+    expect(desk.relations).toContainEqual(
+      expect.objectContaining({ conditionId: ana.id, relatedConditionId: mal.id }),
+    );
+  });
+
   it("scripts/emr/si-counts.ts: the §14 baseline counts run read only on this schema", async () => {
     const out = await siCounts(lane.db);
     expect(out.map((r) => r.tbl)).toEqual([

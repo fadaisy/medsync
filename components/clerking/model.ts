@@ -48,7 +48,7 @@ import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { deriveExam, previousFormat } from "./exam/model";
 import { deriveImpression } from "./impression/model";
 import { derivePlan } from "./plan/model";
-import { deriveSi } from "./si-model";
+import { deriveSi, refinementOf } from "./si-model";
 
 /**
  * Clerking desk v2's pure view model (PROMPT-CLERKING-DESK-V2 §5): no React, no I/O. What the shell
@@ -190,11 +190,13 @@ function impressionText(
   c: NoteContent,
   si: SiView | null,
   imp: ImpressionView | null,
+  dx: DxData | null,
 ): string | undefined {
   const signed = (c.impression as { text?: string } | undefined)?.text;
   if (p.draft === null && p.signed) return signed;
   if (!si || !imp) return undefined;
   if (!si.recorded.length && !si.board.deferred) return undefined;
+  const r = refinementOf(si, p.clerking?.exam.gestationWeeks ?? null, dx);
   return composeImpression({
     board: si.board,
     draft: si.impression,
@@ -204,6 +206,8 @@ function impressionText(
     relations: si.relations,
     background: si.background,
     ruledOut: si.ruledOut,
+    stages: r.stages,
+    risk: r.risk,
   });
 }
 
@@ -337,7 +341,7 @@ export function deriveDesk(
       c,
       exam ? exam.text : undefined,
       si?.noteText,
-      impressionText(p, c, si, imp),
+      impressionText(p, c, si, imp, dx),
       signedPlan ?? plan?.lines.join("\n"),
     ),
     edited: c.edited ?? {},

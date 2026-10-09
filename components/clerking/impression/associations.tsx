@@ -3,10 +3,13 @@ import type { BoardRow } from "@/lib/clerking/impression/board";
 import type { Finding } from "@/lib/clerking/impression/facts";
 import type { DueLabel } from "@/lib/clerking/impression/relations-catalogue";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { ArrowDownIcon, ArrowUpIcon, FlagIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const COLLAPSE_AFTER = 3;
 
 /** A link's own links sit indented under it (the 4 levels a cause chain may have). */
 const INDENT = ["", "ml-6", "ml-12", "ml-18"];
@@ -76,6 +79,13 @@ export function AssociatedContainer({
   card?: (row: BoardRow) => Record<string, string>;
   below?: (row: BoardRow) => ReactNode;
 }) {
+  // Linked lists collapse after 3 under a parent (design §6): the rest behind "Show 2 more".
+  const [all, setAll] = useState(false);
+  const more = chosen.filter((c) => c.depth === 1).length - COLLAPSE_AFTER;
+  let top = 0;
+  const shown = all
+    ? chosen
+    : chosen.filter((c) => (c.depth === 1 ? ++top : top) <= COLLAPSE_AFTER);
   if (!chosen.length && !candidates.length) return null;
   return (
     <section
@@ -87,7 +97,7 @@ export function AssociatedContainer({
       </span>
       {chosen.length ? (
         <ul className="flex flex-col gap-2">
-          {chosen.map(({ row, words, supports, flagged, depth, first, last }) => {
+          {shown.map(({ row, words, supports, flagged, depth, first, last }) => {
             const on = active === row.dx.logicalId;
             return (
               <li
@@ -203,6 +213,18 @@ export function AssociatedContainer({
               </li>
             );
           })}
+          {more > 0 ? (
+            <li>
+              <button
+                type="button"
+                aria-expanded={all}
+                onClick={() => setAll(!all)}
+                className="text-caption focus-visible:shadow-focus rounded-xs font-medium text-teal-700 outline-none hover:underline dark:text-teal-300 pointer-coarse:min-h-11"
+              >
+                {all ? "Show fewer" : `Show ${more} more`}
+              </button>
+            </li>
+          ) : null}
         </ul>
       ) : (
         <p className="text-caption text-muted-foreground">

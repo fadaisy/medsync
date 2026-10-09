@@ -122,6 +122,8 @@ export interface DeskDiagnosis {
   cosignPending: boolean;
   /** First recorded at this visit by the viewer: Remove takes a slip off in one tap (ADR 0217). */
   addedHere?: boolean;
+  /** Refined (D-REL-05): the term it was first refined from, and the deciding tests' names. */
+  refinedFrom?: { display: string; termId: string | null; decided: string[] } | null;
 }
 
 /** A current, active relation between two diagnoses on the board (migration 0096, D-REL-02);
@@ -176,6 +178,9 @@ export interface DeskBackground {
   restricted: boolean;
   /** When it was first recorded (its first version's effective time), ISO. */
   since: string;
+  /** Not the problem list: a diagnosis of an earlier visit, still active or resolved within 90
+   *  days (Gate B look-back), offered only as a "Relate to…" target; `words`: "treated 3 October". */
+  earlier?: { words: string };
 }
 
 export type ProblemAnswer = "pending" | "confirmed" | "resolved";

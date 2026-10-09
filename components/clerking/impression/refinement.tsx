@@ -1,5 +1,6 @@
 import type { SubtypeParent } from "@/lib/clerking/impression/relations-catalogue";
 import type { Stage } from "@/lib/clerking/impression/stages";
+import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { EmrDialog } from "@/components/emr/emr-dialog";
@@ -73,6 +74,7 @@ export function RefineDialog({
   deciding,
   onRefine,
   onReplace,
+  search,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -84,6 +86,8 @@ export function RefineDialog({
   onRefine: (dxId: string) => void;
   /** Replace with a catalogue alternative (dx id), with the reason it was ruled out. */
   onReplace: (dxId: string, reason: string) => void;
+  /** A placeholder (D-REL-15) refines into whatever explains it: a diagnosis search. */
+  search?: ReactNode;
 }) {
   const [replacing, setReplacing] = useState<string | null>(null);
   const [reason, setReason] = useState("");
@@ -136,6 +140,15 @@ export function RefineDialog({
                 </li>
               ))}
             </ul>
+          </section>
+        ) : null}
+
+        {search ? (
+          <section aria-labelledby="refine-search" className="flex flex-col gap-2">
+            <h3 id="refine-search" className="text-label text-foreground">
+              Refine to the diagnosis that explains it
+            </h3>
+            {search}
           </section>
         ) : null}
 

@@ -35,7 +35,13 @@ export interface Known {
   code: string | null;
   restricted: boolean;
   since: string;
+  /** An earlier visit's diagnosis (Gate B look-back), not the problem list: "treated 3 October". */
+  earlier?: { words: string };
 }
+
+/** A known end in words: "known type 1 diabetes", or an earlier visit's "malaria (treated 3 October)". */
+export const knownWords = (k: Pick<Known, "display" | "earlier">, lower: (s: string) => string) =>
+  k.earlier ? `${lower(k.display)} (${k.earlier.words})` : `known ${lower(k.display)}`;
 
 export interface CauseRemovedItem {
   logicalId: string;

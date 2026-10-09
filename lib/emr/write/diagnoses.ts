@@ -8,6 +8,9 @@ import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { conditions, diagnosisTerms } from "@/db/schema/emr";
+import { DX_INDEX } from "@/lib/clerking/impression/load";
+import { toRecorded } from "@/lib/clerking/impression/recorded";
+import { stageScaleOf } from "@/lib/clerking/impression/relations-catalogue";
 import { encounterDiagnoses, newestVersions, pendingCosignIds } from "@/lib/emr/diagnoses";
 import { decrypt } from "@/lib/encryption";
 import { EmrWriteError, stampActivity } from "./context";
@@ -474,6 +477,68 @@ export async function replaceDiagnosis(
         : "provisional",
   });
   return { ...made, refutedId: refuted.id };
+}
+
+/* ─── Severity stages at signing (D-REL-14) ──────────────────────── */
+
+/** A computed stage as the client sends it at signing (never an insufficient one). */
+export interface StageInput {
+  logicalId: string;
+  scale: string;
+  code: string;
+  words: string;
+  source: string;
+}
+
+/** The scales lib/clerking/impression/stages.ts computes, by the scale id each belongs to. */
+const STAGE_SCALES: Readonly<Record<string, string>> = {
+  "Anaemia severity (WHO 2024)": "dx.anaemia",
+  "CKD category (KDIGO 2024)": "dx.ckd",
+  "AKI stage (KDIGO 2012)": "dx.aki",
+  "CURB-65": "dx.pneumonia",
+  "CRB-65": "dx.pneumonia",
+};
+
+/**
+ * Severity is a stage on the same condition, never a new diagnosis (D-REL-14): at signing, each
+ * diagnosis on this visit whose computed stage differs from its stored one gets its next version
+ * with `stage = {scale, code, words, source, computedAt}`. An unchanged stage writes nothing, so
+ * the record is not versioned on every keystroke. The scale must be the diagnosis's own.
+ */
+export async function writeStages(
+  ctx: WriteCtx,
+  i: {
+    hospitalId: string;
+    patientUserId: string;
+    encounterId: string;
+    stages: readonly StageInput[];
+    /** The signing note's id: each version's client key derives from it. */
+    keyPrefix: string;
+  },
+): Promise<number> {
+  if (!i.stages.length) return 0;
+  const dx = toRecorded(await loadEncounterDiagnoses(ctx.tx, i), DX_INDEX);
+  let n = 0;
+  for (const { logicalId, ...stage } of i.stages) {
+    const d = dx.find((x) => x.logicalId === logicalId);
+    if (!d) throw invalid("A staged diagnosis is not on this visit.");
+    const scaleId =
+      d.dxId === "dx.pneumonia_community" ? "dx.pneumonia" : stageScaleOf(d.dxId ?? "")?.id;
+    if (!scaleId || STAGE_SCALES[stage.scale] !== scaleId)
+      throw invalid(`${d.display} is not staged by ${stage.scale}.`);
+    const prev = await currentVersion(ctx, "condition", d.versionId, i.patientUserId);
+    const old = prev.stage as { scale?: string; code?: string } | null;
+    if (old?.scale === stage.scale && old.code === stage.code) continue;
+    await insertNextVersion(
+      ctx,
+      "condition",
+      prev,
+      { stage: { ...stage, computedAt: ctx.now.toISOString() } },
+      `${i.keyPrefix}:stage:${logicalId}`,
+    );
+    n++;
+  }
+  return n;
 }
 
 /* ─── Reads the writes share ─────────────────────────────────────── */

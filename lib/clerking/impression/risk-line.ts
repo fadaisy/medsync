@@ -1,5 +1,5 @@
 import RISKS from "@/data/clerking/dx-risk-factors.v1.json";
-import { riskFactorsOf } from "./relations-catalogue";
+import { refinesFrom, riskFactorsOf } from "./relations-catalogue";
 
 /**
  * "Risk factors on record: …" under an outcome (R2, D-REL-04): derived from what the record already
@@ -10,6 +10,8 @@ import { riskFactorsOf } from "./relations-catalogue";
 
 export interface RiskOnRecord {
   dxId: string;
+  /** The condition on record (a `risk_factor_for` relation names it when the line is included). */
+  logicalId?: string;
   display: string;
   restrictedClass: string | null;
 }
@@ -51,6 +53,10 @@ export function riskLine(
   return { factors, exposures, restrictedClasses };
 }
 
+/** Where an included factor came from, stored on its `risk_factor_for` relation. */
+export const riskRef = (factor: string, outcome: string) =>
+  `${RISKS.id}@${RISKS.version}:${factor}->${outcome}`;
+
 /** The line's words: "Risk factors on record: type 2 diabetes, hypertension; current tobacco use." */
 export const riskWords = (l: RiskLine) =>
   `Risk factors on record: ${[
@@ -59,3 +65,33 @@ export const riskWords = (l: RiskLine) =>
   ]
     .filter(Boolean)
     .join("; ")}.`;
+
+/** The outcome a diagnosis's risk factors are listed under: itself, or what it was refined from
+ *  (NSTEMI → NSTE-ACS → ACS). */
+export function outcomeOf(dx: string): string {
+  let d = dx;
+  for (let n = 0; n < 4; n++) {
+    if (riskFactorsOf(d).length || EXPOSURES.some((e) => e.outcomes.includes(d))) return d;
+    const up = refinesFrom(d);
+    if (!up) break;
+    d = up;
+  }
+  return dx;
+}
+
+/** The social history's exposures present, by the clerking's own rules (as lib/ncd/pack/
+ *  from-clerking.ts reads them): tobacco current (or another form), CAGE two or more yes,
+ *  exercise inactive. Blank is never present. */
+export function exposuresFrom(so: {
+  tobacco?: string;
+  otherForms?: readonly string[];
+  cage?: Readonly<Record<string, string | undefined>>;
+  exercise?: string;
+}): Set<string> {
+  const out = new Set<string>();
+  if (so.tobacco === "current" || so.otherForms?.length) out.add("exposure.tobacco_current");
+  if (Object.values(so.cage ?? {}).filter((a) => a === "yes").length >= 2)
+    out.add("exposure.alcohol_harmful");
+  if (so.exercise === "inactive") out.add("exposure.physical_inactivity");
+  return out;
+}
