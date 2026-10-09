@@ -4,9 +4,11 @@ import type {
   CarriedMedicine,
   CarriedProblem,
   ContextVital,
+  DeskBackground,
   DeskDiagnosis,
   DeskNoteRow,
   DeskPayload,
+  DeskRelation,
   Suggestion,
 } from "@/components/emr/desk/model";
 import type { EmrActor } from "@/lib/emr/actor";
@@ -14,7 +16,7 @@ import type { NoteItem as ChartNoteItem } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { NoteContent } from "@/lib/emr/notes";
 import type { AcuityLevel, FiredDiscriminator, TriageVitals } from "@/lib/triage/types";
-import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
 import {
   CLERKING_FORMS,
@@ -26,6 +28,7 @@ import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import {
   clinicalNoteEvents,
   clinicalNotes,
+  conditionRelations,
   conditions,
   diagnosisTerms,
   medicationStatements,
@@ -315,9 +318,35 @@ export async function loadDeskFor(
           textCiphertext: conditions.textCiphertext,
           icd11Code: conditions.icd11Code,
           sensitivity: conditions.sensitivity,
+          effectiveAt: conditions.effectiveAt,
         })
         .from(conditions)
         .where(eq(conditions.patientUserId, enc.patientUserId));
+      // Current, active relations (0096); RLS drops those with a class the viewer lacks (D-REL-09).
+      // ponytail: "current" is judged over the rows the viewer sees; classes only rise, so a hidden
+      // newer version can only exist for a viewer who could not see it either.
+      const relationRows = await tx
+        .select({
+          id: conditionRelations.id,
+          logicalId: conditionRelations.logicalId,
+          conditionId: conditionRelations.conditionId,
+          relatedConditionId: conditionRelations.relatedConditionId,
+          relationType: conditionRelations.relationType,
+          label: conditionRelations.label,
+          position: conditionRelations.position,
+          qualifiers: conditionRelations.qualifiers,
+          sensitivity: conditionRelations.sensitivity,
+          origin: conditionRelations.origin,
+          encounterId: conditionRelations.encounterId,
+        })
+        .from(conditionRelations)
+        .where(
+          and(
+            eq(conditionRelations.patientUserId, enc.patientUserId),
+            eq(conditionRelations.state, "active"),
+            sql`NOT EXISTS (SELECT 1 FROM public.condition_relations s WHERE s.supersedes_id = ${conditionRelations.id})`,
+          ),
+        );
       const medicineRows = await tx
         .select({
           id: medicationStatements.id,
@@ -406,6 +435,7 @@ export async function loadDeskFor(
         notes,
         events,
         conditionRows,
+        relationRows,
         medicineRows,
         terms,
         cosign,
@@ -683,6 +713,30 @@ export async function loadDeskFor(
     cosignPending: pendingCosignIds(rec.cosign.map((r) => r.payload)),
     viewerId: actor.userId,
   });
+  // The Background row (the problem list, R5) and the relations among it and this visit (0096).
+  // ponytail: a relation to an earlier visit's diagnosis (design §5.4) is not shown until its window
+  // is signed (proposed 90 days, CSO to confirm).
+  const termOf = new Map(rec.terms.map((t) => [t.id, t]));
+  const firstSeen = new Map<string, Date>();
+  for (const c of rec.conditionRows)
+    if (!firstSeen.has(c.logicalId) || c.effectiveAt < firstSeen.get(c.logicalId)!)
+      firstSeen.set(c.logicalId, c.effectiveAt);
+  const background: DeskBackground[] = carryProblems(rec.conditionRows).map(({ item: c }) => ({
+    id: c.id,
+    logicalId: c.logicalId,
+    termId: c.termId,
+    display: conditionName(c),
+    code: c.termId && termOf.get(c.termId)?.verifiedOn && c.icd11Code ? c.icd11Code : null,
+    restricted: c.sensitivity === "restricted",
+    since: (firstSeen.get(c.logicalId) ?? c.effectiveAt).toISOString(),
+  }));
+  const onVisit = new Set(diagnoses.map((d) => d.logicalId));
+  const onBoard = new Set([...onVisit, ...background.map((b) => b.logicalId)]);
+  const relations: DeskRelation[] = rec.relationRows
+    .filter((r) => onBoard.has(r.conditionId) && onBoard.has(r.relatedConditionId))
+    .map(({ sensitivity, ...r }) => ({ ...r, restricted: sensitivity === "restricted" }))
+    .sort((a, b) => a.position - b.position);
+
   const orders = chart.orders
     .filter((o) => o.encounterId === enc.id)
     .map((o) => ({
@@ -851,6 +905,8 @@ export async function loadDeskFor(
       suggestions,
       carried: { problems, medicines },
       diagnoses,
+      relations,
+      background,
       orders,
       substances: SUBSTANCES,
       completionWarnings: warnings,

@@ -71,6 +71,6 @@ describe("the term map (D-SI-22)", () => {
     for (const id of ["dx.sepsis", "dx.hypothermia_unexplained", "dx.dm_type_unknown"])
       expect(dxTermUuid(id)).toBe(seedUuid(`diagnosis_terms:${id}`));
     expect(uuidV5("x")).toBe(seedUuid("x"));
-    expect(Object.keys(DX_TERM_IDS)).toHaveLength(280); // 272 + the diabetes pack's 8
+    expect(Object.keys(DX_TERM_IDS)).toHaveLength(292); // 272 + the diabetes pack's 8 + v1.2's 12
   });
 });

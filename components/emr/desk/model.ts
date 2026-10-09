@@ -124,6 +124,39 @@ export interface DeskDiagnosis {
   addedHere?: boolean;
 }
 
+/** A current, active relation between two diagnoses on the board (migration 0096, D-REL-02);
+ *  the viewer's RLS has already dropped any whose restricted class they lack (D-REL-09). */
+export interface DeskRelation {
+  /** The relation's current version (retire, move and relabel act on it). */
+  id: string;
+  logicalId: string;
+  /** Condition logical ids: the effect / factor / this visit's episode, and the related one. */
+  conditionId: string;
+  relatedConditionId: string;
+  relationType: "due_to" | "associated_with" | "risk_factor_for" | "episode_of";
+  label: "complication" | "secondary" | "precipitated_by" | null;
+  position: number;
+  qualifiers: string[];
+  restricted: boolean;
+  origin: string;
+  /** The visit it was asserted at. */
+  encounterId: string;
+}
+
+/** A known condition (the problem list) on the board's Background (design §2.1, R5). */
+export interface DeskBackground {
+  /** The condition's current version. */
+  id: string;
+  logicalId: string;
+  termId: string | null;
+  display: string;
+  /** ICD-11, only when the term's code is verified. */
+  code: string | null;
+  restricted: boolean;
+  /** When it was first recorded (its first version's effective time), ISO. */
+  since: string;
+}
+
 export type ProblemAnswer = "pending" | "confirmed" | "resolved";
 export interface CarriedProblem {
   /** conditions.id of the current version. */
@@ -209,6 +242,10 @@ export interface DeskPayload {
   suggestions: Suggestion[];
   carried: { problems: CarriedProblem[]; medicines: CarriedMedicine[] };
   diagnoses: DeskDiagnosis[];
+  /** Relations among this visit's diagnoses and the background (0096); absent in old fixtures. */
+  relations?: DeskRelation[];
+  /** The patient's problem list, for the Background row (0096). */
+  background?: DeskBackground[];
   orders: DeskOrder[];
   /** The allergy editor's coded substances: the formulary's ingredients and classes. */
   substances: { kind: "drug_ingredient" | "drug_class"; code: string; label: string }[];

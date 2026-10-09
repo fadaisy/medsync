@@ -1,0 +1,957 @@
+{
+  "id": "MS-EMR-DX-REL-VIGNETTES-001",
+  "version": "1.0.0-draft",
+  "status": "draft — awaiting CSO",
+  "assumes": "the recommended option of every D-REL decision",
+  "count": 19,
+  "vignettes": [
+    {
+      "id": "DXV-01",
+      "title": "ACS in a smoker with diabetes, hypertension and dyslipidaemia, refined to NSTEMI after troponin",
+      "patient": "Man, 58 years. Problem list: type 2 diabetes, hypertension, dyslipidaemia. Social history: current smoker.",
+      "story": "Two hours of central crushing chest pain at rest, sweating. No previous chest pain.",
+      "findings": ["Pulse 98, BP 152/94, SpO2 96%", "No murmur, chest clear"],
+      "results": [
+        "ECG 10:05: horizontal ST-depression 1 mm in V4–V6, no ST-elevation",
+        "Troponin 10:10 above the 99th percentile URL; troponin 13:10 higher (rise)"
+      ],
+      "actions": [
+        "Leading set to Acute coronary syndrome (working); note reads 'type to be decided by ECG and troponin'",
+        "ECG recorded: desk offers 'Refine to NSTE-ACS (no persistent ST-elevation)'; clinician accepts (new version)",
+        "Second troponin shows a rise: desk offers 'Refine to NSTEMI'; clinician accepts and marks Final",
+        "Aortic dissection (must-not-miss) marked Unlikely with reason; pulmonary embolism Unlikely",
+        "Clinician ticks 'include in note' on the derived risk-factor line"
+      ],
+      "board": [
+        {
+          "id": "dx.nstemi",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "final",
+          "note": "history: dx.acs -> dx.nste_acs -> dx.nstemi, same logical condition"
+        },
+        {
+          "id": "dx.aortic_dissection",
+          "place": "differential",
+          "verification": "refuted",
+          "status": "working",
+          "note": "Unlikely: pain not tearing, pulses and BP equal in both arms, mediastinum normal"
+        },
+        {
+          "id": "dx.pulmonary_embolism",
+          "place": "differential",
+          "verification": "refuted",
+          "status": "working",
+          "note": "Unlikely: no risk factors, SpO2 normal"
+        },
+        {
+          "id": "dx.dm_type2",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "risk_factor_for",
+            "to": "dx.nstemi"
+          }
+        },
+        {
+          "id": "dx.hypertension",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "risk_factor_for",
+            "to": "dx.nstemi"
+          }
+        },
+        {
+          "id": "dx.dyslipidaemia",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "risk_factor_for",
+            "to": "dx.nstemi"
+          }
+        }
+      ],
+      "note_impression": "1. Non-ST-elevation myocardial infarction (primary; final). Refined from acute coronary syndrome after ECG (no persistent ST-elevation) and troponin rise.\n   Risk factors on record: type 2 diabetes, hypertension, dyslipidaemia; current tobacco use.\n   Considered and unlikely: aortic dissection (pain not tearing, equal arm pulses and BP, normal mediastinum); pulmonary embolism.\nKnown conditions: type 2 diabetes; hypertension; dyslipidaemia.",
+      "problem_list_after": [
+        "Type 2 diabetes",
+        "Hypertension",
+        "Dyslipidaemia",
+        "NSTEMI (history item, if the catalogue's problem_list behaviour for dx.nstemi says so)"
+      ],
+      "counted_opd_or_ipd": ["dx.nstemi (main condition)"],
+      "checks": [
+        "A single troponin above the URL never offers NSTEMI: the offer needs a rise or fall on serial values",
+        "The note never shows ACS and NSTEMI as two diagnoses",
+        "Risk factors are not counted and are not new problem-list entries",
+        "Tobacco comes from the social history, not from a condition"
+      ]
+    },
+    {
+      "id": "DXV-02",
+      "title": "Severe anaemia secondary to falciparum malaria (and hookworm)",
+      "patient": "Woman, 24 years. Urine pregnancy test negative.",
+      "story": "Five days of fever and two days of dizziness and breathlessness on walking.",
+      "findings": ["Marked pallor, pulse 118, BP 104/66, alert (GCS 15)"],
+      "results": [
+        "Malaria RDT positive (P. falciparum); smear 45 000 parasites/µl",
+        "Hb 62 g/L",
+        "Stool microscopy: hookworm ova",
+        "Ferritin low"
+      ],
+      "actions": [
+        "Leading: Malaria, severe (P. falciparum); the desk shows the WHO criterion met: Hb <7 g/dl with parasite count >10 000/µl",
+        "Anaemia, cause not yet known, added; clinician drags it onto the malaria card: catalogued pair, applied as 'secondary to', shown inline with Change and Undo",
+        "Desk offers to refine 'Anaemia, cause not yet known' to 'Anaemia' now that a cause is linked; clinician accepts",
+        "Clinician adds Intestinal helminth infection as also this visit, then uses 'Relate to…' on the anaemia to add a second cause: hookworm (ordered second)"
+      ],
+      "board": [
+        {
+          "id": "dx.malaria_severe",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "qualifier": "P. falciparum; feature: severe malarial anaemia"
+        },
+        {
+          "id": "dx.anaemia",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.malaria_severe",
+            "label": "secondary"
+          },
+          "stage": "severe (Hb 62 g/L; women 15–65 not pregnant: <80)",
+          "note": "second cause: dx.hookworm_helminth (due_to, secondary, position 2)"
+        },
+        {
+          "id": "dx.hookworm_helminth",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working"
+        }
+      ],
+      "note_impression": "1. Malaria, severe, P. falciparum (primary; working): severe malarial anaemia (Hb 62 g/L, parasites 45 000/µl).\n   - Anaemia, severe (Hb 62 g/L), secondary to severe malaria and to hookworm infection.\n2. Intestinal helminth infection (hookworm) (working).",
+      "problem_list_after": ["(no change: none of these is a chronic problem-list item)"],
+      "counted_opd_or_ipd": [
+        "dx.malaria_severe (main condition)",
+        "dx.anaemia",
+        "dx.hookworm_helminth"
+      ],
+      "checks": [
+        "Severity comes from the WHO 2024 table for a non-pregnant woman; with pregnancy unknown the stage would be 'insufficient'",
+        "Two causes are kept in the clinician's order (D-REL-12)",
+        "The anaemia is counted on its own line and is not hidden under malaria"
+      ]
+    },
+    {
+      "id": "DXV-03",
+      "title": "Malaria and pneumonia, co-existing and unrelated",
+      "patient": "Man, 35 years.",
+      "story": "Four days of fever with productive cough and right-sided pleuritic chest pain.",
+      "findings": [
+        "Temperature 38.9 °C, respiratory rate 24, BP 128/78, oriented; bronchial breathing right base"
+      ],
+      "results": [
+        "Malaria RDT positive (P. falciparum)",
+        "Chest X-ray: right lower lobe consolidation",
+        "Urea 5.1 mmol/l",
+        "HIV rapid test negative"
+      ],
+      "actions": [
+        "Leading: Pneumonia; refined to Community-acquired pneumonia; CURB-65 computed 0 from recorded values",
+        "Malaria, uncomplicated placed in 'Also this visit (co-existing)' with no relation",
+        "Clinician swaps leading once to check (one action) and swaps back"
+      ],
+      "board": [
+        {
+          "id": "dx.pneumonia_community",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "stage": "CURB-65 0"
+        },
+        {
+          "id": "dx.malaria_uncomplicated",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working",
+          "qualifier": "P. falciparum"
+        }
+      ],
+      "note_impression": "1. Community-acquired pneumonia, right lower lobe (primary; working), CURB-65 0.\n2. Malaria, uncomplicated, P. falciparum (co-existing; working).",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.pneumonia_community", "dx.malaria_uncomplicated"],
+      "checks": [
+        "No relation is suggested between malaria and pneumonia (the catalogue has none)",
+        "Both are counted",
+        "One primary only (D-REL-01)"
+      ]
+    },
+    {
+      "id": "DXV-04",
+      "title": "Known type 1 diabetes on insulin, pneumonia, complicated by DKA",
+      "patient": "Woman, 19 years. Problem list: type 1 diabetes. Insulin ran out 3 days ago.",
+      "story": "Two days of cough and fever, then vomiting and abdominal pain since this morning.",
+      "findings": ["Kussmaul breathing, dry mucosa, pulse 124, BP 100/62, crackles left base"],
+      "results": [
+        "Capillary glucose 28 mmol/L",
+        "Blood ketones 4.2 mmol/L",
+        "Venous pH 7.15, bicarbonate 10 mmol/L",
+        "Chest X-ray: left lower lobe consolidation",
+        "Malaria RDT negative"
+      ],
+      "actions": [
+        "Leading: Diabetic ketoacidosis. Desk offers 'complication of type 1 diabetes (known)' because the problem list holds it; clinician accepts (record-level link to the problem-list condition)",
+        "Pneumonia added as also this visit; dropped onto DKA: catalogued as precipitant, applied as 'precipitated by'",
+        "Clinician picks the non-diagnosis cause 'Missed or stopped insulin' as a second precipitant (qualifier)"
+      ],
+      "board": [
+        {
+          "id": "dx.dka",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.dm_type1",
+            "label": "complication"
+          },
+          "note": "also due_to dx.pneumonia_community (precipitated_by); qualifier cause.insulin_omission"
+        },
+        {
+          "id": "dx.pneumonia_community",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working"
+        },
+        {
+          "id": "dx.dm_type1",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final"
+        }
+      ],
+      "note_impression": "1. Diabetic ketoacidosis (primary; working), complication of known type 1 diabetes; precipitated by community-acquired pneumonia and by missed insulin.\n2. Community-acquired pneumonia, left lower lobe (working).\nKnown conditions: type 1 diabetes.",
+      "problem_list_after": [
+        "Type 1 diabetes (unchanged; this visit's DKA is linked to it in the record)"
+      ],
+      "counted_opd_or_ipd": ["dx.dka (main condition)", "dx.pneumonia_community"],
+      "checks": [
+        "The link from DKA to the problem-list diabetes is a record-level relation (needs D-REL-02 A)",
+        "Background diabetes is not counted as a new case",
+        "'Missed insulin' is a qualifier, not a diagnosis"
+      ]
+    },
+    {
+      "id": "DXV-05",
+      "title": "Known HIV on ART with cryptococcal meningitis (restricted class)",
+      "patient": "Man, 34 years. Problem list: HIV infection (restricted class hiv), on ART.",
+      "story": "Two weeks of worsening headache, then vomiting and confusion for one day.",
+      "findings": ["GCS 14, neck stiffness, no focal deficit"],
+      "results": [
+        "Serum CrAg positive",
+        "CSF: CrAg positive, opening pressure raised",
+        "CD4 85 cells/mm³"
+      ],
+      "actions": [
+        "Working leading: Meningitis, cause not yet known; CrAg positive: desk offers 'Refine to Cryptococcal meningitis'; accepted",
+        "Desk offers 'secondary to HIV infection (known)'; accepted. The relation takes the HIV class (D-REL-09)",
+        "Clinician refines the background HIV to Advanced HIV disease (CD4 85) through 'Active this visit' (episode_of, then refine)"
+      ],
+      "board": [
+        {
+          "id": "dx.cryptococcal_meningitis",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.hiv_advanced",
+            "label": "secondary"
+          }
+        },
+        {
+          "id": "dx.hiv_advanced",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "episode_of",
+            "to": "problem_list:dx.hiv"
+          },
+          "note": "restricted: hiv"
+        },
+        {
+          "id": "dx.hiv",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final",
+          "note": "restricted: hiv"
+        }
+      ],
+      "note_impression": "Viewer WITH the hiv class:\n1. Cryptococcal meningitis (primary; working), secondary to advanced HIV disease (CD4 85).\n2. Advanced HIV disease (known HIV infection, on ART) (working).\n\nViewer WITHOUT the hiv class:\n1. Cryptococcal meningitis (primary; working).",
+      "problem_list_after": ["HIV infection, now advanced HIV disease (restricted)"],
+      "counted_opd_or_ipd": [
+        "dx.cryptococcal_meningitis (main condition)",
+        "dx.hiv_advanced (restricted reporting line)"
+      ],
+      "checks": [
+        "No placeholder such as 'secondary to a hidden condition' for the viewer without access",
+        "Cryptococcal meningitis itself stays visible to the treating team (D-REL-10)",
+        "Patient-facing text never names HIV"
+      ]
+    },
+    {
+      "id": "DXV-06",
+      "title": "Hypertensive emergency with an acute stroke (intracerebral haemorrhage)",
+      "patient": "Woman, 62 years. Problem list: hypertension. Out of her BP medicines for 3 months (stock-out).",
+      "story": "Sudden right-sided weakness and difficulty speaking 3 hours ago, with headache.",
+      "findings": ["BP 210/125 on two readings, GCS 13, right hemiparesis, expressive aphasia"],
+      "results": [
+        "Capillary glucose 6.1 mmol/L",
+        "CT head: left basal ganglia intracerebral haemorrhage",
+        "ECG: LV hypertrophy, sinus rhythm"
+      ],
+      "actions": [
+        "Working leading: Stroke, 'type to be decided by CT head'; CT recorded: desk offers 'Refine to Intracerebral haemorrhage'; accepted",
+        "Hypertensive crisis added; refined to Hypertensive emergency (acute organ damage: the haemorrhage)",
+        "Clinician drags Intracerebral haemorrhage onto Hypertensive emergency: catalogue says direction is clinical, so the centred chooser opens; clinician picks 'secondary to'",
+        "Hypertensive emergency linked 'complication of hypertension (known)'; qualifier 'medicines not taken (stock-out)'"
+      ],
+      "board": [
+        {
+          "id": "dx.stroke_haemorrhagic",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.hypertensive_emergency",
+            "label": "secondary"
+          }
+        },
+        {
+          "id": "dx.hypertensive_emergency",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.hypertension",
+            "label": "complication"
+          },
+          "qualifier": "cause.treatment_interruption"
+        },
+        {
+          "id": "dx.hypertension",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final"
+        }
+      ],
+      "note_impression": "1. Intracerebral haemorrhage, left basal ganglia (primary; working), secondary to hypertensive emergency, a complication of known hypertension (medicines not taken for 3 months: stock-out).\n2. Hypertensive emergency (working): BP 210/125 with acute organ damage (intracerebral haemorrhage).\nKnown conditions: hypertension.",
+      "problem_list_after": [
+        "Hypertension (unchanged)",
+        "Intracerebral haemorrhage (history item, if the catalogue says so)"
+      ],
+      "counted_opd_or_ipd": [
+        "dx.stroke_haemorrhagic (main condition)",
+        "dx.hypertensive_emergency"
+      ],
+      "checks": [
+        "Relations add no alarm: the acute interrupt comes from the hypertension pack's acute lane, once per event",
+        "The death-certificate proposal (if needed) is a) intracerebral haemorrhage b) hypertensive emergency c) hypertension, for the doctor to confirm or shorten",
+        "No BP-lowering instruction appears anywhere in the relation text"
+      ]
+    },
+    {
+      "id": "DXV-07",
+      "title": "Heart failure due to rheumatic heart disease, with AF",
+      "patient": "Woman, 28 years. No problem list.",
+      "story": "Three months of worsening breathlessness, now unable to lie flat, and palpitations.",
+      "findings": [
+        "Irregularly irregular pulse 130, raised JVP, bibasal crackles, mid-diastolic murmur at apex"
+      ],
+      "results": [
+        "ECG: atrial fibrillation",
+        "Echo: rheumatic mitral stenosis, LVEF 55%",
+        "Pregnancy test negative"
+      ],
+      "actions": [
+        "Leading: Rheumatic heart disease (new this visit)",
+        "Heart failure and Atrial fibrillation each dropped onto it: both are signed complications, applied as 'complication of'",
+        "Desk does NOT offer HFrEF/HFpEF refinement because the heart failure is linked to valve disease (the LVEF class is shown as a number only)"
+      ],
+      "board": [
+        {
+          "id": "dx.rheumatic_heart_disease",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "qualifier": "mitral stenosis"
+        },
+        {
+          "id": "dx.heart_failure",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.rheumatic_heart_disease",
+            "label": "complication"
+          },
+          "stage": "LVEF 55%"
+        },
+        {
+          "id": "dx.af",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.rheumatic_heart_disease",
+            "label": "complication"
+          }
+        }
+      ],
+      "note_impression": "1. Rheumatic heart disease, mitral stenosis (primary; working).\n   - Heart failure (LVEF 55%), complication of rheumatic heart disease.\n   - Atrial fibrillation, complication of rheumatic heart disease.",
+      "problem_list_after": [
+        "Rheumatic heart disease",
+        "Heart failure",
+        "Atrial fibrillation (each added on signing, with complications nested under RHD)"
+      ],
+      "counted_opd_or_ipd": [
+        "dx.rheumatic_heart_disease (main condition)",
+        "dx.heart_failure",
+        "dx.af"
+      ],
+      "checks": [
+        "A valvular cause suppresses the LVEF-class refinement prompt",
+        "The note shows the complications under their parent, once each"
+      ]
+    },
+    {
+      "id": "DXV-08",
+      "title": "AKI secondary to sepsis secondary to pyelonephritis (a chain)",
+      "patient": "Woman, 45 years. Baseline creatinine 80 µmol/l (3 months ago).",
+      "story": "Three days of fever, rigors and right loin pain; little urine today.",
+      "findings": [
+        "Temperature 39.4 °C, pulse 122, BP 86/52, respiratory rate 26, right renal angle tenderness"
+      ],
+      "results": [
+        "Urinalysis: nitrites and leucocytes positive",
+        "Creatinine 210 µmol/l",
+        "Lactate 3.4 mmol/l",
+        "Malaria RDT negative",
+        "Pregnancy test negative"
+      ],
+      "actions": [
+        "Leading: Sepsis; Acute pyelonephritis added; pyelonephritis dropped onto sepsis: catalogue pair, applied (sepsis secondary to pyelonephritis)",
+        "AKI added; stage computed: 210/80 = 2.6 times baseline = KDIGO stage 2; dropped onto sepsis: applied (AKI secondary to sepsis)",
+        "Clinician tries to drop sepsis onto AKI: refused (would make a cycle)"
+      ],
+      "board": [
+        {
+          "id": "dx.sepsis",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.pyelonephritis",
+            "label": "secondary"
+          }
+        },
+        {
+          "id": "dx.pyelonephritis",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working"
+        },
+        {
+          "id": "dx.aki",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.sepsis",
+            "label": "secondary"
+          },
+          "stage": "KDIGO stage 2 (2.6 times baseline)"
+        }
+      ],
+      "note_impression": "1. Sepsis (primary; working), secondary to acute pyelonephritis.\n   - Acute kidney injury, KDIGO stage 2 (creatinine 210 µmol/l, 2.6 times baseline), secondary to sepsis.\n2. Acute pyelonephritis, right (working).",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.sepsis (main condition)", "dx.pyelonephritis", "dx.aki"],
+      "checks": [
+        "Chain depth 3 is allowed (limit 4, matching certificate Part I lines a–d)",
+        "Cycle refused with a plain message",
+        "No baseline creatinine would make the stage 'insufficient', never stage 0"
+      ]
+    },
+    {
+      "id": "DXV-09",
+      "title": "Sickle cell crisis triggered by malaria",
+      "patient": "Man, 17 years (adult band). Problem list: sickle cell disease.",
+      "story": "Two days of severe pain in the back and legs, with fever.",
+      "findings": ["Temperature 38.6 °C, jaundiced, no chest signs, SpO2 97%"],
+      "results": ["Malaria RDT positive", "Hb 74 g/L (his usual about 78)"],
+      "actions": [
+        "Leading: Sickle cell crisis; desk offers 'complication of sickle cell disease (known)'; accepted",
+        "Malaria, uncomplicated added as also this visit and dropped onto the crisis: applied as 'precipitated by'",
+        "Anaemia not added: Hb is at his baseline (the clinician's choice; the desk does not force it)"
+      ],
+      "board": [
+        {
+          "id": "dx.sickle_cell_crisis",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.sickle_cell_disease",
+            "label": "complication"
+          },
+          "note": "also due_to dx.malaria_uncomplicated (precipitated_by)"
+        },
+        {
+          "id": "dx.malaria_uncomplicated",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working"
+        },
+        {
+          "id": "dx.sickle_cell_disease",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final"
+        }
+      ],
+      "note_impression": "1. Sickle cell crisis, vaso-occlusive (primary; working), complication of known sickle cell disease; precipitated by malaria.\n2. Malaria, uncomplicated (working).\nKnown conditions: sickle cell disease.",
+      "problem_list_after": ["Sickle cell disease (unchanged)"],
+      "counted_opd_or_ipd": ["dx.sickle_cell_crisis (main condition)", "dx.malaria_uncomplicated"],
+      "checks": ["The haemoglobin below the WHO cutoff does not auto-add anaemia: suggestions only"]
+    },
+    {
+      "id": "DXV-10",
+      "title": "Pulmonary TB with diabetes as a risk factor (restricted class)",
+      "patient": "Man, 50 years. Problem list: type 2 diabetes.",
+      "story": "Six weeks of cough, night sweats and weight loss.",
+      "findings": ["BMI 18.1, crackles right upper zone"],
+      "results": [
+        "Xpert MTB/RIF: MTB detected, rifampicin resistance not detected",
+        "HbA1c 9.8%",
+        "HIV rapid test negative"
+      ],
+      "actions": [
+        "Leading started as Pulmonary TB, clinically diagnosed; Xpert recorded: desk offers 'Refine to bacteriologically confirmed'; accepted",
+        "Derived risk-factor line shows 'type 2 diabetes; undernutrition (BMI 18.1) is not a diagnosis on the board, so not shown'; clinician includes the line"
+      ],
+      "board": [
+        {
+          "id": "dx.tb_pulmonary_confirmed",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "stage": "rifampicin resistance not detected",
+          "note": "restricted: tb"
+        },
+        {
+          "id": "dx.dm_type2",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final",
+          "relation": {
+            "type": "risk_factor_for",
+            "to": "dx.tb_pulmonary_confirmed"
+          }
+        }
+      ],
+      "note_impression": "Viewer WITH the tb class:\n1. Pulmonary tuberculosis, bacteriologically confirmed (Xpert), rifampicin resistance not detected (primary; working).\n   Risk factors on record: type 2 diabetes (HbA1c 9.8%).\nKnown conditions: type 2 diabetes.\n\nViewer WITHOUT the tb class:\nKnown conditions: type 2 diabetes.",
+      "problem_list_after": [
+        "Type 2 diabetes",
+        "Pulmonary tuberculosis (restricted; per the catalogue's problem_list behaviour)"
+      ],
+      "counted_opd_or_ipd": ["dx.tb_pulmonary_confirmed (restricted reporting line)"],
+      "checks": [
+        "The risk-factor line inherits the tb class, because it names the outcome",
+        "A blank HIV result would never be read as negative"
+      ]
+    },
+    {
+      "id": "DXV-11",
+      "title": "A broad diagnosis that is wrong: ACS replaced by pericarditis",
+      "patient": "Man, 30 years.",
+      "story": "Two days of sharp central chest pain, worse lying flat and on deep breathing, better sitting forward, after a cold.",
+      "findings": ["Pericardial rub, pulse 96, BP 124/78"],
+      "results": [
+        "ECG: widespread concave ST-elevation with PR depression, not in one coronary territory",
+        "Troponin 0 h and 3 h: not raised",
+        "Echo: small pericardial effusion"
+      ],
+      "actions": [
+        "Working leading: Acute coronary syndrome",
+        "Clinician chooses 'Replace' on the ACS card (not 'Refine'): ACS is refuted with a reason and Acute pericarditis becomes leading in one action",
+        "Pericardial effusion dropped onto pericarditis: signed complication, applied"
+      ],
+      "board": [
+        {
+          "id": "dx.pericarditis",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working"
+        },
+        {
+          "id": "dx.pericardial_effusion",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.pericarditis",
+            "label": "complication"
+          }
+        },
+        {
+          "id": "dx.acs",
+          "place": "differential",
+          "verification": "refuted",
+          "status": "working",
+          "note": "Ruled out: ECG widespread ST-elevation with PR depression, troponin not raised at 0 h and 3 h"
+        }
+      ],
+      "note_impression": "1. Acute pericarditis (primary; working).\n   - Pericardial effusion, small, complication of acute pericarditis.\n   Ruled out: acute coronary syndrome (ECG widespread ST-elevation with PR depression; troponin not raised at 0 h and 3 h).",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.pericarditis (main condition)", "dx.pericardial_effusion"],
+      "checks": [
+        "'Replace' refutes the old condition and creates a new one; it is not a refinement (D-REL-05)",
+        "The refuted ACS is not counted"
+      ]
+    },
+    {
+      "id": "DXV-12",
+      "title": "A background condition confirmed as active at this visit",
+      "patient": "Woman, 55 years. Problem list: hypertension (since 2019).",
+      "story": "Came for a refill; out of her medicines for two months because the facility had none. Mild headaches.",
+      "findings": ["BP 172/104 and 170/102 after 5 minutes' rest; no focal signs; fundi normal"],
+      "results": ["Urinalysis: no protein", "Creatinine normal"],
+      "actions": [
+        "Clinician taps 'Active this visit' on the hypertension background chip: a this-visit diagnosis is created, linked episode_of the problem-list condition",
+        "Qualifier 'medicines not taken (stock-out)' added"
+      ],
+      "board": [
+        {
+          "id": "dx.hypertension",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "episode_of",
+            "to": "problem_list:dx.hypertension"
+          },
+          "stage": "BP 172/104; grade by the hypertension pack",
+          "qualifier": "cause.treatment_interruption"
+        }
+      ],
+      "note_impression": "1. Hypertension, known since 2019 (primary; working): not controlled at this visit, BP 172/104 and 170/102; medicines not taken for two months (stock-out). No acute organ damage found.",
+      "problem_list_after": ["Hypertension (unchanged: one entry, not a duplicate)"],
+      "counted_opd_or_ipd": [
+        "dx.hypertension (counted as a revisit, not a new case, if HMIS separates them)"
+      ],
+      "checks": [
+        "No duplicate problem-list entry",
+        "No hypertensive-crisis suggestion at this BP",
+        "The grade comes from the hypertension pack, not from this file"
+      ]
+    },
+    {
+      "id": "DXV-13",
+      "title": "Entered in error on a parent that has a child",
+      "patient": "Man, 40 years.",
+      "story": "Fever and reduced urine output for two days.",
+      "findings": ["Pulse 104, BP 112/70"],
+      "results": [
+        "Creatinine 290 µmol/l (no baseline)",
+        "Malaria RDT recorded positive, then found to belong to another patient and removed by the laboratory"
+      ],
+      "actions": [
+        "Earlier: Malaria, severe was leading and AKI was linked 'secondary to' it",
+        "Clinician marks Malaria, severe 'entered in error' with reason 'result belonged to another patient'",
+        "The relation is retired by the system ('parent entered in error'), audited; AKI moves to leading with a visible 'Cause removed: review' marker that must be acknowledged before signing"
+      ],
+      "board": [
+        {
+          "id": "dx.aki",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "stage": "insufficient: no baseline creatinine",
+          "note": "marker 'Cause removed: review' acknowledged"
+        },
+        {
+          "id": "dx.malaria_severe",
+          "place": "deferred",
+          "verification": "entered-in-error",
+          "status": "n/a",
+          "note": "shown only in history, with the reason"
+        }
+      ],
+      "note_impression": "1. Acute kidney injury (primary; working), stage not yet known (no baseline creatinine); cause being investigated.",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.aki (main condition)"],
+      "checks": [
+        "The child is never removed or silently re-linked",
+        "The retired relation keeps who, when and why",
+        "Without a baseline the AKI stage is insufficient, not stage 1"
+      ]
+    },
+    {
+      "id": "DXV-14",
+      "title": "A junior's Final on a secondary diagnosis",
+      "patient": "Man, 30 years.",
+      "story": "Tiredness and breathlessness for a month; works barefoot on a farm.",
+      "findings": ["Pallor, pulse 102"],
+      "results": [
+        "Hb 65 g/L, MCV low",
+        "Stool: hookworm ova",
+        "Ferritin low",
+        "Malaria RDT negative"
+      ],
+      "actions": [
+        "Intern records Iron-deficiency anaemia, secondary to intestinal helminth infection, and marks it Final",
+        "Note shows 'final, awaiting co-signature'; the relation is part of what the senior co-signs",
+        "Senior co-signs the diagnosis and the relation unchanged. (If the senior changed the relation, that would be a new version and the co-signature applies to it.)"
+      ],
+      "board": [
+        {
+          "id": "dx.iron_deficiency_anaemia",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "final",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.hookworm_helminth",
+            "label": "secondary"
+          },
+          "stage": "severe (Hb 65 g/L; men 15–65: <80)",
+          "note": "co-signed by senior"
+        },
+        {
+          "id": "dx.hookworm_helminth",
+          "place": "coexisting",
+          "verification": "confirmed",
+          "status": "working"
+        }
+      ],
+      "note_impression": "1. Iron-deficiency anaemia, severe (Hb 65 g/L) (primary; final, co-signed), secondary to intestinal helminth infection (hookworm).\n2. Intestinal helminth infection (hookworm) (working).",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.iron_deficiency_anaemia (main condition)", "dx.hookworm_helminth"],
+      "checks": [
+        "Before co-signature the note says 'awaiting co-signature' for the diagnosis AND its relation",
+        "A junior cannot co-sign a relation"
+      ]
+    },
+    {
+      "id": "DXV-15",
+      "title": "Pregnancy: anaemia in pregnancy secondary to malaria",
+      "patient": "Woman, 26 years, 24 weeks pregnant (second trimester), from the pregnancy record.",
+      "story": "Three days of fever and headache.",
+      "findings": ["Temperature 38.4 °C, BP 112/70, fundal height matches dates"],
+      "results": ["Malaria RDT positive (P. falciparum)", "Hb 98 g/L"],
+      "actions": [
+        "Leading: Malaria, uncomplicated; the note adds 'in pregnancy' from the pregnancy record (not a separate term)",
+        "Anaemia added and dropped onto malaria: applied 'secondary to'; the desk also offers the non-diagnosis cause 'pregnancy' as a second cause; clinician adds it",
+        "Stage uses the second-trimester row: 98 g/L is mild (95–104); the non-pregnant row would have said moderate (80–109)"
+      ],
+      "board": [
+        {
+          "id": "dx.malaria_uncomplicated",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "qualifier": "P. falciparum; in pregnancy, 24 weeks"
+        },
+        {
+          "id": "dx.anaemia",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.malaria_uncomplicated",
+            "label": "secondary"
+          },
+          "stage": "mild (Hb 98 g/L; pregnancy, second trimester: 95–104)",
+          "qualifier": "cause.pregnancy"
+        }
+      ],
+      "note_impression": "1. Malaria in pregnancy (24 weeks), uncomplicated, P. falciparum (primary; working).\n   - Anaemia in pregnancy, mild (Hb 98 g/L, second trimester), secondary to malaria and pregnancy.",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": [
+        "dx.malaria_uncomplicated (main condition; maternal reporting line)",
+        "dx.anaemia"
+      ],
+      "checks": [
+        "The trimester row is used; if gestation were unknown the stage would be 'insufficient'",
+        "ICD-11 codes conditions complicating pregnancy in chapter 18: the coder maps these with the pregnancy context (to verify)"
+      ]
+    },
+    {
+      "id": "DXV-16",
+      "title": "A relation cannot be made to a differential",
+      "patient": "Man, 52 years.",
+      "story": "Fever and confusion; creatinine raised; malaria test pending.",
+      "findings": ["GCS 13, jaundice"],
+      "results": ["Creatinine 320 µmol/l", "Malaria smear pending"],
+      "actions": [
+        "Malaria, severe is a differential (Possible); AKI is also this visit",
+        "Clinician drags AKI onto the differential: the drop is refused with 'Link causes to working or final diagnoses only. Promote malaria first, or note the suspected cause in the reasoning.'",
+        "Smear returns positive; malaria promoted to leading; desk now offers 'AKI secondary to severe malaria'"
+      ],
+      "board": [
+        {
+          "id": "dx.malaria_severe",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working"
+        },
+        {
+          "id": "dx.aki",
+          "place": "linked",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.malaria_severe",
+            "label": "secondary"
+          },
+          "stage": "insufficient: no baseline creatinine"
+        }
+      ],
+      "note_impression": "1. Malaria, severe (primary; working): renal impairment (creatinine 320 µmol/l), jaundice.\n   - Acute kidney injury, secondary to severe malaria; stage not yet known (no baseline creatinine).",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.malaria_severe (main condition)", "dx.aki"],
+      "checks": ["No relation exists while either end is a differential (D-REL-08)"]
+    },
+    {
+      "id": "DXV-17",
+      "title": "Symptom-level placeholder explained by a diagnosis",
+      "patient": "Woman, 31 years, not pregnant (test negative).",
+      "story": "Fever for three days; no focus at first.",
+      "findings": ["Temperature 38.7 °C, no focal signs"],
+      "results": ["Malaria RDT positive"],
+      "actions": [
+        "Leading was Fever, cause not yet known; RDT positive: desk offers 'Refine to Malaria, uncomplicated'; accepted (new version of the same condition)"
+      ],
+      "board": [
+        {
+          "id": "dx.malaria_uncomplicated",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "note": "history: dx.fever_unexplained -> dx.malaria_uncomplicated"
+        }
+      ],
+      "note_impression": "1. Malaria, uncomplicated (primary; working).",
+      "problem_list_after": ["(no change)"],
+      "counted_opd_or_ipd": ["dx.malaria_uncomplicated"],
+      "checks": [
+        "The note does not carry 'Fever, cause not yet known' beside malaria (D-REL-15)",
+        "Fever is not counted as a diagnosis"
+      ]
+    },
+    {
+      "id": "DXV-18",
+      "title": "Very high BP without acute organ damage",
+      "patient": "Man, 48 years. Problem list: hypertension.",
+      "story": "Routine review; no headache, chest pain, breathlessness, visual change or weakness.",
+      "findings": [
+        "BP 196/118 and 194/116 after rest; fundi: no haemorrhages or papilloedema; no focal signs"
+      ],
+      "results": [
+        "Urinalysis: trace protein",
+        "Creatinine normal (unchanged from last year)",
+        "ECG: LV hypertrophy, no acute change"
+      ],
+      "actions": [
+        "Hypertensive crisis added as working; after assessment the desk offers 'Refine to Severe hypertension without acute organ damage'; accepted",
+        "Linked 'complication of hypertension (known)'"
+      ],
+      "board": [
+        {
+          "id": "dx.severe_hypertension_no_aod",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.hypertension",
+            "label": "complication"
+          }
+        },
+        {
+          "id": "dx.hypertension",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final"
+        }
+      ],
+      "note_impression": "1. Severe hypertension without acute organ damage (primary; working), BP 196/118 and 194/116, in known hypertension. Assessed: no symptoms of organ damage, fundi normal, creatinine unchanged, ECG LV hypertrophy without acute change.\nKnown conditions: hypertension.",
+      "problem_list_after": ["Hypertension (unchanged)"],
+      "counted_opd_or_ipd": ["dx.severe_hypertension_no_aod"],
+      "checks": [
+        "The word 'urgency' does not appear (D-REL-16)",
+        "The relation adds no interrupt: the hypertension pack decides alarms, once per event",
+        "A chronic finding (LV hypertrophy) is not acute organ damage"
+      ]
+    },
+    {
+      "id": "DXV-19",
+      "title": "Viewer without access sees a restricted cause removed cleanly",
+      "patient": "Woman, 29 years. Problem list: HIV infection (restricted).",
+      "story": "Fatigue; Hb found low at a routine visit.",
+      "findings": ["Pallor"],
+      "results": [
+        "Hb 92 g/L (non-pregnant woman: moderate 80–109)",
+        "Malaria RDT negative",
+        "Pregnancy test negative"
+      ],
+      "actions": ["Anaemia linked 'secondary to HIV infection (known)' by a clinician with access"],
+      "board": [
+        {
+          "id": "dx.anaemia",
+          "place": "leading",
+          "verification": "confirmed",
+          "status": "working",
+          "relation": {
+            "type": "due_to",
+            "to": "dx.hiv",
+            "label": "secondary"
+          },
+          "stage": "moderate (Hb 92 g/L)"
+        },
+        {
+          "id": "dx.hiv",
+          "place": "background",
+          "verification": "confirmed",
+          "status": "final",
+          "note": "restricted: hiv"
+        }
+      ],
+      "note_impression": "Viewer WITH the hiv class:\n1. Anaemia, moderate (Hb 92 g/L) (primary; working), secondary to HIV infection.\nKnown conditions: HIV infection.\n\nViewer WITHOUT the hiv class:\n1. Anaemia, moderate (Hb 92 g/L) (primary; working).",
+      "problem_list_after": ["HIV infection (restricted)"],
+      "counted_opd_or_ipd": ["dx.anaemia"],
+      "checks": [
+        "The words 'secondary to' are absent for the viewer without access (no dangling phrase)",
+        "The relation row is not returned by the API to that viewer (RLS), not just hidden in the UI"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3455 @@
+{
+  "id": "MS-EMR-DX-CAUSES-001",
+  "version": "1.0.0-draft",
+  "status": "signed — CSO, 2026-10-09",
+  "rules": [
+    "Stored as relation due_to (child = effect, parent = cause) with the label shown here (D-REL-03).",
+    "Offered only when the cause is already on the board or the problem list and suggest_when is met; never created automatically.",
+    "direction_ambiguous = the catalogue lists both directions for this pair; a drop always opens the chooser (D-REL-06).",
+    "Where a pair is in the signed complication list, the label is complication whatever this file says (the signed list wins).",
+    "restricted_class = the stricter class of the two ends; the relation is invisible without it (D-REL-09)."
+  ],
+  "effects": {
+    "dx.anaemia": {
+      "secondary_to": [
+        {
+          "id": "dx.malaria_uncomplicated",
+          "label": "secondary",
+          "suggest_when": "Malaria confirmed at this visit and haemoglobin below the WHO cutoff; most suggestive with haemolysis signs or a fall from a known baseline.",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "secondary",
+          "suggest_when": "Severe malaria on the board; severe malarial anaemia is itself a WHO severe criterion (Hb <7 g/dl in adults, <5 g/dl in children <12 years, with parasite count >10 000/µl).",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hookworm_helminth",
+          "label": "secondary",
+          "suggest_when": "Helminth infection recorded (stool microscopy) with microcytic indices or low ferritin.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.schistosomiasis",
+          "label": "secondary",
+          "suggest_when": "Schistosomiasis recorded with haematuria, gastrointestinal blood loss or splenomegaly.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "HIV on the board or problem list with anaemia and no other cause yet found (restricted class: the link is visible only with HIV access).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv_advanced",
+          "label": "secondary",
+          "suggest_when": "Advanced HIV disease with anaemia (restricted class).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sickle_cell_disease",
+          "label": "secondary",
+          "suggest_when": "Known sickle cell disease (haemolysis is the usual mechanism).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sickle_cell_crisis",
+          "label": "secondary",
+          "suggest_when": "Sickle cell crisis at this visit with a fall in haemoglobin from baseline (sequestration, aplastic or haemolytic crisis).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.peptic_ulcer",
+          "label": "secondary",
+          "suggest_when": "Upper gastrointestinal bleeding or melaena with peptic ulcer on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.variceal_bleed",
+          "label": "secondary",
+          "suggest_when": "Variceal bleeding on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gi_bleed_unexplained",
+          "label": "secondary",
+          "suggest_when": "Gastrointestinal bleeding on the board, source not yet known.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.colorectal_cancer",
+          "label": "secondary",
+          "suggest_when": "Colorectal cancer on the board with iron-deficiency indices.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.ckd",
+          "label": "secondary",
+          "suggest_when": "CKD G3b or worse (eGFR below 45) with normocytic anaemia and no other cause found.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.visceral_leishmaniasis",
+          "label": "secondary",
+          "suggest_when": "Visceral leishmaniasis recorded (pancytopenia with splenomegaly).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.leukaemia",
+          "label": "secondary",
+          "suggest_when": "Leukaemia on the board (marrow failure).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tb_pulmonary_confirmed",
+          "label": "secondary",
+          "suggest_when": "TB on the board with normocytic anaemia (anaemia of inflammation); restricted class.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.anaemia_unexplained": {
+      "same_as": "dx.anaemia"
+    },
+    "dx.iron_deficiency_anaemia": {
+      "secondary_to": [
+        {
+          "id": "dx.hookworm_helminth",
+          "label": "complication",
+          "suggest_when": "Helminth infection recorded.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.peptic_ulcer",
+          "label": "secondary",
+          "suggest_when": "Peptic ulcer with bleeding history or melaena.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.colorectal_cancer",
+          "label": "complication",
+          "suggest_when": "Colorectal cancer on the board, or occult blood positive with change in bowel habit.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastric_cancer",
+          "label": "complication",
+          "suggest_when": "Gastric cancer on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.schistosomiasis",
+          "label": "secondary",
+          "suggest_when": "Schistosomiasis with blood loss in urine or stool.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.aki": {
+      "secondary_to": [
+        {
+          "id": "dx.sepsis",
+          "label": "secondary",
+          "suggest_when": "Sepsis on the board and creatinine rise meeting the KDIGO definition.",
+          "source": [
+            "KDIGO-AKI-2012"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.septic_shock",
+          "label": "complication",
+          "suggest_when": "Septic shock on the board.",
+          "source": [
+            "KDIGO-AKI-2012"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "complication",
+          "suggest_when": "Severe malaria on the board; renal impairment is a WHO severe criterion (creatinine >265 µM or urea >20 mM).",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "complication",
+          "suggest_when": "Diarrhoea or vomiting with signs of volume depletion.",
+          "source": [
+            "KDIGO-AKI-2012"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cholera",
+          "label": "complication",
+          "suggest_when": "Cholera on the board.",
+          "source": [
+            "KDIGO-AKI-2012"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypovolaemic_shock",
+          "label": "secondary",
+          "suggest_when": "Hypovolaemic shock on the board.",
+          "source": [
+            "KDIGO-AKI-2012"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.rhabdomyolysis",
+          "label": "complication",
+          "suggest_when": "Raised CK with dark urine or muscle injury.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.obstructive_uropathy",
+          "label": "complication",
+          "suggest_when": "Hydronephrosis on ultrasound or urinary retention.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.urinary_retention",
+          "label": "secondary",
+          "suggest_when": "Acute urinary retention on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.snakebite",
+          "label": "complication",
+          "suggest_when": "Snakebite envenoming with coagulopathy or haemolysis.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.leptospirosis",
+          "label": "complication",
+          "suggest_when": "Leptospirosis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.nephritic_syndrome",
+          "label": "complication",
+          "suggest_when": "Haematuria, proteinuria, oedema and raised BP.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.heart_failure_acute",
+          "label": "secondary",
+          "suggest_when": "Acute heart failure with falling urine output (cardiorenal).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.hhs",
+          "label": "complication",
+          "suggest_when": "Hyperosmolar hyperglycaemic state on the board (volume depletion).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dka",
+          "label": "secondary",
+          "suggest_when": "DKA on the board with volume depletion.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.haemolytic_anaemia",
+          "label": "complication",
+          "suggest_when": "Acute haemolysis with haemoglobinuria (for example blackwater fever).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pre_eclampsia_severe",
+          "label": "secondary",
+          "suggest_when": "Severe pre-eclampsia on the board (creatinine is one of its severe features).",
+          "source": [
+            "UG-EMNCC-2022"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.dka": {
+      "secondary_to": [
+        {
+          "id": "dx.pneumonia",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.uti",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pyelonephritis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_uncomplicated",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cellulitis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.diabetic_foot",
+          "label": "precipitated_by",
+          "suggest_when": "Infected diabetic foot on the board.",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.acs",
+          "label": "precipitated_by",
+          "suggest_when": "ACS on the board.",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pancreatitis_acute",
+          "label": "precipitated_by",
+          "suggest_when": "Acute pancreatitis on the board.",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.covid19",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hhs": {
+      "secondary_to": [
+        {
+          "id": "dx.pneumonia",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.uti",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.stroke",
+          "label": "precipitated_by",
+          "suggest_when": "Stroke on the board.",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.acs",
+          "label": "precipitated_by",
+          "suggest_when": "ACS on the board.",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hypoglycaemia_dm": {
+      "secondary_to": [
+        {
+          "id": "dx.aki",
+          "label": "precipitated_by",
+          "suggest_when": "AKI on the board in a person on insulin or a sulfonylurea (reduced clearance).",
+          "source": [
+            "ADA-CRISES-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.ckd",
+          "label": "precipitated_by",
+          "suggest_when": "CKD G4 or worse on insulin or a sulfonylurea.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "precipitated_by",
+          "suggest_when": "Severe malaria on the board.",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "precipitated_by",
+          "suggest_when": "Reduced intake from vomiting or diarrhoea.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hypoglycaemia_no_dm": {
+      "secondary_to": [
+        {
+          "id": "dx.malaria_severe",
+          "label": "complication",
+          "suggest_when": "Severe malaria on the board; hypoglycaemia (glucose <2.2 mM) is a WHO severe criterion.",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_cerebral",
+          "label": "complication",
+          "suggest_when": "Cerebral malaria on the board.",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "secondary",
+          "suggest_when": "Sepsis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_intoxication",
+          "label": "complication",
+          "suggest_when": "Alcohol intoxication on the board (restricted class: mental_health).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.adrenal_insufficiency",
+          "label": "complication",
+          "suggest_when": "Adrenal insufficiency on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.acute_liver_failure",
+          "label": "secondary",
+          "suggest_when": "Acute liver failure on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.undernutrition",
+          "label": "complication",
+          "suggest_when": "Undernutrition recorded.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.poisoning_medicine",
+          "label": "secondary",
+          "suggest_when": "Medicine overdose on the board (for example a sulfonylurea or insulin).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.heart_failure": {
+      "secondary_to": [
+        {
+          "id": "dx.hypertension",
+          "label": "complication",
+          "suggest_when": "Hypertension on the board or problem list; LV hypertrophy on ECG or echo supports it.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.rheumatic_heart_disease",
+          "label": "complication",
+          "suggest_when": "Valve disease on echo consistent with rheumatic heart disease.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cardiomyopathy",
+          "label": "complication",
+          "suggest_when": "Cardiomyopathy on echo.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.acs",
+          "label": "secondary",
+          "suggest_when": "Recent or current ACS, or regional wall-motion abnormality.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.angina_stable",
+          "label": "secondary",
+          "suggest_when": "Known ischaemic heart disease.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.aortic_stenosis",
+          "label": "complication",
+          "suggest_when": "Aortic stenosis on echo.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.af",
+          "label": "secondary",
+          "suggest_when": "Persistent fast AF with reduced function (tachycardia-induced).",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.thyrotoxicosis",
+          "label": "complication",
+          "suggest_when": "Thyrotoxicosis on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pulmonary_hypertension",
+          "label": "complication",
+          "suggest_when": "Right heart failure with pulmonary hypertension on echo.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tb_pericarditis",
+          "label": "complication",
+          "suggest_when": "Tuberculous pericarditis (constriction); restricted class.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "HIV with dilated cardiomyopathy and no other cause; restricted class.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.heart_failure_acute": {
+      "secondary_to": [
+        {
+          "id": "dx.acs",
+          "label": "complication",
+          "suggest_when": "ACS on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.af",
+          "label": "complication",
+          "suggest_when": "New or fast AF on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypertensive_crisis",
+          "label": "complication",
+          "suggest_when": "Hypertensive crisis on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypertensive_emergency",
+          "label": "precipitated_by",
+          "suggest_when": "Hypertensive emergency on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pneumonia",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.infective_endocarditis",
+          "label": "precipitated_by",
+          "suggest_when": "Infective endocarditis on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.anaemia",
+          "label": "precipitated_by",
+          "suggest_when": "Severe anaemia on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.thyrotoxicosis",
+          "label": "precipitated_by",
+          "suggest_when": "Thyrotoxicosis on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.aki",
+          "label": "precipitated_by",
+          "suggest_when": "AKI with fluid overload.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.pulmonary_embolism",
+          "label": "precipitated_by",
+          "suggest_when": "Pulmonary embolism on the board.",
+          "source": [
+            "ESC-HF-2026"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.sickle_cell_crisis": {
+      "secondary_to": [
+        {
+          "id": "dx.malaria_uncomplicated",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pneumonia",
+          "label": "precipitated_by",
+          "suggest_when": "the infection is on the board (leading, also this visit or background) at this visit",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "precipitated_by",
+          "suggest_when": "Dehydration from vomiting or diarrhoea.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.sepsis": {
+      "secondary_to": [
+        {
+          "id": "dx.pneumonia",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pyelonephritis",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.uti",
+          "label": "secondary",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cellulitis",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.necrotising_soft_tissue",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.meningitis_bacterial",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cholangitis",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sbp",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.perforated_viscus",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.typhoid",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pid",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "sexual_reproductive_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.septic_arthritis",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.osteomyelitis",
+          "label": "secondary",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.liver_abscess",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.infective_endocarditis",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.diabetic_foot",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pyomyositis",
+          "label": "complication",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.appendicitis",
+          "label": "secondary",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.aspiration_pneumonia",
+          "label": "secondary",
+          "suggest_when": "The source infection is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.stroke_ischaemic": {
+      "secondary_to": [
+        {
+          "id": "dx.af",
+          "label": "complication",
+          "suggest_when": "AF on ECG or history (cardioembolic).",
+          "source": [
+            "INTERSTROKE-2016"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.rheumatic_heart_disease",
+          "label": "secondary",
+          "suggest_when": "Rheumatic valve disease, especially mitral stenosis or AF (cardioembolic).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.infective_endocarditis",
+          "label": "secondary",
+          "suggest_when": "Endocarditis on the board (septic emboli).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sickle_cell_disease",
+          "label": "secondary",
+          "suggest_when": "Known sickle cell disease.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.aortic_dissection",
+          "label": "complication",
+          "suggest_when": "Dissection on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tb_meningitis",
+          "label": "secondary",
+          "suggest_when": "TB meningitis with infarcts (vasculitis); restricted class.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.giant_cell_arteritis",
+          "label": "complication",
+          "suggest_when": "Giant cell arteritis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypertensive_emergency",
+          "label": "secondary",
+          "suggest_when": "Acute stroke presenting with a hypertensive emergency; the BP may be a response to the stroke, so the clinician decides the direction.",
+          "source": [
+            "HTN-EMERG"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.hypertensive_crisis",
+          "label": "secondary",
+          "suggest_when": "As above, while organ damage is still being assessed.",
+          "source": [
+            "HTN-EMERG"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        }
+      ]
+    },
+    "dx.stroke_haemorrhagic": {
+      "secondary_to": [
+        {
+          "id": "dx.hypertension",
+          "label": "secondary",
+          "suggest_when": "Hypertension on the board or problem list.",
+          "source": [
+            "INTERSTROKE-2016"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypertensive_emergency",
+          "label": "secondary",
+          "suggest_when": "Hypertensive emergency on the board; as above, the clinician decides the direction.",
+          "source": [
+            "HTN-EMERG"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.hypertensive_crisis",
+          "label": "complication",
+          "suggest_when": "As above, while organ damage is still being assessed.",
+          "source": [
+            "HTN-EMERG"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.thrombocytopenia",
+          "label": "secondary",
+          "suggest_when": "Platelets low enough to bleed.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dic",
+          "label": "secondary",
+          "suggest_when": "DIC on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.liver_cirrhosis",
+          "label": "secondary",
+          "suggest_when": "Cirrhosis with coagulopathy.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.stroke": {
+      "same_as": "dx.stroke_ischaemic"
+    },
+    "dx.hypertensive_crisis": {
+      "secondary_to": [
+        {
+          "id": "dx.hypertension",
+          "label": "complication",
+          "suggest_when": "Known or newly found hypertension.",
+          "source": [
+            "HTN-EMERG"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.nephritic_syndrome",
+          "label": "complication",
+          "suggest_when": "Nephritic picture on urinalysis.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.ckd",
+          "label": "secondary",
+          "suggest_when": "CKD on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_withdrawal",
+          "label": "secondary",
+          "suggest_when": "Alcohol withdrawal on the board (restricted class: mental_health).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.thyrotoxicosis",
+          "label": "secondary",
+          "suggest_when": "Thyrotoxicosis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hypertensive_emergency": {
+      "same_as": "dx.hypertensive_crisis"
+    },
+    "dx.cardiomyopathy": {
+      "secondary_to": [
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "HIV on the board (restricted class).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_dependence",
+          "label": "secondary",
+          "suggest_when": "Alcohol dependence on the board (restricted class: mental_health).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.thyrotoxicosis",
+          "label": "secondary",
+          "suggest_when": "Thyrotoxicosis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.af": {
+      "secondary_to": [
+        {
+          "id": "dx.rheumatic_heart_disease",
+          "label": "complication",
+          "suggest_when": "Rheumatic heart disease on echo.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.thyrotoxicosis",
+          "label": "complication",
+          "suggest_when": "Thyrotoxicosis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypertension",
+          "label": "secondary",
+          "suggest_when": "Hypertension on the board or problem list.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.heart_failure",
+          "label": "secondary",
+          "suggest_when": "Heart failure on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": true
+        },
+        {
+          "id": "dx.pneumonia",
+          "label": "precipitated_by",
+          "suggest_when": "New AF during an acute infection.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "precipitated_by",
+          "suggest_when": "New AF during sepsis.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pulmonary_embolism",
+          "label": "precipitated_by",
+          "suggest_when": "Pulmonary embolism on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.respiratory_failure": {
+      "secondary_to": [
+        {
+          "id": "dx.pneumonia",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pcp",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.asthma_exacerbation",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.copd_exacerbation",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pulmonary_embolism",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.heart_failure_acute",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gbs",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.myasthenia",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.organophosphate_poisoning",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.opioid_sedative_toxicity",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.snakebite",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.covid19",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and SpO2 or blood gas meets respiratory failure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.status_epilepticus": {
+      "secondary_to": [
+        {
+          "id": "dx.epilepsy",
+          "label": "complication",
+          "suggest_when": "Known epilepsy.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_cerebral",
+          "label": "complication",
+          "suggest_when": "Cerebral malaria on the board.",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.meningitis_bacterial",
+          "label": "secondary",
+          "suggest_when": "Bacterial meningitis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypoglycaemia_no_dm",
+          "label": "secondary",
+          "suggest_when": "Hypoglycaemia found at the time of the seizure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypoglycaemia_dm",
+          "label": "secondary",
+          "suggest_when": "Hypoglycaemia found at the time of the seizure.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.eclampsia",
+          "label": "complication",
+          "suggest_when": "Pregnant or up to 6 weeks after birth with raised BP.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cerebral_toxoplasmosis",
+          "label": "secondary",
+          "suggest_when": "Cerebral toxoplasmosis on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_withdrawal",
+          "label": "secondary",
+          "suggest_when": "Alcohol withdrawal on the board (restricted class).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.stroke",
+          "label": "secondary",
+          "suggest_when": "Stroke on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.delirium": {
+      "secondary_to": [
+        {
+          "id": "dx.sepsis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pneumonia",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.uti",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypoglycaemia_dm",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypoglycaemia_no_dm",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hyponatraemia",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypercalcaemia",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_withdrawal",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hepatic_encephalopathy",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.aki",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.urinary_retention",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.aspiration_pneumonia": {
+      "secondary_to": [
+        {
+          "id": "dx.stroke",
+          "label": "secondary",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.stroke_ischaemic",
+          "label": "secondary",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.stroke_haemorrhagic",
+          "label": "secondary",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_intoxication",
+          "label": "secondary",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.status_epilepticus",
+          "label": "secondary",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.opioid_sedative_toxicity",
+          "label": "complication",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.organophosphate_poisoning",
+          "label": "complication",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.oesophageal_cancer",
+          "label": "complication",
+          "suggest_when": "Reduced consciousness or impaired swallow from this cause.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hyponatraemia": {
+      "secondary_to": [
+        {
+          "id": "dx.heart_failure",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.liver_cirrhosis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.adrenal_insufficiency",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypothyroidism",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tb_meningitis",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.meningitis_bacterial",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pneumonia",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.lung_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and sodium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hyperkalaemia": {
+      "secondary_to": [
+        {
+          "id": "dx.aki",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and potassium is high (repeat if the sample may be haemolysed).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.ckd",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and potassium is high (repeat if the sample may be haemolysed).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dka",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and potassium is high (repeat if the sample may be haemolysed).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.rhabdomyolysis",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and potassium is high (repeat if the sample may be haemolysed).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.adrenal_insufficiency",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and potassium is high (repeat if the sample may be haemolysed).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hypokalaemia": {
+      "secondary_to": [
+        {
+          "id": "dx.gastroenteritis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and potassium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.cholera",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and potassium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hyperemesis",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and potassium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dka",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and potassium is low.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.pulmonary_hypertension": {
+      "secondary_to": [
+        {
+          "id": "dx.rheumatic_heart_disease",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.post_tb_lung_disease",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.copd",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.schistosomiasis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pulmonary_embolism",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sickle_cell_disease",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and echo suggests pulmonary hypertension.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.liver_cirrhosis": {
+      "secondary_to": [
+        {
+          "id": "dx.hepatitis_b_chronic",
+          "label": "complication",
+          "suggest_when": "HBsAg positive.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hepatitis_c_chronic",
+          "label": "complication",
+          "suggest_when": "Hepatitis C antibody positive with viraemia if tested.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_dependence",
+          "label": "complication",
+          "suggest_when": "Alcohol dependence recorded (restricted class).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.variceal_bleed": {
+      "secondary_to": [
+        {
+          "id": "dx.liver_cirrhosis",
+          "label": "complication",
+          "suggest_when": "Cirrhosis on the board or problem list.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.schistosomiasis",
+          "label": "complication",
+          "suggest_when": "Hepatosplenic schistosomiasis (portal hypertension).",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hepatic_encephalopathy": {
+      "secondary_to": [
+        {
+          "id": "dx.variceal_bleed",
+          "label": "complication",
+          "suggest_when": "The precipitant is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sbp",
+          "label": "complication",
+          "suggest_when": "The precipitant is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "precipitated_by",
+          "suggest_when": "The precipitant is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.aki",
+          "label": "precipitated_by",
+          "suggest_when": "The precipitant is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypokalaemia",
+          "label": "precipitated_by",
+          "suggest_when": "The precipitant is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.gastroenteritis",
+          "label": "precipitated_by",
+          "suggest_when": "The precipitant is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.nephrotic_syndrome": {
+      "secondary_to": [
+        {
+          "id": "dx.hepatitis_b_chronic",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dm_type2",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sle",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.syphilis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "sexual_reproductive_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_uncomplicated",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.pericardial_effusion": {
+      "secondary_to": [
+        {
+          "id": "dx.tb_pericarditis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.ckd",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypothyroidism",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.breast_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.lung_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pericarditis",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.pleural_effusion": {
+      "secondary_to": [
+        {
+          "id": "dx.tb_pulmonary_confirmed",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tb_pulmonary_clinical",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tb_extrapulmonary",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.heart_failure",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pneumonia",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.lung_cancer",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.breast_cancer",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.liver_abscess",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.liver_cirrhosis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.nephrotic_syndrome",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.cord_compression": {
+      "secondary_to": [
+        {
+          "id": "dx.tb_spine",
+          "label": "complication",
+          "suggest_when": "The cause is on the board, or back pain with red flags in a person with this condition.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "tb",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.prostate_cancer",
+          "label": "complication",
+          "suggest_when": "The cause is on the board, or back pain with red flags in a person with this condition.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.myeloma",
+          "label": "complication",
+          "suggest_when": "The cause is on the board, or back pain with red flags in a person with this condition.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.breast_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board, or back pain with red flags in a person with this condition.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.lung_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board, or back pain with red flags in a person with this condition.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.fracture",
+          "label": "complication",
+          "suggest_when": "The cause is on the board, or back pain with red flags in a person with this condition.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.obstructive_uropathy": {
+      "secondary_to": [
+        {
+          "id": "dx.bph",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.prostate_cancer",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.schistosomiasis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.urolithiasis",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.bladder_cancer",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.hypercalcaemia": {
+      "secondary_to": [
+        {
+          "id": "dx.myeloma",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.breast_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.lung_cancer",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.dic": {
+      "secondary_to": [
+        {
+          "id": "dx.sepsis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.septic_shock",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.snakebite",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pre_eclampsia_severe",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.vhf_suspected",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.leukaemia",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.thrombocytopenia": {
+      "secondary_to": [
+        {
+          "id": "dx.malaria_uncomplicated",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.malaria_severe",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sepsis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dic",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.liver_cirrhosis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.visceral_leishmaniasis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.leukaemia",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sle",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.rhabdomyolysis": {
+      "secondary_to": [
+        {
+          "id": "dx.heat_stroke",
+          "label": "complication",
+          "suggest_when": "The cause is on the board and CK is raised.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.status_epilepticus",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and CK is raised.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.snakebite",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and CK is raised.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.pyomyositis",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and CK is raised.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.alcohol_intoxication",
+          "label": "secondary",
+          "suggest_when": "The cause is on the board and CK is raised.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.wernicke": {
+      "secondary_to": [
+        {
+          "id": "dx.alcohol_dependence",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": "mental_health",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hyperemesis",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.undernutrition",
+          "label": "complication",
+          "suggest_when": "The cause is on the board.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.subdural_haematoma": {
+      "secondary_to": [
+        {
+          "id": "dx.head_injury",
+          "label": "complication",
+          "suggest_when": "Head injury recorded.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.pcp": {
+      "secondary_to": [
+        {
+          "id": "dx.hiv_advanced",
+          "label": "complication",
+          "suggest_when": "Advanced HIV disease (restricted class).",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "complication",
+          "suggest_when": "HIV (restricted class).",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.cryptococcal_meningitis": {
+      "secondary_to": [
+        {
+          "id": "dx.hiv_advanced",
+          "label": "complication",
+          "suggest_when": "Advanced HIV disease (restricted class).",
+          "source": [
+            "WHO-CRYPTO-2022"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "complication",
+          "suggest_when": "HIV (restricted class).",
+          "source": [
+            "WHO-CRYPTO-2022"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.cerebral_toxoplasmosis": {
+      "secondary_to": [
+        {
+          "id": "dx.hiv_advanced",
+          "label": "complication",
+          "suggest_when": "Advanced HIV disease (restricted class).",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.kaposi_sarcoma": {
+      "secondary_to": [
+        {
+          "id": "dx.hiv",
+          "label": "complication",
+          "suggest_when": "HIV (restricted class).",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv_advanced",
+          "label": "complication",
+          "suggest_when": "Advanced HIV disease (restricted class).",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.oesophageal_candidiasis": {
+      "secondary_to": [
+        {
+          "id": "dx.hiv_advanced",
+          "label": "complication",
+          "suggest_when": "Advanced HIV disease (restricted class).",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.diabetic_kidney_disease": {
+      "secondary_to": [
+        {
+          "id": "dx.dm_type1",
+          "label": "complication",
+          "suggest_when": "Diabetes on the board or problem list.",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dm_type2",
+          "label": "complication",
+          "suggest_when": "Diabetes on the board or problem list.",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dm_type_unknown",
+          "label": "complication",
+          "suggest_when": "Diabetes on the board or problem list.",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    },
+    "dx.ckd": {
+      "secondary_to": [
+        {
+          "id": "dx.dm_type2",
+          "label": "complication",
+          "suggest_when": "Diabetes with albuminuria or falling eGFR and no other cause (or choose Diabetic kidney disease).",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.dm_type1",
+          "label": "complication",
+          "suggest_when": "As above.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hypertension",
+          "label": "complication",
+          "suggest_when": "Long-standing hypertension with no other cause.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.hiv",
+          "label": "secondary",
+          "suggest_when": "HIV-associated nephropathy suspected (restricted class).",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": "hiv",
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.obstructive_uropathy",
+          "label": "complication",
+          "suggest_when": "Chronic obstruction on ultrasound.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.sickle_cell_disease",
+          "label": "secondary",
+          "suggest_when": "Known sickle cell disease.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        },
+        {
+          "id": "dx.nephrotic_syndrome",
+          "label": "complication",
+          "suggest_when": "Nephrotic syndrome on the board or problem list.",
+          "source": [
+            "KDIGO-CKD-2024"
+          ],
+          "restricted_class": null,
+          "direction_ambiguous": false
+        }
+      ]
+    }
+  },
+  "non_diagnosis_causes": [
+    {
+      "id": "cause.insulin_omission",
+      "display": "Missed or stopped insulin",
+      "applies_to": [
+        "dx.dka",
+        "dx.hhs"
+      ],
+      "source": [
+        "ADA-CRISES-2024"
+      ]
+    },
+    {
+      "id": "cause.new_medicine",
+      "display": "A new or changed medicine (named in the medication record)",
+      "applies_to": [
+        "dx.dka",
+        "dx.hhs",
+        "dx.aki",
+        "dx.hyperkalaemia",
+        "dx.hyponatraemia",
+        "dx.hypoglycaemia_dm",
+        "dx.drug_rash",
+        "dx.drug_induced_liver_injury",
+        "dx.angioedema"
+      ],
+      "source": [
+        "TEXTBOOK"
+      ]
+    },
+    {
+      "id": "cause.treatment_interruption",
+      "display": "Medicines not taken (adherence or stock-out)",
+      "applies_to": [
+        "dx.heart_failure_acute",
+        "dx.hypertensive_crisis",
+        "dx.hypertensive_emergency",
+        "dx.status_epilepticus",
+        "dx.asthma_exacerbation",
+        "dx.copd_exacerbation"
+      ],
+      "source": [
+        "TEXTBOOK"
+      ]
+    },
+    {
+      "id": "cause.alcohol",
+      "display": "Alcohol excess (restricted class: mental_health when linked to dependence)",
+      "applies_to": [
+        "dx.af",
+        "dx.pancreatitis_acute",
+        "dx.hypoglycaemia_no_dm"
+      ],
+      "source": [
+        "TEXTBOOK"
+      ]
+    },
+    {
+      "id": "cause.pregnancy",
+      "display": "Pregnancy (from the pregnancy record)",
+      "applies_to": [
+        "dx.anaemia",
+        "dx.iron_deficiency_anaemia",
+        "dx.dvt",
+        "dx.pulmonary_embolism",
+        "dx.uti",
+        "dx.pyelonephritis"
+      ],
+      "source": [
+        "WHO-HB-2024"
+      ]
+    },
+    {
+      "id": "cause.immobility",
+      "display": "Immobility or recent surgery",
+      "applies_to": [
+        "dx.dvt",
+        "dx.pulmonary_embolism",
+        "dx.pressure_injury"
+      ],
+      "source": [
+        "TEXTBOOK"
+      ]
+    }
+  ],
+  "reciprocal_pairs": [
+    [
+      "dx.af",
+      "dx.heart_failure"
+    ],
+    [
+      "dx.aki",
+      "dx.heart_failure_acute"
+    ]
+  ],
+  "sources": {
+    "ADA-CRISES-2024": {
+      "citation": "Umpierrez GE, et al. Hyperglycemic crises in adults with diabetes: a consensus report. Diabetes Care 2024;47:1257-1275. Precipitating causes.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://diabetesjournals.org/care/article/47/8/1257/156808"
+    },
+    "AHA-TIA-2009": {
+      "citation": "Easton JD, et al. Definition and evaluation of transient ischemic attack. Stroke 2009;40:2276-2293 (tissue-based definition).",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.ahajournals.org/doi/10.1161/STROKEAHA.108.192218"
+    },
+    "ATS-IDSA-HAP-2016": {
+      "citation": "Kalil AC, et al. Management of adults with hospital-acquired and ventilator-associated pneumonia: 2016 IDSA/ATS guidelines. Clin Infect Dis 2016;63:e61. HAP: pneumonia not incubating at admission, occurring 48 hours or more after admission.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://academic.oup.com/cid/article/63/5/e61/2237650"
+    },
+    "BTS-CURB65": {
+      "citation": "British Thoracic Society. Guidelines for the management of community acquired pneumonia in adults (2009 update): CURB65. As summarised by RCEMLearning.",
+      "status": "read today",
+      "url": "https://www.rcemlearning.co.uk/modules/community-acquired-pneumonia-in-adults/lessons/clinical-assessment-31/topic/risk-stratification/"
+    },
+    "ESC-ACS-2023": {
+      "citation": "Byrne RA, et al. 2023 ESC Guidelines for the management of acute coronary syndromes. Eur Heart J 2023;44:3720-3826. Sections 2.1 and 3.2.",
+      "status": "read today",
+      "url": "https://academic.oup.com/eurheartj/article/44/38/3720/7243210"
+    },
+    "ESC-HF-2021": {
+      "citation": "McDonagh TA, et al. 2021 ESC Guidelines for acute and chronic heart failure. Eur Heart J 2021;42:3599-3726. HFrEF LVEF ≤40%, HFmrEF 41-49%, HFpEF ≥50% (as quoted in the 2026 guideline).",
+      "status": "read today",
+      "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045"
+    },
+    "ESC-HF-2026": {
+      "citation": "2026 ESC Guidelines for the management of heart failure. Eur Heart J, published 28 August 2026 (doi:10.1093/eurheartj/ehag100). Section 3.3.1: HFmrEF removed; HFrEF LVEF <50%, HFpEF LVEF ≥50%.",
+      "status": "read today",
+      "url": "https://academic.oup.com/eurheartj/advance-article/doi/10.1093/eurheartj/ehag100/8766302"
+    },
+    "HTN-EMERG": {
+      "citation": "Hypertensive emergency definitions: ESC Council on Hypertension position document (van den Born BH, et al. Eur Heart J Cardiovasc Pharmacother 2019;5:37-46); 2023 ESH guideline section 16; Uganda Integrated Guidelines for the Management of NCDs 2019, section 4 (MedSync claims H11 and H1-39).",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": ""
+    },
+    "HTN-ISH-2020": {
+      "citation": "Unger T, et al. 2020 International Society of Hypertension Global Hypertension Practice Guidelines. Hypertension 2020;75:1334-1357. Table 1 (classification) and section on hypertensive emergencies.",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": "https://www.ahajournals.org/doi/10.1161/HYPERTENSIONAHA.120.15026"
+    },
+    "INTERHEART-2004": {
+      "citation": "Yusuf S, et al. Effect of potentially modifiable risk factors associated with myocardial infarction in 52 countries (INTERHEART). Lancet 2004;364:937-952.",
+      "status": "cited from a standard reference, not opened today",
+      "url": ""
+    },
+    "INTERSTROKE-2016": {
+      "citation": "O'Donnell MJ, et al. Global and regional effects of potentially modifiable risk factors associated with acute stroke in 32 countries (INTERSTROKE). Lancet 2016;388:761-775.",
+      "status": "cited from a standard reference, not opened today",
+      "url": ""
+    },
+    "KDIGO-AKI-2012": {
+      "citation": "KDIGO Clinical Practice Guideline for Acute Kidney Injury. Kidney Int Suppl 2012;2:1-138. Section 2.1 (definition and staging).",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": "https://kdigo.org/guidelines/acute-kidney-injury/"
+    },
+    "KDIGO-CKD-2024": {
+      "citation": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD. Kidney Int 2024;105(4S). GFR categories G1-G5 and albuminuria categories A1-A3.",
+      "status": "read today",
+      "url": "https://www.kidney.org/how-to-classify-ckd"
+    },
+    "TEXTBOOK": {
+      "citation": "Standard internal medicine reference (for example Davidson's Principles and Practice of Medicine, 24th ed., 2023, the relevant chapter). The CSO confirms the link or replaces this with the UCG 2023 section.",
+      "status": "cited from a standard reference, not opened today",
+      "url": ""
+    },
+    "UDMI-2018": {
+      "citation": "Thygesen K, et al. Fourth Universal Definition of Myocardial Infarction (2018). Circulation 2018;138:e618-e651. Sections 26-27 and Table 2.",
+      "status": "read today",
+      "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000617"
+    },
+    "UG-EMNCC-2022": {
+      "citation": "Ministry of Health Uganda. Essential Maternal and Newborn Clinical Care Guidelines for Uganda, May 2022. Hypertensive disorders in pregnancy, printed p. 22 (definitions and severe features); aspirin risk factors.",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": "https://safemama.health.go.ug/"
+    },
+    "WHO-AHD-2017": {
+      "citation": "WHO. Guidelines for managing advanced HIV disease and rapid initiation of antiretroviral therapy. 2017. Definition of advanced HIV disease.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/9789241550062"
+    },
+    "WHO-CRYPTO-2022": {
+      "citation": "WHO. Guidelines for diagnosing, preventing and managing cryptococcal disease among adults, adolescents and children living with HIV. 2022.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/9789240052178"
+    },
+    "WHO-DM-2019": {
+      "citation": "WHO. Classification of diabetes mellitus. Geneva: WHO; 2019. Reuse the diabetes pack's signed REF-DM entries; do not restate numbers here.",
+      "status": "already signed in the diabetes pack",
+      "url": "https://www.who.int/publications/i/item/classification-of-diabetes-mellitus"
+    },
+    "WHO-HB-2024": {
+      "citation": "WHO. Guideline on haemoglobin cutoffs to define anaemia in individuals and populations. Geneva: WHO; 2024. Table 3 (severity in individuals).",
+      "status": "read today",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK602183/table/fm-ch1.tab2/"
+    },
+    "WHO-HIP-2013": {
+      "citation": "WHO. Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy. 2013. Reuse the diabetes pack's signed REF-DM entries.",
+      "status": "already signed in the diabetes pack",
+      "url": "https://www.who.int/publications/i/item/WHO-NMH-MND-13.2"
+    },
+    "WHO-MAL-GL": {
+      "citation": "WHO Guidelines for malaria (current consolidated version): parasitological confirmation before treatment; clinical features of severe malaria including prostration and multiple convulsions.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/guidelines-for-malaria"
+    },
+    "WHO-MENING-2025": {
+      "citation": "WHO. Guidelines on meningitis diagnosis, treatment and care. 2025.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/9789240108042"
+    },
+    "WHO-SM-2014": {
+      "citation": "WHO. Severe malaria. Trop Med Int Health 2014;19(Suppl 1):7-131. Table 4 (definition of severe falciparum malaria, p. 11); Section 2 (cerebral malaria, p. 12) and Section 4 (p. 27).",
+      "status": "read today",
+      "url": "https://www.severemalaria.org/sites/default/files/content/document/who-severe-malaria-tmih-supplement-2014_0.pdf"
+    },
+    "WHO-TB-DEF": {
+      "citation": "WHO consolidated guidelines on tuberculosis: definitions (NCBI Bookshelf NBK579383); WHO Definitions and reporting framework for tuberculosis, 2013 revision.",
+      "status": "read today",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK579383/"
+    },
+    "WHO-TB-RISK": {
+      "citation": "WHO Global Tuberculosis Report (2024 edition): TB cases attributable to five risk factors: undernutrition, HIV infection, alcohol use disorders, smoking and diabetes.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/teams/global-tuberculosis-programme/tb-reports"
+    }
+  },
+  "signoff": {
+    "signedBy": "CSO (owner)",
+    "signedOn": "2026-10-09",
+    "decision": "Signed as drafted (GATE A, BRIEF-DX-RELATIONS)."
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "gate": "A",
+  "date": "2026-10-09",
+  "signedBy": "CSO (owner)",
+  "mode": "bulk: 'Accept all 17 (Recommended)'",
+  "decisions": {
+    "D-REL-01": "A",
+    "D-REL-02": "A",
+    "D-REL-03": "A",
+    "D-REL-04": "A",
+    "D-REL-05": "A",
+    "D-REL-06": "A",
+    "D-REL-07": "A",
+    "D-REL-08": "A",
+    "D-REL-09": "A",
+    "D-REL-10": "A",
+    "D-REL-11": "A",
+    "D-REL-12": "A",
+    "D-REL-13": "A",
+    "D-REL-14": "A",
+    "D-REL-15": "A",
+    "D-REL-16": "A",
+    "D-REL-17": "A"
+  },
+  "catalogues": {
+    "dx-subtypes.v1.json": "signed as drafted",
+    "dx-causes.v1.json": "signed as drafted",
+    "dx-risk-factors.v1.json": "signed as drafted",
+    "dx-proposed-terms.v1.json": "signed as drafted; each term live only once its ICD-11 code verifies on the WHO API, else uncoded"
+  },
+  "deferred": [
+    "D-REL-07 counting: recorded, not built (needs the HMIS team)",
+    "death-certificate chain proposal (no certificate module yet)"
+  ]
+}

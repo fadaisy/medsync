@@ -4,6 +4,7 @@ import type { DxSignoff } from "./catalogue";
 import raw from "@/data/clerking/clerking-diagnosis-catalogue.v1.json";
 import signoff from "@/data/clerking/dx-signoff.v1.json";
 import PACK_TERMS from "@/data/emr/clinical-fact-concepts.v1.5.json";
+import V12_TERMS from "@/data/emr/diagnosis-terms.v1.2.json";
 import BASE_TERMS from "@/data/emr/diagnosis-terms.v1.json";
 import TEST_MENU from "@/data/emr/test-catalogue.v1.json";
 import ADD_TERMS from "@/docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json";
@@ -40,9 +41,11 @@ export function uuidV5(name: string): string {
 export const dxTermUuid = (dxId: string) => uuidV5(`diagnosis_terms:${dxId}`);
 
 /** Term uuid → profile id, for every profile (the desk maps a condition's term to its profile). */
-export const DX_TERM_IDS: Readonly<Record<string, string>> = Object.fromEntries(
-  DX_CATALOGUE.profiles.map((p) => [dxTermUuid(p.id), p.id]),
-);
+export const DX_TERM_IDS: Readonly<Record<string, string>> = Object.fromEntries([
+  ...DX_CATALOGUE.profiles.map((p) => [dxTermUuid(p.id), p.id]),
+  // REF-DX-TERMS v1.2 (ADR 0220): no profile yet, but a refined diagnosis must still map to its id.
+  ...V12_TERMS.terms.map((t) => [dxTermUuid(t.id), t.id]),
+]);
 
 /** Display names by `dx.*` id, from REF-DX-TERMS and its v1.1 addendum (terminology stays owned
  *  there; the catalogue holds none). A term of the addendum is "as typed, not coded" until its
@@ -60,6 +63,11 @@ export const DX_NAMES: Readonly<
   ]),
   // The diabetes pack's terms (CFC v1.5 termsAdd, migration 0092): uncoded, as the addendum's.
   ...PACK_TERMS.termsAdd.map((t) => [
+    t.id,
+    { display: t.display, restricted: t.sensitivity === "restricted", coded: false },
+  ]),
+  // REF-DX-TERMS v1.2 (ADR 0220, migration 0095): typed until the owner applies 0095, then coded.
+  ...V12_TERMS.terms.map((t) => [
     t.id,
     { display: t.display, restricted: t.sensitivity === "restricted", coded: false },
   ]),

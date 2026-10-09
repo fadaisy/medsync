@@ -1,0 +1,358 @@
+{
+  "id": "MS-EMR-DX-REL-DECISIONS-001",
+  "version": "1.0.0-draft",
+  "status": "awaiting CSO",
+  "decisions": [
+    {
+      "id": "D-REL-01",
+      "title": "One primary diagnosis per visit, or several",
+      "question": "Malaria and pneumonia together: should both be 'primary', or does one stay primary with the other co-existing?",
+      "options": [
+        {
+          "label": "A. One primary (the leading diagnosis). Co-existing diagnoses get their own place, rank secondary, no parent, and equal visual weight.",
+          "what_is_lost": "Nothing clinical: both are managed and both are counted. The clinician must pick which is leading; the desk lets them swap in one action."
+        },
+        {
+          "label": "B. Several primaries.",
+          "what_is_lost": "The single main condition that ICD-11 morbidity coding, inpatient HMIS returns and DRG-style costing need. Every report would need a tie-break rule written later."
+        }
+      ],
+      "why": "ICD-11 morbidity rules and inpatient reporting select one main condition. Keeping one primary and a named co-existing place meets R4 without breaking those.",
+      "if_left": "Today's rule (one primary) stays, and co-existing diagnoses keep sitting in 'Also this visit' with no distinction from linked ones.",
+      "affects": ["Part A §2", "DXV-03"],
+      "reply": "D-REL-01: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-02",
+      "title": "Where relations live: the record, or only the note",
+      "question": "Should a relation be a row in the record (condition_relations), or stay in this visit's note data as today (meta.with)?",
+      "options": [
+        {
+          "label": "A. Record-level table, append-only, with RLS; the note reads from it.",
+          "what_is_lost": "A migration and a backfill of meta.with. More to build now."
+        },
+        {
+          "label": "B. Note-level only, as today.",
+          "what_is_lost": "Links to the problem list (diabetes on the list → DKA today), relations seen at the next visit, HMIS and death-certificate chains, and any audit of who linked what."
+        }
+      ],
+      "why": "R5 needs a link from this visit's diagnosis to a problem-list condition, which only a record-level link can hold. The record is append-only and audited; relations that drive counting and certificates must be too.",
+      "if_left": "Relations stay inside one note: a complication of a known chronic condition cannot point at it, and nothing carries to the next visit.",
+      "affects": ["Part A §5", "DXV-04", "DXV-12", "DXV-13"],
+      "reply": "D-REL-02: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-03",
+      "title": "Merge 'complication' and 'secondary to' into one causal relation",
+      "question": "Should complication_of and secondary_to be one stored relation (due_to) with a label, or two relation types?",
+      "options": [
+        {
+          "label": "A. One relation, due_to, with label complication, secondary or precipitated_by. The catalogue picks the label; the clinician can change it.",
+          "what_is_lost": "A clinician who wants a fourth wording must ask for a new label."
+        },
+        {
+          "label": "B. Separate relation types.",
+          "what_is_lost": "Clarity at the drop: the clinician must choose between near-synonyms, and the same pair could be stored two ways, which splits counts and chains."
+        }
+      ],
+      "why": "Both say 'A is caused by B' and map to the same ICD-11 axis and FHIR extension. One relation with a display label keeps the chain for death certificates and reports unambiguous.",
+      "if_left": "The design keeps two types and the drop chooser must offer both, with no rule for which is right.",
+      "affects": ["Part A §1", "dx-causes.v1.json"],
+      "reply": "D-REL-03: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-04",
+      "title": "Whether, and how, risk factors are shown",
+      "question": "Should risk factors for the leading diagnosis be shown, and are they stored?",
+      "options": [
+        {
+          "label": "A. Shown as one derived line under the diagnosis ('Risk factors on record: …'), from the problem list, this visit and the social history. Stored only if the clinician ticks 'include in note'.",
+          "what_is_lost": "Nothing is stored by default, so a report of 'risk factors recorded' counts only ticked lines."
+        },
+        {
+          "label": "B. Stored as relations the clinician drags in.",
+          "what_is_lost": "Time, and noise: clinicians would drag diabetes onto every ACS by hand."
+        },
+        {
+          "label": "C. Not shown.",
+          "what_is_lost": "R2. The note loses the cardiovascular risk context that guides secondary prevention."
+        }
+      ],
+      "why": "Risk factors are context, not this visit's cause. Showing them derived costs nothing and adds no clinical claim; storing them only on request keeps the record honest.",
+      "if_left": "Risk factors stay invisible on the board.",
+      "affects": ["Part A §1", "dx-risk-factors.v1.json", "DXV-01"],
+      "reply": "D-REL-04: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-05",
+      "title": "Refinement: replace, or keep both",
+      "question": "When ACS becomes NSTEMI, is it a new version of the same condition, or a second condition beside the first?",
+      "options": [
+        {
+          "label": "A. A new version of the same condition (same logical id). History keeps the broad term; the board and note show the current one with 'refined from'. A change of identity (ACS → pericarditis) is refute plus a new diagnosis.",
+          "what_is_lost": "The board never shows both at once; the history view does."
+        },
+        {
+          "label": "B. Keep both as separate conditions.",
+          "what_is_lost": "Clean counting: NSTEMI and ACS would both be counted for one illness, and the note would carry two diagnoses for one event."
+        }
+      ],
+      "why": "One illness must be one condition in the record and one count in reports. Refuting rather than refining when the identity changes keeps 'ACS was considered and ruled out' visible, which matters for audit.",
+      "if_left": "The engineering side has to choose; mixed behaviour would double-count.",
+      "affects": ["Part A §3", "DXV-01", "DXV-11"],
+      "reply": "D-REL-05: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-06",
+      "title": "How a drop chooses the relation",
+      "question": "When B is dropped on A, how is the relation chosen?",
+      "options": [
+        {
+          "label": "A. If the pair is in a signed catalogue, apply that relation at once and show it inline with 'Change' and 'Undo'. Otherwise open a small centred chooser with no preselection.",
+          "what_is_lost": "One extra tap when the catalogue has no entry."
+        },
+        {
+          "label": "B. Always open the chooser.",
+          "what_is_lost": "Speed for the common, catalogued pairs."
+        },
+        {
+          "label": "C. Always decide from the catalogue; unknown pairs become co-existing.",
+          "what_is_lost": "Any causal link the catalogue does not list. The clinician is overruled."
+        }
+      ],
+      "why": "Catalogued pairs are signed and common, so a one-step drop with a visible, reversible label is safe. An uncatalogued pair is a clinical claim the system cannot vouch for, so the clinician chooses it explicitly.",
+      "if_left": "Drops do nothing until a rule exists.",
+      "affects": ["Part A §4"],
+      "reply": "D-REL-06: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-07",
+      "title": "HMIS and certificate counting of linked diagnoses",
+      "question": "How are secondary diagnoses counted?",
+      "options": [
+        {
+          "label": "A. OPD: every this-visit diagnosis that is working or final is counted on its own line (leading, co-existing, complications, secondary). Background, risk factors, differentials and refuted diagnoses are not. Inpatient: the leading diagnosis is the main condition. Death: the due_to chain proposes the certificate's Part I sequence for the doctor to confirm.",
+          "what_is_lost": "A complication is counted both as itself and through its parent's line; HMIS lines are condition-based, so this matches how paper registers are filled."
+        },
+        {
+          "label": "B. Count only the leading diagnosis.",
+          "what_is_lost": "Every co-existing and secondary illness disappears from the district figures: malaria-with-pneumonia counts once."
+        },
+        {
+          "label": "C. Defer counting to the HMIS team.",
+          "what_is_lost": "Nothing now; the relation data still supports either rule later."
+        }
+      ],
+      "why": "Counting each diagnosis that was actually managed matches the registers clinicians fill today. Proposing (never auto-writing) the Part I chain from due_to links improves certificate quality, which mortality audit depends on.",
+      "if_left": "Reports keep counting from the conditions table alone, ignoring relations.",
+      "affects": ["Part A §1", "Part A §2"],
+      "reply": "D-REL-07: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-08",
+      "title": "Relations on differentials",
+      "question": "Can a differential carry a relation (for example 'possible AKI secondary to malaria')?",
+      "options": [
+        {
+          "label": "A. No. Relations join working or final diagnoses only. A differential can name a suspected cause in its reasoning; when it is promoted, the desk offers the catalogued link.",
+          "what_is_lost": "The clinician cannot draw a causal arrow to a diagnosis they have not yet accepted."
+        },
+        {
+          "label": "B. Yes, shown as 'possible'.",
+          "what_is_lost": "Clarity: unconfirmed arrows would flow into the note, the problem list and counts."
+        }
+      ],
+      "why": "A causal link asserts more than either diagnosis alone. Asserting it about a diagnosis still in doubt invites premature closure.",
+      "if_left": "The board allows drops onto differentials with no rule for what they mean.",
+      "affects": ["Part A §2", "DXV-16"],
+      "reply": "D-REL-08: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-09",
+      "title": "What a viewer without access sees of a restricted relation",
+      "question": "When one end of a relation is in a restricted class, what does a viewer without that class see?",
+      "options": [
+        {
+          "label": "A. The relation takes the stricter class of its two ends. A viewer without it sees the unrestricted diagnosis alone, with no relation and no placeholder.",
+          "what_is_lost": "That viewer does not know a cause is recorded. A clinician who needs it has (or requests) access."
+        },
+        {
+          "label": "B. Show 'secondary to a condition you cannot view'.",
+          "what_is_lost": "Privacy: the placeholder itself discloses that a restricted condition exists."
+        },
+        {
+          "label": "C. Hide the unrestricted diagnosis too.",
+          "what_is_lost": "Care: a ward team could lose sight of anaemia because its cause is HIV."
+        }
+      ],
+      "why": "A placeholder leaks the existence of the restricted condition; hiding the child loses clinically needed information.",
+      "if_left": "Restricted causes could appear in note text for every viewer.",
+      "affects": ["Part A §1", "DXV-05"],
+      "reply": "D-REL-09: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-10",
+      "title": "Conditions that reveal HIV by inference",
+      "question": "Cryptococcal meningitis, PCP, Kaposi sarcoma, cerebral toxoplasmosis and oesophageal candidiasis imply HIV. Should they be restricted?",
+      "options": [
+        {
+          "label": "A. Keep them unrestricted (they must be visible to the treating team); restrict only their link to HIV, as D-REL-09 does. Review with the ADR 0206 owner.",
+          "what_is_lost": "A viewer without HIV access can still infer it from the diagnosis name."
+        },
+        {
+          "label": "B. Restrict them under the HIV class.",
+          "what_is_lost": "Care: the ward team and pharmacy without HIV access would not see a life-threatening meningitis."
+        },
+        {
+          "label": "C. Decide case by case.",
+          "what_is_lost": "Consistency."
+        }
+      ],
+      "why": "Hiding a must-not-miss infection from the treating team is a direct patient-safety risk; the inference risk is real but smaller.",
+      "if_left": "Behaviour stays as it is today (unrestricted), but undocumented.",
+      "affects": ["Part A §1", "DXV-05"],
+      "reply": "D-REL-10: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-11",
+      "title": "Causes that are not diagnoses",
+      "question": "DKA after missed insulin; heart failure after stopping medicines. How is a non-diagnosis cause recorded?",
+      "options": [
+        {
+          "label": "A. A short coded list of precipitant events (cause.insulin_omission, cause.new_medicine, cause.treatment_interruption, cause.alcohol, cause.pregnancy, cause.immobility), stored as a qualifier on the effect.",
+          "what_is_lost": "Anything outside the list goes in the reasoning text."
+        },
+        {
+          "label": "B. Free text only.",
+          "what_is_lost": "Searchable, countable causes (for example DKA from insulin stock-outs)."
+        },
+        {
+          "label": "C. Make each one a diagnosis.",
+          "what_is_lost": "Catalogue clarity: 'missed insulin' is not a disease and would pollute the problem list."
+        }
+      ],
+      "why": "A small coded list makes stock-out and adherence causes countable without pretending they are diseases.",
+      "if_left": "Non-diagnosis causes live only in free text.",
+      "affects": ["dx-causes.v1.json", "DXV-04"],
+      "reply": "D-REL-11: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-12",
+      "title": "More than one cause for one diagnosis",
+      "question": "Severe anaemia from malaria and hookworm together: one cause or several?",
+      "options": [
+        {
+          "label": "A. Several causes allowed, ordered by the clinician; the note lists them ('secondary to malaria and hookworm infection'). At death, the doctor picks one chain for Part I.",
+          "what_is_lost": "Some complexity in the note writer and the certificate proposal."
+        },
+        {
+          "label": "B. One cause only.",
+          "what_is_lost": "Truth: mixed causes of anaemia are common in Uganda."
+        }
+      ],
+      "why": "Multiple causes are common; forcing one misstates the record.",
+      "if_left": "The first cause added wins and later ones are refused.",
+      "affects": ["Part A §1", "DXV-02"],
+      "reply": "D-REL-12: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-13",
+      "title": "Heart-failure classes: ESC 2026 or the 2021 scheme",
+      "question": "The 2026 ESC guideline (28 August 2026) removed HFmrEF: HFrEF is now LVEF <50%. The 2021 ESC guideline and the Universal Definition keep three classes (≤40, 41–49, ≥50). Which does MedSync show?",
+      "options": [
+        {
+          "label": "A. Store the LVEF number always; show ESC 2026 classes (HFrEF <50%, HFpEF ≥50%). Keep dx.hfmref unsigned.",
+          "what_is_lost": "Alignment with older documents and with the AHA/ACC 2022 guideline."
+        },
+        {
+          "label": "B. Show the 2021 three classes.",
+          "what_is_lost": "Alignment with the newest European guidance."
+        },
+        {
+          "label": "C. Show the number only, no class.",
+          "what_is_lost": "The refinement prompt and class-specific medicine reviews."
+        }
+      ],
+      "why": "Storing the number keeps either scheme derivable. The newest guideline is the default; check what UCG 2023 says before signing.",
+      "if_left": "dx.hfref and dx.hfpef stay unsigned and heart failure is not refined.",
+      "affects": ["dx-subtypes.v1.json", "DXV-07"],
+      "reply": "D-REL-13: A (or B / C, or your own wording)"
+    },
+    {
+      "id": "D-REL-14",
+      "title": "Severity is a stage, not a subtype",
+      "question": "Anaemia severity, CKD category, AKI stage, CURB-65, hypertension grade: subtypes, or stages on the same condition?",
+      "options": [
+        {
+          "label": "A. Stages (conditions.stage), recomputed when results change; never new versions of the diagnosis.",
+          "what_is_lost": "Severity does not appear as its own diagnosis name in lists (the note writes it in brackets)."
+        },
+        {
+          "label": "B. Subtypes.",
+          "what_is_lost": "Stability: every new haemoglobin would create a new diagnosis version, and counts would split by severity."
+        }
+      ],
+      "why": "Severity changes with each result; identity does not. Keeping them apart avoids churn in the record and in counts.",
+      "if_left": "Each team models severity its own way.",
+      "affects": ["dx-subtypes.v1.json (stages)", "DXV-02"],
+      "reply": "D-REL-14: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-15",
+      "title": "Symptom-level placeholders once explained",
+      "question": "When 'Fever, cause not yet known' is explained by malaria, what happens to the placeholder?",
+      "options": [
+        {
+          "label": "A. The desk offers to refine the placeholder into the diagnosis (a new version), so the note carries one entry. If the clinician declines, the placeholder stays.",
+          "what_is_lost": "The note no longer says 'fever' as a separate line."
+        },
+        {
+          "label": "B. Keep both; link the placeholder to the diagnosis.",
+          "what_is_lost": "Note clarity, and a symptom is counted as if it were a diagnosis."
+        }
+      ],
+      "why": "Placeholders exist to be replaced. One entry per problem keeps the note and counts honest.",
+      "if_left": "Placeholders accumulate beside the diagnoses that explain them.",
+      "affects": ["dx-subtypes.v1.json", "DXV-06"],
+      "reply": "D-REL-15: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-16",
+      "title": "Words for very high BP without organ damage",
+      "question": "Display 'hypertensive urgency', or 'severe hypertension without acute organ damage'?",
+      "options": [
+        {
+          "label": "A. 'Severe hypertension without acute organ damage', with 'urgency' as a search synonym. Settle together with D-HTN-01 in the hypertension pack.",
+          "what_is_lost": "Familiar wording; UCG 2023 is recalled to use 'urgency' (to be confirmed on the page)."
+        },
+        {
+          "label": "B. 'Hypertensive urgency'.",
+          "what_is_lost": "Alignment with ESC 2019, AHA 2024 and AHA/ACC 2025, which drop the term because it prompts unnecessary emergency lowering."
+        }
+      ],
+      "why": "The word 'urgency' invites the harm the sources warn against: rapid lowering in a patient without organ damage.",
+      "if_left": "dx.severe_hypertension_no_aod stays unsigned; the crisis is not refined.",
+      "affects": ["dx-proposed-terms.v1.json", "DXV-06"],
+      "reply": "D-REL-16: A (or B, or your own wording)"
+    },
+    {
+      "id": "D-REL-17",
+      "title": "Backfilling today's note-level links",
+      "question": "How are existing meta.with and flagged entries carried into condition_relations?",
+      "options": [
+        {
+          "label": "A. One-off backfill for unsigned drafts only. Signed notes keep their text; a relation row is created for them only if the encounter is reopened and the clinician confirms.",
+          "what_is_lost": "Older signed visits do not show relations in the record view."
+        },
+        {
+          "label": "B. Backfill every note, signed or not, as system-created relations.",
+          "what_is_lost": "The rule that a signed record is not changed after signature: rows would appear under a clinician's name they never confirmed."
+        }
+      ],
+      "why": "A signed note must not acquire clinical assertions afterwards, even ones it already implied.",
+      "if_left": "meta.with stays the only store and the new table starts empty.",
+      "affects": ["Part A §5"],
+      "reply": "D-REL-17: A (or B, or your own wording)"
+    }
+  ]
+}

@@ -117,12 +117,12 @@ async function dateOfBirth(ctx: WriteCtx, patientUserId: string): Promise<DateOf
   return p ? { value: p.dob, precision: "day" } : undefined;
 }
 
-const reasonCols = (code?: string | null, text?: string | null) => ({
+export const reasonCols = (code?: string | null, text?: string | null) => ({
   reasonCode: code?.trim() || null,
   reasonCiphertext: text?.trim() ? encrypt(text.trim()) : null,
 });
 
-function requireReason(
+export function requireReason(
   code: string | null | undefined,
   text: string | null | undefined,
   act: string,
@@ -713,7 +713,7 @@ export interface ConditionInput {
 
 /** Term codes and sensitivity at insert: a restricted term or concept, or a pregnancy term for a
  *  possible minor (D-CFC-09), restricts the row. */
-async function conditionColumns(
+export async function conditionColumns(
   ctx: WriteCtx,
   input: ConditionInput,
   effectiveAt: Date,
@@ -857,7 +857,7 @@ export const DEMOTE_FINAL = "A senior demotes or moves a final diagnosis.";
  * typed words (normalised as the picker does: lib/clerking/impression/board normaliseTyped). Typed
  * words are ciphertext with a random IV, so they are decrypted here: a handful of rows.
  */
-async function sameDiagnosis(
+export async function sameDiagnosis(
   ctx: WriteCtx,
   scope: ReturnType<typeof and>,
   input: Pick<ConditionInput, "termId" | "text">,

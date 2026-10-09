@@ -4,7 +4,7 @@ import type { WriteCtx } from "./context";
 import type { WriteResult } from "./orders";
 import type { EmrTx } from "@/lib/emr/db";
 import type { EncounterDiagnosisView } from "@/lib/emr/diagnoses";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { conditions, diagnosisTerms } from "@/db/schema/emr";
@@ -12,7 +12,9 @@ import { encounterDiagnoses, newestVersions, pendingCosignIds } from "@/lib/emr/
 import { decrypt } from "@/lib/encryption";
 import { EmrWriteError, stampActivity } from "./context";
 import {
+  ALREADY_ON_VISIT,
   authority,
+  conditionColumns,
   currentPrimary,
   currentVersion,
   DEMOTE_FINAL,
@@ -20,6 +22,8 @@ import {
   insertNextVersion,
   lockVisit,
   openDiagnosisCosign,
+  recordEncounterDiagnosis,
+  sameDiagnosis,
   SENIOR_CADRES,
   updateProblemStatus,
 } from "./facts";
@@ -305,6 +309,142 @@ export async function decideDiagnosisCosign(
   if (!answered) throw new EmrWriteError("conflict", "The co-sign request is no longer open.");
   await stampActivity(ctx, typeof payload.encounterId === "string" ? payload.encounterId : null);
   return { id };
+}
+
+/* ─── Refine and replace (D-REL-05, dx-relations-design §3) ──────── */
+
+export interface RefineDiagnosisInput {
+  patientUserId: string;
+  /** The current version the clinician saw. */
+  id: string;
+  /** The narrower term (or typed words). */
+  termId?: string;
+  text?: string;
+  /** The deciding results, as chart ids ("clinical_observations:<uuid>", "diagnostic_reports:<uuid>"). */
+  decidedBy?: string[];
+  clientKey: string;
+}
+
+/**
+ * Refine: the next version of the SAME condition (same logical id) with the narrower term; its
+ * `refined_from` names the version and term it came from and the results that decided it. Status,
+ * rank, verification, evidence and relations stay (relations point at the logical id). A Final is
+ * refined by someone allowed to write one (D-SI-21). A change of identity is replaceDiagnosis.
+ */
+export async function refineDiagnosis(
+  ctx: WriteCtx,
+  input: RefineDiagnosisInput,
+): Promise<WriteResult> {
+  requireCadre(ctx, ORDERING_CADRES, "change a diagnosis");
+  const replay = await replayed(ctx.tx, conditions, input.clientKey, input.patientUserId);
+  if (replay) return { id: replay };
+  const prev = await currentVersion(ctx, "condition", input.id, input.patientUserId);
+  if (prev.verification === "refuted") throw invalid("A ruled-out diagnosis is not refined.");
+  if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
+    throw new EmrWriteError("forbidden", "A senior refines a final diagnosis.");
+  if (input.termId && input.termId === prev.termId)
+    throw invalid("The diagnosis already has this term.");
+  if (prev.encounterId) await openEncounter(ctx, input.patientUserId, prev.encounterId);
+  // S-3: the narrower term must not already be its own diagnosis in the same place.
+  const where =
+    prev.category === "encounter_diagnosis"
+      ? and(
+          inArray(conditions.encounterId, await lockVisit(ctx, prev.encounterId!)),
+          eq(conditions.category, "encounter_diagnosis"),
+        )
+      : and(eq(conditions.category, "problem_list_item"), eq(conditions.subjectRelation, "self"));
+  if (
+    await sameDiagnosis(
+      ctx,
+      and(
+        where,
+        eq(conditions.patientUserId, input.patientUserId),
+        eq(conditions.hospitalId, ctx.actor.hospitalId),
+        ne(conditions.logicalId, prev.logicalId),
+      ),
+      input,
+    )
+  )
+    throw new EmrWriteError("conflict", ALREADY_ON_VISIT);
+  const cols = await conditionColumns(
+    ctx,
+    {
+      patientUserId: input.patientUserId,
+      clientKey: input.clientKey,
+      termId: input.termId,
+      text: input.text,
+    },
+    prev.effectiveAt,
+  );
+  const id = await insertNextVersion(
+    ctx,
+    "condition",
+    prev,
+    {
+      ...cols,
+      refinedFrom: { versionId: prev.id, termId: prev.termId, decidedBy: input.decidedBy ?? [] },
+      ...NO_REASON,
+    },
+    input.clientKey,
+  );
+  await stampActivity(ctx, prev.encounterId);
+  return { id };
+}
+
+export interface ReplaceDiagnosisInput {
+  patientUserId: string;
+  encounterId: string;
+  /** The current version the clinician saw: it is ruled out. */
+  id: string;
+  /** Why it is ruled out ("Ruled out: …" in the note). */
+  reasonCode?: string;
+  reasonText?: string;
+  /** The new diagnosis. */
+  termId?: string;
+  text?: string;
+  clientKey: string;
+}
+
+/**
+ * Replace (a change of identity, D-REL-05): the old diagnosis is refuted with its reason and the new
+ * one recorded in its place (same rank and slot), in this one transaction. Keys: `key` refutes,
+ * `key:new` records. The old one's relations are retired by 0096 (system_end_removed), never moved.
+ */
+export async function replaceDiagnosis(
+  ctx: WriteCtx,
+  input: ReplaceDiagnosisInput,
+): Promise<WriteResult & { refutedId: string }> {
+  const newKey = `${input.clientKey}:new`;
+  const replay = await replayed(ctx.tx, conditions, newKey, input.patientUserId);
+  if (replay)
+    return {
+      id: replay,
+      refutedId: (await replayed(ctx.tx, conditions, input.clientKey, input.patientUserId))!,
+    };
+  const prev = await currentVersion(ctx, "condition", input.id, input.patientUserId);
+  requireEncounterDiagnosis(prev, "is replaced");
+  if (prev.encounterId !== input.encounterId) throw invalid("That diagnosis is not on this visit.");
+  const refuted = await updateProblemStatus(ctx, {
+    patientUserId: input.patientUserId,
+    id: prev.id,
+    clientKey: input.clientKey,
+    verification: "refuted",
+    reasonCode: input.reasonCode,
+    reasonText: input.reasonText,
+  });
+  const made = await recordEncounterDiagnosis(ctx, {
+    patientUserId: input.patientUserId,
+    encounterId: input.encounterId,
+    clientKey: newKey,
+    termId: input.termId,
+    text: input.text,
+    rank: prev.rank === "primary" ? "primary" : "secondary",
+    verification:
+      prev.verification === "confirmed" || prev.verification === "differential"
+        ? prev.verification
+        : "provisional",
+  });
+  return { ...made, refutedId: refuted.id };
 }
 
 /* ─── Reads the writes share ─────────────────────────────────────── */
