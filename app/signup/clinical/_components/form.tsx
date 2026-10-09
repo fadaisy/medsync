@@ -90,13 +90,22 @@ export function ClinicalSignupForm({
         <PracticeFields specialties={specialties} />
       </Section>
       <Section id="work">
-        <WorkFields
-          hospitals={hospitals}
-          departmentLabel={STAFF_COMMON.department}
-          afterHospital={<LeadDialog source="clinical_signup" trigger={CLINICAL.notOnMedSync} />}
-        />
+        <ClinicalWorkFields hospitals={hospitals} />
       </Section>
     </SectionedForm>
+  );
+}
+
+/** A profession tied to one department (laboratory, imaging, pharmacy) has it chosen for them. */
+function ClinicalWorkFields({ hospitals }: { hospitals: readonly HospitalOption[] }) {
+  const profession = professionById(useFieldValue("profession") ?? "");
+  return (
+    <WorkFields
+      hospitals={hospitals}
+      departmentLabel={STAFF_COMMON.department}
+      fixedDepartment={profession?.department}
+      afterHospital={<LeadDialog source="clinical_signup" trigger={CLINICAL.notOnMedSync} />}
+    />
   );
 }
 

@@ -23,6 +23,8 @@ export interface Profession {
   grade: string | null;
   role: string;
   needsSpecialty?: true;
+  /** The hub catalogue code of the one department this profession works in; sign-up picks it. */
+  department?: string;
   helper?: string;
   keywords: string;
 }
@@ -155,6 +157,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "LAB_TECH",
     grade: null,
     role: "LAB_TECH_GENERAL",
+    department: "LABORATORY",
     keywords: "lab laboratory",
   },
   {
@@ -164,6 +167,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "LAB_TECHNOLOGIST",
     grade: null,
     role: "LAB_TECHNOLOGIST_GENERAL",
+    department: "LABORATORY",
     keywords: "lab laboratory",
   },
   {
@@ -173,6 +177,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "RADIOGRAPHER",
     grade: null,
     role: "RADIOGRAPHER_GENERAL",
+    department: "RADIOLOGY_IMAGING",
     keywords: "x-ray xray imaging",
   },
   {
@@ -209,6 +214,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "PHARMACIST",
     grade: null,
     role: "PHARMACIST_GENERAL",
+    department: "PHARMACY",
     keywords: "pharmacy",
   },
   {
@@ -218,6 +224,7 @@ export const PROFESSIONS: readonly Profession[] = [
     cadre: "PHARMACY_TECH",
     grade: null,
     role: "PHARMACY_TECH_GENERAL",
+    department: "PHARMACY",
     keywords: "pharmacy",
   },
 ];

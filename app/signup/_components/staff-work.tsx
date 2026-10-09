@@ -39,11 +39,14 @@ const norm = (s: string) => s.toLowerCase().trim();
 export function WorkFields({
   hospitals,
   departmentLabel,
+  fixedDepartment,
   afterHospital,
   children,
 }: {
   hospitals: readonly HospitalOption[];
   departmentLabel: string;
+  /** A catalogue code (LABORATORY, PHARMACY…): when the hospital has it live, it is chosen and not asked. */
+  fixedDepartment?: string;
   afterHospital?: ReactNode;
   children?: ReactNode;
 }) {
@@ -90,7 +93,11 @@ export function WorkFields({
         <FieldError name="hospitalId" />
         {afterHospital}
       </div>
-      <DepartmentField hospitalId={chosen?.id ?? ""} label={departmentLabel} />
+      <DepartmentField
+        hospitalId={chosen?.id ?? ""}
+        label={departmentLabel}
+        fixedCode={fixedDepartment}
+      />
       <ChoiceField
         name="employmentType"
         label={STAFF_COMMON.employment}
@@ -101,14 +108,25 @@ export function WorkFields({
   );
 }
 
-/** A native select whose options follow the chosen hospital; disabled until there is one. */
-function DepartmentField({ hospitalId, label }: { hospitalId: string; label: string }) {
+/**
+ * A native select whose options follow the chosen hospital; disabled until there is one. With a
+ * `fixedCode` the hospital has live, that department is chosen and shown read-only; without it
+ * (the hospital has no such department yet) the select comes back, so no one is stuck.
+ */
+function DepartmentField({
+  hospitalId,
+  label,
+  fixedCode,
+}: {
+  hospitalId: string;
+  label: string;
+  fixedCode?: string;
+}) {
   const { control } = useFormContext();
   const { field } = useController({ name: "departmentId", control });
-  const a11y = useFieldA11y("departmentId", false);
   const [loaded, setLoaded] = useState<{
     for: string;
-    rows: { id: string; name: string }[];
+    rows: { id: string; name: string; code: string | null }[];
     failed?: boolean;
   }>({ for: "", rows: [] });
 
@@ -126,6 +144,12 @@ function DepartmentField({ hospitalId, label }: { hospitalId: string; label: str
 
   const ready = !!hospitalId && loaded.for === hospitalId;
   const rows = ready ? loaded.rows : [];
+  const fixed = fixedCode ? rows.find((d) => d.code === fixedCode) : undefined;
+  const a11y = useFieldA11y("departmentId", !!fixed);
+  const { value, onChange } = field;
+  useEffect(() => {
+    if (fixed && value !== fixed.id) onChange(fixed.id);
+  }, [fixed, value, onChange]);
   const placeholder = !hospitalId
     ? STAFF_COMMON.departmentFirst
     : !ready
@@ -135,6 +159,13 @@ function DepartmentField({ hospitalId, label }: { hospitalId: string; label: str
         : loaded.failed
           ? STAFF.departmentFailed
           : STAFF.departmentNone;
+
+  if (fixed)
+    return (
+      <FieldShell name="departmentId" label={label} hint={STAFF.departmentFixed}>
+        <input {...a11y} readOnly value={fixed.name} className={inputClass} />
+      </FieldShell>
+    );
 
   return (
     <FieldShell name="departmentId" label={label}>

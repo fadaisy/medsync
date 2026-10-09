@@ -72,9 +72,9 @@ const Uuid = z.string().regex(/^[0-9a-f-]{36}$/i);
 
 export async function departmentsAction(
   hospitalId: unknown,
-): Promise<{ id: string; name: string }[]> {
+): Promise<{ id: string; name: string; code: string | null }[]> {
   const parsed = Uuid.safeParse(hospitalId);
   if (!parsed.success || !(await allow("departments", 60))) return [];
   const rows = await listDepartments({ hospitalId: parsed.data });
-  return rows.map((d) => ({ id: d.id, name: d.name }));
+  return rows.map((d) => ({ id: d.id, name: d.name, code: d.catalogueCode }));
 }
