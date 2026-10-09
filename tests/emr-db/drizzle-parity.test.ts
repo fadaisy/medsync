@@ -3,7 +3,7 @@
  * migrations column for column (name, SQL type, nullability) and carry only CHECKs that exist.
  * The migrations are the source of truth; this catches a Drizzle file that drifted from them
  * (the etco2 / urine_output / cosign-kind drift that 0071 fixed would each have failed here).
- * It also loads 0072, 0085 and 0086 for real: the seeds must land in 0071's registries in full, 0086's
+ * It also loads 0072, 0085, 0086, 0092 and 0095 for real: the seeds must land in 0071's registries in full, 0086's
  * signed codes on exactly its terms, and a re-run of any of them must be a no-op. The
  * cosign_action_kind_check pair covers 0084 (confirm_diagnosis).
  * Runs only with EMR_PGLITE=1 (see _pglite.ts).
@@ -176,8 +176,8 @@ describe.skipIf(!laneOn)("0072, 0085 and 0086 seeds on the 0071 registries", () 
     const before = await counts(lane);
     // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, seeded uncoded: D-SI-26), of which 0086
     // codes the 177 the CSO signed and leaves the 10 held terms "As typed, not coded"; plus 0092's 8
-    // (CFC v1.5, uncoded).
-    expect(before).toMatchObject({ test_catalogue: 35 + 9, diagnosis_terms: 85 + 187 + 8 });
+    // (CFC v1.5, uncoded); plus 0095's 12 (REF-DX-TERMS v1.2, coded).
+    expect(before).toMatchObject({ test_catalogue: 35 + 9, diagnosis_terms: 85 + 187 + 8 + 12 });
     const coding = async () =>
       (
         await lane.pg.query<{ id: string; icd11_code: string | null; verified_on: string | null }>(
@@ -207,6 +207,7 @@ describe.skipIf(!laneOn)("0072, 0085 and 0086 seeds on the 0071 registries", () 
     await lane.pg.exec(readMigration("0085_ref_dx_terms_v1_1.sql"));
     await lane.pg.exec(readMigration("0086_ref_dx_terms_v1_1_icd11.sql"));
     await lane.pg.exec(readMigration("0092_cfc_v1_5_ncd_diabetes.sql"));
+    await lane.pg.exec(readMigration("0095_ref_dx_terms_v1_2.sql"));
     expect(await counts(lane)).toEqual(before);
     expect(await coding()).toEqual(coded);
   }, 180_000);

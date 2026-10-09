@@ -675,6 +675,8 @@ export const conditions = pgTable(
     cielId: text("ciel_id"),
     hmisCategoryId: text("hmis_category_id"),
     idsrClass: text("idsr_class"),
+    /** 0096 (D-REL-05): the version and term this one was refined from, and what decided it. */
+    refinedFrom: jsonb("refined_from").$type<RefinedFrom>(),
   },
   (t) => [
     ...factEnvelopeExtras("conditions", t),
@@ -712,6 +714,115 @@ export const conditions = pgTable(
     ),
   ],
 );
+
+/** conditions.refined_from (0096): `decidedBy` holds chart ids ("clinical_observations:<uuid>"). */
+export interface RefinedFrom {
+  versionId: string;
+  termId: string | null;
+  decidedBy: string[];
+}
+
+/**
+ * How diagnoses relate (0096, dx-relations-design §5, GATE A 2026-10-09). Append-only and versioned;
+ * both ends are conditions.logical_id. The guard trigger keeps the integrity rules and sets
+ * sensitivity; a removed end retires its relations (origin system_end_removed).
+ */
+export const conditionRelations = pgTable(
+  "condition_relations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    logicalId: uuid("logical_id").notNull(),
+    version: integer("version").notNull().default(1),
+    supersedesId: uuid("supersedes_id").references((): AnyPgColumn => conditionRelations.id, {
+      onDelete: "restrict",
+    }),
+    hospitalId: uuid("hospital_id")
+      .notNull()
+      .references(() => hospitals.id, { onDelete: "restrict" }),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    encounterId: uuid("encounter_id")
+      .notNull()
+      .references(() => encounters.id, { onDelete: "restrict" }),
+    /** conditions.logical_id: the effect, the factor, this visit's episode. */
+    conditionId: uuid("condition_id").notNull(),
+    /** conditions.logical_id: the cause, the outcome, the problem-list item. */
+    relatedConditionId: uuid("related_condition_id").notNull(),
+    relationType: text("relation_type").notNull().$type<RelationType>(),
+    label: text("label").$type<RelationLabel>(),
+    position: smallint("position").notNull().default(1),
+    qualifiers: text("qualifiers")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    restrictedClasses: text("restricted_classes")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    sensitivity: text("sensitivity").notNull().default("standard"),
+    state: text("state").notNull().default("active").$type<RelationState>(),
+    reasonCode: text("reason_code"),
+    reasonCiphertext: text("reason_ciphertext"),
+    origin: text("origin").notNull().$type<RelationOrigin>(),
+    catalogueRef: text("catalogue_ref"),
+    recordedByUserId: uuid("recorded_by_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    authorCadre: text("author_cadre"),
+    recordedAt: timestamp("recorded_at", tz).notNull().defaultNow(),
+    cosignedByUserId: uuid("cosigned_by_user_id").references(() => authUsers.id, {
+      onDelete: "restrict",
+    }),
+    cosignedAt: timestamp("cosigned_at", tz),
+    clientKey: text("client_key"),
+  },
+  (t) => [
+    check("condition_relations_version_check", sql`${t.version} >= 1`),
+    check(
+      "condition_relations_relation_type_check",
+      sql`${t.relationType} IN ('due_to','associated_with','risk_factor_for','episode_of')`,
+    ),
+    check(
+      "condition_relations_label_check",
+      sql`${t.label} IS NULL OR ${t.label} IN ('complication','secondary','precipitated_by')`,
+    ),
+    check(
+      "condition_relations_qualifiers_check",
+      sql`${t.qualifiers} <@ ARRAY['cause.insulin_omission','cause.new_medicine','cause.treatment_interruption','cause.alcohol','cause.pregnancy','cause.immobility']::text[]`,
+    ),
+    check(
+      "condition_relations_classes_check",
+      sql`${t.restrictedClasses} <@ ARRAY['hiv','tb','mental_health','sexual_reproductive_health']::text[]`,
+    ),
+    check("condition_relations_sensitivity_check", sql`${t.sensitivity} IN ${SENSITIVITY}`),
+    check(
+      "condition_relations_state_check",
+      sql`${t.state} IN ('active','retired','entered_in_error')`,
+    ),
+    check(
+      "condition_relations_origin_check",
+      sql`${t.origin} IN ('clinician','system_end_removed','system_merge','backfill_confirmed')`,
+    ),
+    check(
+      "condition_relations_symmetric_once",
+      sql`${t.relationType} <> 'associated_with' OR ${t.conditionId} < ${t.relatedConditionId}`,
+    ),
+    uniqueIndex("condition_relations_logical_version").on(t.logicalId, t.version),
+    uniqueIndex("condition_relations_client_key")
+      .on(t.clientKey)
+      .where(sql`${t.clientKey} IS NOT NULL`),
+  ],
+);
+export type RelationType = "due_to" | "associated_with" | "risk_factor_for" | "episode_of";
+export type RelationLabel = "complication" | "secondary" | "precipitated_by";
+export type RelationState = "active" | "retired" | "entered_in_error";
+export type RelationOrigin =
+  | "clinician"
+  | "system_end_removed"
+  | "system_merge"
+  | "backfill_confirmed";
+export type ConditionRelation = typeof conditionRelations.$inferSelect;
 
 export const medicationStatements = pgTable(
   "medication_statements",

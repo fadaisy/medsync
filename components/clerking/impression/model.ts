@@ -7,10 +7,12 @@ import type { Column, Matrix } from "@/lib/clerking/impression/evidence";
 import type { Finding, FindingRef } from "@/lib/clerking/impression/facts";
 import type { Suggestion } from "@/lib/clerking/impression/suggest";
 
+import V12_TERMS from "@/data/emr/diagnosis-terms.v1.2.json";
 import { basisLine } from "@/lib/clerking/impression/basis";
 import { onBoard, signBlocks } from "@/lib/clerking/impression/board";
 import { counts, matrix, unexplained } from "@/lib/clerking/impression/evidence";
 import { recordedFindings } from "@/lib/clerking/impression/facts";
+import { causeRemovedBlocks } from "@/lib/clerking/impression/relations";
 import { suggestions } from "@/lib/clerking/impression/suggest";
 
 /**
@@ -42,6 +44,8 @@ export interface ImpressionView {
   /** Must-not-miss diagnoses marked unlikely without a reason (the leading meta line). */
   missingReasons: number;
   signBlocks: string[];
+  /** Of signBlocks: each "Cause removed: review" not yet acknowledged (DXV-13). */
+  causeBlocks: string[];
 }
 
 export interface ImpressionExtras {
@@ -154,6 +158,11 @@ export function deriveImpression(
     byText.set(k, [...(byText.get(k) ?? []), f.ref]);
   }
   const textOf = new Map(loose.map((f) => [f.ref, f.text.toLowerCase()]));
+  const causeBlocks = causeRemovedBlocks(
+    si.causeRemoved,
+    si.impression,
+    (id) => si.recorded.find((d) => d.logicalId === id)?.display ?? null,
+  );
   return {
     cols,
     col: (id) => byId.get(id),
@@ -184,7 +193,8 @@ export function deriveImpression(
     },
     asksFor: (id) => si.asks.filter((a) => a.forIds.includes(id)),
     missingReasons: si.board.differential.filter((r) => r.reasonMissing).length,
-    signBlocks: signBlocks(si.board),
+    signBlocks: [...signBlocks(si.board), ...causeBlocks],
+    causeBlocks,
   };
 }
 
@@ -207,6 +217,10 @@ const heading = (label: string) => label.replace(/\s*\([^)]*\)\s*$/, "");
  * the catalogue's category order (symptom-level first), A to Z within a group. A term with no
  * profile goes under "Other diagnoses", last. Without the catalogue, one A-to-Z group.
  */
+const TERM_CATEGORY: Readonly<Record<string, string>> = Object.fromEntries(
+  V12_TERMS.terms.map((t) => [t.id, t.category]),
+);
+
 export function dxBrowseGroups(terms: readonly DxTerm[], dx: DxData | null): DxBrowseGroup[] {
   const az = (a: DxTerm, b: DxTerm) => a.display.localeCompare(b.display, "en");
   if (!dx)
@@ -214,8 +228,10 @@ export function dxBrowseGroups(terms: readonly DxTerm[], dx: DxData | null): DxB
   const categories = dx.cat.data.categories;
   const by = new Map<string, DxTerm[]>();
   for (const t of terms) {
-    const profile = dx.cat.profile(dx.termIds[t.id] ?? "");
-    const key = profile && categories[profile.category] ? profile.category : "other";
+    const id = dx.termIds[t.id] ?? "";
+    // A term with no profile yet (REF-DX-TERMS v1.2) is grouped by its own signed category.
+    const category = dx.cat.profile(id)?.category ?? TERM_CATEGORY[id];
+    const key = category && categories[category] ? category : "other";
     const list = by.get(key);
     if (list) list.push(t);
     else by.set(key, [t]);

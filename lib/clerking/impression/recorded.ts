@@ -29,6 +29,7 @@ export interface VisitDiagnosis {
   onProblemList: boolean;
   cosignPending: boolean;
   addedHere?: boolean;
+  refinedFrom?: { display: string; termId: string | null; decided: string[] } | null;
 }
 
 const NAMES = new WeakMap<DxIndex, ReadonlyMap<string, string>>();
@@ -69,6 +70,17 @@ export function toRecorded(rows: readonly VisitDiagnosis[], dx: DxIndex | null):
       onProblemList: d.onProblemList,
       cosignPending: d.cosignPending,
       addedHere: !!d.addedHere,
+      refinedFrom: d.refinedFrom
+        ? {
+            display: d.refinedFrom.display,
+            decided: d.refinedFrom.decided,
+            dxId: !dx
+              ? null
+              : d.refinedFrom.termId
+                ? (dx.termIds[d.refinedFrom.termId] ?? null)
+                : (profileByName(dx).get(normaliseTyped(d.refinedFrom.display)) ?? null),
+          }
+        : null,
     };
   });
 }

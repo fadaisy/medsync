@@ -4,9 +4,13 @@ import type {
   CarriedMedicine,
   CarriedProblem,
   ContextVital,
+  DeskBackground,
+  DeskCauseRemoved,
   DeskDiagnosis,
   DeskNoteRow,
   DeskPayload,
+  DeskRelation,
+  DeskRuledOut,
   Suggestion,
 } from "@/components/emr/desk/model";
 import type { EmrActor } from "@/lib/emr/actor";
@@ -14,7 +18,7 @@ import type { NoteItem as ChartNoteItem } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { NoteContent } from "@/lib/emr/notes";
 import type { AcuityLevel, FiredDiscriminator, TriageVitals } from "@/lib/triage/types";
-import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
 import {
   CLERKING_FORMS,
@@ -26,6 +30,7 @@ import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import {
   clinicalNoteEvents,
   clinicalNotes,
+  conditionRelations,
   conditions,
   diagnosisTerms,
   medicationStatements,
@@ -315,9 +320,48 @@ export async function loadDeskFor(
           textCiphertext: conditions.textCiphertext,
           icd11Code: conditions.icd11Code,
           sensitivity: conditions.sensitivity,
+          effectiveAt: conditions.effectiveAt,
+          reasonCode: conditions.reasonCode,
+          reasonCiphertext: conditions.reasonCiphertext,
+          refinedFrom: conditions.refinedFrom,
+          abatementAt: conditions.abatementAt,
         })
         .from(conditions)
         .where(eq(conditions.patientUserId, enc.patientUserId));
+      // Current, active relations (0096); RLS drops those with a class the viewer lacks (D-REL-09).
+      // ponytail: "current" is judged over the rows the viewer sees; classes only rise, so a hidden
+      // newer version can only exist for a viewer who could not see it either.
+      const relationRows = await tx
+        .select({
+          id: conditionRelations.id,
+          logicalId: conditionRelations.logicalId,
+          conditionId: conditionRelations.conditionId,
+          relatedConditionId: conditionRelations.relatedConditionId,
+          relationType: conditionRelations.relationType,
+          label: conditionRelations.label,
+          position: conditionRelations.position,
+          qualifiers: conditionRelations.qualifiers,
+          sensitivity: conditionRelations.sensitivity,
+          origin: conditionRelations.origin,
+          encounterId: conditionRelations.encounterId,
+          state: conditionRelations.state,
+          reasonCode: conditionRelations.reasonCode,
+        })
+        .from(conditionRelations)
+        .where(
+          and(
+            eq(conditionRelations.patientUserId, enc.patientUserId),
+            // Active ones, and cause links the system retired when the cause went ("Cause removed").
+            or(
+              eq(conditionRelations.state, "active"),
+              and(
+                eq(conditionRelations.origin, "system_end_removed"),
+                eq(conditionRelations.relationType, "due_to"),
+              ),
+            ),
+            sql`NOT EXISTS (SELECT 1 FROM public.condition_relations s WHERE s.supersedes_id = ${conditionRelations.id})`,
+          ),
+        );
       const medicineRows = await tx
         .select({
           id: medicationStatements.id,
@@ -406,6 +450,7 @@ export async function loadDeskFor(
         notes,
         events,
         conditionRows,
+        relationRows,
         medicineRows,
         terms,
         cosign,
@@ -674,6 +719,17 @@ export async function loadDeskFor(
     }));
 
   // This visit's diagnoses (current versions, with their logical ids: D-SI-19) and orders.
+  // Refined (D-REL-05): the term it was first refined from (versions carry refined_from forward)
+  // and the deciding tests, named by their orders on the chart.
+  const rowById = new Map(rec.conditionRows.map((c) => [c.id, c]));
+  const orderName = new Map(chart.orders.map((o) => [`encounter_orders:${o.id}`, o.display]));
+  const refined = new Map<string, { from: string; decided: Set<string> }>();
+  for (const c of [...rec.conditionRows].sort((a, b) => a.version - b.version)) {
+    if (!c.refinedFrom) continue;
+    const r = refined.get(c.logicalId) ?? { from: c.refinedFrom.versionId, decided: new Set() };
+    for (const id of c.refinedFrom.decidedBy) r.decided.add(id);
+    refined.set(c.logicalId, r);
+  }
   const diagnoses: DeskDiagnosis[] = encounterDiagnoses({
     rows: rec.conditionRows,
     encounterId: enc.id,
@@ -682,7 +738,129 @@ export async function loadDeskFor(
     displayOf: conditionName,
     cosignPending: pendingCosignIds(rec.cosign.map((r) => r.payload)),
     viewerId: actor.userId,
+  }).map((d) => {
+    const r = refined.get(d.logicalId);
+    const src = r && rowById.get(r.from);
+    return src
+      ? {
+          ...d,
+          refinedFrom: {
+            display: conditionName(src),
+            termId: src.termId,
+            decided: [...new Set([...r.decided].flatMap((id) => orderName.get(id) ?? []))],
+          },
+        }
+      : d;
   });
+  // The Background row (the problem list, R5) and the relations among it and this visit (0096).
+  const termOf = new Map(rec.terms.map((t) => [t.id, t]));
+  const firstSeen = new Map<string, Date>();
+  for (const c of rec.conditionRows)
+    if (!firstSeen.has(c.logicalId) || c.effectiveAt < firstSeen.get(c.logicalId)!)
+      firstSeen.set(c.logicalId, c.effectiveAt);
+  const background: DeskBackground[] = carryProblems(rec.conditionRows).map(({ item: c }) => ({
+    id: c.id,
+    logicalId: c.logicalId,
+    termId: c.termId,
+    display: conditionName(c),
+    code: c.termId && termOf.get(c.termId)?.verifiedOn && c.icd11Code ? c.icd11Code : null,
+    restricted: c.sensitivity === "restricted",
+    since: (firstSeen.get(c.logicalId) ?? c.effectiveAt).toISOString(),
+  }));
+  const lastOf = new Map<string, (typeof rec.conditionRows)[number]>();
+  for (const c of rec.conditionRows)
+    if ((lastOf.get(c.logicalId)?.version ?? 0) < c.version) lastOf.set(c.logicalId, c);
+  // Gate B look-back (design §5.4): an earlier visit's diagnosis that is still active, or was
+  // resolved within 90 days, is a "Relate to…" target; the note says when it was treated. Once per
+  // term, the newest; a term on the problem list is related there instead.
+  // ponytail: every unresolved earlier diagnosis qualifies; cap the list if old visits crowd it.
+  const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", timeZone: tz });
+  const listed = new Set(background.map((b) => b.termId ?? b.display));
+  for (const c of [...lastOf.values()].sort((a, b) => +b.effectiveAt - +a.effectiveAt)) {
+    const resolvedAt = c.clinicalStatus === "resolved" ? (c.abatementAt ?? c.effectiveAt) : null;
+    const key = c.termId ?? conditionName(c);
+    if (
+      c.category !== "encounter_diagnosis" ||
+      c.encounterId === enc.id ||
+      c.subjectRelation !== "self" ||
+      c.status === "entered_in_error" ||
+      c.status === "cancelled" ||
+      c.verification === "refuted" ||
+      c.verification === "differential" ||
+      listed.has(key) ||
+      !(
+        ["active", "recurrence", "relapse"].includes(c.clinicalStatus) ||
+        (resolvedAt && +now - +resolvedAt <= 90 * 86_400_000)
+      )
+    )
+      continue;
+    listed.add(key);
+    const since = firstSeen.get(c.logicalId) ?? c.effectiveAt;
+    background.push({
+      id: c.id,
+      logicalId: c.logicalId,
+      termId: c.termId,
+      display: conditionName(c),
+      code: c.termId && termOf.get(c.termId)?.verifiedOn && c.icd11Code ? c.icd11Code : null,
+      restricted: c.sensitivity === "restricted",
+      since: since.toISOString(),
+      earlier: {
+        words: resolvedAt ? `treated ${day.format(resolvedAt)}` : `diagnosed ${day.format(since)}`,
+      },
+    });
+  }
+  const onVisit = new Set(diagnoses.map((d) => d.logicalId));
+  const onBoard = new Set([...onVisit, ...background.map((b) => b.logicalId)]);
+  const relations: DeskRelation[] = rec.relationRows
+    .filter(
+      (r) =>
+        r.state === "active" && onBoard.has(r.conditionId) && onBoard.has(r.relatedConditionId),
+    )
+    .map(({ sensitivity, state: _s, reasonCode: _r, ...r }) => ({
+      ...r,
+      restricted: sensitivity === "restricted",
+    }))
+    .sort((a, b) => a.position - b.position);
+  // "Ruled out" in the note (design §2.3, 4): this visit's diagnoses refuted (Replace), or removed
+  // as ruled out (D-SI-13), with the reason.
+  const ruledOut: DeskRuledOut[] = [...lastOf.values()]
+    .filter(
+      (c) =>
+        c.category === "encounter_diagnosis" &&
+        c.encounterId === enc.id &&
+        ((c.verification === "refuted" &&
+          c.status !== "entered_in_error" &&
+          c.status !== "cancelled") ||
+          (c.status === "entered_in_error" && c.reasonCode === "ruled_out")),
+    )
+    .map((c) => ({
+      logicalId: c.logicalId,
+      display: conditionName(c),
+      reason: safeDecrypt(c.reasonCiphertext),
+      restricted: c.sensitivity === "restricted",
+    }));
+  // "Cause removed: review" (DXV-13): a cause link the system retired when its cause was ruled out
+  // or entered in error, on an effect still on this visit; the draft acknowledges it.
+  const causeRemoved: DeskCauseRemoved[] = rec.relationRows
+    .filter(
+      (r) =>
+        r.state === "retired" && r.origin === "system_end_removed" && onVisit.has(r.conditionId),
+    )
+    .flatMap((r) => {
+      const cause = lastOf.get(r.relatedConditionId);
+      return cause
+        ? [
+            {
+              logicalId: r.logicalId,
+              conditionId: r.conditionId,
+              causeDisplay: conditionName(cause),
+              label: r.label,
+              reason: r.reasonCode === "end_refuted" ? ("refuted" as const) : ("in_error" as const),
+            },
+          ]
+        : [];
+    });
+
   const orders = chart.orders
     .filter((o) => o.encounterId === enc.id)
     .map((o) => ({
@@ -851,6 +1029,10 @@ export async function loadDeskFor(
       suggestions,
       carried: { problems, medicines },
       diagnoses,
+      relations,
+      background,
+      causeRemoved,
+      ruledOut,
       orders,
       substances: SUBSTANCES,
       completionWarnings: warnings,

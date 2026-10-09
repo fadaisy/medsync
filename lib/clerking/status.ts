@@ -138,7 +138,9 @@ export function sectionStatuses(i: StatusInput): Record<SectionId, SectionStatus
     // SI5: a must-not-miss marked unlikely holds signing until it has its reason.
     impression: i.missing.includes("si.mnm_reason")
       ? { text: "Reason needed", tone: "required" }
-      : rule("req.impression", "Done"),
+      : i.missing.includes("si.cause_removed")
+        ? { text: "Review needed", tone: "required" }
+        : rule("req.impression", "Done"),
     plan: rule("req.plan", "Done"),
   };
 }

@@ -233,6 +233,7 @@ export function conditionRow(over: Partial<ConditionRow> = {}): ConditionRow {
     onset: null,
     abatementAt: null,
     stage: null,
+    refinedFrom: null,
     icd11Code: null,
     icd10WhoCode: null,
     cielId: null,

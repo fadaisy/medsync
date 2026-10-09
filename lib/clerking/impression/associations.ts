@@ -1,23 +1,26 @@
 import type { ExamContext } from "../exam/context";
-import type { Board, ImpressionDraft } from "./board";
-import type { DxCatalogue, DxLive } from "./catalogue";
+import type { Board } from "./board";
+import type { DxCatalogue, DxLive, RestrictedClass } from "./catalogue";
 import type { Viewer } from "./facts";
+import type { Edge } from "./relations";
+import type { DueLabel } from "./relations-catalogue";
 
 import ASSOCIATIONS from "@/data/clerking/dx-associations.v1.json";
 import { onBoard } from "./board";
 import { suggestedFor } from "./evidence";
 import { canSee } from "./facts";
+import { linkedCandidates } from "./relations-catalogue";
 
 /**
- * A diagnosis's associations on step 09 (owner, 2026-10-08): its complications and the conditions
- * that commonly go with it, from the CSO-signed typing of the catalogue's `related` lists
- * (data/clerking/dx-associations.v1.json; alternatives are never offered). For each, what the
- * record already supports (the profile's own `suggest_for`, judged as the evidence matrix judges
- * it) or what would check for it (`tests_to_decide`). Decision support: nothing is added until the
- * clinician adds it, and the link to the parent lives in this visit's Impression (meta.with). Pure.
+ * "Add a linked diagnosis" under a diagnosis (owner, 2026-10-08; dx-relations-design §2.4): its
+ * signed complications, the diagnoses it can cause (the cause catalogue, with its suggest_when), and
+ * what goes with it (`linkedCandidates`). For each, what the record already supports (the
+ * profile's own `suggest_for`, judged as the evidence matrix judges it) or what would check for it
+ * (`tests_to_decide`). Decision support: nothing is added or linked until the clinician adds it;
+ * the link is a relation in the record (condition_relations, D-REL-02). Pure.
  */
 
-export type AssociationType = "complication" | "goes_with";
+export type AssociationType = "complication" | "cause" | "goes_with";
 
 export interface AssociationData {
   status: string;
@@ -28,10 +31,17 @@ export interface Association {
   dxId: string;
   display: string;
   type: AssociationType;
+  /** The relation it would be: the candidate due_to the parent (with its label), or associated. */
+  relationType: "due_to" | "associated_with";
+  label: DueLabel | null;
+  /** The catalogue entry, stored on the relation. */
+  ref: string;
+  /** When the cause catalogue says it is worth offering, in words. */
+  suggestWhen: string | null;
   mustNotMiss: boolean;
-  /** Already a diagnosis at this visit. */
-  onVisit: boolean;
-  /** Linked to this parent in the Impression (meta.with). */
+  /** Already a diagnosis at this visit (its logical id). */
+  onVisit: string | null;
+  /** Already linked to this parent in the record. */
   linked: boolean;
   /** Recorded findings that support it (finding refs, for the step to name). */
   supportedBy: string[];
@@ -51,42 +61,55 @@ export function associationsOf(
     live: DxLive;
     viewer: Viewer;
     board: Board;
-    draft: ImpressionDraft;
+    /** The record's relations (0096). */
+    relations: readonly Pick<Edge, "conditionId" | "relatedConditionId" | "relationType">[];
   },
-  data: AssociationData = ASSOCIATIONS as AssociationData,
 ): Association[] {
-  if (!parent.dxId || !associationsLive(data)) return [];
-  const entry = data.associations[parent.dxId];
-  if (!entry) return [];
-  const here = new Set(
-    onBoard(i.board)
-      .map((r) => r.dx.dxId)
-      .filter(Boolean) as string[],
+  if (!parent.dxId) return [];
+  const here = new Map(
+    onBoard(i.board).flatMap((r) => (r.dx.dxId ? [[r.dx.dxId, r.dx.logicalId] as const] : [])),
   );
-  const linked = new Set(i.draft.meta[parent.logicalId]?.with ?? []);
+  const linkedTo = new Set(
+    i.relations.flatMap((e) =>
+      e.conditionId === parent.logicalId
+        ? [e.relatedConditionId]
+        : e.relatedConditionId === parent.logicalId
+          ? [e.conditionId]
+          : [],
+    ),
+  );
   const sex = i.x.patient.sex;
   const sexRule = i.dx.cat.data.engine_rules.sex_specific;
   const out: Association[] = [];
-  const add = (dxId: string, type: AssociationType) => {
-    const p = i.dx.cat.profile(dxId);
-    if (!p || !i.live.profile(dxId) || !canSee(i.viewer, p.restricted_class)) return;
-    if (sex === "male" && sexRule.female_only.includes(dxId)) return;
-    if (sex === "female" && sexRule.male_only.includes(dxId)) return;
-    if (p.category === "obstetric" && i.x.patient.pregnant === false) return;
+  for (const c of linkedCandidates(parent.dxId)) {
+    const p = i.dx.cat.profile(c.dxId);
+    if (!p || !i.live.profile(c.dxId) || !canSee(i.viewer, p.restricted_class)) continue;
+    if (!canSee(i.viewer, (c.restrictedClass as RestrictedClass | null) ?? null)) continue;
+    if (sex === "male" && sexRule.female_only.includes(c.dxId)) continue;
+    if (sex === "female" && sexRule.male_only.includes(c.dxId)) continue;
+    if (p.category === "obstetric" && i.x.patient.pregnant === false) continue;
     const marks = suggestedFor(p, i);
+    const onVisit = here.get(c.dxId) ?? null;
     out.push({
-      dxId,
-      display: i.dx.names[dxId]?.display ?? dxId,
-      type,
+      dxId: c.dxId,
+      display: i.dx.names[c.dxId]?.display ?? c.dxId,
+      type:
+        c.type === "associated_with"
+          ? "goes_with"
+          : c.label === "complication"
+            ? "complication"
+            : "cause",
+      relationType: c.type,
+      label: c.label,
+      ref: c.ref,
+      suggestWhen: c.suggestWhen,
       mustNotMiss: p.must_not_miss,
-      onVisit: here.has(dxId),
-      linked: linked.has(dxId),
+      onVisit,
+      linked: !!onVisit && linkedTo.has(onVisit),
       supportedBy: [...marks].filter(([, s]) => s === "for").map(([ref]) => ref),
       checkFor: p.tests_to_decide.slice(0, 3),
     });
-  };
-  for (const id of entry.complications ?? []) add(id, "complication");
-  for (const id of entry.goes_with ?? []) add(id, "goes_with");
+  }
   // Supported first, then must-not-miss, then the catalogue's order.
   return out
     .map((a, n) => ({ a, n }))
@@ -97,47 +120,4 @@ export function associationsOf(
         p.n - q.n,
     )
     .map(({ a }) => a);
-}
-
-/** Link a child diagnosis (by dx id) to its parent in the Impression draft. */
-export function withLink(
-  d: ImpressionDraft,
-  parentLogicalId: string,
-  dxId: string,
-): ImpressionDraft {
-  const m = d.meta[parentLogicalId] ?? {};
-  if (m.with?.includes(dxId)) return d;
-  return {
-    ...d,
-    meta: { ...d.meta, [parentLogicalId]: { ...m, with: [...(m.with ?? []), dxId] } },
-  };
-}
-
-/** Move a linked association one place up (-1) or down (+1): its place in the note. */
-export function withMoved(
-  d: ImpressionDraft,
-  parentLogicalId: string,
-  dxId: string,
-  by: -1 | 1,
-): ImpressionDraft {
-  const m = d.meta[parentLogicalId] ?? {};
-  const list = [...(m.with ?? [])];
-  const i = list.indexOf(dxId);
-  const j = i + by;
-  if (i < 0 || j < 0 || j >= list.length) return d;
-  [list[i], list[j]] = [list[j]!, list[i]!];
-  return { ...d, meta: { ...d.meta, [parentLogicalId]: { ...m, with: list } } };
-}
-
-/** Flag or unflag a linked association. */
-export function withFlag(
-  d: ImpressionDraft,
-  parentLogicalId: string,
-  dxId: string,
-): ImpressionDraft {
-  const m = d.meta[parentLogicalId] ?? {};
-  const set = new Set(m.flagged ?? []);
-  if (set.has(dxId)) set.delete(dxId);
-  else set.add(dxId);
-  return { ...d, meta: { ...d.meta, [parentLogicalId]: { ...m, flagged: [...set] } } };
 }

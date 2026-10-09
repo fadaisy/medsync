@@ -1,0 +1,48 @@
+{
+  "report": {
+    "parents_refined": 21,
+    "subtype_entries": 56,
+    "stage_scales": 6,
+    "effects_with_causes": 45,
+    "cause_pairs": 302,
+    "reciprocal_pairs": 2,
+    "risk_outcomes": 21,
+    "risk_pairs": 98,
+    "cause_labels_set_to_complication_by_signed_list": 124,
+    "dual_role_pairs": 12,
+    "tests_used_not_on_default_menu": [
+      "test.b12_folate",
+      "test.blood_film",
+      "test.blood_gas",
+      "test.bnp",
+      "test.c_peptide",
+      "test.capillary_glucose",
+      "test.csf_analysis",
+      "test.ct_head",
+      "test.echo",
+      "test.ferritin_iron",
+      "test.gad_antibodies",
+      "test.ketones",
+      "test.mri_spine",
+      "test.ogtt_75g",
+      "test.pocus_lung_cardiac",
+      "test.reticulocytes",
+      "test.sputum_mcs",
+      "test.tissue_biopsy",
+      "test.xray_spine"
+    ],
+    "proposed_terms": 13,
+    "vignettes": 19,
+    "decisions": 17,
+    "citations_by_status": {
+      "read today": 73,
+      "cited from a standard reference, not opened today": 372,
+      "already signed in the diabetes pack": 14,
+      "read in the hypertension research, 6 October 2026": 24
+    },
+    "errors": 0,
+    "warnings": 0
+  },
+  "errors": [],
+  "warnings": []
+}

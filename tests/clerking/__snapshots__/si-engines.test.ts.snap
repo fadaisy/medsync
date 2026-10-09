@@ -2,8 +2,9 @@
 
 exports[`the impression composer > fixture 1: leading, numbered differential with reasons, also, not yet explained 1`] = `
 "Hypothermia, cause not yet known (primary; working; acute). For: temperature 32.5 °C and cool or mottled, cool peripheries.
-Differential: 1. Sepsis (must not miss), likely [1 for, 0 against]. 2. Myxoedema coma (must not miss), possible. 3. Hypoglycaemia in a person with diabetes (must not miss), unlikely (glucose 5.8 mmol/L on arrival, no insulin taken) [0 for, 1 against].
-Also this visit: Diabetes, type not yet determined, working, on problem list.
+Also this visit, co-existing: Diabetes, type not yet determined (working; on problem list).
+Differential: 1. Sepsis (must not miss), likely [1 for, 0 against]. 2. Myxoedema coma (must not miss), possible.
+Considered and unlikely: hypoglycaemia in a person with diabetes (glucose 5.8 mmol/L on arrival, no insulin taken).
 Not yet explained: cold intolerance (3 days), tiredness (3 days), loss of appetite (2 days), capillary refill delayed, time 3 seconds, BP 110/73 and SpO₂ 95 %."
 `;
 

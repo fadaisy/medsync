@@ -4,15 +4,20 @@ import type { WriteCtx } from "./context";
 import type { WriteResult } from "./orders";
 import type { EmrTx } from "@/lib/emr/db";
 import type { EncounterDiagnosisView } from "@/lib/emr/diagnoses";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { conditions, diagnosisTerms } from "@/db/schema/emr";
+import { DX_INDEX } from "@/lib/clerking/impression/load";
+import { toRecorded } from "@/lib/clerking/impression/recorded";
+import { stageScaleOf } from "@/lib/clerking/impression/relations-catalogue";
 import { encounterDiagnoses, newestVersions, pendingCosignIds } from "@/lib/emr/diagnoses";
 import { decrypt } from "@/lib/encryption";
 import { EmrWriteError, stampActivity } from "./context";
 import {
+  ALREADY_ON_VISIT,
   authority,
+  conditionColumns,
   currentPrimary,
   currentVersion,
   DEMOTE_FINAL,
@@ -20,10 +25,13 @@ import {
   insertNextVersion,
   lockVisit,
   openDiagnosisCosign,
+  recordEncounterDiagnosis,
+  sameDiagnosis,
   SENIOR_CADRES,
   updateProblemStatus,
 } from "./facts";
 import { openEncounter, ORDERING_CADRES, replayed, requireCadre } from "./orders";
+import { retireLinksForDemotion } from "./relations";
 
 /**
  * The Impression step's diagnosis writes (PROMPT-CLERKING-SUMMARY-IMPRESSION §9, gate-a-proposal
@@ -54,14 +62,20 @@ export interface SetLeadingDiagnosisInput {
   encounterId: string;
   /** The current version (as the clinician saw it) of the diagnosis to lead. */
   id: string;
+  /** The old leading diagnosis goes to the differential and the clinician confirmed that its
+   *  links are retired (Gate B). Without it, a linked one going there is refused. */
+  retireLinks?: boolean;
   clientKey: string;
 }
 
 /**
  * Make a diagnosis on this visit the leading one, in one transaction: the visit's current primary
- * first becomes secondary + differential, then the chosen one becomes primary + provisional (a
- * Final keeps its verification: promotion never takes a Final away). Already leading: nothing to
- * write.
+ * first takes the chosen one's place, then the chosen one becomes primary + provisional (a Final
+ * keeps its verification: promotion never takes a Final away). Already leading: nothing to write.
+ * - The chosen one is a differential: the old primary becomes secondary + differential (D-SI-05),
+ *   and its links are retired, once the clinician confirmed them (Gate B, D-REL-08).
+ * - The chosen one is co-existing (a swap, dx-relations Gate B): the old primary becomes
+ *   co-existing and keeps its verification, so both stay working and no link is lost.
  */
 export async function setLeadingDiagnosis(
   ctx: WriteCtx,
@@ -88,13 +102,25 @@ export async function setLeadingDiagnosis(
   const old = await currentPrimary(ctx, visit, chosen.logicalId);
   if (old) {
     const prev = await currentVersion(ctx, "condition", old.id, input.patientUserId);
-    if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
-      throw new EmrWriteError("forbidden", DEMOTE_FINAL);
+    const swap = chosen.verification !== "differential";
+    if (!swap) {
+      if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
+        throw new EmrWriteError("forbidden", DEMOTE_FINAL);
+      await retireLinksForDemotion(
+        ctx,
+        input.patientUserId,
+        prev.logicalId,
+        !!input.retireLinks,
+        input.clientKey,
+      );
+    }
     demotedId = await insertNextVersion(
       ctx,
       "condition",
       prev,
-      { rank: "secondary", verification: "differential", ...NO_REASON },
+      swap
+        ? { rank: "secondary", ...NO_REASON }
+        : { rank: "secondary", verification: "differential", ...NO_REASON },
       input.clientKey,
     );
   }
@@ -117,10 +143,13 @@ export interface MoveToDifferentialInput {
   patientUserId: string;
   /** The current version the clinician saw. */
   id: string;
+  /** The clinician confirmed that its links are retired (Gate B); without it, refused if linked. */
+  retireLinks?: boolean;
   clientKey: string;
 }
 
-/** The diagnosis becomes secondary + differential; the visit is left with no leading diagnosis. */
+/** The diagnosis becomes secondary + differential (a leading one leaves the visit with none); its
+ *  links are retired with it, once confirmed (D-REL-08). */
 export async function moveToDifferential(
   ctx: WriteCtx,
   input: MoveToDifferentialInput,
@@ -134,6 +163,13 @@ export async function moveToDifferential(
     throw invalid("This diagnosis is already in the differential.");
   if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
     throw new EmrWriteError("forbidden", DEMOTE_FINAL);
+  await retireLinksForDemotion(
+    ctx,
+    input.patientUserId,
+    prev.logicalId,
+    !!input.retireLinks,
+    input.clientKey,
+  );
   const id = await insertNextVersion(
     ctx,
     "condition",
@@ -305,6 +341,204 @@ export async function decideDiagnosisCosign(
   if (!answered) throw new EmrWriteError("conflict", "The co-sign request is no longer open.");
   await stampActivity(ctx, typeof payload.encounterId === "string" ? payload.encounterId : null);
   return { id };
+}
+
+/* ─── Refine and replace (D-REL-05, dx-relations-design §3) ──────── */
+
+export interface RefineDiagnosisInput {
+  patientUserId: string;
+  /** The current version the clinician saw. */
+  id: string;
+  /** The narrower term (or typed words). */
+  termId?: string;
+  text?: string;
+  /** The deciding results, as chart ids ("clinical_observations:<uuid>", "diagnostic_reports:<uuid>"). */
+  decidedBy?: string[];
+  clientKey: string;
+}
+
+/**
+ * Refine: the next version of the SAME condition (same logical id) with the narrower term; its
+ * `refined_from` names the version and term it came from and the results that decided it. Status,
+ * rank, verification, evidence and relations stay (relations point at the logical id). A Final is
+ * refined by someone allowed to write one (D-SI-21). A change of identity is replaceDiagnosis.
+ */
+export async function refineDiagnosis(
+  ctx: WriteCtx,
+  input: RefineDiagnosisInput,
+): Promise<WriteResult> {
+  requireCadre(ctx, ORDERING_CADRES, "change a diagnosis");
+  const replay = await replayed(ctx.tx, conditions, input.clientKey, input.patientUserId);
+  if (replay) return { id: replay };
+  const prev = await currentVersion(ctx, "condition", input.id, input.patientUserId);
+  if (prev.verification === "refuted") throw invalid("A ruled-out diagnosis is not refined.");
+  if (prev.verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis)
+    throw new EmrWriteError("forbidden", "A senior refines a final diagnosis.");
+  if (input.termId && input.termId === prev.termId)
+    throw invalid("The diagnosis already has this term.");
+  if (prev.encounterId) await openEncounter(ctx, input.patientUserId, prev.encounterId);
+  // S-3: the narrower term must not already be its own diagnosis in the same place.
+  const where =
+    prev.category === "encounter_diagnosis"
+      ? and(
+          inArray(conditions.encounterId, await lockVisit(ctx, prev.encounterId!)),
+          eq(conditions.category, "encounter_diagnosis"),
+        )
+      : and(eq(conditions.category, "problem_list_item"), eq(conditions.subjectRelation, "self"));
+  if (
+    await sameDiagnosis(
+      ctx,
+      and(
+        where,
+        eq(conditions.patientUserId, input.patientUserId),
+        eq(conditions.hospitalId, ctx.actor.hospitalId),
+        ne(conditions.logicalId, prev.logicalId),
+      ),
+      input,
+    )
+  )
+    throw new EmrWriteError("conflict", ALREADY_ON_VISIT);
+  const cols = await conditionColumns(
+    ctx,
+    {
+      patientUserId: input.patientUserId,
+      clientKey: input.clientKey,
+      termId: input.termId,
+      text: input.text,
+    },
+    prev.effectiveAt,
+  );
+  const id = await insertNextVersion(
+    ctx,
+    "condition",
+    prev,
+    {
+      ...cols,
+      refinedFrom: { versionId: prev.id, termId: prev.termId, decidedBy: input.decidedBy ?? [] },
+      ...NO_REASON,
+    },
+    input.clientKey,
+  );
+  await stampActivity(ctx, prev.encounterId);
+  return { id };
+}
+
+export interface ReplaceDiagnosisInput {
+  patientUserId: string;
+  encounterId: string;
+  /** The current version the clinician saw: it is ruled out. */
+  id: string;
+  /** Why it is ruled out ("Ruled out: …" in the note). */
+  reasonCode?: string;
+  reasonText?: string;
+  /** The new diagnosis. */
+  termId?: string;
+  text?: string;
+  clientKey: string;
+}
+
+/**
+ * Replace (a change of identity, D-REL-05): the old diagnosis is refuted with its reason and the new
+ * one recorded in its place (same rank and slot), in this one transaction. Keys: `key` refutes,
+ * `key:new` records. The old one's relations are retired by 0096 (system_end_removed), never moved.
+ */
+export async function replaceDiagnosis(
+  ctx: WriteCtx,
+  input: ReplaceDiagnosisInput,
+): Promise<WriteResult & { refutedId: string }> {
+  const newKey = `${input.clientKey}:new`;
+  const replay = await replayed(ctx.tx, conditions, newKey, input.patientUserId);
+  if (replay)
+    return {
+      id: replay,
+      refutedId: (await replayed(ctx.tx, conditions, input.clientKey, input.patientUserId))!,
+    };
+  const prev = await currentVersion(ctx, "condition", input.id, input.patientUserId);
+  requireEncounterDiagnosis(prev, "is replaced");
+  if (prev.encounterId !== input.encounterId) throw invalid("That diagnosis is not on this visit.");
+  const refuted = await updateProblemStatus(ctx, {
+    patientUserId: input.patientUserId,
+    id: prev.id,
+    clientKey: input.clientKey,
+    verification: "refuted",
+    reasonCode: input.reasonCode,
+    reasonText: input.reasonText,
+  });
+  const made = await recordEncounterDiagnosis(ctx, {
+    patientUserId: input.patientUserId,
+    encounterId: input.encounterId,
+    clientKey: newKey,
+    termId: input.termId,
+    text: input.text,
+    rank: prev.rank === "primary" ? "primary" : "secondary",
+    verification:
+      prev.verification === "confirmed" || prev.verification === "differential"
+        ? prev.verification
+        : "provisional",
+  });
+  return { ...made, refutedId: refuted.id };
+}
+
+/* ─── Severity stages at signing (D-REL-14) ──────────────────────── */
+
+/** A computed stage as the client sends it at signing (never an insufficient one). */
+export interface StageInput {
+  logicalId: string;
+  scale: string;
+  code: string;
+  words: string;
+  source: string;
+}
+
+/** The scales lib/clerking/impression/stages.ts computes, by the scale id each belongs to. */
+const STAGE_SCALES: Readonly<Record<string, string>> = {
+  "Anaemia severity (WHO 2024)": "dx.anaemia",
+  "CKD category (KDIGO 2024)": "dx.ckd",
+  "AKI stage (KDIGO 2012)": "dx.aki",
+  "CURB-65": "dx.pneumonia",
+  "CRB-65": "dx.pneumonia",
+};
+
+/**
+ * Severity is a stage on the same condition, never a new diagnosis (D-REL-14): at signing, each
+ * diagnosis on this visit whose computed stage differs from its stored one gets its next version
+ * with `stage = {scale, code, words, source, computedAt}`. An unchanged stage writes nothing, so
+ * the record is not versioned on every keystroke. The scale must be the diagnosis's own.
+ */
+export async function writeStages(
+  ctx: WriteCtx,
+  i: {
+    hospitalId: string;
+    patientUserId: string;
+    encounterId: string;
+    stages: readonly StageInput[];
+    /** The signing note's id: each version's client key derives from it. */
+    keyPrefix: string;
+  },
+): Promise<number> {
+  if (!i.stages.length) return 0;
+  const dx = toRecorded(await loadEncounterDiagnoses(ctx.tx, i), DX_INDEX);
+  let n = 0;
+  for (const { logicalId, ...stage } of i.stages) {
+    const d = dx.find((x) => x.logicalId === logicalId);
+    if (!d) throw invalid("A staged diagnosis is not on this visit.");
+    const scaleId =
+      d.dxId === "dx.pneumonia_community" ? "dx.pneumonia" : stageScaleOf(d.dxId ?? "")?.id;
+    if (!scaleId || STAGE_SCALES[stage.scale] !== scaleId)
+      throw invalid(`${d.display} is not staged by ${stage.scale}.`);
+    const prev = await currentVersion(ctx, "condition", d.versionId, i.patientUserId);
+    const old = prev.stage as { scale?: string; code?: string } | null;
+    if (old?.scale === stage.scale && old.code === stage.code) continue;
+    await insertNextVersion(
+      ctx,
+      "condition",
+      prev,
+      { stage: { ...stage, computedAt: ctx.now.toISOString() } },
+      `${i.keyPrefix}:stage:${logicalId}`,
+    );
+    n++;
+  }
+  return n;
 }
 
 /* ─── Reads the writes share ─────────────────────────────────────── */

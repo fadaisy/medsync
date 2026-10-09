@@ -1,0 +1,1512 @@
+{
+  "id": "MS-EMR-DX-SUBTYPES-001",
+  "version": "1.0.0-draft",
+  "status": "signed — CSO, 2026-10-09",
+  "rules": [
+    "Refinement is a new version of the same condition (same logical id); history keeps the broad term (D-REL-05).",
+    "The desk OFFERS a refinement when a decided_by result meets the criteria; it never refines by itself. A blank or 'not done' result never refines.",
+    "Severity and stage are not subtypes: see 'stages' (D-REL-14).",
+    "A change of identity (ACS to pericarditis) is Replace: refute with a reason plus a new diagnosis.",
+    "Numbers owned by the diabetes or hypertension pack are referenced, not restated (one number, one place)."
+  ],
+  "parents": {
+    "dx.acs": {
+      "why": "ACS is a working diagnosis. The ECG splits it at once into STEMI or NSTE-ACS; serial troponin then splits NSTE-ACS into NSTEMI or unstable angina.",
+      "subtypes": [
+        {
+          "id": "dx.stemi",
+          "display": "ST-elevation myocardial infarction (STEMI)",
+          "proposed": true,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "Working diagnosis from the ECG alone: new, persistent ST-elevation at the J-point in 2 contiguous leads, ≥1 mm in all leads other than V2–V3; in V2–V3 ≥2 mm in men ≥40 years, ≥2.5 mm in men <40 years, ≥1.5 mm in women regardless of age (or an ST-elevation equivalent). Myocardial infarction is final only when troponin shows a rise and/or fall with at least 1 value above the 99th percentile upper reference limit; ESC notes MI will not be the final diagnosis in every working STEMI. Do not wait for troponin to act on the ECG.",
+          "source": [
+            "UDMI-2018",
+            "ESC-ACS-2023"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.nste_acs",
+          "display": "Acute coronary syndrome without ST-elevation (NSTE-ACS)",
+          "proposed": true,
+          "decided_by": [
+            "test.ecg"
+          ],
+          "criteria": "ECG shows no persistent ST-elevation or equivalent. This is still a working diagnosis: serial troponin decides between NSTEMI and unstable angina.",
+          "source": [
+            "ESC-ACS-2023"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Acute coronary syndrome, type to be decided by ECG and troponin",
+      "note_after": "{subtype} (refined from acute coronary syndrome after {deciding})",
+      "alternatives_if_ruled_out": [
+        "dx.pericarditis",
+        "dx.pulmonary_embolism",
+        "dx.aortic_dissection",
+        "dx.msk_chest_pain",
+        "dx.gord",
+        "dx.chest_pain_unexplained"
+      ],
+      "suppressed_when": null,
+      "how_to_use_alternatives": "Not subtypes. If the broad diagnosis is ruled out, the desk offers 'Replace' (refute with a reason, then add the new diagnosis), never 'Refine'."
+    },
+    "dx.nste_acs": {
+      "why": "Second step of the ACS ladder.",
+      "subtypes": [
+        {
+          "id": "dx.nstemi",
+          "display": "Non-ST-elevation myocardial infarction (NSTEMI)",
+          "proposed": true,
+          "decided_by": [
+            "test.troponin"
+          ],
+          "criteria": "No persistent ST-elevation, and troponin shows a rise and/or fall with at least 1 value above the 99th percentile upper reference limit, with clinical or ECG evidence of ischaemia (new horizontal or downsloping ST-depression ≥0.5 mm in 2 contiguous leads and/or T inversion >1 mm in 2 contiguous leads with prominent R wave or R/S ratio >1 supports ischaemia). A single troponin never decides: the rise or fall needs serial values.",
+          "source": [
+            "UDMI-2018",
+            "ESC-ACS-2023"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.unstable_angina",
+          "display": "Unstable angina",
+          "proposed": true,
+          "decided_by": [
+            "test.troponin"
+          ],
+          "criteria": "Myocardial ischaemia at rest or on minimal exertion in the absence of acute cardiomyocyte injury: serial troponin without a rise or fall above the 99th percentile upper reference limit.",
+          "source": [
+            "ESC-ACS-2023"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Acute coronary syndrome without ST-elevation, type to be decided by serial troponin",
+      "note_after": "{subtype} (refined from acute coronary syndrome after {deciding})",
+      "alternatives_if_ruled_out": [
+        "dx.pericarditis",
+        "dx.pulmonary_embolism",
+        "dx.aortic_dissection",
+        "dx.msk_chest_pain",
+        "dx.gord"
+      ],
+      "suppressed_when": null,
+      "how_to_use_alternatives": "Not subtypes. If the broad diagnosis is ruled out, the desk offers 'Replace' (refute with a reason, then add the new diagnosis), never 'Refine'."
+    },
+    "dx.anaemia": {
+      "why": "Anaemia is refined by mechanism once the blood count, film and iron studies decide it. Severity is not a subtype: it is the stage scale below (WHO 2024), kept on the same condition.",
+      "subtypes": [
+        {
+          "id": "dx.iron_deficiency_anaemia",
+          "display": "Iron-deficiency anaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.fbc",
+            "test.ferritin_iron",
+            "test.blood_film"
+          ],
+          "criteria": "Low haemoglobin with microcytic, hypochromic indices and low iron stores (low ferritin; ferritin can be falsely normal in infection or inflammation). The cause (blood loss, hookworm, pregnancy, poor intake) is then recorded as a cause link, not as a subtype.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.megaloblastic_anaemia",
+          "display": "Megaloblastic anaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.fbc",
+            "test.b12_folate",
+            "test.blood_film"
+          ],
+          "criteria": "Macrocytic anaemia with megaloblastic features on the film and low vitamin B12 or folate.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.haemolytic_anaemia",
+          "display": "Haemolytic anaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.fbc",
+            "test.reticulocytes",
+            "test.blood_film",
+            "test.lft"
+          ],
+          "criteria": "Anaemia with evidence of haemolysis: raised reticulocytes, unconjugated bilirubin, film changes. Malaria, sickle cell disease and G6PD deficiency are recorded as causes.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Anaemia ({stage}), cause being investigated",
+      "note_after": "{subtype} ({stage})",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.anaemia_unexplained": {
+      "why": "Symptom-level placeholder. Once a cause is linked or the mechanism is known, the desk offers to refine it to Anaemia (or a mechanism) so the note stops saying 'cause not yet known'.",
+      "subtypes": [
+        {
+          "id": "dx.anaemia",
+          "display": "Anaemia",
+          "proposed": true,
+          "decided_by": [
+            "test.fbc"
+          ],
+          "criteria": "Haemoglobin below the WHO 2024 cutoff for age, sex and pregnancy (see the anaemia stage scale), and a cause or mechanism now recorded.",
+          "source": [
+            "WHO-HB-2024"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.iron_deficiency_anaemia",
+          "display": "Iron-deficiency anaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.fbc",
+            "test.ferritin_iron"
+          ],
+          "criteria": "As under dx.anaemia.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.megaloblastic_anaemia",
+          "display": "Megaloblastic anaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.fbc",
+            "test.b12_folate"
+          ],
+          "criteria": "As under dx.anaemia.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.haemolytic_anaemia",
+          "display": "Haemolytic anaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.fbc",
+            "test.reticulocytes",
+            "test.blood_film"
+          ],
+          "criteria": "As under dx.anaemia.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Anaemia, cause not yet known",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.malaria_unconfirmed": {
+      "why": "Malaria is confirmed by a parasitological test before it is classed. A negative test refutes it; it does not refine it.",
+      "subtypes": [
+        {
+          "id": "dx.malaria_uncomplicated",
+          "display": "Malaria, uncomplicated",
+          "proposed": false,
+          "decided_by": [
+            "test.malaria_rdt",
+            "test.malaria_smear"
+          ],
+          "criteria": "Positive malaria RDT or blood smear, and none of the WHO features of severe malaria present. Species (for example P. falciparum) is a qualifier from the test result, not a subtype.",
+          "source": [
+            "WHO-MAL-GL"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.malaria_severe",
+          "display": "Malaria, severe",
+          "proposed": false,
+          "decided_by": [
+            "test.malaria_smear",
+            "test.malaria_rdt",
+            "test.capillary_glucose",
+            "test.fbc",
+            "test.urea_electrolytes",
+            "test.lactate"
+          ],
+          "criteria": "P. falciparum asexual parasitaemia with one or more of the WHO criteria, without an identified alternative cause: impaired consciousness (Glasgow Coma Score <11 in adults, Blantyre <3 in children); acidosis (base deficit >8 meq/l, or bicarbonate <15 mM, or venous lactate >5 mM); hypoglycaemia (glucose <2.2 mM, <40 mg/dl); severe malarial anaemia (Hb <5 g/dl or haematocrit <15% in children <12 years; <7 g/dl and <20% in adults; with parasite count >10 000/µl); renal impairment (creatinine >265 µM (3 mg/dl) or urea >20 mM); jaundice (bilirubin >50 µM (3 mg/dl) with parasite count >100 000/µl); pulmonary oedema (radiological, or SpO2 <92% on room air with respiratory rate >30/min); significant bleeding; shock (decompensated: systolic <70 mmHg in children or <80 mmHg in adults with impaired perfusion); hyperparasitaemia (>10%). WHO's clinical guidance also lists prostration and multiple convulsions.",
+          "source": [
+            "WHO-SM-2014",
+            "WHO-MAL-GL"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Malaria, not confirmed by a test",
+      "note_after": "{subtype} ({qualifier})",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.malaria_uncomplicated": {
+      "why": "Progression to severe malaria at the same visit is a refinement of the same infection (a new version), not a second diagnosis.",
+      "subtypes": [
+        {
+          "id": "dx.malaria_severe",
+          "display": "Malaria, severe",
+          "proposed": false,
+          "decided_by": [
+            "test.malaria_smear",
+            "test.capillary_glucose",
+            "test.fbc",
+            "test.urea_electrolytes"
+          ],
+          "criteria": "One or more WHO severe-malaria criteria now present (see dx.malaria_unconfirmed).",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Malaria, uncomplicated",
+      "note_after": "{subtype} ({qualifier})",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.malaria_severe": {
+      "why": "Cerebral malaria is the form of severe malaria defined by coma.",
+      "subtypes": [
+        {
+          "id": "dx.malaria_cerebral",
+          "display": "Cerebral malaria",
+          "proposed": false,
+          "decided_by": [
+            "test.capillary_glucose",
+            "test.csf_analysis",
+            "test.malaria_smear"
+          ],
+          "criteria": "Unrousable coma (Glasgow Coma Scale <11) in malaria, having excluded as far as possible other causes of coma; coma persisting >1 h after a seizure irrespective of anticonvulsant medicines. Hypoglycaemia must be checked and corrected first, and meningitis considered.",
+          "source": [
+            "WHO-SM-2014"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Malaria, severe ({features})",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.stroke": {
+      "why": "Stroke is the working diagnosis until imaging decides the type. Treatment differs completely between types, so the note must say when the type is not yet known.",
+      "subtypes": [
+        {
+          "id": "dx.stroke_ischaemic",
+          "display": "Ischaemic stroke",
+          "proposed": false,
+          "decided_by": [
+            "test.ct_head"
+          ],
+          "criteria": "Acute focal neurological deficit of vascular origin with CT showing no haemorrhage (an early CT may be normal) or showing infarction.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.stroke_haemorrhagic",
+          "display": "Intracerebral haemorrhage",
+          "proposed": false,
+          "decided_by": [
+            "test.ct_head"
+          ],
+          "criteria": "Acute focal deficit with intracerebral blood on CT.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.sah",
+          "display": "Subarachnoid haemorrhage",
+          "proposed": false,
+          "decided_by": [
+            "test.ct_head",
+            "test.csf_analysis"
+          ],
+          "criteria": "Subarachnoid blood on CT, or xanthochromia or blood in CSF when CT is negative and suspicion remains.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.tia",
+          "display": "Transient ischaemic attack",
+          "proposed": false,
+          "decided_by": [
+            "test.ct_head"
+          ],
+          "criteria": "Transient focal neurological dysfunction from focal brain, spinal cord or retinal ischaemia, without acute infarction on imaging (tissue-based definition). Full resolution of symptoms alone does not make it a TIA if imaging shows infarction.",
+          "source": [
+            "AHA-TIA-2009"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Stroke, type to be decided by CT head",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [
+        "dx.hypoglycaemia_no_dm",
+        "dx.hypoglycaemia_dm",
+        "dx.space_occupying_lesion",
+        "dx.cerebral_toxoplasmosis",
+        "dx.subdural_haematoma",
+        "dx.bells_palsy",
+        "dx.seizure_unexplained"
+      ],
+      "suppressed_when": null,
+      "how_to_use_alternatives": "Not subtypes. If the broad diagnosis is ruled out, the desk offers 'Replace' (refute with a reason, then add the new diagnosis), never 'Refine'."
+    },
+    "dx.heart_failure": {
+      "why": "Heart failure is classed by left ventricular ejection fraction on echo. The 2026 ESC guideline removed the mildly-reduced class; the 2021 guideline and the Universal Definition keep it. Store the LVEF number so either can be derived (decision D-REL-13). Acute decompensation is a complication (dx.heart_failure_acute), not a subtype.",
+      "subtypes": [
+        {
+          "id": "dx.hfref",
+          "display": "Heart failure with reduced ejection fraction (HFrEF)",
+          "proposed": true,
+          "decided_by": [
+            "test.echo",
+            "test.bnp"
+          ],
+          "criteria": "Symptoms and/or signs of heart failure with LVEF <50% (ESC 2026). Under ESC 2021: LVEF ≤40%.",
+          "source": [
+            "ESC-HF-2026",
+            "ESC-HF-2021"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.hfpef",
+          "display": "Heart failure with preserved ejection fraction (HFpEF)",
+          "proposed": true,
+          "decided_by": [
+            "test.echo",
+            "test.bnp"
+          ],
+          "criteria": "Symptoms and/or signs of heart failure with LVEF ≥50%, plus objective evidence of structural or functional cardiac abnormality consistent with LV diastolic dysfunction or raised filling pressures, including raised natriuretic peptides.",
+          "source": [
+            "ESC-HF-2026",
+            "ESC-HF-2021"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.hfmref",
+          "display": "Heart failure with mildly reduced ejection fraction (HFmrEF)",
+          "proposed": true,
+          "decided_by": [
+            "test.echo"
+          ],
+          "criteria": "Only if D-REL-13 keeps the 2021 classes: LVEF 41–49% (ESC 2021). The 2026 ESC guideline counts this range as HFrEF.",
+          "source": [
+            "ESC-HF-2021"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Heart failure, ejection fraction not yet measured",
+      "note_after": "{subtype}, LVEF {lvef}%",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": {
+        "related_by": "due_to",
+        "to_any": [
+          "dx.rheumatic_heart_disease",
+          "dx.aortic_stenosis"
+        ],
+        "why": "The LVEF classes were defined for heart failure without significant valve disease; with a valvular cause the desk shows the LVEF as a number and offers no class (vignette DXV-07)."
+      },
+      "how_to_use_alternatives": null
+    },
+    "dx.hyperglycaemia_unconfirmed": {
+      "why": "A raised glucose is not a diagnosis. The diabetes pack's confirm lane decides; this file only names where it can go. Every number lives in the pack's signed REF-DM entries (one number, one place).",
+      "subtypes": [
+        {
+          "id": "dx.dm_type_unknown",
+          "display": "Diabetes, type not yet determined",
+          "proposed": false,
+          "decided_by": [
+            "test.hba1c",
+            "test.glucose_fasting",
+            "test.glucose_random",
+            "test.ogtt_75g"
+          ],
+          "criteria": "WHO diagnostic criteria met, as the diabetes pack's confirm lane defines them (never a single value without symptoms).",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.intermediate_hyperglycaemia",
+          "display": "Intermediate hyperglycaemia",
+          "proposed": false,
+          "decided_by": [
+            "test.glucose_fasting",
+            "test.ogtt_75g",
+            "test.hba1c"
+          ],
+          "criteria": "Values in the intermediate range as the diabetes pack defines it.",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.steroid_induced_hyperglycaemia",
+          "display": "Raised blood glucose on steroid treatment",
+          "proposed": false,
+          "decided_by": [
+            "test.glucose_random"
+          ],
+          "criteria": "Hyperglycaemia arising on glucocorticoid treatment without prior diabetes; reassess after the steroid stops.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.gestational_diabetes",
+          "display": "Gestational diabetes",
+          "proposed": false,
+          "decided_by": [
+            "test.ogtt_75g"
+          ],
+          "criteria": "Pregnant: hyperglycaemia first detected in pregnancy meeting the WHO 2013 gestational criteria (diabetes pack REF-DM).",
+          "source": [
+            "WHO-HIP-2013"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.diabetes_in_pregnancy",
+          "display": "Diabetes in pregnancy",
+          "proposed": false,
+          "decided_by": [
+            "test.ogtt_75g",
+            "test.glucose_fasting"
+          ],
+          "criteria": "Pregnant: hyperglycaemia first detected in pregnancy meeting the WHO 2013 criteria for diabetes in pregnancy (diabetes pack REF-DM).",
+          "source": [
+            "WHO-HIP-2013"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Raised blood glucose, not yet a diagnosis",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.dm_type_unknown": {
+      "why": "Type is never inferred from body build alone. The diabetes pack's classify lane supplies the evidence; the clinician refines.",
+      "subtypes": [
+        {
+          "id": "dx.dm_type1",
+          "display": "Type 1 diabetes",
+          "proposed": false,
+          "decided_by": [
+            "test.ketones",
+            "test.gad_antibodies",
+            "test.c_peptide"
+          ],
+          "criteria": "As the diabetes pack's classify lane defines it.",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.dm_type2",
+          "display": "Type 2 diabetes",
+          "proposed": false,
+          "decided_by": [
+            "test.hba1c"
+          ],
+          "criteria": "As the diabetes pack's classify lane defines it.",
+          "source": [
+            "WHO-DM-2019"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Diabetes, type not yet determined",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.pneumonia": {
+      "why": "Setting of acquisition changes the likely organisms and the treatment protocol. Severity (CURB-65) is a stage, not a subtype.",
+      "subtypes": [
+        {
+          "id": "dx.pneumonia_community",
+          "display": "Community-acquired pneumonia",
+          "proposed": true,
+          "decided_by": [
+            "test.chest_xray"
+          ],
+          "criteria": "Pneumonia acquired outside hospital, including pneumonia appearing within 48 hours of admission.",
+          "source": [
+            "ATS-IDSA-HAP-2016"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.pneumonia_hospital",
+          "display": "Hospital-acquired pneumonia",
+          "proposed": true,
+          "decided_by": [
+            "test.chest_xray",
+            "test.blood_culture",
+            "test.sputum_mcs"
+          ],
+          "criteria": "Pneumonia not incubating at admission and occurring 48 hours or more after admission.",
+          "source": [
+            "ATS-IDSA-HAP-2016"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.aspiration_pneumonia",
+          "display": "Aspiration pneumonia",
+          "proposed": false,
+          "decided_by": [
+            "test.chest_xray"
+          ],
+          "criteria": "Pneumonia after a witnessed or likely aspiration (reduced consciousness, impaired swallow, vomiting), usually in dependent lung segments.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.pcp",
+          "display": "Pneumocystis pneumonia",
+          "proposed": false,
+          "decided_by": [
+            "test.chest_xray",
+            "test.cd4",
+            "test.blood_gas"
+          ],
+          "criteria": "Subacute breathlessness and hypoxia with bilateral interstitial change in a person with advanced immunosuppression. Reveals HIV status by inference: see D-REL-10.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Pneumonia ({stage})",
+      "note_after": "{subtype} ({stage})",
+      "alternatives_if_ruled_out": [
+        "dx.tb_pulmonary_clinical",
+        "dx.pulmonary_embolism",
+        "dx.heart_failure_acute",
+        "dx.lung_cancer"
+      ],
+      "suppressed_when": null,
+      "how_to_use_alternatives": "Not subtypes. If the broad diagnosis is ruled out, the desk offers 'Replace' (refute with a reason, then add the new diagnosis), never 'Refine'."
+    },
+    "dx.hypertensive_crisis": {
+      "why": "The sources agree that the BP number alone does not make an emergency: acute organ damage does. The term 'hypertensive urgency' is dropped by ESC 2019, AHA 2024 and AHA/ACC 2025 but kept by ESH 2023 and (as recalled) UCG 2023; MedSync's wording follows decision D-REL-16 and the hypertension pack's D-HTN-01. The BP threshold is the hypertension pack's signed number, not restated here.",
+      "subtypes": [
+        {
+          "id": "dx.hypertensive_emergency",
+          "display": "Hypertensive emergency",
+          "proposed": true,
+          "decided_by": [
+            "test.urinalysis_dipstick",
+            "test.urea_electrolytes",
+            "test.ecg",
+            "test.troponin",
+            "test.ct_head"
+          ],
+          "criteria": "Substantially raised BP with acute hypertension-mediated organ damage: encephalopathy, intracranial haemorrhage or acute ischaemic stroke, acute coronary syndrome, acute heart failure with pulmonary oedema, aortic dissection, retinal haemorrhages or papilloedema, acute kidney injury, eclampsia or severe pre-eclampsia. Uganda's NCD guideline 2019 gives 'BP > 200 mmHg systolic or >120 mmHg diastolic or BP > 180mmHg systolic or >110 mmHg diastolic with symptoms consistent with evidence of end organ damage'.",
+          "source": [
+            "HTN-EMERG",
+            "HTN-ISH-2020"
+          ],
+          "claims": "H11-01, H11-15, H11-27, H6-209, H1-39, H1-40",
+          "restricted_class": null
+        },
+        {
+          "id": "dx.severe_hypertension_no_aod",
+          "display": "Severe hypertension without acute organ damage",
+          "proposed": true,
+          "decided_by": [
+            "test.urinalysis_dipstick",
+            "test.urea_electrolytes",
+            "test.ecg"
+          ],
+          "criteria": "Very high BP with no acute hypertension-mediated organ damage after assessment. Not an emergency: sources advise oral treatment and early review rather than emergency lowering.",
+          "source": [
+            "HTN-EMERG",
+            "HTN-ISH-2020"
+          ],
+          "claims": "H11-07, H11-08, H11-16, H6-215",
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Hypertensive crisis, organ damage being assessed",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.ckd": {
+      "why": "CKD is staged by GFR and albuminuria (a stage, below). A cause-specific term exists only for diabetes in the catalogue; selecting it also offers the complication link to diabetes.",
+      "subtypes": [
+        {
+          "id": "dx.diabetic_kidney_disease",
+          "display": "Diabetic kidney disease",
+          "proposed": false,
+          "decided_by": [
+            "test.uacr",
+            "test.creatinine"
+          ],
+          "criteria": "CKD attributed to diabetes, as the diabetes pack's stratify lane defines it. Selecting it offers the link 'complication of diabetes'.",
+          "source": [
+            "KDIGO-CKD-2024",
+            "WHO-DM-2019"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Chronic kidney disease {stage}",
+      "note_after": "{subtype}, {stage}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.meningitis_unexplained": {
+      "why": "The CSF and the cryptococcal antigen decide the cause; each cause has a different treatment, so the note must say when it is not yet known.",
+      "subtypes": [
+        {
+          "id": "dx.meningitis_bacterial",
+          "display": "Bacterial meningitis",
+          "proposed": false,
+          "decided_by": [
+            "test.csf_analysis",
+            "test.blood_culture"
+          ],
+          "criteria": "CSF with bacteria on Gram stain or culture, or a neutrophilic CSF with low glucose and high protein, consistent clinical picture.",
+          "source": [
+            "WHO-MENING-2025"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.cryptococcal_meningitis",
+          "display": "Cryptococcal meningitis",
+          "proposed": false,
+          "decided_by": [
+            "test.crag",
+            "test.csf_analysis"
+          ],
+          "criteria": "Positive cryptococcal antigen in CSF, or India ink or culture positive; a positive blood CrAg with meningitic symptoms makes it likely until the CSF is examined. Reveals HIV status by inference: see D-REL-10.",
+          "source": [
+            "WHO-CRYPTO-2022"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.tb_meningitis",
+          "display": "Tuberculous meningitis",
+          "proposed": false,
+          "decided_by": [
+            "test.csf_analysis",
+            "test.tb_xpert",
+            "test.tb_lam"
+          ],
+          "criteria": "Bacteriologically confirmed (Xpert or culture on CSF) or clinically diagnosed TB meningitis.",
+          "source": [
+            "WHO-TB-DEF"
+          ],
+          "claims": null,
+          "restricted_class": "tb"
+        },
+        {
+          "id": "dx.meningitis_viral",
+          "display": "Viral meningitis",
+          "proposed": true,
+          "decided_by": [
+            "test.csf_analysis",
+            "test.crag"
+          ],
+          "criteria": "Lymphocytic CSF with normal glucose after bacterial, cryptococcal and TB causes have been reasonably excluded. A diagnosis of exclusion.",
+          "source": [
+            "WHO-MENING-2025"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Meningitis, cause not yet known (awaiting CSF and CrAg)",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.tb_pulmonary_clinical": {
+      "why": "A clinically diagnosed case later found bacteriologically positive is reclassified as bacteriologically confirmed. Drug resistance is a qualifier from the Xpert result, kept as a stage, not a separate term.",
+      "subtypes": [
+        {
+          "id": "dx.tb_pulmonary_confirmed",
+          "display": "Pulmonary tuberculosis, bacteriologically confirmed",
+          "proposed": false,
+          "decided_by": [
+            "test.tb_xpert",
+            "test.tb_lam",
+            "test.sputum_afb"
+          ],
+          "criteria": "TB diagnosed in a biological specimen by a WHO-approved rapid test such as Xpert MTB/RIF or LF-LAM, smear microscopy or culture, involving the lung parenchyma or tracheobronchial tree.",
+          "source": [
+            "WHO-TB-DEF"
+          ],
+          "claims": null,
+          "restricted_class": "tb"
+        }
+      ],
+      "note_before": "Pulmonary tuberculosis, clinically diagnosed",
+      "note_after": "{subtype}{resistance}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.tb_extrapulmonary": {
+      "why": "Extrapulmonary TB is refined by site. A patient with both pulmonary and extrapulmonary disease is classed as pulmonary in WHO reporting.",
+      "subtypes": [
+        {
+          "id": "dx.tb_meningitis",
+          "display": "Tuberculous meningitis",
+          "proposed": false,
+          "decided_by": [
+            "test.csf_analysis",
+            "test.tb_xpert"
+          ],
+          "criteria": "TB involving the meninges (bacteriologically confirmed or clinically diagnosed).",
+          "source": [
+            "WHO-TB-DEF"
+          ],
+          "claims": null,
+          "restricted_class": "tb"
+        },
+        {
+          "id": "dx.tb_pericarditis",
+          "display": "Tuberculous pericarditis",
+          "proposed": false,
+          "decided_by": [
+            "test.echo",
+            "test.tb_lam"
+          ],
+          "criteria": "TB involving the pericardium.",
+          "source": [
+            "WHO-TB-DEF"
+          ],
+          "claims": null,
+          "restricted_class": "tb"
+        },
+        {
+          "id": "dx.tb_spine",
+          "display": "Tuberculosis of the spine",
+          "proposed": false,
+          "decided_by": [
+            "test.xray_spine",
+            "test.mri_spine",
+            "test.tissue_biopsy"
+          ],
+          "criteria": "TB involving the spine.",
+          "source": [
+            "WHO-TB-DEF"
+          ],
+          "claims": null,
+          "restricted_class": "tb"
+        }
+      ],
+      "note_before": "Extrapulmonary tuberculosis, site being confirmed",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.hiv": {
+      "why": "Advanced HIV disease changes the work-up (CD4, CrAg, TB-LAM). Restricted class: nothing here may appear for a viewer without the HIV class.",
+      "subtypes": [
+        {
+          "id": "dx.hiv_advanced",
+          "display": "Advanced HIV disease",
+          "proposed": false,
+          "decided_by": [
+            "test.cd4"
+          ],
+          "criteria": "Adults, adolescents and children 5 years and older: CD4 count <200 cells/mm³ or a WHO stage 3 or 4 event; all children younger than 5 years living with HIV.",
+          "source": [
+            "WHO-AHD-2017"
+          ],
+          "claims": null,
+          "restricted_class": "hiv"
+        }
+      ],
+      "note_before": "HIV infection",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.pre_eclampsia": {
+      "why": "Pre-eclampsia with severe features is a refinement of the same condition. Eclampsia (convulsions) is a complication link, not a subtype.",
+      "subtypes": [
+        {
+          "id": "dx.pre_eclampsia_severe",
+          "display": "Severe pre-eclampsia",
+          "proposed": false,
+          "decided_by": [
+            "test.urinalysis_dipstick",
+            "test.fbc",
+            "test.lft",
+            "test.creatinine"
+          ],
+          "criteria": "Pre-eclampsia with any one severe feature, Uganda 2022: BP greater or equal to 160/110 mmHg; persistent headache, altered mentation, persistent epigastric or right upper quadrant pain, visual changes; urine output less than 100 ml in 4 hours; pulmonary oedema or SpO2 less than 90%; platelets less than 100,000 per microlitre; AST or ALT twice the upper limit of normal; creatinine above 1.1 mg/dL or 90 µmol/L (the source pairs two values that are not equal; see the hypertension conflicts list) or doubling; HELLP.",
+          "source": [
+            "UG-EMNCC-2022"
+          ],
+          "claims": "H2-04, H2-05, H2-07, H2-08, H2-09, H2-10, H2-11, H2-12",
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Pre-eclampsia without severe features",
+      "note_after": "{subtype} ({features})",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.chest_pain_unexplained": {
+      "why": "Symptom-level terms are placeholders. When a diagnosis explains the symptom, the placeholder is refined (new version) to that diagnosis, so the note does not carry both.",
+      "subtypes": [
+        {
+          "id": "dx.acs",
+          "display": "Acute coronary syndrome",
+          "proposed": false,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "The diagnosis's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.pulmonary_embolism",
+          "display": "Pulmonary embolism",
+          "proposed": false,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "The diagnosis's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.aortic_dissection",
+          "display": "Aortic dissection",
+          "proposed": false,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "The diagnosis's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.pericarditis",
+          "display": "Acute pericarditis",
+          "proposed": false,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "The diagnosis's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.msk_chest_pain",
+          "display": "Musculoskeletal chest pain",
+          "proposed": false,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "The diagnosis's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.gord",
+          "display": "Gastro-oesophageal reflux disease",
+          "proposed": false,
+          "decided_by": [
+            "test.ecg",
+            "test.troponin"
+          ],
+          "criteria": "The diagnosis's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Chest pain, cause not yet known",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    },
+    "dx.shock_unexplained": {
+      "why": "Symptom-level resolution: shock is refined to its mechanism.",
+      "subtypes": [
+        {
+          "id": "dx.septic_shock",
+          "display": "Septic shock",
+          "proposed": false,
+          "decided_by": [
+            "test.lactate",
+            "test.pocus_lung_cardiac",
+            "test.ecg"
+          ],
+          "criteria": "The mechanism's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.hypovolaemic_shock",
+          "display": "Hypovolaemic shock",
+          "proposed": false,
+          "decided_by": [
+            "test.lactate",
+            "test.pocus_lung_cardiac",
+            "test.ecg"
+          ],
+          "criteria": "The mechanism's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.cardiogenic_shock",
+          "display": "Cardiogenic shock",
+          "proposed": false,
+          "decided_by": [
+            "test.lactate",
+            "test.pocus_lung_cardiac",
+            "test.ecg"
+          ],
+          "criteria": "The mechanism's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        },
+        {
+          "id": "dx.anaphylaxis",
+          "display": "Anaphylaxis",
+          "proposed": false,
+          "decided_by": [
+            "test.lactate",
+            "test.pocus_lung_cardiac",
+            "test.ecg"
+          ],
+          "criteria": "The mechanism's own criteria are met.",
+          "source": [
+            "TEXTBOOK"
+          ],
+          "claims": null,
+          "restricted_class": null
+        }
+      ],
+      "note_before": "Shock, cause not yet known",
+      "note_after": "{subtype}",
+      "alternatives_if_ruled_out": [],
+      "suppressed_when": null,
+      "how_to_use_alternatives": null
+    }
+  },
+  "stages": {
+    "dx.anaemia": {
+      "scale": "Severity by haemoglobin (g/L), WHO 2024, Table 3",
+      "source": [
+        "WHO-HB-2024"
+      ],
+      "applies_also_to": [
+        "dx.anaemia_unexplained",
+        "dx.iron_deficiency_anaemia",
+        "dx.megaloblastic_anaemia",
+        "dx.haemolytic_anaemia"
+      ],
+      "rows": [
+        {
+          "group": "Children 6–23 months",
+          "none": "≥105",
+          "mild": "95–104",
+          "moderate": "70–94",
+          "severe": "<70"
+        },
+        {
+          "group": "Children 24–59 months",
+          "none": "≥110",
+          "mild": "100–109",
+          "moderate": "70–99",
+          "severe": "<70"
+        },
+        {
+          "group": "Children 5–11 years",
+          "none": "≥115",
+          "mild": "110–114",
+          "moderate": "80–109",
+          "severe": "<80"
+        },
+        {
+          "group": "12–14 years (girls not pregnant, and boys)",
+          "none": "≥120",
+          "mild": "110–119",
+          "moderate": "80–109",
+          "severe": "<80"
+        },
+        {
+          "group": "Women 15–65 years, not pregnant",
+          "none": "≥120",
+          "mild": "110–119",
+          "moderate": "80–109",
+          "severe": "<80"
+        },
+        {
+          "group": "Men 15–65 years",
+          "none": "≥130",
+          "mild": "110–129",
+          "moderate": "80–109",
+          "severe": "<80"
+        },
+        {
+          "group": "Pregnancy, first trimester",
+          "none": "≥110",
+          "mild": "100–109",
+          "moderate": "70–99",
+          "severe": "<70"
+        },
+        {
+          "group": "Pregnancy, second trimester",
+          "none": "≥105",
+          "mild": "95–104",
+          "moderate": "70–94",
+          "severe": "<70"
+        },
+        {
+          "group": "Pregnancy, third trimester",
+          "none": "≥110",
+          "mild": "100–109",
+          "moderate": "70–99",
+          "severe": "<70"
+        }
+      ],
+      "notes": "Units are g/L (the record may hold g/dL: 7 g/dL = 70 g/L). Pregnancy state unknown means the non-pregnant row cannot be applied to a woman who could be pregnant: the stage is 'insufficient', as in the diabetes pack. Over 65 years: the table read stops at 65; the CSO decides whether the adult rows apply. The WHO severe-malaria anaemia criterion (Hb <7 g/dl adults, <5 g/dl children <12 years, with parasite count >10 000/µl) is a different definition and is not this scale."
+    },
+    "dx.ckd": {
+      "scale": "GFR category and albuminuria category (KDIGO 2024)",
+      "source": [
+        "KDIGO-CKD-2024"
+      ],
+      "rows": [
+        {
+          "code": "G1",
+          "egfr_ml_min_1_73m2": "≥90",
+          "words": "Normal or high"
+        },
+        {
+          "code": "G2",
+          "egfr_ml_min_1_73m2": "60-89",
+          "words": "Mildly decreased"
+        },
+        {
+          "code": "G3a",
+          "egfr_ml_min_1_73m2": "45-59",
+          "words": "Mildly to moderately decreased"
+        },
+        {
+          "code": "G3b",
+          "egfr_ml_min_1_73m2": "30-44",
+          "words": "Moderately to severely decreased"
+        },
+        {
+          "code": "G4",
+          "egfr_ml_min_1_73m2": "15-29",
+          "words": "Severely decreased"
+        },
+        {
+          "code": "G5",
+          "egfr_ml_min_1_73m2": "<15",
+          "words": "Kidney failure"
+        },
+        {
+          "code": "A1",
+          "acr_mg_g": "<30",
+          "acr_mg_mmol": "<3 (to check on the KDIGO page)",
+          "words": "Normal to mildly increased"
+        },
+        {
+          "code": "A2",
+          "acr_mg_g": "30-300",
+          "acr_mg_mmol": "3-30 (to check)",
+          "words": "Moderately increased"
+        },
+        {
+          "code": "A3",
+          "acr_mg_g": ">300",
+          "acr_mg_mmol": ">30 (to check)",
+          "words": "Severely increased"
+        }
+      ],
+      "notes": "CKD needs abnormality present for more than 3 months (KDIGO; not on the page read today). Uganda's NCD guideline 2019 footnote prints 'albumin-creatinine ratio of ≥ 30mg/mmol' for moderate or severe albuminuria, which as printed would mean severe only (hypertension claim H1-68): raise with the Ministry."
+    },
+    "dx.aki": {
+      "scale": "KDIGO 2012 AKI stage",
+      "source": [
+        "KDIGO-AKI-2012"
+      ],
+      "claims": "H11-86, H11-87",
+      "rows": [
+        {
+          "stage": "1",
+          "creatinine": "1.5–1.9 times baseline OR ≥0.3 mg/dl (≥26.5 μmol/l) increase",
+          "urine_output": "<0.5 ml/kg/h for 6–12 hours (urine criteria to check)"
+        },
+        {
+          "stage": "2",
+          "creatinine": "2.0–2.9 times baseline",
+          "urine_output": "<0.5 ml/kg/h for ≥12 hours (to check)"
+        },
+        {
+          "stage": "3",
+          "creatinine": "3.0 times baseline OR increase in serum creatinine to ≥4.0 mg/dl (≥353.6 μmol/l) OR initiation of renal replacement therapy",
+          "urine_output": "<0.3 ml/kg/h for ≥24 hours or anuria for ≥12 hours (to check)"
+        }
+      ],
+      "notes": "Creatinine criteria from claims H11-86 and H11-87 (two reads differed on H11-87; check the page). Urine-output criteria not in the claims."
+    },
+    "dx.pneumonia": {
+      "scale": "CURB-65 (adults, community-acquired pneumonia)",
+      "source": [
+        "BTS-CURB65"
+      ],
+      "rows": [
+        {
+          "item": "Confusion",
+          "point": "new disorientation in time, place or person, or abbreviated mental test score ≤8/10"
+        },
+        {
+          "item": "Urea",
+          "point": ">7 mmol/l"
+        },
+        {
+          "item": "Respiratory rate",
+          "point": "≥30/min"
+        },
+        {
+          "item": "Blood pressure",
+          "point": "systolic <90 mmHg or diastolic ≤60 mmHg"
+        },
+        {
+          "item": "Age",
+          "point": "≥65 years"
+        }
+      ],
+      "bands": [
+        {
+          "score": "0–1",
+          "words": "most patients can be managed in the community"
+        },
+        {
+          "score": "2",
+          "words": "consider hospital treatment"
+        },
+        {
+          "score": "3 or more",
+          "words": "severe pneumonia; urgent admission"
+        }
+      ],
+      "notes": "Urea is often unavailable at HC III and IV: CRB-65 (without urea) applies there, and a missing urea is never scored as 0 (blank is never negative)."
+    },
+    "dx.hypertension": {
+      "scale": "BP grade: defer to the hypertension pack (decision D-HTN-05). Shown here only so the subtype file is complete.",
+      "source": [
+        "HTN-ISH-2020"
+      ],
+      "claims": "H6-10, H6-11, H7-93, H1-15",
+      "rows": [
+        {
+          "grade": "Grade 1",
+          "systolic": "140–159",
+          "join": "and/or",
+          "diastolic": "90–99",
+          "source": "ISH 2020 Table 1"
+        },
+        {
+          "grade": "Grade 2",
+          "systolic": "≥160",
+          "join": "and/or",
+          "diastolic": "≥100",
+          "source": "ISH 2020 Table 1"
+        },
+        {
+          "grade": "Grade 3 (ESH only)",
+          "systolic": "≥180",
+          "join": "and/or",
+          "diastolic": "≥110",
+          "source": "ESH 2023 (text layer drops '≥'; check the page image)"
+        }
+      ],
+      "notes": "Uganda's NCD guideline 2019 has no grading table in the pages read; UCG 2023's table could not be opened (recalled as JNC 7 stages). The hypertension pack decides; this file must not become a second source of these numbers."
+    },
+    "dx.tb_pulmonary_confirmed": {
+      "scale": "Drug-resistance qualifier (restricted class: tb)",
+      "source": [
+        "WHO-TB-DEF"
+      ],
+      "rows": [
+        {
+          "qualifier": "RR-TB",
+          "words": "TB caused by Mycobacterium tuberculosis strains resistant to rifampicin"
+        },
+        {
+          "qualifier": "MDR-TB",
+          "words": "resistant to at least both rifampicin and isoniazid"
+        }
+      ],
+      "notes": "Set from the Xpert MTB/RIF or drug-susceptibility result. 'Rifampicin resistance not detected' is drug-susceptible for the rifampicin axis only."
+    }
+  },
+  "sources": {
+    "ADA-CRISES-2024": {
+      "citation": "Umpierrez GE, et al. Hyperglycemic crises in adults with diabetes: a consensus report. Diabetes Care 2024;47:1257-1275. Precipitating causes.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://diabetesjournals.org/care/article/47/8/1257/156808"
+    },
+    "AHA-TIA-2009": {
+      "citation": "Easton JD, et al. Definition and evaluation of transient ischemic attack. Stroke 2009;40:2276-2293 (tissue-based definition).",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.ahajournals.org/doi/10.1161/STROKEAHA.108.192218"
+    },
+    "ATS-IDSA-HAP-2016": {
+      "citation": "Kalil AC, et al. Management of adults with hospital-acquired and ventilator-associated pneumonia: 2016 IDSA/ATS guidelines. Clin Infect Dis 2016;63:e61. HAP: pneumonia not incubating at admission, occurring 48 hours or more after admission.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://academic.oup.com/cid/article/63/5/e61/2237650"
+    },
+    "BTS-CURB65": {
+      "citation": "British Thoracic Society. Guidelines for the management of community acquired pneumonia in adults (2009 update): CURB65. As summarised by RCEMLearning.",
+      "status": "read today",
+      "url": "https://www.rcemlearning.co.uk/modules/community-acquired-pneumonia-in-adults/lessons/clinical-assessment-31/topic/risk-stratification/"
+    },
+    "ESC-ACS-2023": {
+      "citation": "Byrne RA, et al. 2023 ESC Guidelines for the management of acute coronary syndromes. Eur Heart J 2023;44:3720-3826. Sections 2.1 and 3.2.",
+      "status": "read today",
+      "url": "https://academic.oup.com/eurheartj/article/44/38/3720/7243210"
+    },
+    "ESC-HF-2021": {
+      "citation": "McDonagh TA, et al. 2021 ESC Guidelines for acute and chronic heart failure. Eur Heart J 2021;42:3599-3726. HFrEF LVEF ≤40%, HFmrEF 41-49%, HFpEF ≥50% (as quoted in the 2026 guideline).",
+      "status": "read today",
+      "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045"
+    },
+    "ESC-HF-2026": {
+      "citation": "2026 ESC Guidelines for the management of heart failure. Eur Heart J, published 28 August 2026 (doi:10.1093/eurheartj/ehag100). Section 3.3.1: HFmrEF removed; HFrEF LVEF <50%, HFpEF LVEF ≥50%.",
+      "status": "read today",
+      "url": "https://academic.oup.com/eurheartj/advance-article/doi/10.1093/eurheartj/ehag100/8766302"
+    },
+    "HTN-EMERG": {
+      "citation": "Hypertensive emergency definitions: ESC Council on Hypertension position document (van den Born BH, et al. Eur Heart J Cardiovasc Pharmacother 2019;5:37-46); 2023 ESH guideline section 16; Uganda Integrated Guidelines for the Management of NCDs 2019, section 4 (MedSync claims H11 and H1-39).",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": ""
+    },
+    "HTN-ISH-2020": {
+      "citation": "Unger T, et al. 2020 International Society of Hypertension Global Hypertension Practice Guidelines. Hypertension 2020;75:1334-1357. Table 1 (classification) and section on hypertensive emergencies.",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": "https://www.ahajournals.org/doi/10.1161/HYPERTENSIONAHA.120.15026"
+    },
+    "INTERHEART-2004": {
+      "citation": "Yusuf S, et al. Effect of potentially modifiable risk factors associated with myocardial infarction in 52 countries (INTERHEART). Lancet 2004;364:937-952.",
+      "status": "cited from a standard reference, not opened today",
+      "url": ""
+    },
+    "INTERSTROKE-2016": {
+      "citation": "O'Donnell MJ, et al. Global and regional effects of potentially modifiable risk factors associated with acute stroke in 32 countries (INTERSTROKE). Lancet 2016;388:761-775.",
+      "status": "cited from a standard reference, not opened today",
+      "url": ""
+    },
+    "KDIGO-AKI-2012": {
+      "citation": "KDIGO Clinical Practice Guideline for Acute Kidney Injury. Kidney Int Suppl 2012;2:1-138. Section 2.1 (definition and staging).",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": "https://kdigo.org/guidelines/acute-kidney-injury/"
+    },
+    "KDIGO-CKD-2024": {
+      "citation": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD. Kidney Int 2024;105(4S). GFR categories G1-G5 and albuminuria categories A1-A3.",
+      "status": "read today",
+      "url": "https://www.kidney.org/how-to-classify-ckd"
+    },
+    "TEXTBOOK": {
+      "citation": "Standard internal medicine reference (for example Davidson's Principles and Practice of Medicine, 24th ed., 2023, the relevant chapter). The CSO confirms the link or replaces this with the UCG 2023 section.",
+      "status": "cited from a standard reference, not opened today",
+      "url": ""
+    },
+    "UDMI-2018": {
+      "citation": "Thygesen K, et al. Fourth Universal Definition of Myocardial Infarction (2018). Circulation 2018;138:e618-e651. Sections 26-27 and Table 2.",
+      "status": "read today",
+      "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000617"
+    },
+    "UG-EMNCC-2022": {
+      "citation": "Ministry of Health Uganda. Essential Maternal and Newborn Clinical Care Guidelines for Uganda, May 2022. Hypertensive disorders in pregnancy, printed p. 22 (definitions and severe features); aspirin risk factors.",
+      "status": "read in the hypertension research, 6 October 2026",
+      "url": "https://safemama.health.go.ug/"
+    },
+    "WHO-AHD-2017": {
+      "citation": "WHO. Guidelines for managing advanced HIV disease and rapid initiation of antiretroviral therapy. 2017. Definition of advanced HIV disease.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/9789241550062"
+    },
+    "WHO-CRYPTO-2022": {
+      "citation": "WHO. Guidelines for diagnosing, preventing and managing cryptococcal disease among adults, adolescents and children living with HIV. 2022.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/9789240052178"
+    },
+    "WHO-DM-2019": {
+      "citation": "WHO. Classification of diabetes mellitus. Geneva: WHO; 2019. Reuse the diabetes pack's signed REF-DM entries; do not restate numbers here.",
+      "status": "already signed in the diabetes pack",
+      "url": "https://www.who.int/publications/i/item/classification-of-diabetes-mellitus"
+    },
+    "WHO-HB-2024": {
+      "citation": "WHO. Guideline on haemoglobin cutoffs to define anaemia in individuals and populations. Geneva: WHO; 2024. Table 3 (severity in individuals).",
+      "status": "read today",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK602183/table/fm-ch1.tab2/"
+    },
+    "WHO-HIP-2013": {
+      "citation": "WHO. Diagnostic criteria and classification of hyperglycaemia first detected in pregnancy. 2013. Reuse the diabetes pack's signed REF-DM entries.",
+      "status": "already signed in the diabetes pack",
+      "url": "https://www.who.int/publications/i/item/WHO-NMH-MND-13.2"
+    },
+    "WHO-MAL-GL": {
+      "citation": "WHO Guidelines for malaria (current consolidated version): parasitological confirmation before treatment; clinical features of severe malaria including prostration and multiple convulsions.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/guidelines-for-malaria"
+    },
+    "WHO-MENING-2025": {
+      "citation": "WHO. Guidelines on meningitis diagnosis, treatment and care. 2025.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/publications/i/item/9789240108042"
+    },
+    "WHO-SM-2014": {
+      "citation": "WHO. Severe malaria. Trop Med Int Health 2014;19(Suppl 1):7-131. Table 4 (definition of severe falciparum malaria, p. 11); Section 2 (cerebral malaria, p. 12) and Section 4 (p. 27).",
+      "status": "read today",
+      "url": "https://www.severemalaria.org/sites/default/files/content/document/who-severe-malaria-tmih-supplement-2014_0.pdf"
+    },
+    "WHO-TB-DEF": {
+      "citation": "WHO consolidated guidelines on tuberculosis: definitions (NCBI Bookshelf NBK579383); WHO Definitions and reporting framework for tuberculosis, 2013 revision.",
+      "status": "read today",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK579383/"
+    },
+    "WHO-TB-RISK": {
+      "citation": "WHO Global Tuberculosis Report (2024 edition): TB cases attributable to five risk factors: undernutrition, HIV infection, alcohol use disorders, smoking and diabetes.",
+      "status": "cited from a standard reference, not opened today",
+      "url": "https://www.who.int/teams/global-tuberculosis-programme/tb-reports"
+    }
+  },
+  "signoff": {
+    "signedBy": "CSO (owner)",
+    "signedOn": "2026-10-09",
+    "decision": "Signed as drafted (GATE A, BRIEF-DX-RELATIONS)."
+  }
+}

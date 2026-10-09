@@ -1,0 +1,240 @@
+{
+ "catalogue": "REF-DX-TERMS",
+ "version": "1.2.0",
+ "addendum_to": "1.1",
+ "source": "docs/emr/dx-relations/dx-proposed-terms.v1.json (BRIEF-DX-RELATIONS)",
+ "classification": {
+  "system": "ICD-11 MMS",
+  "release": "2026-01",
+  "api": "https://id.who.int/icd/release/11/2026-01/mms"
+ },
+ "verified_on": "2026-10-09",
+ "signed": {
+  "on": "2026-10-09",
+  "by": "CSO (owner)",
+  "record": "docs/emr/dx-relations/gate-a-signoff.json; codes signed 'Sign all as verified'"
+ },
+ "corrections": [
+  {
+   "id": "dx.meningitis_viral",
+   "proposed": "1D01.1",
+   "why": "1D01.1 is Fungal meningitis on the WHO API; WHO's own code is 1C8E.Z"
+  },
+  {
+   "id": "dx.hypertensive_emergency",
+   "proposed": "BA03.1",
+   "why": "BA03.1 does not exist; BA03 'Hypertensive crisis' lists 'Hypertensive emergency' as an index term"
+  },
+  {
+   "id": "dx.severe_hypertension_no_aod",
+   "proposed": "BA03.0",
+   "why": "BA03.0 does not exist; BA03 lists 'hypertensive crisis without acute organ damage' and 'Hypertensive urgency'"
+  },
+  {
+   "id": "dx.pneumonia_community",
+   "proposed": "CA40.Z",
+   "why": "WHO's search gives the post-coordinated CA40.Z&XB22 'Community acquired pneumonia'"
+  },
+  {
+   "id": "dx.pneumonia_hospital",
+   "proposed": "CA40.Z",
+   "why": "WHO's search gives the post-coordinated CA40.Z&XB25 'Nosocomially acquired pneumonia'"
+  }
+ ],
+ "terms": [
+  {
+   "id": "dx.anaemia",
+   "display": "Anaemia",
+   "synonyms": [],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "disease",
+   "category": "haematology",
+   "icd11": {
+    "code": "3A9Z",
+    "title": "Anaemias or other erythrocyte disorders, unspecified",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.stemi",
+   "display": "ST-elevation myocardial infarction (STEMI)",
+   "synonyms": [
+    "STEMI",
+    "ST elevation MI"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "acute_event",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BA41.0",
+    "title": "Acute ST elevation myocardial infarction",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.nste_acs",
+   "display": "Acute coronary syndrome without ST-elevation (NSTE-ACS)",
+   "synonyms": [
+    "NSTE-ACS"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "acute_event",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BA4Z",
+    "title": "Acute ischaemic heart disease, unspecified",
+    "match": "index"
+   }
+  },
+  {
+   "id": "dx.nstemi",
+   "display": "Non-ST-elevation myocardial infarction (NSTEMI)",
+   "synonyms": [
+    "NSTEMI",
+    "non-ST elevation MI"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "acute_event",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BA41.1",
+    "title": "Acute non-ST elevation myocardial infarction",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.unstable_angina",
+   "display": "Unstable angina",
+   "synonyms": [],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "acute_event",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BA40.0",
+    "title": "Unstable angina",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.hfref",
+   "display": "Heart failure with reduced ejection fraction (HFrEF)",
+   "synonyms": [
+    "HFrEF"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "kind": "syndrome",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BD11.2",
+    "title": "Left ventricular failure with reduced ejection fraction",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.hfpef",
+   "display": "Heart failure with preserved ejection fraction (HFpEF)",
+   "synonyms": [
+    "HFpEF"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "kind": "syndrome",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BD11.0",
+    "title": "Left ventricular failure with preserved ejection fraction",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.pneumonia_community",
+   "display": "Community-acquired pneumonia",
+   "synonyms": [
+    "CAP"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "disease",
+   "category": "infection",
+   "icd11": {
+    "code": "CA40.Z&XB22",
+    "title": "Community acquired pneumonia",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.pneumonia_hospital",
+   "display": "Hospital-acquired pneumonia",
+   "synonyms": [
+    "HAP",
+    "nosocomial pneumonia"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "disease",
+   "category": "infection",
+   "icd11": {
+    "code": "CA40.Z&XB25",
+    "title": "Nosocomially acquired pneumonia",
+    "match": "title"
+   }
+  },
+  {
+   "id": "dx.hypertensive_emergency",
+   "display": "Hypertensive emergency",
+   "synonyms": [],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "acute_event",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BA03",
+    "title": "Hypertensive crisis",
+    "match": "index"
+   }
+  },
+  {
+   "id": "dx.severe_hypertension_no_aod",
+   "display": "Severe hypertension without acute organ damage",
+   "synonyms": [
+    "hypertensive urgency"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "syndrome",
+   "category": "cardiovascular",
+   "icd11": {
+    "code": "BA03",
+    "title": "Hypertensive crisis",
+    "match": "index"
+   }
+  },
+  {
+   "id": "dx.meningitis_viral",
+   "display": "Viral meningitis",
+   "synonyms": [],
+   "chronic": false,
+   "sensitivity": "standard",
+   "kind": "disease",
+   "category": "infection",
+   "icd11": {
+    "code": "1C8E.Z",
+    "title": "Viral meningitis, unspecified",
+    "match": "title"
+   }
+  }
+ ],
+ "held": [
+  {
+   "id": "dx.hfmref",
+   "display": "Heart failure with mildly reduced ejection fraction (HFmrEF)",
+   "reason": "D-REL-13: kept unsigned (ESC 2026 removed HFmrEF); WHO code BD11.1 verified but not seeded"
+  }
+ ]
+}

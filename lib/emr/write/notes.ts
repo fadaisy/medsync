@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import type { WriteCtx } from "./context";
+import type { StageInput } from "./diagnoses";
 import type { ObservationInput } from "./facts";
 import type { WriteResult } from "./orders";
 import type { ClinicalNote } from "@/db/schema/emr";
@@ -18,6 +19,7 @@ import {
   clinicalConcepts,
   clinicalNoteEvents,
   clinicalNotes,
+  conditionRelations,
   medicationStatements,
 } from "@/db/schema/emr";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
@@ -52,7 +54,7 @@ import { CONCEPTS } from "@/lib/facts/catalogue.generated";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { captureFromNote, factsFromCapture } from "@/lib/ncd/cfc-map";
 import { EmrWriteError, stampActivity } from "./context";
-import { loadEncounterDiagnoses } from "./diagnoses";
+import { loadEncounterDiagnoses, writeStages } from "./diagnoses";
 import {
   insertObservations,
   recordProblem,
@@ -423,6 +425,8 @@ export interface SignNoteInput {
   revision?: number;
   /** Concepts whose unit-mismatch or plausibility question the clinician confirmed at signing. */
   confirmed?: string[];
+  /** The severity stages the desk computed (D-REL-14); a changed one is written as a version. */
+  stages?: StageInput[];
 }
 
 export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<WriteResult> {
@@ -441,13 +445,43 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
   const snapshotted =
     content.schema === 2 && typeof content.impression === "object" && content.impression !== null;
   if (snapshotted) {
+    // D-REL-14: changed stages first, so the snapshot names the versions that carry them.
+    await writeStages(ctx, {
+      hospitalId: note.hospitalId,
+      patientUserId: note.patientUserId,
+      encounterId: note.encounterId,
+      stages: input.stages ?? [],
+      keyPrefix: note.id,
+    });
     const dx = await loadEncounterDiagnoses(ctx.tx, {
       hospitalId: note.hospitalId,
       patientUserId: note.patientUserId,
       encounterId: note.encounterId,
     });
+    // DXV-13: a cause link the system retired (its cause ruled out or in error) on one of these
+    // diagnoses holds the signature until the draft acknowledges it.
+    const causeRemoved = dx.length
+      ? await ctx.tx
+          .select({
+            logicalId: conditionRelations.logicalId,
+            conditionId: conditionRelations.conditionId,
+          })
+          .from(conditionRelations)
+          .where(
+            and(
+              eq(conditionRelations.patientUserId, note.patientUserId),
+              eq(conditionRelations.origin, "system_end_removed"),
+              eq(conditionRelations.relationType, "due_to"),
+              inArray(
+                conditionRelations.conditionId,
+                dx.map((d) => d.logicalId),
+              ),
+              sql`NOT EXISTS (SELECT 1 FROM public.condition_relations s WHERE s.supersedes_id = ${conditionRelations.id})`,
+            ),
+          )
+      : [];
     // D-SI-06: a must-not-miss marked unlikely holds the signature until it has its reason.
-    const blocks = impressionSignBlocks(dx, content.impression, DX_INDEX, DX_SIGNOFF);
+    const blocks = impressionSignBlocks(dx, content.impression, DX_INDEX, DX_SIGNOFF, causeRemoved);
     if (blocks.length) throw invalid(`Not ready to sign: ${blocks.join("; ")}.`);
     content = {
       ...content,

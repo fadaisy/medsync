@@ -53,8 +53,8 @@ import { FamilyBody, SocialBody } from "./family-social";
 import { FlagsPanel } from "./flags-panel";
 import { ComplaintBody, HistoryBody } from "./history-sections";
 import { DetailsBody } from "./impression/details";
-import { ImpressionStep } from "./impression/impression-step";
 import { deriveImpression } from "./impression/model";
+import { RefinedImpressionStep } from "./impression/refine-slots";
 import {
   BLURB,
   bodyRows,
@@ -719,7 +719,9 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           {slots.impression ? (
             <div className="max-sm:px-4 max-sm:pt-4">{slots.impression}</div>
           ) : null}
-          <ImpressionStep
+          <RefinedImpressionStep
+            orders={p.orders}
+            gestationWeeks={p.clerking?.exam.gestationWeeks ?? null}
             si={si}
             v={imp}
             dx={props.dx ?? null}

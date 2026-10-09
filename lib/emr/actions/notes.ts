@@ -54,6 +54,19 @@ const SignNote = z.object({
   noteId: uuid,
   revision: z.number().int().min(0).optional(),
   confirmed: z.array(z.string().max(80)).max(50).optional(),
+  // D-REL-14: computed stages only (an insufficient one has no code and is refused here).
+  stages: z
+    .array(
+      z.strictObject({
+        logicalId: uuid,
+        scale: z.string().trim().min(1).max(80),
+        code: z.string().trim().min(1).max(20),
+        words: z.string().trim().min(1).max(120),
+        source: z.string().trim().min(1).max(200),
+      }),
+    )
+    .max(30)
+    .optional(),
 });
 const NoteAct = z.object({ ...base, noteId: uuid, clientKey });
 const CosignNote = NoteAct.extend({ reviewNote: z.string().trim().max(1000).optional() });

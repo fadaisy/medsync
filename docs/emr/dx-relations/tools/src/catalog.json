@@ -1,0 +1,4304 @@
+{
+  "dx": [
+    {
+      "id": "dx.aaa_rupture",
+      "display": "Ruptured abdominal aortic aneurysm",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BD50.41",
+      "mnm": true,
+      "complications": ["dx.hypovolaemic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.pocus_lung_cardiac",
+        "test.ultrasound_abdomen",
+        "test.ct_abdomen",
+        "test.blood_group",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.acs",
+      "display": "Acute coronary syndrome",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BA4Z",
+      "mnm": true,
+      "complications": [
+        "dx.cardiogenic_shock",
+        "dx.heart_failure_acute",
+        "dx.ventricular_arrhythmia"
+      ],
+      "goes_with": [],
+      "tests": ["test.ecg", "test.troponin", "test.echo", "test.chest_xray"]
+    },
+    {
+      "id": "dx.acute_limb_ischaemia",
+      "display": "Acute limb ischaemia",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BD30.Z",
+      "mnm": true,
+      "complications": ["dx.rhabdomyolysis"],
+      "goes_with": ["dx.af", "dx.rheumatic_heart_disease", "dx.pad"],
+      "tests": ["test.ecg", "test.echo", "test.ck", "test.urea_electrolytes", "test.coag_screen"]
+    },
+    {
+      "id": "dx.af",
+      "display": "Atrial fibrillation",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BC81.3Z",
+      "mnm": false,
+      "complications": ["dx.stroke_ischaemic", "dx.heart_failure_acute", "dx.acute_limb_ischaemia"],
+      "goes_with": ["dx.rheumatic_heart_disease", "dx.thyrotoxicosis", "dx.cardiomyopathy"],
+      "tests": ["test.ecg", "test.echo", "test.thyroid", "test.urea_electrolytes"]
+    },
+    {
+      "id": "dx.angina_stable",
+      "display": "Stable angina",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BA40.1",
+      "mnm": false,
+      "complications": ["dx.acs"],
+      "goes_with": ["dx.dyslipidaemia", "dx.pad"],
+      "tests": ["test.ecg", "test.lipid_panel", "test.hba1c", "test.fbc", "test.echo"]
+    },
+    {
+      "id": "dx.aortic_dissection",
+      "display": "Aortic dissection",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BD50.Z",
+      "mnm": true,
+      "complications": ["dx.cardiac_tamponade", "dx.stroke_ischaemic"],
+      "goes_with": [],
+      "tests": [
+        "test.ct_aortogram",
+        "test.echo",
+        "test.chest_xray",
+        "test.ecg",
+        "test.d_dimer",
+        "test.blood_group"
+      ]
+    },
+    {
+      "id": "dx.aortic_stenosis",
+      "display": "Aortic stenosis",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BB70.Z",
+      "mnm": false,
+      "complications": ["dx.angina_stable", "dx.heart_failure", "dx.infective_endocarditis"],
+      "goes_with": ["dx.rheumatic_heart_disease"],
+      "tests": ["test.echo", "test.ecg", "test.chest_xray"]
+    },
+    {
+      "id": "dx.cardiac_tamponade",
+      "display": "Cardiac tamponade",
+      "kind": "complication",
+      "category": "cardiovascular",
+      "icd11": "BB23",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.echo", "test.pocus_lung_cardiac", "test.ecg", "test.chest_xray"]
+    },
+    {
+      "id": "dx.cardiogenic_shock",
+      "display": "Cardiogenic shock",
+      "kind": "complication",
+      "category": "cardiovascular",
+      "icd11": "MG40.0",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ecg",
+        "test.echo",
+        "test.pocus_lung_cardiac",
+        "test.troponin",
+        "test.lactate",
+        "test.blood_gas"
+      ]
+    },
+    {
+      "id": "dx.cardiomyopathy",
+      "display": "Cardiomyopathy",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BC43.Z",
+      "mnm": false,
+      "complications": [
+        "dx.heart_failure",
+        "dx.heart_failure_acute",
+        "dx.af",
+        "dx.ventricular_arrhythmia"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.echo",
+        "test.ecg",
+        "test.bnp",
+        "test.chest_xray",
+        "test.thyroid",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.dvt",
+      "display": "Deep vein thrombosis",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BD71.4",
+      "mnm": true,
+      "complications": ["dx.pulmonary_embolism"],
+      "goes_with": [],
+      "tests": ["test.ultrasound_doppler_venous", "test.d_dimer"]
+    },
+    {
+      "id": "dx.heart_block",
+      "display": "Complete heart block",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BC63.2Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ecg", "test.urea_electrolytes", "test.troponin", "test.thyroid", "test.echo"]
+    },
+    {
+      "id": "dx.heart_failure",
+      "display": "Heart failure",
+      "kind": "syndrome",
+      "category": "cardiovascular",
+      "icd11": "BD1Z",
+      "mnm": false,
+      "complications": ["dx.heart_failure_acute"],
+      "goes_with": ["dx.cardiomyopathy", "dx.rheumatic_heart_disease", "dx.hypertension", "dx.af"],
+      "tests": [
+        "test.echo",
+        "test.bnp",
+        "test.ecg",
+        "test.chest_xray",
+        "test.urea_electrolytes",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.heart_failure_acute",
+      "display": "Acute decompensated heart failure",
+      "kind": "syndrome",
+      "category": "cardiovascular",
+      "icd11": "BD1Z",
+      "mnm": true,
+      "complications": ["dx.cardiogenic_shock"],
+      "goes_with": ["dx.acs", "dx.af", "dx.hypertensive_crisis", "dx.cardiomyopathy"],
+      "tests": [
+        "test.chest_xray",
+        "test.ecg",
+        "test.troponin",
+        "test.bnp",
+        "test.echo",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.hypertension",
+      "display": "Hypertension",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BA00.Z",
+      "mnm": false,
+      "complications": ["dx.hypertensive_crisis", "dx.ckd", "dx.heart_failure", "dx.stroke"],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.creatinine",
+        "test.uacr",
+        "test.ecg",
+        "test.hba1c",
+        "test.lipid_panel"
+      ]
+    },
+    {
+      "id": "dx.hypertensive_crisis",
+      "display": "Hypertensive crisis",
+      "kind": "syndrome",
+      "category": "cardiovascular",
+      "icd11": "BA03",
+      "mnm": true,
+      "complications": [
+        "dx.stroke_haemorrhagic",
+        "dx.aortic_dissection",
+        "dx.heart_failure_acute",
+        "dx.aki"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.urea_electrolytes",
+        "test.ecg",
+        "test.troponin",
+        "test.ct_head",
+        "test.pregnancy_urine"
+      ]
+    },
+    {
+      "id": "dx.hypovolaemic_shock",
+      "display": "Hypovolaemic shock",
+      "kind": "complication",
+      "category": "cardiovascular",
+      "icd11": "MG40.1",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_group",
+        "test.lactate",
+        "test.pocus_lung_cardiac",
+        "test.pregnancy_urine",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.orthostatic_hypotension",
+      "display": "Orthostatic hypotension",
+      "kind": "syndrome",
+      "category": "cardiovascular",
+      "icd11": "BA21",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.fbc", "test.urea_electrolytes", "test.ecg"]
+    },
+    {
+      "id": "dx.pad",
+      "display": "Peripheral arterial disease",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BD4Z",
+      "mnm": false,
+      "complications": ["dx.acute_limb_ischaemia"],
+      "goes_with": ["dx.diabetic_foot", "dx.angina_stable", "dx.dyslipidaemia"],
+      "tests": ["test.lipid_panel", "test.hba1c"]
+    },
+    {
+      "id": "dx.pericardial_effusion",
+      "display": "Pericardial effusion",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BB25",
+      "mnm": false,
+      "complications": ["dx.cardiac_tamponade"],
+      "goes_with": ["dx.ckd"],
+      "tests": [
+        "test.echo",
+        "test.pocus_lung_cardiac",
+        "test.chest_xray",
+        "test.ecg",
+        "test.hiv_rapid",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.pericarditis",
+      "display": "Acute pericarditis",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BB20.Z",
+      "mnm": false,
+      "complications": ["dx.pericardial_effusion", "dx.cardiac_tamponade"],
+      "goes_with": ["dx.ckd"],
+      "tests": [
+        "test.ecg",
+        "test.echo",
+        "test.troponin",
+        "test.crp",
+        "test.chest_xray",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.pulmonary_embolism",
+      "display": "Pulmonary embolism",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BB00.Z",
+      "mnm": true,
+      "complications": ["dx.respiratory_failure", "dx.pulmonary_hypertension"],
+      "goes_with": ["dx.dvt"],
+      "tests": [
+        "test.d_dimer",
+        "test.ct_chest_ctpa",
+        "test.ultrasound_doppler_venous",
+        "test.echo",
+        "test.pocus_lung_cardiac",
+        "test.ecg"
+      ]
+    },
+    {
+      "id": "dx.pulmonary_hypertension",
+      "display": "Pulmonary hypertension",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BB01.Z",
+      "mnm": false,
+      "complications": ["dx.heart_failure"],
+      "goes_with": [
+        "dx.rheumatic_heart_disease",
+        "dx.post_tb_lung_disease",
+        "dx.copd",
+        "dx.schistosomiasis"
+      ],
+      "tests": [
+        "test.echo",
+        "test.ecg",
+        "test.chest_xray",
+        "test.ct_chest_ctpa",
+        "test.schisto_tests",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.rheumatic_fever",
+      "display": "Acute rheumatic fever",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "1B40.Z",
+      "mnm": false,
+      "complications": ["dx.rheumatic_heart_disease"],
+      "goes_with": [],
+      "tests": ["test.esr", "test.crp", "test.ecg", "test.echo"]
+    },
+    {
+      "id": "dx.rheumatic_heart_disease",
+      "display": "Rheumatic heart disease",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BC20.Z",
+      "mnm": false,
+      "complications": [
+        "dx.af",
+        "dx.heart_failure",
+        "dx.infective_endocarditis",
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": [],
+      "tests": ["test.echo", "test.ecg", "test.chest_xray"]
+    },
+    {
+      "id": "dx.svt",
+      "display": "Supraventricular tachycardia",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "BC81.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ecg", "test.thyroid", "test.urea_electrolytes", "test.echo"]
+    },
+    {
+      "id": "dx.vasovagal_syncope",
+      "display": "Vasovagal syncope",
+      "kind": "disease",
+      "category": "cardiovascular",
+      "icd11": "8D89.0",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ecg", "test.capillary_glucose", "test.fbc"]
+    },
+    {
+      "id": "dx.ventricular_arrhythmia",
+      "display": "Ventricular tachycardia or other malignant arrhythmia",
+      "kind": "acute_event",
+      "category": "cardiovascular",
+      "icd11": "BC71.Z",
+      "mnm": true,
+      "complications": ["dx.cardiogenic_shock"],
+      "goes_with": ["dx.cardiomyopathy"],
+      "tests": [
+        "test.ecg",
+        "test.urea_electrolytes",
+        "test.calcium_mg_phos",
+        "test.troponin",
+        "test.echo"
+      ]
+    },
+    {
+      "id": "dx.adrenal_insufficiency",
+      "display": "Adrenal insufficiency",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5A74.Z",
+      "mnm": true,
+      "complications": ["dx.hypoglycaemia_no_dm", "dx.hyponatraemia", "dx.hyperkalaemia"],
+      "goes_with": ["dx.tb_extrapulmonary"],
+      "tests": ["test.cortisol", "test.urea_electrolytes", "test.capillary_glucose"]
+    },
+    {
+      "id": "dx.diabetic_foot",
+      "display": "Diabetic foot ulcer or infection",
+      "kind": "complication",
+      "category": "endocrine_metabolic",
+      "icd11": "BD54",
+      "mnm": false,
+      "complications": [
+        "dx.osteomyelitis",
+        "dx.necrotising_soft_tissue",
+        "dx.cellulitis",
+        "dx.sepsis"
+      ],
+      "goes_with": ["dx.pad", "dx.peripheral_neuropathy"],
+      "tests": ["test.xray_joint_bone", "test.fbc", "test.crp", "test.blood_culture", "test.hba1c"]
+    },
+    {
+      "id": "dx.dka",
+      "display": "Diabetic ketoacidosis",
+      "kind": "complication",
+      "category": "endocrine_metabolic",
+      "icd11": "5A22.0",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.sepsis"],
+      "tests": [
+        "test.ketones",
+        "test.blood_gas",
+        "test.urea_electrolytes",
+        "test.capillary_glucose",
+        "test.malaria_rdt",
+        "test.urinalysis_dipstick"
+      ]
+    },
+    {
+      "id": "dx.dm_type1",
+      "display": "Type 1 diabetes",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5A10",
+      "mnm": true,
+      "complications": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm",
+        "dx.hhs",
+        "dx.diabetic_foot",
+        "dx.diabetic_kidney_disease",
+        "dx.ckd",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.glucose_random",
+        "test.hba1c",
+        "test.ketones",
+        "test.urea_electrolytes",
+        "test.urinalysis_dipstick",
+        "test.gad_antibodies"
+      ]
+    },
+    {
+      "id": "dx.dm_type2",
+      "display": "Type 2 diabetes",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5A11",
+      "mnm": false,
+      "complications": [
+        "dx.dka",
+        "dx.hypoglycaemia_dm",
+        "dx.hhs",
+        "dx.diabetic_foot",
+        "dx.ckd",
+        "dx.diabetic_kidney_disease",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
+      ],
+      "goes_with": ["dx.obesity", "dx.dyslipidaemia", "dx.hypertension"],
+      "tests": [
+        "test.hba1c",
+        "test.glucose_fasting",
+        "test.glucose_random",
+        "test.lipid_panel",
+        "test.uacr",
+        "test.creatinine"
+      ]
+    },
+    {
+      "id": "dx.dm_type_unknown",
+      "display": "Diabetes, type not yet determined",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5A14",
+      "mnm": false,
+      "complications": [
+        "dx.dka",
+        "dx.hhs",
+        "dx.hypoglycaemia_dm",
+        "dx.diabetic_foot",
+        "dx.diabetic_kidney_disease",
+        "dx.ckd",
+        "dx.diabetic_retinopathy",
+        "dx.diabetic_neuropathy"
+      ],
+      "goes_with": ["dx.obesity", "dx.dyslipidaemia", "dx.hypertension"],
+      "tests": [
+        "test.hba1c",
+        "test.glucose_fasting",
+        "test.glucose_random",
+        "test.ketones",
+        "test.urinalysis_dipstick",
+        "test.ogtt_75g"
+      ]
+    },
+    {
+      "id": "dx.dyslipidaemia",
+      "display": "Dyslipidaemia",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5C8Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.dm_type2", "dx.hypothyroidism", "dx.nephrotic_syndrome", "dx.obesity"],
+      "tests": ["test.lipid_panel", "test.hba1c", "test.thyroid"]
+    },
+    {
+      "id": "dx.hhs",
+      "display": "Hyperosmolar hyperglycaemic state",
+      "kind": "complication",
+      "category": "endocrine_metabolic",
+      "icd11": "5A20.Z",
+      "mnm": true,
+      "complications": ["dx.aki"],
+      "goes_with": ["dx.sepsis"],
+      "tests": [
+        "test.capillary_glucose",
+        "test.urea_electrolytes",
+        "test.ketones",
+        "test.blood_gas",
+        "test.urinalysis_dipstick",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.hypercalcaemia",
+      "display": "Hypercalcaemia",
+      "kind": "syndrome",
+      "category": "endocrine_metabolic",
+      "icd11": "5B91.0",
+      "mnm": false,
+      "complications": ["dx.aki", "dx.hypernatraemia"],
+      "goes_with": [],
+      "tests": [
+        "test.calcium_mg_phos",
+        "test.urea_electrolytes",
+        "test.ecg",
+        "test.chest_xray",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.hyperglycaemia_unconfirmed",
+      "display": "Raised blood glucose, not yet a diagnosis",
+      "kind": "symptom_level",
+      "category": "endocrine_metabolic",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.glucose_fasting", "test.hba1c"]
+    },
+    {
+      "id": "dx.hyperkalaemia",
+      "display": "Hyperkalaemia",
+      "kind": "syndrome",
+      "category": "endocrine_metabolic",
+      "icd11": "5C76",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ecg",
+        "test.urea_electrolytes",
+        "test.creatinine",
+        "test.blood_gas",
+        "test.ck"
+      ]
+    },
+    {
+      "id": "dx.hypernatraemia",
+      "display": "Hypernatraemia",
+      "kind": "syndrome",
+      "category": "endocrine_metabolic",
+      "icd11": "5C71",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.urea_electrolytes", "test.glucose_random", "test.calcium_mg_phos"]
+    },
+    {
+      "id": "dx.hypoglycaemia_dm",
+      "display": "Hypoglycaemia in a person with diabetes",
+      "kind": "complication",
+      "category": "endocrine_metabolic",
+      "icd11": "5A21.Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.aki", "dx.ckd", "dx.sepsis", "dx.malaria_severe"],
+      "tests": [
+        "test.capillary_glucose",
+        "test.glucose_random",
+        "test.urea_electrolytes",
+        "test.creatinine"
+      ]
+    },
+    {
+      "id": "dx.hypoglycaemia_no_dm",
+      "display": "Hypoglycaemia, no known diabetes",
+      "kind": "acute_event",
+      "category": "endocrine_metabolic",
+      "icd11": "5A41",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.malaria_rdt",
+        "test.blood_culture",
+        "test.lft",
+        "test.cortisol",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.hypokalaemia",
+      "display": "Hypokalaemia",
+      "kind": "syndrome",
+      "category": "endocrine_metabolic",
+      "icd11": "5C77",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.urea_electrolytes", "test.calcium_mg_phos", "test.ecg", "test.blood_gas"]
+    },
+    {
+      "id": "dx.hyponatraemia",
+      "display": "Hyponatraemia",
+      "kind": "syndrome",
+      "category": "endocrine_metabolic",
+      "icd11": "5C72",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.urea_electrolytes", "test.glucose_random", "test.thyroid", "test.cortisol"]
+    },
+    {
+      "id": "dx.hypothyroidism",
+      "display": "Hypothyroidism",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5A00.Z",
+      "mnm": false,
+      "complications": ["dx.myxoedema_coma", "dx.dyslipidaemia", "dx.hyponatraemia"],
+      "goes_with": [],
+      "tests": ["test.thyroid", "test.urea_electrolytes", "test.lipid_panel"]
+    },
+    {
+      "id": "dx.intermediate_hyperglycaemia",
+      "display": "Intermediate hyperglycaemia (borderline blood sugar)",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.obesity", "dx.hypertension"],
+      "tests": ["test.ogtt_75g", "test.glucose_fasting", "test.lipid_panel"]
+    },
+    {
+      "id": "dx.myxoedema_coma",
+      "display": "Myxoedema coma",
+      "kind": "complication",
+      "category": "endocrine_metabolic",
+      "icd11": "5A00.21",
+      "mnm": true,
+      "complications": ["dx.hyponatraemia"],
+      "goes_with": ["dx.adrenal_insufficiency", "dx.sepsis"],
+      "tests": [
+        "test.thyroid",
+        "test.cortisol",
+        "test.urea_electrolytes",
+        "test.capillary_glucose",
+        "test.blood_gas",
+        "test.core_temperature"
+      ]
+    },
+    {
+      "id": "dx.obesity",
+      "display": "Obesity",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5B81.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.dm_type2", "dx.hypertension", "dx.dyslipidaemia", "dx.gord"],
+      "tests": ["test.hba1c", "test.lipid_panel"]
+    },
+    {
+      "id": "dx.steroid_induced_hyperglycaemia",
+      "display": "Raised blood glucose on steroid treatment",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.glucose_random"]
+    },
+    {
+      "id": "dx.thyroid_storm",
+      "display": "Thyroid storm",
+      "kind": "complication",
+      "category": "endocrine_metabolic",
+      "icd11": "5A02.5",
+      "mnm": true,
+      "complications": ["dx.af", "dx.heart_failure_acute"],
+      "goes_with": ["dx.sepsis"],
+      "tests": [
+        "test.thyroid",
+        "test.ecg",
+        "test.lft",
+        "test.malaria_rdt",
+        "test.blood_culture",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.thyrotoxicosis",
+      "display": "Thyrotoxicosis",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5A02.Z",
+      "mnm": false,
+      "complications": ["dx.thyroid_storm", "dx.af", "dx.heart_failure"],
+      "goes_with": [],
+      "tests": ["test.thyroid", "test.ecg"]
+    },
+    {
+      "id": "dx.undernutrition",
+      "display": "Undernutrition",
+      "kind": "disease",
+      "category": "endocrine_metabolic",
+      "icd11": "5B7Z",
+      "mnm": false,
+      "complications": ["dx.wernicke", "dx.hypoglycaemia_no_dm", "dx.hypokalaemia"],
+      "goes_with": ["dx.hiv_advanced"],
+      "tests": [
+        "test.hiv_rapid",
+        "test.tb_xpert",
+        "test.fbc",
+        "test.urea_electrolytes",
+        "test.calcium_mg_phos"
+      ]
+    },
+    {
+      "id": "dx.bppv",
+      "display": "Benign paroxysmal positional vertigo",
+      "kind": "disease",
+      "category": "ent_eye",
+      "icd11": "AB31.2",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.conjunctivitis",
+      "display": "Conjunctivitis",
+      "kind": "disease",
+      "category": "ent_eye",
+      "icd11": "9A60.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.dental_abscess",
+      "display": "Dental abscess",
+      "kind": "disease",
+      "category": "ent_eye",
+      "icd11": "DA09.6Z",
+      "mnm": false,
+      "complications": ["dx.cellulitis", "dx.upper_airway_obstruction", "dx.sepsis"],
+      "goes_with": [],
+      "tests": ["test.fbc", "test.glucose_random"]
+    },
+    {
+      "id": "dx.diabetic_retinopathy",
+      "display": "Diabetic retinopathy",
+      "kind": "complication",
+      "category": "ent_eye",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hypertension"],
+      "tests": ["test.retinal_photograph", "test.hba1c"]
+    },
+    {
+      "id": "dx.otitis_media_acute",
+      "display": "Acute otitis media",
+      "kind": "disease",
+      "category": "ent_eye",
+      "icd11": "AB00",
+      "mnm": false,
+      "complications": ["dx.meningitis_bacterial", "dx.cvst", "dx.bells_palsy"],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.tonsillitis",
+      "display": "Acute tonsillitis",
+      "kind": "disease",
+      "category": "ent_eye",
+      "icd11": "CA03.Z",
+      "mnm": false,
+      "complications": ["dx.rheumatic_fever", "dx.upper_airway_obstruction"],
+      "goes_with": [],
+      "tests": ["test.fbc"]
+    },
+    {
+      "id": "dx.vestibular_neuritis",
+      "display": "Vestibular neuritis or labyrinthitis",
+      "kind": "disease",
+      "category": "ent_eye",
+      "icd11": "AB30.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.acute_liver_failure",
+      "display": "Acute liver failure",
+      "kind": "syndrome",
+      "category": "gastro_hepatic",
+      "icd11": "DB91.Z",
+      "mnm": true,
+      "complications": ["dx.hepatic_encephalopathy"],
+      "goes_with": [],
+      "tests": [
+        "test.inr_pt",
+        "test.lft",
+        "test.capillary_glucose",
+        "test.hepatitis_serology",
+        "test.toxicology",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.alcoholic_hepatitis",
+      "display": "Alcohol-related hepatitis",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DB94.1Z",
+      "mnm": false,
+      "complications": ["dx.hepatic_encephalopathy"],
+      "goes_with": ["dx.liver_cirrhosis"],
+      "tests": [
+        "test.lft",
+        "test.inr_pt",
+        "test.fbc",
+        "test.hbsag",
+        "test.ultrasound_abdomen",
+        "test.blood_culture"
+      ]
+    },
+    {
+      "id": "dx.appendicitis",
+      "display": "Acute appendicitis",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DB10.02",
+      "mnm": true,
+      "complications": ["dx.perforated_viscus"],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.pregnancy_urine",
+        "test.ultrasound_abdomen",
+        "test.urinalysis_dipstick",
+        "test.crp"
+      ]
+    },
+    {
+      "id": "dx.bowel_obstruction",
+      "display": "Intestinal obstruction",
+      "kind": "acute_event",
+      "category": "gastro_hepatic",
+      "icd11": "DB30.Y",
+      "mnm": true,
+      "complications": ["dx.perforated_viscus"],
+      "goes_with": [],
+      "tests": [
+        "test.xray_abdomen",
+        "test.urea_electrolytes",
+        "test.fbc",
+        "test.lactate",
+        "test.ct_abdomen",
+        "test.blood_group"
+      ]
+    },
+    {
+      "id": "dx.cholangitis",
+      "display": "Acute cholangitis",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DC13",
+      "mnm": true,
+      "complications": ["dx.sepsis"],
+      "goes_with": [],
+      "tests": [
+        "test.ultrasound_abdomen",
+        "test.lft",
+        "test.blood_culture",
+        "test.fbc",
+        "test.malaria_rdt",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.cholecystitis",
+      "display": "Acute cholecystitis",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DC12.0Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ultrasound_abdomen",
+        "test.fbc",
+        "test.lft",
+        "test.amylase_lipase",
+        "test.crp"
+      ]
+    },
+    {
+      "id": "dx.drug_induced_liver_injury",
+      "display": "Drug-induced liver injury",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DB95.Z",
+      "mnm": true,
+      "complications": ["dx.acute_liver_failure"],
+      "goes_with": [],
+      "tests": [
+        "test.lft",
+        "test.inr_pt",
+        "test.hbsag",
+        "test.hepatitis_serology",
+        "test.ultrasound_abdomen"
+      ]
+    },
+    {
+      "id": "dx.dyspepsia",
+      "display": "Dyspepsia",
+      "kind": "syndrome",
+      "category": "gastro_hepatic",
+      "icd11": "MD92",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.fbc", "test.ogd"]
+    },
+    {
+      "id": "dx.gord",
+      "display": "Gastro-oesophageal reflux disease",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DA22.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ogd", "test.ecg"]
+    },
+    {
+      "id": "dx.hepatic_encephalopathy",
+      "display": "Hepatic encephalopathy",
+      "kind": "complication",
+      "category": "gastro_hepatic",
+      "icd11": "DB99.5",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.sbp", "dx.variceal_bleed"],
+      "tests": [
+        "test.capillary_glucose",
+        "test.urea_electrolytes",
+        "test.ascitic_tap",
+        "test.fbc",
+        "test.blood_culture",
+        "test.ct_head"
+      ]
+    },
+    {
+      "id": "dx.liver_cirrhosis",
+      "display": "Liver cirrhosis",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DB93.1",
+      "mnm": false,
+      "complications": ["dx.variceal_bleed", "dx.hepatic_encephalopathy", "dx.sbp", "dx.hcc"],
+      "goes_with": ["dx.hepatitis_b_chronic"],
+      "tests": [
+        "test.hbsag",
+        "test.hcv_ab",
+        "test.lft",
+        "test.inr_pt",
+        "test.fbc",
+        "test.ultrasound_abdomen"
+      ]
+    },
+    {
+      "id": "dx.pancreatitis_acute",
+      "display": "Acute pancreatitis",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DC31.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.amylase_lipase",
+        "test.ultrasound_abdomen",
+        "test.lft",
+        "test.urea_electrolytes",
+        "test.calcium_mg_phos",
+        "test.lipid_panel"
+      ]
+    },
+    {
+      "id": "dx.peptic_ulcer",
+      "display": "Peptic ulcer disease",
+      "kind": "disease",
+      "category": "gastro_hepatic",
+      "icd11": "DA61",
+      "mnm": false,
+      "complications": ["dx.perforated_viscus"],
+      "goes_with": [],
+      "tests": ["test.ogd", "test.fbc", "test.blood_group"]
+    },
+    {
+      "id": "dx.perforated_viscus",
+      "display": "Perforated viscus",
+      "kind": "acute_event",
+      "category": "gastro_hepatic",
+      "icd11": "ME24.3Z",
+      "mnm": true,
+      "complications": ["dx.sepsis", "dx.septic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.chest_xray",
+        "test.xray_abdomen",
+        "test.fbc",
+        "test.urea_electrolytes",
+        "test.blood_culture",
+        "test.blood_group"
+      ]
+    },
+    {
+      "id": "dx.sbp",
+      "display": "Spontaneous bacterial peritonitis",
+      "kind": "complication",
+      "category": "gastro_hepatic",
+      "icd11": "DC50.00",
+      "mnm": true,
+      "complications": ["dx.hepatic_encephalopathy", "dx.sepsis", "dx.aki"],
+      "goes_with": [],
+      "tests": [
+        "test.ascitic_tap",
+        "test.blood_culture",
+        "test.fbc",
+        "test.urea_electrolytes",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.variceal_bleed",
+      "display": "Variceal bleeding",
+      "kind": "complication",
+      "category": "gastro_hepatic",
+      "icd11": "DA26.00",
+      "mnm": true,
+      "complications": ["dx.hepatic_encephalopathy", "dx.sbp", "dx.hypovolaemic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.ogd",
+        "test.fbc",
+        "test.blood_group",
+        "test.inr_pt",
+        "test.urea_electrolytes",
+        "test.lft"
+      ]
+    },
+    {
+      "id": "dx.dic",
+      "display": "Disseminated intravascular coagulation",
+      "kind": "complication",
+      "category": "haematology",
+      "icd11": "3B20",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.coag_screen",
+        "test.fbc",
+        "test.blood_film",
+        "test.wbct20",
+        "test.d_dimer",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.haemolytic_anaemia",
+      "display": "Haemolytic anaemia",
+      "kind": "disease",
+      "category": "haematology",
+      "icd11": "-",
+      "mnm": false,
+      "complications": ["dx.aki"],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_film",
+        "test.reticulocytes",
+        "test.malaria_rdt",
+        "test.lft",
+        "test.hb_electrophoresis"
+      ]
+    },
+    {
+      "id": "dx.iron_deficiency_anaemia",
+      "display": "Iron-deficiency anaemia",
+      "kind": "disease",
+      "category": "haematology",
+      "icd11": "3A00.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hookworm_helminth"],
+      "tests": [
+        "test.fbc",
+        "test.ferritin_iron",
+        "test.blood_film",
+        "test.stool_mcs",
+        "test.stool_occult_blood",
+        "test.ogd"
+      ]
+    },
+    {
+      "id": "dx.megaloblastic_anaemia",
+      "display": "Megaloblastic anaemia",
+      "kind": "disease",
+      "category": "haematology",
+      "icd11": "-",
+      "mnm": false,
+      "complications": ["dx.peripheral_neuropathy", "dx.dementia"],
+      "goes_with": [],
+      "tests": ["test.fbc", "test.b12_folate", "test.blood_film", "test.reticulocytes"]
+    },
+    {
+      "id": "dx.sickle_cell_crisis",
+      "display": "Sickle cell crisis",
+      "kind": "complication",
+      "category": "haematology",
+      "icd11": "3A51.2",
+      "mnm": true,
+      "complications": ["dx.stroke"],
+      "goes_with": ["dx.malaria_severe", "dx.sepsis"],
+      "tests": [
+        "test.fbc",
+        "test.reticulocytes",
+        "test.malaria_rdt",
+        "test.blood_culture",
+        "test.chest_xray",
+        "test.blood_group"
+      ]
+    },
+    {
+      "id": "dx.sickle_cell_disease",
+      "display": "Sickle cell disease",
+      "kind": "disease",
+      "category": "haematology",
+      "icd11": "3A51.1",
+      "mnm": false,
+      "complications": ["dx.sickle_cell_crisis", "dx.cholecystitis", "dx.stroke"],
+      "goes_with": [],
+      "tests": ["test.hb_electrophoresis", "test.fbc", "test.blood_film", "test.reticulocytes"]
+    },
+    {
+      "id": "dx.thrombocytopenia",
+      "display": "Thrombocytopenia",
+      "kind": "syndrome",
+      "category": "haematology",
+      "icd11": "3B64.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_film",
+        "test.malaria_rdt",
+        "test.hiv_rapid",
+        "test.coag_screen",
+        "test.bone_marrow"
+      ]
+    },
+    {
+      "id": "dx.aspiration_pneumonia",
+      "display": "Aspiration pneumonia",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "CA71.0",
+      "mnm": false,
+      "complications": ["dx.lung_abscess_empyema", "dx.respiratory_failure"],
+      "goes_with": ["dx.stroke"],
+      "tests": ["test.chest_xray", "test.fbc", "test.blood_culture"]
+    },
+    {
+      "id": "dx.brucellosis",
+      "display": "Brucellosis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B95",
+      "mnm": false,
+      "complications": ["dx.septic_arthritis", "dx.osteomyelitis"],
+      "goes_with": [],
+      "tests": ["test.brucella_serology", "test.blood_culture", "test.malaria_rdt", "test.fbc"]
+    },
+    {
+      "id": "dx.cellulitis",
+      "display": "Cellulitis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B70.Z",
+      "mnm": false,
+      "complications": ["dx.skin_abscess", "dx.sepsis"],
+      "goes_with": ["dx.lymphatic_filariasis"],
+      "tests": [
+        "test.fbc",
+        "test.blood_culture",
+        "test.ultrasound_doppler_venous",
+        "test.capillary_glucose"
+      ]
+    },
+    {
+      "id": "dx.cerebral_toxoplasmosis",
+      "display": "Cerebral toxoplasmosis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F57.1",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.hiv_advanced"],
+      "tests": ["test.ct_head", "test.toxo_serology", "test.cd4", "test.crag", "test.hiv_rapid"]
+    },
+    {
+      "id": "dx.cholera",
+      "display": "Cholera",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1A00",
+      "mnm": true,
+      "complications": ["dx.hypovolaemic_shock", "dx.aki", "dx.hypokalaemia"],
+      "goes_with": [],
+      "tests": ["test.urea_electrolytes", "test.stool_mcs", "test.capillary_glucose"]
+    },
+    {
+      "id": "dx.covid19",
+      "display": "COVID-19",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "RA01",
+      "mnm": false,
+      "complications": ["dx.pneumonia", "dx.respiratory_failure", "dx.pulmonary_embolism"],
+      "goes_with": [],
+      "tests": ["test.covid_flu", "test.chest_xray", "test.malaria_rdt"]
+    },
+    {
+      "id": "dx.cryptococcal_meningitis",
+      "display": "Cryptococcal meningitis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F27.10",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.hiv_advanced"],
+      "tests": ["test.crag", "test.csf_analysis", "test.hiv_rapid", "test.cd4"]
+    },
+    {
+      "id": "dx.dysentery",
+      "display": "Dysentery (bloody diarrhoea)",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1A40.Z",
+      "mnm": false,
+      "complications": ["dx.liver_abscess"],
+      "goes_with": [],
+      "tests": ["test.stool_mcs", "test.fbc", "test.urea_electrolytes"]
+    },
+    {
+      "id": "dx.encephalitis",
+      "display": "Encephalitis",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1D00.Z",
+      "mnm": true,
+      "complications": ["dx.status_epilepticus"],
+      "goes_with": [],
+      "tests": [
+        "test.csf_analysis",
+        "test.ct_head",
+        "test.malaria_smear",
+        "test.capillary_glucose",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.febrile_neutropenia",
+      "display": "Febrile neutropenia",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "4B00.0Z",
+      "mnm": true,
+      "complications": ["dx.sepsis", "dx.septic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_culture",
+        "test.lactate",
+        "test.malaria_rdt",
+        "test.chest_xray",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.gastroenteritis",
+      "display": "Acute gastroenteritis",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1A40.Z",
+      "mnm": false,
+      "complications": ["dx.hypovolaemic_shock", "dx.aki"],
+      "goes_with": [],
+      "tests": ["test.urea_electrolytes", "test.malaria_rdt", "test.stool_mcs"]
+    },
+    {
+      "id": "dx.hepatitis_acute_viral",
+      "display": "Acute viral hepatitis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1E50.Z",
+      "mnm": false,
+      "complications": ["dx.acute_liver_failure", "dx.hepatitis_b_chronic"],
+      "goes_with": [],
+      "tests": [
+        "test.lft",
+        "test.hepatitis_serology",
+        "test.hbsag",
+        "test.inr_pt",
+        "test.malaria_rdt",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.hepatitis_b_chronic",
+      "display": "Chronic hepatitis B",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1E51.0Z",
+      "mnm": false,
+      "complications": ["dx.liver_cirrhosis", "dx.hcc"],
+      "goes_with": ["dx.hepatitis_c_chronic", "dx.hiv"],
+      "tests": [
+        "test.hbsag",
+        "test.lft",
+        "test.fbc",
+        "test.afp",
+        "test.ultrasound_abdomen",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.hepatitis_c_chronic",
+      "display": "Chronic hepatitis C",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1E51.1",
+      "mnm": false,
+      "complications": ["dx.liver_cirrhosis", "dx.hcc"],
+      "goes_with": ["dx.hepatitis_b_chronic", "dx.hiv"],
+      "tests": [
+        "test.hcv_ab",
+        "test.lft",
+        "test.hbsag",
+        "test.hiv_rapid",
+        "test.fbc",
+        "test.ultrasound_abdomen"
+      ]
+    },
+    {
+      "id": "dx.herpes_zoster",
+      "display": "Herpes zoster",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1E91.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hiv"],
+      "tests": ["test.hiv_rapid"]
+    },
+    {
+      "id": "dx.hiv",
+      "display": "HIV infection",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1C62.Z",
+      "mnm": false,
+      "complications": ["dx.pcp", "dx.cryptococcal_meningitis", "dx.kaposi_sarcoma"],
+      "goes_with": ["dx.tb_pulmonary_clinical"],
+      "tests": ["test.hiv_rapid", "test.cd4", "test.hiv_viral_load"]
+    },
+    {
+      "id": "dx.hiv_acute",
+      "display": "Acute HIV infection",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1C62.0",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.syphilis", "dx.sti_genital_ulcer"],
+      "tests": ["test.hiv_rapid", "test.hiv_viral_load", "test.syphilis", "test.malaria_rdt"]
+    },
+    {
+      "id": "dx.hiv_advanced",
+      "display": "Advanced HIV disease",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [
+        "dx.cryptococcal_meningitis",
+        "dx.pcp",
+        "dx.cerebral_toxoplasmosis",
+        "dx.kaposi_sarcoma",
+        "dx.oesophageal_candidiasis"
+      ],
+      "goes_with": ["dx.tb_extrapulmonary"],
+      "tests": [
+        "test.cd4",
+        "test.crag",
+        "test.tb_lam",
+        "test.hiv_viral_load",
+        "test.tb_xpert",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.hookworm_helminth",
+      "display": "Intestinal helminth infection",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F90.2",
+      "mnm": false,
+      "complications": ["dx.iron_deficiency_anaemia"],
+      "goes_with": ["dx.schistosomiasis", "dx.undernutrition"],
+      "tests": ["test.fbc", "test.stool_mcs", "test.ferritin_iron"]
+    },
+    {
+      "id": "dx.infective_endocarditis",
+      "display": "Infective endocarditis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "BB40",
+      "mnm": true,
+      "complications": ["dx.heart_failure", "dx.stroke", "dx.sepsis"],
+      "goes_with": ["dx.rheumatic_heart_disease"],
+      "tests": [
+        "test.blood_culture",
+        "test.echo",
+        "test.fbc",
+        "test.urinalysis_dipstick",
+        "test.esr",
+        "test.ecg"
+      ]
+    },
+    {
+      "id": "dx.influenza",
+      "display": "Influenza",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1E32",
+      "mnm": false,
+      "complications": ["dx.pneumonia"],
+      "goes_with": [],
+      "tests": ["test.covid_flu", "test.malaria_rdt", "test.chest_xray"]
+    },
+    {
+      "id": "dx.leptospirosis",
+      "display": "Leptospirosis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B91",
+      "mnm": false,
+      "complications": ["dx.aki"],
+      "goes_with": [],
+      "tests": [
+        "test.urea_electrolytes",
+        "test.lft",
+        "test.fbc",
+        "test.urinalysis_dipstick",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.liver_abscess",
+      "display": "Liver abscess",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "DB90.0",
+      "mnm": false,
+      "complications": ["dx.sepsis", "dx.pleural_effusion"],
+      "goes_with": [],
+      "tests": ["test.ultrasound_abdomen", "test.fbc", "test.lft", "test.blood_culture", "test.crp"]
+    },
+    {
+      "id": "dx.lung_abscess_empyema",
+      "display": "Lung abscess or empyema",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.chest_xray",
+        "test.pleural_tap",
+        "test.tb_xpert",
+        "test.sputum_mcs",
+        "test.blood_culture",
+        "test.pocus_lung_cardiac"
+      ]
+    },
+    {
+      "id": "dx.lymphatic_filariasis",
+      "display": "Lymphatic filariasis (lymphoedema)",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F66.3Z",
+      "mnm": false,
+      "complications": ["dx.cellulitis"],
+      "goes_with": [],
+      "tests": ["test.blood_film", "test.ultrasound_doppler_venous"]
+    },
+    {
+      "id": "dx.malaria_cerebral",
+      "display": "Cerebral malaria",
+      "kind": "complication",
+      "category": "infection",
+      "icd11": "1F40.0",
+      "mnm": true,
+      "complications": ["dx.hypoglycaemia_no_dm", "dx.status_epilepticus"],
+      "goes_with": [],
+      "tests": [
+        "test.malaria_smear",
+        "test.malaria_rdt",
+        "test.capillary_glucose",
+        "test.csf_analysis",
+        "test.blood_culture",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.malaria_severe",
+      "display": "Malaria, severe",
+      "kind": "complication",
+      "category": "infection",
+      "icd11": "1F40.Y",
+      "mnm": true,
+      "complications": ["dx.aki", "dx.hypoglycaemia_no_dm"],
+      "goes_with": ["dx.sepsis"],
+      "tests": [
+        "test.malaria_smear",
+        "test.blood_culture",
+        "test.capillary_glucose",
+        "test.fbc",
+        "test.urea_electrolytes",
+        "test.lactate"
+      ]
+    },
+    {
+      "id": "dx.malaria_uncomplicated",
+      "display": "Malaria, uncomplicated",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F4Z",
+      "mnm": false,
+      "complications": ["dx.malaria_severe", "dx.malaria_cerebral"],
+      "goes_with": [],
+      "tests": ["test.malaria_rdt", "test.malaria_smear", "test.fbc"]
+    },
+    {
+      "id": "dx.malaria_unconfirmed",
+      "display": "Malaria, not confirmed by a test",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F45",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.malaria_rdt", "test.malaria_smear"]
+    },
+    {
+      "id": "dx.meningitis_bacterial",
+      "display": "Bacterial meningitis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1D01.0Z",
+      "mnm": true,
+      "complications": ["dx.sepsis"],
+      "goes_with": [],
+      "tests": [
+        "test.csf_analysis",
+        "test.blood_culture",
+        "test.malaria_rdt",
+        "test.crag",
+        "test.ct_head",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.mpox",
+      "display": "Mpox",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1E71",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hiv"],
+      "tests": ["test.mpox_pcr", "test.hiv_rapid", "test.syphilis"]
+    },
+    {
+      "id": "dx.necrotising_soft_tissue",
+      "display": "Necrotising soft-tissue infection",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B71.Z",
+      "mnm": true,
+      "complications": ["dx.sepsis", "dx.septic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.blood_culture",
+        "test.lactate",
+        "test.fbc",
+        "test.crp",
+        "test.urea_electrolytes",
+        "test.ck"
+      ]
+    },
+    {
+      "id": "dx.neurocysticercosis",
+      "display": "Neurocysticercosis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F70.0Z",
+      "mnm": false,
+      "complications": ["dx.epilepsy"],
+      "goes_with": [],
+      "tests": ["test.ct_head", "test.eeg"]
+    },
+    {
+      "id": "dx.oesophageal_candidiasis",
+      "display": "Oesophageal candidiasis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F23.2",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.oral_candidiasis", "dx.hiv_advanced"],
+      "tests": ["test.cd4", "test.hiv_rapid", "test.ogd"]
+    },
+    {
+      "id": "dx.oral_candidiasis",
+      "display": "Oral candidiasis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F23.0",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.oesophageal_candidiasis", "dx.hiv", "dx.hiv_advanced"],
+      "tests": ["test.hiv_rapid", "test.capillary_glucose"]
+    },
+    {
+      "id": "dx.osteomyelitis",
+      "display": "Osteomyelitis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "FB84.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.xray_joint_bone",
+        "test.blood_culture",
+        "test.fbc",
+        "test.esr",
+        "test.crp",
+        "test.tissue_biopsy"
+      ]
+    },
+    {
+      "id": "dx.pcp",
+      "display": "Pneumocystis pneumonia",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "CA40.20",
+      "mnm": true,
+      "complications": ["dx.respiratory_failure"],
+      "goes_with": ["dx.hiv_advanced"],
+      "tests": ["test.chest_xray", "test.cd4", "test.tb_xpert", "test.hiv_rapid", "test.blood_gas"]
+    },
+    {
+      "id": "dx.pneumonia",
+      "display": "Pneumonia",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "CA40.Z",
+      "mnm": false,
+      "complications": ["dx.sepsis", "dx.lung_abscess_empyema", "dx.respiratory_failure"],
+      "goes_with": [],
+      "tests": [
+        "test.chest_xray",
+        "test.fbc",
+        "test.blood_culture",
+        "test.tb_xpert",
+        "test.hiv_rapid",
+        "test.crp"
+      ]
+    },
+    {
+      "id": "dx.pyelonephritis",
+      "display": "Acute pyelonephritis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "GB51",
+      "mnm": false,
+      "complications": ["dx.sepsis", "dx.aki"],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.urine_mcs",
+        "test.blood_culture",
+        "test.urea_electrolytes",
+        "test.ultrasound_kidneys",
+        "test.pregnancy_urine"
+      ]
+    },
+    {
+      "id": "dx.pyomyositis",
+      "display": "Pyomyositis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "FB30",
+      "mnm": false,
+      "complications": ["dx.sepsis"],
+      "goes_with": [],
+      "tests": ["test.fbc", "test.blood_culture", "test.ck"]
+    },
+    {
+      "id": "dx.rabies",
+      "display": "Rabies (clinical)",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1C82",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.csf_analysis"]
+    },
+    {
+      "id": "dx.rabies_exposure",
+      "display": "Dog bite, possible rabies exposure",
+      "kind": "exposure",
+      "category": "infection",
+      "icd11": "QC90.3",
+      "mnm": true,
+      "complications": ["dx.rabies", "dx.tetanus", "dx.cellulitis"],
+      "goes_with": ["dx.open_wound"],
+      "tests": []
+    },
+    {
+      "id": "dx.rickettsial",
+      "display": "Rickettsial infection",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1C3Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.malaria_rdt", "test.fbc", "test.blood_culture"]
+    },
+    {
+      "id": "dx.scabies",
+      "display": "Scabies",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1G04.Z",
+      "mnm": false,
+      "complications": ["dx.cellulitis"],
+      "goes_with": [],
+      "tests": ["test.hiv_rapid"]
+    },
+    {
+      "id": "dx.schistosomiasis",
+      "display": "Schistosomiasis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F86.Z",
+      "mnm": false,
+      "complications": ["dx.variceal_bleed", "dx.bladder_cancer"],
+      "goes_with": ["dx.hookworm_helminth"],
+      "tests": [
+        "test.schisto_tests",
+        "test.ultrasound_abdomen",
+        "test.fbc",
+        "test.urinalysis_dipstick"
+      ]
+    },
+    {
+      "id": "dx.sepsis",
+      "display": "Sepsis",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1G40",
+      "mnm": true,
+      "complications": ["dx.septic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.blood_culture",
+        "test.lactate",
+        "test.fbc",
+        "test.malaria_rdt",
+        "test.urea_electrolytes",
+        "test.crp"
+      ]
+    },
+    {
+      "id": "dx.septic_arthritis",
+      "display": "Septic arthritis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "FA10.Z",
+      "mnm": true,
+      "complications": ["dx.sepsis"],
+      "goes_with": [],
+      "tests": [
+        "test.joint_aspiration",
+        "test.blood_culture",
+        "test.fbc",
+        "test.crp",
+        "test.xray_joint_bone"
+      ]
+    },
+    {
+      "id": "dx.septic_shock",
+      "display": "Septic shock",
+      "kind": "complication",
+      "category": "infection",
+      "icd11": "1G41",
+      "mnm": true,
+      "complications": ["dx.aki", "dx.dic"],
+      "goes_with": [],
+      "tests": [
+        "test.lactate",
+        "test.blood_culture",
+        "test.malaria_rdt",
+        "test.fbc",
+        "test.urea_electrolytes",
+        "test.blood_gas"
+      ]
+    },
+    {
+      "id": "dx.skin_abscess",
+      "display": "Skin abscess",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B75.3",
+      "mnm": false,
+      "complications": ["dx.cellulitis", "dx.sepsis"],
+      "goes_with": [],
+      "tests": ["test.capillary_glucose", "test.hiv_rapid", "test.fbc"]
+    },
+    {
+      "id": "dx.tb_extrapulmonary",
+      "display": "Extrapulmonary tuberculosis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B12",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.tb_pulmonary_clinical", "dx.hiv_advanced"],
+      "tests": [
+        "test.tb_lam",
+        "test.fnac_lymph_node",
+        "test.tb_xpert",
+        "test.pleural_tap",
+        "test.ascitic_tap",
+        "test.ultrasound_abdomen"
+      ]
+    },
+    {
+      "id": "dx.tb_meningitis",
+      "display": "Tuberculous meningitis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B11.0",
+      "mnm": true,
+      "complications": ["dx.hyponatraemia"],
+      "goes_with": [],
+      "tests": [
+        "test.csf_analysis",
+        "test.crag",
+        "test.tb_lam",
+        "test.chest_xray",
+        "test.ct_head",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.tb_pericarditis",
+      "display": "Tuberculous pericarditis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B12.0",
+      "mnm": true,
+      "complications": ["dx.cardiac_tamponade", "dx.heart_failure"],
+      "goes_with": [],
+      "tests": [
+        "test.echo",
+        "test.pocus_lung_cardiac",
+        "test.chest_xray",
+        "test.ecg",
+        "test.hiv_rapid",
+        "test.tb_lam"
+      ]
+    },
+    {
+      "id": "dx.tb_pulmonary_clinical",
+      "display": "Pulmonary tuberculosis, clinically diagnosed",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B10.1",
+      "mnm": false,
+      "complications": ["dx.post_tb_lung_disease", "dx.chronic_pulmonary_aspergillosis"],
+      "goes_with": [],
+      "tests": [
+        "test.tb_xpert",
+        "test.tb_lam",
+        "test.chest_xray",
+        "test.sputum_afb",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.tb_pulmonary_confirmed",
+      "display": "Pulmonary tuberculosis, bacteriologically confirmed",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B10.0",
+      "mnm": false,
+      "complications": ["dx.post_tb_lung_disease", "dx.pleural_effusion"],
+      "goes_with": ["dx.tb_extrapulmonary", "dx.hiv"],
+      "tests": [
+        "test.tb_xpert",
+        "test.tb_lam",
+        "test.chest_xray",
+        "test.sputum_afb",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.tb_spine",
+      "display": "Tuberculosis of the spine",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1B12.40",
+      "mnm": false,
+      "complications": ["dx.cord_compression"],
+      "goes_with": [],
+      "tests": [
+        "test.xray_spine",
+        "test.mri_spine",
+        "test.chest_xray",
+        "test.esr",
+        "test.hiv_rapid",
+        "test.tissue_biopsy"
+      ]
+    },
+    {
+      "id": "dx.tetanus",
+      "display": "Tetanus",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1C13",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.tinea",
+      "display": "Tinea (fungal skin infection)",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F28.Z",
+      "mnm": false,
+      "complications": ["dx.cellulitis"],
+      "goes_with": [],
+      "tests": ["test.hiv_rapid", "test.capillary_glucose"]
+    },
+    {
+      "id": "dx.trypanosomiasis",
+      "display": "Human African trypanosomiasis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F51.Z",
+      "mnm": false,
+      "complications": ["dx.encephalitis"],
+      "goes_with": [],
+      "tests": ["test.hat_screen", "test.csf_analysis", "test.fbc", "test.malaria_rdt"]
+    },
+    {
+      "id": "dx.typhoid",
+      "display": "Typhoid fever",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1A07.Z",
+      "mnm": false,
+      "complications": ["dx.perforated_viscus", "dx.sepsis"],
+      "goes_with": [],
+      "tests": ["test.blood_culture", "test.fbc", "test.malaria_rdt", "test.stool_mcs"]
+    },
+    {
+      "id": "dx.urti",
+      "display": "Upper respiratory tract infection",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "CA07.0",
+      "mnm": false,
+      "complications": ["dx.otitis_media_acute"],
+      "goes_with": [],
+      "tests": ["test.malaria_rdt", "test.covid_flu"]
+    },
+    {
+      "id": "dx.uti",
+      "display": "Urinary tract infection",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "GC08.Z",
+      "mnm": false,
+      "complications": ["dx.pyelonephritis"],
+      "goes_with": [],
+      "tests": ["test.urinalysis_dipstick", "test.urine_mcs", "test.pregnancy_urine"]
+    },
+    {
+      "id": "dx.vhf_suspected",
+      "display": "Viral haemorrhagic fever, suspected",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1D86",
+      "mnm": true,
+      "complications": ["dx.dic"],
+      "goes_with": [],
+      "tests": ["test.vhf_sample", "test.malaria_rdt"]
+    },
+    {
+      "id": "dx.viral_illness_nonspecific",
+      "display": "Viral febrile illness, self-limiting",
+      "kind": "syndrome",
+      "category": "infection",
+      "icd11": "1E1Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.malaria_rdt", "test.fbc"]
+    },
+    {
+      "id": "dx.visceral_leishmaniasis",
+      "display": "Visceral leishmaniasis",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1F54.0",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hiv"],
+      "tests": ["test.rk39", "test.fbc", "test.malaria_smear", "test.bone_marrow", "test.hiv_rapid"]
+    },
+    {
+      "id": "dx.yellow_fever",
+      "display": "Yellow fever",
+      "kind": "disease",
+      "category": "infection",
+      "icd11": "1D47",
+      "mnm": false,
+      "complications": ["dx.acute_liver_failure"],
+      "goes_with": [],
+      "tests": [
+        "test.vhf_sample",
+        "test.lft",
+        "test.urea_electrolytes",
+        "test.malaria_rdt",
+        "test.fbc",
+        "test.urinalysis_dipstick"
+      ]
+    },
+    {
+      "id": "dx.fracture",
+      "display": "Fracture",
+      "kind": "injury",
+      "category": "injury",
+      "icd11": "ND56.2",
+      "mnm": false,
+      "complications": ["dx.cord_compression", "dx.hypovolaemic_shock"],
+      "goes_with": ["dx.open_wound"],
+      "tests": ["test.xray_joint_bone", "test.xray_spine", "test.calcium_mg_phos"]
+    },
+    {
+      "id": "dx.head_injury",
+      "display": "Head injury",
+      "kind": "injury",
+      "category": "injury",
+      "icd11": "NA0Z",
+      "mnm": false,
+      "complications": ["dx.subdural_haematoma"],
+      "goes_with": ["dx.fracture", "dx.open_wound", "dx.alcohol_intoxication"],
+      "tests": ["test.ct_head", "test.capillary_glucose", "test.xray_spine"]
+    },
+    {
+      "id": "dx.open_wound",
+      "display": "Open wound (laceration)",
+      "kind": "injury",
+      "category": "injury",
+      "icd11": "ND56.1",
+      "mnm": false,
+      "complications": ["dx.tetanus", "dx.cellulitis", "dx.necrotising_soft_tissue"],
+      "goes_with": ["dx.fracture"],
+      "tests": ["test.xray_joint_bone"]
+    },
+    {
+      "id": "dx.alcohol_dependence",
+      "display": "Alcohol dependence",
+      "kind": "disease",
+      "category": "mental_health",
+      "icd11": "6C40.2Z",
+      "mnm": false,
+      "complications": [
+        "dx.alcohol_withdrawal",
+        "dx.alcohol_intoxication",
+        "dx.wernicke",
+        "dx.alcoholic_hepatitis",
+        "dx.liver_cirrhosis"
+      ],
+      "goes_with": [],
+      "tests": ["test.lft", "test.fbc"]
+    },
+    {
+      "id": "dx.alcohol_intoxication",
+      "display": "Alcohol intoxication",
+      "kind": "poisoning",
+      "category": "mental_health",
+      "icd11": "6C40.3",
+      "mnm": false,
+      "complications": ["dx.hypoglycaemia_no_dm"],
+      "goes_with": ["dx.head_injury", "dx.alcohol_dependence"],
+      "tests": [
+        "test.capillary_glucose",
+        "test.blood_gas",
+        "test.ct_head",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.alcohol_withdrawal",
+      "display": "Alcohol withdrawal",
+      "kind": "syndrome",
+      "category": "mental_health",
+      "icd11": "6C40.4Z",
+      "mnm": true,
+      "complications": ["dx.delirium"],
+      "goes_with": ["dx.alcohol_dependence", "dx.wernicke"],
+      "tests": [
+        "test.capillary_glucose",
+        "test.urea_electrolytes",
+        "test.calcium_mg_phos",
+        "test.lft",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.anxiety_disorder",
+      "display": "Anxiety disorder",
+      "kind": "disease",
+      "category": "mental_health",
+      "icd11": "6B0Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.depression"],
+      "tests": ["test.thyroid", "test.ecg", "test.capillary_glucose"]
+    },
+    {
+      "id": "dx.bipolar",
+      "display": "Bipolar disorder",
+      "kind": "disease",
+      "category": "mental_health",
+      "icd11": "6A60.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.thyroid", "test.hiv_rapid", "test.syphilis", "test.capillary_glucose"]
+    },
+    {
+      "id": "dx.depression",
+      "display": "Depression",
+      "kind": "disease",
+      "category": "mental_health",
+      "icd11": "6A7Z",
+      "mnm": false,
+      "complications": ["dx.suicidal_ideation"],
+      "goes_with": ["dx.anxiety_disorder", "dx.alcohol_dependence"],
+      "tests": ["test.thyroid", "test.hiv_rapid", "test.fbc"]
+    },
+    {
+      "id": "dx.psychosis",
+      "display": "Psychotic disorder",
+      "kind": "disease",
+      "category": "mental_health",
+      "icd11": "6A2Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.malaria_rdt",
+        "test.hiv_rapid",
+        "test.syphilis",
+        "test.capillary_glucose",
+        "test.thyroid"
+      ]
+    },
+    {
+      "id": "dx.substance_psychosis",
+      "display": "Substance-induced psychosis",
+      "kind": "disease",
+      "category": "mental_health",
+      "icd11": "6C4G.6",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.toxicology", "test.hiv_rapid", "test.capillary_glucose", "test.malaria_rdt"]
+    },
+    {
+      "id": "dx.suicidal_ideation",
+      "display": "Suicidal thoughts or self-harm",
+      "kind": "syndrome",
+      "category": "mental_health",
+      "icd11": "-",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [
+        "dx.depression",
+        "dx.organophosphate_poisoning",
+        "dx.poisoning_medicine",
+        "dx.poisoning_nonmedicinal",
+        "dx.bipolar"
+      ],
+      "tests": ["test.toxicology", "test.cholinesterase"]
+    },
+    {
+      "id": "dx.giant_cell_arteritis",
+      "display": "Giant cell arteritis",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "4A44.2",
+      "mnm": true,
+      "complications": ["dx.stroke_ischaemic"],
+      "goes_with": [],
+      "tests": ["test.esr", "test.crp", "test.fbc"]
+    },
+    {
+      "id": "dx.gout",
+      "display": "Gout",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "FA25.2Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.ckd"],
+      "tests": ["test.joint_aspiration", "test.urate", "test.creatinine"]
+    },
+    {
+      "id": "dx.low_back_pain",
+      "display": "Low back pain",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "ME84.2Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.msk_chest_pain",
+      "display": "Musculoskeletal chest pain",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "ME81.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ecg"]
+    },
+    {
+      "id": "dx.osteoarthritis",
+      "display": "Osteoarthritis",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "FA0Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.xray_joint_bone"]
+    },
+    {
+      "id": "dx.rhabdomyolysis",
+      "display": "Rhabdomyolysis",
+      "kind": "syndrome",
+      "category": "musculoskeletal",
+      "icd11": "FB32.20",
+      "mnm": false,
+      "complications": ["dx.aki", "dx.hyperkalaemia"],
+      "goes_with": [],
+      "tests": [
+        "test.ck",
+        "test.urea_electrolytes",
+        "test.urinalysis_dipstick",
+        "test.calcium_mg_phos",
+        "test.ecg",
+        "test.blood_gas"
+      ]
+    },
+    {
+      "id": "dx.rheumatoid_arthritis",
+      "display": "Rheumatoid arthritis",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "FA20.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.rf_ccp",
+        "test.esr",
+        "test.crp",
+        "test.fbc",
+        "test.xray_joint_bone",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.sle",
+      "display": "Systemic lupus erythematosus",
+      "kind": "disease",
+      "category": "musculoskeletal",
+      "icd11": "4A40.0Z",
+      "mnm": false,
+      "complications": [
+        "dx.nephritic_syndrome",
+        "dx.nephrotic_syndrome",
+        "dx.pericarditis",
+        "dx.thrombocytopenia"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.ana_dsdna",
+        "test.fbc",
+        "test.urinalysis_dipstick",
+        "test.creatinine",
+        "test.urine_protein",
+        "test.esr"
+      ]
+    },
+    {
+      "id": "dx.bells_palsy",
+      "display": "Bell's palsy",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "8B88.0",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.hiv_rapid", "test.glucose_random"]
+    },
+    {
+      "id": "dx.cord_compression",
+      "display": "Spinal cord or cauda equina compression",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "-",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.mri_spine", "test.xray_spine", "test.chest_xray", "test.psa", "test.esr"]
+    },
+    {
+      "id": "dx.cvst",
+      "display": "Cerebral venous sinus thrombosis",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "8B22.1",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ct_head", "test.fbc", "test.pregnancy_urine", "test.hiv_rapid"]
+    },
+    {
+      "id": "dx.delirium",
+      "display": "Delirium",
+      "kind": "syndrome",
+      "category": "neurology",
+      "icd11": "6D70.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.dementia"],
+      "tests": [
+        "test.capillary_glucose",
+        "test.urea_electrolytes",
+        "test.fbc",
+        "test.malaria_rdt",
+        "test.urinalysis_dipstick",
+        "test.calcium_mg_phos"
+      ]
+    },
+    {
+      "id": "dx.dementia",
+      "display": "Dementia",
+      "kind": "syndrome",
+      "category": "neurology",
+      "icd11": "6D8Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.delirium"],
+      "tests": [
+        "test.hiv_rapid",
+        "test.syphilis",
+        "test.thyroid",
+        "test.b12_folate",
+        "test.ct_head",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.diabetic_neuropathy",
+      "display": "Diabetic neuropathy",
+      "kind": "complication",
+      "category": "neurology",
+      "icd11": "-",
+      "mnm": false,
+      "complications": ["dx.diabetic_foot"],
+      "goes_with": [],
+      "tests": ["test.b12_folate", "test.thyroid", "test.creatinine"]
+    },
+    {
+      "id": "dx.epilepsy",
+      "display": "Epilepsy",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "8A6Z",
+      "mnm": false,
+      "complications": ["dx.status_epilepticus"],
+      "goes_with": ["dx.neurocysticercosis"],
+      "tests": ["test.eeg", "test.ct_head", "test.capillary_glucose", "test.urea_electrolytes"]
+    },
+    {
+      "id": "dx.gbs",
+      "display": "Guillain-Barr\u00e9 syndrome",
+      "kind": "syndrome",
+      "category": "neurology",
+      "icd11": "8C01.0",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.csf_analysis",
+        "test.nerve_conduction",
+        "test.urea_electrolytes",
+        "test.hiv_rapid",
+        "test.ck"
+      ]
+    },
+    {
+      "id": "dx.migraine",
+      "display": "Migraine",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "8A80.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.myasthenia",
+      "display": "Myasthenia gravis",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "8C60.Z",
+      "mnm": false,
+      "complications": ["dx.respiratory_failure"],
+      "goes_with": ["dx.thyrotoxicosis"],
+      "tests": ["test.thyroid", "test.ct_chest_ctpa", "test.nerve_conduction"]
+    },
+    {
+      "id": "dx.parkinsonism",
+      "display": "Parkinson's disease or parkinsonism",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "8A00.Z",
+      "mnm": false,
+      "complications": ["dx.dementia", "dx.orthostatic_hypotension"],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.peripheral_neuropathy",
+      "display": "Peripheral neuropathy",
+      "kind": "syndrome",
+      "category": "neurology",
+      "icd11": "8C0Z",
+      "mnm": false,
+      "complications": ["dx.diabetic_foot"],
+      "goes_with": ["dx.dm_type2"],
+      "tests": [
+        "test.hba1c",
+        "test.b12_folate",
+        "test.hiv_rapid",
+        "test.creatinine",
+        "test.syphilis",
+        "test.nerve_conduction"
+      ]
+    },
+    {
+      "id": "dx.sah",
+      "display": "Subarachnoid haemorrhage",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "8B01.2",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ct_head", "test.csf_analysis", "test.inr_pt"]
+    },
+    {
+      "id": "dx.space_occupying_lesion",
+      "display": "Intracranial space-occupying lesion",
+      "kind": "syndrome",
+      "category": "neurology",
+      "icd11": "MB71.0",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ct_head",
+        "test.hiv_rapid",
+        "test.cd4",
+        "test.toxo_serology",
+        "test.crag",
+        "test.chest_xray"
+      ]
+    },
+    {
+      "id": "dx.status_epilepticus",
+      "display": "Status epilepticus",
+      "kind": "complication",
+      "category": "neurology",
+      "icd11": "8A66.Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.malaria_rdt",
+        "test.urea_electrolytes",
+        "test.calcium_mg_phos",
+        "test.ct_head",
+        "test.csf_analysis"
+      ]
+    },
+    {
+      "id": "dx.stroke",
+      "display": "Stroke",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "8B20",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.af", "dx.rheumatic_heart_disease"],
+      "tests": ["test.capillary_glucose", "test.ct_head", "test.ecg", "test.echo", "test.hiv_rapid"]
+    },
+    {
+      "id": "dx.stroke_haemorrhagic",
+      "display": "Intracerebral haemorrhage",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "8B00.Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.hypertensive_crisis"],
+      "tests": ["test.ct_head", "test.capillary_glucose", "test.fbc", "test.inr_pt"]
+    },
+    {
+      "id": "dx.stroke_ischaemic",
+      "display": "Ischaemic stroke",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "8B11.5Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.af", "dx.rheumatic_heart_disease", "dx.infective_endocarditis"],
+      "tests": [
+        "test.ct_head",
+        "test.capillary_glucose",
+        "test.ecg",
+        "test.echo",
+        "test.lipid_panel",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.subdural_haematoma",
+      "display": "Subdural haematoma",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "NA07.6Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ct_head", "test.fbc", "test.inr_pt", "test.coag_screen"]
+    },
+    {
+      "id": "dx.tension_headache",
+      "display": "Tension-type headache",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "8A81.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.tia",
+      "display": "Transient ischaemic attack",
+      "kind": "acute_event",
+      "category": "neurology",
+      "icd11": "8B10.Z",
+      "mnm": true,
+      "complications": ["dx.stroke_ischaemic"],
+      "goes_with": ["dx.af", "dx.rheumatic_heart_disease"],
+      "tests": [
+        "test.ecg",
+        "test.capillary_glucose",
+        "test.ct_head",
+        "test.echo",
+        "test.lipid_panel",
+        "test.hba1c"
+      ]
+    },
+    {
+      "id": "dx.wernicke",
+      "display": "Wernicke encephalopathy",
+      "kind": "disease",
+      "category": "neurology",
+      "icd11": "5B5A.10",
+      "mnm": true,
+      "complications": [],
+      "goes_with": ["dx.alcohol_withdrawal", "dx.undernutrition"],
+      "tests": ["test.capillary_glucose", "test.calcium_mg_phos"]
+    },
+    {
+      "id": "dx.diabetes_in_pregnancy",
+      "display": "Diabetes in pregnancy",
+      "kind": "disease",
+      "category": "obstetric",
+      "icd11": "-",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ogtt_75g", "test.creatinine", "test.uacr"]
+    },
+    {
+      "id": "dx.eclampsia",
+      "display": "Eclampsia",
+      "kind": "acute_event",
+      "category": "obstetric",
+      "icd11": "JA25.3",
+      "mnm": true,
+      "complications": ["dx.status_epilepticus"],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.capillary_glucose",
+        "test.malaria_rdt",
+        "test.fbc",
+        "test.lft",
+        "test.creatinine"
+      ]
+    },
+    {
+      "id": "dx.ectopic_pregnancy",
+      "display": "Ectopic pregnancy",
+      "kind": "acute_event",
+      "category": "obstetric",
+      "icd11": "JA01.Z",
+      "mnm": true,
+      "complications": ["dx.hypovolaemic_shock"],
+      "goes_with": [],
+      "tests": [
+        "test.pregnancy_urine",
+        "test.pocus_lung_cardiac",
+        "test.ultrasound_abdomen",
+        "test.fbc",
+        "test.blood_group"
+      ]
+    },
+    {
+      "id": "dx.gestational_diabetes",
+      "display": "Gestational diabetes",
+      "kind": "disease",
+      "category": "obstetric",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.ogtt_75g"]
+    },
+    {
+      "id": "dx.hyperemesis",
+      "display": "Hyperemesis gravidarum",
+      "kind": "disease",
+      "category": "obstetric",
+      "icd11": "JA60.Z",
+      "mnm": false,
+      "complications": ["dx.hypokalaemia", "dx.wernicke"],
+      "goes_with": [],
+      "tests": [
+        "test.pregnancy_urine",
+        "test.ketones",
+        "test.urea_electrolytes",
+        "test.urinalysis_dipstick",
+        "test.malaria_rdt"
+      ]
+    },
+    {
+      "id": "dx.pre_eclampsia",
+      "display": "Pre-eclampsia",
+      "kind": "disease",
+      "category": "obstetric",
+      "icd11": "JA24.Z",
+      "mnm": true,
+      "complications": ["dx.pre_eclampsia_severe", "dx.eclampsia"],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.fbc",
+        "test.lft",
+        "test.creatinine",
+        "test.pregnancy_urine"
+      ]
+    },
+    {
+      "id": "dx.pre_eclampsia_severe",
+      "display": "Severe pre-eclampsia",
+      "kind": "complication",
+      "category": "obstetric",
+      "icd11": "JA24.1",
+      "mnm": true,
+      "complications": ["dx.eclampsia", "dx.dic", "dx.heart_failure_acute"],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.fbc",
+        "test.lft",
+        "test.creatinine",
+        "test.coag_screen"
+      ]
+    },
+    {
+      "id": "dx.bladder_cancer",
+      "display": "Bladder cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2C94.Z",
+      "mnm": false,
+      "complications": ["dx.obstructive_uropathy", "dx.uti"],
+      "goes_with": ["dx.schistosomiasis"],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.urine_mcs",
+        "test.schisto_tests",
+        "test.ultrasound_kidneys",
+        "test.ct_abdomen"
+      ]
+    },
+    {
+      "id": "dx.breast_cancer",
+      "display": "Breast cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2C6Z",
+      "mnm": false,
+      "complications": ["dx.pleural_effusion", "dx.tumour_lysis_or_hypercalcaemia_malignancy"],
+      "goes_with": [],
+      "tests": ["test.tissue_biopsy", "test.chest_xray", "test.lft"]
+    },
+    {
+      "id": "dx.cancer_suspected",
+      "display": "Malignancy suspected, primary not yet known",
+      "kind": "syndrome",
+      "category": "oncology",
+      "icd11": "-",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.lft",
+        "test.chest_xray",
+        "test.ultrasound_abdomen",
+        "test.tissue_biopsy",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.colorectal_cancer",
+      "display": "Colorectal cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2B93.Z",
+      "mnm": false,
+      "complications": ["dx.iron_deficiency_anaemia", "dx.bowel_obstruction"],
+      "goes_with": [],
+      "tests": [
+        "test.colonoscopy",
+        "test.stool_occult_blood",
+        "test.fbc",
+        "test.ferritin_iron",
+        "test.tissue_biopsy",
+        "test.ct_abdomen"
+      ]
+    },
+    {
+      "id": "dx.gastric_cancer",
+      "display": "Gastric cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2B72.Z",
+      "mnm": false,
+      "complications": ["dx.iron_deficiency_anaemia"],
+      "goes_with": [],
+      "tests": ["test.ogd", "test.tissue_biopsy", "test.fbc", "test.ferritin_iron"]
+    },
+    {
+      "id": "dx.hcc",
+      "display": "Hepatocellular carcinoma",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2C12.02",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hepatitis_b_chronic", "dx.liver_cirrhosis"],
+      "tests": [
+        "test.afp",
+        "test.ultrasound_abdomen",
+        "test.hbsag",
+        "test.hcv_ab",
+        "test.lft",
+        "test.inr_pt"
+      ]
+    },
+    {
+      "id": "dx.kaposi_sarcoma",
+      "display": "Kaposi sarcoma",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2B57.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hiv_advanced"],
+      "tests": [
+        "test.tissue_biopsy",
+        "test.hiv_rapid",
+        "test.cd4",
+        "test.hiv_viral_load",
+        "test.chest_xray"
+      ]
+    },
+    {
+      "id": "dx.leukaemia",
+      "display": "Leukaemia",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2B33.4",
+      "mnm": true,
+      "complications": [
+        "dx.febrile_neutropenia",
+        "dx.dic",
+        "dx.thrombocytopenia",
+        "dx.tumour_lysis_or_hypercalcaemia_malignancy"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_film",
+        "test.bone_marrow",
+        "test.coag_screen",
+        "test.malaria_rdt",
+        "test.urate"
+      ]
+    },
+    {
+      "id": "dx.lung_cancer",
+      "display": "Lung cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2C25.Z",
+      "mnm": false,
+      "complications": ["dx.pleural_effusion"],
+      "goes_with": [],
+      "tests": [
+        "test.chest_xray",
+        "test.ct_chest_ctpa",
+        "test.tb_xpert",
+        "test.tissue_biopsy",
+        "test.pleural_tap"
+      ]
+    },
+    {
+      "id": "dx.lymphoma",
+      "display": "Lymphoma",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2B33.5",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fnac_lymph_node",
+        "test.tissue_biopsy",
+        "test.fbc",
+        "test.hiv_rapid",
+        "test.tb_xpert",
+        "test.ultrasound_abdomen"
+      ]
+    },
+    {
+      "id": "dx.myeloma",
+      "display": "Multiple myeloma",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2A83.1",
+      "mnm": false,
+      "complications": [
+        "dx.hypercalcaemia",
+        "dx.aki",
+        "dx.ckd",
+        "dx.cord_compression",
+        "dx.fracture"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.esr",
+        "test.calcium_mg_phos",
+        "test.creatinine",
+        "test.xray_spine",
+        "test.bone_marrow"
+      ]
+    },
+    {
+      "id": "dx.oesophageal_cancer",
+      "display": "Oesophageal cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2B70.Z",
+      "mnm": false,
+      "complications": ["dx.undernutrition", "dx.aspiration_pneumonia"],
+      "goes_with": [],
+      "tests": ["test.ogd", "test.tissue_biopsy", "test.fbc", "test.chest_xray"]
+    },
+    {
+      "id": "dx.pancreatic_biliary_cancer",
+      "display": "Pancreatic or biliary cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "-",
+      "mnm": false,
+      "complications": ["dx.cholangitis"],
+      "goes_with": [],
+      "tests": ["test.lft", "test.ultrasound_abdomen", "test.ct_abdomen", "test.inr_pt"]
+    },
+    {
+      "id": "dx.prostate_cancer",
+      "display": "Prostate cancer",
+      "kind": "disease",
+      "category": "oncology",
+      "icd11": "2C82.Z",
+      "mnm": false,
+      "complications": ["dx.urinary_retention", "dx.obstructive_uropathy", "dx.cord_compression"],
+      "goes_with": [],
+      "tests": [
+        "test.psa",
+        "test.tissue_biopsy",
+        "test.xray_spine",
+        "test.creatinine",
+        "test.ultrasound_kidneys"
+      ]
+    },
+    {
+      "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+      "display": "Oncological emergency, suspected",
+      "kind": "complication",
+      "category": "oncology",
+      "icd11": "-",
+      "mnm": true,
+      "complications": ["dx.aki"],
+      "goes_with": [],
+      "tests": [
+        "test.calcium_mg_phos",
+        "test.urea_electrolytes",
+        "test.urate",
+        "test.mri_spine",
+        "test.ecg",
+        "test.chest_xray"
+      ]
+    },
+    {
+      "id": "dx.aki",
+      "display": "Acute kidney injury",
+      "kind": "syndrome",
+      "category": "renal_urological",
+      "icd11": "GB60.Z",
+      "mnm": false,
+      "complications": ["dx.hyperkalaemia"],
+      "goes_with": ["dx.ckd"],
+      "tests": [
+        "test.creatinine",
+        "test.urea_electrolytes",
+        "test.urinalysis_dipstick",
+        "test.ultrasound_kidneys",
+        "test.malaria_rdt",
+        "test.ck"
+      ]
+    },
+    {
+      "id": "dx.bph",
+      "display": "Benign prostatic enlargement",
+      "kind": "disease",
+      "category": "renal_urological",
+      "icd11": "GA90",
+      "mnm": false,
+      "complications": ["dx.urinary_retention", "dx.obstructive_uropathy", "dx.uti"],
+      "goes_with": [],
+      "tests": [
+        "test.psa",
+        "test.urinalysis_dipstick",
+        "test.creatinine",
+        "test.ultrasound_kidneys"
+      ]
+    },
+    {
+      "id": "dx.ckd",
+      "display": "Chronic kidney disease",
+      "kind": "disease",
+      "category": "renal_urological",
+      "icd11": "GB61.Z",
+      "mnm": false,
+      "complications": ["dx.aki", "dx.hyperkalaemia"],
+      "goes_with": ["dx.hypertension", "dx.nephrotic_syndrome", "dx.obstructive_uropathy"],
+      "tests": [
+        "test.creatinine",
+        "test.uacr",
+        "test.urinalysis_dipstick",
+        "test.ultrasound_kidneys",
+        "test.urea_electrolytes",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.diabetic_kidney_disease",
+      "display": "Diabetic kidney disease",
+      "kind": "complication",
+      "category": "renal_urological",
+      "icd11": "-",
+      "mnm": false,
+      "complications": ["dx.aki"],
+      "goes_with": ["dx.hypertension"],
+      "tests": [
+        "test.uacr",
+        "test.creatinine",
+        "test.urinalysis_dipstick",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.nephritic_syndrome",
+      "display": "Acute nephritic syndrome",
+      "kind": "syndrome",
+      "category": "renal_urological",
+      "icd11": "GB40",
+      "mnm": false,
+      "complications": ["dx.aki", "dx.hypertensive_crisis"],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.urine_mcs",
+        "test.creatinine",
+        "test.urea_electrolytes",
+        "test.ana_dsdna",
+        "test.hbsag"
+      ]
+    },
+    {
+      "id": "dx.nephrotic_syndrome",
+      "display": "Nephrotic syndrome",
+      "kind": "syndrome",
+      "category": "renal_urological",
+      "icd11": "GB41",
+      "mnm": false,
+      "complications": ["dx.ckd", "dx.aki", "dx.dvt"],
+      "goes_with": ["dx.hepatitis_b_chronic", "dx.dm_type2"],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.urine_protein",
+        "test.lft",
+        "test.creatinine",
+        "test.hiv_rapid",
+        "test.hbsag"
+      ]
+    },
+    {
+      "id": "dx.obstructive_uropathy",
+      "display": "Obstructive uropathy",
+      "kind": "syndrome",
+      "category": "renal_urological",
+      "icd11": "GB56.Z",
+      "mnm": false,
+      "complications": ["dx.aki", "dx.ckd"],
+      "goes_with": [],
+      "tests": [
+        "test.ultrasound_kidneys",
+        "test.creatinine",
+        "test.urea_electrolytes",
+        "test.urinalysis_dipstick",
+        "test.schisto_tests",
+        "test.ct_abdomen"
+      ]
+    },
+    {
+      "id": "dx.urinary_retention",
+      "display": "Acute urinary retention",
+      "kind": "acute_event",
+      "category": "renal_urological",
+      "icd11": "MF50.3",
+      "mnm": false,
+      "complications": ["dx.obstructive_uropathy", "dx.uti"],
+      "goes_with": [],
+      "tests": ["test.ultrasound_kidneys", "test.urinalysis_dipstick", "test.creatinine"]
+    },
+    {
+      "id": "dx.urolithiasis",
+      "display": "Urinary tract stone",
+      "kind": "disease",
+      "category": "renal_urological",
+      "icd11": "GB7Z",
+      "mnm": false,
+      "complications": ["dx.obstructive_uropathy", "dx.pyelonephritis", "dx.aki"],
+      "goes_with": ["dx.gout"],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.ultrasound_kidneys",
+        "test.ct_abdomen",
+        "test.creatinine",
+        "test.calcium_mg_phos",
+        "test.urate"
+      ]
+    },
+    {
+      "id": "dx.acute_bronchitis",
+      "display": "Acute bronchitis",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "CA42.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.chest_xray", "test.tb_xpert"]
+    },
+    {
+      "id": "dx.asthma",
+      "display": "Asthma",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "CA23.32",
+      "mnm": false,
+      "complications": ["dx.asthma_exacerbation"],
+      "goes_with": [],
+      "tests": ["test.pef", "test.spirometry", "test.fbc"]
+    },
+    {
+      "id": "dx.asthma_exacerbation",
+      "display": "Acute asthma exacerbation",
+      "kind": "complication",
+      "category": "respiratory",
+      "icd11": "CA23.30",
+      "mnm": false,
+      "complications": ["dx.respiratory_failure", "dx.pneumothorax"],
+      "goes_with": [],
+      "tests": ["test.pef", "test.blood_gas", "test.chest_xray"]
+    },
+    {
+      "id": "dx.bronchiectasis",
+      "display": "Bronchiectasis",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "CA24",
+      "mnm": false,
+      "complications": ["dx.chronic_pulmonary_aspergillosis", "dx.pneumonia"],
+      "goes_with": ["dx.post_tb_lung_disease"],
+      "tests": ["test.chest_xray", "test.ct_chest_ctpa", "test.sputum_mcs", "test.tb_xpert"]
+    },
+    {
+      "id": "dx.chronic_pulmonary_aspergillosis",
+      "display": "Chronic pulmonary aspergillosis",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "1F20.12",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.post_tb_lung_disease", "dx.bronchiectasis"],
+      "tests": ["test.chest_xray", "test.ct_chest_ctpa", "test.tb_xpert", "test.sputum_mcs"]
+    },
+    {
+      "id": "dx.copd",
+      "display": "Chronic obstructive pulmonary disease",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "CA22.Z",
+      "mnm": false,
+      "complications": ["dx.copd_exacerbation", "dx.pulmonary_hypertension"],
+      "goes_with": [],
+      "tests": ["test.spirometry", "test.chest_xray", "test.fbc", "test.tb_xpert"]
+    },
+    {
+      "id": "dx.copd_exacerbation",
+      "display": "COPD exacerbation",
+      "kind": "complication",
+      "category": "respiratory",
+      "icd11": "CA22.0",
+      "mnm": false,
+      "complications": ["dx.respiratory_failure"],
+      "goes_with": ["dx.pneumonia"],
+      "tests": ["test.blood_gas", "test.chest_xray", "test.fbc", "test.sputum_mcs", "test.ecg"]
+    },
+    {
+      "id": "dx.interstitial_lung_disease",
+      "display": "Interstitial lung disease",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "CB0Z",
+      "mnm": false,
+      "complications": ["dx.pulmonary_hypertension"],
+      "goes_with": ["dx.rheumatoid_arthritis", "dx.sle"],
+      "tests": [
+        "test.chest_xray",
+        "test.ct_chest_ctpa",
+        "test.spirometry",
+        "test.echo",
+        "test.ana_dsdna",
+        "test.rf_ccp"
+      ]
+    },
+    {
+      "id": "dx.pleural_effusion",
+      "display": "Pleural effusion",
+      "kind": "syndrome",
+      "category": "respiratory",
+      "icd11": "CB27",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.chest_xray",
+        "test.pocus_lung_cardiac",
+        "test.pleural_tap",
+        "test.tb_xpert",
+        "test.hiv_rapid"
+      ]
+    },
+    {
+      "id": "dx.pneumothorax",
+      "display": "Pneumothorax",
+      "kind": "acute_event",
+      "category": "respiratory",
+      "icd11": "CB21.Z",
+      "mnm": true,
+      "complications": ["dx.respiratory_failure"],
+      "goes_with": ["dx.post_tb_lung_disease"],
+      "tests": ["test.chest_xray", "test.pocus_lung_cardiac", "test.blood_gas", "test.tb_xpert"]
+    },
+    {
+      "id": "dx.post_tb_lung_disease",
+      "display": "Post-tuberculosis lung disease",
+      "kind": "disease",
+      "category": "respiratory",
+      "icd11": "1G80",
+      "mnm": false,
+      "complications": [
+        "dx.bronchiectasis",
+        "dx.chronic_pulmonary_aspergillosis",
+        "dx.pulmonary_hypertension"
+      ],
+      "goes_with": [],
+      "tests": ["test.chest_xray", "test.tb_xpert", "test.spirometry", "test.echo"]
+    },
+    {
+      "id": "dx.respiratory_failure",
+      "display": "Acute respiratory failure",
+      "kind": "syndrome",
+      "category": "respiratory",
+      "icd11": "CB41.0Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.blood_gas", "test.chest_xray", "test.pocus_lung_cardiac"]
+    },
+    {
+      "id": "dx.upper_airway_obstruction",
+      "display": "Upper airway obstruction",
+      "kind": "acute_event",
+      "category": "respiratory",
+      "icd11": "CB40.Y",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.pid",
+      "display": "Pelvic inflammatory disease",
+      "kind": "disease",
+      "category": "sexual_reproductive",
+      "icd11": "GA05.Z",
+      "mnm": false,
+      "complications": ["dx.sepsis"],
+      "goes_with": [],
+      "tests": [
+        "test.pregnancy_urine",
+        "test.fbc",
+        "test.ultrasound_abdomen",
+        "test.hiv_rapid",
+        "test.syphilis"
+      ]
+    },
+    {
+      "id": "dx.sti_genital_ulcer",
+      "display": "Genital ulcer syndrome",
+      "kind": "syndrome",
+      "category": "sexual_reproductive",
+      "icd11": "1A9Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hiv"],
+      "tests": ["test.syphilis", "test.hiv_rapid"]
+    },
+    {
+      "id": "dx.sti_urethral_discharge",
+      "display": "Urethral discharge syndrome",
+      "kind": "syndrome",
+      "category": "sexual_reproductive",
+      "icd11": "1A9Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.sti_genital_ulcer", "dx.syphilis", "dx.hiv"],
+      "tests": ["test.hiv_rapid", "test.syphilis"]
+    },
+    {
+      "id": "dx.syphilis",
+      "display": "Syphilis",
+      "kind": "disease",
+      "category": "sexual_reproductive",
+      "icd11": "1A6Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": ["dx.hiv"],
+      "tests": ["test.syphilis", "test.hiv_rapid", "test.csf_analysis"]
+    },
+    {
+      "id": "dx.vaginal_discharge",
+      "display": "Abnormal vaginal discharge syndrome",
+      "kind": "syndrome",
+      "category": "sexual_reproductive",
+      "icd11": "MF3A",
+      "mnm": false,
+      "complications": ["dx.pid"],
+      "goes_with": [],
+      "tests": ["test.pregnancy_urine", "test.syphilis", "test.hiv_rapid"]
+    },
+    {
+      "id": "dx.drug_rash",
+      "display": "Drug eruption, not severe",
+      "kind": "disease",
+      "category": "skin",
+      "icd11": "EH6Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.fbc", "test.lft"]
+    },
+    {
+      "id": "dx.pressure_injury",
+      "display": "Pressure injury",
+      "kind": "disease",
+      "category": "skin",
+      "icd11": "EH90.Z",
+      "mnm": false,
+      "complications": ["dx.osteomyelitis", "dx.cellulitis", "dx.sepsis"],
+      "goes_with": ["dx.undernutrition"],
+      "tests": ["test.fbc", "test.xray_joint_bone"]
+    },
+    {
+      "id": "dx.sjs_ten",
+      "display": "Stevens-Johnson syndrome or toxic epidermal necrolysis",
+      "kind": "disease",
+      "category": "skin",
+      "icd11": "EB13",
+      "mnm": true,
+      "complications": ["dx.sepsis"],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.urea_electrolytes",
+        "test.lft",
+        "test.blood_culture",
+        "test.hiv_rapid",
+        "test.tissue_biopsy"
+      ]
+    },
+    {
+      "id": "dx.abdominal_pain_unexplained",
+      "display": "Abdominal pain, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MD81.4",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.pregnancy_urine",
+        "test.ecg",
+        "test.malaria_rdt",
+        "test.urinalysis_dipstick",
+        "test.amylase_lipase",
+        "test.ultrasound_abdomen"
+      ]
+    },
+    {
+      "id": "dx.anaemia_unexplained",
+      "display": "Anaemia, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "3A9Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_film",
+        "test.reticulocytes",
+        "test.malaria_rdt",
+        "test.ferritin_iron",
+        "test.stool_mcs"
+      ]
+    },
+    {
+      "id": "dx.ascites_unexplained",
+      "display": "Ascites, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "ME04.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ascitic_tap",
+        "test.ultrasound_abdomen",
+        "test.lft",
+        "test.hbsag",
+        "test.echo",
+        "test.schisto_tests"
+      ]
+    },
+    {
+      "id": "dx.back_pain_red_flags",
+      "display": "Back pain with red flags, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "ME84.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.mri_spine",
+        "test.xray_spine",
+        "test.fbc",
+        "test.esr",
+        "test.psa",
+        "test.chest_xray"
+      ]
+    },
+    {
+      "id": "dx.breathlessness_unexplained",
+      "display": "Breathlessness, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MD11.5",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.chest_xray",
+        "test.ecg",
+        "test.fbc",
+        "test.pocus_lung_cardiac",
+        "test.blood_gas",
+        "test.capillary_glucose"
+      ]
+    },
+    {
+      "id": "dx.chest_pain_unexplained",
+      "display": "Chest pain, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MD30.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ecg",
+        "test.troponin",
+        "test.chest_xray",
+        "test.pocus_lung_cardiac",
+        "test.d_dimer"
+      ]
+    },
+    {
+      "id": "dx.confusion_unexplained",
+      "display": "Acute confusion, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MB21.4",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.malaria_rdt",
+        "test.urea_electrolytes",
+        "test.hiv_rapid",
+        "test.urinalysis_dipstick",
+        "test.ct_head"
+      ]
+    },
+    {
+      "id": "dx.cough_unexplained",
+      "display": "Cough, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MD12",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.tb_xpert", "test.chest_xray", "test.hiv_rapid", "test.fbc"]
+    },
+    {
+      "id": "dx.diarrhoea_unexplained",
+      "display": "Diarrhoea, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "ME05.1",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.stool_mcs",
+        "test.urea_electrolytes",
+        "test.malaria_rdt",
+        "test.hiv_rapid",
+        "test.fbc"
+      ]
+    },
+    {
+      "id": "dx.fatigue_unexplained",
+      "display": "Fatigue, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG22",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.hiv_rapid",
+        "test.glucose_random",
+        "test.thyroid",
+        "test.creatinine"
+      ]
+    },
+    {
+      "id": "dx.fever_unexplained",
+      "display": "Fever, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG26",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.malaria_rdt",
+        "test.fbc",
+        "test.blood_culture",
+        "test.hiv_rapid",
+        "test.urinalysis_dipstick",
+        "test.chest_xray"
+      ]
+    },
+    {
+      "id": "dx.gi_bleed_unexplained",
+      "display": "Gastrointestinal bleeding, source not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "ME24.9Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.fbc",
+        "test.blood_group",
+        "test.urea_electrolytes",
+        "test.inr_pt",
+        "test.ogd",
+        "test.colonoscopy"
+      ]
+    },
+    {
+      "id": "dx.haemoptysis_unexplained",
+      "display": "Haemoptysis, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MD22",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.tb_xpert", "test.chest_xray", "test.fbc", "test.inr_pt", "test.ct_chest_ctpa"]
+    },
+    {
+      "id": "dx.headache_unexplained",
+      "display": "Headache, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MB4D",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": ["test.malaria_rdt", "test.crag", "test.ct_head", "test.csf_analysis"]
+    },
+    {
+      "id": "dx.hypothermia_unexplained",
+      "display": "Hypothermia, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG28",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.core_temperature",
+        "test.capillary_glucose",
+        "test.blood_culture",
+        "test.thyroid",
+        "test.urea_electrolytes",
+        "test.ecg"
+      ]
+    },
+    {
+      "id": "dx.jaundice_unexplained",
+      "display": "Jaundice, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "ME10.1",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.lft",
+        "test.fbc",
+        "test.malaria_rdt",
+        "test.hepatitis_serology",
+        "test.ultrasound_abdomen",
+        "test.inr_pt"
+      ]
+    },
+    {
+      "id": "dx.liver_disease_unexplained",
+      "display": "Liver disease, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "DB9Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.lft",
+        "test.hbsag",
+        "test.hcv_ab",
+        "test.inr_pt",
+        "test.ultrasound_abdomen",
+        "test.schisto_tests"
+      ]
+    },
+    {
+      "id": "dx.lymphadenopathy_unexplained",
+      "display": "Lymphadenopathy, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MA01.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.hiv_rapid",
+        "test.fnac_lymph_node",
+        "test.fbc",
+        "test.chest_xray",
+        "test.syphilis"
+      ]
+    },
+    {
+      "id": "dx.meningitis_unexplained",
+      "display": "Meningitis, cause not yet known",
+      "kind": "syndrome",
+      "category": "symptom_level",
+      "icd11": "1D01.Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.csf_analysis",
+        "test.crag",
+        "test.blood_culture",
+        "test.malaria_rdt",
+        "test.hiv_rapid",
+        "test.ct_head"
+      ]
+    },
+    {
+      "id": "dx.oedema_unexplained",
+      "display": "Oedema, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG29.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.urinalysis_dipstick",
+        "test.creatinine",
+        "test.lft",
+        "test.echo",
+        "test.ultrasound_doppler_venous",
+        "test.uacr"
+      ]
+    },
+    {
+      "id": "dx.reduced_consciousness_unexplained",
+      "display": "Reduced consciousness, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "8E2Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.malaria_rdt",
+        "test.urea_electrolytes",
+        "test.crag",
+        "test.ct_head",
+        "test.csf_analysis"
+      ]
+    },
+    {
+      "id": "dx.seizure_unexplained",
+      "display": "Seizure, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "8A6Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.pregnancy_urine",
+        "test.malaria_rdt",
+        "test.urea_electrolytes",
+        "test.hiv_rapid",
+        "test.ct_head"
+      ]
+    },
+    {
+      "id": "dx.shock_unexplained",
+      "display": "Shock, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG40.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.lactate",
+        "test.pocus_lung_cardiac",
+        "test.ecg",
+        "test.blood_culture",
+        "test.fbc",
+        "test.pregnancy_urine"
+      ]
+    },
+    {
+      "id": "dx.splenomegaly_unexplained",
+      "display": "Splenomegaly, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "ME10.01",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.malaria_rdt",
+        "test.fbc",
+        "test.blood_film",
+        "test.ultrasound_abdomen",
+        "test.schisto_tests",
+        "test.rk39"
+      ]
+    },
+    {
+      "id": "dx.syncope_unexplained",
+      "display": "Syncope or collapse, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG45.Z",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.ecg",
+        "test.capillary_glucose",
+        "test.fbc",
+        "test.pregnancy_urine",
+        "test.echo"
+      ]
+    },
+    {
+      "id": "dx.weight_loss_unexplained",
+      "display": "Weight loss, cause not yet known",
+      "kind": "symptom_level",
+      "category": "symptom_level",
+      "icd11": "MG43.5",
+      "mnm": false,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.hiv_rapid",
+        "test.tb_xpert",
+        "test.chest_xray",
+        "test.fbc",
+        "test.glucose_random",
+        "test.thyroid"
+      ]
+    },
+    {
+      "id": "dx.anaphylaxis",
+      "display": "Anaphylaxis",
+      "kind": "acute_event",
+      "category": "toxicology_environment",
+      "icd11": "4A84.Z",
+      "mnm": true,
+      "complications": ["dx.upper_airway_obstruction"],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.angioedema",
+      "display": "Angioedema",
+      "kind": "acute_event",
+      "category": "toxicology_environment",
+      "icd11": "-",
+      "mnm": true,
+      "complications": ["dx.upper_airway_obstruction"],
+      "goes_with": [],
+      "tests": []
+    },
+    {
+      "id": "dx.burn",
+      "display": "Burn",
+      "kind": "injury",
+      "category": "toxicology_environment",
+      "icd11": "NE11",
+      "mnm": false,
+      "complications": [
+        "dx.hypovolaemic_shock",
+        "dx.upper_airway_obstruction",
+        "dx.sepsis",
+        "dx.tetanus"
+      ],
+      "goes_with": ["dx.epilepsy"],
+      "tests": ["test.urea_electrolytes", "test.fbc", "test.blood_gas", "test.blood_group"]
+    },
+    {
+      "id": "dx.heat_stroke",
+      "display": "Heat stroke",
+      "kind": "acute_event",
+      "category": "toxicology_environment",
+      "icd11": "NF01.0",
+      "mnm": true,
+      "complications": ["dx.rhabdomyolysis", "dx.aki", "dx.dic"],
+      "goes_with": [],
+      "tests": [
+        "test.core_temperature",
+        "test.malaria_rdt",
+        "test.blood_culture",
+        "test.ck",
+        "test.urea_electrolytes",
+        "test.coag_screen"
+      ]
+    },
+    {
+      "id": "dx.hypothermia_accidental",
+      "display": "Accidental hypothermia",
+      "kind": "acute_event",
+      "category": "toxicology_environment",
+      "icd11": "NF02",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.core_temperature",
+        "test.capillary_glucose",
+        "test.ecg",
+        "test.blood_culture",
+        "test.urea_electrolytes",
+        "test.thyroid"
+      ]
+    },
+    {
+      "id": "dx.methanol_poisoning",
+      "display": "Methanol poisoning",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE61",
+      "mnm": true,
+      "complications": ["dx.aki"],
+      "goes_with": [],
+      "tests": [
+        "test.blood_gas",
+        "test.urea_electrolytes",
+        "test.capillary_glucose",
+        "test.toxicology"
+      ]
+    },
+    {
+      "id": "dx.opioid_sedative_toxicity",
+      "display": "Opioid or sedative toxicity",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE60",
+      "mnm": true,
+      "complications": ["dx.respiratory_failure", "dx.aspiration_pneumonia"],
+      "goes_with": [],
+      "tests": ["test.capillary_glucose", "test.blood_gas", "test.toxicology", "test.ct_head"]
+    },
+    {
+      "id": "dx.organophosphate_poisoning",
+      "display": "Organophosphate or carbamate poisoning",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE61",
+      "mnm": true,
+      "complications": ["dx.respiratory_failure", "dx.aspiration_pneumonia"],
+      "goes_with": [],
+      "tests": [
+        "test.cholinesterase",
+        "test.blood_gas",
+        "test.ecg",
+        "test.chest_xray",
+        "test.urea_electrolytes"
+      ]
+    },
+    {
+      "id": "dx.paracetamol_overdose",
+      "display": "Paracetamol overdose",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE60",
+      "mnm": true,
+      "complications": ["dx.acute_liver_failure"],
+      "goes_with": [],
+      "tests": [
+        "test.toxicology",
+        "test.lft",
+        "test.inr_pt",
+        "test.creatinine",
+        "test.capillary_glucose",
+        "test.blood_gas"
+      ]
+    },
+    {
+      "id": "dx.poisoning_medicine",
+      "display": "Poisoning or overdose by a medicine",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE60",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.toxicology",
+        "test.ecg",
+        "test.urea_electrolytes",
+        "test.lft",
+        "test.blood_gas"
+      ]
+    },
+    {
+      "id": "dx.poisoning_nonmedicinal",
+      "display": "Poisoning by a non-medicinal substance",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE61",
+      "mnm": true,
+      "complications": ["dx.aspiration_pneumonia"],
+      "goes_with": [],
+      "tests": [
+        "test.cholinesterase",
+        "test.blood_gas",
+        "test.chest_xray",
+        "test.urea_electrolytes",
+        "test.capillary_glucose"
+      ]
+    },
+    {
+      "id": "dx.poisoning_unknown",
+      "display": "Poisoning, substance not yet known",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE6Z",
+      "mnm": true,
+      "complications": [],
+      "goes_with": [],
+      "tests": [
+        "test.capillary_glucose",
+        "test.blood_gas",
+        "test.urea_electrolytes",
+        "test.ecg",
+        "test.toxicology",
+        "test.cholinesterase"
+      ]
+    },
+    {
+      "id": "dx.snakebite",
+      "display": "Snakebite envenoming",
+      "kind": "poisoning",
+      "category": "toxicology_environment",
+      "icd11": "NE61",
+      "mnm": true,
+      "complications": [
+        "dx.aki",
+        "dx.dic",
+        "dx.anaphylaxis",
+        "dx.necrotising_soft_tissue",
+        "dx.tetanus",
+        "dx.respiratory_failure"
+      ],
+      "goes_with": [],
+      "tests": [
+        "test.wbct20",
+        "test.coag_screen",
+        "test.fbc",
+        "test.creatinine",
+        "test.urinalysis_dipstick",
+        "test.ck"
+      ]
+    }
+  ],
+  "tests_all": [
+    "test.afp",
+    "test.amylase_lipase",
+    "test.ana_dsdna",
+    "test.ascitic_tap",
+    "test.b12_folate",
+    "test.blood_culture",
+    "test.blood_film",
+    "test.blood_gas",
+    "test.blood_group",
+    "test.bnp",
+    "test.bone_marrow",
+    "test.brucella_serology",
+    "test.c_peptide",
+    "test.calcium_mg_phos",
+    "test.capillary_glucose",
+    "test.cd4",
+    "test.chest_xray",
+    "test.cholinesterase",
+    "test.ck",
+    "test.coag_screen",
+    "test.colonoscopy",
+    "test.core_temperature",
+    "test.cortisol",
+    "test.covid_flu",
+    "test.crag",
+    "test.creatinine",
+    "test.crp",
+    "test.csf_analysis",
+    "test.ct_abdomen",
+    "test.ct_aortogram",
+    "test.ct_chest_ctpa",
+    "test.ct_head",
+    "test.d_dimer",
+    "test.ecg",
+    "test.echo",
+    "test.eeg",
+    "test.esr",
+    "test.fbc",
+    "test.ferritin_iron",
+    "test.fnac_lymph_node",
+    "test.gad_antibodies",
+    "test.glucose_fasting",
+    "test.glucose_random",
+    "test.hat_screen",
+    "test.hb_electrophoresis",
+    "test.hba1c",
+    "test.hbsag",
+    "test.hcv_ab",
+    "test.hepatitis_serology",
+    "test.hiv_rapid",
+    "test.hiv_viral_load",
+    "test.inr_pt",
+    "test.joint_aspiration",
+    "test.ketones",
+    "test.lactate",
+    "test.lft",
+    "test.lipid_panel",
+    "test.malaria_rdt",
+    "test.malaria_smear",
+    "test.mpox_pcr",
+    "test.mri_spine",
+    "test.nerve_conduction",
+    "test.ogd",
+    "test.ogtt_75g",
+    "test.pef",
+    "test.pleural_tap",
+    "test.pocus_lung_cardiac",
+    "test.pregnancy_urine",
+    "test.psa",
+    "test.reticulocytes",
+    "test.retinal_photograph",
+    "test.rf_ccp",
+    "test.rk39",
+    "test.schisto_tests",
+    "test.spirometry",
+    "test.sputum_afb",
+    "test.sputum_mcs",
+    "test.stool_mcs",
+    "test.stool_occult_blood",
+    "test.syphilis",
+    "test.tb_lam",
+    "test.tb_xpert",
+    "test.thyroid",
+    "test.tissue_biopsy",
+    "test.toxicology",
+    "test.toxo_serology",
+    "test.troponin",
+    "test.uacr",
+    "test.ultrasound_abdomen",
+    "test.ultrasound_doppler_venous",
+    "test.ultrasound_kidneys",
+    "test.urate",
+    "test.urea_electrolytes",
+    "test.urinalysis_dipstick",
+    "test.urine_mcs",
+    "test.urine_protein",
+    "test.vhf_sample",
+    "test.wbct20",
+    "test.xray_abdomen",
+    "test.xray_joint_bone",
+    "test.xray_spine"
+  ],
+  "menu": [
+    "test.malaria_rdt",
+    "test.malaria_smear",
+    "test.fbc",
+    "test.glucose_random",
+    "test.glucose_fasting",
+    "test.hba1c",
+    "test.creatinine",
+    "test.urea_electrolytes",
+    "test.lft",
+    "test.lipid_panel",
+    "test.urinalysis_dipstick",
+    "test.uacr",
+    "test.crp",
+    "test.esr",
+    "test.lactate",
+    "test.blood_culture",
+    "test.hiv_rapid",
+    "test.cd4",
+    "test.hiv_viral_load",
+    "test.crag",
+    "test.syphilis",
+    "test.hbsag",
+    "test.hcv_ab",
+    "test.pregnancy_urine",
+    "test.tb_xpert",
+    "test.tb_lam",
+    "test.sputum_afb",
+    "test.blood_group",
+    "test.inr_pt",
+    "test.troponin",
+    "test.d_dimer",
+    "test.thyroid",
+    "test.ecg",
+    "test.chest_xray",
+    "test.ultrasound_abdomen"
+  ]
+}

@@ -17,13 +17,14 @@ const committed = (rel: string) => readFileSync(join(root, rel), "utf8");
 
 describe("EMR reference seed (0072, 0082, 0083, 0085, 0086 + catalogue.generated.ts)", () => {
   it("regenerating from the data reproduces the committed files byte-for-byte", async () => {
-    const { sql, ts, sql12, sql13, sql85, sql86, sql15 } = await generateSeed(root);
+    const { sql, ts, sql12, sql13, sql85, sql86, sql15, sql95 } = await generateSeed(root);
     expect(sql).toBe(committed(SEED_OUTPUTS.sql));
     expect(sql12).toBe(committed(SEED_OUTPUTS.sql12));
     expect(sql13).toBe(committed(SEED_OUTPUTS.sql13));
     expect(sql85).toBe(committed(SEED_OUTPUTS.sql85));
     expect(sql86).toBe(committed(SEED_OUTPUTS.sql86));
     expect(sql15).toBe(committed(SEED_OUTPUTS.sql15));
+    expect(sql95).toBe(committed(SEED_OUTPUTS.sql95));
     expect(ts).toBe(committed(SEED_OUTPUTS.ts));
   });
 
