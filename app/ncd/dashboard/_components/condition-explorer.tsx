@@ -1,11 +1,20 @@
 "use client";
 
+import type { Hue } from "@/lib/design/domains";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useRef, useState } from "react";
 
+import { HUE } from "@/lib/design/domains";
 import { cn } from "@/lib/utils";
 
-export type ExplorerItem = { code: string; label: string; rail: ReactNode; panel: ReactNode };
+export type ExplorerItem = {
+  code: string;
+  label: string;
+  /** The condition's tag hue: the selected entry is tinted in it. */
+  hue: Hue;
+  rail: ReactNode;
+  panel: ReactNode;
+};
 
 /**
  * Outcomes by condition as list and detail: every enabled condition stays in the rail (ordered by
@@ -68,7 +77,7 @@ export function ConditionExplorer({ items, initial }: { items: ExplorerItem[]; i
               className={cn(
                 "focus-visible:shadow-focus w-full rounded-md px-3 py-2.5 text-left outline-none",
                 "transition-colors duration-[var(--duration-normal)] ease-[var(--ease-expo-out)]",
-                on ? "bg-ink-100" : "hover:bg-ink-50",
+                on ? HUE[it.hue].navActive : "hover:bg-ink-50",
               )}
             >
               {it.rail}

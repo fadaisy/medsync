@@ -212,7 +212,7 @@ describe("outbox", () => {
 
 describe("the offline read cache (§9)", () => {
   const snap = (ids: string[]) => ({
-    fetchedAt: "2026-10-05T08:00:00Z",
+    fetchedAt: new Date().toISOString(),
     date: "2026-10-05",
     clinic: ids.map((personId) => ({
       personId,

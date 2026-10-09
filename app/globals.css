@@ -350,6 +350,7 @@
   --ink-300: #d0d3d9;
   --ink-400: #a0a5ae;
   --ink-500: #6c717b;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c717b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --ink-600: #545963;
   --ink-700: #3d4149;
   --ink-800: #272a30;
@@ -560,6 +561,7 @@
   --ink-300: #3a3f46;
   --ink-400: #5b616a;
   --ink-500: #8a9099;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a9099' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --ink-600: #a9aeb6;
   --ink-700: #c8ccd2;
   --ink-800: #e1e3e7;
@@ -955,6 +957,7 @@
   --ink-300: #d0d3d9;
   --ink-400: #a0a5ae;
   --ink-500: #6c717b;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c717b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --ink-600: #545963;
   --ink-700: #3d4149;
   --ink-800: #272a30;
@@ -1294,4 +1297,16 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* Native dropdowns, project-wide: one chevron, inset from the edge, with room so the value never runs
+   under it. Unlayered on purpose: it must win over a component's own px-* utility. A select that
+   draws its own chevron opts out with `appearance-none`. */
+select:not([multiple]):not([size]):not(.appearance-none) {
+  appearance: none;
+  background-image: var(--select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.25rem;
 }
