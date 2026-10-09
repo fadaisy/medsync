@@ -35,7 +35,7 @@ describe("doctor cadres — one source of truth", async () => {
   });
 
   it("sign-in routes doctors with the shared constant, never a copy", () => {
-    const signIn = read("app/(auth)/sign-in/actions.ts");
+    const signIn = read("app/(auth)/sign-in/landing.ts");
     expect(signIn).toMatch(/import \{ DOCTOR_CADRE_CODES \} from "@\/lib\/doctor\/scope"/);
     expect(signIn).not.toMatch(/"SENIOR_CONSULTANT"/);
     expect(signIn.match(/DOCTOR_CADRE_CODES/g)?.length).toBeGreaterThanOrEqual(3);
