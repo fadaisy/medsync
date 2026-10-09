@@ -56,6 +56,41 @@ export async function requireLabTechScope(): Promise<LabTechScope> {
   if (state.nextAal !== "aal2") redirect("/onboarding/mfa-setup");
   if (state.aal !== "aal2") redirect("/sign-in/mfa?redirect=/lab");
 
+  const me = await findLabTechAffiliation(state.user.id);
+  if (!me) {
+    logger.warn("lab_tech.scope.no_active_affiliation", { user_id: state.user.id });
+    redirect("/");
+  }
+
+  return {
+    userId: state.user.id,
+    userEmail: me.userEmail ?? state.user.email ?? "lab-tech",
+    fullName: me.fullName,
+    affiliationId: me.affiliationId,
+    hospitalId: me.hospitalId,
+    hospitalName: me.hospitalName,
+    hospitalLevel: me.hospitalLevel,
+    departmentId: me.departmentId,
+    departmentName: me.departmentName,
+    cadreId: me.cadreId,
+    cadreCode: me.cadreCode as LabTechCadreCode,
+    cadreName: me.cadreName,
+    roleId: me.roleId,
+    roleCode: me.roleCode,
+    roleName: me.roleName,
+  };
+}
+
+/**
+ * True when the user has an active lab affiliation — the /clinician guard uses it so a lab tech
+ * who lands there (a stale link, an old ?redirect=) goes to /lab. Same query as the gate above,
+ * so the two cannot bounce a user back and forth.
+ */
+export async function isLabTechUser(userId: string): Promise<boolean> {
+  return !!(await findLabTechAffiliation(userId));
+}
+
+async function findLabTechAffiliation(userId: string) {
   const [me] = await db
     .select({
       affiliationId: staffAffiliations.id,
@@ -81,34 +116,12 @@ export async function requireLabTechScope(): Promise<LabTechScope> {
     .innerJoin(users, eq(users.id, staffAffiliations.userId))
     .where(
       and(
-        eq(staffAffiliations.userId, state.user.id),
+        eq(staffAffiliations.userId, userId),
         inArray(staffAffiliations.state, ["active", "approved"]),
         inArray(cadres.code, LAB_TECH_CADRE_CODES as unknown as string[]),
       ),
     )
     .orderBy(desc(staffAffiliations.approvedAt), desc(staffAffiliations.createdAt))
     .limit(1);
-
-  if (!me) {
-    logger.warn("lab_tech.scope.no_active_affiliation", { user_id: state.user.id });
-    redirect("/");
-  }
-
-  return {
-    userId: state.user.id,
-    userEmail: me.userEmail ?? state.user.email ?? "lab-tech",
-    fullName: me.fullName,
-    affiliationId: me.affiliationId,
-    hospitalId: me.hospitalId,
-    hospitalName: me.hospitalName,
-    hospitalLevel: me.hospitalLevel,
-    departmentId: me.departmentId,
-    departmentName: me.departmentName,
-    cadreId: me.cadreId,
-    cadreCode: me.cadreCode as LabTechCadreCode,
-    cadreName: me.cadreName,
-    roleId: me.roleId,
-    roleCode: me.roleCode,
-    roleName: me.roleName,
-  };
+  return me;
 }

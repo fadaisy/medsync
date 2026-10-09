@@ -1,0 +1,27 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+
+/**
+ * A lab technician or technologist lands on /lab: sign-in routes the lab cadres with the shared
+ * constant (role or affiliation), and /clinician sends any lab user on, the way it sends doctors.
+ */
+const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
+
+describe("lab staff are routed to /lab", () => {
+  it("sign-in routes the lab role and the lab cadres with the shared constant", () => {
+    const signIn = read("app/(auth)/sign-in/actions.ts");
+    expect(signIn).toMatch(/import \{ LAB_TECH_CADRE_CODES \} from "@\/lib\/lab-tech\/scope"/);
+    expect(signIn).not.toMatch(/"LAB_TECHNOLOGIST"/);
+    expect(signIn.match(/defaultTarget = "\/lab"/g)?.length).toBe(2);
+  });
+
+  it("/clinician sends a lab user to /lab with the gate's own query", () => {
+    expect(read("app/clinician/layout.tsx")).toMatch(
+      /if \(await isLabTechUser\(scope\.userId\)\) redirect\("\/lab"\)/,
+    );
+    expect(read("lib/lab-tech/scope.ts")).toMatch(
+      /export async function isLabTechUser[\s\S]*findLabTechAffiliation\(userId\)/,
+    );
+  });
+});
