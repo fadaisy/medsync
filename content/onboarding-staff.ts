@@ -13,6 +13,7 @@ export const STAFF = {
   departmentLoading: "Loading departments…",
   departmentNone: "No departments at this hospital are open on MedSync yet. Ask its admin.",
   departmentFailed: "Couldn't load this hospital's departments. Choose the hospital again.",
+  departmentFixed: "Set by your profession.",
   letterLater: "Appointment letter: skipped. It's optional.",
 } as const;
 
