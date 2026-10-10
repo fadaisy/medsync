@@ -7,6 +7,7 @@ import { ArrestAlarm } from "@/components/resus/arrest-alarm";
 import { requireClinicianScope } from "@/lib/clinician/scope";
 import { isDoctorUser } from "@/lib/doctor/scope";
 import { isLabTechUser } from "@/lib/lab-tech/scope";
+import { isPharmacyUser } from "@/lib/pharmacy/scope";
 import { resusDeskV2 } from "@/lib/resus/feature";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,8 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
   if (await isDoctorUser(scope.userId)) redirect("/doctor/schedule");
   // Likewise a laboratory technician or technologist belongs in /lab.
   if (await isLabTechUser(scope.userId)) redirect("/lab");
+  // And pharmacy staff, where the pharmacy workspace is on for their hospital (LD-P4).
+  if (await isPharmacyUser(scope.userId)) redirect("/pharmacy");
 
   return (
     <div className="bg-background text-foreground flex min-h-svh w-full flex-col">

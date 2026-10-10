@@ -13,6 +13,7 @@ export const MFA_REQUIRED_ROLES = new Set<string>([
   "nurse",
   "pharmacist",
   "lab_tech",
+  "pharmacy_staff",
   "hospital_admin",
   "superadmin",
 ]);

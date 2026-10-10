@@ -81,6 +81,8 @@ export const prescriptions = pgTable(
     state: text("state").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    /** One id for every line written in one placement (migration 0099, ADR 0230). NULL before it. */
+    placementId: uuid("placement_id"),
     // OPD prescription from the encounter (migration 0074, GATED; EMR Phase 7).
     frequency: text("frequency"),
     duration: text("duration"),
@@ -164,6 +166,7 @@ export const prescriptions = pgTable(
       .where(sql`${t.clientKey} IS NOT NULL`),
     index("prescriptions_patient_idx").on(t.patientUserId, t.createdAt),
     index("prescriptions_encounter_idx").on(t.encounterId),
+    index("prescriptions_hospital_created_idx").on(t.hospitalId, t.createdAt),
     index("prescriptions_condition_idx")
       .on(t.conditionId)
       .where(sql`${t.conditionId} IS NOT NULL`),

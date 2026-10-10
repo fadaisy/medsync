@@ -24,7 +24,7 @@ export const userRoles = pgTable(
   (t) => [
     check(
       "user_roles_role_check",
-      sql`${t.role} IN ('patient', 'clinician', 'nurse', 'pharmacist', 'lab_tech', 'hospital_admin', 'superadmin')`,
+      sql`${t.role} IN ('patient', 'clinician', 'nurse', 'pharmacist', 'lab_tech', 'hospital_admin', 'superadmin', 'reception', 'pharmacy_staff')`,
     ),
     check(
       "user_roles_superadmin_global_check",
@@ -47,6 +47,11 @@ export const USER_ROLES = [
   "lab_tech",
   "hospital_admin",
   "superadmin",
+  // Non-clinical (migration 0033).
+  "reception",
+  // The pharmacy workspace's carrier (migration 0098). Never shown as a title: screens show the
+  // approved cadre's name (ADR 0227).
+  "pharmacy_staff",
 ] as const;
 
 export type RoleName = (typeof USER_ROLES)[number];

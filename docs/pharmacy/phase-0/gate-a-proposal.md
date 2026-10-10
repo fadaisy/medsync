@@ -485,6 +485,6 @@ The prompt's recommendations stand except where marked **changed**.
 | Item                                                          | Signed by | Date        | Basis                                                 |
 | ------------------------------------------------------------- | --------- | ----------- | ----------------------------------------------------- |
 | D-PH0-08, -13, -21 and the stacked branch                     | Fadhul    | 10 Oct 2026 | Answers in session at STOP 0                          |
-| D-PH0-01 to -07, -09 to -12, -14 to -20, -22; E-PH0-01 to -06 |           |             |                                                       |
-| Permission map v1 (§2.2)                                      |           |             |                                                       |
-| Notice and caution wording (§5.7, status `draft`)             |           |             | Ships `draft`; CS-5 keeps production off until signed |
+| D-PH0-01 to -07, -09 to -12, -14 to -20, -22; E-PH0-01 to -06 | Fadhul (owner, CSO) | 10 Oct 2026 | Answer in session at STOP 1: "Sign as recommended" |
+| Permission map v1 (§2.2), both cadres | Fadhul (CSO) | 10 Oct 2026 | Answer in session at STOP 1: "Both cadres, sign map"; the technician's registering body to be confirmed later (view-only access carries no supply authority) |
+| Notice and caution wording (§5.7, status `draft`) | not signed | — | Kept draft by choice at STOP 1; CS-5 keeps production off until signed |

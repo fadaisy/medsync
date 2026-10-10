@@ -422,3 +422,125 @@ The signed and listed medicine counts are static: 4 of 192.
 **Second round:** no further change.
 
 **The backfill dry-run list** cannot be produced without production access; the script lists it once 0098 is applied.
+
+**Signed 10 Oct 2026, in session:**
+
+- D-PH0-01 to -22 and E-PH0-01 to -06, as recommended;
+- the permission map v1 with both cadres (the technician's registering body to be confirmed later).
+
+Not signed: the notice and caution wording, kept `draft` by choice; CS-5 keeps production off.
+
+---
+
+## STOP 2 — Access
+
+### What was built
+
+| Piece          | File                                                   | What it does                                                                                      |
+| -------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Permission map | `data/pharmacy/permission-map.v1.json`                 | v1.0.0, signed                                                                                    |
+| Access engine  | `lib/pharmacy/access.ts`                               | six names, one grant                                                                              |
+| Flag           | `lib/pharmacy/feature.ts`                              | `PHARMACY_WORKSPACE`, with the CS-5 production gate over every `draft` string                     |
+| Copy           | `content/pharmacy.ts`                                  | every §5.7 string; the notice and cautions `draft`                                                |
+| Scope          | `lib/pharmacy/scope.ts`                                | `requirePharmacyScope`: not found with the flag off, not-authorised without `pharmacy.view`, AAL2 |
+| Forward        | `lib/pharmacy/scope.ts`                                | `isPharmacyUser`, used by the 307 from `/clinician`                                               |
+| Landing        | `lib/auth/landing.ts`, `app/(auth)/sign-in/landing.ts` | the `pharmacy` group, set only where the flag is on; `active.pharmacy`; `/pharmacy` in `mayOpen`  |
+| Refused page   | `app/not-authorised/page.tsx`                          | `?for=pharmacy`                                                                                   |
+| MFA            | `lib/auth.ts`                                          | `pharmacy_staff` in `MFA_REQUIRED_ROLES`                                                          |
+| Backfill       | `npm run pharmacy:backfill-access`                     | dry run by default                                                                                |
+
+**Generalised once:**
+
+- `lib/workspace-access/access.ts`: a signed cadre map → permissions, and `mapProblems`.
+- `lib/workspace-access/flag.ts`: the `1`-or-list flag and the production gate over signed copy.
+- `content/signed-copy.ts`: the `SignedCopy` type.
+
+The lab's `access.ts`, `feature.ts` and `content/lab.ts` now sit on these with the same exports.
+
+**Changed from the proposal:** the shared modules live in `lib/workspace-access/`, not `lib/workspace/`. That folder is the doctor workspace's own (lanes, flow, `doctorWorkspace`). A first write overwrote its `feature.ts`; typecheck caught it and the file was restored from git unchanged.
+
+### Migrations (GATED, owner-applied, in order)
+
+- `0098_pharmacy_access.sql`:
+  - the `user_roles` CHECK gains `pharmacy_staff` (the Drizzle CHECK also gains the missing `reception`);
+  - `private.sync_pharmacy_access`, and the trigger `staff_affiliations_pharmacy_access`.
+- `0099_prescription_placement.sql`:
+  - `prescriptions.placement_id uuid NULL`;
+  - index `(hospital_id, created_at)`.
+  - The writers start filling it in Step 3.
+- `0100_prescription_reads.sql`:
+  - `private.reads_hospital_prescribing(hospital)`: clinical cadres except lab and pharmacy, or `pharmacy_staff` at that hospital;
+  - it replaces the four 0039 SELECT policies on prescriptions, emergency administrations, crash carts and crash-cart stock.
+  - Superadmin is no longer read by role.
+
+### RLS and trigger probes
+
+`tests/emr-db/pharmacy-access.test.ts`, PGlite, every migration replayed: **35 of 35**.
+
+| Actor                                    | prescriptions         | emergency_administrations | crash_carts | crash_cart_stock |
+| ---------------------------------------- | --------------------- | ------------------------- | ----------- | ---------------- |
+| Pharmacist, same hospital, granted       | 2 (incl. restricted)  | 1                         | 1           | 1                |
+| Pharmacy technician, same hospital       | 2                     | 1                         | 1           | 1                |
+| Doctor, same hospital                    | 2                     | 1                         | 1           | 1                |
+| Nurse, same hospital                     | 2                     | 1                         | 1           | 1                |
+| Pharmacist awaiting approval             | 0                     | 0                         | 0           | 0                |
+| Lab technician, same hospital            | **0** (was 2)         | **0**                     | **0**       | **0**            |
+| Reception, same hospital                 | **0** (was 2)         | **0**                     | **0**       | **0**            |
+| Hospital admin (role only)               | 0                     | 0                         | 0           | 0                |
+| Doctor or pharmacist of another hospital | 0                     | 0                         | 0           | 0                |
+| Superadmin, no break-glass               | **0** (was 2)         | **0**                     | **0**       | **0**            |
+| The patient                              | 1 (restricted hidden) | 1                         | 0           | 0                |
+| Anonymous                                | 0                     | 0                         | 0           | 0                |
+
+- **Writes:** pharmacist, doctor and nurse INSERT, UPDATE and DELETE on prescriptions and emergency doses: denied or 0 rows.
+- **The sync:** `authenticated` and `anon` cannot run `private.sync_pharmacy_access`. Staff cannot write `user_roles`.
+- **Mutation check:** with 0100 removed, the lab, reception and superadmin rows fail (they read 2 / 1 / 1 / 1). The probes catch the old exposure.
+
+**Trigger probes:**
+
+- approve a Pharmacist and a Pharmacy technician (granted, audited);
+- approve a nurse, lab technician, medical officer or reception (nothing);
+- suspend and deactivate (revoked, audited); reactivate (granted again);
+- idempotency; a cadre change; per hospital; a hand-granted row removed;
+- the backfill path (granted, then unchanged);
+- the lab's grant unchanged beside it.
+
+### Audit rows
+
+From the harness, where seeding fired the trigger:
+
+```
+{action: insert, event: pharmacy_access_granted, basis.cadre_name: "Pharmacist",          basis.council: PHARM_BOARD}
+{action: insert, event: pharmacy_access_granted, basis.cadre_name: "Pharmacy Technician", basis.council: PHARM_BOARD}
+```
+
+A revocation is `action: delete`, `before_data.event: pharmacy_access_revoked`, with `reason {affiliation_id, to_state}`, asserted in the probes.
+
+### Landing table test
+
+- `tests/pharmacy/landing.test.ts` covers:
+  - LD-P2: role path and affiliation path → `/pharmacy`;
+  - flag off → `/clinician`;
+  - a pending applicant;
+  - LD-P3: doctor and lab outrank;
+  - LD-P5: honoured, refused with prefix, open redirect ignored;
+  - LD-P1 and LD-P4 by source.
+- `tests/lab/landing.test.ts` (37 rows) runs **unchanged and green**.
+
+### Lab regression
+
+`tests/lab` (14 files) and `tests/doctor/cadre-routing.test.ts` pass unchanged. The PGlite lab lanes (`lab-access`, `lab-reads`) pass unchanged.
+
+### Backfill dry run
+
+Against the harness database: "0 approved pharmacy staff without pharmacy access" (both fixtures were granted by the trigger at seeding). Production: you run it after 0098.
+
+**Caution:** from a worktree, the script loads the main checkout's `.env.local` (production), as `db:migrate` does. An explicit `DATABASE_URL` wins.
+
+### Checks
+
+- typecheck: 0 errors.
+- lint: 0 errors, 2 old warnings.
+- `vitest`: 427 files, **8,835 passed**, 1 expected-fail (P4), 0 failed.
+- PGlite lane: 31 files, **521 passed**.
+- P3 and P5 flipped to passing tests.

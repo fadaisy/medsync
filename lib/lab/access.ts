@@ -1,4 +1,7 @@
+import type { PermissionMap } from "@/lib/workspace-access/access";
+
 import MAP from "@/data/lab/permission-map.v1.json";
+import { cadrePermissions, mapProblems as problemsOf } from "@/lib/workspace-access/access";
 
 /**
  * Lab access (Lab Phase 0, ADR 0221; LA-1..LA-6). Six permissions, derived on every request from
@@ -19,13 +22,6 @@ export const LAB_PERMISSIONS = [
 ] as const;
 export type LabPermission = (typeof LAB_PERMISSIONS)[number];
 
-interface PermissionMap {
-  version: string;
-  status: string;
-  permissions: readonly string[];
-  cadres: Record<string, readonly string[]>;
-}
-
 const PERMISSION_MAP: PermissionMap = MAP;
 export const PERMISSION_MAP_VERSION = PERMISSION_MAP.version;
 
@@ -45,18 +41,9 @@ export interface LabAccess {
   manages: "lab" | readonly string[];
 }
 
-const isPermission = (p: string): p is LabPermission =>
-  (LAB_PERMISSIONS as readonly string[]).includes(p);
-
 export function labAccess(facts: LabAccessFacts, map: PermissionMap = PERMISSION_MAP): LabAccess {
-  const permissions = new Set<LabPermission>();
-  // An unsigned map grants nothing: the register and the CSO's signature are the only source.
-  if (map.status === "signed" && facts.cadreCode) {
-    for (const p of map.cadres[facts.cadreCode] ?? []) {
-      // lab.manage never comes from a cadre (LA-5), whatever a map says.
-      if (isPermission(p) && p !== "lab.manage") permissions.add(p);
-    }
-  }
+  // An unsigned map grants nothing, and lab.manage never comes from a cadre (LA-5).
+  const permissions = cadrePermissions(map, facts.cadreCode, LAB_PERMISSIONS, ["lab.manage"]);
   const manages: LabAccess["manages"] = facts.headOf.laboratory
     ? "lab"
     : [...facts.headOf.sectionIds];
@@ -70,14 +57,5 @@ export function can(access: Pick<LabAccess, "permissions">, permission: LabPermi
 
 /** Every problem with a map, for the test that keeps the shipped one honest. */
 export function mapProblems(map: PermissionMap = PERMISSION_MAP): string[] {
-  const problems: string[] = [];
-  if (map.status !== "signed") problems.push(`status is ${map.status}, not signed`);
-  for (const p of map.permissions) if (!isPermission(p)) problems.push(`unknown permission ${p}`);
-  for (const [cadre, ps] of Object.entries(map.cadres)) {
-    for (const p of ps) {
-      if (!isPermission(p)) problems.push(`${cadre}: unknown permission ${p}`);
-      if (p === "lab.manage") problems.push(`${cadre}: lab.manage cannot come from a cadre`);
-    }
-  }
-  return problems;
+  return problemsOf(map, LAB_PERMISSIONS, ["lab.manage"]);
 }
