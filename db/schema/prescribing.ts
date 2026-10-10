@@ -119,7 +119,10 @@ export const prescriptions = pgTable(
     overMinutes: integer("over_minutes"),
     givingSetDropsPerMl: integer("giving_set_drops_per_ml"),
     warmed: boolean("warmed"),
-    /** The checks that needed an answer, with the answer chosen: [{code, answer}]. */
+    /**
+     * The checks that needed an answer, with the answer chosen: [{code, answer}]; from Pharmacy
+     * Phase 0 also the check's level, [{code, answer, outcome: "stop" | "check"}] (ADR 0233).
+     */
     checkAnswers: jsonb("check_answers")
       .notNull()
       .default(sql`'[]'::jsonb`),

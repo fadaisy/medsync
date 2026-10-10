@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import type { WriteCtx } from "./context";
 import type { WriteResult } from "./orders";
 import type { PlanOrderLine } from "@/lib/clerking/plan/draft";
@@ -195,7 +196,7 @@ const doseWords = (rx: PlanRx) =>
 
 async function prescribeFromPlan(
   ctx: WriteCtx,
-  input: { patientUserId: string; encounterId: string; rx: PlanRx },
+  input: { patientUserId: string; encounterId: string; placementId: string; rx: PlanRx },
   facts: PlanFacts,
   earlier: OtherMedicine[],
 ): Promise<{ id: string; label: string; drugId: string; classId: string; kind: "drug" | "fluid" }> {
@@ -322,7 +323,14 @@ async function prescribeFromPlan(
       overMinutes: f?.overMinutes ?? null,
       givingSetDropsPerMl: f?.delivery === "gravity" ? f.dropsPerMl : null,
       warmed: f ? f.warmed : null,
-      checkAnswers: answered.map((a) => ({ code: a.code, answer: a.answer })),
+      // The level beside each answer, so a reader can tell an overridden stop from an answered
+      // check without re-running a check (Pharmacy Phase 0, ADR 0233).
+      checkAnswers: answered.map((a) => ({
+        code: a.code,
+        answer: a.answer,
+        outcome: checks.find((c) => c.code === a.code)!.outcome,
+      })),
+      placementId: input.placementId,
       createdAt: now,
     })
     .returning({ id: prescriptions.id });
@@ -533,10 +541,12 @@ export async function placePlan(
     }),
   ];
   const prescriptionIds: string[] = [];
+  // One id for every line of this basket: the prescription the patient carries (ADR 0230).
+  const placementId = randomUUID();
   for (const rx of input.prescriptions) {
     const placed = await prescribeFromPlan(
       ctx,
-      { patientUserId: input.patientUserId, encounterId: encounter.id, rx },
+      { patientUserId: input.patientUserId, encounterId: encounter.id, placementId, rx },
       facts,
       others,
     );

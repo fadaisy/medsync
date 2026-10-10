@@ -544,3 +544,110 @@ Against the harness database: "0 approved pharmacy staff without pharmacy access
 - `vitest`: 427 files, **8,835 passed**, 1 expected-fail (P4), 0 failed.
 - PGlite lane: 31 files, **521 passed**.
 - P3 and P5 flipped to passing tests.
+
+---
+
+## STOP 3 — Engines
+
+### The two prescribing-write changes (approved at STOP 0, signed at GATE A)
+
+- **`lib/emr/write/plan.ts`:**
+  - `placePlan` draws one `placementId` per basket and every line carries it;
+  - each `check_answers` entry now stores the check's level (`{code, answer, outcome}`), from the same `checks` the writer already computed.
+- **`lib/emr/write/prescriptions.ts`:** one sheet prescribe is one placement.
+- **Proven on the lane:**
+  - `write-plan`: both lines of a basket share one id; an allergy override stores `outcome: "stop"`; answered checks store `"check"`.
+  - `write-prescriptions`: a placement id is set.
+  - Every other assertion in both suites passes unchanged (18 of 18).
+
+### Engines (pure)
+
+| Module                              | Holds                                                                            |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| `lib/pharmacy/queue.ts`             | `computeQueue`, `laneOf`, `lineState`, `rowState`, `placementKey`, `defaultLane` |
+| `lib/pharmacy/checks.ts`            | answered checks from stored data, the PQ-8 chips                                 |
+| `lib/pharmacy/prescription-view.ts` | the read-only view model                                                         |
+| `lib/pharmacy/check-state.ts`       | `pharmacyChecksState`; counts 4 of 192 at run time from the shipped catalogue    |
+| `lib/pharmacy/emergency-doses.ts`   | timeline events → dose rows by cart                                              |
+| `lib/pharmacy/nav.ts`               | the pharmacy's two registered items, on `lib/workspace-access/nav.ts`            |
+
+`lib/lab/nav.ts` is rebuilt on `lib/workspace-access/nav.ts` with the same exports.
+
+**Changed while building:**
+
+- The lane rule also reads the legacy disposition codes the CHECK still allows: `admit` and `observe` are ward; `discharge`, `refer` and `transfer` are window.
+- **"Changed hh:mm"** comes from a line no longer `active`, not from `updated_at > created_at`. The writer stamps `created_at` from the app clock and `updated_at` from the database clock, so the comparison would have marked untouched rows as changed. This is noted in the code with its ceiling: if prescribing ever edits lines in place, an event log is needed.
+
+### Reads
+
+`lib/pharmacy/read.ts`:
+
+- `getPharmacyQueue` and `findPrescriptions` (exact patient number; 30-day look-back);
+- `getPrescription` (by placement id or time key) and `patientFacts` (current weight, creatinine and allergies, each dated);
+- `logPrescriptionViewed` (one `audit_log` row per open, none within a minute);
+- `getEmergencyDoses`.
+
+Every read is hospital-scoped, reads as the owner with an explicit field list, and returns the server time.
+
+### New finding, fixed under the signed read list: migration 0101
+
+- **The problem:** an RLS probe across every table found that pharmacy staff could already read `encounters` through the client. 23 client SELECT policies admit any affiliation in a clinical cadre, inline (`c.is_clinical = true`) or through `public.is_active_clinical_staff()`, and the pharmacy cadres are clinical. That reach covers:
+  - encounters, observations, triage, the MAR and handovers;
+  - admissions, beds and visit summaries;
+  - the resus record and three realtime channels.
+- **The fix:**
+  - `0101_pharmacy_outside_clinical_reads.sql` takes the two pharmacy cadres, and nothing else, out of that predicate.
+  - The function is redefined in place, and the nine inline policies are recreated with one added line.
+  - Every other cadre, role and branch is unchanged.
+- **Probes** (`pharmacy-access`, "0101"):
+  - pharmacist and technician read 0 encounters, resus episodes and timeline events;
+  - doctor, nurse and physiotherapist read as before;
+  - the shared predicate is false for pharmacy and true for nurse, physiotherapist and lab;
+  - the cadre list is checked against the signed map in all 10 places.
+- **Mutation check:** without 0101, all five fail.
+- **Lab, reported, not changed:** lab cadres keep the same broad reach. That is the lab's to decide.
+- **Numbering:** dispensing points move to **0102**.
+
+### Rule coverage (each ID named in at least one test)
+
+| Rules                   | Where                                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| PA-1..5                 | `tests/pharmacy/access.test.ts`                                                                                  |
+| PA-6, RV-7              | `tests/emr-db/pharmacy-access.test.ts` (0100 + 0101 probes); `requirePharmacyScope` in every page from Step 4    |
+| PA-7                    | `pharmacy-access` (trigger probes)                                                                               |
+| PA-8, NV-P2             | `tests/lab/*` unchanged and green                                                                                |
+| LD-P1..5                | `tests/pharmacy/landing.test.ts`                                                                                 |
+| PQ-1, 3, 5–11, 13, DP-4 | `tests/pharmacy/queue.test.ts`; PQ-1, 3, 5, 6, 11 also on the lane (`pharmacy-reads`)                            |
+| PQ-2                    | by construction: no number exists or is made (`QueueRow` has none); the screen in Step 4                         |
+| PQ-12                   | Step 4: identities through `identitiesFor` at the page, one batch per load                                       |
+| RV-1, 3, 6              | `pharmacy-reads`                                                                                                 |
+| RV-2, 4, 5              | `tests/pharmacy/engines.test.ts`; RV-2 also on the lane (`"1/2 tab "` byte for byte)                             |
+| CS-1..4                 | `engines.test.ts`                                                                                                |
+| CS-5                    | `tests/pharmacy/feature.test.ts`                                                                                 |
+| ED-1..5                 | `engines.test.ts`; ED-1..4 also on the lane                                                                      |
+| NV-P1                   | `engines.test.ts`                                                                                                |
+| DP-1..3                 | Step 5 (the hub panel)                                                                                           |
+| Law 2                   | `engines.test.ts`: the only write in `lib/pharmacy` is the view log; the `/pharmacy` action scan comes in Step 4 |
+
+### Property tests
+
+- **PQ-13:** 500 seeded random queues (0–24 placements of 1–4 lines; 10 % from another hospital; random lanes, states, sorts). Every placement appears exactly once under All, lanes add up to All, and states add up within the lane: **500 of 500**.
+- **ED-4:** 300 random timelines. Cart counts sum to the total, and each cart tab holds its count: **300 of 300**.
+
+### Time
+
+`periodRange` is checked at the Kampala day boundary. At 23:30 local the day started at 21:00 UTC the day before; at 00:30 a new day has begun. Yesterday, 7 days and 30 days are tested too. The client-side wrong-clock test (S18) belongs to Step 4's 30-second tick.
+
+### Query counts
+
+- `getPharmacyQueue` runs **4 statements**: the lines, then co-sign, encounters and cadre names in parallel. The count is the same with 4 or 10 placements (lane test).
+- `getPrescription`: 5.
+- `getEmergencyDoses`: 2.
+- `logPrescriptionViewed`: 2.
+
+### Checks
+
+- typecheck: 0 errors.
+- lint: 0 errors, 2 old warnings.
+- `vitest`: 431 files, **8,885 passed**, 1 expected-fail (P4), 0 failed.
+- PGlite lane: 32 files, **536 passed** (`pharmacy-access` 40, `pharmacy-reads` 10).

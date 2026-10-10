@@ -1,4 +1,7 @@
 import type { LabPermission } from "./access";
+import type { NavItem } from "@/lib/workspace-access/nav";
+
+import { navFor as navItemsFor } from "@/lib/workspace-access/nav";
 
 /**
  * The lab workspace navigation (Lab Phase 0, NV-1..NV-3). The sidebar renders only what is
@@ -9,15 +12,7 @@ import type { LabPermission } from "./access";
 
 export type LabNavId = "worklist" | "released" | "rejected";
 
-export interface LabNavItem {
-  id: LabNavId;
-  label: string;
-  href: string;
-  order: number;
-  /** Match the index route exactly, so /lab/released does not light Worklist. */
-  exact: boolean;
-  visibleFor: (permissions: ReadonlySet<LabPermission>) => boolean;
-}
+export type LabNavItem = NavItem<LabNavId, LabPermission>;
 
 const view = (p: ReadonlySet<LabPermission>) => p.has("lab.view");
 
@@ -42,5 +37,5 @@ export const LAB_NAV: readonly LabNavItem[] = [
 ];
 
 export function navFor(permissions: ReadonlySet<LabPermission>): LabNavItem[] {
-  return LAB_NAV.filter((i) => i.visibleFor(permissions)).sort((a, b) => a.order - b.order);
+  return navItemsFor(LAB_NAV, permissions);
 }

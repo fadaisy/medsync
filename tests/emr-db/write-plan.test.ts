@@ -185,7 +185,7 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
     const rx = await q<Record<string, unknown>>(
       `SELECT drug_id, dose, kind, condition_id, method, infusion_over, diluent, frequency, duration, start,
               fluid_purpose, volume_ml, over_minutes, giving_set_drops_per_ml, check_answers, confirmed_flags,
-              confirm_reason_ciphertext, medication_statement_id
+              confirm_reason_ciphertext, medication_statement_id, placement_id
          FROM prescriptions WHERE id = ANY($1) ORDER BY kind`,
       [r.prescriptionIds],
     );
@@ -199,15 +199,19 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
       frequency: "daily",
       duration: "5d",
       start: "now",
+      // The level is stored beside each answer (Pharmacy Phase 0, ADR 0233).
       check_answers: [
-        { code: "cultures", answer: "aware_monitor" },
-        { code: "allergy_status", answer: "aware_monitor" },
+        { code: "cultures", answer: "aware_monitor", outcome: "check" },
+        { code: "allergy_status", answer: "aware_monitor", outcome: "check" },
       ],
       confirmed_flags: ["cultures", "allergy_status"],
     });
     expect(decrypt(rx[0]!.confirm_reason_ciphertext as string)).toMatch(
       /Check allergy: Aware; will monitor.*Check cultures before antibiotics: Aware; will monitor/,
     );
+    // One basket, one placement id on every line (ADR 0230).
+    expect(rx[0]!.placement_id).toEqual(expect.any(String));
+    expect(rx[1]!.placement_id).toBe(rx[0]!.placement_id);
     expect(rx[1]).toMatchObject({
       drug_id: "ringers_lactate",
       kind: "fluid",
@@ -293,6 +297,11 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
     expect(decrypt(row!.confirm_reason_ciphertext)).toMatch(
       /Override allergy: Senior reviewed and agreed/,
     );
+    expect(row!.check_answers).toContainEqual({
+      code: "allergy",
+      answer: "senior_agreed",
+      outcome: "stop",
+    });
   });
 
   it("records edits against a signed regimen; a per-kg regimen with no weight refuses", async () => {

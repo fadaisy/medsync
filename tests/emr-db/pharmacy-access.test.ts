@@ -449,3 +449,78 @@ describe.skipIf(!laneOn)("0100 — who reads prescriptions and emergency doses (
     },
   );
 });
+
+describe.skipIf(!laneOn)(
+  "0101 — pharmacy staff read the chart only through the server (S13, RV-7)",
+  () => {
+    let pg: Pg;
+    let h: string;
+    const who: Record<string, Actor> = {};
+
+    beforeAll(async () => {
+      pg = (await bootLane()).pg;
+      h = await hospital(pg, "Chart");
+      const d = await department(pg, h, "Medicine");
+      const doctor = await staff(pg, { hospitalId: h, departmentId: d });
+      const as = (userId: string): Actor => ({ userId, role: "authenticated" });
+      for (const cadre of ["PHARMACIST", "PHARMACY_TECH", "NURSE", "PHYSIOTHERAPIST", "LAB_TECH"])
+        who[cadre] = as((await staff(pg, { hospitalId: h, departmentId: d, cadre })).userId);
+      who.doctor = as(doctor.userId);
+      const pt = await patient(pg);
+      await pg.query(
+        `INSERT INTO public.encounters (hospital_id, patient_user_id, clinician_user_id, department_id) VALUES ($1, $2, $3, $4)`,
+        [h, pt, doctor.userId, d],
+      );
+      const [ep] = (
+        await pg.query<{ id: string }>(
+          `INSERT INTO public.resus_episodes (hospital_id, patient_user_id, trigger_kind) VALUES ($1, $2, 'triage_red') RETURNING id`,
+          [h, pt],
+        )
+      ).rows;
+      await pg.query(
+        `INSERT INTO public.resus_timeline_events (episode_id, kind, payload) VALUES ($1, 'note', '{}'::jsonb)`,
+        [ep!.id],
+      );
+    }, 120_000);
+
+    const count = async (actor: Actor, table: string) => {
+      const r = await probe(pg, actor, `SELECT count(*)::int AS n FROM public.${table}`);
+      return r.ok ? (r.rows[0]!.n as number) : -1;
+    };
+
+    it.each(["encounters", "resus_episodes", "resus_timeline_events"])(
+      "%s: pharmacy cadres read nothing; doctor, nurse and physiotherapist read as before",
+      async (table) => {
+        expect(await count(who.PHARMACIST!, table)).toBe(0);
+        expect(await count(who.PHARMACY_TECH!, table)).toBe(0);
+        for (const other of ["doctor", "NURSE", "PHYSIOTHERAPIST"])
+          expect(await count(who[other]!, table), other).toBe(1);
+      },
+    );
+
+    it("the shared clinical-staff predicate excludes the pharmacy cadres only", async () => {
+      const check = async (actor: Actor) => {
+        const r = await probe(pg, actor, `SELECT public.is_active_clinical_staff($1) AS ok`, [h]);
+        return r.ok && r.rows[0]!.ok;
+      };
+      expect(await check(who.PHARMACIST!)).toBe(false);
+      expect(await check(who.PHARMACY_TECH!)).toBe(false);
+      expect(await check(who.NURSE!)).toBe(true);
+      expect(await check(who.PHYSIOTHERAPIST!)).toBe(true);
+      // Unchanged here, reported to the lab: lab cadres still pass the clinical predicate.
+      expect(await check(who.LAB_TECH!)).toBe(true);
+    });
+
+    it("the SQL excludes exactly the cadres of the signed map, in every place", () => {
+      const sql = readFileSync(
+        resolve(process.cwd(), "supabase/migrations/0101_pharmacy_outside_clinical_reads.sql"),
+        "utf8",
+      );
+      const lists = [...sql.matchAll(/c\.code NOT IN \(([^)]*)\)/g)].map((m) =>
+        [...m[1]!.matchAll(/'([A-Z_]+)'/g)].map((x) => x[1]).sort(),
+      );
+      expect(lists).toHaveLength(10);
+      for (const l of lists) expect(l).toEqual([...PHARMACY_MAP_CADRES].sort());
+    });
+  },
+);
