@@ -27,6 +27,7 @@ interface Cap {
   pending: { byName: string; at: string; mine: boolean } | null;
   verified: { byName: string; at: string } | null;
   derived: boolean;
+  derivedFrom?: "wards" | "dispensing_points" | null;
 }
 
 /** A value as a sentence a person reads. */
@@ -118,7 +119,17 @@ function CapRow({ k, cap }: { k: CapabilityKey; cap: Cap }) {
         ) : null}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        {k.derived ? (
+        {cap.derived && cap.derivedFrom === "dispensing_points" ? (
+          <p className="text-body-s">
+            <span className="text-foreground font-mono tabular-nums">{show(k, cap.value)}</span>{" "}
+            <Link
+              href="/hospital-admin/departments"
+              className="text-muted-foreground text-caption hover:underline"
+            >
+              from the dispensing points
+            </Link>
+          </p>
+        ) : k.derived ? (
           <p className="text-body-s">
             <span className="text-foreground font-mono tabular-nums">{String(cap.value ?? 0)}</span>{" "}
             <Link

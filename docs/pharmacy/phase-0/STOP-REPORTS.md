@@ -785,3 +785,134 @@ Production build (`next build && next start`) in the harness: Test Hospital-1 wi
 - Prettier: clean on every changed file.
 - `vitest`: 432 files, **8,900 passed**, 0 failed, 0 expected-fail.
 - PGlite lane: 32 files, **536 passed**, three consecutive runs.
+
+---
+
+## STOP 5 — Dispensing points, scenarios, hardening and documentation (final)
+
+### Dispensing points (§5.8, DP-1..DP-4)
+
+The services hub is on the branch, so this was built.
+
+- **Migration 0102** (`pharmacy_dispensing_points`): 1:1 with a unit, `serves` CHECK, RLS on with no client policy.
+- **Hub op `set_dispensing_point`** in `ha-services-hub`:
+  - accepts a live unit of PHARMACY only;
+  - audited before it writes, like every hub op.
+- **Hub panel:** the Pharmacy department's units tab becomes **Dispensing points**: name with staff count, a Serves control, hours, and the note.
+- **Section [06]:** with a point, "Dispensing points" and "Pharmacy 24 hours" read "from the dispensing points" and cannot be typed. `set_capability` refuses them on the server.
+  - The derivation is `derivedPharmacy`, shared by the app and the Edge Function.
+  - It counts only hours that read exactly "24 hours".
+- **The opening lane:** the pharmacy queue opens on the lane the viewer's point serves.
+- **Harness, artboard 0.4** (`shots/stop5/`):
+  - the panel shows both points, with "Wards" and "Outpatients, clinics and discharges";
+  - section [06] shows "2" and "Yes", each from the dispensing points;
+  - axe: 0 on both.
+- **Not built** (§5.11): the canvas's "Live on MedSync" chip and the per-unit Archive button. The hub has neither. Archiving a department keeps the hub's existing block while staff are assigned.
+
+### Scenarios
+
+Playwright is not used (D-PH0-22). Each scenario is proven by a test in the repo, the harness, or both.
+
+| #   | Scenario                                                                                        | Evidence                                                                                                                                                                                                 | Result |
+| --- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| S1  | Approve a Pharmacist → granted in that transaction, audited; lands on `/pharmacy`               | `pharmacy-access` (grant + basis row, actor = approver); `tests/pharmacy/landing.test.ts` LD-P2                                                                                                          | pass   |
+| S2  | The same for a technician; every label says "Pharmacy technician"                               | `pharmacy-access` (basis `cadre_name` "Pharmacy Technician", never "Pharmacist"); production harness top bar "Pharmacy technician · Outpatient pharmacy", no "Pharmacist" in the page; Law 4 source scan | pass   |
+| S3  | Backfill → lands on `/pharmacy`                                                                 | `pharmacy-access` backfill path (granted, then unchanged); harness dry run (0 left: the trigger granted at seeding)                                                                                      | pass   |
+| S4  | Nurse approved: no grant; `/pharmacy` refused                                                   | `pharmacy-access` (no row, no audit); production harness: nurse → 307 `/not-authorised?for=pharmacy`                                                                                                     | pass   |
+| S5  | Three medicines for an outpatient → one row, For the window                                     | `pharmacy-reads` S5; `queue.test.ts` PQ-1; the medicines in the order written (`placement_line`)                                                                                                         | pass   |
+| S6  | Overridden allergy stop: "1 stop overridden"; the view names the check and the reasons verbatim | `pharmacy-reads` (chip, `overriddenStops`); harness `rx-override` screenshots                                                                                                                            | pass   |
+| S7  | Awaiting co-sign: amber on row and view; clears once signed                                     | `pharmacy-reads` S7; `queue.test.ts` (approved → Prescribed); harness `rx-cosign`                                                                                                                        | pass   |
+| S8  | One of three cancelled: row stays, "Changed hh:mm", line struck; all cancelled: "Cancelled"     | `queue.test.ts` PQ-6, PQ-7; `pharmacy-reads` S8 (cancelled by the senior's cadre); harness `rx-changed`                                                                                                  | pass   |
+| S9  | An awkward dose shows byte for byte                                                             | `engines.test.ts` RV-2; `pharmacy-reads` (`"1/2 tab "`)                                                                                                                                                  | pass   |
+| S10 | Admitted → On the wards                                                                         | `pharmacy-reads` S10; `queue.test.ts` PQ-3                                                                                                                                                               | pass   |
+| S11 | Find by number: lists; another hospital's number gives the same "no prescription"               | `pharmacy-reads` S11 (look-back included); `ui.test.ts` (posted, never in a URL)                                                                                                                         | pass   |
+| S12 | One log row per open; none again within a minute                                                | `pharmacy-reads` RV-6                                                                                                                                                                                    | pass   |
+| S13 | A pharmacist asks the database for notes, results, observations: refused                        | `pharmacy-access` 0101 probes (encounters, resus episode and timeline: 0); the shared predicate false for pharmacy cadres                                                                                | pass   |
+| S14 | A resus dose appears under its cart, amount as stored, witness's cadre, no stock                | `pharmacy-reads` ED; `engines.test.ts` ED-1..ED-5; harness doses screenshots                                                                                                                             | pass   |
+| S15 | Notice with counts; without counts the other wording; draft wording blocks production           | `ui.test.ts`; `notice.test.ts`; `feature.test.ts` CS-5                                                                                                                                                   | pass   |
+| S16 | Reception refused; other hospital refused; no cross-hospital prescription                       | `access.test.ts` PA-5; `pharmacy-access` 0100 probes; `pharmacy-reads` PQ-11                                                                                                                             | pass   |
+| S17 | Deactivated → revoked in that transaction, audited; next request refused                        | `pharmacy-access` (revoked + audit); the scope requires an active affiliation                                                                                                                            | pass   |
+| S18 | Device clock 3 h wrong → times match the server                                                 | `ui.test.ts` S18; `period.test.ts`                                                                                                                                                                       | pass   |
+| S19 | Flag off: sign-in and `/clinician` as before; `/pharmacy` not found                             | `/clinician` pixel-identical at 3 widths (dev); production `/pharmacy` 404, `/clinician` 200, no console error; landing table flag-off rows                                                              | pass   |
+| S20 | A point serving the wards opens on On the wards; the hub shows derived count and 24 h           | harness: the pharmacist at "Inpatient pharmacy" opens on "On the wards, 1", the technician at "Outpatient pharmacy" on "For the window, 5"; hub [06] "2" and "Yes"; `pharmacy-points` DP-4               | pass   |
+| S21 | Lab scenarios on access, landing, navigation still pass                                         | `tests/lab` (14 files) unchanged and green; `lab-access`, `lab-reads` lanes green                                                                                                                        | pass   |
+| S22 | Phone: S5 and S6 end to end                                                                     | 390 px screenshots of the queue and the prescription (three-line rows, override block); axe 0                                                                                                            | pass   |
+
+### Section 13 — the numbers
+
+| Metric                                                      | Baseline                                                                                                       | Target             | Result                                                                                          |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
+| Approved pharmacy staff who land on `/pharmacy` at sign-in  | 0 % (all to `/clinician`)                                                                                      | 100 %              | 100 % where `PHARMACY_WORKSPACE` is on (resolver and the 307)                                   |
+| Approved pharmacy staff with no pharmacy access             | all (no grant existed)                                                                                         | 0                  | 0 from 0098 on; existing staff after your backfill                                              |
+| Pharmacy access grants without an audit row                 | —                                                                                                              | 0                  | 0                                                                                               |
+| Non-pharmacy cadres holding a pharmacy permission           | 0                                                                                                              | 0                  | 0 (map, probes; a hand-granted row goes at the next change)                                     |
+| Screens that call a technician a pharmacist                 | —                                                                                                              | 0                  | 0 (cadre name only; source scan)                                                                |
+| Navigations from sign-in to the queue                       | no queue                                                                                                       | 0                  | 0                                                                                               |
+| Sidebar items with no page                                  | —                                                                                                              | 0                  | 0 (registry of 2)                                                                               |
+| Prescriptions in the period missing from All                | —                                                                                                              | 0                  | 0 (property test 500/500; 510 of 510 in the harness)                                            |
+| Queue rows with fewer than two identifiers                  | —                                                                                                              | 0                  | 0                                                                                               |
+| Doses displayed differently from stored                     | —                                                                                                              | 0                  | 0 (byte equality)                                                                               |
+| Check results shown that were not stored                    | —                                                                                                              | 0                  | 0                                                                                               |
+| Chart tables pharmacy staff can read beyond the list        | encounters, observations, triage, MAR, handovers, resus, admissions, beds, visit summaries, every prescription | 0                  | 0 (0100, 0101)                                                                                  |
+| Prescription opens without a log row                        | —                                                                                                              | 0                  | 0                                                                                               |
+| Clinical write actions reachable from `/pharmacy`           | —                                                                                                              | 0                  | 0                                                                                               |
+| Stock figures shown                                         | —                                                                                                              | 0                  | 0                                                                                               |
+| Prescription screens without the notice                     | all                                                                                                            | 0                  | 0                                                                                               |
+| Lab access, landing and navigation tests changed or failing | —                                                                                                              | 0                  | 0 (one design assertion repointed to the shared notice; no access, landing or nav test changed) |
+| Rule IDs without a test                                     | —                                                                                                              | 0                  | 0                                                                                               |
+| RLS probes passed                                           | —                                                                                                              | 100 %              | 100 % (`pharmacy-access` 40, `pharmacy-points` 5)                                               |
+| axe serious or critical                                     | not measured                                                                                                   | 0                  | 0 (19 runs)                                                                                     |
+| Red added on `/pharmacy` routes                             | —                                                                                                              | 0                  | 0                                                                                               |
+| Lane switch p95 / added JS                                  | —                                                                                                              | < 100 ms / ≤ 30 KB | 57.7 ms / none (352.5 KB, under the 404 page's 373.6 KB)                                        |
+
+### Definition of Done
+
+- [x] **P1–P5 and P9 resolved.**
+  - P1: `pharmacy_staff` added.
+  - P2: the council is shown as the Pharmacy Board.
+  - P3, P5: landing and the trigger.
+  - P4: the route.
+  - P9: the queue shows what reached the pharmacy only on paper.
+  - P6 (`PharmacyAvailability`) and P10's stock tables are untouched, for Phase 1 (stock at the window) and Phase 2 (cart reconciliation).
+- [x] Every approved pharmacy professional lands on `/pharmacy`; every grant and revocation has an audit row; no non-pharmacy cadre holds a pharmacy permission.
+- [x] No screen, export or audit line calls a technician a pharmacist.
+- [x] The queue shows every prescription written in the period, once; cancelled and changed ones are marked, not removed.
+- [x] Every dose displays as stored; no unstored check result appears.
+- [x] Pharmacy staff read the signed list and nothing else from the chart; every open is logged.
+- [x] Every pharmacy prescription screen shows the notice. **The wording is `draft`**, so production stays off until it is signed.
+- [x] **No clinical write path was added.** Changed in prescribing, as signed: both writers stamp the placement id and line, and the Plan stores each answer's level. No stock figure is shown.
+- [x] The lab's access, landing and navigation behave as before.
+- [x] Every rule ID has a test; RLS probes are green; client writes are denied.
+- [x] axe is clean; red scarcity is green on every `/pharmacy` route; reduced motion: no row animation exists.
+- [x] S1–S22 pass; with the flag off, behaviour matches the baseline.
+- [x] ADRs 0227–0237 written; CHANGELOG updated; this report.
+
+### For you, before switching anything on
+
+1. **Merge order:** `feat/lab-front-door` first, then `feat/pharmacy-front-door` (rebased on `main` after the lab merges).
+2. **Apply migrations in order** with `npm run db:migrate` from the branch's checkout: **0097** (lab), **0098, 0099, 0100, 0101, 0102**.
+   - 0100 and 0101 change RLS: reception, lab and superadmin-by-role lose the client read of prescriptions, and pharmacy staff lose the generic chart read.
+3. **Deploy the Edge Function `ha-services-hub`** (the new op and the derived-key guard).
+4. **Backfill:** run `npm run pharmacy:backfill-access` (dry run), review, then `-- --apply`. From a worktree it reads the main checkout's production env.
+5. **Sign the wording** in `content/pharmacy.ts` (status `signed`, `signedBy`, `signedOn`): the notice, the co-sign line, "Not continued at home", the override block, and the cart notice.
+6. **Switch on:** set `PHARMACY_WORKSPACE` to Test Hospital-1's id first (D-PH0-17).
+7. **Confirm the technicians' registering body** from a primary source (Appendix C).
+
+### Known debt and follow-ups
+
+- **Lab cadres** keep the broad client read of the chart (the same predicate 0101 narrowed for pharmacy). This is for the lab to decide.
+- **The flag-off EMR worklist** still prefetches result links (lab STOP 4).
+- **Before 0099,** rows keep no line order or placement; they show grouped by time.
+- **One full-lane failure was unexplained** at STOP 4, then traced: the order of a placement's lines was not recorded. Fixed by `placement_line`.
+- **Legacy service-role key names** (Q20).
+- **Heap:** `npm run typecheck` and `next build` need an 8 GB heap.
+
+### Final checks
+
+`SKIP_ENV_VALIDATION=1`, 8 GB heap:
+
+- typecheck, app and Edge Functions: 0 errors.
+- lint: 0 errors, 2 old warnings.
+- `vitest`: 435 files, **8,907 passed**, 0 failed.
+- PGlite lane: 33 files, **542 passed**, two consecutive runs.
+- `next build` passes (the harness's production build of this tree).

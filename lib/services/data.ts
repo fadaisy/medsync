@@ -34,10 +34,12 @@ import {
   serviceClosures,
 } from "@/db/schema/services-hub";
 import { users } from "@/db/schema/users";
+import { loadPointsForCapability } from "@/lib/pharmacy/dispensing-points";
 import {
   CAPABILITY_KEYS,
   compareToPreset,
   derivedCapabilities,
+  derivedPharmacy,
   IMAGING_ITEMS,
   NURSE_CADRE_CODES,
   orderingAvailability,
@@ -620,10 +622,12 @@ export interface CapabilityView {
   pending: { byName: string; byUserId: string; at: string } | null;
   verified: { byName: string; at: string } | null;
   derived: boolean;
+  /** Where a derived value comes from: Wards & beds, or the pharmacy's dispensing points. */
+  derivedFrom: "wards" | "dispensing_points" | null;
 }
 
 export async function loadCapabilities(hospitalId: string): Promise<CapabilityView[]> {
-  const [rows, [h], wards] = await Promise.all([
+  const [rows, [h], wards, points] = await Promise.all([
     db.select().from(capabilityValues).where(eq(capabilityValues.hospitalId, hospitalId)),
     db
       .select({
@@ -644,7 +648,10 @@ export async function loadCapabilities(hospitalId: string): Promise<CapabilityVi
       })
       .from(hospitalWards)
       .where(eq(hospitalWards.hospitalId, hospitalId)),
+    loadPointsForCapability(hospitalId),
   ]);
+  // DP-2: with a dispensing point, the pharmacy's two values are worked out from the points.
+  const pharmacy = derivedPharmacy(points);
   const people = new Set(
     rows.flatMap((r) => [r.pendingBy, r.verifiedBy]).filter((x): x is string => !!x),
   );
@@ -674,11 +681,14 @@ export async function loadCapabilities(hospitalId: string): Promise<CapabilityVi
   };
   return CAPABILITY_KEYS.map((k) => {
     const r = rows.find((x) => x.key === k.key);
-    const value = k.derived
-      ? derived[k.key as keyof typeof derived]
-      : k.pathway
-        ? pathway[k.key]
-        : (r?.value ?? null);
+    const fromPoints = pharmacy && k.key in pharmacy;
+    const value = fromPoints
+      ? pharmacy[k.key as keyof typeof pharmacy]
+      : k.derived
+        ? derived[k.key as keyof typeof derived]
+        : k.pathway
+          ? pathway[k.key]
+          : (r?.value ?? null);
     return {
       key: k.key,
       value,
@@ -695,7 +705,8 @@ export async function loadCapabilities(hospitalId: string): Promise<CapabilityVi
         r?.verifiedAt && r.verifiedBy
           ? { byName: names.get(r.verifiedBy) ?? "An admin", at: r.verifiedAt.toISOString() }
           : null,
-      derived: !!k.derived,
+      derived: !!k.derived || !!fromPoints,
+      derivedFrom: fromPoints ? "dispensing_points" : k.derived ? "wards" : null,
     };
   });
 }

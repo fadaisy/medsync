@@ -2,6 +2,7 @@ import type { QueuePayload } from "./_components/queue-screen";
 import type { QueuePeriod } from "@/lib/pharmacy/read";
 
 import { identitiesFor } from "@/lib/emr/read/results";
+import { servesOf } from "@/lib/pharmacy/dispensing-points";
 import { queueFor } from "@/lib/pharmacy/page-data";
 import { defaultLane } from "@/lib/pharmacy/queue";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
@@ -32,7 +33,10 @@ export default async function PharmacyQueuePage({
   const sp = await searchParams;
   const raw = sp.period;
   const period = PERIODS.includes(raw as QueuePeriod) ? (raw as QueuePeriod) : "today";
-  const { lines, encounters, serverNow } = await queueFor(scope.hospitalId, period);
+  const [{ lines, encounters, serverNow }, serves] = await Promise.all([
+    queueFor(scope.hospitalId, period),
+    servesOf(scope.hospitalId, scope.departmentId),
+  ]);
   const ids = await identitiesFor(
     scope,
     lines.map((l) => l.patientUserId),
@@ -49,8 +53,8 @@ export default async function PharmacyQueuePage({
     })),
     encounters: [...encounters.values()],
     identities: Object.fromEntries(ids),
-    // DP-4: the dispensing point's lane arrives with the hub panel (Step 5); until then, All.
-    defaultLane: defaultLane(null),
+    // DP-4: the viewer's dispensing point picks the opening lane; no point, All.
+    defaultLane: defaultLane(serves),
     initial: {
       lane: sp.lane ?? null,
       state: sp.state ?? null,

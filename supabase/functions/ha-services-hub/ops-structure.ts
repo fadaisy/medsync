@@ -78,6 +78,12 @@ export const StructureOpSchema = z.discriminatedUnion("op", [
     reason,
   }),
   z.object({
+    op: z.literal("set_dispensing_point"),
+    department_id: uuid,
+    serves: z.enum(["window", "wards", "emergency", "all"]),
+    reason,
+  }),
+  z.object({
     op: z.literal("archive"),
     target: z.enum(["department", "ward", "place", "clinic", "bed"]),
     id: uuid,
@@ -524,6 +530,49 @@ const endHead: OpHandler = async (ctx, i) => {
         await ctx.sb.from("department_heads").update({ ends_at: nowIso() }).eq("id", h.id),
         "end head",
       );
+    },
+  };
+};
+
+/**
+ * A dispensing point (Pharmacy Phase 0, DP-1, ADR 0236): what a unit of the Pharmacy department
+ * serves. It only picks the lane its staff's queue opens on; it routes and holds nothing.
+ */
+const setDispensingPoint: OpHandler = async (ctx, i) => {
+  const unit = await loadDepartment(ctx, i.department_id);
+  if (!unit.parent_id)
+    throw new HubError("A dispensing point is a unit of the Pharmacy department.");
+  const parent = await loadDepartment(ctx, unit.parent_id);
+  if (parent.catalogue_code !== "PHARMACY")
+    throw new HubError("A dispensing point is a unit of the Pharmacy department.");
+  if (unit.archived_at) throw new HubError("That unit is archived.");
+  const before = must(
+    await ctx.sb
+      .from("pharmacy_dispensing_points")
+      .select("serves")
+      .eq("department_id", unit.id)
+      .maybeSingle(),
+    "dispensing point lookup",
+  ) as { serves: string } | null;
+  return {
+    audit: {
+      action: "update_department",
+      reason: reasonOr(i.reason, `${unit.name} serves ${i.serves}`),
+      before: { unit: unit.name, serves: before?.serves ?? null },
+      after: { unit: unit.name, serves: i.serves },
+    },
+    apply: async () => {
+      must(
+        await ctx.sb.from("pharmacy_dispensing_points").upsert({
+          department_id: unit.id,
+          hospital_id: ctx.hospitalId,
+          serves: i.serves,
+          updated_at: nowIso(),
+          updated_by_user_id: ctx.callerId,
+        }),
+        "upsert dispensing point",
+      );
+      return { id: unit.id };
     },
   };
 };
@@ -1082,6 +1131,7 @@ export const STRUCTURE_OPS: Record<string, OpHandler> = {
   assign_head: assignHead,
   end_head: endHead,
   add_unit: addUnit,
+  set_dispensing_point: setDispensingPoint,
   archive,
   unarchive,
   upsert_ward: upsertWard,
