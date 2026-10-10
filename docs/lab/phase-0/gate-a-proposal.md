@@ -1,6 +1,6 @@
 # Lab Phase 0 — GATE A proposal
 
-**Status:** Signed 10 Oct 2026 (see §10). Prompt: [PROMPT-LAB-PHASE-0.md](PROMPT-LAB-PHASE-0.md). Evidence for every
+**Status:** Signed 10 Oct 2026 (see §10); notice wording signed the same day, after Step 5. Prompt: [PROMPT-LAB-PHASE-0.md](PROMPT-LAB-PHASE-0.md). Evidence for every
 statement about the repo: [STOP-REPORTS.md](STOP-REPORTS.md), STOP 0.
 
 **For:** Fadhul, as owner and Clinical Safety Officer, and the sessions that build Steps 2–5.
@@ -315,12 +315,10 @@ The prompt's recommendations stand except where marked **changed**, each for a r
 
 ## 10. Signature
 
-| Item                               | Signed by           | Date        | Basis                                                                                                   |
-| ---------------------------------- | ------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
-| D-LAB0-01 to -19, E-LAB0-01 to -05 | Fadhul (owner, CSO) | 10 Oct 2026 | Instruction in session: "go with your recommendation and go through all gates"                          |
-| Permission map v1 (§2.2)           | Fadhul (CSO)        | 10 Oct 2026 | Same instruction; D-LAB0-02                                                                             |
-| Notice wording (Appendix B)        | **Not signed**      | —           | D-LAB0-11 itself asks for a signature before production. Copy ships `draft`; CF-3 keeps production off. |
+| Item                               | Signed by           | Date        | Basis                                                                                                 |
+| ---------------------------------- | ------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| D-LAB0-01 to -19, E-LAB0-01 to -05 | Fadhul (owner, CSO) | 10 Oct 2026 | Instruction in session: "go with your recommendation and go through all gates"                        |
+| Permission map v1 (§2.2)           | Fadhul (CSO)        | 10 Oct 2026 | Same instruction; D-LAB0-02                                                                           |
+| Notice wording (Appendix B)        | Fadhul (CSO)        | 10 Oct 2026 | Explicit confirmation in session ("Sign as written"), after Step 5; `content/lab.ts` status `signed`. |
 
 To sign the notice: set `status: "signed"`, `signedBy`, `signedOn` on the notice entry in `content/lab.ts`.
-
-**Notice signed** 10 Oct 2026 by Fadhul (CSO), explicitly, after Step 5.
