@@ -11,11 +11,32 @@
  * Prints affiliation and hospital ids, cadre and approval date: no names, no contact details.
  * Idempotent: a second run finds nobody.
  */
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
 import postgres from "postgres";
 
+// This folder's env files; in a git worktree (which has none), the main checkout's, as
+// scripts/migrate.ts does. The file names are printed, never their values.
+let envDir = process.cwd();
+if (![".env", ".env.local"].some((f) => existsSync(join(envDir, f)))) {
+  try {
+    const common = execFileSync(
+      "git",
+      ["rev-parse", "--path-format=absolute", "--git-common-dir"],
+      {
+        encoding: "utf8",
+      },
+    ).trim();
+    envDir = dirname(common);
+    console.log(`Using the main checkout's env: ${envDir}`);
+  } catch {
+    // not a git checkout: no env files to load
+  }
+}
 for (const f of [".env", ".env.local"]) {
-  if (existsSync(f)) process.loadEnvFile(f);
+  const path = join(envDir, f);
+  if (existsSync(path)) process.loadEnvFile(path);
 }
 
 const url = process.env.DATABASE_URL;
