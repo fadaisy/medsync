@@ -70,7 +70,13 @@ import { precipitantName } from "@/lib/clerking/impression/relations-catalogue";
 import { SUGGESTION_CHIPS } from "@/lib/clerking/impression/suggest";
 import { cn } from "@/lib/utils";
 import { FindingText } from "../summary/summary-step";
-import { AssociatedContainer, AssociationCandidates, CollapseButton } from "./associations";
+import {
+  AddFindingsHere,
+  AssociatedContainer,
+  AssociationCandidates,
+  CollapseButton,
+  Supports,
+} from "./associations";
 import { dropKey, sameTarget, useBoardDrag } from "./board-drag";
 import { DiagnosisBrowseDialog } from "./browse-dialog";
 import { ReasonField, subLine } from "./details";
@@ -852,7 +858,17 @@ export function ImpressionStep(props: ImpressionStepProps) {
         last: at === sibs.length - 1,
       };
     });
-  const target = linked.find((c) => c.row.dx.logicalId === bucketTo)?.row ?? null;
+  // "Not yet explained" gives findings to any diagnosis on the board (owner, 2026-10-10). A
+  // differential explains nothing, so its findings stay in the list: one can support several.
+  const bucketRows = lead
+    ? [lead, ...linked.map((c) => c.row), ...pl.coexisting.map((c) => c.row), ...b.differential]
+    : [];
+  const target = bucketRows.find((r) => r !== lead && r.dx.logicalId === bucketTo) ?? null;
+  const targetIsDifferential = !!target && b.differential.includes(target);
+  const isFor = (row: BoardRow, ref: FindingRef) =>
+    si.impression.evidence[row.dx.logicalId]?.[ref]?.w === "for";
+  const toggleBucket = (row: BoardRow) =>
+    setBucketTo(target?.dx.logicalId === row.dx.logicalId ? null : row.dx.logicalId);
   const testName = (id: string) => dx?.tests[id] ?? id.replace(/^test\./, "").replace(/_/g, " ");
 
   /* D-REL-17: the earlier format's links (meta.with), offered once as relations to confirm. */
@@ -1217,12 +1233,14 @@ export function ImpressionStep(props: ImpressionStepProps) {
                     <span className="text-caption text-muted-foreground">
                       Not yet explained by any diagnosis
                     </span>
-                    {linked.length && canWrite ? (
+                    {bucketRows.length > 1 && canWrite ? (
                       <Seg
                         label="Add findings to"
-                        options={[lead, ...linked.map((c) => c.row)].map((r) => ({
+                        options={bucketRows.map((r) => ({
                           id: r.dx.logicalId,
-                          label: r.dx.display,
+                          label: b.differential.includes(r)
+                            ? `${r.dx.display} (differential)`
+                            : r.dx.display,
                         }))}
                         value={target?.dx.logicalId ?? lead.dx.logicalId}
                         onPick={(id) => setBucketTo(id === lead.dx.logicalId ? null : id)}
@@ -1235,25 +1253,40 @@ export function ImpressionStep(props: ImpressionStepProps) {
                             <button
                               type="button"
                               disabled={!canWrite}
-                              onClick={() =>
+                              // A differential's finding stays here: tapping it again takes it back.
+                              aria-pressed={
+                                targetIsDifferential ? isFor(target!, f.ref) : undefined
+                              }
+                              onClick={() => {
+                                const off = targetIsDifferential && isFor(target!, f.ref);
                                 props.onImpression((d) =>
                                   v
                                     .sameAs(f.ref)
                                     .reduce(
                                       (acc, ref) =>
                                         target
-                                          ? withMark(acc, target.dx.logicalId, ref, "for", stamp())
+                                          ? withMark(
+                                              acc,
+                                              target.dx.logicalId,
+                                              ref,
+                                              off ? "blank" : "for",
+                                              stamp(),
+                                            )
                                           : explainWithLeading(acc, b, ref, stamp()),
                                       d,
                                     ),
-                                )
-                              }
+                                );
+                              }}
                               aria-label={`${f.text}: link it to ${(target ?? lead).dx.display}`}
                               className={cn(
                                 "text-caption border-border hover:bg-muted focus-visible:shadow-focus inline-flex min-h-7 items-center gap-1 rounded-sm border border-dashed px-2 outline-none pointer-coarse:min-h-11",
+                                "aria-pressed:bg-iris-tint aria-pressed:border-iris-edge aria-pressed:border-solid",
                                 PRESS,
                               )}
                             >
+                              {targetIsDifferential && isFor(target!, f.ref) ? (
+                                <span className="font-mono">+</span>
+                              ) : null}
                               <FindingText item={f} news2={si.x.news2Latest} />
                             </button>
                           </li>
@@ -1414,7 +1447,11 @@ export function ImpressionStep(props: ImpressionStepProps) {
                     key={row.dx.logicalId}
                     data-card=""
                     {...drag.target({ kind: "dx", id: row.dx.logicalId })}
-                    className="flex flex-col gap-2 rounded-md py-2.5 data-[dragging=true]:opacity-60 data-[over=true]:ring-2 data-[over=true]:ring-teal-600"
+                    className={cn(
+                      "flex flex-col gap-2 rounded-md py-2.5 data-[dragging=true]:opacity-60 data-[over=true]:ring-2 data-[over=true]:ring-teal-600",
+                      target?.dx.logicalId === row.dx.logicalId &&
+                        "bg-iris-tint ring-iris-edge px-2 ring-1",
+                    )}
                   >
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                       {gripFor(row)}
@@ -1481,6 +1518,27 @@ export function ImpressionStep(props: ImpressionStepProps) {
                     </div>
                     {relationBlock(card)}
                     {props.cardSlots?.below?.(row)}
+                    {lead ? (
+                      <>
+                        <Supports
+                          row={row}
+                          supports={supportsOf(row)}
+                          canWrite={canWrite}
+                          finding={(f) => <FindingText item={f} news2={si.x.news2Latest} />}
+                          onUnsupport={(r, f) =>
+                            props.onImpression((d) =>
+                              withMark(d, r.dx.logicalId, f.ref, "blank", stamp()),
+                            )
+                          }
+                        />
+                        {canWrite ? (
+                          <AddFindingsHere
+                            on={target?.dx.logicalId === row.dx.logicalId}
+                            onToggle={() => toggleBucket(row)}
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
                     {overLine({ kind: "dx", id: row.dx.logicalId })}
                     {removing === row.dx.logicalId ? (
                       <RemoveForm
@@ -1573,7 +1631,11 @@ export function ImpressionStep(props: ImpressionStepProps) {
                     key={row.dx.logicalId}
                     data-dx-row={row.dx.logicalId}
                     {...drag.target({ kind: "dx", id: row.dx.logicalId })}
-                    className="flex flex-col gap-2 rounded-md py-3 data-[over=true]:ring-2 data-[over=true]:ring-teal-600"
+                    className={cn(
+                      "flex flex-col gap-2 rounded-md py-3 data-[over=true]:ring-2 data-[over=true]:ring-teal-600",
+                      target?.dx.logicalId === row.dx.logicalId &&
+                        "bg-iris-tint ring-iris-edge ring-1",
+                    )}
                   >
                     <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
                       <span className="flex shrink-0 flex-col">
@@ -1643,6 +1705,12 @@ export function ImpressionStep(props: ImpressionStepProps) {
                         <Button size="sm" variant="ghost" onClick={() => makeLeading(row)}>
                           Make leading
                         </Button>
+                      ) : null}
+                      {canWrite && lead ? (
+                        <AddFindingsHere
+                          on={target?.dx.logicalId === row.dx.logicalId}
+                          onToggle={() => toggleBucket(row)}
+                        />
                       ) : null}
                       {canWrite && props.on.onRemove ? (
                         <Button
