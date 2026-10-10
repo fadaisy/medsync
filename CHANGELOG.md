@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — Laboratory staff kept losing access to their patients — 2026-10-11
+
+- A technologist could not result a specimen after midnight or once the patient's visit had completed: the access rule
+  had no basis for laboratory work. Migration 0101 adds `lab_work` (a lab cadre, and a lab order for the patient within
+  30 days) ([ADR 0238](docs/adr/0238-lab-staff-keep-access-to-their-specimens.md)).
+
 ### Added — Lab Phase 0: the laboratory's front door — 2026-10-10
 
 - Lab access is six permissions derived from the approved cadre (signed map v1.0.0) and department headship, carried
