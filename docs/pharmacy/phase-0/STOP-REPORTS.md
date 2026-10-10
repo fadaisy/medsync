@@ -651,3 +651,137 @@ Every read is hospital-scoped, reads as the owner with an explicit field list, a
 - lint: 0 errors, 2 old warnings.
 - `vitest`: 431 files, **8,885 passed**, 1 expected-fail (P4), 0 failed.
 - PGlite lane: 32 files, **536 passed** (`pharmacy-access` 40, `pharmacy-reads` 10).
+
+---
+
+## STOP 4 — Shell, queue, prescription view, emergency doses and the notice
+
+### What was built
+
+Everything below sits behind `PHARMACY_WORKSPACE`.
+
+| Piece             | Where                                                                                                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workspace         | `app/pharmacy/layout.tsx`: sidebar with Find, the two registered items and neutral counts; top bar with the approved cadre's name and the dispensing point (Law 4); phone link row |
+| Queue             | `app/pharmacy/page.tsx` + `_components/queue-screen.tsx`                                                                                                                           |
+| Prescription view | `app/pharmacy/prescriptions/[key]/page.tsx`                                                                                                                                        |
+| Emergency doses   | `app/pharmacy/emergency-doses/page.tsx`                                                                                                                                            |
+| Notice            | `_components/pharmacy-notice.tsx`, wired to `pharmacyChecksState`                                                                                                                  |
+| Find              | `_components/find-field.tsx` + `app/pharmacy/actions.ts`                                                                                                                           |
+| Route gate        | `/pharmacy` added to the AAL2-gated prefixes in `proxy.ts`                                                                                                                         |
+
+**The queue:**
+
+- three lane tabs and a state tablist, with counts in their accessible names;
+- ward or clinic filter and period;
+- the view kept in the URL, with ids only;
+- one Open control per row, named by the patient and the first medicine;
+- a 30-second server-time clock, paused while the tab is hidden;
+- three-line rows on a phone.
+
+**The prescription view:**
+
+- the identity strip, with current weight, creatinine and allergies, each dated;
+- every stored text field as stored;
+- dose source;
+- cancelled lines struck through, with "Cancelled:" announced and the senior's cadre;
+- the override block with the reasons verbatim;
+- a side column: prescriber, co-signature, print ("Not recorded in MedSync"), the stored checks, and what was not checked;
+- one view-log row per open.
+
+**Find:** one field. Type a patient number and press Enter; the patient's prescriptions open in a centred dialog (ADR 0161). The number is posted, never put in a URL (§12).
+
+**Shared pieces, generalised once (ADR 0229):** `components/medsync/{workspace-shell, workspace-nav, tab-list, caution-notice}.tsx`.
+
+- The lab shell, lab nav, worklist tab list and flagging notice now draw with them; markup and behaviour are unchanged.
+- The lab sidebar still does not light Worklist on a result screen. Lighting an item on sub-paths is opt-in, and only the pharmacy uses it.
+- `StatusWord` gains an optional `glyph`, so "Awaiting co-sign" carries a clock.
+
+### Found by the full lane and fixed: the order written
+
+- **The bug:** S5 failed twice in full-lane runs and passed alone. The lines of one placement share one `created_at`, and nothing recorded their order, so the tie-break fell to the random line id. "Medicines in the order written" (§5.3, Law 5) was not actually kept.
+- **The fix:**
+  - Migration 0099, unapplied and still ours, gains `placement_line smallint`.
+  - Both writers stamp it: the basket's index, 1 up, and 1 on the sheet.
+  - The queue and the view order by it, then time, then id.
+- **Rows before 0099** keep no order, as before, and stay grouped by time.
+- **Tests:**
+  - the Plan writer records lines 1 and 2;
+  - a unit test proves the order against ids chosen to reverse it;
+  - the lane fixture records line numbers.
+- **Result:** 536 of 536 on three consecutive full-lane runs.
+
+### Screenshots
+
+`~/Desktop/pharm0-harness/shots/stop4/`, 17 shots:
+
+- queue, three prescriptions (override, co-sign, changed) and emergency doses, at 1440×900, 834×1194 and 390×844, light;
+- queue and prescription, dark.
+
+**Against artboards 0.1–0.3:** same regions, filters, columns, chips and notice placement, built in the repo's Chroma components. Differences:
+
+- every §5.11 difference;
+- the third lane, "Visit open";
+- "Find by patient number" instead of "Find a prescription";
+- no prescription number in the crumb;
+- "Printed: Not recorded in MedSync" instead of a print time;
+- the side column lists only the stored answers, so passed checks and "Note" rows from the canvas are not shown (Law 6).
+
+**Fixed after the look:**
+
+- cadre names sentence-cased once in the read layer ("Medical officer", not "Medical Officer");
+- the patient cell given a minimum width, so names no longer break mid-name.
+
+### axe and red
+
+- **axe:** 17 runs (5 screens × 3 widths, plus 2 dark): **0 violations**, 0 console errors.
+- **Red scarcity:** `tests/design/red-reserved.test.ts` has a pharmacy block covering `app/pharmacy`, `lib/pharmacy`, `lib/workspace-access`, `content/pharmacy.ts` and the four shared components. It checks for no red, no green, no critical tone and no left-edge bar.
+- **The lab's notice assertion** now reads the shared caution notice. Its rendering is unchanged.
+
+### Flag off
+
+| Screen                                       | Result                                                                                    |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `/clinician`, as the pharmacist, at 3 widths | **pixel-identical** to the STOP 0 baseline (`cmp`, byte for byte)                         |
+| `/pharmacy`                                  | the same standard 404 page; the shots differ only by Next's development badge ("1 Issue") |
+
+**The badge** is the root layout's existing JSON-LD `<script>`, reported in development whenever a nested route calls `notFound()`. `/ncd` with its flag off shows the same, so it is not this slice. The production build has no badge.
+
+### Budgets
+
+Production build (`next build && next start`) in the harness: Test Hospital-1 with **510 placements** in the period (`BULK_RX=500` plus the fixtures).
+
+| Measure                                     | Budget               | Result                                                                                                                                           |
+| ------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/pharmacy` TTFB, 510 placements, p95 of 20 | < 400 ms             | **72 ms** (full response p95 75 ms)                                                                                                              |
+| Prescription view TTFB, p95 of 20           | < 400 ms             | **24 ms**                                                                                                                                        |
+| Lane switch, p95 of 20                      | < 100 ms, no refetch | **57.7 ms** (p50 29.7 ms), **0 requests**                                                                                                        |
+| Round trips per render                      | fixed                | queue 4, view 5 + facts, doses 2 (lane tests, STOP 3)                                                                                            |
+| Layout shift across a clock tick            | 0                    | **0** (62 s observed; the text changed)                                                                                                          |
+| JS on `/pharmacy` (encoded)                 | ≤ 30 KB added        | **352.5 KB**: below the 404 page's framework load (373.6 KB) and the `/clinician` page pharmacy staff loaded before (834 KB). Nothing added.     |
+| Navigations from sign-in to the queue       | 0                    | 0 (the resolver lands on `/pharmacy`)                                                                                                            |
+| Sidebar items                               | 2                    | 2                                                                                                                                                |
+| Visible controls per queue row              | 1                    | 1 (Open)                                                                                                                                         |
+| From typing a number to seeing it           | ≤ 2 interactions     | **2** to the patient's prescriptions (type, Enter); a third, Open, to one prescription. No prescription number exists to go straight there (Q4). |
+| Pharmacy staff who must be told the URL     | 0                    | 0 (landing, and the 307 from `/clinician`)                                                                                                       |
+| Clinical write actions added                | 0                    | 0 (the one server action is a read; scanned in `tests/pharmacy/ui.test.ts`)                                                                      |
+
+### Tests
+
+- **`tests/pharmacy/ui.test.ts`:**
+  - the screen rendered to markup: tablists with counts, one named Open control per row, no prefetching patient numbers in a href, amber with icons, the footer, the notice as status with counts and no close button;
+  - S18 with the device clock 3 h fast, still "09:52 · 50 min";
+  - the empty state; find as a labelled search form.
+- **Source scans:**
+  - Law 4: no "Pharmacist" in pharmacy copy or labels;
+  - Law 2: the one `"use server"` file is a read with no write imports;
+  - §12: no patient number in a link.
+- **P4** is flipped to a passing test.
+
+### Checks
+
+- typecheck: 0 errors.
+- lint: 0 errors, 2 old warnings.
+- Prettier: clean on every changed file.
+- `vitest`: 432 files, **8,900 passed**, 0 failed, 0 expected-fail.
+- PGlite lane: 32 files, **536 passed**, three consecutive runs.

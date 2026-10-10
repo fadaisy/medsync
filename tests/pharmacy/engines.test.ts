@@ -16,6 +16,7 @@ const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 const T0 = new Date("2026-10-10T06:52:07.413Z");
 const viewLine = (o: Partial<ViewLineInput> = {}): ViewLineInput => ({
   id: "l1",
+  placementLine: null,
   kind: "drug",
   drugName: "Fixture medicine A",
   concentration: null,

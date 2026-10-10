@@ -38,6 +38,8 @@ import { computeQueue } from "./queue";
  */
 
 const defaultDb = () => appDb as unknown as EmrDb;
+/** "Medical Officer" → "Medical officer": the copy's sentence case for a cadre's name (Law 4). */
+const sentence = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 const DAY_MS = 86_400_000;
 
 export type QueuePeriod = "today" | "yesterday" | "7d";
@@ -69,6 +71,7 @@ const safeDecrypt = (c: string | null) => {
 const lineColumns = {
   id: prescriptions.id,
   placementId: prescriptions.placementId,
+  placementLine: prescriptions.placementLine,
   hospitalId: prescriptions.hospitalId,
   encounterId: prescriptions.encounterId,
   patientUserId: prescriptions.patientUserId,
@@ -142,7 +145,7 @@ async function encountersFor(database: EmrDb, hospitalId: string, ids: string[])
 /** Every cadre code → its name: the only title a pharmacy screen shows (Law 4). One trip. */
 async function cadreNames(database: EmrDb) {
   const rows = await database.select({ code: cadres.code, name: cadres.name }).from(cadres);
-  return new Map(rows.map((r) => [r.code, r.name]));
+  return new Map(rows.map((r) => [r.code, sentence(r.name)]));
 }
 
 /** Each user's cadre name at this hospital (their newest affiliation there). One trip. */
@@ -158,7 +161,7 @@ async function cadreOfUsers(database: EmrDb, hospitalId: string, userIds: string
     )
     .orderBy(desc(staffAffiliations.createdAt));
   const out = new Map<string, string>();
-  for (const r of rows) if (!out.has(r.userId)) out.set(r.userId, r.name);
+  for (const r of rows) if (!out.has(r.userId)) out.set(r.userId, sentence(r.name));
   return out;
 }
 
@@ -196,6 +199,25 @@ async function queueLines(
     cosign: cosigns.get(r.id)?.state ?? null,
   }));
   return { lines, encounters: encs, cadres: names };
+}
+
+/**
+ * The stored lines and encounters of a period, for the screen to project in the browser so a lane
+ * or state switch needs no request (§11). Four round trips.
+ */
+export async function loadQueue(
+  hospitalId: string,
+  period: QueuePeriod,
+  database: EmrDb = defaultDb(),
+) {
+  const serverNow = new Date();
+  const { start, end } = periodRange(period, serverNow);
+  const { lines, encounters: encs } = await queueLines(
+    database,
+    hospitalId,
+    and(gte(prescriptions.createdAt, start), lt(prescriptions.createdAt, end)),
+  );
+  return { lines, encounters: encs, serverNow };
 }
 
 /** The queue for a period (§5.3): every prescription written in it, as rows. Four round trips. */
@@ -407,6 +429,7 @@ export async function getPrescription(
     const c = cosigns.get(r.id);
     return {
       id: r.id,
+      placementLine: r.placementLine,
       kind: r.kind,
       drugName: r.drugName,
       concentration: r.concentration,

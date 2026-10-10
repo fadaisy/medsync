@@ -196,7 +196,13 @@ const doseWords = (rx: PlanRx) =>
 
 async function prescribeFromPlan(
   ctx: WriteCtx,
-  input: { patientUserId: string; encounterId: string; placementId: string; rx: PlanRx },
+  input: {
+    patientUserId: string;
+    encounterId: string;
+    placementId: string;
+    placementLine: number;
+    rx: PlanRx;
+  },
   facts: PlanFacts,
   earlier: OtherMedicine[],
 ): Promise<{ id: string; label: string; drugId: string; classId: string; kind: "drug" | "fluid" }> {
@@ -331,6 +337,7 @@ async function prescribeFromPlan(
         outcome: checks.find((c) => c.code === a.code)!.outcome,
       })),
       placementId: input.placementId,
+      placementLine: input.placementLine,
       createdAt: now,
     })
     .returning({ id: prescriptions.id });
@@ -543,10 +550,16 @@ export async function placePlan(
   const prescriptionIds: string[] = [];
   // One id for every line of this basket: the prescription the patient carries (ADR 0230).
   const placementId = randomUUID();
-  for (const rx of input.prescriptions) {
+  for (const [i, rx] of input.prescriptions.entries()) {
     const placed = await prescribeFromPlan(
       ctx,
-      { patientUserId: input.patientUserId, encounterId: encounter.id, placementId, rx },
+      {
+        patientUserId: input.patientUserId,
+        encounterId: encounter.id,
+        placementId,
+        placementLine: i + 1,
+        rx,
+      },
       facts,
       others,
     );

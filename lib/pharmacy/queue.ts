@@ -18,6 +18,8 @@ export interface QueueLine extends ChipLine {
   id: string;
   /** NULL for rows written before migration 0099: grouped by time (PQ-1). */
   placementId: string | null;
+  /** The line's place in its placement (0099); NULL before it, when the order was not recorded. */
+  placementLine: number | null;
   hospitalId: string;
   encounterId: string | null;
   patientUserId: string;
@@ -136,6 +138,15 @@ export function placementKey(line: QueueLine): { key: string; groupedByTime: boo
 const latest = (dates: Date[]) =>
   dates.length ? new Date(Math.max(...dates.map((d) => d.getTime()))) : null;
 
+/** The order written: the recorded line number, else the time, else the id (a stable tie-break). */
+export const byWrittenOrder = (
+  a: { placementLine: number | null; createdAt: Date; id: string },
+  b: { placementLine: number | null; createdAt: Date; id: string },
+) =>
+  (a.placementLine ?? 0) - (b.placementLine ?? 0) ||
+  a.createdAt.getTime() - b.createdAt.getTime() ||
+  a.id.localeCompare(b.id);
+
 /** Group lines into rows, one per placement (PQ-1, PQ-6). Rows from another hospital never enter. */
 export function toRows(
   lines: readonly QueueLine[],
@@ -151,9 +162,7 @@ export function toRows(
     groups.set(key, g);
   }
   return [...groups].map(([key, g]) => {
-    const ordered = [...g.lines].sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
-    );
+    const ordered = [...g.lines].sort(byWrittenOrder);
     const first = ordered[0]!;
     const encounter = first.encounterId ? encounters.get(first.encounterId) : undefined;
     const state = rowState(ordered);

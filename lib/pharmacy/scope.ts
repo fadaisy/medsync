@@ -10,6 +10,7 @@ import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { cadres } from "@/db/schema/reference-data";
+import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { can, PHARMACY_MAP_CADRES, pharmacyAccess } from "@/lib/pharmacy/access";
@@ -24,6 +25,8 @@ import { pharmacyWorkspaceLiveFor } from "@/lib/pharmacy/feature";
  */
 export interface PharmacyScope {
   userId: string;
+  fullName: string | null;
+  userEmail: string | null;
   affiliationId: string;
   hospitalId: string;
   hospitalName: string;
@@ -84,12 +87,15 @@ async function findPharmacyAffiliation(userId: string) {
       departmentParentCode: parentDepartment.catalogueCode,
       cadreCode: cadres.code,
       cadreName: cadres.name,
+      fullName: users.fullName,
+      userEmail: users.email,
     })
     .from(staffAffiliations)
     .innerJoin(hospitals, eq(hospitals.id, staffAffiliations.hospitalId))
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))
     .leftJoin(parentDepartment, eq(parentDepartment.id, hospitalDepartments.parentId))
     .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+    .innerJoin(users, eq(users.id, staffAffiliations.userId))
     .where(
       and(
         eq(staffAffiliations.userId, userId),

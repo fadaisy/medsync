@@ -245,6 +245,7 @@ export async function prescribe(
       medicationStatementId: statement.id,
       // One sheet prescribe is one placement (ADR 0230).
       placementId: randomUUID(),
+      placementLine: 1,
       createdAt: now,
     })
     .returning({ id: prescriptions.id });

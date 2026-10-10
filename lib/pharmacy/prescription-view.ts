@@ -2,7 +2,7 @@ import type { AnsweredCheck, StoredAnswer } from "./checks";
 import type { Lane, LineState, QueueEncounter, RowState } from "./queue";
 
 import { answeredChecks } from "./checks";
-import { laneOf, lineState, rowState } from "./queue";
+import { byWrittenOrder, laneOf, lineState, rowState } from "./queue";
 
 /**
  * One prescription, read-only (Pharmacy Phase 0, ADR 0231; RV-1..RV-5). Pure: the read
@@ -13,6 +13,7 @@ import { laneOf, lineState, rowState } from "./queue";
 
 export interface ViewLineInput {
   id: string;
+  placementLine: number | null;
   kind: string;
   drugName: string;
   concentration: string | null;
@@ -81,9 +82,7 @@ export function buildPrescriptionView(input: {
   encounter: QueueEncounter | undefined;
   prescriberCadre: string | null;
 }): PrescriptionView {
-  const ordered = [...input.lines].sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
-  );
+  const ordered = [...input.lines].sort(byWrittenOrder);
   const lines = ordered.map((l): ViewLine => {
     const state = lineState(stateOf(l));
     const checks = answeredChecks(l);

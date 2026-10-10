@@ -14,6 +14,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -83,6 +84,8 @@ export const prescriptions = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     /** One id for every line written in one placement (migration 0099, ADR 0230). NULL before it. */
     placementId: uuid("placement_id"),
+    /** The line's place in its placement, 1 up (migration 0099). NULL before it. */
+    placementLine: smallint("placement_line"),
     // OPD prescription from the encounter (migration 0074, GATED; EMR Phase 7).
     frequency: text("frequency"),
     duration: text("duration"),

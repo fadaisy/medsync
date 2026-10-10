@@ -22,6 +22,7 @@ let n = 0;
 const line = (o: Partial<QueueLine> = {}): QueueLine => ({
   id: `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`,
   placementId: "aaaaaaaa-0000-4000-8000-000000000001",
+  placementLine: null,
   hospitalId: H,
   encounterId: "e1",
   patientUserId: "p1",
@@ -69,6 +70,32 @@ describe("PQ-1: one row per placement", () => {
     expect(r.rows).toHaveLength(1);
     expect(r.rows[0]!.medicines).toHaveLength(3);
     expect(r.rows[0]!.groupedByTime).toBe(false);
+  });
+
+  it("medicines keep the order written: lines of one placement share a time, the line number orders them", () => {
+    const p = "aaaaaaaa-0000-4000-8000-0000000000ab";
+    // Ids chosen so that sorting by id would reverse them.
+    const r = run([
+      line({
+        id: "ffffffff-0000-4000-8000-000000000001",
+        placementId: p,
+        placementLine: 1,
+        drugName: "Fixture first",
+      }),
+      line({
+        id: "eeeeeeee-0000-4000-8000-000000000001",
+        placementId: p,
+        placementLine: 2,
+        drugName: "Fixture second",
+      }),
+      line({
+        id: "dddddddd-0000-4000-8000-000000000001",
+        placementId: p,
+        placementLine: 3,
+        drugName: "Fixture third",
+      }),
+    ]);
+    expect(r.rows[0]!.medicines).toEqual(["Fixture first", "Fixture second", "Fixture third"]);
   });
 
   it("older rows group by encounter, prescriber and the one transaction time, marked", () => {

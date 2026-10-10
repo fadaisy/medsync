@@ -185,7 +185,7 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
     const rx = await q<Record<string, unknown>>(
       `SELECT drug_id, dose, kind, condition_id, method, infusion_over, diluent, frequency, duration, start,
               fluid_purpose, volume_ml, over_minutes, giving_set_drops_per_ml, check_answers, confirmed_flags,
-              confirm_reason_ciphertext, medication_statement_id, placement_id
+              confirm_reason_ciphertext, medication_statement_id, placement_id, placement_line
          FROM prescriptions WHERE id = ANY($1) ORDER BY kind`,
       [r.prescriptionIds],
     );
@@ -212,6 +212,12 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
     // One basket, one placement id on every line (ADR 0230).
     expect(rx[0]!.placement_id).toEqual(expect.any(String));
     expect(rx[1]!.placement_id).toBe(rx[0]!.placement_id);
+    const lines = await q<{ drug_id: string; placement_line: number }>(
+      `SELECT drug_id, placement_line FROM prescriptions WHERE id = ANY($1) ORDER BY placement_line`,
+      [r.prescriptionIds],
+    );
+    // The order written is recorded: the basket's first medicine is line 1.
+    expect(lines.map((l) => l.placement_line)).toEqual([1, 2]);
     expect(rx[1]).toMatchObject({
       drug_id: "ringers_lactate",
       kind: "fluid",

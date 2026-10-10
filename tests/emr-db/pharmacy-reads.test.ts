@@ -85,9 +85,10 @@ describe.skipIf(!laneOn)("pharmacy reads (PGlite lane)", () => {
       await pg.query<{ id: string }>(
         `INSERT INTO public.prescriptions
            (hospital_id, encounter_id, patient_user_id, prescriber_user_id, prescriber_cadre, drug_id, drug_name,
-            dose, route, frequency, is_emergency, state, placement_id, created_at, updated_at,
+            dose, route, frequency, is_emergency, state, placement_id, placement_line, created_at, updated_at,
             instructions_ciphertext, confirm_reason_ciphertext, check_answers, confirmed_flags, indication)
          VALUES ($1, $2, $3, $4, 'MEDICAL_OFFICER', 'fixture', $5, $6, 'oral', 'fixture frequency', false, $7, $8,
+                 CASE WHEN $8::uuid IS NULL THEN NULL ELSE (SELECT count(*) + 1 FROM public.prescriptions WHERE placement_id = $8::uuid) END,
                  coalesce($9::timestamptz, now()), coalesce($9::timestamptz, now()), $10, $11, $12::jsonb,
                  (SELECT coalesce(jsonb_agg(a->>'code'), '[]'::jsonb) FROM jsonb_array_elements($12::jsonb) a),
                  'Fixture indication')
@@ -258,7 +259,7 @@ describe.skipIf(!laneOn)("pharmacy reads (PGlite lane)", () => {
     expect(by.get(P.returned)!.changedAt).not.toBeNull();
     expect(by.get(P.ward)).toMatchObject({ lane: "ward", checks: ["1 stop overridden"] });
     expect(by.get(P.basket)!.from.departmentName).toMatch(/Diabetes clinic/);
-    expect(by.get(P.basket)!.prescriberCadre).toBe("Medical Officer");
+    expect(by.get(P.basket)!.prescriberCadre).toBe("Medical officer");
     expect(q.laneCounts.window + q.laneCounts.ward + q.laneCounts.open).toBe(q.laneCounts.all);
     expect(q.total).toBe(4);
     expect(q.serverNow).toBeInstanceOf(Date);
@@ -405,7 +406,7 @@ describe.skipIf(!laneOn)("pharmacy reads (PGlite lane)", () => {
       );
       const controlled = d.rows.find((r) => r.controlled)!;
       expect(controlled.witness).toEqual({ userId: doctor });
-      expect(d.cadreOf.get(doctor)).toBe("Medical Officer");
+      expect(d.cadreOf.get(doctor)).toBe("Medical officer");
       expect(d.cadreOf.get(nurse)).toMatch(/Nurse/i);
       expect(d.rows.find((r) => r.cart === null)!.patientUserId).toBeNull();
       expect((await getEmergencyDoses(hA, "7d", "Fixture cart 1", lane.db)).rows).toHaveLength(3);

@@ -28,8 +28,8 @@ describe("Pharmacy Phase 0 baseline — defects reproduced at Step 0", () => {
     expect(resolveLanding(facts).target).toBe("/pharmacy");
   });
 
-  // P4: no /pharmacy route exists.
-  it.fails("P4: /pharmacy exists", () => {
+  // Fixed in Step 4: the workspace's queue page.
+  it("P4: /pharmacy exists", () => {
     expect(existsSync(resolve(process.cwd(), "app/pharmacy/page.tsx"))).toBe(true);
   });
 
