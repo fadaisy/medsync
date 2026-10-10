@@ -270,3 +270,57 @@ examples, schema diff, RLS probe plan, test plan, ADR drafts 0221–0226, decisi
   (sections without a catalogue link), D-LAB0-18 (grant by trigger).
 - Critique pass corrected three points: `encounter_orders.loinc_code` exists but the EMR never writes it (finding 2
   stands); "From" is `encounters.department_id`; the global Emergency pill is on every page by design.
+
+---
+
+## STOP 2 — Access
+
+**Built:** `data/lab/permission-map.v1.json` (signed v1.0.0), `lib/lab/access.ts`, `lib/lab/feature.ts`
+(`LAB_WORKSPACE`, CF-3 production gate), `content/lab.ts` (notice `draft`), `lib/auth/landing.ts` (pure
+`resolveLanding`), `app/(auth)/sign-in/landing.ts` (facts loader, five queries in parallel), the scope's access,
+sections and refused path (`lib/lab-tech/scope.ts`, `/not-authorised`), the per-act guard
+(`requireLabPermission` in receive, reject, enter, release), migration **0097**, `npm run lab:backfill-access`.
+
+**Migration 0097** (`supabase/migrations/0097_lab_access_sync.sql`): `private.sync_lab_access(user, hospital,
+actor, reason)` and an `AFTER INSERT OR DELETE OR UPDATE OF state, cadre_id, hospital_id, user_id` trigger on
+`staff_affiliations`. No table, column or index. Both functions revoked from `PUBLIC`, `anon`, `authenticated`.
+
+**RLS and trigger probes** (`tests/emr-db/lab-access.test.ts`, PGlite, every migration replayed): 14 of 14.
+
+| Probe                                                        | Result                                            |
+| ------------------------------------------------------------ | ------------------------------------------------- |
+| SQL cadre list = signed map's cadres                         | pass                                              |
+| Approve `LAB_TECH` → `lab_tech` row, `created_by` = approver | pass; one `lab_access` audit row (below)          |
+| Approve `LAB_TECHNOLOGIST`                                   | pass                                              |
+| Approve a nurse                                              | pass: no row, no audit                            |
+| Suspend, deactivate                                          | pass: row deleted, `lab_access_revoked` audit row |
+| Reactivate                                                   | pass: granted again (insert, delete, insert)      |
+| Same update twice                                            | pass: one row, one audit row                      |
+| Cadre changed to `NURSE`                                     | pass: revoked                                     |
+| Approved at A with a pending affiliation at B                | pass: role at A only                              |
+| Hand-granted `lab_tech`, nurse affiliation approved          | pass: removed (Law 3)                             |
+| Backfill path (trigger off, then `sync_lab_access`)          | pass: `granted`, then `unchanged`                 |
+| `authenticated` / `anon` run `private.sync_lab_access`       | pass: denied                                      |
+| `authenticated` insert / update / delete `user_roles`        | pass: denied / 0 rows / 0 rows                    |
+
+**Audit rows** (asserted in the probes): a grant writes `audit_log` `{table_name: 'lab_access', action: 'insert',
+actor_id: <approver>, after_data: {event: 'lab_access_granted', user_id, hospital_id, role: 'lab_tech', basis:
+{affiliation_id, cadre: 'LAB_TECH', council: 'AHPC', approved_by, approved_at, hospital_id}, reason: {op, from_state,
+to_state}}}`. A revocation writes `{action: 'delete', before_data: {event: 'lab_access_revoked', …, reason:
+{affiliation_id, to_state: 'suspended'}}}`; its actor is null under the service role, and the actor stays on the
+`sa_audit_log` row the status function writes before it changes the affiliation.
+
+**Landing table test** (`tests/lab/landing.test.ts`): 37 rows covering every STOP 0 branch, unchanged except the
+GATE A row (`lab_tech` role without a lab affiliation → `/clinician`); LD-2, LD-3, LD-4 (`?redirect=` honoured, refused
+with prefix only, ignored when not same-origin), LD-6. `tests/lab/access.test.ts` (LA-1..LA-6), `tests/lab/feature.test.ts`
+(flag and CF-3).
+
+**Backfill dry run:** not run against production from here (no access). The owner runs `npm run lab:backfill-access`
+with production `DATABASE_URL`; it lists ids, cadre and approval date, no names. Expected from your 9 Oct query: one
+`LAB_TECH` at Test Hospital-1.
+
+**Checks:** typecheck 0 errors; lint 0 errors on the changed files; `tests/lab` 75 passed + 2 expected-fail (L5, L7);
+PGlite lane 29 files, 479 tests passed (0097 breaks nothing). L3 flipped to a passing test.
+
+**Not built here, by design:** permission checks on the legacy (`LAB_RESULTS_LIVE`) entry path, which Lab Phase 1
+retires (L9); with the v1 map every lab cadre holds every bench permission, so its cadre check is equivalent.

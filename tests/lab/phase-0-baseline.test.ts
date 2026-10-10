@@ -13,10 +13,14 @@ import { describe, expect, it } from "vitest";
 const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 
 describe("Lab Phase 0 baseline — defects reproduced at Step 0", () => {
-  it.fails("L3: approving a lab cadre grants lab access (fixed in Step 2)", () => {
-    const approve = read("supabase/functions/approve-staff-affiliation/index.ts");
-    // Today the approval writes staff_affiliations and users.state only: no role, no permission.
-    expect(approve).toMatch(/lab_tech|lab\.view|grant_lab_access/);
+  // Fixed in Step 2: a trigger on staff_affiliations grants in the approval's transaction
+  // (migration 0097; behaviour proven in tests/emr-db/lab-access.test.ts).
+  it("L3: approving a lab cadre grants lab access", () => {
+    const sql = read("supabase/migrations/0097_lab_access_sync.sql");
+    expect(sql).toMatch(/CREATE TRIGGER staff_affiliations_lab_access/);
+    expect(sql).toMatch(
+      /INSERT INTO public\.user_roles \(user_id, role, hospital_id, created_by\)/,
+    );
   });
 
   it.fails("L5: the EMR lab worklist routes rows by section (fixed in Step 3)", () => {

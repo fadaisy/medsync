@@ -21,6 +21,8 @@ export interface EmrActor {
   cadreCode: string;
   isClinical: boolean;
   surface: EmrSurface;
+  /** Lab permissions (lib/lab/access.ts), set only when the actor came through the lab scope. */
+  labPermissions?: readonly string[];
 }
 
 export async function requireEmrActor(surface: EmrSurface): Promise<EmrActor> {
@@ -53,6 +55,7 @@ export async function requireEmrActor(surface: EmrSurface): Promise<EmrActor> {
         cadreCode: s.cadreCode,
         isClinical: true,
         surface,
+        labPermissions: [...s.access.permissions],
       };
     }
     case "clinician": {

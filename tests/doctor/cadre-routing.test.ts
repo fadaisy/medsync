@@ -38,7 +38,8 @@ describe("doctor cadres — one source of truth", async () => {
     const signIn = read("app/(auth)/sign-in/landing.ts");
     expect(signIn).toMatch(/import \{ DOCTOR_CADRE_CODES \} from "@\/lib\/doctor\/scope"/);
     expect(signIn).not.toMatch(/"SENIOR_CONSULTANT"/);
-    expect(signIn.match(/DOCTOR_CADRE_CODES/g)?.length).toBeGreaterThanOrEqual(3);
+    // Imported once, used once: the loader classifies every affiliation through cadreGroup().
+    expect(signIn.match(/DOCTOR_CADRE_CODES/g)?.length).toBeGreaterThanOrEqual(2);
   });
 
   it("the doctor gate and the /clinician guard share one query, so they cannot bounce a user", () => {

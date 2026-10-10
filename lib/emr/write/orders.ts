@@ -56,6 +56,17 @@ export function requireCadre(ctx: WriteCtx, allowed: readonly string[], act: str
     throw new EmrWriteError("forbidden", `Your cadre may not ${act}.`);
 }
 
+/**
+ * Lab Phase 0 (LA-7): an actor resolved through the lab scope also needs the lab permission for
+ * the act, so a hospital can narrow who releases without a code change. Actors from other
+ * surfaces carry no lab permissions and keep the cadre rule alone.
+ */
+export function requireLabPermission(ctx: WriteCtx, permission: string, act: string): void {
+  const held = ctx.actor.labPermissions;
+  if (held && !held.includes(permission))
+    throw new EmrWriteError("forbidden", `You do not have permission to ${act}.`);
+}
+
 /* ─── Shared lookups ─────────────────────────────────────────────── */
 
 export type OrderRow = typeof encounterOrders.$inferSelect;

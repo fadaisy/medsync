@@ -15,6 +15,7 @@ import {
   orderStatus,
   replayed,
   requireCadre,
+  requireLabPermission,
   statusConflict,
 } from "./orders";
 import { withdrawPreliminary } from "./results";
@@ -149,6 +150,7 @@ export async function receiveSpecimen(
   input: SpecimenActInput,
 ): Promise<WriteResult> {
   requireCadre(ctx, LAB_CADRES, "receive specimens");
+  requireLabPermission(ctx, "lab.receive", "receive specimens");
   const replay = await replayed(ctx.tx, specimenEvents, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const { specimen, order, status } = await specimenWithOrder(
@@ -180,6 +182,7 @@ export async function rejectSpecimen(
   input: SpecimenActInput & { reasonCode: (typeof REJECTION_REASONS)[number] },
 ): Promise<WriteResult> {
   requireCadre(ctx, LAB_CADRES, "reject specimens");
+  requireLabPermission(ctx, "lab.receive", "reject specimens");
   const replay = await replayed(ctx.tx, specimenEvents, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const { specimen, order, status } = await specimenWithOrder(

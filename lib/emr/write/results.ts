@@ -42,6 +42,7 @@ import {
   orderStatus,
   replayed,
   requireCadre,
+  requireLabPermission,
   statusConflict,
 } from "./orders";
 
@@ -426,6 +427,7 @@ export async function enterResults(
   input: EnterResultsInput,
   criticalRefs: readonly CriticalRef[] = CRITICAL_REFS,
 ): Promise<ReportResult> {
+  requireLabPermission(ctx, "lab.result.enter", "enter results");
   const entry = entryFor(ctx);
   const replay = await replayed(ctx.tx, diagnosticReports, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
@@ -505,6 +507,7 @@ export async function releaseResults(
   criticalRefs: readonly CriticalRef[] = CRITICAL_REFS,
 ): Promise<ReportResult> {
   requireCadre(ctx, LAB_CADRES, "release results");
+  requireLabPermission(ctx, "lab.result.release", "release results");
   const replay = await replayed(ctx.tx, diagnosticReports, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const prior = await currentReport(ctx, input.patientUserId, input.reportId);

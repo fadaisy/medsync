@@ -64,8 +64,9 @@ export async function challengeMfaAction(
   // The same landing as the password step: a missing ?redirect= must not drop a lab tech, nurse or
   // doctor on the landing page.
   const { data: userData } = await supabase.auth.getUser();
-  const landing = userData.user ? (await landingFor(userData.user.id)).target : "/";
-  const target = safeRedirect(parsed.data.redirect) ?? landing;
+  const target = userData.user
+    ? (await landingFor(userData.user.id, parsed.data.redirect)).target
+    : (safeRedirect(parsed.data.redirect) ?? "/");
 
   logger.info("mfa challenge passed; session elevated to AAL2");
   redirect(target);

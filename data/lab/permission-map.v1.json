@@ -1,0 +1,36 @@
+{
+  "map": "medsync.lab-permission-map",
+  "version": "1.0.0",
+  "status": "signed",
+  "signedBy": "Fadhul (CSO)",
+  "signedOn": "2026-10-10",
+  "basis": "Lab Phase 0 GATE A (docs/lab/phase-0/gate-a-proposal.md §2.2, §10); D-LAB0-02",
+  "notes": [
+    "Cadre codes are the AHPC lab cadres seeded in 0009. A cadre not listed here holds no lab permission.",
+    "lab.manage is never granted by cadre: it comes only from an open department_heads row for the LABORATORY department (whole lab) or one of its sections (that section)."
+  ],
+  "permissions": [
+    "lab.view",
+    "lab.collect",
+    "lab.receive",
+    "lab.result.enter",
+    "lab.result.release",
+    "lab.manage"
+  ],
+  "cadres": {
+    "LAB_TECH": [
+      "lab.view",
+      "lab.collect",
+      "lab.receive",
+      "lab.result.enter",
+      "lab.result.release"
+    ],
+    "LAB_TECHNOLOGIST": [
+      "lab.view",
+      "lab.collect",
+      "lab.receive",
+      "lab.result.enter",
+      "lab.result.release"
+    ]
+  }
+}
