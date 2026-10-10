@@ -324,3 +324,43 @@ PGlite lane 29 files, 479 tests passed (0097 breaks nothing). L3 flipped to a pa
 
 **Not built here, by design:** permission checks on the legacy (`LAB_RESULTS_LIVE`) entry path, which Lab Phase 1
 retires (L9); with the v1 map every lab cadre holds every bench permission, so its cadre check is equivalent.
+
+---
+
+## STOP 3 — Engines
+
+**Built (pure, no I/O):** `lib/lab/turnaround.ts` (clock, target, hub-text reader, `formatDuration`, `serverNowAt`),
+`lib/lab/worklist.ts` (`computeWorklist`), `lib/lab/nav.ts`, `lib/lab/critical-flagging.ts`. **Reads:**
+`lib/lab/read.ts` (`loadLabWorklist`, `loadReleasedToday`, `loadRejected`, `loadLabSections`), each hospital-scoped,
+reusing `loadEmrLabWorklist` unchanged for which orders are open and at what stage.
+
+**Tests:** `tests/lab` 11 files, 98 passed + 1 expected-fail (L7, Step 4); PGlite `lab-access` + `lab-reads` 20
+passed. L5 flipped to a passing test at the projection level.
+
+**Rule coverage** (each ID named in at least one test):
+
+| Rules            | Where                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| LA-1..6          | `tests/lab/access.test.ts`                                                            |
+| LA-7             | `tests/emr-db/lab-reads.test.ts` (S16: refused on the server)                         |
+| LA-8             | `tests/emr-db/lab-access.test.ts`                                                     |
+| LD-1..4, 6       | `tests/lab/landing.test.ts`                                                           |
+| LD-5             | `tests/lab/routing.test.ts`                                                           |
+| LW-1..9, 12      | `tests/lab/worklist-projection.test.ts`; LW-2, 3, 5, 9 also on the lane (`lab-reads`) |
+| LW-10, 11        | page level: Step 4                                                                    |
+| TA-1..8          | `tests/lab/turnaround.test.ts`; TA-3 also on the lane                                 |
+| NV-1..3, CF-1..2 | `tests/lab/nav-flagging.test.ts`                                                      |
+| CF-3             | `tests/lab/feature.test.ts`                                                           |
+
+**Property test (LW-12):** 500 seeded random worklists (0–39 rows, 10 % from another hospital, mixed sections,
+stages, priorities, targets, viewers and filters). Every open item appears exactly once under "All sections", the
+non-"All" tabs partition the total, and no tab key repeats: 500 of 500.
+
+**Wrong clock (TA-6):** the system clock set 3 h fast; elapsed time still equals server time plus the page's age.
+
+**Round trips (§11):** `loadLabWorklist` runs **9** statements (10 when an order carries a LOINC code and the offering
+lookup runs), the same with 1 row or 4. An empty list runs 2.
+
+**Seam proven:** with a LOINC code on an order and a hub offering (`section_id`, `stated_tat` "1 h"), the row takes
+Clinical chemistry and a 60-minute facility target; without, "No section" and no target. EMR orders never carry a
+LOINC code today (finding 2), so in production every row is "No section" until the one-test-menu link lands.

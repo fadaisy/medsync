@@ -21,7 +21,7 @@ describe("lab staff are routed to /lab", () => {
     expect(signIn).toMatch(/resolveLanding\(facts, next\)/);
   });
 
-  it("/clinician sends a lab user to /lab with the gate's own query", () => {
+  it("LD-5: /clinician sends a lab user to /lab with the gate's own query", () => {
     expect(read("app/clinician/layout.tsx")).toMatch(
       /if \(await isLabTechUser\(scope\.userId\)\) redirect\("\/lab"\)/,
     );

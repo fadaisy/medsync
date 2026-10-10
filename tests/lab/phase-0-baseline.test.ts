@@ -23,12 +23,12 @@ describe("Lab Phase 0 baseline — defects reproduced at Step 0", () => {
     );
   });
 
-  it.fails("L5: the EMR lab worklist routes rows by section (fixed in Step 3)", () => {
-    const loader = read("app/lab/_lib/emr.ts");
-    const start = loader.indexOf("export async function loadEmrLabWorklist");
-    const body = loader.slice(start, loader.indexOf("\n}\n", start));
-    // Today the only filter is the hospital: no section, no offering, no department.
-    expect(body).toMatch(/section/i);
+  // Fixed in Step 3 at the projection: lib/lab/read.ts carries each row's offering section and
+  // lib/lab/worklist.ts routes by it (behaviour: tests/lab/worklist-projection.test.ts, LW-3/LW-4;
+  // tests/emr-db/lab-reads.test.ts). The legacy loader stays untouched.
+  it("L5: the lab worklist routes rows by section", () => {
+    expect(read("lib/lab/read.ts")).toMatch(/offeringSectionId: offering\?\.sectionId/);
+    expect(read("lib/lab/worklist.ts")).toMatch(/r\.offeringSectionId \?\? r\.catalogueSectionId/);
   });
 
   it.fails("L7: the lab result screen says critical flagging is off (fixed in Step 4)", () => {
