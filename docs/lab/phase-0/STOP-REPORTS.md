@@ -253,3 +253,20 @@ no `lab_tech` role, and an empty EMR worklist.
    ```
 
 4. The four verdict findings become GATE A decisions in the proposal.
+
+---
+
+## STOP 1 — GATE A proposal
+
+[gate-a-proposal.md](gate-a-proposal.md): access model, landing table before and after, screens, rules with worked
+examples, schema diff, RLS probe plan, test plan, ADR drafts 0221–0226, decision table.
+
+- **Signed** 10 Oct 2026 by the owner's instruction, "go with your recommendation and go through all gates": D-LAB0-01
+  to -19, E-LAB0-01 to -05, the permission map v1.
+- **Not signed:** the notice wording (D-LAB0-11 asks for a signature before production). It ships `draft`; CF-3 keeps
+  production off until it is signed.
+- **Changed from the prompt:** D-LAB0-05 (no stored "last used" workspace), D-LAB0-19 (scratch harness instead of new
+  dependencies, following the repo's no-new-deps rule). **New:** D-LAB0-16 (reading the hub's text), D-LAB0-17
+  (sections without a catalogue link), D-LAB0-18 (grant by trigger).
+- Critique pass corrected three points: `encounter_orders.loinc_code` exists but the EMR never writes it (finding 2
+  stands); "From" is `encounters.department_id`; the global Emergency pill is on every page by design.
