@@ -451,7 +451,7 @@ describe.skipIf(!laneOn)("0100 — who reads prescriptions and emergency doses (
 });
 
 describe.skipIf(!laneOn)(
-  "0101 — pharmacy staff read the chart only through the server (S13, RV-7)",
+  "0120 — pharmacy staff read the chart only through the server (S13, RV-7)",
   () => {
     let pg: Pg;
     let h: string;
@@ -513,7 +513,7 @@ describe.skipIf(!laneOn)(
 
     it("the SQL excludes exactly the cadres of the signed map, in every place", () => {
       const sql = readFileSync(
-        resolve(process.cwd(), "supabase/migrations/0101_pharmacy_outside_clinical_reads.sql"),
+        resolve(process.cwd(), "supabase/migrations/0120_pharmacy_outside_clinical_reads.sql"),
         "utf8",
       );
       const lists = [...sql.matchAll(/c\.code NOT IN \(([^)]*)\)/g)].map((m) =>

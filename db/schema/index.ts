@@ -132,5 +132,5 @@ export * from "./admissions";
 // ─── NCDSync, the hospital NCD registry (migration 0093 — GATED, ADRs 0209–0214)
 export * from "./ncd-registry";
 
-// ─── Pharmacy Phase 0: dispensing points (migration 0102 — GATED, ADR 0236) ───
+// ─── Pharmacy Phase 0: dispensing points (migration 0121 — GATED, ADR 0236) ───
 export * from "./pharmacy";

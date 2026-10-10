@@ -11,7 +11,7 @@ Several branches write migrations and ADRs at once; two have already taken the s
 
 `docs/NUMBERS.md` records blocks of migration and ADR numbers claimed by work in flight, read across `origin/main` and
 every branch. A branch claims its block before its first migration or ADR, and releases what it does not use when it
-merges. Pharmacy holds migrations 0098–0117 and ADRs 0227–0241 (0098–0102 and 0227–0237 used).
+merges. Pharmacy holds migrations 0098–0117 and ADRs 0227–0241 (0098–0121 and 0227–0237 used).
 
 ## Consequences
 

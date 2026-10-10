@@ -1,7 +1,7 @@
--- 0102 — Dispensing points: units of the Pharmacy department with what each serves (Pharmacy Phase
+-- 0121 — Dispensing points: units of the Pharmacy department with what each serves (Pharmacy Phase
 -- 0, ADR 0236; gate-a-proposal §4.5 and §6.1, D-PH0-14, signed 2026-10-10).
 --
--- GATED: owner-applied (`npm run db:migrate`), after 0101.
+-- GATED: owner-applied (`npm run db:migrate`), after 0120.
 --
 -- A dispensing point is a unit (hospital_departments row) of a hospital's Pharmacy department. Its
 -- name, place, hours and in-charge are the hub's own unit fields; this table adds one thing, what

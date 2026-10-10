@@ -5,7 +5,7 @@ import { hospitalDepartments } from "./hospital-departments";
 import { hospitals } from "./hospitals";
 
 /**
- * Dispensing points (migration 0102 — GATED, ADR 0236): a unit of the Pharmacy department and what
+ * Dispensing points (migration 0121 — GATED, ADR 0236): a unit of the Pharmacy department and what
  * it serves, which picks the lane its staff's queue opens on. Holds no stock, records no dispensing.
  */
 export const DISPENSING_SERVES = ["window", "wards", "emergency", "all"] as const;

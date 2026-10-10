@@ -5,7 +5,7 @@
 
 ## Decision
 
-1. A dispensing point is a unit of a hospital's Pharmacy department; migration 0102 adds a 1:1
+1. A dispensing point is a unit of a hospital's Pharmacy department; migration 0121 adds a 1:1
    `pharmacy_dispensing_points` row with `serves` (window, wards, emergency, all). Client-closed (RLS, no policy).
 2. The hub writes it through `ha-services-hub` op `set_dispensing_point` (a live unit of PHARMACY only; audited before
    it writes) and shows it in the Pharmacy panel's Dispensing points tab.

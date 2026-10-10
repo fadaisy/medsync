@@ -1,8 +1,9 @@
--- 0101 — Pharmacy staff read the clinical record only through the pharmacy's server reads
+-- 0120 — Pharmacy staff read the clinical record only through the pharmacy's server reads
 -- (Pharmacy Phase 0, ADR 0232; gate-a-proposal §5.2a and §6.2, D-PH0-05 signed 2026-10-10; prompt §7
 -- probe table, S13).
 --
--- GATED (RLS): owner-applied (`npm run db:migrate`), after 0100.
+-- GATED (RLS): owner-applied (`npm run db:migrate`), after 0100. Numbered 0120 so as not to collide with
+-- the lab's 0101 (lab access hotfix) or Lab Phase 1's block (docs/NUMBERS.md).
 --
 -- Twenty-three client SELECT policies admit "any approved or active affiliation in a clinical cadre"
 -- at the hospital — inline (`c.is_clinical = true`) or through public.is_active_clinical_staff(). The

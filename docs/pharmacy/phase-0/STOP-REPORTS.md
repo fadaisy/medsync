@@ -411,7 +411,7 @@ The signed and listed medicine counts are static: 4 of 192.
 - the rules with worked examples (a cancelled line and a changed row included);
 - the read list, field by field;
 - every string with its status;
-- migrations 0098–0101, the RLS probe table, the test plan, ADR drafts 0227–0237, and decisions D-PH0-01 to -22.
+- migrations 0098–0120, the RLS probe table, the test plan, ADR drafts 0227–0237, and decisions D-PH0-01 to -22.
 
 **Critique pass, first round, three fixes:**
 
@@ -589,31 +589,31 @@ Against the harness database: "0 approved pharmacy staff without pharmacy access
 
 Every read is hospital-scoped, reads as the owner with an explicit field list, and returns the server time.
 
-### New finding, fixed under the signed read list: migration 0101
+### New finding, fixed under the signed read list: migration 0120
 
 - **The problem:** an RLS probe across every table found that pharmacy staff could already read `encounters` through the client. 23 client SELECT policies admit any affiliation in a clinical cadre, inline (`c.is_clinical = true`) or through `public.is_active_clinical_staff()`, and the pharmacy cadres are clinical. That reach covers:
   - encounters, observations, triage, the MAR and handovers;
   - admissions, beds and visit summaries;
   - the resus record and three realtime channels.
 - **The fix:**
-  - `0101_pharmacy_outside_clinical_reads.sql` takes the two pharmacy cadres, and nothing else, out of that predicate.
+  - `0120_pharmacy_outside_clinical_reads.sql` takes the two pharmacy cadres, and nothing else, out of that predicate.
   - The function is redefined in place, and the nine inline policies are recreated with one added line.
   - Every other cadre, role and branch is unchanged.
-- **Probes** (`pharmacy-access`, "0101"):
+- **Probes** (`pharmacy-access`, "0120"):
   - pharmacist and technician read 0 encounters, resus episodes and timeline events;
   - doctor, nurse and physiotherapist read as before;
   - the shared predicate is false for pharmacy and true for nurse, physiotherapist and lab;
   - the cadre list is checked against the signed map in all 10 places.
-- **Mutation check:** without 0101, all five fail.
+- **Mutation check:** without 0120, all five fail.
 - **Lab, reported, not changed:** lab cadres keep the same broad reach. That is the lab's to decide.
-- **Numbering:** dispensing points move to **0102**.
+- **Numbering:** dispensing points move to **0121**.
 
 ### Rule coverage (each ID named in at least one test)
 
 | Rules                   | Where                                                                                                            |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | PA-1..5                 | `tests/pharmacy/access.test.ts`                                                                                  |
-| PA-6, RV-7              | `tests/emr-db/pharmacy-access.test.ts` (0100 + 0101 probes); `requirePharmacyScope` in every page from Step 4    |
+| PA-6, RV-7              | `tests/emr-db/pharmacy-access.test.ts` (0100 + 0120 probes); `requirePharmacyScope` in every page from Step 4    |
 | PA-7                    | `pharmacy-access` (trigger probes)                                                                               |
 | PA-8, NV-P2             | `tests/lab/*` unchanged and green                                                                                |
 | LD-P1..5                | `tests/pharmacy/landing.test.ts`                                                                                 |
@@ -794,7 +794,7 @@ Production build (`next build && next start`) in the harness: Test Hospital-1 wi
 
 The services hub is on the branch, so this was built.
 
-- **Migration 0102** (`pharmacy_dispensing_points`): 1:1 with a unit, `serves` CHECK, RLS on with no client policy.
+- **Migration 0121** (`pharmacy_dispensing_points`): 1:1 with a unit, `serves` CHECK, RLS on with no client policy.
 - **Hub op `set_dispensing_point`** in `ha-services-hub`:
   - accepts a live unit of PHARMACY only;
   - audited before it writes, like every hub op.
@@ -827,7 +827,7 @@ Playwright is not used (D-PH0-22). Each scenario is proven by a test in the repo
 | S10 | Admitted → On the wards                                                                         | `pharmacy-reads` S10; `queue.test.ts` PQ-3                                                                                                                                                               | pass   |
 | S11 | Find by number: lists; another hospital's number gives the same "no prescription"               | `pharmacy-reads` S11 (look-back included); `ui.test.ts` (posted, never in a URL)                                                                                                                         | pass   |
 | S12 | One log row per open; none again within a minute                                                | `pharmacy-reads` RV-6                                                                                                                                                                                    | pass   |
-| S13 | A pharmacist asks the database for notes, results, observations: refused                        | `pharmacy-access` 0101 probes (encounters, resus episode and timeline: 0); the shared predicate false for pharmacy cadres                                                                                | pass   |
+| S13 | A pharmacist asks the database for notes, results, observations: refused                        | `pharmacy-access` 0120 probes (encounters, resus episode and timeline: 0); the shared predicate false for pharmacy cadres                                                                                | pass   |
 | S14 | A resus dose appears under its cart, amount as stored, witness's cadre, no stock                | `pharmacy-reads` ED; `engines.test.ts` ED-1..ED-5; harness doses screenshots                                                                                                                             | pass   |
 | S15 | Notice with counts; without counts the other wording; draft wording blocks production           | `ui.test.ts`; `notice.test.ts`; `feature.test.ts` CS-5                                                                                                                                                   | pass   |
 | S16 | Reception refused; other hospital refused; no cross-hospital prescription                       | `access.test.ts` PA-5; `pharmacy-access` 0100 probes; `pharmacy-reads` PQ-11                                                                                                                             | pass   |
@@ -853,7 +853,7 @@ Playwright is not used (D-PH0-22). Each scenario is proven by a test in the repo
 | Queue rows with fewer than two identifiers                  | —                                                                                                              | 0                  | 0                                                                                               |
 | Doses displayed differently from stored                     | —                                                                                                              | 0                  | 0 (byte equality)                                                                               |
 | Check results shown that were not stored                    | —                                                                                                              | 0                  | 0                                                                                               |
-| Chart tables pharmacy staff can read beyond the list        | encounters, observations, triage, MAR, handovers, resus, admissions, beds, visit summaries, every prescription | 0                  | 0 (0100, 0101)                                                                                  |
+| Chart tables pharmacy staff can read beyond the list        | encounters, observations, triage, MAR, handovers, resus, admissions, beds, visit summaries, every prescription | 0                  | 0 (0100, 0120)                                                                                  |
 | Prescription opens without a log row                        | —                                                                                                              | 0                  | 0                                                                                               |
 | Clinical write actions reachable from `/pharmacy`           | —                                                                                                              | 0                  | 0                                                                                               |
 | Stock figures shown                                         | —                                                                                                              | 0                  | 0                                                                                               |
@@ -890,8 +890,8 @@ Playwright is not used (D-PH0-22). Each scenario is proven by a test in the repo
 ### For you, before switching anything on
 
 1. **Merge order:** `feat/lab-front-door` first, then `feat/pharmacy-front-door` (rebased on `main` after the lab merges).
-2. **Apply migrations in order** with `npm run db:migrate` from the branch's checkout: **0097** (lab), **0098, 0099, 0100, 0101, 0102**.
-   - 0100 and 0101 change RLS: reception, lab and superadmin-by-role lose the client read of prescriptions, and pharmacy staff lose the generic chart read.
+2. **Apply migrations in order** with `npm run db:migrate` from the branch's checkout: **0097** (lab), **0098, 0099, 0100, 0120, 0121**.
+   - 0100 and 0120 change RLS: reception, lab and superadmin-by-role lose the client read of prescriptions, and pharmacy staff lose the generic chart read.
 3. **Deploy the Edge Function `ha-services-hub`** (the new op and the derived-key guard).
 4. **Backfill:** run `npm run pharmacy:backfill-access` (dry run), review, then `-- --apply`. From a worktree it reads the main checkout's production env.
 5. **Sign the wording** in `content/pharmacy.ts` (status `signed`, `signedBy`, `signedOn`): the notice, the co-sign line, "Not continued at home", the override block, and the cart notice.
@@ -900,7 +900,7 @@ Playwright is not used (D-PH0-22). Each scenario is proven by a test in the repo
 
 ### Known debt and follow-ups
 
-- **Lab cadres** keep the broad client read of the chart (the same predicate 0101 narrowed for pharmacy). This is for the lab to decide.
+- **Lab cadres** keep the broad client read of the chart (the same predicate 0120 narrowed for pharmacy). This is for the lab to decide.
 - **The flag-off EMR worklist** still prefetches result links (lab STOP 4).
 - **Before 0099,** rows keep no line order or placement; they show grouped by time.
 - **One full-lane failure was unexplained** at STOP 4, then traced: the order of a placement's lines was not recorded. Fixed by `placement_line`.

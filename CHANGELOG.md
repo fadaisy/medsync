@@ -24,7 +24,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   ([ADR 0233](docs/adr/0233-as-written-and-no-second-check-engine.md)).
 - Prescriptions, emergency doses and the chart are no longer readable by every affiliated staff member through the
   client: reception, lab and superadmin-by-role lose the prescription read; pharmacy staff read only through the
-  pharmacy's server reads (migrations 0100, 0101; [ADR 0232](docs/adr/0232-who-may-read-prescriptions-in-the-database.md)).
+  pharmacy's server reads (migrations 0100, 0120; [ADR 0232](docs/adr/0232-who-may-read-prescriptions-in-the-database.md)).
 - Behind `PHARMACY_WORKSPACE` (per hospital, off by default): the pharmacy workspace — a read-only queue of every
   prescription written, in three lanes; a read-only prescription view with a read log
   ([ADR 0231](docs/adr/0231-what-pharmacy-staff-may-read.md)); emergency doses by cart from the resus timeline
@@ -32,7 +32,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   every prescription screen ([ADR 0234](docs/adr/0234-the-check-state-seam-and-the-pharmacy-notice.md)). Production
   stays off until the CSO signs the wording.
 - Dispensing points in the hub's Pharmacy department pick each pharmacy user's opening lane; the hub's pharmacy count
-  and 24-hour value are worked out from them (migration 0102; [ADR 0236](docs/adr/0236-dispensing-points.md)).
+  and 24-hour value are worked out from them (migration 0121; [ADR 0236](docs/adr/0236-dispensing-points.md)).
 - The lab's access, flag, navigation, notice and shell are shared workspace modules now, unchanged for the lab
   ([ADR 0229](docs/adr/0229-workspace-neutral-access-landing-navigation.md)); a numbers ledger in `docs/NUMBERS.md`
   ([ADR 0237](docs/adr/0237-the-numbers-ledger.md)).

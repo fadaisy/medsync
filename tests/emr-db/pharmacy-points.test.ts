@@ -1,5 +1,5 @@
 /**
- * Pharmacy Phase 0, Step 5 (§5.8, DP-1..DP-4): migration 0102 and the dispensing-point reads on the
+ * Pharmacy Phase 0, Step 5 (§5.8, DP-1..DP-4): migration 0121 and the dispensing-point reads on the
  * PGlite lane, every migration replayed. The table is client-closed (RLS, no policy); the loaders
  * read it server-side; the hub's capability values are worked out from the points (DP-2); a viewer's
  * point picks their lane (DP-4).
@@ -22,7 +22,7 @@ vi.mock("@/db", () => ({
   },
 }));
 
-describe.skipIf(!laneOn)("0102 — dispensing points", () => {
+describe.skipIf(!laneOn)("0121 — dispensing points", () => {
   let lane: Lane;
   let pg: Pg;
   let h: string;

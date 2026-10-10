@@ -14,7 +14,7 @@ role. And 23 chart policies admit any clinical cadre, which includes the pharmac
 1. Migration 0100: `private.reads_hospital_prescribing(hospital)` — clinical cadres other than lab and pharmacy, or
    `pharmacy_staff` at that hospital — replaces the four 0039 SELECT policies, beside the patient's and the
    prescriber's or giver's own rows. Superadmin reads only through break-glass.
-2. Migration 0101: the two pharmacy cadres leave the generic clinical-staff predicate (`is_active_clinical_staff` and
+2. Migration 0120: the two pharmacy cadres leave the generic clinical-staff predicate (`is_active_clinical_staff` and
    nine inline policies), and nothing else changes; pharmacy staff read the chart only through the server read model.
 
 ## Consequences

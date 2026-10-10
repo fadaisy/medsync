@@ -3,6 +3,7 @@
 > **For Claude Code.** Work at the repo root on a new branch `feat/pharmacy-front-door`, cut from `main` **after** the access step of `feat/lab-front-door` (lab Phase 0) has merged. If it has not merged, **STOP at Step 0**: this slice reuses its permission model, landing resolver, navigation registry, notice and flag. First copy this prompt into `docs/pharmacy/phase-0/`.
 >
 > **Mode:** gated. Six steps (0–5), each ending in a **STOP**. They are called steps because "Phase 0" already names this slice of the pharmacy roadmap.
+>
 > - Documents use Stage 1: draft → critique against the checklist → revise (max two passes) → present → STOP.
 > - Code uses Stage 2: build → run the real checks → fix → re-run until green → report numbers → STOP.
 > - Self-refinement never replaces a real check.
@@ -10,6 +11,7 @@
 > **Assume nothing is built.** Section 3 lists what earlier reads claimed. Treat every line as a claim to verify. Build what Step 0 proves is missing; reuse what it proves exists.
 >
 > **The CSO is Fadhul.** Four things here need his signature at GATE A:
+>
 > - who gets pharmacy access, and the rule that a technician is never called a pharmacist (D-PH0-02, D-PH0-03);
 > - what pharmacy staff may read from a patient's record (D-PH0-05, D-PH0-06);
 > - the wording of the notice that says what the pharmacy is not doing (D-PH0-07);
@@ -28,8 +30,8 @@ A pharmacist or pharmacy technician can sign up to MedSync today and lands on th
 ## 1. Ground truth and reading order
 
 1. **The repo wins** over this prompt, over the roadmap and over the design canvas. Report every disagreement at STOP 0.
-2. **The plan this slice comes from:** the *MedSync Pharmacy Roadmap*, as republished on 10 Oct 2026, "Phase 0: Open the front door" and "The floor: seven conditions" (https://claude.ai/artifact/WfJbaaKpAKVdYvu1Tmpxkn).
-3. **The UI reference:** the design canvas *Pharmacy UI Preview* (https://claude.ai/artifact/QWr8hAaEyDhmEdiCbYUBTT).
+2. **The plan this slice comes from:** the _MedSync Pharmacy Roadmap_, as republished on 10 Oct 2026, "Phase 0: Open the front door" and "The floor: seven conditions" (https://claude.ai/artifact/WfJbaaKpAKVdYvu1Tmpxkn).
+3. **The UI reference:** the design canvas _Pharmacy UI Preview_ (https://claude.ai/artifact/QWr8hAaEyDhmEdiCbYUBTT).
    - Artboards **0.1 Queue, read-only**, **0.2 Prescription, read-only**, **0.3 Emergency doses by cart** and **0.4 Hospital admin: dispensing points** are this slice.
    - Artboards 1.1 onward preview later phases. **Build nothing from them.**
    - The canvas is drawn in MedSync Chroma. Build with the design system in force on this branch (Law 14).
@@ -71,29 +73,30 @@ A pharmacist or pharmacy technician can sign up to MedSync today and lands on th
 
 Lines marked **(June)** were read directly from a clone at `4fbab0c`, 3 June 2026. That clone is four months behind `main`, so they describe a starting point and may be out of date. The rest come from the Role Map, the Workspace Coverage review (`origin/main` 4087e4c) and the Encounter Plan guide, all dated 10 Oct 2026.
 
-| # | Claim | Where | Severity |
-|---|---|---|---|
-| P1 | `user_roles` allows `pharmacist`, and the role requires MFA | `db/schema/user-roles.ts`, `lib/auth.ts` | Access |
-| P2 | Pharmacist and Pharmacy technician can be chosen at sign-up. The profession map places both under the Pharmacy Board of Uganda | `lib/onboarding/profession.ts`, onboarding v2 Appendix B | Access, **regulatory** |
-| P3 | Sign-in sends both cadres to `/clinician`, the availability page | `app/(auth)/sign-in/landing.ts` | Access |
-| P4 | No `/pharmacy` route exists, and nothing links to one | `app/` | Access |
-| P5 | Approving a pharmacy cadre grants nothing. `assign-role` accepts `pharmacist` **(June)** | approval function, `assign-role` | Access, governance |
-| P6 | `PharmacyAvailability` always returns `not_linked`, so the prescribing dialog shows "Pharmacy not linked yet" | `lib/prescribing/pharmacy.ts`, ADR 0190 | Context: unchanged in this slice |
-| P7 | `prescriptions` is the shared anchor. **(June)** it was one row per medicine: `dose` as text, `route`, `indication`, `controlled`, `is_emergency` defaulting to true, and states `active`, `administered`, `completed`, `cancelled`. It had no frequency, duration or quantity, and nothing grouped rows into one printed prescription | migration 0039, ADR 0052 | **Shape of the queue** |
-| P8 | The Encounter Plan now shows **In basket**, **Prescribed** and **Awaiting co-sign**, places a basket all-or-nothing, and stores each check's answer and override reason beside the prescription | Encounter Plan guide | Shape of the queue |
-| P9 | The doctor prints prescriptions. Discharge and outpatient prescriptions reach the pharmacy only on paper | doctor workspace | **The gap** |
-| P10 | `emergency_administrations` is append-only: medicine, dose, amount, cart, giver, witness for controlled drugs, time. **(June)** `crash_carts` and `crash_cart_stock` (`on_hand`, `par_level`, `expires_at`) existed as "notional inventory", readable by any approved staff member of the hospital | migration 0039 | Emergency doses page |
-| P11 | Only three emergency entries carry a signed dose (glucose 10%, glucagon, crystalloid bolus). Drug interactions are not checked | Encounter Plan guide | **The notice** |
-| P12 | Lab Phase 0 is on `feat/lab-front-door`, stopped at STOP 0 on 10 Oct 2026. Its permission model, `resolveLanding`, navigation registry, notice and flag are not on `main` | lab Phase 0 | **Dependency** |
-| P13 | The services hub lists Pharmacy as a support department and holds `pharmacy_dispensing_points` and `pharmacy_24h` as typed capability keys. Whether the hub is built is unknown | hub prompt A.1, A.7 | Dispensing points |
-| P14 | The nurse records doses at `/nurse/mar`; the patient tracks medicines at `/patient/track/medications` | Role Map | Context: untouched |
-| P15 | Two contradictions carried from the handoff: dental officers are counted among doctor cadres by the Role Map and land on the availability page by the Coverage review; imaging is orderable from the encounter by the Coverage review and not an order type on the plan step by the guide | the handoff | Report only |
+| #   | Claim                                                                                                                                                                                                                                                                                                                                  | Where                                                    | Severity                         |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------- |
+| P1  | `user_roles` allows `pharmacist`, and the role requires MFA                                                                                                                                                                                                                                                                            | `db/schema/user-roles.ts`, `lib/auth.ts`                 | Access                           |
+| P2  | Pharmacist and Pharmacy technician can be chosen at sign-up. The profession map places both under the Pharmacy Board of Uganda                                                                                                                                                                                                         | `lib/onboarding/profession.ts`, onboarding v2 Appendix B | Access, **regulatory**           |
+| P3  | Sign-in sends both cadres to `/clinician`, the availability page                                                                                                                                                                                                                                                                       | `app/(auth)/sign-in/landing.ts`                          | Access                           |
+| P4  | No `/pharmacy` route exists, and nothing links to one                                                                                                                                                                                                                                                                                  | `app/`                                                   | Access                           |
+| P5  | Approving a pharmacy cadre grants nothing. `assign-role` accepts `pharmacist` **(June)**                                                                                                                                                                                                                                               | approval function, `assign-role`                         | Access, governance               |
+| P6  | `PharmacyAvailability` always returns `not_linked`, so the prescribing dialog shows "Pharmacy not linked yet"                                                                                                                                                                                                                          | `lib/prescribing/pharmacy.ts`, ADR 0190                  | Context: unchanged in this slice |
+| P7  | `prescriptions` is the shared anchor. **(June)** it was one row per medicine: `dose` as text, `route`, `indication`, `controlled`, `is_emergency` defaulting to true, and states `active`, `administered`, `completed`, `cancelled`. It had no frequency, duration or quantity, and nothing grouped rows into one printed prescription | migration 0039, ADR 0052                                 | **Shape of the queue**           |
+| P8  | The Encounter Plan now shows **In basket**, **Prescribed** and **Awaiting co-sign**, places a basket all-or-nothing, and stores each check's answer and override reason beside the prescription                                                                                                                                        | Encounter Plan guide                                     | Shape of the queue               |
+| P9  | The doctor prints prescriptions. Discharge and outpatient prescriptions reach the pharmacy only on paper                                                                                                                                                                                                                               | doctor workspace                                         | **The gap**                      |
+| P10 | `emergency_administrations` is append-only: medicine, dose, amount, cart, giver, witness for controlled drugs, time. **(June)** `crash_carts` and `crash_cart_stock` (`on_hand`, `par_level`, `expires_at`) existed as "notional inventory", readable by any approved staff member of the hospital                                     | migration 0039                                           | Emergency doses page             |
+| P11 | Only three emergency entries carry a signed dose (glucose 10%, glucagon, crystalloid bolus). Drug interactions are not checked                                                                                                                                                                                                         | Encounter Plan guide                                     | **The notice**                   |
+| P12 | Lab Phase 0 is on `feat/lab-front-door`, stopped at STOP 0 on 10 Oct 2026. Its permission model, `resolveLanding`, navigation registry, notice and flag are not on `main`                                                                                                                                                              | lab Phase 0                                              | **Dependency**                   |
+| P13 | The services hub lists Pharmacy as a support department and holds `pharmacy_dispensing_points` and `pharmacy_24h` as typed capability keys. Whether the hub is built is unknown                                                                                                                                                        | hub prompt A.1, A.7                                      | Dispensing points                |
+| P14 | The nurse records doses at `/nurse/mar`; the patient tracks medicines at `/patient/track/medications`                                                                                                                                                                                                                                  | Role Map                                                 | Context: untouched               |
+| P15 | Two contradictions carried from the handoff: dental officers are counted among doctor cadres by the Role Map and land on the availability page by the Coverage review; imaging is orderable from the encounter by the Coverage review and not an order type on the plan step by the guide                                              | the handoff                                              | Report only                      |
 
 ---
 
 ## 4. Design direction
 
 **Six rules**
+
 1. **Land where you work.** A pharmacy professional signs in and sees the queue.
 2. **The paper is still the prescription.** Until MedSync records a supply, the signed paper authorises it. The screen helps you read and check that paper; it says so.
 3. **The checks travel with the prescription.** Show what the prescriber was warned about and what they answered, first.
@@ -102,6 +105,7 @@ Lines marked **(June)** were read directly from a clone at `4fbab0c`, 3 June 202
 6. **Navigation shows only what exists.** Two items. No "SOON" items.
 
 **Budgets** (measured at Step 0, met by Step 5)
+
 - Navigations between a successful sign-in and the queue: **0**.
 - Sidebar items in this slice: **2**.
 - Visible controls per queue row: **1**.
@@ -115,6 +119,7 @@ Lines marked **(June)** were read directly from a clone at `4fbab0c`, 3 June 202
 ## 5. Interface specification
 
 ### 5.1 Landing and access
+
 - A user whose only staff workspace is the pharmacy lands on `/pharmacy` after sign-in and AAL2.
 - A valid deep link (`next`) inside the allowed paths wins over the default landing.
 - A pharmacy-only user who reaches `/clinician` is redirected to `/pharmacy` (307, while the flag exists).
@@ -122,6 +127,7 @@ Lines marked **(June)** were read directly from a clone at `4fbab0c`, 3 June 202
 - A pharmacy applicant who is not yet approved sees the pending page, as today.
 
 ### 5.2 The workspace shell
+
 - **Sidebar, two items:** **Queue** · **Emergency doses**. Each shows a neutral count: prescriptions written today under "All", and emergency doses in the last 7 days.
 - Above them, **Find a prescription** (5.7).
 - Items come from the navigation registry (6.5). Later phases register Open lines, Supplied today, Stock, Controlled drugs and Downtime entry. Until an item's page exists, it is not rendered.
@@ -165,85 +171,93 @@ Lines marked **(June)** were read directly from a clone at `4fbab0c`, 3 June 202
 - **Medicines cell.** Names in the order written, as stored. More than three: the first two, then "+n".
 - **State cell.**
 
-| Stored state | The cell shows |
-|---|---|
-| Prescribed | neutral chip `Prescribed` |
-| Awaiting co-sign | amber chip with a clock icon: `Awaiting co-sign` |
-| Cancelled | amber chip with an icon: `Cancelled 10:20` |
+| Stored state                          | The cell shows                                    |
+| ------------------------------------- | ------------------------------------------------- |
+| Prescribed                            | neutral chip `Prescribed`                         |
+| Awaiting co-sign                      | amber chip with a clock icon: `Awaiting co-sign`  |
+| Cancelled                             | amber chip with an icon: `Cancelled 10:20`        |
 | Any line changed after the last print | amber chip added: `Changed since printing` (PQ-7) |
-| Any other state Step 0 finds | its own words, neutral, after GATE A names them |
+| Any other state Step 0 finds          | its own words, neutral, after GATE A names them   |
 
 - **Checks cell.** Built only from stored outcomes (Law 6), most serious first, at most two chips and then "+n":
 
-| Stored outcome | Chip |
-|---|---|
-| A stop the prescriber overrode | amber, with an icon: `1 stop overridden` |
-| A controlled drug | neutral: `Controlled drug, witnessed` |
-| The child-under-16 check fired | neutral: `Child under 16` |
-| A renal check was answered | neutral: `Renal check answered` |
-| A dose typed with no signed regimen | neutral: `Typed dose` |
-| Nothing stored | muted text: `No flags` |
+| Stored outcome                      | Chip                                     |
+| ----------------------------------- | ---------------------------------------- |
+| A stop the prescriber overrode      | amber, with an icon: `1 stop overridden` |
+| A controlled drug                   | neutral: `Controlled drug, witnessed`    |
+| The child-under-16 check fired      | neutral: `Child under 16`                |
+| A renal check was answered          | neutral: `Renal check answered`          |
+| A dose typed with no signed regimen | neutral: `Typed dose`                    |
+| Nothing stored                      | muted text: `No flags`                   |
 
 - **Order of rows:** oldest first within the period. The viewer may re-sort by any column; the default returns on reload.
 - **Refresh.** A Refresh button and an "Updated hh:mm" stamp. Elapsed cells tick every 30 seconds from the server time, pause while the tab is hidden, and never trigger a fetch. No realtime in this slice.
 - **URL state.** `?lane=&state=&from=&period=&sort=`. Ids only, never names. Back, forward and reload restore the view.
-- **Empty states.** Nothing in my lane: *"Nothing for the window yet today. 12 on the wards."* with **Show all**. Nothing at all: *"No prescriptions have been written today."*
+- **Empty states.** Nothing in my lane: _"Nothing for the window yet today. 12 on the wards."_ with **Show all**. Nothing at all: _"No prescriptions have been written today."_
 - **Footer line** under the table, always: the "n of N" count, the order, and that the list is read-only.
 
 ### 5.4 The prescription, read-only (artboard 0.2)
+
 - **Head:** "Prescription", the lane and the ward or clinic as tags, the state chip, and the number if one exists (PQ-2).
 - **Identity strip:** two identifiers, sex, age; then the facts D-PH0-05 allows, each with its date: weight, latest creatinine, allergies. If a fact was stored with the prescription at prescribing, show that value and say "at prescribing". Otherwise show the current value and its date. Never show one without its date.
 - **The notice** (5.6).
 - **Lines,** in the order written. For each: the medicine, form and strength as stored; the directions **as written** (Law 5); the problem it is for (D-PH0-06); the dose source ("From a signed regimen" or "Typed by the prescriber"); and, where a stop was overridden, a block naming the check, what triggered it, and the reason the prescriber gave, verbatim.
 - **A cancelled line** stays in place, struck through, with who cancelled it (cadre) and when.
 - **Side column:**
-  - *Prescriber:* cadre and department, when it was written, the co-signature state and, once signed, the co-signer's cadre and time; when it was last printed and how many copies, if prints are recorded.
-  - *What MedSync checked at prescribing:* each stored check with its level (Stop, Check, Note) and its answer.
-  - *Not checked:* drug interactions; stock.
-- **Awaiting co-sign:** an amber line above the lines: *"Not yet co-signed. A senior has not signed this prescription."* (wording signed, Appendix B). Nothing is disabled: there is nothing to disable.
-- **No control changes anything.** The only link is back to the queue. A controlled drug shows its chip and nothing more. Footer: *"Read-only. To change this prescription, speak to the prescriber."*
+  - _Prescriber:_ cadre and department, when it was written, the co-signature state and, once signed, the co-signer's cadre and time; when it was last printed and how many copies, if prints are recorded.
+  - _What MedSync checked at prescribing:_ each stored check with its level (Stop, Check, Note) and its answer.
+  - _Not checked:_ drug interactions; stock.
+- **Awaiting co-sign:** an amber line above the lines: _"Not yet co-signed. A senior has not signed this prescription."_ (wording signed, Appendix B). Nothing is disabled: there is nothing to disable.
+- **No control changes anything.** The only link is back to the queue. A controlled drug shows its chip and nothing more. Footer: _"Read-only. To change this prescription, speak to the prescriber."_
 - Opening this view writes a read-log row (6.4, RV-6).
 
 ### 5.5 Emergency doses (artboard 0.3)
+
 - **What it is:** doses given from an emergency cart, as recorded on the resus desk. A read-only list over existing records.
 - **Cart tabs:** All carts, then each cart with rows in the period, each with its count; "No cart" for doses recorded without one.
 - **Period:** Today · Last 7 days · Last 30 days. Default: last 7 days.
-- **Columns:** Given (date and time) · Patient (two identifiers, or *"Unidentified patient"* with the episode reference) · Medicine · Amount, **as recorded** · Cart · Given by (cadre) · Episode. A controlled drug adds the witness's cadre.
-- **Notice,** neutral, not dismissible: *"Cart restocking is not recorded in MedSync yet. Use this list beside the cart's own checklist when you restock."*
+- **Columns:** Given (date and time) · Patient (two identifiers, or _"Unidentified patient"_ with the episode reference) · Medicine · Amount, **as recorded** · Cart · Given by (cadre) · Episode. A controlled drug adds the witness's cadre.
+- **Notice,** neutral, not dismissible: _"Cart restocking is not recorded in MedSync yet. Use this list beside the cart's own checklist when you restock."_
 - **No stock figure is shown.** Any `on_hand` or `par_level` the cart tables hold stays off this page until an engine counts it (D-PH0-13).
 
 ### 5.6 The notice that says what the pharmacy is not doing
+
 - **Where:** at the top of the queue and of every prescription view, above the content.
 - **When:** whenever `pharmacyChecksState(hospital)` reports anything not done (6.6). In this slice that is always, but the notice is wired to the function, never hard-coded on.
 - **Form:** the caution notice of the design system in force: amber tint, a triangle icon, a bold first sentence. `role="status"`. It has no close button.
 - **Wording:** Appendix B, from copy entries with a status. The counts in it come from data (CS-3). **Unsigned wording cannot be enabled in production** (CS-5).
 
 ### 5.7 Find a prescription
+
 - One field in the sidebar. It accepts a prescription number or a patient number (MRN), exact match only, searched on the server.
 - A prescription number opens that prescription. A patient number lists that patient's prescriptions at this hospital within the look-back period (D-PH0-09), newest first, in the queue's table.
-- No match: *"No prescription with that number at this hospital."* The message is the same whether the number is unknown or belongs to another hospital.
+- No match: _"No prescription with that number at this hospital."_ The message is the same whether the number is unknown or belongs to another hospital.
 - There is no search by name in this slice.
 - If Step 0 finds that prescriptions carry no number a person can read off the paper, the field takes the patient number only, and the gap is reported at STOP 0.
 
 ### 5.8 Dispensing points (artboard 0.4)
+
 Only if the services hub is on the branch (Q10). Otherwise skip this section, record the seam, and every viewer opens on "All".
 
 - In the hub, under Departments → Pharmacy, a **Dispensing points** list: the units of the Pharmacy department.
 - **Each point:** name · serves (Outpatients, clinics and discharges · Wards · Emergency unit · Everything) · hours · place · in charge · staff count. Hours, place and in-charge reuse the hub's unit fields.
 - **Serves** decides only which lane that point's staff open on. It routes nothing and hides nothing.
 - **Derived values.** Where at least one dispensing point exists, the hub's "dispensing points" count and "pharmacy open 24 hours" are worked out from the points and are no longer typed (CAP-3 pattern). With none, the typed values stay as they are.
-- A neutral note on the panel: *"A dispensing point names where pharmacy staff work and which prescriptions their queue shows first. It holds no stock and records no dispensing yet."*
+- A neutral note on the panel: _"A dispensing point names where pharmacy staff work and which prescriptions their queue shows first. It holds no stock and records no dispensing yet."_
 - Pharmacy staff are assigned to a point through the staff affiliation's unit, as lab staff are to sections.
 
 ### 5.9 Phone and tablet
+
 Desktop-first; unbroken at 390 px and 834 px. Tabs scroll horizontally. A queue row becomes three lines: identifiers; medicines and source; state, checks, time and Open. Touch targets are at least 44 px. No mobile (Expo) work.
 
 ### 5.10 Flag and redirects
+
 - `pharmacyWorkspace` on: everything in 5.1–5.9.
 - `pharmacyWorkspace` off: today's behaviour, byte for byte. `/pharmacy` is not found.
 - In production the flag cannot be switched on for a hospital while the notice wording is `draft` (CS-5).
 
 ### 5.11 Known differences from the canvas, where this prompt wins
+
 - The canvas shows directions as `[placeholders]`. The product shows them as written.
 - The canvas shows a prescription number (`Rx-000731`). Use the real number format if one exists; otherwise none.
 - The canvas counts "3 of the 212 medicines". The product counts from data.
@@ -258,6 +272,7 @@ Desktop-first; unbroken at 390 px and 834 px. Tabs scroll horizontally. A queue 
 ## 6. Engines (pure, no I/O; every rule has an ID and at least one test)
 
 ### 6.1 Pharmacy access (extend the access engine lab Phase 0 built)
+
 - **PA-1** Pharmacy access is a set of **permissions**. This slice defines six names and grants one: `pharmacy.view`. The other five (`pharmacy.review`, `pharmacy.dispense`, `pharmacy.stock`, `pharmacy.controlled`, `pharmacy.manage`) are reserved names with no grant and no check behind them until the phase that uses them.
 - **PA-2** `pharmacy.view` derives from **approved cadre** only: Pharmacist and Pharmacy technician (Appendix A, signed at GATE A). The map is data, versioned and signed.
 - **PA-3** `pharmacy.view` is required for every `/pharmacy` route and every pharmacy read.
@@ -268,6 +283,7 @@ Desktop-first; unbroken at 390 px and 834 px. Tabs scroll horizontally. A queue 
 - **PA-8** The engine is the lab's, extended. If `lib/lab/access.ts` is lab-specific, Step 1 proposes moving the shared part to a workspace-neutral module with the lab re-exporting it, and a regression test proves every lab permission result is unchanged. Do not write a second access engine.
 
 ### 6.2 Landing (`lib/auth/landing.ts`, from lab Phase 0)
+
 - **LD-P1** `resolveLanding` gains the pharmacy. Every existing landing keeps its result; extend the table test to prove it.
 - **LD-P2** A user whose only staff workspace is the pharmacy lands on `/pharmacy`.
 - **LD-P3** A user with several staff workspaces follows the lab's rule (last used, else the primary affiliation's cadre).
@@ -275,6 +291,7 @@ Desktop-first; unbroken at 390 px and 834 px. Tabs scroll horizontally. A queue 
 - **LD-P5** `next` is honoured only if it is a same-origin path the user may open.
 
 ### 6.3 Queue projection (`lib/pharmacy/queue.ts`)
+
 ```ts
 computeQueue(input: {
   prescriptions,   // rows or headers with lines, hospital-scoped, written in the period
@@ -286,13 +303,14 @@ computeQueue(input: {
   serverNow,
 }): { rows: QueueRow[], laneCounts, stateCounts, total }
 ```
+
 - **PQ-1** One row per **prescription**: the set of lines placed together for one patient by one prescriber. Use the grouping the repo has (a header row, a placement or basket id). If none exists, **STOP at Step 0 and report**: GATE A chooses between adding a grouping key and grouping by encounter and placement time (D-PH0-08). Never group by a guess.
 - **PQ-2** A prescription's number is whatever the printed prescription carries. None is invented.
 - **PQ-3** Lane. `window` when the encounter's disposition at placement is Discharge or Refer, or the encounter is an outpatient visit with no admission. `ward` when it is Admit or Observe, or the patient has an open admission. If the data cannot tell them apart, every row is in one lane, the lane tabs are not rendered, and the footer says so.
 - **PQ-4** Emergency rows (the resus fast path) are not prescriptions for the queue. They appear under Emergency doses only. In June `is_emergency` defaulted to true, so Step 0 confirms how an Encounter Plan prescription is told from an emergency row today (Q3). If the data cannot tell them apart, **STOP and report**.
 - **PQ-5** State is the stored state, mapped to words at GATE A. A prescription whose lines are in different states shows the one that GATE A's order ranks first (proposed: Awaiting co-sign, then Prescribed; Cancelled only when every line is cancelled). The view shows each line's own state.
 - **PQ-6** Cancelled prescriptions and lines stay in the projection.
-- **PQ-7** *Changed since printing* is true when any line was edited, added or cancelled after the last print event. If prints are not recorded, the chip is never shown and the row shows "Changed hh:mm" in neutral text when a change exists.
+- **PQ-7** _Changed since printing_ is true when any line was edited, added or cancelled after the last print event. If prints are not recorded, the chip is never shown and the row shows "Changed hh:mm" in neutral text when a change exists.
 - **PQ-8** The checks summary is derived only from stored outcomes, ordered: overridden stop, controlled, child under 16, renal answered, typed dose.
 - **PQ-9** Lane counts ignore the lane filter. State counts respect it.
 - **PQ-10** Default order: oldest first by the time written. The sort is stable.
@@ -301,6 +319,7 @@ computeQueue(input: {
 - **PQ-13** A property test: for random inputs, every prescription written in the period appears exactly once under "All", and the lane counts sum to the total.
 
 ### 6.4 The prescription read model (`lib/pharmacy/prescription-view.ts`)
+
 - **RV-1** The read model returns exactly the fields GATE A signs (D-PH0-05) and nothing else from the chart: the lines as stored, the indication per line, stored check outcomes and override reasons, the prescriber's cadre and department, co-signature state, print events, and for the patient: two identifiers, sex, age, allergies, weight and latest creatinine, each with its date.
 - **RV-2** Text fields are passed through unchanged (Law 5). A test feeds awkward strings (mixed units, trailing spaces, a decimal comma) and asserts byte equality on screen.
 - **RV-3** A value stored with the prescription at prescribing is labelled "at prescribing". A current value is labelled with its own date. The two are never merged.
@@ -310,10 +329,12 @@ computeQueue(input: {
 - **RV-7** Pharmacy staff get the read model from a server-side function with an explicit field list. They receive **no** general read of encounters, notes, results or observations. RLS probes prove it.
 
 ### 6.5 Navigation (reuse the lab's registry)
+
 - **NV-P1** The pharmacy registers Queue and Emergency doses, and nothing else.
 - **NV-P2** If `lib/lab/nav.ts` is lab-specific, generalise it once with the lab's behaviour proved unchanged (as PA-8). Do not copy it.
 
 ### 6.6 Check state (`lib/pharmacy/check-state.ts`)
+
 - **CS-1** `pharmacyChecksState(hospitalId)` returns `{ dispensingRecorded, interactionsChecked, doseReferences: { signed, total } | null }`.
 - **CS-2** `dispensingRecorded` and `interactionsChecked` are `false` in this slice, returned by the function and never hard-coded at a call site. Later phases replace the body, not the callers.
 - **CS-3** `doseReferences` counts medicines on the hospital's prescribing list and those with a signed regimen. If either cannot be counted from real rows, it is `null` and the notice uses the wording without numbers.
@@ -321,6 +342,7 @@ computeQueue(input: {
 - **CS-5** Each notice string is a copy entry with a status (`draft` | `signed`). In production, `pharmacyWorkspace` cannot be switched on for a hospital while any is `draft`. Enforce it on the server and test it.
 
 ### 6.7 Emergency doses (`lib/pharmacy/emergency-doses.ts`)
+
 - **ED-1** One row per `emergency_administrations` row in the period, hospital-scoped, newest first.
 - **ED-2** The cart is the stored cart, else "No cart". The amount is the stored text.
 - **ED-3** A row with no patient shows "Unidentified patient" and its episode reference.
@@ -328,6 +350,7 @@ computeQueue(input: {
 - **ED-5** No stock figure is read or returned.
 
 ### 6.8 Dispensing points (`lib/pharmacy/dispensing-points.ts`, only with the hub)
+
 - **DP-1** A dispensing point is a unit of the Pharmacy department with one extra field, `serves`: `window` | `wards` | `emergency` | `all`.
 - **DP-2** With one or more points, `pharmacy_dispensing_points` is their count and `pharmacy_24h` is true when any point is open 24 hours. With none, the typed values are returned unchanged.
 - **DP-3** Archiving follows the hub's rule: blocked while staff are assigned.
@@ -351,17 +374,17 @@ computeQueue(input: {
 
 **RLS probes** for every new or changed object:
 
-| Actor | Access |
-|---|---|
-| Pharmacy staff, same hospital, with `pharmacy.view` | Read, as Section 7 lists |
-| Approved pharmacy cadre before the grant, or after revocation | Denied |
-| Pharmacy staff: encounters, notes, results, observations, other chart tables | Denied |
-| Doctor, clinical officer, nurse, same hospital | Their existing prescription reads unchanged; `/pharmacy` lists denied |
-| Lab staff, reception, hospital admin | Denied |
-| Staff of another hospital | Denied |
-| Superadmin, without break-glass | Denied |
-| Anonymous | Denied |
-| Any client, direct INSERT, UPDATE or DELETE on any object above | Denied |
+| Actor                                                                        | Access                                                                |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Pharmacy staff, same hospital, with `pharmacy.view`                          | Read, as Section 7 lists                                              |
+| Approved pharmacy cadre before the grant, or after revocation                | Denied                                                                |
+| Pharmacy staff: encounters, notes, results, observations, other chart tables | Denied                                                                |
+| Doctor, clinical officer, nurse, same hospital                               | Their existing prescription reads unchanged; `/pharmacy` lists denied |
+| Lab staff, reception, hospital admin                                         | Denied                                                                |
+| Staff of another hospital                                                    | Denied                                                                |
+| Superadmin, without break-glass                                              | Denied                                                                |
+| Anonymous                                                                    | Denied                                                                |
+| Any client, direct INSERT, UPDATE or DELETE on any object above              | Denied                                                                |
 
 ## 8. Server actions and reads
 
@@ -383,6 +406,7 @@ The house contract applies to every write: Zod → auth (`getUser()`, never `get
 ### Step 0: Discovery and baseline (no product changes)
 
 **Answer and report:**
+
 - **Q1** Has the access step of `feat/lab-front-door` merged? Are the permission model, `resolveLanding`, the navigation registry, the notice component and the flag on `main`? **If not, STOP.** Report which of them are lab-specific and which are already workspace-neutral.
 - **Q2** P1–P15: confirm or correct each, with file and line.
 - **Q3** The prescription model as it stands: a header with lines, or one row per medicine? Every column. Every state and what moves a row between them. What ties the lines of one placement together. **If nothing groups them, STOP and report** (PQ-1). What `is_emergency` means today, and what an Encounter Plan prescription sets it to (PQ-4).
@@ -405,6 +429,7 @@ The house contract applies to every write: Zod → auth (`getUser()`, never `get
 - **Q20** Whether the server client still reads a legacy `service_role` key. If so, flag it.
 
 **Baseline:**
+
 - Screenshots: sign-in as a pharmacist and as a pharmacy technician, and where each lands; `/clinician` as each. At 390×844, 834×1194 and 1440×900.
 - Counts for the test hospital: approved pharmacy staff; prescriptions written in the last 7 days by state and by lane; lines with a stored override; emergency administrations by cart; medicines on the list and with a signed regimen.
 - **Failing tests** that reproduce P3 (wrong landing), P4 (no route) and P5 (no grant on approval). Do not fix them yet.
@@ -412,7 +437,9 @@ The house contract applies to every write: Zod → auth (`getUser()`, never `get
 **STOP 0.** Report Q1–Q20, the prompt-versus-repo differences, the failing tests and the baseline.
 
 ### Step 1: GATE A proposal (documents only)
+
 Write `docs/pharmacy/phase-0/gate-a-proposal.md`:
+
 - the access model: the six names, the one grant, the cadre map (Appendix A, corrected against the repo), where each check runs, and what is generalised from the lab with the proof plan;
 - the landing table, before and after;
 - annotated wireframes of the shell, the queue (desktop and phone), the prescription view, emergency doses and, if the hub is present, dispensing points, starting from Section 5 and the canvas;
@@ -426,12 +453,15 @@ Write `docs/pharmacy/phase-0/gate-a-proposal.md`:
 **STOP 1.** Nothing proceeds without Fadhul's signature on the D-decisions.
 
 ### Step 2: Access
+
 The permission names, the cadre map, the grant in the approval transaction, revocation, the backfill script (dry run only until told), the landing extension, the flag, the RLS paths and the probes. Any generalisation of the lab's modules lands here, with the lab's tests unchanged and green.
 
 **STOP 2.** The migration diff; the RLS probe table (every object × every actor); the landing table test; the lab regression results; the backfill dry-run list; audit rows for one grant and one revocation.
 
 ### Step 3: Engines (pure, no UI)
+
 `queue.ts`, `prescription-view.ts`, `check-state.ts`, `emergency-doses.ts`, the navigation registration and the four reads, with tests:
+
 - every PA, LD-P, PQ, RV, NV-P, CS, ED and DP rule ID covered;
 - the two-hospital fixture (PQ-11) and the property tests (PQ-13, ED-4);
 - the byte-equality test for text as written (RV-2);
@@ -442,12 +472,15 @@ The permission names, the cadre map, the grant in the approval transaction, revo
 **STOP 3.** Test counts, the rule coverage table, the property-test results and the query counts.
 
 ### Step 4: Shell, queue, prescription view, emergency doses and the notice
+
 The layout, the navigation, the page header, the queue with its filters and URL state, find a prescription, the read-only view with its read log, the emergency doses page, and the notice on both prescription surfaces.
 
 **STOP 4.** Screenshots against artboards 0.1, 0.2 and 0.3 (three viewports); the budget counts; axe (0 serious or critical); red-scarcity tests green; flag-off screenshots identical to the baseline.
 
 ### Step 5: Dispensing points, scenarios, hardening and documentation
+
 Dispensing points if the hub is present (5.8, 6.8). Then run the scenarios (Playwright if present, otherwise scripted integration tests):
+
 - **S1** A hospital admin approves a Pharmacist with a licence on file. `pharmacy.view` is granted in that transaction, with an audit row. The pharmacist signs in and lands on `/pharmacy`.
 - **S2** The same for a Pharmacy technician. Their top-right label and every audit line say "Pharmacy technician".
 - **S3** An approved pharmacist who held no access before: after the backfill, they land on `/pharmacy`.
@@ -478,6 +511,7 @@ Then: reduced motion, the performance budgets, the ADRs and the final report.
 ---
 
 ## 10. Accessibility, motion, colour
+
 - WCAG 2.2 AA. Targets at least 44×44 px on touch.
 - Lane and state filters are `tablist`s with counts in their accessible names ("For the window, 9").
 - The queue is a table with real headers. The action column has a visually hidden header. Each Open control's accessible name includes the patient and the first medicine.
@@ -490,16 +524,17 @@ Then: reduced motion, the performance budgets, the ADRs and the final report.
 
 ## 11. Performance budgets
 
-| Measure | Budget |
-|---|---|
-| `/pharmacy` TTFB with 500 prescriptions in the period | p95 < 400 ms |
-| Lane or state switch | p95 < 100 ms, no refetch |
-| Prescription view TTFB | p95 < 400 ms |
-| Round trips per render | fixed, regardless of row count |
-| Layout shift on a clock tick | 0 |
-| Added JS on `/pharmacy` | ≤ 30 KB gzipped (report the number) |
+| Measure                                               | Budget                              |
+| ----------------------------------------------------- | ----------------------------------- |
+| `/pharmacy` TTFB with 500 prescriptions in the period | p95 < 400 ms                        |
+| Lane or state switch                                  | p95 < 100 ms, no refetch            |
+| Prescription view TTFB                                | p95 < 400 ms                        |
+| Round trips per render                                | fixed, regardless of row count      |
+| Layout shift on a clock tick                          | 0                                   |
+| Added JS on `/pharmacy`                               | ≤ 30 KB gzipped (report the number) |
 
 ## 12. Security, privacy, audit
+
 - AAL2 on every `/pharmacy` route. Hospital scope on every read. Reception blocked in the app and in the database.
 - This slice **widens who can read prescriptions**. That is its purpose and its main risk. The read list is signed (D-PH0-05), enforced by the server function and RLS, and every open of a prescription is logged.
 - Writes only through audited server-side functions. No client write to any role or permission object.
@@ -512,58 +547,58 @@ Then: reduced motion, the performance budgets, the ADRs and the final report.
 
 ## 13. Numbers to report at the final STOP
 
-| Metric | Baseline | Target | Result |
-|---|---|---|---|
-| Approved pharmacy staff who land on `/pharmacy` at sign-in | S0 | 100 % | |
-| Approved pharmacy staff with no pharmacy access | S0 | 0 | |
-| Pharmacy access grants without an audit row | none | 0 | |
-| Non-pharmacy cadres holding a pharmacy permission | S0 | 0 | |
-| Screens that call a pharmacy technician a pharmacist | none | 0 | |
-| Navigations between sign-in and the queue | S0 | 0 | |
-| Sidebar items rendered that have no page | none | 0 | |
-| Prescriptions written in the period and missing from "All" | none | 0 | |
-| Queue rows with fewer than two identifiers | none | 0 | |
-| Doses displayed differently from how they are stored | none | 0 | |
-| Check results shown that were not stored at prescribing | none | 0 | |
-| Chart tables readable by pharmacy staff beyond the signed read list | none | 0 | |
-| Prescription opens without a read-log row | none | 0 | |
-| Clinical write actions reachable from `/pharmacy` | none | 0 | |
-| Stock figures shown | none | 0 | |
-| Pharmacy prescription screens without the notice | all | 0 | |
-| Lab access, landing and navigation tests changed or failing | none | 0 | |
-| Rule IDs without a test | none | 0 | |
-| RLS probes passed | none | 100 % | |
-| axe serious or critical | S0 | 0 | |
-| Red on `/pharmacy` routes added by this slice | none | 0 | |
-| Lane switch p95 / added JS | none | < 100 ms / ≤ 30 KB gz | |
+| Metric                                                              | Baseline | Target                | Result |
+| ------------------------------------------------------------------- | -------- | --------------------- | ------ |
+| Approved pharmacy staff who land on `/pharmacy` at sign-in          | S0       | 100 %                 |        |
+| Approved pharmacy staff with no pharmacy access                     | S0       | 0                     |        |
+| Pharmacy access grants without an audit row                         | none     | 0                     |        |
+| Non-pharmacy cadres holding a pharmacy permission                   | S0       | 0                     |        |
+| Screens that call a pharmacy technician a pharmacist                | none     | 0                     |        |
+| Navigations between sign-in and the queue                           | S0       | 0                     |        |
+| Sidebar items rendered that have no page                            | none     | 0                     |        |
+| Prescriptions written in the period and missing from "All"          | none     | 0                     |        |
+| Queue rows with fewer than two identifiers                          | none     | 0                     |        |
+| Doses displayed differently from how they are stored                | none     | 0                     |        |
+| Check results shown that were not stored at prescribing             | none     | 0                     |        |
+| Chart tables readable by pharmacy staff beyond the signed read list | none     | 0                     |        |
+| Prescription opens without a read-log row                           | none     | 0                     |        |
+| Clinical write actions reachable from `/pharmacy`                   | none     | 0                     |        |
+| Stock figures shown                                                 | none     | 0                     |        |
+| Pharmacy prescription screens without the notice                    | all      | 0                     |        |
+| Lab access, landing and navigation tests changed or failing         | none     | 0                     |        |
+| Rule IDs without a test                                             | none     | 0                     |        |
+| RLS probes passed                                                   | none     | 100 %                 |        |
+| axe serious or critical                                             | S0       | 0                     |        |
+| Red on `/pharmacy` routes added by this slice                       | none     | 0                     |        |
+| Lane switch p95 / added JS                                          | none     | < 100 ms / ≤ 30 KB gz |        |
 
 ## 14. GATE A decisions (Fadhul owns; recommendations given)
 
-| # | Decision | Recommendation |
-|---|---|---|
-| D-PH0-01 | The pharmacy access model | Six permission names, one granted now: `pharmacy.view`. Review, dispense, stock, controlled and manage are granted in the phase that uses them, after the legal reading of who may do each |
-| D-PH0-02 | The carrier role and the title (CSO) | Permissions derive from the approved cadre. If a workspace role is needed as a carrier, it is never shown as a title. A pharmacy technician is never labelled "pharmacist" anywhere. If the only carrier is the role `pharmacist`, add a neutral value such as `pharmacy_staff` |
-| D-PH0-03 | Who gets access | Pharmacist and Pharmacy technician, on approval with a licence on file. Pharmacy interns: no row until the onboarding decision is made. The technician's registering body is unconfirmed (Appendix C): confirm it before the map is signed |
-| D-PH0-04 | Pharmacy management | Recorded through the hub: the head of the Pharmacy department and each dispensing point's in-charge. It grants nothing in this slice |
-| D-PH0-05 | What pharmacy staff may read (CSO, data protection) | The prescription as written; the problem each medicine is for; stored check outcomes and override reasons; the prescriber's cadre and department; co-signature and print state; and for the patient: two identifiers, sex, age, allergies, weight and latest creatinine with dates. Nothing else from the chart |
-| D-PH0-06 | The indication when the problem is in a restricted class | Show it. The medicine already reveals the class, the pharmacist needs the indication to check the prescription, and every open is logged. The alternative is "Restricted" in place of the problem name |
-| D-PH0-07 | The notice wording (CSO) | Appendix B. Sign it before any production hospital is switched on |
-| D-PH0-08 | What one queue row is | One placed prescription. If the repo has no grouping key, add one to new placements and group older rows by encounter and placement time, marked "grouped by time" |
-| D-PH0-09 | Finding a prescription | By prescription number or patient number, exact match, this hospital only. Patient number looks back 30 days (an operational setting). No search by name |
-| D-PH0-10 | Awaiting co-sign | Shown in amber on the row and the view, in words. MedSync gates nothing in this slice; the hospital's own rule governs the paper |
-| D-PH0-11 | Cancelled, and changed since printing | Both stay in the list, marked in amber with words. "Changed since printing" needs print events; without them, show the time of the last change in neutral text |
-| D-PH0-12 | Period and order | Today by default, oldest first. Yesterday and the last 7 days one tap away |
-| D-PH0-13 | Emergency doses | A read-only list by cart. No stock figure from the cart tables is shown until a counted stock engine exists |
-| D-PH0-14 | Dispensing points | Units of the Pharmacy department, with "serves" deciding the default lane only. The hub's count and 24-hour value are derived once a point exists |
-| D-PH0-15 | Patient names on pharmacy lists | Name and patient number on every row, with batched reveal logging, as the lab and doctor workspaces do. If lists are masked today, keep the mask and the reveal |
-| D-PH0-16 | Backfill of existing pharmacy staff | Review the dry-run list, then apply. Every grant audited |
-| D-PH0-17 | Rollout | `pharmacyWorkspace` per hospital, test hospital first. It requires signed notice wording in production |
-| E-PH0-01 | Access, landing and navigation | Extend the lab's three modules, generalised once with the lab's results proved unchanged. No second engine |
-| E-PH0-02 | The queue | A projection over existing rows. No queue table, no copied prescription data |
-| E-PH0-03 | The read model | A server function with an explicit field list, not a broad RLS grant on chart tables |
-| E-PH0-04 | The check state | One function, `pharmacyChecksState`, whose body later phases replace |
-| E-PH0-05 | Numbers | The ledger at `docs/NUMBERS.md`; a block of 20 migrations and 15 ADRs claimed at Step 0 |
-| E-PH0-06 | The clock | Server time plus a 30-second client tick. No polling and no realtime |
+| #        | Decision                                                 | Recommendation                                                                                                                                                                                                                                                                                                  |
+| -------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-PH0-01 | The pharmacy access model                                | Six permission names, one granted now: `pharmacy.view`. Review, dispense, stock, controlled and manage are granted in the phase that uses them, after the legal reading of who may do each                                                                                                                      |
+| D-PH0-02 | The carrier role and the title (CSO)                     | Permissions derive from the approved cadre. If a workspace role is needed as a carrier, it is never shown as a title. A pharmacy technician is never labelled "pharmacist" anywhere. If the only carrier is the role `pharmacist`, add a neutral value such as `pharmacy_staff`                                 |
+| D-PH0-03 | Who gets access                                          | Pharmacist and Pharmacy technician, on approval with a licence on file. Pharmacy interns: no row until the onboarding decision is made. The technician's registering body is unconfirmed (Appendix C): confirm it before the map is signed                                                                      |
+| D-PH0-04 | Pharmacy management                                      | Recorded through the hub: the head of the Pharmacy department and each dispensing point's in-charge. It grants nothing in this slice                                                                                                                                                                            |
+| D-PH0-05 | What pharmacy staff may read (CSO, data protection)      | The prescription as written; the problem each medicine is for; stored check outcomes and override reasons; the prescriber's cadre and department; co-signature and print state; and for the patient: two identifiers, sex, age, allergies, weight and latest creatinine with dates. Nothing else from the chart |
+| D-PH0-06 | The indication when the problem is in a restricted class | Show it. The medicine already reveals the class, the pharmacist needs the indication to check the prescription, and every open is logged. The alternative is "Restricted" in place of the problem name                                                                                                          |
+| D-PH0-07 | The notice wording (CSO)                                 | Appendix B. Sign it before any production hospital is switched on                                                                                                                                                                                                                                               |
+| D-PH0-08 | What one queue row is                                    | One placed prescription. If the repo has no grouping key, add one to new placements and group older rows by encounter and placement time, marked "grouped by time"                                                                                                                                              |
+| D-PH0-09 | Finding a prescription                                   | By prescription number or patient number, exact match, this hospital only. Patient number looks back 30 days (an operational setting). No search by name                                                                                                                                                        |
+| D-PH0-10 | Awaiting co-sign                                         | Shown in amber on the row and the view, in words. MedSync gates nothing in this slice; the hospital's own rule governs the paper                                                                                                                                                                                |
+| D-PH0-11 | Cancelled, and changed since printing                    | Both stay in the list, marked in amber with words. "Changed since printing" needs print events; without them, show the time of the last change in neutral text                                                                                                                                                  |
+| D-PH0-12 | Period and order                                         | Today by default, oldest first. Yesterday and the last 7 days one tap away                                                                                                                                                                                                                                      |
+| D-PH0-13 | Emergency doses                                          | A read-only list by cart. No stock figure from the cart tables is shown until a counted stock engine exists                                                                                                                                                                                                     |
+| D-PH0-14 | Dispensing points                                        | Units of the Pharmacy department, with "serves" deciding the default lane only. The hub's count and 24-hour value are derived once a point exists                                                                                                                                                               |
+| D-PH0-15 | Patient names on pharmacy lists                          | Name and patient number on every row, with batched reveal logging, as the lab and doctor workspaces do. If lists are masked today, keep the mask and the reveal                                                                                                                                                 |
+| D-PH0-16 | Backfill of existing pharmacy staff                      | Review the dry-run list, then apply. Every grant audited                                                                                                                                                                                                                                                        |
+| D-PH0-17 | Rollout                                                  | `pharmacyWorkspace` per hospital, test hospital first. It requires signed notice wording in production                                                                                                                                                                                                          |
+| E-PH0-01 | Access, landing and navigation                           | Extend the lab's three modules, generalised once with the lab's results proved unchanged. No second engine                                                                                                                                                                                                      |
+| E-PH0-02 | The queue                                                | A projection over existing rows. No queue table, no copied prescription data                                                                                                                                                                                                                                    |
+| E-PH0-03 | The read model                                           | A server function with an explicit field list, not a broad RLS grant on chart tables                                                                                                                                                                                                                            |
+| E-PH0-04 | The check state                                          | One function, `pharmacyChecksState`, whose body later phases replace                                                                                                                                                                                                                                            |
+| E-PH0-05 | Numbers                                                  | The ledger at `docs/NUMBERS.md`; a block of 20 migrations and 15 ADRs claimed at Step 0                                                                                                                                                                                                                         |
+| E-PH0-06 | The clock                                                | Server time plus a 30-second client tick. No polling and no realtime                                                                                                                                                                                                                                            |
 
 ## 15. Out of scope (leave clean seams)
 
@@ -574,6 +609,7 @@ Then: reduced motion, the performance budgets, the ADRs and the final report.
 **Not here at all.** Any change to prescribing, co-signing, cancelling, printing or the administration record · `PharmacyAvailability` · search by patient name · a mobile (Expo) pharmacy workspace · SMS or push · any stock figure.
 
 ## 16. ADRs (numbers from the ledger)
+
 - The pharmacy access model: six names, one grant, derived from cadre; the title rule.
 - Pharmacy access is granted at approval and revoked at deactivation, in the same transaction.
 - Access, landing and navigation as workspace-neutral modules shared by the lab and the pharmacy.
@@ -585,6 +621,7 @@ Then: reduced motion, the performance budgets, the ADRs and the final report.
 - The numbers ledger.
 
 ## 17. Definition of Done
+
 - [ ] P1–P5 and P9 resolved. P6 and P10's stock tables recorded as untouched, with their phases.
 - [ ] Every approved pharmacy professional lands on `/pharmacy`. Every grant and revocation has an audit row. No non-pharmacy cadre holds a pharmacy permission.
 - [ ] No screen, export or audit line calls a pharmacy technician a pharmacist.
@@ -603,40 +640,40 @@ Then: reduced motion, the performance budgets, the ADRs and the final report.
 
 ## Appendix A: Proposed permission map (for signature at GATE A)
 
-| Who | view | review | dispense | stock | controlled | manage |
-|---|---|---|---|---|---|---|
-| Pharmacist | yes | not granted in this slice | not granted | not granted | not granted | not granted |
-| Pharmacy technician | yes | not granted | not granted | not granted | not granted | not granted |
-| Head of Pharmacy, dispensing-point in-charge (hub assignment) | by cadre | not granted | not granted | not granted | not granted | recorded, not granted |
-| Doctor, clinical officer, nurse | no; existing prescription reads unchanged | no | no | no | no | no |
-| Lab staff, reception, hospital admin, superadmin | no | no | no | no | no | no |
+| Who                                                           | view                                      | review                    | dispense    | stock       | controlled  | manage                |
+| ------------------------------------------------------------- | ----------------------------------------- | ------------------------- | ----------- | ----------- | ----------- | --------------------- |
+| Pharmacist                                                    | yes                                       | not granted in this slice | not granted | not granted | not granted | not granted           |
+| Pharmacy technician                                           | yes                                       | not granted               | not granted | not granted | not granted | not granted           |
+| Head of Pharmacy, dispensing-point in-charge (hub assignment) | by cadre                                  | not granted               | not granted | not granted | not granted | recorded, not granted |
+| Doctor, clinical officer, nurse                               | no; existing prescription reads unchanged | no                        | no          | no          | no          | no                    |
+| Lab staff, reception, hospital admin, superadmin              | no                                        | no                        | no          | no          | no          | no                    |
 
 Any other pharmacy cadre found in the catalogue at Step 0, pharmacy interns included, gets no row until Fadhul adds one.
 
 ## Appendix B: Copy (draft; the notice and the cautions need the CSO's signature)
 
-| Key | Text |
-|---|---|
-| Notice, first sentence (bold) | MedSync does not record dispensing yet. |
-| Notice, body, with counts | Dispense from the signed prescription as you do today. MedSync does not check drug interactions at this hospital, and {signed} of the {total} medicines on its list have a signed dose reference. Check each prescription yourself. |
-| Notice, body, without counts | Dispense from the signed prescription as you do today. MedSync does not check drug interactions at this hospital, and its dose references are still being signed. Check each prescription yourself. |
-| Awaiting co-sign, on the view | Not yet co-signed. A senior has not signed this prescription. |
-| Cancelled, on the row | Cancelled {time} |
-| Cancelled, on the view | Cancelled {time} by {cadre} |
-| Changed since printing | Changed since printing |
-| Changed, no print record | Changed {time} |
-| Override block | {check} stop, overridden by the prescriber. {trigger}. Reason given: "{reason}". |
-| Not checked | Drug interactions. · Stock. The prescriber saw "Pharmacy not linked yet". |
-| View footer | Read-only. To change this prescription, speak to the prescriber. |
-| Queue footer | {n} of {N} prescriptions written {period}, {lane}. Oldest first. This list is read-only: a prescription stays here until the end of the day. |
-| One lane only | MedSync cannot yet tell window prescriptions from ward prescriptions at this hospital, so all are shown together. |
-| Empty, my lane | Nothing {lane} yet today. {n} {other lane}. |
-| Empty, all | No prescriptions have been written today. |
-| Find, no match | No prescription with that number at this hospital. |
-| Emergency doses, notice | Cart restocking is not recorded in MedSync yet. Use this list beside the cart's own checklist when you restock. |
-| Unidentified | Unidentified patient |
-| Dispensing point note | A dispensing point names where pharmacy staff work and which prescriptions their queue shows first. It holds no stock and records no dispensing yet. |
-| Refused | You do not have access to the pharmacy workspace. Ask your hospital admin. |
+| Key                           | Text                                                                                                                                                                                                                                |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Notice, first sentence (bold) | MedSync does not record dispensing yet.                                                                                                                                                                                             |
+| Notice, body, with counts     | Dispense from the signed prescription as you do today. MedSync does not check drug interactions at this hospital, and {signed} of the {total} medicines on its list have a signed dose reference. Check each prescription yourself. |
+| Notice, body, without counts  | Dispense from the signed prescription as you do today. MedSync does not check drug interactions at this hospital, and its dose references are still being signed. Check each prescription yourself.                                 |
+| Awaiting co-sign, on the view | Not yet co-signed. A senior has not signed this prescription.                                                                                                                                                                       |
+| Cancelled, on the row         | Cancelled {time}                                                                                                                                                                                                                    |
+| Cancelled, on the view        | Cancelled {time} by {cadre}                                                                                                                                                                                                         |
+| Changed since printing        | Changed since printing                                                                                                                                                                                                              |
+| Changed, no print record      | Changed {time}                                                                                                                                                                                                                      |
+| Override block                | {check} stop, overridden by the prescriber. {trigger}. Reason given: "{reason}".                                                                                                                                                    |
+| Not checked                   | Drug interactions. · Stock. The prescriber saw "Pharmacy not linked yet".                                                                                                                                                           |
+| View footer                   | Read-only. To change this prescription, speak to the prescriber.                                                                                                                                                                    |
+| Queue footer                  | {n} of {N} prescriptions written {period}, {lane}. Oldest first. This list is read-only: a prescription stays here until the end of the day.                                                                                        |
+| One lane only                 | MedSync cannot yet tell window prescriptions from ward prescriptions at this hospital, so all are shown together.                                                                                                                   |
+| Empty, my lane                | Nothing {lane} yet today. {n} {other lane}.                                                                                                                                                                                         |
+| Empty, all                    | No prescriptions have been written today.                                                                                                                                                                                           |
+| Find, no match                | No prescription with that number at this hospital.                                                                                                                                                                                  |
+| Emergency doses, notice       | Cart restocking is not recorded in MedSync yet. Use this list beside the cart's own checklist when you restock.                                                                                                                     |
+| Unidentified                  | Unidentified patient                                                                                                                                                                                                                |
+| Dispensing point note         | A dispensing point names where pharmacy staff work and which prescriptions their queue shows first. It holds no stock and records no dispensing yet.                                                                                |
+| Refused                       | You do not have access to the pharmacy workspace. Ask your hospital admin.                                                                                                                                                          |
 
 ## Appendix C: Sources checked (10 Oct 2026; re-verify at build time)
 
