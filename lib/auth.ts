@@ -56,6 +56,13 @@ export async function getAuthState(): Promise<AuthState> {
   const roles = (rolesResult.data ?? []).map((r: { role: string }) => r.role);
   const mfaRequired = roles.some((r) => MFA_REQUIRED_ROLES.has(r));
 
+  // Development-phase bypass: DEV_SKIP_MFA=1 (.env.local or Vercel env)
+  // reports the session as MFA-passed so every gate lets you through without
+  // a code. Unset it before real patients or staff use the platform.
+  if (process.env.DEV_SKIP_MFA === "1") {
+    return { user, roles, mfaRequired, aal: "aal2", nextAal: "aal2" };
+  }
+
   return {
     user,
     roles,
