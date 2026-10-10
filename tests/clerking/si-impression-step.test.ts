@@ -437,7 +437,7 @@ describe("step 09, Impression", () => {
     expect(
       host.querySelector('[aria-labelledby="impression-also"]')?.textContent ?? "",
     ).not.toMatch(/Hypertension.*Working/);
-    tap(button("Add findings here, from the list on the right", box));
+    tap(button("Add findings here, from “Not yet explained”", box));
     expect(box.querySelector('li[data-active="true"]')?.textContent).toContain("Hypertension");
     const chip = [...host.querySelectorAll("button")].find((x) =>
       x.getAttribute("aria-label")?.endsWith("link it to Hypertension"),
@@ -446,6 +446,39 @@ describe("step 09, Impression", () => {
     tap(chip);
     const col = draft().evidence[htn.logicalId] ?? {};
     expect(Object.values(col).some((m) => m.w === "for")).toBe(true);
+  });
+
+  it("the bucket gives findings to a co-existing diagnosis and to a differential (owner, 2026-10-10)", () => {
+    const dm = DM2();
+    const htn = dxRow("dx.hypertension", "Hypertension", "secondary", "provisional");
+    const sepsis = SEPSIS();
+    mount(payload([dm, htn, sepsis]));
+    const chipFor = (name: string) =>
+      [...host.querySelectorAll("button")].find((x) =>
+        x.getAttribute("aria-label")?.endsWith(`link it to ${name}`),
+      )!;
+    // Co-existing: the finding is explained, so it leaves the bucket and shows under its supports.
+    const also = host.querySelector('[aria-labelledby="impression-also"]')!;
+    tap(button("Add findings here, from “Not yet explained”", also));
+    const first = chipFor("Hypertension");
+    const text = first.textContent;
+    tap(first);
+    const forHtn = Object.values(draft().evidence[htn.logicalId] ?? {});
+    expect(forHtn.some((m) => m.w === "for")).toBe(true);
+    expect(also.textContent).toContain(text);
+    // A differential explains nothing: the chip stays, pressed, and a second tap takes it back.
+    const row = host.querySelector(`[data-dx-row="${sepsis.logicalId}"]`)!;
+    tap(button("Add findings here, from “Not yet explained”", row));
+    const chip = chipFor("Sepsis");
+    tap(chip);
+    expect(Object.values(draft().evidence[sepsis.logicalId] ?? {}).some((m) => m.w === "for")).toBe(
+      true,
+    );
+    expect(chipFor("Sepsis").getAttribute("aria-pressed")).toBe("true");
+    tap(chipFor("Sepsis"));
+    expect(Object.values(draft().evidence[sepsis.logicalId] ?? {}).some((m) => m.w === "for")).toBe(
+      false,
+    );
   });
 
   it("arranges linked diagnoses (the relation's position) and flags one (the diagnosis's own)", () => {

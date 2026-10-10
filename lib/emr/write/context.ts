@@ -79,7 +79,15 @@ export async function stampActivity(
 
 /** What every server action returns (PROMPT §8): the id and the server's clock. */
 export type ActionResult<T = undefined> =
-  | { ok: true; id: string; serverTime: string; data?: T; warnings?: string[] }
+  | {
+      ok: true;
+      id: string;
+      serverTime: string;
+      data?: T;
+      warnings?: string[];
+      /** The action refreshed the page in its own response (next/cache refresh()): no second trip. */
+      refreshed?: boolean;
+    }
   | { ok: false; code: EmrWriteErrorCode; error: string };
 
 export function actionError(e: unknown): ActionResult<never> {

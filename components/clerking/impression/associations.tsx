@@ -4,7 +4,14 @@ import type { Finding } from "@/lib/clerking/impression/facts";
 import type { DueLabel } from "@/lib/clerking/impression/relations-catalogue";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, FlagIcon, PlusIcon, XIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronDownIcon,
+  FlagIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,6 +36,94 @@ const CANDIDATE_WORDS: Record<DueLabel | "associated", string> = {
  * and down set its place among its siblings (the note follows it); flag is the diagnosis's own.
  * Under the leading diagnosis the candidates sit below ("Add a linked diagnosis").
  */
+/** A diagnosis's accepted findings, each removable (linked and co-existing cards). */
+export function Supports({
+  row,
+  supports,
+  canWrite,
+  finding,
+  onUnsupport,
+}: {
+  row: BoardRow;
+  supports: readonly Finding[];
+  canWrite: boolean;
+  finding: (f: Finding) => ReactNode;
+  onUnsupport: (row: BoardRow, f: Finding) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-caption text-muted-foreground">Supports it</span>
+      {supports.length ? (
+        <ul className="flex flex-wrap gap-1.5">
+          {supports.map((f) => (
+            <li key={f.ref}>
+              <span className="bg-ink-100 dark:bg-ink-700 text-caption inline-flex min-h-7 items-center gap-1 rounded-sm pr-0.5 pl-2">
+                <span className="font-mono">+</span>
+                {finding(f)}
+                {canWrite ? (
+                  <button
+                    type="button"
+                    aria-label={`Remove ${f.text} from the support of ${row.dx.display}`}
+                    onClick={() => onUnsupport(row, f)}
+                    className="hover:bg-card focus-visible:shadow-focus inline-flex size-6 items-center justify-center rounded-xs outline-none pointer-coarse:size-11"
+                  >
+                    <XIcon aria-hidden className="size-3" />
+                  </button>
+                ) : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-caption text-muted-foreground">Nothing selected yet.</p>
+      )}
+    </div>
+  );
+}
+
+/** Points "Not yet explained" at this diagnosis: its chips then add findings here. */
+export function AddFindingsHere({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onToggle}
+      className="text-caption focus-visible:shadow-focus self-start rounded-xs font-medium text-teal-700 outline-none hover:underline dark:text-teal-300 pointer-coarse:min-h-11"
+    >
+      {on ? "Adding findings here: done" : "Add findings here, from \u201cNot yet explained\u201d"}
+    </button>
+  );
+}
+
+/** Folds a diagnosis card to its name (owner, 2026-10-09); the card's own buttons stay outside it. */
+export function CollapseButton({
+  open,
+  name,
+  onToggle,
+}: {
+  open: boolean;
+  name: string;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      aria-label={open ? `Collapse ${name}` : `Expand ${name}`}
+      onClick={onToggle}
+      className="text-muted-foreground hover:bg-muted focus-visible:shadow-focus inline-flex size-6 shrink-0 items-center justify-center rounded-sm outline-none pointer-coarse:size-11"
+    >
+      <ChevronDownIcon
+        aria-hidden
+        className={cn(
+          "ease-expo-out size-3.5 transition-transform duration-150 motion-reduce:transition-none",
+          !open && "-rotate-90",
+        )}
+      />
+    </button>
+  );
+}
+
 export function AssociatedContainer({
   parent,
   chosen,
@@ -81,6 +176,13 @@ export function AssociatedContainer({
 }) {
   // Linked lists collapse after 3 under a parent (design §6): the rest behind "Show 2 more".
   const [all, setAll] = useState(false);
+  const [folded, setFolded] = useState<ReadonlySet<string>>(new Set());
+  const fold = (id: string) =>
+    setFolded((s) => {
+      const n = new Set(s);
+      if (!n.delete(id)) n.add(id);
+      return n;
+    });
   const more = chosen.filter((c) => c.depth === 1).length - COLLAPSE_AFTER;
   let top = 0;
   const shown = all
@@ -99,6 +201,7 @@ export function AssociatedContainer({
         <ul className="flex flex-col gap-2">
           {shown.map(({ row, words, supports, flagged, depth, first, last }) => {
             const on = active === row.dx.logicalId;
+            const open = !folded.has(row.dx.logicalId);
             return (
               <li
                 key={row.dx.logicalId}
@@ -113,6 +216,11 @@ export function AssociatedContainer({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-body-s text-foreground inline-flex flex-wrap items-center gap-x-1.5 font-medium">
+                    <CollapseButton
+                      open={open}
+                      name={row.dx.display}
+                      onToggle={() => fold(row.dx.logicalId)}
+                    />
                     {grip?.(row)}
                     {row.dx.display}
                     {stage?.(row)}
@@ -170,45 +278,20 @@ export function AssociatedContainer({
                     {actions(row)}
                   </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-caption text-muted-foreground">Supports it</span>
-                  {supports.length ? (
-                    <ul className="flex flex-wrap gap-1.5">
-                      {supports.map((f) => (
-                        <li key={f.ref}>
-                          <span className="bg-ink-100 dark:bg-ink-700 text-caption inline-flex min-h-7 items-center gap-1 rounded-sm pr-0.5 pl-2">
-                            <span className="font-mono">+</span>
-                            {finding(f)}
-                            {canWrite ? (
-                              <button
-                                type="button"
-                                aria-label={`Remove ${f.text} from the support of ${row.dx.display}`}
-                                onClick={() => onUnsupport(row, f)}
-                                className="hover:bg-card focus-visible:shadow-focus inline-flex size-6 items-center justify-center rounded-xs outline-none pointer-coarse:size-11"
-                              >
-                                <XIcon aria-hidden className="size-3" />
-                              </button>
-                            ) : null}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-caption text-muted-foreground">Nothing selected yet.</p>
-                  )}
-                </div>
-                {below?.(row)}
-                {canWrite ? (
-                  <button
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => onActivate(on ? null : row)}
-                    className="text-caption focus-visible:shadow-focus self-start rounded-xs font-medium text-teal-700 outline-none hover:underline dark:text-teal-300"
-                  >
-                    {on
-                      ? "Adding findings here: done"
-                      : "Add findings here, from the list on the right"}
-                  </button>
+                {open ? (
+                  <>
+                    <Supports
+                      row={row}
+                      supports={supports}
+                      canWrite={canWrite}
+                      finding={finding}
+                      onUnsupport={onUnsupport}
+                    />
+                    {below?.(row)}
+                    {canWrite ? (
+                      <AddFindingsHere on={on} onToggle={() => onActivate(on ? null : row)} />
+                    ) : null}
+                  </>
                 ) : null}
               </li>
             );
@@ -259,16 +342,21 @@ export function AssociationCandidates({
 }) {
   if (!items.length) return null;
   return (
-    <section aria-labelledby="impression-add-association" className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 id="impression-add-association" className="text-label text-foreground">
+    // Collapsible (owner, 2026-10-09): the native <details>, as the side panel's Fold.
+    <details open className="group/assoc">
+      <summary className="focus-visible:shadow-focus flex cursor-pointer list-none flex-wrap items-baseline gap-x-1.5 gap-y-1 rounded-xs outline-none [&::-webkit-details-marker]:hidden">
+        <ChevronDownIcon
+          aria-hidden
+          className="text-muted-foreground ease-expo-out size-3.5 shrink-0 -rotate-90 self-center transition-transform duration-150 group-open/assoc:rotate-0 motion-reduce:transition-none"
+        />
+        <h3 id="impression-add-association" className="text-label text-foreground flex-1">
           {`Add a linked diagnosis to ${parent}`}
         </h3>
         <span className="text-caption text-muted-foreground">
           {`${items.filter((a) => a.supportedBy.length).length} of ${items.length} supported by the record`}
         </span>
-      </div>
-      <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+      </summary>
+      <ul className="grid grid-cols-1 gap-2 pt-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((a) => {
           const why = a.supportedBy.map(findingText).filter((t): t is string => !!t);
           return (
@@ -310,6 +398,6 @@ export function AssociationCandidates({
           );
         })}
       </ul>
-    </section>
+    </details>
   );
 }
