@@ -12,9 +12,9 @@ export interface SignedCopy {
 }
 
 export const CRITICAL_FLAGGING_NOTICE: SignedCopy & { lead: string; body: string } = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-10",
   lead: "Automatic critical flagging is off.",
   body: "MedSync will not flag critical values at this hospital. Follow the lab's critical-call procedure and phone critical results to the ward.",
 };

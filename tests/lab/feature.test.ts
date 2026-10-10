@@ -21,7 +21,8 @@ describe("LAB_WORKSPACE", () => {
   });
 
   it("CF-3: production refuses it while the notice wording is unsigned", () => {
-    expect(CRITICAL_FLAGGING_NOTICE.status).toBe("draft");
+    // The shipped wording is signed (2026-10-10); the gate is proven on a draft copy.
+    vi.spyOn(CRITICAL_FLAGGING_NOTICE, "status", "get").mockReturnValue("draft");
     vi.stubEnv("LAB_WORKSPACE", "1");
     vi.stubEnv("VERCEL_ENV", "production");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -29,5 +30,13 @@ describe("LAB_WORKSPACE", () => {
     vi.stubEnv("VERCEL_ENV", "preview");
     expect(labWorkspaceLiveFor("h1")).toBe(true);
     warn.mockRestore();
+    vi.restoreAllMocks();
+  });
+
+  it("CF-3: with the wording signed, production allows it", () => {
+    expect(CRITICAL_FLAGGING_NOTICE.status).toBe("signed");
+    vi.stubEnv("LAB_WORKSPACE", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(labWorkspaceLiveFor("h1")).toBe(true);
   });
 });

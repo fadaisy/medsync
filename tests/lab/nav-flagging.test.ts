@@ -37,11 +37,15 @@ describe("critical flagging", () => {
     expect(criticalFlaggingActive("h", [])).toBe(false);
   });
 
-  it("CF-2: the notice copy is Appendix B, and stays draft until the CSO signs it", () => {
+  it("CF-2: the notice copy is Appendix B, signed by the CSO", () => {
     expect(CRITICAL_FLAGGING_NOTICE.lead).toBe("Automatic critical flagging is off.");
     expect(CRITICAL_FLAGGING_NOTICE.body).toBe(
       "MedSync will not flag critical values at this hospital. Follow the lab's critical-call procedure and phone critical results to the ward.",
     );
-    expect(CRITICAL_FLAGGING_NOTICE.status).toBe("draft");
+    expect(CRITICAL_FLAGGING_NOTICE).toMatchObject({
+      status: "signed",
+      signedBy: "Fadhul (CSO)",
+      signedOn: "2026-10-10",
+    });
   });
 });

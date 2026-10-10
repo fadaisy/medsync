@@ -322,3 +322,5 @@ The prompt's recommendations stand except where marked **changed**, each for a r
 | Notice wording (Appendix B)        | **Not signed**      | —           | D-LAB0-11 itself asks for a signature before production. Copy ships `draft`; CF-3 keeps production off. |
 
 To sign the notice: set `status: "signed"`, `signedBy`, `signedOn` on the notice entry in `content/lab.ts`.
+
+**Notice signed** 10 Oct 2026 by Fadhul (CSO), explicitly, after Step 5.
