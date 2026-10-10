@@ -391,3 +391,34 @@ from hospitals h order by 1;
 The signed and listed medicine counts are static: 4 of 192.
 
 **4. Tooling:** reuse the scratch harness, as the lab did (D-LAB0-19), rather than adding Playwright.
+
+### STOP 0 answers (10 Oct 2026, in session)
+
+- **Branches:** pharmacy stays on its own branch, stacked on lab Phase 0. Lab Phase 1 runs separately.
+- **D-new-1:** add a placement id.
+- **D-new-2:** read emergency doses from the resus timeline.
+- **D-new-3:** narrow the open read policies.
+
+---
+
+## STOP 1 — GATE A proposal
+
+[gate-a-proposal.md](gate-a-proposal.md) covers:
+
+- the access model (`pharmacy_staff` carrier, trigger grant, the generalisation plan);
+- the landing before and after;
+- the screens, with phone rows;
+- the rules with worked examples (a cancelled line and a changed row included);
+- the read list, field by field;
+- every string with its status;
+- migrations 0098–0101, the RLS probe table, the test plan, ADR drafts 0227–0237, and decisions D-PH0-01 to -22.
+
+**Critique pass, first round, three fixes:**
+
+- doses in the wireframes replaced with placeholders (Law 5, canvas rule);
+- the read list given a source and a reason per field;
+- the Appendix B strings added with their status.
+
+**Second round:** no further change.
+
+**The backfill dry-run list** cannot be produced without production access; the script lists it once 0098 is applied.
