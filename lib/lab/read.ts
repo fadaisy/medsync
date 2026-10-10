@@ -3,7 +3,7 @@ import "server-only";
 import type { Target } from "./turnaround";
 import type { LabStage, WorklistInput } from "./worklist";
 import type { EmrDb } from "@/lib/emr/db";
-import { and, desc, eq, gte, inArray, isNull, max } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, max, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { loadEmrLabWorklist } from "@/app/lab/_lib/emr";
@@ -377,4 +377,50 @@ export async function loadRejected(
       recollectedAt: next?.collectedAt ?? null,
     };
   });
+}
+
+/* ─── The specimen a result screen may reject ─────────────────────── */
+
+/**
+ * The order's newest specimen, if the lab may still reject it: no rejection on it and no released
+ * report on the order (one round trip). Rejection moved from the worklist row to the result screen
+ * so each row keeps one control (§4 budget); the action and its reasons are unchanged.
+ */
+export async function loadRejectableSpecimen(
+  hospitalId: string,
+  orderId: string,
+  database: EmrDb = defaultDb(),
+): Promise<string | null> {
+  // The query builder qualifies every column, so each subquery is correlated to its own specimen.
+  const [row] = await database
+    .select({ id: specimens.id })
+    .from(specimens)
+    .where(
+      and(
+        eq(specimens.hospitalId, hospitalId),
+        eq(specimens.orderId, orderId),
+        notExists(
+          database
+            .select({ one: sql`1` })
+            .from(specimenEvents)
+            .where(
+              and(eq(specimenEvents.specimenId, specimens.id), eq(specimenEvents.kind, "rejected")),
+            ),
+        ),
+        notExists(
+          database
+            .select({ one: sql`1` })
+            .from(diagnosticReports)
+            .where(
+              and(
+                eq(diagnosticReports.orderId, specimens.orderId),
+                inArray(diagnosticReports.status, ["final", "amended", "corrected"]),
+              ),
+            ),
+        ),
+      ),
+    )
+    .orderBy(desc(specimens.recordedAt))
+    .limit(1);
+  return row?.id ?? null;
 }

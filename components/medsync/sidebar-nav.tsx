@@ -91,7 +91,12 @@ export function SidebarNavItem({
         ) : (
           <span
             aria-label={countLabel ?? `${count} pending`}
-            className="text-muted-foreground font-mono text-[11px] font-medium tabular-nums"
+            // On an active item's tint, muted-foreground falls just under 4.5:1; ink-600 keeps the
+            // count neutral and readable (axe, Lab Phase 0 STOP 4).
+            className={cn(
+              "font-mono text-[11px] font-medium tabular-nums",
+              active ? "text-ink-600" : "text-muted-foreground",
+            )}
           >
             {count > 99 ? "99+" : count.toLocaleString("en-GB")}
           </span>

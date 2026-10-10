@@ -1,25 +1,92 @@
+import type { WorklistPayload } from "./_components/worklist-screen";
+import type { LabTechScope } from "@/lib/lab-tech/scope";
 import { FlaskConicalIcon } from "lucide-react";
 
+import { LAB } from "@/content/lab";
 import { emrV1LiveFor } from "@/lib/emr/feature";
+import { identitiesFor } from "@/lib/emr/read/results";
 import { labResultsLive } from "@/lib/encounter/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
+import { LAB_TIME_ZONE, labWorklistFor, requestNow } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
 import { ResultRowActions } from "./_components/result-row-actions";
+import { WorklistScreen } from "./_components/worklist-screen";
 
 export const dynamic = "force-dynamic";
 
+type Params = Record<string, string | string[] | undefined>;
+const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : null);
+
 /**
- * Lab incoming worklist — the results-in counterpart to orders-out. Reads the
- * real `encounterOrders` pipe (hospital-scoped, oldest-first). When the lab
- * workflow is live, each row gains result entry → release/reject controls
- * (entered ≠ released); otherwise it stays read-only.
+ * The lab worklist. LAB_WORKSPACE on (Lab Phase 0 §5.3): the section worklist with its turnaround
+ * clock, or, where EMR v1 is off, the older list with a one-line note (LW-10). LAB_WORKSPACE off:
+ * exactly what /lab showed before — the EMR worklist, or the older list.
  */
-export default async function LabWorklistPage() {
+export default async function LabWorklistPage({ searchParams }: { searchParams: Promise<Params> }) {
   const scope = await requireLabTechScope();
-  // EMR v1: the record's worklist. Flag off, everything below renders exactly as before.
-  if (emrV1LiveFor(scope.hospitalId)) return <EmrLabWorklist scope={scope} />;
+  // EMR v1: the record's worklist — the Phase 0 section worklist where LAB_WORKSPACE is on.
+  if (emrV1LiveFor(scope.hospitalId))
+    return scope.workspaceLive ? (
+      <SectionWorklist scope={scope} searchParams={searchParams} />
+    ) : (
+      <EmrLabWorklist scope={scope} />
+    );
+  // The older list; with LAB_WORKSPACE on it carries one note (LW-10).
+  return (
+    <LegacyWorklist scope={scope} note={scope.workspaceLive ? LAB.worklist.legacy : undefined} />
+  );
+}
+
+/** The Phase 0 worklist: every open specimen, identities revealed once, filtered in the browser. */
+async function SectionWorklist({
+  scope,
+  searchParams,
+}: {
+  scope: LabTechScope;
+  searchParams: Promise<Params>;
+}) {
+  const sp = await searchParams;
+  const data = await labWorklistFor(scope.hospitalId);
+  // LW-11: both identifiers on every row, revealed once per page load (one batched audit insert).
+  const ids = await identitiesFor(
+    scope,
+    data.inputs.map((i) => i.patientUserId),
+    "lab_worklist",
+  );
+  const payload: WorklistPayload = {
+    hospitalName: scope.hospitalName,
+    inputs: data.inputs.map((i) => ({
+      ...i,
+      collectedAt: i.collectedAt.toISOString(),
+      receivedAt: i.receivedAt?.toISOString() ?? null,
+    })),
+    identities: Object.fromEntries(ids),
+    restricted: [...data.restricted],
+    sections: data.sections,
+    viewer: {
+      hospitalId: scope.hospitalId,
+      permissions: [...scope.access.permissions],
+      sectionIds: scope.sectionIds,
+    },
+    serverNowIso: requestNow().toISOString(),
+    timeZone: LAB_TIME_ZONE,
+    initial: {
+      section: one(sp.section),
+      stage: one(sp.stage),
+      dept: one(sp.dept),
+      sort: one(sp.sort),
+    },
+  };
+  return <WorklistScreen payload={payload} />;
+}
+
+/**
+ * The pre-EMR lab list (lib/lab-tech/worklist), unchanged. Lab Phase 1 retires it (L9). `note`
+ * renders only when LAB_WORKSPACE is on for a hospital still on this list.
+ */
+async function LegacyWorklist({ scope, note }: { scope: LabTechScope; note?: string }) {
   const items = await loadLabWorklist(scope.hospitalId);
   const summary = summariseWorklist(items);
   const live = labResultsLive();
@@ -27,6 +94,7 @@ export default async function LabWorklistPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6">
+      {note ? <p className="text-body-s text-muted-foreground">{note}</p> : null}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-display-s text-foreground inline-flex items-center gap-2">

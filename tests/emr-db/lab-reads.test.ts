@@ -17,7 +17,12 @@ import { enterResults, releaseResults } from "@/lib/emr/write/results";
 import { collectSpecimen, receiveSpecimen, rejectSpecimen } from "@/lib/emr/write/specimens";
 import { generateKey } from "@/lib/encryption";
 import { LAB_PERMISSIONS } from "@/lib/lab/access";
-import { loadLabWorklist, loadRejected, loadReleasedToday } from "@/lib/lab/read";
+import {
+  loadLabWorklist,
+  loadRejectableSpecimen,
+  loadRejected,
+  loadReleasedToday,
+} from "@/lib/lab/read";
 import { computeWorklist } from "@/lib/lab/worklist";
 import {
   bootLane,
@@ -309,6 +314,36 @@ describe.skipIf(!laneOn)("lab reads (PGlite lane)", () => {
       (await loadLabWorklist(hA, lane.db)).inputs.find((i) => i.orderId === s.orderId)?.stage,
     ).toBe("to_receive");
     expect(await loadRejected(hB, new Date(), lane.db)).toEqual([]);
+  });
+
+  it("Reject on the result screen: only this order's own specimen and report count", async () => {
+    // Another order released at the same hospital must not hide this one's Reject (STOP 4 bug).
+    const other = await specimen("A", { receive: true });
+    const op = await as(actors.labA!, other.p, (ctx) =>
+      enterResults(ctx, {
+        patientUserId: other.p,
+        orderId: other.orderId,
+        status: "preliminary",
+        values: [glucose],
+        clientKey: key(),
+      }),
+    );
+    await as(actors.labA!, other.p, (ctx) =>
+      releaseResults(ctx, { patientUserId: other.p, reportId: op.id, clientKey: key() }),
+    );
+    const s = await specimen("A", { receive: true });
+    expect(await loadRejectableSpecimen(hA, s.orderId, lane.db)).toBe(s.specimenId);
+    expect(await loadRejectableSpecimen(hA, other.orderId, lane.db)).toBeNull();
+    expect(await loadRejectableSpecimen(hB, s.orderId, lane.db)).toBeNull();
+    await as(actors.labA!, s.p, (ctx) =>
+      rejectSpecimen(ctx, {
+        patientUserId: s.p,
+        specimenId: s.specimenId,
+        reasonCode: "clotted",
+        clientKey: key(),
+      }),
+    );
+    expect(await loadRejectableSpecimen(hA, s.orderId, lane.db)).toBeNull();
   });
 
   it("S16, LA-7: a lab actor without the permission is refused on the server", async () => {
