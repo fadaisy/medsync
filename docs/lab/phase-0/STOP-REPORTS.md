@@ -364,3 +364,149 @@ lookup runs), the same with 1 row or 4. An empty list runs 2.
 **Seam proven:** with a LOINC code on an order and a hub offering (`section_id`, `stated_tat` "1 h"), the row takes
 Clinical chemistry and a 60-minute facility target; without, "No section" and no target. EMR orders never carry a
 LOINC code today (finding 2), so in production every row is "No section" until the one-test-menu link lands.
+
+---
+
+## STOP 4 — Shell, worklist, lists and notice
+
+**Built (behind `LAB_WORKSPACE`):** the workspace shell (`app/lab/_components/lab-shell.tsx`, `lab-nav.tsx`: the shared
+sidebar with the three registered items and neutral counts, the "Pharmacy & lab" grape active state, a link row
+below `lg`), the shared `PageHeader` (moved to `components/medsync/page-header.tsx`, the doctor import re-exports it),
+the worklist screen (`worklist-screen.tsx`: section and stage tablists with counts in their names, ward filter,
+sortable columns, URL state, one action per row, 30-second server-time clock), the turnaround cell, Released today
+and Rejected (`app/lab/released`, `app/lab/rejected`), the critical-flagging notice on `/lab/results/[orderId]`, the
+not-authorised page, and Reject on the result screen.
+
+**Harness:** `~/Desktop/lab0-harness` (PGlite with migrations 0000–0097 and a Test Hospital-1/-2 fixture; the app
+with a fixed lab-technologist session; headless Chrome over CDP). Fixture rows are labels, not people.
+
+**Screenshots** (`~/Desktop/lab0-harness/shots/stop4/`): worklist (own section and All sections), Released today,
+Rejected and a result screen at 1440×900, 834×1194 and 390×844, light; worklist and result screen dark. Compared with
+the canvas artboards "0 Worklist" and "1 Result entry": same structure, filters, row anatomy, Late chip and notice
+placement; built in the repo's Chroma components (sidebar domain tiles, `DataTable`), as Law 12 asks.
+
+**axe:** 15 runs (5 screens × desktop, phone, dark): **0 violations**. Two serious contrast findings fixed on the way:
+the count on an active sidebar item (`muted-foreground` on the grape tint, 4.48:1) in the shared `SidebarNavItem`, which
+also fixes the doctor sidebar, and the same in the lab's phone link row.
+
+**Flag off:** `/lab` and the result screen at all three widths are **pixel-identical** to `main` (4087e4c) on the same
+database; the legacy layout and list markup also match token for token.
+
+**Red:** `tests/design/red-reserved.test.ts` now scans `app/lab`, `lib/lab`, `app/not-authorised` and `content/lab.ts`:
+no red, no green, no left-edge bars. One pre-existing file is allowlisted by name with its reason:
+`app/lab/_components/result-row-actions.tsx` (the legacy list's reject button and error, untouched by this slice,
+retired with the legacy list in Lab Phase 1).
+
+**Fixed during STOP 4:**
+
+- `loadRejectableSpecimen` compared each subquery to its own table (an unqualified column inside raw SQL), so any
+  released report at the hospital hid every Reject. Rewritten with the query builder; a lane test now covers it.
+- Link-shaped buttons lost their border (`buttonVariants` without the class merge `Button` applies).
+- `tests/emr/ui/flag-off.test.ts` requires the worklist page's EMR identifiers behind one `if (emrV1LiveFor(…)) return`;
+  the page keeps that shape.
+
+**Decisions taken while building (for the record):**
+
+- **Reject moved to the result screen.** The prompt's row budget is one control; the old row had Receive and Reject.
+  Reject is the same action with the same coded reasons, on the specimen's screen, and only with the flag on.
+- **Sort is part of the URL**, so reload restores it (§5.3 URL state); §5.3 also says "the default returns on reload".
+  The two lines conflict; the URL rule was kept.
+- **Released today and Rejected have no filters.** They are short, bounded lists; filters can be added when a lab asks.
+
+**Tests:** `tests/lab` 15 files, `tests/emr/ui`, `tests/design`, `tests/doctor`: 387 passed. Lane `lab-reads` 7 passed.
+
+**Budgets** (production build in the harness, Test Hospital-1 with **500 open specimens**):
+
+| Measure                            | Budget             | Result                                                    |
+| ---------------------------------- | ------------------ | --------------------------------------------------------- |
+| `/lab` TTFB, p95 of 20             | < 400 ms           | **96 ms** (full response 86 ms; the old worklist: 136 ms) |
+| Section or stage switch, p95 of 20 | < 100 ms, no fetch | **70.5 ms** (p50 28 ms), **0 requests**                   |
+| Round trips per render             | fixed              | 9 statements (10 with an offering lookup), 1 row or 500   |
+| Layout shift across a clock tick   | 0                  | **0** (62 s observed; the text changed)                   |
+| JS on `/lab` (encoded)             | ≤ 30 KB added      | 256.3 KB on vs 277.3 KB off: **−21 KB net**               |
+
+**Found by the switch measurement and fixed:** the worklist's links to result screens were prefetched as rows scrolled
+into view (34 requests during 20 switches). Each result screen reveals the patient and writes a
+`clinical_phi_access_log` row, so prefetching logged reveals nobody made. Every lab-list link to a result screen now has
+`prefetch={false}` (`tests/lab/privacy.test.ts`). The **flag-off** EMR worklist (`components/emr/results/specimen-actions.tsx`)
+has the same default prefetch; it is outside this slice (Law 11) and is reported for a follow-up.
+
+---
+
+## STOP 5 — Scenarios, hardening and documentation (final)
+
+**Scenarios.** Playwright is not used (D-LAB0-19); each scenario is proven by a test in the repo, the harness, or both.
+
+| #   | Scenario                                                                 | Evidence                                                                                                        | Result |
+| --- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ------ |
+| S1  | Approve a technician → granted, audited, `/lab`                          | `lab-access` (grant + basis audit row); `landing` (role + lab affiliation → `/lab`)                             | pass   |
+| S2  | Backfilled technologist lands on `/lab`                                  | `lab-access` (backfill path: granted, then unchanged); `landing`                                                | pass   |
+| S3  | Nurse approved: no permission, `/lab` refused                            | `lab-access` (no row, no audit); harness: nurse → 307 `/not-authorised?for=lab`                                 | pass   |
+| S4  | Section opens first; All shows every specimen; reload restores           | `worklist-projection` LW-4, LW-12; harness: Haematology + To result restored after reload                       | pass   |
+| S5  | Test with no section → All and No section                                | `worklist-projection` LW-3; `lab-reads` (no offering → no section); harness tabs                                | pass   |
+| S6  | 70 min against 60 → Late by 10 min, amber, icon; no target → no colour   | `turnaround` TA-4; `ui` (chip, icon, no colour without target)                                                  | pass   |
+| S7  | Not received → no label; after Receive, clock from receipt               | `turnaround` TA-1/2; harness: Receive clicked, To receive 167 → 166                                             | pass   |
+| S8  | Release → leaves worklist, in Released today                             | `lab-reads` S8; harness screenshots                                                                             | pass   |
+| S9  | Reject → Rejected with reason; order to collect                          | `lab-reads` S9 (reason, re-collection, back to To receive)                                                      | pass   |
+| S10 | Device clock 3 h wrong                                                   | `turnaround` TA-6; `ui` (Updated stamp is the server's time)                                                    | pass   |
+| S11 | Notice shown; absent when flagging active; draft blocks production       | `ui` (notice); `nav-flagging` CF-1 (true when all signed); `feature` CF-3                                       | pass   |
+| S12 | Reception refused; other hospital refused; no cross-hospital specimens   | `access` LA-6; `lab-access` per hospital; `lab-reads` LW-9; harness: Hospital-2 tech sees 2, none of Hospital-1 | pass   |
+| S13 | Deactivated → revoked in that transaction, audited; next request refused | `lab-access` (revoked + audit); the scope requires an active affiliation                                        | pass   |
+| S14 | Flag off = baseline                                                      | harness: `/lab` and result screen pixel-identical to main at 3 widths; markup token-identical                   | pass   |
+| S15 | Flag on, EMR off: shell + old list + note                                | harness: navigation, "Incoming worklist", the note; `flag-off` LW-10                                            | pass   |
+| S16 | No `lab.result.enter` → no button, refused on server                     | `ui` LW-8; `lab-reads` S16/LA-7 (`forbidden`)                                                                   | pass   |
+| S17 | Phone: S4 and S6                                                         | 390 px screenshots (three-line rows, Late chip, tabs scroll); axe 0                                             | pass   |
+
+**Section 13 — the numbers**
+
+| Metric                                                      | Baseline                  | Target             | Result                                                                    |
+| ----------------------------------------------------------- | ------------------------- | ------------------ | ------------------------------------------------------------------------- |
+| Approved lab staff who land on `/lab` at sign-in            | 100 % (PRs #220, #221)    | 100 %              | 100 %; the role path also lands there now that approval grants the role   |
+| Approved lab staff with no lab access                       | 1 known (Test Hospital-1) | 0                  | 0 for every approval from 0097; existing staff after the owner's backfill |
+| Lab access grants without an audit row                      | —                         | 0                  | 0 (every grant and revoke writes a `lab_access` row)                      |
+| Non-lab cadres holding a lab permission                     | not measured              | 0                  | 0 (map; nurse probe; a hand-granted row goes at the next change)          |
+| Navigations between sign-in and the worklist                | 0                         | 0                  | 0                                                                         |
+| Sidebar items rendered that have no page                    | —                         | 0                  | 0 (registry of 3)                                                         |
+| Open specimens missing from "All sections"                  | —                         | 0                  | 0 (500 of 500 in the harness; property test 500/500)                      |
+| Worklist rows with fewer than two identifiers               | 0                         | 0                  | 0                                                                         |
+| Coloured waiting times with no data-backed target           | —                         | 0                  | 0                                                                         |
+| Lab result screens without the notice while flagging is off | all                       | 0                  | 0 with `LAB_WORKSPACE` on                                                 |
+| Rule IDs without a test                                     | —                         | 0                  | 0 (40 of 40)                                                              |
+| RLS probes passed                                           | —                         | 100 %              | 100 % (14 of 14; PGlite lane 30 files green)                              |
+| axe serious or critical                                     | not measured              | 0                  | 0 (15 runs)                                                               |
+| Red on `/lab` routes added by this slice                    | —                         | 0                  | 0                                                                         |
+| Section switch p95 / added JS                               | —                         | < 100 ms / ≤ 30 KB | 70.5 ms / −21 KB net                                                      |
+
+**Definition of Done**
+
+- [x] L1–L8 resolved (L1 before this slice; L2 shell and nav; L3 trigger; L4 release is its own permission, the
+      second verifier stays with Lab Phase 1; L5 sections; L6 clock; L7 notice; L8 comment gone). L9 (legacy list) and
+      L10 (live worklist) deferred to Lab Phases 1 and 2.
+- [x] Every approved lab professional lands on `/lab`; every grant and revocation has an audit row; no non-lab cadre
+      holds a lab permission.
+- [x] The worklist opens on the viewer's section; "All sections" shows every open specimen; the counts add up.
+- [x] No waiting time is coloured without a data-backed target; every elapsed time uses the server clock.
+- [x] Every lab result screen shows the notice while flagging is off (**wording draft**: production stays off until
+      signed).
+- [x] No clinical write path was added. Changed: a permission guard on four lab acts (same outcome with the v1 map),
+      and Reject moved to the result screen (same action).
+- [x] Every rule ID has a test; probes green; client writes denied.
+- [x] axe clean; red-scarcity green on every `/lab` route; reduced motion: no row animation exists.
+- [x] S1–S17 pass; flag off matches the baseline pixel for pixel.
+- [x] ADRs 0221–0226 written; CHANGELOG updated; this report.
+
+**For the owner, before switching anything on:**
+
+1. Apply migration **0097** (`npm run db:migrate`).
+2. Run `npm run lab:backfill-access` (dry run), review, then `-- --apply`.
+3. Sign the notice wording in `content/lab.ts` (`status: "signed"`, `signedBy`, `signedOn`); until then production
+   keeps `LAB_WORKSPACE` off.
+4. Set `LAB_WORKSPACE` to Test Hospital-1's id first (D-LAB0-15).
+
+**Known debt and follow-ups:** the flag-off worklist's result-link prefetch (above); the legacy list's red
+(`result-row-actions.tsx`, retired in Phase 1); the legacy service-role key names (Q19); "Late" and sections stay empty
+until facilities state turnaround in minutes and the one-test-menu link lands; 90 files fail `npm run format:check` on
+main already (none from this branch); `npm run typecheck` and `next build` need an 8 GB heap.
+
+**Final checks** (`SKIP_ENV_VALIDATION=1`, 8 GB heap): typecheck 0 errors; lint 0 errors (2 old warnings); tests 357
+files, 8,807 passed, 914 skipped, 0 failed; PGlite lane 30 files, 486 passed; `npm run build` passes.

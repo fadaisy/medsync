@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Lab Phase 0: the laboratory's front door — 2026-10-10
+
+- Lab access is six permissions derived from the approved cadre (signed map v1.0.0) and department headship, carried
+  by the `lab_tech` role ([ADR 0221](docs/adr/0221-lab-access-permissions-by-cadre.md)). A trigger keeps the role in
+  step with every affiliation change, in that transaction, with a basis audit row (migration 0097, owner-applied;
+  [ADR 0222](docs/adr/0222-lab-role-follows-the-affiliation.md)); `npm run lab:backfill-access` grants staff approved
+  before it.
+- One pure landing resolver; `?redirect=` honoured only for paths the user may open
+  ([ADR 0223](docs/adr/0223-one-landing-resolver.md)).
+- Behind `LAB_WORKSPACE` (per hospital, off by default): the lab workspace shell (Worklist, Released today, Rejected),
+  the section worklist with a turnaround clock ([ADR 0224](docs/adr/0224-lab-worklist-projection.md),
+  [ADR 0225](docs/adr/0225-turnaround-clock.md)), and "Automatic critical flagging is off" on result screens
+  ([ADR 0226](docs/adr/0226-say-what-the-system-is-not-doing.md)). Production stays off until the CSO signs the notice
+  wording. Rejecting a specimen moved from the worklist row to the result screen.
+
 ### Added — Diagnoses relate to each other: secondary to, refined, co-existing, known — 2026-10-09
 
 - Step 09 places: leading, co-existing, linked (secondary to, complication of, precipitated by, with), differential,
