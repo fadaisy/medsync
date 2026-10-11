@@ -21,7 +21,7 @@ import { ageSexWords } from "@/components/emr/orders/model";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
-import { labResultSnapshots } from "@/db/schema/lab-safety";
+import { downtimeEntries, labResultSnapshots } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { cadres } from "@/db/schema/reference-data";
@@ -39,7 +39,7 @@ import { ORDERING_CADRES } from "@/lib/emr/write/orders";
 import { UNCATALOGUED } from "@/lib/emr/write/results";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef } from "@/lib/facts/project/shared";
-import { labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 
 /**
@@ -516,9 +516,31 @@ export async function loadResultsToReview(
         ).map((r) => [r.id, r]),
       )
     : null;
+  // Lab Phase 1 DT-7: results entered after downtime say so, with the form's times.
+  const paper = labDowntimeLiveFor(actor.hospitalId)
+    ? new Map(
+        (
+          await conn
+            .select()
+            .from(downtimeEntries)
+            .where(
+              inArray(
+                downtimeEntries.reportId,
+                chainRows.map((c) => c.id),
+              ),
+            )
+        ).map((d) => [d.reportId, d]),
+      )
+    : null;
+  const hhmm = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Kampala",
+  });
   const items: ReviewItem[] = [];
   for (const x of rows) {
     const chain = chainRows.filter((c) => c.logicalId === x.logicalId);
+    const form = paper ? chain.map((c) => paper.get(c.id)).find(Boolean) : undefined;
     const ack = ackState(chain, acks);
     if (ack.kind === "forwarded" && ack.toUserId !== actor.userId) continue;
     if (ack.kind !== "needs_review" && ack.kind !== "needs_re_ack" && ack.kind !== "forwarded")
@@ -530,6 +552,11 @@ export async function loadResultsToReview(
     );
     const critical = x.critical || vals.some((v) => v.critical);
     items.push({
+      ...(form
+        ? {
+            downtimeTag: `Entered after downtime · Resulted ${hhmm.format(form.resultedAt)} · entered ${hhmm.format(form.enteredAt)} · paper form DT-${String(form.formNumber).padStart(5, "0")}`,
+          }
+        : {}),
       reportId: x.id,
       patientUserId: x.patientUserId,
       identity: identities.get(x.patientUserId) ?? {

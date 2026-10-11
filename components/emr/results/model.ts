@@ -430,6 +430,8 @@ export interface ReviewItem {
   values: ReviewValue[];
   conclusion: { code: string; text: string | null } | null;
   encounterId: string | null;
+  /** Lab Phase 1 DT-7: "Entered after downtime · Resulted 13:40 · entered 14:52 · paper form DT-00031". */
+  downtimeTag?: string;
 }
 
 export const reviewWords = (i: Pick<ReviewItem, "state">): string =>

@@ -55,13 +55,20 @@ export default async function ReleasedTodayPage() {
             id: "test",
             header: R.columns.test,
             cell: (r) => (
-              <Link
-                href={`/lab/results/${r.orderId}`}
-                prefetch={false}
-                className="text-foreground underline-offset-4 hover:underline"
-              >
-                {r.test}
-              </Link>
+              <span className="inline-flex flex-col">
+                <Link
+                  href={`/lab/results/${r.orderId}`}
+                  prefetch={false}
+                  className="text-foreground underline-offset-4 hover:underline"
+                >
+                  {r.test}
+                </Link>
+                {r.downtimeForm ? (
+                  <span className="text-caption text-muted-foreground">
+                    Entered after downtime · paper form DT-{String(r.downtimeForm).padStart(5, "0")}
+                  </span>
+                ) : null}
+              </span>
             ),
           },
           {

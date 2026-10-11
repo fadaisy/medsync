@@ -206,7 +206,12 @@ export async function isHospitalStaff(ctx: WriteCtx, userId: string): Promise<bo
 
 /* ─── placeOrders ────────────────────────────────────────────────── */
 
-export type IntentSource = "clinician" | "triage_recommendation" | "resus_handover";
+export type IntentSource =
+  | "clinician"
+  | "triage_recommendation"
+  | "resus_handover"
+  /** Lab Phase 1 DT-3: transcribed by the lab from a paper request entered after downtime. */
+  | "downtime_form";
 
 export interface OrderLine {
   /** Idempotency key for this line: a replay returns the order it already placed. */
@@ -240,9 +245,25 @@ export interface WriteResult {
 export async function placeOrders(
   ctx: WriteCtx,
   input: PlaceOrdersInput,
-  opts: { propose?: boolean } = {},
+  opts: {
+    propose?: boolean;
+    /**
+     * Lab Phase 1 DT-3: the lab transcribes a paper request entered after downtime. The order is
+     * the requesting clinician's (named on the form, a clinician here who may order); the lab user
+     * is recorded as the one who placed it in MedSync.
+     */
+    downtime?: { requestedByUserId: string; requesterCadre: string };
+  } = {},
 ): Promise<WriteResult & { orderIds: string[] }> {
-  if (!opts.propose) requireCadre(ctx, ORDERING_CADRES, "place orders");
+  if (opts.downtime) {
+    requireCadre(ctx, LAB_CADRES, "enter a downtime form");
+    requireLabPermission(ctx, "lab.result.release", "enter a downtime form");
+    if (!ORDERING_CADRES.includes(opts.downtime.requesterCadre))
+      throw new EmrWriteError(
+        "invalid",
+        "The requesting clinician must be one who may order tests.",
+      );
+  } else if (!opts.propose) requireCadre(ctx, ORDERING_CADRES, "place orders");
   if (input.orders.length === 0) throw new EmrWriteError("invalid", "Nothing to order.");
   const encounter = await openEncounter(ctx, input.patientUserId, input.encounterId);
   const { actor, tx, now } = ctx;
@@ -315,7 +336,7 @@ export async function placeOrders(
         patientUserId: input.patientUserId,
         kind: test.kind,
         text: test.display,
-        authoredByUserId: actor.userId,
+        authoredByUserId: opts.downtime?.requestedByUserId ?? actor.userId,
         lifecycle: "events",
         hospitalId: actor.hospitalId,
         testId: test.id,
@@ -324,9 +345,9 @@ export async function placeOrders(
         reasonConditionIds: reasonIds,
         reasonTextCiphertext: reasonText ? encrypt(reasonText) : null,
         fastingRequired: test.fastingRequired,
-        requesterCadre: actor.cadreCode,
+        requesterCadre: opts.downtime?.requesterCadre ?? actor.cadreCode,
         performer: test.inHouse ? "in_house" : "external",
-        intentSource: line.intentSource ?? "clinician",
+        intentSource: opts.downtime ? "downtime_form" : (line.intentSource ?? "clinician"),
         sourceIntentId: line.sourceIntentId ?? null,
         sensitivity: restricted ? "restricted" : "standard",
         clientKey: line.clientKey,

@@ -8,6 +8,7 @@ import type { LabPermission } from "./access";
  */
 
 export type LabNavId =
+  | "downtime"
   | "setup_limits"
   | "worklist"
   | "criticals"
@@ -24,6 +25,7 @@ export interface LabNavFlags {
   /** LAB_CRITICALS alone: set-up must stay reachable to close the gate's gaps. */
   criticalsSetup?: boolean;
   unitsRanges?: boolean;
+  downtime?: boolean;
 }
 
 export interface LabNavItem {
@@ -65,6 +67,14 @@ export const LAB_NAV: readonly LabNavItem[] = [
     order: 3,
     exact: false,
     visibleFor: view,
+  },
+  {
+    id: "downtime",
+    label: "Downtime entry",
+    href: "/lab/downtime",
+    order: 4,
+    exact: false,
+    visibleFor: (p, f) => !!f.downtime && p.has("lab.result.release"),
   },
   {
     id: "setup_catalogue",

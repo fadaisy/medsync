@@ -166,6 +166,7 @@ export function ReviewView({
               <p className="text-body-s flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="font-medium">{i.test}</span>
                 {i.restricted ? <RestrictedMark /> : null}
+                {i.downtimeTag ? <StatusWord>{i.downtimeTag}</StatusWord> : null}
                 <StatusWord tone="caution">{reviewWords(i)}</StatusWord>
                 <span className="text-muted-foreground">
                   Released{" "}

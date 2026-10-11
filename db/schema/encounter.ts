@@ -269,7 +269,7 @@ export const encounterOrders = pgTable(
     ),
     check(
       "enc_order_intent_check",
-      sql`${t.intentSource} IS NULL OR ${t.intentSource} IN ('clinician','triage_recommendation','resus_handover')`,
+      sql`${t.intentSource} IS NULL OR ${t.intentSource} IN ('clinician','triage_recommendation','resus_handover','downtime_form')`,
     ),
     check("enc_order_sensitivity_check", sql`${t.sensitivity} IN ('standard','restricted')`),
     check(

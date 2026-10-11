@@ -8,7 +8,8 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist as loadLegacyWorklist } from "@/lib/lab-tech/worklist";
 import { countOpenCriticals } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
-import { labCriticalsLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { countFormsWaiting } from "@/lib/lab/downtime-read";
+import { labCriticalsLiveFor, labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { navFor } from "@/lib/lab/nav";
 import { labWorklistFor, rejectedFor, releasedTodayFor } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
 
   const emr = emrV1LiveFor(scope.hospitalId);
   const criticals = emr && (await criticalsLive(scope.hospitalId));
+  const downtime = emr && labDowntimeLiveFor(scope.hospitalId);
+  const formsWaiting = downtime ? await countFormsWaiting(scope.hospitalId) : null;
   const [open, released, rejected, criticalsOpen] = emr
     ? await Promise.all([
         labWorklistFor(scope.hospitalId).then((w) => w.inputs.length),
@@ -48,6 +51,7 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_ranges: null,
     setup_limits: null,
     setup_criticals: null,
+    downtime: formsWaiting,
   };
   const words = {
     worklist: `${open} waiting`,
@@ -58,12 +62,14 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_ranges: "",
     setup_limits: "",
     setup_criticals: "",
+    downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
     criticals,
     // Set-up follows the flag alone: it is where the production gate's gaps are fixed.
     criticalsSetup: emr && labCriticalsLiveFor(scope.hospitalId),
     unitsRanges: emr && labUnitsRangesLiveFor(scope.hospitalId),
+    downtime,
   }).map((i) => ({
     id: i.id,
     label: i.label,

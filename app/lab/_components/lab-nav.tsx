@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BanIcon,
   CheckCheckIcon,
+  FileClockIcon,
   GaugeIcon,
   ListIcon,
   RulerIcon,
@@ -31,6 +32,7 @@ const ICON = {
   setup_catalogue: TestTubesIcon,
   setup_ranges: RulerIcon,
   setup_limits: GaugeIcon,
+  downtime: FileClockIcon,
   setup_criticals: SettingsIcon,
 } as const;
 

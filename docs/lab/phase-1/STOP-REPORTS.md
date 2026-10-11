@@ -484,3 +484,44 @@ limits page and the entry screen. **Screens** (`shots/p1-s6/`): artboard 11 `a1-
 
 **For the owner:** the harness fixture has no child patient, so S33 is proven on PGlite only. The limit's age band
 uses the same day conversion as ranges (STOP 5, note 2).
+
+---
+
+## STOP 7 — Downtime (behind `labDowntime`)
+
+**Built:** **Downtime entry** (nav count of printed forms still to enter): enter a paper form — form number, the
+patient by MRN, the request it answers (the MedSync order, or "a paper request, not in MedSync", transcribed on the open
+visit as the named requesting clinician's), the form's collection and result times, who released it on paper, the
+results in the catalogue's units, any value marked critical on the form with its check, and the call written on it —
+Save, or Save and next form, saying "Saved as: resulted 11:41, entered 12:21."; record a downtime; print blank forms
+(numbers reserved on the server first, one per A4 sheet, print CSS only, black on white); record a drill. The result
+carries the form's times: Released today and turnaround use them, and the doctor's review row says "Entered after
+downtime · Resulted 11:41 · entered 12:21 · paper form DT-00001". 0105 now also allows the order intent
+`downtime_form` (unapplied, so the file changed).
+
+| #   | Result                                                                                                                                         | Where            |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| S37 | Pass. 10 numbers reserved and 10 sheets, one number each; two printers at once never share a number; 3 forms print as 3 A4 pages               | PGlite + harness |
+| S38 | Pass. Four FBC results from one form: the record keeps the form's times, "Entered after downtime" and the number; the scripted entry took 14 s | PGlite + harness |
+| S39 | Pass. A form number is entered once; an unprinted number is refused                                                                            | PGlite + harness |
+| S40 | Pass. "A time on the form is in the future."; times outside a recorded downtime need a reason                                                  | PGlite + harness |
+| S41 | Pass. A critical phoned with read-back is created acknowledged by phone at the call's time; with no call a live alert opens                    | PGlite + harness |
+| S42 | Pass. Limits in force at the form's collection are applied (v1, replaced before entry, still judges it)                                        | PGlite           |
+| S43 | Pass. A patient the lab may not open, or with no visit and no request here: "Register this patient at reception first."                        | PGlite + action  |
+| S44 | Pass. A drill writes a drill record and nothing else                                                                                           | PGlite           |
+
+**Tests:** `tests/emr-db/lab-downtime.test.ts` (9). Full suite and PGlite lane green (580 on the lane). **axe:** 0 on
+the downtime page. **Paper:** `shots/p1-s7/downtime-forms-a4.pdf` (three forms, Chrome's print engine), screen render
+`a1-page-print.png`; entry `a2-enter-filled.png`.
+
+**Found by the harness and fixed:** Print blank forms reserved the numbers but did not open the sheets (the form's
+refresh cancelled the navigation); an empty form showed a raw validation message.
+
+**For the owner:**
+
+1. The ≤ 90 s budget is for a person; the scripted run (14 s) says only that the screen is not the bottleneck. The timed
+   trial with lab staff belongs to Step 8.
+2. If the specimen was collected in MedSync before the downtime, the form's result time must come after it, or the
+   entry is refused in words; the specimen's own collection time is kept.
+3. A paper critical with no check written is recorded as "Could not check: recorded on the paper form", never as a check
+   that was not done.

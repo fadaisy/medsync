@@ -37,7 +37,7 @@ export function LabShell({
   const who = [sentenceCase(scope.cadreName), sectionName].filter(Boolean).join(" · ");
   return (
     <div className="bg-background text-foreground flex min-h-svh w-full">
-      <aside aria-label="Laboratory navigation" className={SIDEBAR_CLASS}>
+      <aside aria-label="Laboratory navigation" className={`${SIDEBAR_CLASS} print:hidden`}>
         <div className="flex flex-col gap-1.5 p-2">
           <SidebarWorkspace name={scope.hospitalName} sub={LAB.place} href="/lab" />
         </div>
@@ -68,7 +68,7 @@ export function LabShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border glass sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b px-4 sm:px-6">
+        <header className="border-border glass sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b px-4 sm:px-6 print:hidden">
           <div className="flex min-w-0 items-center gap-2.5">
             <Link
               href="/lab"

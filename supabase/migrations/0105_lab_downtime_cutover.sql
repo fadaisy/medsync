@@ -139,3 +139,10 @@ CREATE POLICY lab_briefings_select ON public.lab_briefings FOR SELECT TO medsync
   USING (hospital_id = (SELECT private.current_hospital_id()));
 CREATE POLICY lab_cutover_select ON public.lab_cutover FOR SELECT TO medsync_clinical_reader
   USING (hospital_id = (SELECT private.current_hospital_id()));
+
+-- ─── DT-3: a paper request back-entered by the lab is an order of its own kind ─────
+-- (encounter_orders.intent_source gains 'downtime_form'; the order is placed by the lab on the
+-- patient's open visit, transcribed from the paper request, when no MedSync order exists.)
+ALTER TABLE public.encounter_orders DROP CONSTRAINT IF EXISTS enc_order_intent_check;
+ALTER TABLE public.encounter_orders ADD CONSTRAINT enc_order_intent_check CHECK (intent_source IS NULL OR intent_source IN
+  ('clinician','triage_recommendation','resus_handover','downtime_form'));
