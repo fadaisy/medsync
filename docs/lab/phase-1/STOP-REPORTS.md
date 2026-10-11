@@ -205,3 +205,17 @@ single-path switch). 3 expected-fail.
 | `critical_results` lane to add              | Already exists                                                                        |
 | Per-class restricted filtering              | Reports carry `restricted` only, not classes                                          |
 | Lab staff can result the patients they hold | They lose access at midnight or when the visit completes                              |
+
+---
+
+## STOP 1 — GATE A proposal
+
+[gate-a-proposal.md](gate-a-proposal.md): screens, the alert state machine with an example per rule, the recipient
+ladder on the fixture (level 1 and level 2 resolve to nobody), migrations 0102–0106, the RLS probe plan, the scheduler
+design, blank sign-off packs, the hazard log (24 hazards), the test and rollout plans, ADRs 0239–0250 and the decision
+table.
+
+- **Signed** 11 Oct 2026 by the owner's instruction ("go through all steps of phase 1"): D-LAB1-01 to -29, E-LAB1-01 to
+  -07. New: D-LAB1-26 (units), -27 (scheduler), -28 (harness), -29 (who sees an alert).
+- **Not signed:** Appendix A wording, the hazard log, every clinical number. Production refuses the flags that need them.
+- Migration 0101 (lab access, ADR 0238) was applied by the owner on 11 Oct.
