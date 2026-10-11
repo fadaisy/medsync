@@ -259,3 +259,59 @@ select private.schedule_lab_escalations('https://<host>/api/cron/lab-escalations
 
 The LOINC import (`npm run lab:import-loinc -- <Loinc.csv> <release>`) is a dry run until `--apply`; the licence and
 file are the owner's to download.
+
+---
+
+## STOP 3 — Engines
+
+Pure modules, no I/O: `lib/lab/catalogue.ts`, `ranges.ts`, `flags.ts`, `criticals/{marks,alerts,recipients,escalation,messages}.ts`,
+`downtime.ts`, `cutover.ts`, and CF-2 in `critical-flagging.ts`. Appendix A copy as data, all `draft`:
+`content/lab-criticals.ts`.
+
+**Tests:** `tests/lab/phase-1/`, 5 files, **114 passed**. Lab suite 238 passed, 3 expected-fail (F3, F5, F9). Typecheck
+and lint clean. Every fixture number is invented and named as a fixture (`_fixtures.ts`).
+
+### Rule coverage
+
+| Group | Rules    | Tests                                                                                                            |
+| ----- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| UN    | 1–8      | each; UN-5 a 17-row table (empty, "7,2", "7.20", "<0.1", "-", exponents, units, spaces)                          |
+| RR    | 1–8      | each; age boundaries in days (0, 27, 28, 6569, 6570), neonates, gaps, missing sex/DOB, one- and two-way          |
+| FL    | 1–7      | each; `evaluateCritical` table at and beyond both limits, neonatal limit, one-sided limit                        |
+| CM    | 1–5      | each                                                                                                             |
+| CA    | 1–14     | each; CA-14 below                                                                                                |
+| RC    | 1–7      | each (RC-7: not resolved, D-LAB1-05)                                                                             |
+| ES    | 1–5      | on time, late, two levels, an empty level, the last level, run twice, unsigned times, by hand                    |
+| MS    | 1–4      | each; MS-2 scans both SMS drafts for four places against every seeded test name and every UCUM unit              |
+| DT    | 1–8      | each                                                                                                             |
+| CO    | 1–5      | each                                                                                                             |
+| CF    | 2        | CF-2 here; **CF-1** (the loader that reads the sets, callers unchanged) is wired with automatic flagging, Step 6 |
+| Law 8 | snapshot | a range and a limit replaced after release: the snapshot and the replay as at release are unchanged              |
+
+Two-hospital fixture in every resolver and list: ranges, limits, recipients' contacts, acknowledgement, CF-2.
+
+### Property tests (CA-14, seeded PRNG, no new dependency)
+
+- 300 random event sequences of 30 events: every prefix stays in CA-2's states, levels never go down, the first
+  acknowledgement wins, a phone acknowledgement always names who logged it. **0 failures.**
+- 300 simulated hospitals of 40 ticks (releases with 0–3 marks, acknowledgements, scheduler runs, empty levels, unsigned
+  times): every mark has its alert, no alert without a released report, one alert per report, nothing overdue below
+  the last level, and every scheduler run is idempotent. **0 failures.**
+- The invariant checker fails on each broken invariant fed to it.
+
+### MS-2 failing fixture
+
+"Akello on Ward 4A, Potassium 6.9 mmol/L, MRN 20261011, HIV clinic" → name, test, value, identifier and restricted
+hits. A place called "TB Ward" makes the SMS refuse to render (skipped, the lab told), not send.
+
+### For the owner (interpretations, nothing clinical)
+
+1. **Response times.** Each level waits its own time from when the alert reached it: level 0 `acknowledge within`,
+   level 1 `level 1 after`. Level 2 is the last level, so `level 2 after` only marks the alert overdue there; it never
+   moves further (ES-4). Say if the sign-off pack should read differently.
+2. **Two equal bands** (RR-3) store as "Unsigned range" with the conflict reported to set-up. Set-up also refuses to
+   sign overlapping bands of one sex, so this can only arise from data edited outside MedSync.
+3. **Age** is counted in calendar days on the hospital's clock (Africa/Kampala), so a sample at 01:00 counts as that
+   day's. This matters at the neonatal boundaries.
+4. **Decimal comma** is always a decimal point ("7,2" is 7.2; hazard 24). "1,234" is then 1.234, which is refused
+   wherever the component allows fewer than 3 decimals.
