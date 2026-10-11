@@ -40,3 +40,30 @@ describe("LAB_WORKSPACE", () => {
     expect(labWorkspaceLiveFor("h1")).toBe(true);
   });
 });
+
+describe("Lab Phase 1 flags (Law 14)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("are off by default and live only inside the lab workspace", async () => {
+    const { labCriticalsLiveFor, labDowntimeLiveFor, labUnitsRangesLiveFor } =
+      await import("@/lib/lab/feature");
+    vi.stubEnv("LAB_WORKSPACE", "");
+    vi.stubEnv("LAB_CRITICALS", "1");
+    vi.stubEnv("LAB_UNITS_RANGES", "1");
+    vi.stubEnv("LAB_DOWNTIME", "1");
+    expect([
+      labCriticalsLiveFor("h1"),
+      labUnitsRangesLiveFor("h1"),
+      labDowntimeLiveFor("h1"),
+    ]).toEqual([false, false, false]);
+    vi.stubEnv("LAB_WORKSPACE", "1");
+    vi.stubEnv("LAB_UNITS_RANGES", "h2");
+    vi.stubEnv("LAB_DOWNTIME", "");
+    expect([
+      labCriticalsLiveFor("h1"),
+      labUnitsRangesLiveFor("h1"),
+      labDowntimeLiveFor("h1"),
+    ]).toEqual([true, false, false]);
+    expect(labUnitsRangesLiveFor("h2")).toBe(true);
+  });
+});

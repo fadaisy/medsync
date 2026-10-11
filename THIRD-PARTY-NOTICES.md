@@ -27,6 +27,22 @@ Clinical terminologies and code systems MedSync carries, their licences, and how
 - **How MedSync uses it:** a LOINC code is shown or exported **only when its status is verified**. Candidate codes
   stay internal. The FHIR projection (`lib/emr/fhir.ts`, ADR 0138) never emits one.
 
+- **Lab Phase 1:** the laboratory's test catalogue may carry an optional LOINC code per component, validated against
+  the `loinc_codes` table, imported from an official LOINC release with its version (`scripts/lab/import-loinc.ts`).
+  The FHIR projection emits a code only when one is present and verified; it never invents one.
+
+## UCUM — Regenstrief Institute
+
+- **Content:** the curated unit list `ucum_units` (migration 0103) and the unit codes stored on laboratory results.
+- **Notice:** "This product includes all or a portion of the UCUM table, UCUM codes, and UCUM definitions or is derived
+  from it, subject to a license from Regenstrief Institute, Inc. and The UCUM Organization. Your use of the UCUM table,
+  UCUM codes, UCUM definitions also is subject to this license, a copy of which is available at
+  http://unitsofmeasure.org. The current complete UCUM table, UCUM Specification are available for download at
+  http://unitsofmeasure.org. The UCUM table and UCUM codes are copyright © 1995-2013, Regenstrief Institute, Inc. and
+  the Unified Codes for Units of Measures (UCUM) Organization. All rights reserved."
+- **How MedSync uses it:** codes are reproduced unmodified; MedSync's display strings (`µmol/L`, `×10⁹/L`) are shown
+  beside them and never replace the code. No value is converted between units.
+
 ## ICD-10 — World Health Organization
 
 - **Status: licence NOT yet held.** Owner action O-3 is to apply for the WHO ICD-10 licence.

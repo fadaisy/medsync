@@ -219,3 +219,43 @@ table.
   -07. New: D-LAB1-26 (units), -27 (scheduler), -28 (harness), -29 (who sees an alert).
 - **Not signed:** Appendix A wording, the hazard log, every clinical number. Production refuses the flags that need them.
 - Migration 0101 (lab access, ADR 0238) was applied by the owner on 11 Oct.
+
+---
+
+## STOP 2 — Data layer
+
+Migrations **0102–0106** (unapplied; owner applies in order), `db/schema/lab-safety.ts`, the three flags, the UCUM
+table and the LOINC import script.
+
+| Migration | What                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| 0102      | Lab settings, response-time sets, contacts, alerts, marks, alert events, heartbeats, SMS templates           |
+| 0103      | UCUM units (28 curated), component measures (immutable), result snapshots (append-only)                      |
+| 0104      | Reference-range and critical-limit versions with bands/limits; signed sets frozen, status only moves forward |
+| 0105      | Downtime periods, form numbers (entered once), entries (paper times), drills, briefings, cut-over            |
+| 0106      | Per-user realtime topic `user:<id>`, `private.notify_user`, pg_cron + pg_net scheduler (where available)     |
+
+### Proof
+
+`tests/emr-db/lab-safety-data.test.ts`, 14 tests on the PGlite lane:
+
+- No client INSERT, UPDATE or DELETE on any of the 21 tables; anonymous reads nothing.
+- Another hospital's reader sees none of hospital A's rows.
+- The lab (lab_work basis) sees the alert, mark, events and snapshot. A notified recipient with no access basis sees the
+  alert but not the snapshot (D-LAB1-29). A clinician with neither sees no alert, and does see the hospital's set-up.
+- Events, marks, snapshots and downtime entries raise on UPDATE and DELETE, as the owner too.
+- Signed sets need two different signers, are frozen once signed, never move back, never lose a signature.
+- A measure is immutable; a form number is entered once; SMS templates need two approvers; the cut-over a second.
+- The realtime topic `user:<id>` is heard only by that user; the payload is `{alertId, at, kind}`.
+
+Drizzle parity passes. Full suite: 8,810 passed, 3 expected-fail (F3, F5, F9). PGlite lane: 528 passed.
+
+### Owner, after applying 0106
+
+```sql
+select vault.create_secret('<CRON_SECRET>', 'medsync_cron_secret');
+select private.schedule_lab_escalations('https://<host>/api/cron/lab-escalations');
+```
+
+The LOINC import (`npm run lab:import-loinc -- <Loinc.csv> <release>`) is a dry run until `--apply`; the licence and
+file are the owner's to download.

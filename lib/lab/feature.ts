@@ -10,11 +10,30 @@ import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
  * says, so no hospital ever sees the workspace without signed safety wording.
  */
 export function labWorkspaceLiveFor(hospitalId: string): boolean {
-  const value = process.env.LAB_WORKSPACE?.trim();
-  if (!value) return false;
-  if (value !== "1" && !value.split(",").some((id) => id.trim() === hospitalId)) return false;
+  if (!envOn("LAB_WORKSPACE", hospitalId)) return false;
   return !blockedUnsigned();
 }
+
+/** "1", or a comma-separated list of hospital ids (the EMR_V1 form). */
+function envOn(name: string, hospitalId: string): boolean {
+  const value = process.env[name]?.trim();
+  if (!value) return false;
+  return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}
+
+/**
+ * Lab Phase 1 (Law 14): three per-hospital flags, off by default, each inside the lab workspace.
+ * With all three off, /lab and the doctor's screens are exactly the Phase 0 baseline. Production
+ * readiness that depends on data — signed wording, signed response times, a level-1 contact for
+ * every live department, a unit on every orderable test — is checked where the database is at hand
+ * (lib/lab/criticals/readiness.ts, lib/lab/catalogue-readiness.ts) and refuses the flag in production.
+ */
+export const labCriticalsLiveFor = (hospitalId: string) =>
+  envOn("LAB_CRITICALS", hospitalId) && labWorkspaceLiveFor(hospitalId);
+export const labUnitsRangesLiveFor = (hospitalId: string) =>
+  envOn("LAB_UNITS_RANGES", hospitalId) && labWorkspaceLiveFor(hospitalId);
+export const labDowntimeLiveFor = (hospitalId: string) =>
+  envOn("LAB_DOWNTIME", hospitalId) && labWorkspaceLiveFor(hospitalId);
 
 let warned = false;
 function blockedUnsigned(): boolean {
