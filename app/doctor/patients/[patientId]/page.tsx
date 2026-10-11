@@ -10,6 +10,9 @@ import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { loadChart } from "@/lib/emr/read/chart";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
+import { openAlertsForPatient } from "@/lib/lab/criticals/read";
+import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { ChartCriticals } from "../../_components/critical-alerts";
 
 export const metadata: Metadata = { title: "Patient · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -39,10 +42,16 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
   // EMR v1 (gate-a E.2): the chart. Flag off, everything below renders exactly as before.
   if (emrV1LiveFor(scope.hospitalId)) {
     const chart = await loadChart("doctor", patientId);
-    return chart ? (
-      <EmrChart chart={chart} surface="doctor" />
-    ) : (
-      <NoAccessScreen patientId={patientId} />
+    if (!chart) return <NoAccessScreen patientId={patientId} />;
+    // Lab Phase 1 §5.4: open critical alerts on this patient, above the chart, for anyone who may open it.
+    const open = (await criticalsLive(scope.hospitalId))
+      ? await openAlertsForPatient(scope.hospitalId, patientId)
+      : [];
+    return (
+      <>
+        <ChartCriticals alerts={open} />
+        <EmrChart chart={chart} surface="doctor" />
+      </>
     );
   }
 

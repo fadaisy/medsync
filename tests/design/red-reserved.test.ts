@@ -293,9 +293,17 @@ describe("red is reserved — the doctor workspace", () => {
 describe("red is reserved — the laboratory workspace", () => {
   // Every /lab route and the lab engines. The result screen also renders components/emr, which
   // the EMR block below holds to its own allowlist (the saved critical value, never this slice).
-  const LAB_TREE = tree("app/lab", "lib/lab", "app/not-authorised").concat([
-    ["content/lab.ts", stripComments(readFileSync(resolve(ROOT, "content/lab.ts"), "utf8"))],
-  ] as const);
+  const LAB_TREE = tree("app/lab", "lib/lab", "app/not-authorised").concat(
+    (["content/lab.ts", "content/lab-criticals.ts"] as const).map(
+      (f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const,
+    ),
+  );
+  /** Lab Phase 1: the engines hold "critical" as data (an evaluation kind), never as a tone. */
+  const ENGINE = (path: string) => path.startsWith("lib/lab/");
+  const noToneLiteral = new RegExp(
+    WEB_RED_FILL.source.replace(String.raw`|(?<!(?:short|label):\s*)["']critical["']`, ""),
+    "i",
+  );
 
   /**
    * Pre-existing red on the legacy list's row actions (LAB_RESULTS_LIVE, EMR v1 off): "rejected",
@@ -309,7 +317,7 @@ describe("red is reserved — the laboratory workspace", () => {
     expect(LAB_TREE.length).toBeGreaterThan(15);
     for (const [path, src] of LAB_TREE) {
       if (LEGACY_RED.includes(path)) continue;
-      const m = WEB_RED_FILL.exec(src);
+      const m = (ENGINE(path) ? noToneLiteral : WEB_RED_FILL).exec(src);
       expect(m, `${path}: ${m?.[0]}`).toBeNull();
       expect(src, path).not.toMatch(/\b(?:text|bg|border|ring)-(?:red|rose|green|emerald)-\d/);
       expect(src, path).not.toMatch(/border-l-\d|border-l-(?:grape|plum|teal|amber)/);
@@ -573,6 +581,51 @@ describe("never colour alone — the Expo app", () => {
     expect(entries.length).toBeGreaterThanOrEqual(10); // the ten appointments.status values
     for (const [, tone, word] of entries) {
       expect((word ?? "").trim(), `tone ${tone} without a word`).not.toBe("");
+    }
+  });
+});
+
+// ─── Lab Phase 1: the critical-result alert (D-LAB1-18, Law 10) ─────────────
+
+describe("red is reserved — the critical-result alert", () => {
+  /** The critical tint is allowed on the pinned alert and the Critical pill, and nowhere else new. */
+  const ALLOWED = [
+    "app/doctor/_components/critical-alerts.tsx",
+    "app/doctor/criticals/[alertId]/page.tsx",
+    "app/doctor/_components/doctor-shell.tsx",
+  ];
+  const NEW = tree(
+    "app/doctor/criticals",
+    "app/lab/criticals",
+    "app/lab/setup",
+    "app/admin/lab-signoffs",
+  ).concat(
+    [
+      "app/doctor/_components/critical-ack.tsx",
+      "app/doctor/_lib/criticals.ts",
+      "components/medsync/critical-live.tsx",
+      "components/medsync/fresh-factor.tsx",
+      "app/lab/results/[orderId]/_components/mark-panel.tsx",
+      "app/lab/results/[orderId]/_components/lab-result-entry.tsx",
+      ...ALLOWED,
+    ].map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),
+  );
+
+  it("the critical tint appears only on the pinned alert and the Critical pill", () => {
+    for (const [path, src] of NEW) {
+      if (ALLOWED.includes(path)) continue;
+      // The realtime event is named "critical" (migration 0106); a name, not a tone.
+      const m = WEB_RED_FILL.exec(src.replace(/event: "critical"/g, ""));
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+    }
+  });
+
+  it("where it appears, it carries its icon and the words (never colour alone)", () => {
+    for (const path of ALLOWED) {
+      const src = NEW.find(([p]) => p === path)![1];
+      expect(src, path).toMatch(/<StatusWord tone="critical"[\s>]/);
+      expect(src, path).toMatch(/Critical result|critical \{/);
+      expect(src, path).not.toMatch(/\b(?:text|bg|border)-(?:red|rose)-\d/);
     }
   });
 });

@@ -3,11 +3,16 @@ import type { LabPermission } from "./access";
 /**
  * The lab workspace navigation (Lab Phase 0, NV-1..NV-3). The sidebar renders only what is
  * registered here and visible to the viewer; a page that does not exist is never listed, and
- * nothing is shown as "soon". Later phases register Criticals, Downtime entry, Set-up, QC and
- * Reports when their pages ship.
+ * nothing is shown as "soon". Lab Phase 1 registers Criticals and the critical-results set-up
+ * behind `labCriticals`; Downtime entry, QC and Reports register when their pages ship.
  */
 
-export type LabNavId = "worklist" | "released" | "rejected";
+export type LabNavId = "worklist" | "criticals" | "released" | "rejected" | "setup_criticals";
+
+/** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
+export interface LabNavFlags {
+  criticals: boolean;
+}
 
 export interface LabNavItem {
   id: LabNavId;
@@ -16,13 +21,23 @@ export interface LabNavItem {
   order: number;
   /** Match the index route exactly, so /lab/released does not light Worklist. */
   exact: boolean;
-  visibleFor: (permissions: ReadonlySet<LabPermission>) => boolean;
+  /** Set-up items sit under their own group label. */
+  group?: "setup";
+  visibleFor: (permissions: ReadonlySet<LabPermission>, flags: LabNavFlags) => boolean;
 }
 
 const view = (p: ReadonlySet<LabPermission>) => p.has("lab.view");
 
 export const LAB_NAV: readonly LabNavItem[] = [
   { id: "worklist", label: "Worklist", href: "/lab", order: 1, exact: true, visibleFor: view },
+  {
+    id: "criticals",
+    label: "Criticals",
+    href: "/lab/criticals",
+    order: 1.5,
+    exact: false,
+    visibleFor: (p, f) => f.criticals && p.has("lab.view"),
+  },
   {
     id: "released",
     label: "Released today",
@@ -39,8 +54,20 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     visibleFor: view,
   },
+  {
+    id: "setup_criticals",
+    label: "Critical results",
+    href: "/lab/setup/criticals",
+    order: 10,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => f.criticals && p.has("lab.manage"),
+  },
 ];
 
-export function navFor(permissions: ReadonlySet<LabPermission>): LabNavItem[] {
-  return LAB_NAV.filter((i) => i.visibleFor(permissions)).sort((a, b) => a.order - b.order);
+export function navFor(
+  permissions: ReadonlySet<LabPermission>,
+  flags: LabNavFlags = { criticals: false },
+): LabNavItem[] {
+  return LAB_NAV.filter((i) => i.visibleFor(permissions, flags)).sort((a, b) => a.order - b.order);
 }

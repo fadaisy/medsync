@@ -43,7 +43,13 @@ export function LabShell({
         </div>
         <nav aria-label="Laboratory" className="flex-1 overflow-y-auto px-2 pb-2">
           <SidebarGroupLabel>{LAB.nav.label}</SidebarGroupLabel>
-          <LabSidebarNav items={nav} />
+          <LabSidebarNav items={nav.filter((i) => !i.group)} />
+          {nav.some((i) => i.group === "setup") ? (
+            <>
+              <SidebarGroupLabel>{LAB.nav.setup}</SidebarGroupLabel>
+              <LabSidebarNav items={nav.filter((i) => i.group === "setup")} />
+            </>
+          ) : null}
         </nav>
         <div className="border-sidebar-border border-t p-2">
           <div className="flex items-center gap-2 px-1.5 py-1.5">

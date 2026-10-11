@@ -212,8 +212,8 @@ describe.skipIf(!laneOn)("Lab Phase 1 data layer (0102–0106)", () => {
     );
     await pg.query(`INSERT INTO escalation_heartbeats (source) VALUES ('lazy')`);
     await pg.query(
-      `INSERT INTO lab_sms_templates (kind, version, body, authored_by) VALUES ('level0', 1, 'Fixture template body', $1)`,
-      [labUser],
+      `INSERT INTO lab_sms_templates (hospital_id, kind, version, body, authored_by) VALUES ($1, 'level0', 1, 'Fixture template body', $2)`,
+      [hA, labUser],
     );
     const measure = await one<{ id: string }>(
       `INSERT INTO lab_component_measures (hospital_id, test_id, concept_id, version, result_type, unit_ucum, unit_display,
@@ -313,7 +313,7 @@ describe.skipIf(!laneOn)("Lab Phase 1 data layer (0102–0106)", () => {
 
   it("another hospital's reader sees none of hospital A's rows", async () => {
     for (const t of NEW_TABLES) {
-      if (["escalation_heartbeats", "lab_sms_templates", "ucum_units"].includes(t)) continue; // no hospital
+      if (["escalation_heartbeats", "ucum_units"].includes(t)) continue; // no hospital
       expect(await count(reader(readerB, hB), t), t).toBe(0);
     }
   });

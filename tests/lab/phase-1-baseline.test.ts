@@ -4,19 +4,24 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Lab Phase 1, Step 0 (docs/lab/phase-1/PROMPT-LAB-PHASE-1.md §9): failing tests that reproduce
- * F3, F5 and F9. Each is `it.fails`: green while the defect is present, red once fixed, so the
+ * F3, F5 and F9. Each was `it.fails`: green while the defect is present, red once fixed, so the
  * step that fixes it flips it to a plain `it` (F3 in Step 4, F5 in Step 5, F9 in Step 8).
  */
 const ROOT = process.cwd();
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 
 describe("Lab Phase 1 baseline — defects reproduced at Step 0", () => {
-  it.fails("F3: releasing a critical result creates an alert (fixed in Step 4)", () => {
-    // Today releaseResults computes `critical` and returns a warning string; nobody is told.
-    const release = read("lib/emr/write/results.ts");
-    const engine = existsSync(resolve(ROOT, "lib/lab/criticals"));
-    expect(engine).toBe(true);
-    expect(release).toMatch(/criticalAlerts|critical_alerts|createCriticalAlert/);
+  it("F3: releasing a result marked critical creates an alert (fixed in Step 4)", () => {
+    // The release, its marks and its alert are one transaction in the criticals store; the lab's
+    // entry calls it, and an amendment opens the correction alert. Behaviour: tests/emr-db/lab-criticals.test.ts S1.
+    const store = read("lib/lab/criticals/store.ts");
+    expect(store).toMatch(
+      /export async function releaseWithCriticalMark[\s\S]*createAlertOnRelease/,
+    );
+    expect(read("app/lab/results/[orderId]/_components/lab-result-entry.tsx")).toMatch(
+      /releaseWithCriticalMarkAction/,
+    );
+    expect(read("lib/emr/actions/results.ts")).toMatch(/correctAlerts/);
   });
 
   it.fails("F5: the reference range comes from a signed store, not typed (fixed in Step 5)", () => {

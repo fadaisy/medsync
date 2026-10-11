@@ -43,9 +43,12 @@ export function ReviewView({
   timeZone,
   pending = false,
   message = null,
+  alerted = new Set<string>(),
   ...on
 }: {
   items: readonly ReviewItem[];
+  /** Reports with an open critical alert: not selectable, acknowledged through the alert (CA-12). */
+  alerted?: ReadonlySet<string>;
   selected: ReadonlySet<string>;
   draft: AckDraft;
   staff: readonly StaffOption[];
@@ -62,7 +65,8 @@ export function ReviewView({
       </EmptyState>
     );
   const issues = ackIssues(draft, selected.size);
-  const all = items.every((i) => selected.has(i.reportId));
+  const selectable = items.filter((i) => !alerted.has(i.reportId));
+  const all = selectable.length > 0 && selectable.every((i) => selected.has(i.reportId));
   return (
     <div className="flex flex-col gap-5">
       <div className="border-border flex flex-col gap-3 border-b pb-4">
@@ -73,7 +77,7 @@ export function ReviewView({
             onChange={(e) => on.onSelectAll?.(e.target.checked)}
             className="size-5 accent-teal-600"
           />
-          Select all {items.length}
+          Select all {selectable.length}
         </label>
         <div className="flex flex-wrap items-center gap-3">
           <ChoiceChips
@@ -143,6 +147,7 @@ export function ReviewView({
               type="checkbox"
               aria-label={`Select ${i.test} for ${i.identity.name}`}
               checked={selected.has(i.reportId)}
+              disabled={alerted.has(i.reportId)}
               onChange={(e) => on.onSelect?.(i.reportId, e.target.checked)}
               className="size-5 shrink-0 accent-teal-600 sm:mt-1"
             />
@@ -203,24 +208,35 @@ export function ReviewView({
                 </p>
               ) : null}
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={pending}
-                  onClick={() => on.onQuick?.(i.reportId, "seen")}
-                  className="min-h-11 sm:min-h-8"
-                >
-                  Seen
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={pending}
-                  onClick={() => on.onQuick?.(i.reportId, "acted")}
-                  className="min-h-11 sm:min-h-8"
-                >
-                  Acted
-                </Button>
+                {alerted.has(i.reportId) ? (
+                  <Link
+                    href="/doctor/criticals"
+                    className="text-body-s tap inline-flex min-h-11 items-center font-medium text-teal-700 underline-offset-4 hover:underline sm:min-h-0"
+                  >
+                    Acknowledge through its critical alert
+                  </Link>
+                ) : (
+                  <>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => on.onQuick?.(i.reportId, "seen")}
+                      className="min-h-11 sm:min-h-8"
+                    >
+                      Seen
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => on.onQuick?.(i.reportId, "acted")}
+                      className="min-h-11 sm:min-h-8"
+                    >
+                      Acted
+                    </Button>
+                  </>
+                )}
                 <Link
                   href={`/doctor/patients/${i.patientUserId}#chart-results`}
                   className="text-body-s tap inline-flex min-h-11 items-center font-medium text-teal-700 underline-offset-4 hover:underline sm:min-h-0"

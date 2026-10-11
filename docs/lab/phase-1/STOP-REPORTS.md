@@ -315,3 +315,89 @@ hits. A place called "TB Ward" makes the SMS refuse to render (skipped, the lab 
    day's. This matters at the neonatal boundaries.
 4. **Decimal comma** is always a decimal point ("7,2" is 7.2; hazard 24). "1,234" is then 1.234, which is refused
    wherever the component allows fewer than 3 decimals.
+
+---
+
+## STOP 4 — Criticals by hand (behind `labCriticals`)
+
+**Built:** the mark panel and Release and alert (one transaction: report, marks, alert); the alert's status on the
+released result; **Criticals** (list, detail, timeline, Log a phone call, Could not reach anyone); the doctor's pinned
+alert, header count, detail and one-tap acknowledgement, the dispute line, the chart banner, the Critical results lane;
+batch acknowledgement excluding alerted reports; escalation by the scheduler route (`/api/cron/lab-escalations`), the
+lazy path and a heartbeat; corrections on amendment; **critical-results set-up** (the lab's number, second check, SMS
+switch, response times with the lead's signature, contacts per department and for the hospital, SMS wording with two
+approvers); the CSO's countersignature in the super-admin console (**Lab sign-offs**); the production gate.
+
+### Scenarios
+
+| #   | Result                                                                                                                                                                 | Where                         |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| S1  | Pass. One transaction; one alert, one mark; the lab list shows "Sent · waiting 0 min"; the doctor's header shows "1 critical result"                                   | PGlite + harness              |
+| S2  | Pass. One tap; "Acknowledged 10:28 by Medical Officer"; the report counts as reviewed; batch acknowledgement had excluded it                                           | PGlite + harness              |
+| S3  | Pass. At the signed time an escalation is written; the contact sees "Escalated to you" and Acknowledge and take over; level 2 holds                                    | PGlite + harness              |
+| S4  | Pass. The panel warns before release ("Nobody is set up…"); the alert passes the empty level at once and names it on the timeline                                      | PGlite + harness              |
+| S5  | Pass. Every level empty: Not sent, at the last level, no due time; the release stands; the skipped orderer is listed as "left"                                         | PGlite                        |
+| S6  | Pass. The push fails after commit: nothing throws, `notified … failed` is written, the lab reads "Not sent · phone the ward"                                           | PGlite                        |
+| S7  | Pass. Read-back to the doctor acknowledges by phone; the doctor sees "The lab recorded your phone acknowledgement at 10:33. Not you? Tell us."; Not me reopens it      | PGlite + harness              |
+| S8  | Pass. A call to a nurse (or to someone not on MedSync) is "Ward informed. The clock keeps running."                                                                    | PGlite + harness              |
+| S9  | Pass. Could not reach anyone escalates at once                                                                                                                         | PGlite + harness              |
+| S10 | Pass. Two acknowledgements: one wins, the second returns the first                                                                                                     | PGlite                        |
+| S11 | Pass. A double tap replays the report and the alert                                                                                                                    | PGlite                        |
+| S12 | Pass. The amendment opens "Corrected result: Potassium was 6.9, is now 4.9 mmol/L." to every earlier recipient and the acknowledger; it needs its own acknowledgement  | PGlite + harness              |
+| S13 | Pass. Unsigned times: sent, never escalated by itself, the panel says so; Could not reach anyone still works                                                           | PGlite + harness (hospital 2) |
+| S14 | Pass. With the scheduler silent, Criticals shows "Escalations may be delayed…" and the read escalates the overdue alert                                                | PGlite + harness              |
+| S15 | Pass. A restricted result: a recipient without access is skipped and listed; no SMS is queued even with SMS on                                                         | PGlite                        |
+| S16 | Pass. Another hospital's doctor, a receptionist, a clinician with no basis: not found; a nurse: may not acknowledge                                                    | PGlite + harness (404)        |
+| S17 | Pass. Doctor workspace off: the alert is pinned on the Overview and on Results to review, and the header count shows                                                   | harness                       |
+| S18 | Pass. 390 px: the pinned alert, the detail, Acknowledge in a 48 px sticky footer (moved clear of the Emergency button after the first run)                             | harness                       |
+| S19 | Pass. Off: exactly the Phase 0 screens and 404 on every new route. Production refuses it while the wording is draft, or while a live department has no level-1 contact | unit + PGlite + harness       |
+
+### Numbers (harness: `next dev`, PGlite, one machine — indicative, not production)
+
+| Measure                           | Budget              | Result                                                                                       |
+| --------------------------------- | ------------------- | -------------------------------------------------------------------------------------------- |
+| Taps, technologist, with a repeat | ≤ 4 + the value     | 4 (Mark critical · Repeated · sample checks · Release and alert) + the repeat value          |
+| Taps, doctor, to acknowledge      | 1                   | 1                                                                                            |
+| Release with a mark, round trip   | p95 < 500 ms server | 193 ms observed in the browser, one sample                                                   |
+| Acknowledge, round trip           | p95 < 300 ms server | 222 ms observed in the browser, one sample                                                   |
+| Alert visible to an online doctor | ≤ 5 s / ≤ 15 s      | Not measurable here (no Supabase Realtime): the polling fallback is 15 s by construction     |
+| Escalation after due              | ≤ 60 s              | At once on any read (lazy path); every minute once `private.schedule_lab_escalations` is run |
+| Critical marks without an alert   | 0                   | 0 (CA-14 on the record, PGlite)                                                              |
+
+### Screens
+
+`~/Desktop/lab0-harness/shots/p1-s4/`: artboard 2 `b1-mark-panel-checked.png`, `c1-empty-level-panel.png`,
+`d1-panel-preview.png`, `e1-panel-coded.png`, `f3-panel-unsigned.png`; artboard 3 `b2-lab-criticals.png`,
+`c2-escalated-lab*.png`, `d1-release-phone-ack.png`, `d3-lab-ward-informed-timeline.png`; artboard 5 `b3-doctor-pinned*.png`,
+`g2-workspace.png`; artboard 6 (SMS wording, two approvers) `a3-contacts.png`; artboard 7 `b4-doctor-phone*.png`;
+artboard 8 `c3-escalated-*.png`; Results to review `e2-results-batch.png`; set-up `a1-setup-empty*.png`.
+
+**axe:** 0 violations on every new screen (lab entry with the panel, Criticals, alert detail, set-up, the doctor's
+pinned alert, detail and phone views, the workspace). The doctor pages with the workspace **off** report 10
+colour-contrast nodes on the sidebar's dimmed "Soon" items: pre-existing, untouched here.
+
+**Red:** `tests/design/red-reserved.test.ts` now holds the lab tree red-free (engines may hold "critical" as data,
+never as a class) and allows the critical tint only on the pinned alert and the Critical pill, each with its icon and
+words (D-LAB1-18).
+
+### For the owner
+
+1. **The CSO signs in the super-admin console** (Lab sign-offs): no in-app CSO role exists, so a superadmin signs as
+   CSO, with a fresh second factor and D-LAB1-12's exception in words when it is the same person. The harness cannot
+   render `/admin` (it needs the real Supabase service client), so that page is typechecked and built, not seen; the
+   harness stood in with SQL for the CSO step.
+2. **Second check (D-LAB1-06)** records the second lab user chosen by name, not by their own sign-in as §5.2 asks. A
+   second sign-in on the same device needs a session flow that does not exist; the setting is off by default.
+3. **A phone acknowledgement is not the doctor's review** of the report: it can be disputed, and a review record cannot
+   be taken back. An acknowledgement in the app is the review (CA-12).
+4. **"Fresh second factor"** = the authenticator code entered again within 10 minutes; the page asks for it in place.
+5. **The Critical pill's icon** is the design system's critical octagon, not the triangle in D-LAB1-18's wording: the
+   triangle means amber caution here. Say if it should change.
+6. **`lab_sms_templates` gained `hospital_id`** (0102 is unapplied, so the file changed rather than a new migration):
+   one hospital's approval must not send another's wording.
+7. Not built, as recorded at GATE A: push; the informed nurse in charge (D-LAB1-05); per-class restricted filtering
+   (reports carry `restricted` only).
+8. **Apply 0102–0106**, then in SQL: `select vault.create_secret('<CRON_SECRET>', 'medsync_cron_secret');` and
+   `select private.schedule_lab_escalations('https://<host>/api/cron/lab-escalations');`. Keep `LAB_CRITICALS` off in
+   production until the Appendix A wording is signed and every live department has a level-1 contact (it refuses to
+   turn on otherwise).

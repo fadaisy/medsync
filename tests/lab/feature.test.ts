@@ -66,4 +66,16 @@ describe("Lab Phase 1 flags (Law 14)", () => {
     ]).toEqual([true, false, false]);
     expect(labUnitsRangesLiveFor("h2")).toBe(true);
   });
+
+  it("S19: production refuses LAB_CRITICALS while the alert wording (Appendix A) is a draft", async () => {
+    const { labCriticalsLiveFor } = await import("@/lib/lab/feature");
+    const { CRITICALS_COPY_STATUS } = await import("@/content/lab-criticals");
+    expect(CRITICALS_COPY_STATUS.status).toBe("draft"); // unsigned in this slice
+    vi.stubEnv("LAB_WORKSPACE", "1");
+    vi.stubEnv("LAB_CRITICALS", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(labCriticalsLiveFor("h1")).toBe(false);
+    vi.stubEnv("VERCEL_ENV", "preview");
+    expect(labCriticalsLiveFor("h1")).toBe(true);
+  });
 });

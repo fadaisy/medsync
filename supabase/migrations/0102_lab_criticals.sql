@@ -157,6 +157,7 @@ CREATE INDEX IF NOT EXISTS eh_ran_at ON public.escalation_heartbeats (source, ra
 -- ─── 8. SMS templates: two different approvers (MS-3, D-LAB1-17) ─────────
 CREATE TABLE IF NOT EXISTS public.lab_sms_templates (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  hospital_id uuid NOT NULL REFERENCES public.hospitals(id) ON DELETE CASCADE,
   kind text NOT NULL CHECK (kind IN ('level0','escalation')),
   version integer NOT NULL CHECK (version > 0),
   body text NOT NULL CHECK (char_length(body) BETWEEN 10 AND 320),
@@ -166,11 +167,11 @@ CREATE TABLE IF NOT EXISTS public.lab_sms_templates (
   approved_by uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
   approved_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT lst_version UNIQUE (kind, version),
+  CONSTRAINT lst_version UNIQUE (hospital_id, kind, version),
   CONSTRAINT lst_two_approvers CHECK (status <> 'approved' OR (first_approver IS NOT NULL AND approved_by IS NOT NULL
     AND first_approver <> approved_by))
 );
-CREATE UNIQUE INDEX IF NOT EXISTS lst_one_approved ON public.lab_sms_templates (kind) WHERE status = 'approved';
+CREATE UNIQUE INDEX IF NOT EXISTS lst_one_approved ON public.lab_sms_templates (hospital_id, kind) WHERE status = 'approved';
 
 -- ─── 9. Append-only and audit triggers ───────────────────────────────────
 DROP TRIGGER IF EXISTS critical_alert_events_no_mutation ON public.critical_alert_events;
@@ -240,4 +241,5 @@ CREATE POLICY cae_select ON public.critical_alert_events FOR SELECT TO medsync_c
 DROP POLICY IF EXISTS eh_select ON public.escalation_heartbeats;
 CREATE POLICY eh_select ON public.escalation_heartbeats FOR SELECT TO medsync_clinical_reader USING (true);
 DROP POLICY IF EXISTS lst_select ON public.lab_sms_templates;
-CREATE POLICY lst_select ON public.lab_sms_templates FOR SELECT TO medsync_clinical_reader USING (true);
+CREATE POLICY lst_select ON public.lab_sms_templates FOR SELECT TO medsync_clinical_reader
+  USING (hospital_id = (SELECT private.current_hospital_id()));

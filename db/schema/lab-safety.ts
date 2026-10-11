@@ -133,6 +133,7 @@ export const escalationHeartbeats = pgTable("escalation_heartbeats", {
 
 export const labSmsTemplates = pgTable("lab_sms_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
   kind: text("kind").notNull(),
   version: integer("version").notNull(),
   body: text("body").notNull(),

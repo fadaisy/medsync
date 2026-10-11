@@ -59,6 +59,9 @@ export function ResultEntryView({
   phase,
   pending = false,
   message = null,
+  rowAction,
+  releaseLabel = "Release final",
+  lockAll = false,
   ...on
 }: {
   data: ResultEntryData;
@@ -66,8 +69,12 @@ export function ResultEntryView({
   phase: EntryPhase;
   pending?: boolean;
   message?: { ok: boolean; text: string } | null;
+  /** Lab Phase 1: an action under each result (Mark critical), and the panel's lock (§5.2). */
+  rowAction?: (c: EntryComponent, line: EntryLine) => ReactNode;
+  releaseLabel?: string;
+  lockAll?: boolean;
 } & EntryHandlers) {
-  const locked = phase === "released" || pending;
+  const locked = phase === "released" || pending || lockAll;
   const report = data.kind === "imaging" || data.kind === "ecg";
   const issues =
     phase === "released"
@@ -135,6 +142,7 @@ export function ResultEntryView({
               line={state.lines[c.conceptId] ?? emptyLine(c)}
               locked={locked}
               onLine={on.onLine}
+              action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
             />
           ))}
         </div>
@@ -154,6 +162,7 @@ export function ResultEntryView({
               onChange={(code) => on.onLine?.(c.conceptId, { code })}
             />
             <FlagSelect c={c} line={l} locked={locked} onLine={on.onLine} />
+            {rowAction?.(c, l)}
           </div>
         );
       })}
@@ -261,6 +270,7 @@ export function ResultEntryView({
               onClick={() => on.onSave?.("preliminary")}
               disabled={
                 pending ||
+                lockAll ||
                 entryIssues(data.kind, data.components, state, { final: false }).length > 0
               }
             >
@@ -269,9 +279,9 @@ export function ResultEntryView({
             <Button
               type="button"
               onClick={() => on.onSave?.("final")}
-              disabled={pending || issues.length > 0}
+              disabled={pending || lockAll || issues.length > 0}
             >
-              Release final
+              {releaseLabel}
             </Button>
           </>
         ) : (
@@ -313,11 +323,13 @@ function QuantityRow({
   line,
   locked,
   onLine,
+  action,
 }: {
   c: EntryComponent;
   line: EntryLine;
   locked: boolean;
   onLine?: EntryHandlers["onLine"];
+  action?: ReactNode;
 }) {
   const check = checkLine(c, line);
   const units = unitOptions(c);
@@ -415,6 +427,7 @@ function QuantityRow({
       {check.unusual ? (
         <StatusWord tone="caution">Unusual value — check it before saving</StatusWord>
       ) : null}
+      {action}
     </div>
   );
 }

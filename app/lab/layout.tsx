@@ -6,6 +6,8 @@ import Link from "next/link";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist as loadLegacyWorklist } from "@/lib/lab-tech/worklist";
+import { countOpenCriticals } from "@/lib/lab/criticals/read";
+import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { navFor } from "@/lib/lab/nav";
 import { labWorklistFor, rejectedFor, releasedTodayFor } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
@@ -27,26 +29,37 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
   if (!scope.workspaceLive) return <LegacyLabLayout scope={scope}>{children}</LegacyLabLayout>;
 
   const emr = emrV1LiveFor(scope.hospitalId);
-  const [open, released, rejected] = emr
+  const criticals = emr && (await criticalsLive(scope.hospitalId));
+  const [open, released, rejected, criticalsOpen] = emr
     ? await Promise.all([
         labWorklistFor(scope.hospitalId).then((w) => w.inputs.length),
         releasedTodayFor(scope.hospitalId).then((r) => r.length),
         rejectedFor(scope.hospitalId).then((r) => r.length),
+        criticals ? countOpenCriticals(scope.hospitalId) : 0,
       ])
-    : [(await loadLegacyWorklist(scope.hospitalId)).length, 0, 0];
-  const counts = { worklist: open, released, rejected };
+    : [(await loadLegacyWorklist(scope.hospitalId)).length, 0, 0, 0];
+  const counts = {
+    worklist: open,
+    released,
+    rejected,
+    criticals: criticalsOpen,
+    setup_criticals: null,
+  };
   const words = {
     worklist: `${open} waiting`,
     released: `${released} released today`,
     rejected: `${rejected} rejected in 7 days`,
+    criticals: `${criticalsOpen} open critical ${criticalsOpen === 1 ? "alert" : "alerts"}`,
+    setup_criticals: "",
   };
-  const nav: LabNavEntry[] = navFor(scope.access.permissions).map((i) => ({
+  const nav: LabNavEntry[] = navFor(scope.access.permissions, { criticals }).map((i) => ({
     id: i.id,
     label: i.label,
     href: i.href,
     exact: i.exact,
     count: counts[i.id],
     countLabel: words[i.id],
+    ...(i.group ? { group: i.group } : {}),
   }));
   return (
     <LabShell

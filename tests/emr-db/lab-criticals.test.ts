@@ -539,6 +539,10 @@ describe.skipIf(!laneOn)("Lab Phase 1 criticals by hand (S1–S16)", () => {
       acknowledged_by: a.doctor!.userId,
       logged_by: a.lab!.userId,
     });
+    // A phone acknowledgement is not the doctor's review of the report: none is written (CA-12).
+    expect(
+      await count(`SELECT count(*) n FROM result_acknowledgements WHERE report_id = $1`, [r.id]),
+    ).toBe(0);
     await expect(
       tx((t) => disputePhoneAck(t, a.consultant!, { alertId: r.alertId, now: at(9) })),
     ).rejects.toThrow(/named/);

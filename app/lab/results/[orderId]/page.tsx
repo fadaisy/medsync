@@ -4,14 +4,20 @@ import { notFound } from "next/navigation";
 
 import { CriticalComm } from "@/components/emr/results/critical-comm";
 import { ResultEntry } from "@/components/emr/results/result-entry";
+import { CRITICALS_COPY } from "@/content/lab-criticals";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
 import { loadResultEntry } from "@/lib/emr/read/results";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
+import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
+import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { loadRejectableSpecimen } from "@/lib/lab/read";
 import { FlaggingNotice } from "../../_components/flagging-notice";
 import { RejectSpecimen } from "../../_components/reject-specimen";
+import { AlertCell, Caution } from "../../criticals/_components/alert-bits";
+import { LabResultEntry } from "./_components/lab-result-entry";
 
 const REASONS = Object.entries(REJECTION_REASON_TEXT).map(([value, words]) => ({
   value,
@@ -43,6 +49,29 @@ export default async function LabResultEntryPage({
   });
   if (!data) notFound();
   const workspace = scope.workspaceLive;
+  // Lab Phase 1 (§5.2): the mark panel on a result not yet released, and the alert's status after.
+  const criticals = workspace && data.mode === "direct" && (await criticalsLive(scope.hospitalId));
+  const now = requestNow();
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: LAB_TIME_ZONE,
+  });
+  const preview =
+    criticals && !data.report?.released && scope.access.permissions.has("lab.result.release")
+      ? await previewRecipients(
+          scope,
+          { orderId, patientUserId: data.patientUserId, restricted: false },
+          now,
+        )
+      : null;
+  const [alerts, list] =
+    criticals && data.report?.released
+      ? await Promise.all([
+          alertsForOrder(scope.hospitalId, orderId),
+          loadLabCriticals(scope.hospitalId, now, LAB_TIME_ZONE),
+        ])
+      : [[], null];
   const specimenId =
     workspace && !data.report?.released
       ? await loadRejectableSpecimen(scope.hospitalId, orderId)
@@ -56,7 +85,50 @@ export default async function LabResultEntryPage({
         Back to the worklist
       </Link>
       {workspace && !criticalFlaggingActive(scope.hospitalId) ? <FlaggingNotice /> : null}
-      <ResultEntry data={data} surface="lab" />
+      {alerts.map((a) => (
+        <section key={a.id} aria-label="Critical alert" className="flex flex-col gap-2">
+          <p className="text-body-s flex flex-wrap items-center gap-2">
+            <span className="font-medium">Critical alert</span>
+            <AlertCell
+              alert={a}
+              now={now}
+              times={list?.times ?? null}
+              time={(d) => fmt.format(d)}
+            />
+            <Link
+              href={`/lab/criticals/${a.id}`}
+              className="text-teal-700 underline-offset-4 hover:underline"
+            >
+              Open the alert
+            </Link>
+          </p>
+          {a.state === "open" && (a.subState === "not_sent" || a.deliveryFailed) ? (
+            <Caution>{CRITICALS_COPY.notSent}</Caution>
+          ) : null}
+        </section>
+      ))}
+      {preview ? (
+        <LabResultEntry
+          data={data}
+          preview={{
+            level0: preview.level0,
+            next: preview.next
+              ? {
+                  people: preview.next.people,
+                  at: preview.next.at ? fmt.format(preview.next.at) : null,
+                }
+              : null,
+            emptyLevels: preview.emptyLevels,
+            reachedNobody: preview.reachedNobody,
+            timesSigned: preview.times !== null,
+            smsLive: preview.smsLive,
+            secondCheck: preview.secondCheck,
+            labUsers: preview.labUsers,
+          }}
+        />
+      ) : (
+        <ResultEntry data={data} surface="lab" />
+      )}
       {specimenId && scope.access.permissions.has("lab.receive") ? (
         <RejectSpecimen
           patientUserId={data.patientUserId}
@@ -65,7 +137,7 @@ export default async function LabResultEntryPage({
           reasons={REASONS}
         />
       ) : null}
-      {data.communicate ? (
+      {data.communicate && !criticals ? (
         <CriticalComm
           patientUserId={data.patientUserId}
           identity={data.identity}

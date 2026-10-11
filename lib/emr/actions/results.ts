@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import * as results from "@/lib/emr/write/results";
+import { criticalsLive } from "@/lib/lab/criticals/readiness";
 
 /**
  * Results, acknowledgement and critical-result communication (PROMPT §8, D-EMR-06/07/08). Same
@@ -94,8 +95,32 @@ export async function releaseResults(raw: unknown) {
   return runEmrWrite(ReleaseResults, raw, (ctx, input) => results.releaseResults(ctx, input));
 }
 
+/**
+ * Lab Phase 1 (CA-10): with LAB_CRITICALS on, amending a result that was alerted opens a linked
+ * correction alert in the same transaction; delivery follows commit and never throws.
+ */
 export async function amendResults(raw: unknown) {
-  return runEmrWrite(AmendResults, raw, (ctx, input) => results.amendResults(ctx, input));
+  const r = await runEmrWrite(AmendResults, raw, async (ctx, input) => {
+    const amended = await results.amendResults(ctx, input);
+    if (!(await criticalsLive(ctx.actor.hospitalId))) return { ...amended, jobs: [] };
+    const { correctAlerts } = await import("@/lib/lab/criticals/store");
+    const c = await correctAlerts(ctx, {
+      patientUserId: input.patientUserId,
+      priorReportId: input.reportId,
+      newReportId: amended.id,
+    });
+    return { ...amended, jobs: c.jobs };
+  });
+  if (!r.ok) return r;
+  const { jobs, ...data } = r.data!;
+  if (jobs.length) {
+    const { deliverAfterCommit } = await import("@/lib/lab/criticals/store");
+    const { db } = await import("@/db");
+    await deliverAfterCommit(db as unknown as Parameters<typeof deliverAfterCommit>[0], jobs).catch(
+      () => undefined,
+    );
+  }
+  return { ...r, data };
 }
 
 export async function acknowledgeResults(raw: unknown) {

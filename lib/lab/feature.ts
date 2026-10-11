@@ -1,4 +1,5 @@
 import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
+import { CRITICALS_COPY_STATUS } from "@/content/lab-criticals";
 
 /**
  * LAB_WORKSPACE (Lab Phase 0, Law 11): the lab front door — shell, section worklist, Released
@@ -29,7 +30,10 @@ function envOn(name: string, hospitalId: string): boolean {
  * (lib/lab/criticals/readiness.ts, lib/lab/catalogue-readiness.ts) and refuses the flag in production.
  */
 export const labCriticalsLiveFor = (hospitalId: string) =>
-  envOn("LAB_CRITICALS", hospitalId) && labWorkspaceLiveFor(hospitalId);
+  envOn("LAB_CRITICALS", hospitalId) &&
+  labWorkspaceLiveFor(hospitalId) &&
+  // S19: never in production while the alert wording (Appendix A) is a draft.
+  !(process.env.VERCEL_ENV === "production" && CRITICALS_COPY_STATUS.status !== "signed");
 export const labUnitsRangesLiveFor = (hospitalId: string) =>
   envOn("LAB_UNITS_RANGES", hospitalId) && labWorkspaceLiveFor(hospitalId);
 export const labDowntimeLiveFor = (hospitalId: string) =>

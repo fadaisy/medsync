@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { CriticalLive } from "@/components/medsync/critical-live";
 import { ArrestAlarm } from "@/components/resus/arrest-alarm";
 import { signedAvatarUrl } from "@/lib/avatars";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { resusDeskV2 } from "@/lib/resus/feature";
 import { doctorWorkspace } from "@/lib/workspace/feature";
+import { newestAnnouncement } from "./_components/critical-alerts";
 import { DoctorShell } from "./_components/doctor-shell";
+import { myCriticals } from "./_lib/criticals";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -14,10 +17,21 @@ export const metadata: Metadata = {
 
 export default async function DoctorLayout({ children }: { children: ReactNode }) {
   const scope = await requireDoctorScope();
-  const avatarUrl = await signedAvatarUrl(scope.avatarPath);
+  const [avatarUrl, criticals] = await Promise.all([
+    signedAvatarUrl(scope.avatarPath),
+    myCriticals(scope.userId, scope.hospitalId),
+  ]);
   return (
-    <DoctorShell scope={scope} avatarUrl={avatarUrl} workspace={doctorWorkspace(scope.hospitalId)}>
+    <DoctorShell
+      scope={scope}
+      avatarUrl={avatarUrl}
+      workspace={doctorWorkspace(scope.hospitalId)}
+      criticalCount={criticals?.alerts.open.length ?? null}
+    >
       {children}
+      {criticals ? (
+        <CriticalLive userId={scope.userId} announce={newestAnnouncement(criticals.alerts.open)} />
+      ) : null}
       {resusDeskV2() ? (
         <ArrestAlarm hospitalId={scope.hospitalId} resusBase="/doctor/resus" />
       ) : null}

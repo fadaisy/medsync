@@ -3,7 +3,7 @@
 import type { LabNavId } from "@/lib/lab/nav";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BanIcon, CheckCheckIcon, ListIcon } from "lucide-react";
+import { BanIcon, CheckCheckIcon, ListIcon, SettingsIcon, SirenIcon } from "lucide-react";
 
 import { SidebarNavItem } from "@/components/medsync/sidebar-nav";
 import { cn } from "@/lib/utils";
@@ -14,15 +14,22 @@ import { cn } from "@/lib/utils";
  * (the "Pharmacy & lab" domain, grape) through SidebarNavItem; counts are neutral numbers.
  */
 
-const ICON = { worklist: ListIcon, released: CheckCheckIcon, rejected: BanIcon } as const;
+const ICON = {
+  worklist: ListIcon,
+  criticals: SirenIcon,
+  released: CheckCheckIcon,
+  rejected: BanIcon,
+  setup_criticals: SettingsIcon,
+} as const;
 
 export interface LabNavEntry {
   id: LabNavId;
   label: string;
   href: string;
   exact: boolean;
-  count: number;
+  count: number | null;
   countLabel: string;
+  group?: "setup";
 }
 
 const isActive = (pathname: string, item: Pick<LabNavEntry, "href" | "exact">) =>
@@ -41,7 +48,7 @@ export function LabSidebarNav({ items }: { items: readonly LabNavEntry[] }) {
             icon={ICON[item.id]}
             domain="pharmacy"
             exact={item.exact}
-            count={item.count}
+            count={item.count ?? undefined}
             countLabel={item.countLabel}
           />
         </li>
@@ -71,14 +78,16 @@ export function LabPhoneNav({ items }: { items: readonly LabNavEntry[] }) {
                 )}
               >
                 {item.label}
-                <span
-                  className={cn(
-                    "font-mono text-[11px] tabular-nums",
-                    active ? "text-ink-600" : "text-muted-foreground",
-                  )}
-                >
-                  {item.count}
-                </span>
+                {item.count !== null ? (
+                  <span
+                    className={cn(
+                      "font-mono text-[11px] tabular-nums",
+                      active ? "text-ink-600" : "text-muted-foreground",
+                    )}
+                  >
+                    {item.count}
+                  </span>
+                ) : null}
               </Link>
             </li>
           );

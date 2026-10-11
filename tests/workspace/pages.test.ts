@@ -87,8 +87,9 @@ describe("/doctor", () => {
   const home = read("app/doctor/(workspace)/page.tsx");
 
   it("renders the Overview unchanged with the flag off, the workspace with it on", () => {
+    // Lab Phase 1 adds the pinned critical alerts above both; null with LAB_CRITICALS off.
     expect(home).toMatch(
-      /if \(!doctorWorkspace\(scope\.hospitalId\)\) return <DoctorOverview \/>;/,
+      /if \(!doctorWorkspace\(scope\.hospitalId\)\)[\s\S]{0,120}<DoctorOverview \/>/,
     );
     expect(home).toMatch(/async function DoctorOverview\(\)/);
     expect(home).toMatch(/<Workspace scope=\{scope\}/);

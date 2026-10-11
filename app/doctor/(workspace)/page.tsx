@@ -21,7 +21,9 @@ import {
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
 import { doctorWorkspace } from "@/lib/workspace/feature";
+import { PinnedCriticals } from "../_components/critical-alerts";
 import { Workspace } from "../_components/workspace/workspace";
+import { myCriticals } from "../_lib/criticals";
 
 export const dynamic = "force-dynamic";
 
@@ -45,10 +47,26 @@ export default async function DoctorHomePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const scope = await requireDoctorScope();
-  if (!doctorWorkspace(scope.hospitalId)) return <DoctorOverview />;
+  // Lab Phase 1 §5.4: open critical alerts pinned above every lane (or above the Overview).
+  const c = await myCriticals(scope.userId, scope.hospitalId);
+  const pinned = c ? (
+    <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+      <PinnedCriticals alerts={c.alerts} ids={c.ids} now={c.now} time={c.time} />
+    </div>
+  ) : null;
+  if (!doctorWorkspace(scope.hospitalId))
+    return (
+      <>
+        {pinned}
+        <DoctorOverview />
+      </>
+    );
   const { scope: scopeParam } = await searchParams;
   return (
-    <Workspace scope={scope} scopeMode={scopeParam === "department" ? "department" : "mine"} />
+    <>
+      {pinned}
+      <Workspace scope={scope} scopeMode={scopeParam === "department" ? "department" : "mine"} />
+    </>
   );
 }
 

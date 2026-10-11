@@ -307,7 +307,13 @@ async function notify(
     ? await tx
         .select()
         .from(labSmsTemplates)
-        .where(and(eq(labSmsTemplates.kind, templateKind), eq(labSmsTemplates.status, "approved")))
+        .where(
+          and(
+            eq(labSmsTemplates.hospitalId, alert.hospitalId),
+            eq(labSmsTemplates.kind, templateKind),
+            eq(labSmsTemplates.status, "approved"),
+          ),
+        )
         .orderBy(desc(labSmsTemplates.version))
         .limit(1)
     : [];
@@ -912,13 +918,8 @@ export async function logCriticalCall(
         channel: "phone",
         data: { loggedBy: actor.userId },
       });
-      await recordReviewed(
-        tx,
-        alert,
-        { userId: to.userId, hospitalId: alert.hospitalId, cadreCode: to.cadreCode ?? "" },
-        null,
-        input.now,
-      );
+      // A phone acknowledgement is not the clinician's review of the report in MedSync: it can be
+      // disputed, and a review record cannot be taken back. That review stays theirs (CA-12).
     }
   }
   const acknowledged = events.some((e) => e.kind === "acknowledged");
@@ -1069,10 +1070,15 @@ export async function runEscalations(
   });
 }
 
+/**
+ * ES-5: the scheduler's last run. The lazy path's own heartbeats do not count: a read escalating
+ * on its own is exactly what keeps a stopped scheduler hidden, and the notice exists to show it.
+ */
 export async function lastHeartbeat(tx: EmrTx): Promise<Date | null> {
   const [h] = await tx
     .select({ at: escalationHeartbeats.ranAt })
     .from(escalationHeartbeats)
+    .where(eq(escalationHeartbeats.source, "scheduler"))
     .orderBy(desc(escalationHeartbeats.ranAt))
     .limit(1);
   return h?.at ?? null;
