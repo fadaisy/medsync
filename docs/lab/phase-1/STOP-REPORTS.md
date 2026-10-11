@@ -525,3 +525,65 @@ refresh cancelled the navigation); an empty form showed a raw validation message
    entry is refused in words; the specimen's own collection time is kept.
 3. A paper critical with no check written is recorded as "Could not check: recorded on the paper form", never as a check
    that was not done.
+
+---
+
+## STOP 8 — One result path, hardening and documentation (final)
+
+**Built:** **One result path** (hospital admin → Departments → Diagnostics → "One result path for the laboratory"):
+the four conditions, each with its state in words and its evidence (open items on the old list; tests without a unit,
+unsigned notice, wording or response times, departments with no level-1 contact; drills; briefings), a form to record
+the briefing, **Switch to the new path** once all four are met, "Waiting for a second admin to approve" for the
+requester, **Approve the switch** for any other admin, which rereads the conditions and switches in one audited
+transaction. After it, the three legacy write actions (enter, release, reject) each refuse for that hospital ("This
+hospital uses one result path now…"), and **Older results** (`/lab/older`) lists the legacy results read-only, as typed.
+Superadmins see live switches in **Lab sign-offs** with **Request reversal** (a reason) and **Approve the reversal** (a
+different superadmin). The open-items count reads what the legacy worklist shows: any order kind, found through the
+encounter, still ordered or collected.
+
+| #   | Result                                                                                                                                                                                                                                                                      | Where            |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| S45 | Pass. One open old-path request: "1 open item on the old list", Not yet, and the switch is disabled; set-up gaps are named one by one (each test without a unit, unsigned times, each department with nobody at level 1)                                                    | PGlite + harness |
+| S46 | Pass. Admin A requests and sees "Waiting for a second admin to approve" with no approve button; the server refuses A's approval and the database refuses it too (`lc_second_approver`); admin B approves; the row has both people and the audit log an insert and an update | PGlite + harness |
+| S47 | Pass. After the switch `legacyWritesOpen` is false for that hospital only; enter, release and reject each ask it first (F9 now a plain test); Released today links "Older results", which lists the legacy result as typed                                                  | PGlite + harness |
+| S48 | Pass. With every Phase 1 flag off and no switch the old path is open, no cut-over row exists, and the Phase 0 baseline and flag-off tests are unchanged                                                                                                                     | PGlite + unit    |
+
+CO-5 (reversal: a superadmin's request with a reason, a second superadmin's approval) passes on PGlite. The
+superadmin page cannot render in the harness (STOP 4, note 1), so its controls are typechecked and built, not seen.
+
+**Tests:** `tests/emr-db/lab-cutover.test.ts` (5). Full suite **8,999 passed**, nothing expected-fail any more (F3, F5, F9
+all fixed); PGlite lane **585 passed**; typecheck and lint clean; production build passes. **axe:** 0 on the cut-over
+page (not ready, ready, requested, switched; 1440 and 390 px) and on Older results (1440 and 390 px).
+
+**Screens** (`shots/p1-s8/`): artboard 14 `a1-not-ready.png`, `b1-ready-all-met.png`, `b1-ready-requested-A.png`,
+`b2-approve-B-sees.png`, `b2-approve-switched.png`; phone `c1-390-A-*.png`, `c2-390-B-switched.png`; Older results
+`c3-older.png`, `c4-older-390.png`. The harness copy (only) treated the Appendix A wording as signed and had fixture units
+inserted for the tests in use, so that all four conditions could be met; both are named in the plan files.
+
+**Found and fixed at this step:**
+
+1. **The lab sidebar showed on phones on every lab page** (a Step 7 regression). `SIDEBAR_CLASS` lived in a "use
+   client" module; adding `print:hidden` by building a string from it on the server produced the client reference's
+   text instead of the classes. The NCD registry layout (already on main) has the same defect. The constant now lives in
+   a plain module, every shell imports it from there, and `tests/design/sidebar-class-server.test.ts` holds it.
+2. **Legacy rows were invisible by hospital.** Legacy orders may carry no `hospital_id`; the open-items count and Older
+   results now find the hospital through the encounter, as the old worklist does.
+3. After the switch the briefing form is no longer offered.
+
+**Section 13 and the performance budgets:** [FINAL-REPORT.md](FINAL-REPORT.md). Added JS on `/lab` and the doctor
+Workspace: 0.0 KB each.
+
+**Documents:** [user-guide.md](user-guide.md) (technologist, doctor, lab lead, hospital admin), [hazard-log.md](hazard-log.md)
+(26 hazards: 24 controlled, 2 open by decision; **draft, unsigned**), ADRs 0239–0250 (numbered as the code already cited
+them, which differs from the GATE A list order), CHANGELOG.
+
+**For the owner:**
+
+1. **Not done, needs people:** the timed trial of acknowledgement and back-entry with two or three clinicians and lab
+   staff; realtime delivery time on a deployed preview.
+2. **To sign:** the Appendix A wording; the hazard log. No hospital can switch until the wording is signed.
+3. **Apply 0102–0106** (unchanged since STOP 7 apart from what each STOP named) and run the scheduler set-up (STOP 4,
+   note 8).
+4. `lib/lab/critical-values.ts` (older, unsigned, never fires) is read only by the legacy entry check; delete it once
+   every hospital has switched.
+5. The sidebar fix touches the nurse, hospital-admin, NCD, doctor, admin and reception shells (an import line each).

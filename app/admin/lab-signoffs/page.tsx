@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { desc, inArray } from "drizzle-orm";
+import { and, desc, inArray, isNotNull, isNull } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { db } from "@/db";
@@ -10,6 +10,7 @@ import {
   criticalLimits,
   criticalLimitVersions,
   criticalResponseVersions,
+  labCutover,
   referenceRangeBands,
   referenceRangeVersions,
 } from "@/db/schema/lab-safety";
@@ -17,6 +18,7 @@ import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { CsoSign } from "./_components/cso-sign";
+import { ReverseSwitch } from "./_components/reverse-switch";
 
 export const metadata: Metadata = { title: "Lab sign-offs · Admin · MedSync" };
 export const dynamic = "force-dynamic";
@@ -90,7 +92,15 @@ export default async function LabSignoffsPage() {
         .from(testCatalogue)
         .where(inArray(testCatalogue.id, [...new Set(limitRows.map((l) => l.testId))]))
     : [];
-  const hospitalIds = [...new Set([...versions, ...ranges, ...limitSets].map((v) => v.hospitalId))];
+  // Hospitals switched to one result path (CO-5: a superadmin reverses with a second).
+  const switched = await db
+    .select()
+    .from(labCutover)
+    .where(and(isNotNull(labCutover.switchedAt), isNull(labCutover.reversedAt)))
+    .orderBy(desc(labCutover.switchedAt));
+  const hospitalIds = [
+    ...new Set([...versions, ...ranges, ...limitSets, ...switched].map((v) => v.hospitalId)),
+  ];
   const people = [
     ...new Set(
       [...versions, ...ranges, ...limitSets]
@@ -276,6 +286,26 @@ export default async function LabSignoffsPage() {
           />
         </section>
       ))}
+      {switched.length ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-heading-s">One result path</h2>
+          {switched.map((c) => (
+            <div key={c.id} className="border-border flex flex-col gap-2 rounded-lg border p-4">
+              <p className="text-body-s">
+                <span className="font-medium">{hospital.get(c.hospitalId) ?? "Hospital"}</span>{" "}
+                switched {c.switchedAt ? fmt.format(c.switchedAt) : ""}
+                {c.reversalReason ? ` · reversal requested: ${c.reversalReason}` : ""}
+              </p>
+              <ReverseSwitch
+                cutoverId={c.id}
+                hospitalId={c.hospitalId}
+                requestedByOther={!!c.reversedBy && c.reversedBy !== state.user!.id}
+                requestedByMe={c.reversedBy === state.user!.id}
+              />
+            </div>
+          ))}
+        </section>
+      ) : null}
       <section className="flex flex-col gap-2">
         <h2 className="text-heading-s">In force</h2>
         {versions

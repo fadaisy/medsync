@@ -5,6 +5,44 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — The lab and NCD registry sidebars showed on phones — 2026-10-11
+
+- `SIDEBAR_CLASS` lived in a "use client" module; the lab shell and the NCD registry layout built a string from it on
+  the server and got the client reference's text instead of the classes, so the desktop sidebar showed at phone width.
+  The constant now lives in `components/medsync/sidebar-class.ts`, and every shell imports it from there (guarded by
+  `tests/design/sidebar-class-server.test.ts`).
+
+### Added — Lab Phase 1: the laboratory safety floor — 2026-10-11
+
+Built dark on `feat/lab-safety-floor`, each part behind its own per-hospital flag; migrations 0102–0106 are GATED and
+owner-applied. No clinical number ships: limits, ranges and response times are entered and signed by each hospital's
+laboratory lead and the CSO. The Appendix A wording and the hazard log are drafts until the CSO signs them.
+
+- Critical results: a mark at release writes the alert in the same transaction; an append-only event history; sent,
+  seen and acknowledged kept apart, and only an acknowledgement (in the app, or a phoned read-back) closes an alert;
+  corrections follow the alert (`LAB_CRITICALS`; [ADR 0239](docs/adr/0239-critical-results-in-their-own-store.md),
+  [ADR 0242](docs/adr/0242-sent-seen-acknowledged.md)).
+- A three-level recipient ladder from critical-results contacts, escalation by a pure planner run every minute, on every
+  read and by "Could not reach anyone", and a heartbeat that says when escalation may be late
+  ([ADR 0243](docs/adr/0243-the-recipient-ladder.md), [ADR 0244](docs/adr/0244-escalation-planner-and-heartbeat.md)).
+  SMS carries the place only, from two-person-approved templates, behind a banned-term scan
+  ([ADR 0245](docs/adr/0245-messages-off-the-platform.md)).
+- Fixed units per test component, never converted; signed reference ranges resolved by sex and age at collection;
+  a snapshot on every released value (`LAB_UNITS_RANGES`; [ADR 0240](docs/adr/0240-fixed-units-and-no-conversion.md),
+  [ADR 0241](docs/adr/0241-reference-ranges-resolver-and-snapshots.md)).
+- Critical limits and response times as signed per-hospital sets, two signatures each
+  ([ADR 0246](docs/adr/0246-signed-limits-and-response-times.md)); once signed, automatic flagging with no release past
+  an unchecked critical ([ADR 0247](docs/adr/0247-automatic-flagging-needs-a-check.md)).
+- Downtime: numbered paper forms reserved before printing, back-entry with the form's own times, drills
+  (`LAB_DOWNTIME`; [ADR 0248](docs/adr/0248-downtime-forms-and-back-entry.md)).
+- One result path: four conditions and two hospital admins switch a hospital; the legacy result writes then refuse and
+  older results stay readable; two superadmins reverse it with a reason
+  ([ADR 0249](docs/adr/0249-one-result-path.md)).
+- The critical tint, with its icon and words, only on the pinned alert and the Critical pill
+  ([ADR 0250](docs/adr/0250-red-for-critical-result-alerts.md)).
+- Docs: [user guide](docs/lab/phase-1/user-guide.md), [hazard log](docs/lab/phase-1/hazard-log.md) (draft),
+  [final report](docs/lab/phase-1/FINAL-REPORT.md).
+
 ### Fixed — Laboratory staff kept losing access to their patients — 2026-10-11
 
 - A technologist could not result a specimen after midnight or once the patient's visit had completed: the access rule

@@ -8,6 +8,7 @@ import { encounterEvents, encounterOrders, encounterResults } from "@/db/schema/
 import { encounters } from "@/db/schema/scheduling";
 import { labResultsLive } from "@/lib/encounter/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
+import { legacyWritesOpen } from "@/lib/lab/cutover-store";
 import {
   deriveCriticalFlag,
   LabRejectSchema,
@@ -17,6 +18,8 @@ import {
 import { logger } from "@/lib/logger";
 import { emrEnter, emrReject, emrRelease } from "./_lib/emr";
 
+const ONE_PATH =
+  "This hospital uses one result path now. Enter results from the worklist; older results are read-only.";
 /**
  * Lab result entry / release / reject — privileged server actions.
  *
@@ -87,6 +90,8 @@ export async function enterLabResultAction(raw: unknown): Promise<LabActionResul
   if (emr) return emr;
   if (!labResultsLive()) return { ok: false, error: "Lab results module is not active." };
   const scope = await requireLabTechScope();
+  // Lab Phase 1 CO-4: after the switch to one result path, the legacy path takes no writes here.
+  if (!(await legacyWritesOpen(scope.hospitalId))) return { ok: false, error: ONE_PATH };
   const parsed = LabResultEntrySchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Invalid result entry." };
   const input = parsed.data;
@@ -181,6 +186,8 @@ export async function releaseLabResultAction(
   if (emr) return emr;
   if (!labResultsLive()) return { ok: false, error: "Lab results module is not active." };
   const scope = await requireLabTechScope();
+  // Lab Phase 1 CO-4: after the switch to one result path, the legacy path takes no writes here.
+  if (!(await legacyWritesOpen(scope.hospitalId))) return { ok: false, error: ONE_PATH };
   const parsed = LabReleaseSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Invalid release." };
 
@@ -234,6 +241,8 @@ export async function rejectLabResultAction(raw: unknown): Promise<LabActionResu
   if (emr) return emr;
   if (!labResultsLive()) return { ok: false, error: "Lab results module is not active." };
   const scope = await requireLabTechScope();
+  // Lab Phase 1 CO-4: after the switch to one result path, the legacy path takes no writes here.
+  if (!(await legacyWritesOpen(scope.hospitalId))) return { ok: false, error: ONE_PATH };
   const parsed = LabRejectSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "A rejection reason is required." };
 

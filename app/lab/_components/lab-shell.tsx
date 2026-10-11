@@ -5,11 +5,8 @@ import Link from "next/link";
 import { ShieldCheckIcon } from "lucide-react";
 
 import { Avatar } from "@/components/medsync/avatar";
-import {
-  SIDEBAR_CLASS,
-  SidebarGroupLabel,
-  SidebarWorkspace,
-} from "@/components/medsync/sidebar-nav";
+import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
+import { SidebarGroupLabel, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { LAB } from "@/content/lab";
 import { LabCrumb, LabPhoneNav, LabSidebarNav } from "./lab-nav";
 

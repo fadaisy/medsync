@@ -33,10 +33,14 @@ describe("Lab Phase 1 baseline — defects reproduced at Step 0", () => {
     expect(read("components/emr/results/result-entry-view.tsx")).toMatch(/FixedQuantityRow/);
   });
 
-  it.fails("F9: a hospital can be switched to one result path (fixed in Step 8)", () => {
-    // Today EMR_V1 per hospital chooses the path, and the legacy write actions stay callable.
-    const legacy = read("app/lab/actions.ts");
+  it("F9: a hospital can be switched to one result path (fixed in Step 8)", () => {
+    // The switch is a row in lab_cutover; once it is live each legacy write refuses. Behaviour:
+    // tests/emr-db/lab-cutover.test.ts S45–S48.
     expect(existsSync(resolve(ROOT, "lib/lab/cutover.ts"))).toBe(true);
-    expect(legacy).toMatch(/cutover|legacyWritesClosed/);
+    const legacy = read("app/lab/actions.ts");
+    expect(legacy).toMatch(/import \{ legacyWritesOpen \} from "@\/lib\/lab\/cutover-store"/);
+    expect(legacy.match(/if \(!\(await legacyWritesOpen\(scope\.hospitalId\)\)\)/g)).toHaveLength(
+      3,
+    );
   });
 });

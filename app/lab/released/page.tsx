@@ -8,6 +8,7 @@ import { LAB } from "@/content/lab";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
+import { legacyWritesOpen } from "@/lib/lab/cutover-store";
 import { LAB_TIME_ZONE, releasedTodayFor } from "@/lib/lab/page-data";
 import { sentenceCase } from "../_components/lab-shell";
 import { PatientNameMrn, RecordList } from "../_components/record-list";
@@ -40,6 +41,15 @@ export default async function ReleasedTodayPage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6">
       <PageHeader place={`${scope.hospitalName} · ${LAB.place}`} placeInTopBar title={R.title} />
       {emr ? null : <p className="text-body-s text-muted-foreground">{LAB.worklist.legacy}</p>}
+      {/* Lab Phase 1 CO-4: after the switch, the old list is here, read-only. */}
+      {emr && !(await legacyWritesOpen(scope.hospitalId)) ? (
+        <Link
+          href="/lab/older"
+          className="text-body-s self-start font-medium text-teal-700 underline-offset-4 hover:underline"
+        >
+          Older results
+        </Link>
+      ) : null}
       <RecordList<ReleasedRow>
         caption={R.title}
         rows={rows}

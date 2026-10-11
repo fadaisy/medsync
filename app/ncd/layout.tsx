@@ -3,11 +3,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { Avatar } from "@/components/medsync/avatar";
-import {
-  SIDEBAR_CLASS,
-  SidebarGroupLabel,
-  SidebarWorkspace,
-} from "@/components/medsync/sidebar-nav";
+import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
+import { SidebarGroupLabel, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { facilityStatus } from "@/lib/ncdreg/admin";
 import { can } from "@/lib/ncdreg/context";
 import { sidebarCounts } from "@/lib/ncdreg/read/counts";

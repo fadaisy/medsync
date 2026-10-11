@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ShieldCheckIcon } from "lucide-react";
 
 import { Avatar } from "@/components/medsync/avatar";
-import { SIDEBAR_CLASS, SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
+import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
+import { SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { Tag } from "@/components/medsync/tag";
 import { RECEPTION_FEATURE_AREAS, receptionFeaturePath } from "../_lib/features";
 import { ReceptionCommandBar, ReceptionSidebarItem } from "./reception-sidebar-item";
