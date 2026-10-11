@@ -15,6 +15,7 @@ export type EmrAccessBasis =
   | "assigned"
   | "open_intake"
   | "department_recent"
+  | "lab_work"
   | "care_team"
   | "break_glass";
 

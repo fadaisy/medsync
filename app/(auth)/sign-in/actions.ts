@@ -49,10 +49,11 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { errors: { _form: signInErrorMessage(error) } };
   }
 
+  // The landing decides whether ?redirect= may be honoured (a path the user may open, LD-4).
   const landing = signInData.user
-    ? await landingFor(signInData.user.id)
-    : { target: "/", reason: "default-landing" };
-  const target = safeRedirect(parsed.data.redirect) ?? landing.target;
+    ? await landingFor(signInData.user.id, parsed.data.redirect)
+    : { target: safeRedirect(parsed.data.redirect) ?? "/", reason: "default-landing" };
+  const target = landing.target;
 
   logger.info("sign-in succeeded", { target, routeReason: landing.reason });
   redirect(target);

@@ -218,10 +218,9 @@ describe("red is reserved — the doctor workspace", () => {
     tree("app/doctor/(workspace)"),
     [
       [
-        "app/doctor/_components/page-header.tsx",
-        stripComments(
-          readFileSync(resolve(ROOT, "app/doctor/_components/page-header.tsx"), "utf8"),
-        ),
+        // Moved to components/medsync for the lab (Lab Phase 0); still the doctor header.
+        "components/medsync/page-header.tsx",
+        stripComments(readFileSync(resolve(ROOT, "components/medsync/page-header.tsx"), "utf8")),
       ],
     ] as const,
   );
@@ -286,6 +285,43 @@ describe("red is reserved — the doctor workspace", () => {
   it("the projection's tones are neutral or amber — never a red one", () => {
     const flow = readFileSync(resolve(ROOT, "lib/workspace/flow.ts"), "utf8");
     expect(flow).toMatch(/export type Tone = "neutral" \| "amber";/);
+  });
+});
+
+// ─── The laboratory workspace (Lab Phase 0, Law 7) ──────────────────────────
+
+describe("red is reserved — the laboratory workspace", () => {
+  // Every /lab route and the lab engines. The result screen also renders components/emr, which
+  // the EMR block below holds to its own allowlist (the saved critical value, never this slice).
+  const LAB_TREE = tree("app/lab", "lib/lab", "app/not-authorised").concat([
+    ["content/lab.ts", stripComments(readFileSync(resolve(ROOT, "content/lab.ts"), "utf8"))],
+  ] as const);
+
+  /**
+   * Pre-existing red on the legacy list's row actions (LAB_RESULTS_LIVE, EMR v1 off): "rejected",
+   * the reject button and its error. It predates Lab Phase 0, renders only on the old list, and
+   * changing it would change what hospitals with LAB_WORKSPACE off see (Law 11). Lab Phase 1
+   * retires the legacy list (L9) and this entry with it.
+   */
+  const LEGACY_RED: readonly string[] = ["app/lab/_components/result-row-actions.tsx"];
+
+  it("adds no red anywhere: Late is amber, stages are neutral words", () => {
+    expect(LAB_TREE.length).toBeGreaterThan(15);
+    for (const [path, src] of LAB_TREE) {
+      if (LEGACY_RED.includes(path)) continue;
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+      expect(src, path).not.toMatch(/\b(?:text|bg|border|ring)-(?:red|rose|green|emerald)-\d/);
+      expect(src, path).not.toMatch(/border-l-\d|border-l-(?:grape|plum|teal|amber)/);
+    }
+  });
+
+  it("Late carries a clock and the words; the notice a triangle and the words", () => {
+    const cell = readFileSync(resolve(ROOT, "app/lab/_components/turnaround-cell.tsx"), "utf8");
+    expect(cell).toMatch(/bg-status-caution-bg[\s\S]*<ClockIcon/);
+    const notice = readFileSync(resolve(ROOT, "app/lab/_components/flagging-notice.tsx"), "utf8");
+    expect(notice).toMatch(/role="status"/);
+    expect(notice).toMatch(/<TriangleAlertIcon/);
   });
 });
 

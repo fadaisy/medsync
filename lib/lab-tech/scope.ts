@@ -1,15 +1,20 @@
 import "server-only";
 
+import type { LabAccess } from "@/lib/lab/access";
 import { redirect } from "next/navigation";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { cadres, roles } from "@/db/schema/reference-data";
+import { departmentHeads } from "@/db/schema/services-hub";
 import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
+import { can, labAccess } from "@/lib/lab/access";
+import { labWorkspaceLiveFor } from "@/lib/lab/feature";
 import { logger } from "@/lib/logger";
 
 /**
@@ -22,6 +27,11 @@ import { logger } from "@/lib/logger";
  * (LAB_TECH / LAB_TECHNOLOGIST — already seeded), and the cadre is is_clinical, so
  * the tech acts on orders/results under the existing clinical-relationship RLS,
  * department-scoped. A non-lab user who reaches /lab bounces to the landing.
+ *
+ * Lab Phase 0 (ADR 0221): the scope also carries the viewer's lab permissions (derived from the
+ * signed cadre map and department headship), their lab sections, and whether the lab workspace is
+ * on for their hospital. Where LAB_WORKSPACE is set, a user without `lab.view` gets the
+ * not-authorised page instead of the landing; with it unset, /lab behaves as it always has.
  */
 
 export const LAB_TECH_CADRE_CODES = ["LAB_TECH", "LAB_TECHNOLOGIST"] as const;
@@ -36,9 +46,16 @@ export interface LabTechScope {
   hospitalId: string;
   hospitalName: string;
   hospitalLevel: string;
-  /** The lab/department the tech is affiliated to (may be null if hospital-wide). */
+  /** The department the affiliation names (NOT NULL in the table): the Laboratory, or a section. */
   departmentId: string | null;
   departmentName: string | null;
+  /** The viewer's lab sections: the affiliation's department when it is a unit of LABORATORY. */
+  sectionIds: string[];
+
+  /** Lab permissions and what lab.manage covers (lib/lab/access.ts). */
+  access: LabAccess;
+  /** LAB_WORKSPACE on for this hospital (the Phase 0 shell, worklist, lists and notice). */
+  workspaceLive: boolean;
 
   cadreId: string;
   cadreCode: LabTechCadreCode;
@@ -59,7 +76,18 @@ export async function requireLabTechScope(): Promise<LabTechScope> {
   const me = await findLabTechAffiliation(state.user.id);
   if (!me) {
     logger.warn("lab_tech.scope.no_active_affiliation", { user_id: state.user.id });
-    redirect("/");
+    redirect(process.env.LAB_WORKSPACE?.trim() ? "/not-authorised?for=lab" : "/");
+  }
+
+  const heads = await openLabHeadships(state.user.id, me.hospitalId);
+  const access = labAccess({
+    cadreCode: me.cadreCode,
+    headOf: { laboratory: heads.laboratory, sectionIds: heads.sectionIds },
+  });
+  const workspaceLive = labWorkspaceLiveFor(me.hospitalId);
+  if (workspaceLive && !can(access, "lab.view")) {
+    logger.warn("lab_tech.scope.no_lab_view", { user_id: state.user.id });
+    redirect("/not-authorised?for=lab");
   }
 
   return {
@@ -72,6 +100,10 @@ export async function requireLabTechScope(): Promise<LabTechScope> {
     hospitalLevel: me.hospitalLevel,
     departmentId: me.departmentId,
     departmentName: me.departmentName,
+    sectionIds:
+      me.departmentParentCode === "LABORATORY" && me.departmentId ? [me.departmentId] : [],
+    access,
+    workspaceLive,
     cadreId: me.cadreId,
     cadreCode: me.cadreCode as LabTechCadreCode,
     cadreName: me.cadreName,
@@ -90,6 +122,8 @@ export async function isLabTechUser(userId: string): Promise<boolean> {
   return !!(await findLabTechAffiliation(userId));
 }
 
+const parentDepartment = alias(hospitalDepartments, "parent_department");
+
 async function findLabTechAffiliation(userId: string) {
   const [me] = await db
     .select({
@@ -99,6 +133,7 @@ async function findLabTechAffiliation(userId: string) {
       hospitalLevel: hospitals.level,
       departmentId: staffAffiliations.departmentId,
       departmentName: hospitalDepartments.name,
+      departmentParentCode: parentDepartment.catalogueCode,
       cadreId: staffAffiliations.cadreId,
       cadreCode: cadres.code,
       cadreName: cadres.name,
@@ -111,6 +146,7 @@ async function findLabTechAffiliation(userId: string) {
     .from(staffAffiliations)
     .innerJoin(hospitals, eq(hospitals.id, staffAffiliations.hospitalId))
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))
+    .leftJoin(parentDepartment, eq(parentDepartment.id, hospitalDepartments.parentId))
     .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
     .innerJoin(roles, eq(roles.id, staffAffiliations.roleId))
     .innerJoin(users, eq(users.id, staffAffiliations.userId))
@@ -124,4 +160,35 @@ async function findLabTechAffiliation(userId: string) {
     .orderBy(desc(staffAffiliations.approvedAt), desc(staffAffiliations.createdAt))
     .limit(1);
   return me;
+}
+
+/** Open department_heads rows over the Laboratory and its sections at this hospital (LA-5). */
+async function openLabHeadships(
+  userId: string,
+  hospitalId: string,
+): Promise<{ laboratory: boolean; sectionIds: string[] }> {
+  const rows = await db
+    .select({
+      departmentId: departmentHeads.departmentId,
+      code: hospitalDepartments.catalogueCode,
+      parentCode: parentDepartment.catalogueCode,
+    })
+    .from(departmentHeads)
+    .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, departmentHeads.departmentId))
+    .leftJoin(parentDepartment, eq(parentDepartment.id, hospitalDepartments.parentId))
+    .where(
+      and(
+        eq(departmentHeads.userId, userId),
+        eq(departmentHeads.hospitalId, hospitalId),
+        isNull(departmentHeads.endsAt),
+        or(
+          eq(hospitalDepartments.catalogueCode, "LABORATORY"),
+          eq(parentDepartment.catalogueCode, "LABORATORY"),
+        ),
+      ),
+    );
+  return {
+    laboratory: rows.some((r) => r.code === "LABORATORY"),
+    sectionIds: rows.filter((r) => r.parentCode === "LABORATORY").map((r) => r.departmentId),
+  };
 }
