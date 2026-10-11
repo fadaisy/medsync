@@ -28,6 +28,7 @@ export default async function EmergencyPage() {
           : null,
         verified: c.verified,
         derived: c.derived,
+        derivedFrom: c.derivedFrom,
       }))}
     />
   );

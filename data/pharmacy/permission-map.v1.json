@@ -1,0 +1,25 @@
+{
+  "map": "medsync.pharmacy-permission-map",
+  "version": "1.0.0",
+  "status": "signed",
+  "signedBy": "Fadhul (CSO)",
+  "signedOn": "2026-10-10",
+  "basis": "Pharmacy Phase 0 GATE A (docs/pharmacy/phase-0/gate-a-proposal.md §2.2, §10); D-PH0-01, D-PH0-03",
+  "notes": [
+    "Cadre codes are the Pharmacy Board cadres seeded in 0009. A cadre not listed here holds no pharmacy permission.",
+    "Only pharmacy.view is granted in Phase 0. review, dispense, stock, controlled and manage are reserved names, granted by the phase that uses them.",
+    "The pharmacy technician's registering body is still to be confirmed from a primary source (Appendix C); view-only access carries no supply authority."
+  ],
+  "permissions": [
+    "pharmacy.view",
+    "pharmacy.review",
+    "pharmacy.dispense",
+    "pharmacy.stock",
+    "pharmacy.controlled",
+    "pharmacy.manage"
+  ],
+  "cadres": {
+    "PHARMACIST": ["pharmacy.view"],
+    "PHARMACY_TECH": ["pharmacy.view"]
+  }
+}

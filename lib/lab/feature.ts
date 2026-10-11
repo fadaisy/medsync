@@ -1,4 +1,5 @@
 import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
+import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
  * LAB_WORKSPACE (Lab Phase 0, Law 11): the lab front door — shell, section worklist, Released
@@ -10,19 +11,10 @@ import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
  * says, so no hospital ever sees the workspace without signed safety wording.
  */
 export function labWorkspaceLiveFor(hospitalId: string): boolean {
-  const value = process.env.LAB_WORKSPACE?.trim();
-  if (!value) return false;
-  if (value !== "1" && !value.split(",").some((id) => id.trim() === hospitalId)) return false;
-  return !blockedUnsigned();
-}
-
-let warned = false;
-function blockedUnsigned(): boolean {
-  if (process.env.VERCEL_ENV !== "production") return false;
-  if (CRITICAL_FLAGGING_NOTICE.status === "signed") return false;
-  if (!warned) {
-    warned = true;
-    console.warn("lab_workspace.blocked_unsigned_notice");
-  }
-  return true;
+  return workspaceLiveFor(
+    process.env.LAB_WORKSPACE,
+    hospitalId,
+    [CRITICAL_FLAGGING_NOTICE],
+    "lab_workspace",
+  );
 }

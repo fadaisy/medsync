@@ -6,6 +6,8 @@ import { resolveLanding } from "@/lib/auth/landing";
 import { DOCTOR_CADRE_CODES } from "@/lib/doctor/scope";
 import { LAB_TECH_CADRE_CODES } from "@/lib/lab-tech/scope";
 import { logger } from "@/lib/logger";
+import { PHARMACY_MAP_CADRES } from "@/lib/pharmacy/access";
+import { pharmacyWorkspaceLiveFor } from "@/lib/pharmacy/feature";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
@@ -30,16 +32,27 @@ export async function landingFor(userId: string, next?: string | null): Promise<
 
 const NURSE_CADRES = ["NURSE", "MIDWIFE", "SPECIALIST_NURSE"];
 
-export function cadreGroup(code: string | null | undefined): CadreGroup {
+/**
+ * A pharmacy cadre is the `pharmacy` group only at a hospital where the pharmacy workspace is on
+ * (LD-P1); elsewhere it stays `other` and lands on /clinician, as before.
+ */
+export function cadreGroup(
+  code: string | null | undefined,
+  hospitalId?: string | null,
+): CadreGroup {
   if (code == null) return "other";
   if ((DOCTOR_CADRE_CODES as readonly string[]).includes(code)) return "doctor";
   if (NURSE_CADRES.includes(code)) return "nurse";
   if (code === "RECEPTION") return "reception";
   if ((LAB_TECH_CADRE_CODES as readonly string[]).includes(code)) return "lab";
+  if (PHARMACY_MAP_CADRES.includes(code))
+    return hospitalId && pharmacyWorkspaceLiveFor(hospitalId) ? "pharmacy" : "other";
   return "other";
 }
 
 const cadreOf = (row: unknown) => (row as { cadres?: { code?: string } }).cadres?.code;
+const groupOf = (row: unknown) =>
+  cadreGroup(cadreOf(row), (row as { hospital_id?: string | null }).hospital_id);
 
 async function landingFacts(userId: string): Promise<LandingFacts> {
   const service = createServiceClient();
@@ -51,12 +64,12 @@ async function landingFacts(userId: string): Promise<LandingFacts> {
     service.from("user_roles").select("role").eq("user_id", userId),
     service
       .from("staff_affiliations")
-      .select("cadres!inner(code)")
+      .select("hospital_id, cadres!inner(code)")
       .eq("user_id", userId)
       .in("state", ["active", "approved"]),
     service
       .from("staff_affiliations")
-      .select("state, cadres!inner(code)")
+      .select("state, hospital_id, cadres!inner(code)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -76,12 +89,16 @@ async function landingFacts(userId: string): Promise<LandingFacts> {
   warnOn("hospital_applications", application.error);
   warnOn("patient_profiles", patient.error);
 
-  const activeGroups = (active.data ?? []).map((row) => cadreGroup(cadreOf(row)));
+  const activeGroups = (active.data ?? []).map(groupOf);
   return {
     roles: (roles.data ?? []).map((r) => r.role as string),
-    active: { doctor: activeGroups.includes("doctor"), lab: activeGroups.includes("lab") },
+    active: {
+      doctor: activeGroups.includes("doctor"),
+      lab: activeGroups.includes("lab"),
+      pharmacy: activeGroups.includes("pharmacy"),
+    },
     latestAffiliation: latest.data
-      ? { state: latest.data.state as string, group: cadreGroup(cadreOf(latest.data)) }
+      ? { state: latest.data.state as string, group: groupOf(latest.data) }
       : null,
     hospitalApplicationState: (application.data?.state as string | undefined) ?? null,
     hasPatientProfile: !!patient.data,

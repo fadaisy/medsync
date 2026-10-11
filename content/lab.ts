@@ -5,11 +5,9 @@
  * To sign it, the CSO sets status "signed" with signedBy and signedOn.
  */
 
-export interface SignedCopy {
-  status: "draft" | "signed";
-  signedBy: string | null;
-  signedOn: string | null;
-}
+import type { SignedCopy } from "@/content/signed-copy";
+
+export type { SignedCopy };
 
 export const CRITICAL_FLAGGING_NOTICE: SignedCopy & { lead: string; body: string } = {
   status: "signed",

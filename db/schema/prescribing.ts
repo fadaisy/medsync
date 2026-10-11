@@ -14,6 +14,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -81,6 +82,10 @@ export const prescriptions = pgTable(
     state: text("state").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    /** One id for every line written in one placement (migration 0099, ADR 0230). NULL before it. */
+    placementId: uuid("placement_id"),
+    /** The line's place in its placement, 1 up (migration 0099). NULL before it. */
+    placementLine: smallint("placement_line"),
     // OPD prescription from the encounter (migration 0074, GATED; EMR Phase 7).
     frequency: text("frequency"),
     duration: text("duration"),
@@ -117,7 +122,10 @@ export const prescriptions = pgTable(
     overMinutes: integer("over_minutes"),
     givingSetDropsPerMl: integer("giving_set_drops_per_ml"),
     warmed: boolean("warmed"),
-    /** The checks that needed an answer, with the answer chosen: [{code, answer}]. */
+    /**
+     * The checks that needed an answer, with the answer chosen: [{code, answer}]; from Pharmacy
+     * Phase 0 also the check's level, [{code, answer, outcome: "stop" | "check"}] (ADR 0233).
+     */
     checkAnswers: jsonb("check_answers")
       .notNull()
       .default(sql`'[]'::jsonb`),
@@ -164,6 +172,7 @@ export const prescriptions = pgTable(
       .where(sql`${t.clientKey} IS NOT NULL`),
     index("prescriptions_patient_idx").on(t.patientUserId, t.createdAt),
     index("prescriptions_encounter_idx").on(t.encounterId),
+    index("prescriptions_hospital_created_idx").on(t.hospitalId, t.createdAt),
     index("prescriptions_condition_idx")
       .on(t.conditionId)
       .where(sql`${t.conditionId} IS NOT NULL`),
