@@ -70,10 +70,14 @@ describe("Lab Phase 1 flags (Law 14)", () => {
   it("S19: production refuses LAB_CRITICALS while the alert wording (Appendix A) is a draft", async () => {
     const { labCriticalsLiveFor } = await import("@/lib/lab/feature");
     const { CRITICALS_COPY_STATUS } = await import("@/content/lab-criticals");
-    expect(CRITICALS_COPY_STATUS.status).toBe("draft"); // unsigned in this slice
+    // The shipped wording is signed (CSO, 2026-10-12): production allows it.
+    expect(CRITICALS_COPY_STATUS).toMatchObject({ status: "signed", signedBy: "Fadhul (CSO)" });
     vi.stubEnv("LAB_WORKSPACE", "1");
     vi.stubEnv("LAB_CRITICALS", "1");
     vi.stubEnv("VERCEL_ENV", "production");
+    expect(labCriticalsLiveFor("h1")).toBe(true);
+    // The gate, proven on a draft copy: refused in production, allowed elsewhere.
+    vi.spyOn(CRITICALS_COPY_STATUS, "status", "get").mockReturnValue("draft");
     expect(labCriticalsLiveFor("h1")).toBe(false);
     vi.stubEnv("VERCEL_ENV", "preview");
     expect(labCriticalsLiveFor("h1")).toBe(true);

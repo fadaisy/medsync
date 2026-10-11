@@ -1,8 +1,8 @@
 # Lab Phase 1 — hazard log
 
-**Status: DRAFT, not signed.** Completed at Step 8 from the GATE A seed (Appendix B of the prompt, §10 of the
-[GATE A proposal](gate-a-proposal.md)). The Clinical Safety Officer signs it; until then no hazard is accepted as
-closed. Hazards 25 and 26 were found while building.
+**Status: signed by the Clinical Safety Officer, 12 Oct 2026.** Completed at Step 8 from the GATE A seed (Appendix B
+of the prompt, §10 of the [GATE A proposal](gate-a-proposal.md)). Hazards 25 and 26 were found while building. Any new
+hazard, or a change to a control, residual or status below, returns the log to draft until it is signed again.
 
 Every "proving test" below exists and passes on `feat/lab-safety-floor`. `lane` = the PGlite lane
 (`EMR_PGLITE=1 vitest run tests/emr-db`); `unit` = the pure-engine suite; `harness` = the scratch harness screenshots
@@ -46,7 +46,7 @@ set-up (contacts, signed values) is done.
 
 ## Signature
 
-| Role                                       | Name | Date | Decision |
-| ------------------------------------------ | ---- | ---- | -------- |
-| Clinical Safety Officer                    |      |      |          |
-| Laboratory lead (per hospital, at go-live) |      |      |          |
+| Role                                       | Name   | Date        | Decision                                                                                                                                                  |
+| ------------------------------------------ | ------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clinical Safety Officer                    | Fadhul | 12 Oct 2026 | Accepted: 24 controlled with their residual risks as stated; hazards 7 and 23 open by decision. Signed on the Lab Phase 1 sign-off page, no changes asked |
+| Laboratory lead (per hospital, at go-live) |        |             |                                                                                                                                                           |

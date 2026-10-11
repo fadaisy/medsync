@@ -16,7 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 Built dark on `feat/lab-safety-floor`, each part behind its own per-hospital flag; migrations 0102–0106 are GATED and
 owner-applied. No clinical number ships: limits, ranges and response times are entered and signed by each hospital's
-laboratory lead and the CSO. The Appendix A wording and the hazard log are drafts until the CSO signs them.
+laboratory lead and the CSO. The Appendix A wording and the hazard log were signed by the CSO on 12 Oct 2026.
 
 - Critical results: a mark at release writes the alert in the same transaction; an append-only event history; sent,
   seen and acknowledged kept apart, and only an acknowledgement (in the app, or a phoned read-back) closes an alert;

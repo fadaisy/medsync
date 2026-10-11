@@ -587,3 +587,23 @@ them, which differs from the GATE A list order), CHANGELOG.
 4. `lib/lab/critical-values.ts` (older, unsigned, never fires) is read only by the legacy entry check; delete it once
    every hospital has switched.
 5. The sidebar fix touches the nurse, hospital-admin, NCD, doctor, admin and reception shells (an import line each).
+
+---
+
+## Signatures — 12 Oct 2026
+
+Signed by Fadhul as Clinical Safety Officer on the Lab Phase 1 sign-off page (an artifact whose saved record Claude read
+back), at 02:16 Kampala:
+
+| Item               | Decision                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Appendix A wording | Signed as drafted. The four open points kept: one sample-check box, "Already aware" kept, "NOT" in capitals, SMS names the place only |
+| Hazard log         | Signed: 24 controlled with their residual risks; hazards 7 and 23 open by decision. No note                                           |
+
+Applied: `CRITICALS_COPY_STATUS` is `signed` (Fadhul (CSO), 2026-10-12), so production no longer refuses `LAB_CRITICALS`
+for the wording (it still refuses while a live department has no level-1 contact); S19 now checks the shipped copy is
+signed and proves the production refusal on a draft copy. `hazard-log.md` carries the signature. A hospital can now
+meet the cut-over's set-up condition once its own units, response times and contacts are in place.
+
+Still per hospital, on screen, after deployment: response times, contacts, units, ranges and limits (the laboratory
+lead and the CSO, two different people). Still owed: the timed trial with staff.

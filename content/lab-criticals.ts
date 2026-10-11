@@ -1,15 +1,17 @@
 /**
- * Lab Phase 1 copy (PROMPT-LAB-PHASE-1 Appendix A). Clinical-safety wording: `draft` until the CSO signs
- * it, and the flags that need it are refused in production while it is (cutover CO-1, gate-a §9). The
+ * Lab Phase 1 copy (PROMPT-LAB-PHASE-1 Appendix A). Clinical-safety wording, signed by the CSO on
+ * 12 Oct 2026 as drafted, the four open points kept (docs/lab/phase-1/STOP-REPORTS.md, Signatures).
+ * Any change to CRITICALS_COPY returns it to `draft` until signed again: the flags that need it are
+ * refused in production while it is (cutover CO-1, gate-a §9). The
  * SMS bodies are the drafts a hospital's first templates start from; every rendering of them passes the
  * banned-term scan in CI (MS-2, tests/lab/phase-1/messages-downtime-cutover.test.ts).
  */
 import type { SignedCopy } from "@/content/lab";
 
 export const CRITICALS_COPY_STATUS: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-12",
 };
 
 export const CRITICALS_COPY = {

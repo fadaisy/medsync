@@ -4,8 +4,8 @@
 **Migrations:** 0101 applied (11 Oct); 0102–0106 GATED and **not applied**: the owner applies them.
 **Flags:** `LAB_CRITICALS`, `LAB_UNITS_RANGES`, `LAB_DOWNTIME` (per hospital; each needs `LAB_WORKSPACE`), all off by
 default. Automatic flagging has no flag: it starts when a hospital's limits and response times are both signed.
-**Unsigned:** the Appendix A wording, the hazard log, and every limit, range and response time (none ship; each hospital
-enters and signs its own).
+**Signed 12 Oct 2026 by the CSO:** the Appendix A wording (as drafted) and the hazard log. **Unsigned:** every
+limit, range and response time (none ship; each hospital enters and signs its own).
 
 The step-by-step evidence is in [STOP-REPORTS.md](STOP-REPORTS.md). Decisions: [GATE A](gate-a-proposal.md) and ADRs
 0239–0250. Guide: [user-guide.md](user-guide.md). Hazards: [hazard-log.md](hazard-log.md).
@@ -56,7 +56,7 @@ timings.
 1. **The timed trial** of acknowledgement and back-entry with two or three clinicians and lab staff. It needs people;
    the scripted numbers above say only that the screens are fast.
 2. **Realtime delivery time** on a deployed preview with Supabase Realtime.
-3. **Signatures:** Appendix A wording, the hazard log, and each hospital's limits, ranges and response times.
+3. **Signatures:** each hospital's limits, ranges and response times (the wording and the hazard log were signed on 12 Oct).
 4. **Not built, as recorded at GATE A:** push notifications; informing the ward's nurse in charge (no surface,
    D-LAB1-05); per-class restricted filtering (reports carry `restricted` only); coded critical rules (D-LAB1-16);
    pregnancy ranges (D-LAB1-21); alert suppression (D-LAB1-15).
@@ -72,6 +72,6 @@ timings.
    signs Appendix A; the lead sets response times and contacts, both sign; `LAB_CRITICALS`; the lead sets units, then
    ranges, both sign; `LAB_UNITS_RANGES`; limits, both sign (flagging starts); `LAB_DOWNTIME`, print forms, record a
    drill; brief the wards; two hospital admins switch.
-3. The cut-over cannot happen anywhere until the Appendix A wording is signed. That is deliberate.
+3. The Appendix A wording is signed (12 Oct), so the cut-over's set-up condition now depends only on each hospital's own set-up.
 4. D-LAB1-12: today one person is owner, superadmin and CSO. Every two-person rule is enforced by the database, so a
    second person is needed for each signature, approval and reversal.
