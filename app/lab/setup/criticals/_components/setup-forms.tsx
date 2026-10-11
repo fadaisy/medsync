@@ -25,7 +25,7 @@ import {
 
 type Result = { ok: true } | { ok: false; error: string };
 
-function useAct() {
+export function useAct() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -39,7 +39,7 @@ function useAct() {
   return { pending, message, act, setMessage };
 }
 
-function Said({ message }: { message: { ok: boolean; text: string } | null }) {
+export function Said({ message }: { message: { ok: boolean; text: string } | null }) {
   return (
     <p role="status" aria-live="polite" className="text-body-s min-h-5">
       {message ? (
@@ -53,7 +53,7 @@ function Said({ message }: { message: { ok: boolean; text: string } | null }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="text-body-s flex flex-col gap-1">
       <span className="text-muted-foreground">{label}</span>

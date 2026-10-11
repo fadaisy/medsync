@@ -11,9 +11,10 @@ import { loadResultEntry } from "@/lib/emr/read/results";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
 import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
-import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { loadRejectableSpecimen } from "@/lib/lab/read";
+import { fixedForOrder } from "@/lib/lab/units-read";
 import { FlaggingNotice } from "../../_components/flagging-notice";
 import { RejectSpecimen } from "../../_components/reject-specimen";
 import { AlertCell, Caution } from "../../criticals/_components/alert-bits";
@@ -43,11 +44,32 @@ export default async function LabResultEntryPage({
   const { orderId } = await params;
   const scope = await requireLabTechScope();
   if (!emrV1LiveFor(scope.hospitalId)) notFound();
-  const data = await loadResultEntry(scope, orderId, {
+  const loaded = await loadResultEntry(scope, orderId, {
     mode: "direct",
     surface: "lab_result_entry",
   });
-  if (!data) notFound();
+  if (!loaded) notFound();
+  // Lab Phase 1 §5.1 (LAB_UNITS_RANGES): the catalogue's unit and the signed range, while entering.
+  const fixed =
+    scope.workspaceLive && loaded.mode === "direct" && (await unitsRangesLive(scope.hospitalId))
+      ? await fixedForOrder(
+          scope.hospitalId,
+          orderId,
+          loaded.patientUserId,
+          scope.access.permissions.has("lab.manage"),
+          undefined,
+          // Released: each value as its snapshot holds it (Law 8).
+          loaded.report?.released ? loaded.report.id : undefined,
+        )
+      : null;
+  const data = fixed
+    ? {
+        ...loaded,
+        components: loaded.components.map((c) =>
+          fixed[c.conceptId] ? { ...c, fixed: fixed[c.conceptId] } : c,
+        ),
+      }
+    : loaded;
   const workspace = scope.workspaceLive;
   // Lab Phase 1 (§5.2): the mark panel on a result not yet released, and the alert's status after.
   const criticals = workspace && data.mode === "direct" && (await criticalsLive(scope.hospitalId));

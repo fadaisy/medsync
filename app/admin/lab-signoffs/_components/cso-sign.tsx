@@ -8,16 +8,19 @@ import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signResponseAsCsoAction } from "@/lib/lab/criticals/setup-actions";
+import { signRangeAsCsoAction } from "@/lib/lab/measures-actions";
 
 /** The CSO's countersignature (D-LAB1-11, -12): a fresh second factor; an exception in words if alone. */
 export function CsoSign({
   hospitalId,
   versionId,
   sameAsLead,
+  kind = "response",
 }: {
   hospitalId: string;
   versionId: string;
   sameAsLead: boolean;
+  kind?: "response" | "range";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -26,14 +29,18 @@ export function CsoSign({
   const [said, setSaid] = useState<{ ok: boolean; text: string } | null>(null);
   const sign = () =>
     start(async () => {
-      const r = await signResponseAsCsoAction({
-        hospitalId,
-        versionId,
-        exceptionNote: note.trim() || null,
-      });
+      const input = { hospitalId, versionId, exceptionNote: note.trim() || null };
+      const r =
+        kind === "range" ? await signRangeAsCsoAction(input) : await signResponseAsCsoAction(input);
       if (needsFreshFactor(r)) return setFresh(true);
       if (!r.ok) return setSaid({ ok: false, text: r.error });
-      setSaid({ ok: true, text: "Signed. These response times are now in force." });
+      setSaid({
+        ok: true,
+        text:
+          kind === "range"
+            ? "Signed. This range is now in force."
+            : "Signed. These response times are now in force.",
+      });
       router.refresh();
     });
   return (

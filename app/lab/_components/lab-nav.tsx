@@ -3,7 +3,15 @@
 import type { LabNavId } from "@/lib/lab/nav";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BanIcon, CheckCheckIcon, ListIcon, SettingsIcon, SirenIcon } from "lucide-react";
+import {
+  BanIcon,
+  CheckCheckIcon,
+  ListIcon,
+  RulerIcon,
+  SettingsIcon,
+  SirenIcon,
+  TestTubesIcon,
+} from "lucide-react";
 
 import { SidebarNavItem } from "@/components/medsync/sidebar-nav";
 import { cn } from "@/lib/utils";
@@ -19,6 +27,8 @@ const ICON = {
   criticals: SirenIcon,
   released: CheckCheckIcon,
   rejected: BanIcon,
+  setup_catalogue: TestTubesIcon,
+  setup_ranges: RulerIcon,
   setup_criticals: SettingsIcon,
 } as const;
 

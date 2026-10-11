@@ -7,11 +7,22 @@ import type { LabPermission } from "./access";
  * behind `labCriticals`; Downtime entry, QC and Reports register when their pages ship.
  */
 
-export type LabNavId = "worklist" | "criticals" | "released" | "rejected" | "setup_criticals";
+export type LabNavId =
+  | "worklist"
+  | "criticals"
+  | "released"
+  | "rejected"
+  | "setup_catalogue"
+  | "setup_ranges"
+  | "setup_criticals";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
+  /** LAB_CRITICALS with its production gate (the Criticals list). */
   criticals: boolean;
+  /** LAB_CRITICALS alone: set-up must stay reachable to close the gate's gaps. */
+  criticalsSetup?: boolean;
+  unitsRanges?: boolean;
 }
 
 export interface LabNavItem {
@@ -55,13 +66,31 @@ export const LAB_NAV: readonly LabNavItem[] = [
     visibleFor: view,
   },
   {
+    id: "setup_catalogue",
+    label: "Test catalogue",
+    href: "/lab/setup/catalogue",
+    order: 8,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.unitsRanges && p.has("lab.manage"),
+  },
+  {
+    id: "setup_ranges",
+    label: "Reference ranges",
+    href: "/lab/setup/ranges",
+    order: 9,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.unitsRanges && p.has("lab.manage"),
+  },
+  {
     id: "setup_criticals",
     label: "Critical results",
     href: "/lab/setup/criticals",
     order: 10,
     exact: false,
     group: "setup",
-    visibleFor: (p, f) => f.criticals && p.has("lab.manage"),
+    visibleFor: (p, f) => (f.criticalsSetup ?? f.criticals) && p.has("lab.manage"),
   },
 ];
 

@@ -4,7 +4,7 @@ import type { EntryComponent, EntryLine, ResultEntryData } from "@/components/em
 import type { CouldNotCheckReason } from "@/lib/lab/criticals/marks";
 import { useRef, useState } from "react";
 
-import { toResultValues } from "@/components/emr/results/model";
+import { fixedFlag, toResultValues } from "@/components/emr/results/model";
 import { useResultEntry } from "@/components/emr/results/result-entry";
 import { ResultEntryView } from "@/components/emr/results/result-entry-view";
 import { Button } from "@/components/ui/button";
@@ -178,11 +178,19 @@ export function LabResultEntry({
           items={marked.map((id) => {
             const c = data.components.find((x) => x.conceptId === id)!;
             const line = e.state.lines[id];
+            const f = line && c.fixed ? fixedFlag(c, line) : null;
             return {
               conceptId: id,
               display: c.display,
               line: line ?? null,
-              direction: line ? directionOf(line) : null,
+              // With fixed units the flag is computed (FL-1); otherwise the lab's own.
+              direction: c.fixed
+                ? f === "low" || f === "high"
+                  ? f
+                  : null
+                : line
+                  ? directionOf(line)
+                  : null,
             };
           })}
           checks={checks}

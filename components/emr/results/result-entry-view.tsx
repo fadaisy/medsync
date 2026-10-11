@@ -8,6 +8,8 @@ import type {
   UncataloguedLine,
 } from "./model";
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { LockIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +23,11 @@ import {
   CONCLUSIONS,
   emptyLine,
   entryIssues,
+  fixedFlag,
   LAB_FLAGS,
   MODE_WORDS,
+  needsEntryConfirm,
+  NO_UNIT,
   unitOptions,
 } from "./model";
 
@@ -135,16 +140,28 @@ export function ResultEntryView({
             <span>Laboratory range</span>
             <span>Lab flag</span>
           </div>
-          {quantities.map((c) => (
-            <QuantityRow
-              key={c.conceptId}
-              c={c}
-              line={state.lines[c.conceptId] ?? emptyLine(c)}
-              locked={locked}
-              onLine={on.onLine}
-              action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
-            />
-          ))}
+          {quantities.map((c) =>
+            c.fixed ? (
+              <FixedQuantityRow
+                key={c.conceptId}
+                c={c}
+                f={c.fixed}
+                line={state.lines[c.conceptId] ?? emptyLine(c)}
+                locked={locked}
+                onLine={on.onLine}
+                action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
+              />
+            ) : (
+              <QuantityRow
+                key={c.conceptId}
+                c={c}
+                line={state.lines[c.conceptId] ?? emptyLine(c)}
+                locked={locked}
+                onLine={on.onLine}
+                action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
+              />
+            ),
+          )}
         </div>
       ) : null}
 
@@ -483,5 +500,211 @@ function LabeledInput({
         className={cn("min-h-11 sm:min-h-9", mono && "font-mono tabular-nums")}
       />
     </label>
+  );
+}
+
+const FLAG_WORDS = { low: "Low", high: "High", normal: "In range" } as const;
+const RANGE_WORDS = {
+  no_band_for_age: "No range for this age",
+  sex_or_age_missing: "No range: sex or age not recorded",
+} as const;
+
+/**
+ * Lab Phase 1 §5.1 (LAB_UNITS_RANGES): the technologist types the number and nothing else. The unit
+ * is the catalogue's, shown with a lock; the range is the signed band or a sentence saying why there
+ * is none; the flag is computed, and changing it needs a reason the doctor will see.
+ */
+function FixedQuantityRow({
+  c,
+  f,
+  line,
+  locked,
+  onLine,
+  action,
+}: {
+  c: EntryComponent;
+  f: NonNullable<EntryComponent["fixed"]>;
+  line: EntryLine;
+  locked: boolean;
+  onLine?: EntryHandlers["onLine"];
+  action?: ReactNode;
+}) {
+  const id = `v-${c.conceptId}`;
+  const set = (patch: Partial<EntryLine>) => onLine?.(c.conceptId, patch);
+  const check = checkLine(c, line);
+  const computed = f.released ? null : fixedFlag(c, line);
+  const final = f.released ? f.released.flagFinal : (line.flagChange?.flag ?? computed);
+  const confirm = needsEntryConfirm(c, line);
+  if (!f.unitUcum)
+    return (
+      <div className="flex flex-col gap-1 border-b py-3">
+        <span className="text-body-s font-medium">{c.display}</span>
+        <StatusWord tone="caution">{NO_UNIT}</StatusWord>
+        {f.canFix ? (
+          <Link
+            href="/lab/setup/catalogue"
+            className="text-body-s self-start font-medium text-teal-700 underline-offset-4 hover:underline"
+          >
+            Set the unit in the test catalogue
+          </Link>
+        ) : null}
+      </div>
+    );
+  return (
+    <div className="flex flex-col gap-2 border-b py-3">
+      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[9rem_7rem_6.5rem_1fr_8rem]">
+        <label htmlFor={id} className="text-body-s col-span-2 font-medium sm:col-span-1">
+          {c.display}
+          <span className="sr-only">, {f.unitWords ?? f.unitDisplay}</span>
+        </label>
+        <Input
+          id={id}
+          value={line.value}
+          readOnly={locked}
+          autoComplete="off"
+          inputMode="decimal"
+          onChange={(e) => set({ value: e.target.value, entryConfirmed: false })}
+          className="min-h-11 text-right font-mono tabular-nums sm:min-h-9"
+        />
+        <span
+          className="text-body-s text-muted-foreground inline-flex items-center gap-1"
+          title="Set in the test catalogue"
+        >
+          <LockIcon aria-hidden className="size-3.5 shrink-0" />
+          {f.unitDisplay}
+        </span>
+        {f.range.state === "signed" || f.range.state === "unsigned" ? (
+          <span className="text-body-s col-span-2 flex flex-col sm:col-span-1">
+            <span className="font-mono tabular-nums">
+              {f.range.low ?? "…"}–{f.range.high ?? "…"}
+            </span>
+            {f.range.state === "unsigned" ? (
+              <span className="text-caption text-muted-foreground">Unsigned range</span>
+            ) : null}
+          </span>
+        ) : f.range.state === "no_signed_range" ? (
+          <span className="col-span-2 flex flex-col gap-1 sm:col-span-1">
+            <span className="flex items-center gap-2">
+              <Input
+                aria-label={`Laboratory range low for ${c.display}`}
+                value={line.low}
+                disabled={locked}
+                inputMode="decimal"
+                placeholder="Low"
+                onChange={(e) => set({ low: e.target.value })}
+                className="min-h-11 text-right font-mono tabular-nums sm:min-h-9"
+              />
+              <span aria-hidden>–</span>
+              <Input
+                aria-label={`Laboratory range high for ${c.display}`}
+                value={line.high}
+                disabled={locked}
+                inputMode="decimal"
+                placeholder="High"
+                onChange={(e) => set({ high: e.target.value })}
+                className="min-h-11 text-right font-mono tabular-nums sm:min-h-9"
+              />
+            </span>
+            <span className="text-caption text-muted-foreground">Unsigned range</span>
+          </span>
+        ) : (
+          <span className="text-body-s text-muted-foreground col-span-2 sm:col-span-1">
+            {RANGE_WORDS[f.range.state]}
+          </span>
+        )}
+        <span className="flex flex-col items-start gap-1">
+          {final ? (
+            <StatusWord tone={final === "normal" ? "neutral" : "caution"}>
+              {FLAG_WORDS[final]}
+            </StatusWord>
+          ) : (
+            <span className="text-caption text-muted-foreground">No flag</span>
+          )}
+        </span>
+      </div>
+      {confirm ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusWord tone="caution">
+            {line.value} {f.unitDisplay} is outside the usual entry range for {c.display}. Confirm
+            this is the value on the analyser.
+          </StatusWord>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={locked}
+            onClick={() => set({ entryConfirmed: true })}
+            className="min-h-11 sm:min-h-7"
+          >
+            Confirm
+          </Button>
+        </div>
+      ) : null}
+      {computed && !locked ? (
+        line.flagChange ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="text-body-s flex items-center gap-2">
+              <span className="text-muted-foreground">Flag</span>
+              <select
+                value={line.flagChange.flag}
+                onChange={(e) =>
+                  set({
+                    flagChange: {
+                      ...line.flagChange!,
+                      flag: e.target.value as "low" | "high" | "normal",
+                    },
+                  })
+                }
+                className={selectClass}
+              >
+                {(["low", "high", "normal"] as const)
+                  .filter((x) => x !== computed)
+                  .map((x) => (
+                    <option key={x} value={x}>
+                      {FLAG_WORDS[x]}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <Input
+              aria-label={`Why the flag for ${c.display} is changed`}
+              placeholder="Why (the doctor sees this)"
+              value={line.flagChange.reason}
+              maxLength={200}
+              onChange={(e) => set({ flagChange: { ...line.flagChange!, reason: e.target.value } })}
+              className="min-h-11 min-w-64 flex-1 sm:min-h-9"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => set({ flagChange: null })}
+              className="min-h-11 sm:min-h-7"
+            >
+              Keep {FLAG_WORDS[computed]}
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                set({ flagChange: { flag: computed === "normal" ? "high" : "normal", reason: "" } })
+              }
+              className="min-h-11 sm:min-h-7"
+            >
+              Change flag
+            </Button>
+          </div>
+        )
+      ) : null}
+      {f.released?.reason ? (
+        <p className="text-body-s">Flag changed by the lab: {f.released.reason}</p>
+      ) : null}
+      {check.error ? <StatusWord tone="caution">{check.error}</StatusWord> : null}
+      {action}
+    </div>
   );
 }

@@ -401,3 +401,55 @@ words (D-LAB1-18).
    `select private.schedule_lab_escalations('https://<host>/api/cron/lab-escalations');`. Keep `LAB_CRITICALS` off in
    production until the Appendix A wording is signed and every live department has a level-1 contact (it refuses to
    turn on otherwise).
+
+---
+
+## STOP 5 — Units, codes and ranges (behind `labUnitsRanges`)
+
+**Built:** the **Test catalogue** (each component's result type, unit from the curated UCUM list, decimals, LOINC
+checked against the imported table, entry check; any change is the next version); **Reference ranges** (bands by sex
+and age, typed in days, months or years and stored in days, a source for every band, overlap refused, a preview for three
+example patients; signed by the laboratory lead here and countersigned by the CSO in Lab sign-offs); result entry with
+the unit locked from the catalogue, strict numbers, the signed band for this patient at collection, a computed flag
+that can be changed with a reason, and the entry-check confirm; a snapshot of every value (unit, version, range, flags,
+who confirmed or changed what) written beside it and shown on the released result; the doctor's "Flag changed by the
+lab: …" and "Unit as typed" for results from before; FHIR's UCUM and LOINC from the snapshot; the production gate.
+
+### Scenarios
+
+| #   | Result                                                                                                                                                         | Where                    |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| S20 | Pass. No unit: refused on the server; the row says why and links the lead to the catalogue                                                                     | PGlite + harness         |
+| S21 | Pass. "7,2" is stored as 7.2 in the catalogue's unit (a typed unit is ignored); "7.25" is refused: "Glucose (blood, plasma or serum) takes 1 decimal place."   | PGlite + harness         |
+| S22 | Pass. Outside the entry check: refused until confirmed; the confirm is on the snapshot                                                                         | PGlite + harness         |
+| S23 | Pass. A woman of 58 gets the female band; a girl of 9 "No range for this age"; no profile, only bands that need neither (none here: "sex or age not recorded") | PGlite + harness preview |
+| S24 | Pass. Signed by the lead alone: not used. After the CSO: used                                                                                                  | PGlite + harness         |
+| S25 | Pass. Released before a new range is signed: its snapshot is unchanged; the next result uses the new band                                                      | PGlite                   |
+| S26 | Pass. A unit change is version 2, then 3; old results keep mmol/L, new ones are mg/dL; the signed mmol/L range is never applied to mg/dL                       | PGlite                   |
+| S27 | Pass. A changed flag keeps the computed one and the reason; the doctor reads "Lab flag: normal · Flag changed by the lab: Known diabetic; ward aware"          | PGlite + harness         |
+| S28 | Pass. Flag off: written exactly as before, no snapshot; with it on, older values are labelled "Unit as typed" in Results to review                             | PGlite + unit            |
+| S29 | Pass. Production refuses the flag while a test in use lacks a unit; the catalogue says "9 tests in use cannot be resulted yet" on the fixture                  | PGlite + harness         |
+
+**Tests:** `tests/emr-db/lab-units.test.ts` (11), the FHIR UN-7 test, F5 flipped to a plain test. Full suite 8,996
+passed; PGlite lane 564 passed. **axe:** 0 violations on the catalogue, ranges and entry screens.
+
+**Screens** (`~/Desktop/lab0-harness/shots/p1-s5/`): artboard 1 `a4-entry-typed.png`, `a4-entry-check.png`,
+`a4-entry-released.png`; artboard 9 `a1-catalogue.png`, `a1-measure-form.png`; artboard 10 `a2-ranges.png`; S20
+`a6-no-unit.png`; the doctor `a5-doctor.png`.
+
+**Found by the harness and fixed:** the ranges page called a client function on the server (it crashed once a draft
+existed); a released result fell back to the old unit picker (it now shows its snapshot); the decimal error was said
+twice; empty table headers.
+
+### For the owner
+
+1. **D-LAB1-26, as built:** a value is stored and shown exactly as entered, in the catalogue's unit, and never
+   converted. Decision support's own canonical column (D-CFC-14) is still derived from it, because the database requires
+   it and the rules read it; set-up refuses a unit MedSync cannot derive, so no result is ever refused for that.
+2. **Ages typed in years or months** are stored as 365.25 and 30.4375 days each (18 years = 6,575 days). Say if bands
+   should instead turn on the exact birthday.
+3. **"In use"** for the production gate = ordered in-house here in the last 90 days: the hub's offerings carry LOINC
+   codes and the catalogue does not, so orders are the link.
+4. **0103 changed before application:** the "current version" index is no longer unique (the next version is written
+   before the current one can point at it; the per-version key still stops two writers racing).
+5. **FHIR** now takes the snapshot's UCUM and LOINC; no exporter calls the observation mapper yet.

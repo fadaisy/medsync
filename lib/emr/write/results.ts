@@ -30,6 +30,8 @@ import {
 } from "@/lib/emr/results";
 import { encrypt } from "@/lib/encryption";
 import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/shared";
+import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { prepareFixedUnits } from "@/lib/lab/units";
 import { mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
 import { EmrWriteError, stampActivity } from "./context";
 import {
@@ -79,6 +81,12 @@ export interface ResultValueInput {
   name?: string;
   /** Amendment of an uncatalogued value: the observation it supersedes. */
   replaces?: string;
+  /** Lab Phase 1 (UN-6): the technologist confirmed a value outside the entry band. */
+  entryCheckConfirmed?: boolean;
+  /** Lab Phase 1 (FL-3): the computed flag changed by the lab, with the reason. */
+  flagChange?: { flag: "low" | "high" | "normal"; reason: string };
+  /** Set by lib/lab/units.ts only: a fixed catalogue unit, never converted (UN-4, D-LAB1-26). */
+  noConversion?: boolean;
 }
 
 type Entry = { entryMode: "direct" | "transcribed"; source: "lab" | "poc_staff"; poc: boolean };
@@ -201,6 +209,25 @@ function valueColumns(
   const defaults = (test.defaultUnits ?? {}) as Record<string, string>;
   const unit = v.unit?.trim() || defaults[v.conceptId] || def.canonicalUnit;
   if (!unit) throw invalid(`${def.display}: a unit is required.`);
+  // Lab Phase 1 (UN-4): a fixed catalogue unit. The value is stored and shown exactly as entered, in
+  // that unit; only decision support's derived canonical column is computed (D-CFC-14), and set-up
+  // accepts only units it can derive, so this never refuses a result.
+  if (v.noConversion) {
+    let canonicalValue = v.value!;
+    if (unit !== (def.canonicalUnit ?? unit)) {
+      const c = toCanonical(v.conceptId, Number(v.value), unit);
+      if ("error" in c) throw invalid(`${def.display}: ${c.error}.`);
+      canonicalValue = String(c.value);
+    }
+    return {
+      conceptId: v.conceptId,
+      valueType: "quantity",
+      valueNum: v.value!,
+      valueComparator: null,
+      valueUnit: unit,
+      valueCanonical: canonicalValue,
+    };
+  }
   let canonical = parsed.value;
   if (unit !== (def.canonicalUnit ?? unit)) {
     const c = toCanonical(v.conceptId, parsed.value, unit);
@@ -239,6 +266,21 @@ async function writeReportVersion(
   if (kind !== "lab" && kind !== "imaging" && kind !== "ecg")
     throw invalid("Only laboratory, imaging and ECG orders carry a report.");
 
+  // Lab Phase 1 Step 5: fixed units, signed ranges and snapshots for a laboratory's own entry.
+  const fixed =
+    kind === "lab" &&
+    entry.source === "lab" &&
+    entry.entryMode === "direct" &&
+    (await unitsRangesLive(actor.hospitalId))
+      ? await prepareFixedUnits(ctx, {
+          patientUserId: spec.patientUserId,
+          testId: order.testId,
+          values: spec.values,
+          collectedAt: specimen?.collectedAt ?? prior?.effectiveAt ?? now,
+        })
+      : null;
+  const values = fixed?.values ?? spec.values;
+
   const priorRows = prior
     ? await tx
         .select()
@@ -259,7 +301,7 @@ async function writeReportVersion(
   const effectiveAt = prior?.effectiveAt ?? specimen?.collectedAt ?? now;
   const inherited = order.sensitivity === "restricted" || prior?.sensitivity === "restricted";
   const dob = await dobIfNeeded(ctx, spec.patientUserId, [
-    ...spec.values.map((v) => v.conceptId),
+    ...values.map((v) => v.conceptId),
     ...priorObs.map((o) => o.conceptId ?? ""),
   ]);
   const common = {
@@ -284,7 +326,7 @@ async function writeReportVersion(
   const rows: NewObservation[] = [];
   const used = new Set<string>();
   const seen = new Set<string>();
-  for (const v of spec.values) {
+  for (const v of values) {
     const cols = valueColumns(v, spec.test);
     if (cols.conceptId !== UNCATALOGUED) {
       if (seen.has(v.conceptId)) throw invalid(`${v.conceptId} is entered twice.`);
@@ -398,6 +440,15 @@ async function writeReportVersion(
     uncatalogued: rows.some((r) => r.conceptId === UNCATALOGUED),
   });
   if (rows.length) await tx.insert(clinicalObservations).values(rows);
+  await fixed?.snapshot(
+    rows.map((r) => ({
+      id: r.id!,
+      conceptId: r.conceptId,
+      supersedesId: r.supersedesId,
+      valueType: r.valueType,
+    })),
+    id,
+  );
   return { id, critical };
 }
 

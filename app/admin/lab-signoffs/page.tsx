@@ -4,10 +4,16 @@ import { desc, inArray } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { db } from "@/db";
+import { testCatalogue } from "@/db/schema/emr";
 import { hospitals } from "@/db/schema/hospitals";
-import { criticalResponseVersions } from "@/db/schema/lab-safety";
+import {
+  criticalResponseVersions,
+  referenceRangeBands,
+  referenceRangeVersions,
+} from "@/db/schema/lab-safety";
 import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
+import { conceptDef } from "@/lib/facts/project/shared";
 import { CsoSign } from "./_components/cso-sign";
 
 export const metadata: Metadata = { title: "Lab sign-offs · Admin · MedSync" };
@@ -15,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Lab sign-offs (Lab Phase 1 D-LAB1-11): sets the laboratory lead has signed and the CSO countersigns.
- * Response times today; reference ranges and critical limits join here when their set-up ships.
+ * Response times and reference ranges; critical limits join here when their set-up ships.
  * The CSO works from this console; no in-app CSO role exists, so the superadmin signs as CSO and the
  * governance gap stays recorded (§12, hazard 21).
  */
@@ -27,10 +33,40 @@ export default async function LabSignoffsPage() {
     .from(criticalResponseVersions)
     .orderBy(desc(criticalResponseVersions.createdAt))
     .limit(100);
-  const hospitalIds = [...new Set(versions.map((v) => v.hospitalId))];
+  // Reference ranges the laboratory lead has signed (§5.7).
+  const ranges = (
+    await db
+      .select()
+      .from(referenceRangeVersions)
+      .orderBy(desc(referenceRangeVersions.createdAt))
+      .limit(200)
+  ).filter((r) => r.status === "draft" && r.leadSignedBy);
+  const [rangeBands, rangeTests] = ranges.length
+    ? await Promise.all([
+        db
+          .select()
+          .from(referenceRangeBands)
+          .where(
+            inArray(
+              referenceRangeBands.versionId,
+              ranges.map((r) => r.id),
+            ),
+          ),
+        db
+          .select({ id: testCatalogue.id, display: testCatalogue.display })
+          .from(testCatalogue)
+          .where(
+            inArray(
+              testCatalogue.id,
+              ranges.map((r) => r.testId),
+            ),
+          ),
+      ])
+    : [[], []];
+  const hospitalIds = [...new Set([...versions, ...ranges].map((v) => v.hospitalId))];
   const people = [
     ...new Set(
-      versions
+      [...versions, ...ranges]
         .flatMap((v) => [v.authoredBy, v.leadSignedBy, v.csoSignedBy])
         .filter((u): u is string => !!u),
     ),
@@ -105,6 +141,57 @@ export default async function LabSignoffsPage() {
             hospitalId={v.hospitalId}
             versionId={v.id}
             sameAsLead={v.leadSignedBy === state.user!.id}
+          />
+        </section>
+      ))}
+      {ranges.map((r) => (
+        <section key={r.id} className="border-border flex flex-col gap-3 rounded-lg border p-4">
+          <p className="text-body-s flex flex-wrap items-center gap-2">
+            <StatusWord tone="caution">Waiting for the CSO</StatusWord>
+            <span className="font-medium">{hospital.get(r.hospitalId) ?? "Hospital"}</span>
+            <span>
+              Reference range: {rangeTests.find((t) => t.id === r.testId)?.display},{" "}
+              {conceptDef(r.conceptId)?.display ?? r.conceptId}
+            </span>
+            <span className="text-muted-foreground">
+              version {r.version}, in {r.unitUcum}
+            </span>
+          </p>
+          <table className="text-body-s w-full border-collapse text-left">
+            <thead>
+              <tr className="text-caption text-muted-foreground">
+                {["Sex", "Age from (days)", "Age to (days)", "Low", "High", "Source"].map((h) => (
+                  <th key={h} scope="col" className="py-1 pr-3 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rangeBands
+                .filter((b) => b.versionId === r.id)
+                .map((b) => (
+                  <tr key={b.id}>
+                    <td className="py-1 pr-3">{b.sex}</td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">{b.ageFromDays ?? "—"}</td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">{b.ageToDays ?? "—"}</td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">{b.low ?? "—"}</td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">{b.high ?? "—"}</td>
+                    <td className="py-1 pr-3">{b.source}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          <p className="text-body-s text-muted-foreground">
+            Drafted by {person.get(r.authoredBy) ?? "Staff"}; signed by the laboratory lead{" "}
+            {person.get(r.leadSignedBy!) ?? "Staff"}
+            {r.exceptionNote ? ` (exception: ${r.exceptionNote})` : ""}.
+          </p>
+          <CsoSign
+            kind="range"
+            hospitalId={r.hospitalId}
+            versionId={r.id}
+            sameAsLead={r.leadSignedBy === state.user!.id}
           />
         </section>
       ))}

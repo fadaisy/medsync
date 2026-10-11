@@ -71,7 +71,9 @@ CREATE TABLE IF NOT EXISTS public.lab_component_measures (
     AND decimal_places IS NOT NULL)),
   CONSTRAINT lcm_entry_check CHECK (entry_check_low IS NULL OR entry_check_high IS NULL OR entry_check_low < entry_check_high)
 );
-CREATE UNIQUE INDEX IF NOT EXISTS lcm_current ON public.lab_component_measures (hospital_id, test_id, concept_id)
+-- The current version is the one not superseded. No unique index holds that: the next version is
+-- inserted before the current one can point at it. lcm_version keeps two writers from racing.
+CREATE INDEX IF NOT EXISTS lcm_current ON public.lab_component_measures (hospital_id, test_id, concept_id)
   WHERE superseded_by IS NULL;
 
 -- A measure's facts never change once written; a new version supersedes it (UN-4). Only superseded_by

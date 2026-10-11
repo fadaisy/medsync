@@ -1,0 +1,166 @@
+"use server";
+
+import type { ActionResult } from "@/lib/emr/write/context";
+import { z } from "zod";
+
+import { getAuthState } from "@/lib/auth";
+import { secondFactorFresh } from "@/lib/auth-fresh";
+import { requireEmrActor } from "@/lib/emr/actor";
+import { asClinicalWriter } from "@/lib/emr/db";
+import { actionError, EmrWriteError } from "@/lib/emr/write/context";
+import { labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { unitDisplay } from "./measures-read";
+import { saveMeasure, saveRangeDraft, signRangeVersion } from "./measures-setup";
+
+/**
+ * Test catalogue and reference-range set-up actions (Lab Phase 1 §5.6, §5.7). The laboratory lead
+ * (`lab.manage`) edits measurement facts and drafts ranges, and signs first with a fresh second
+ * factor; the CSO countersigns from the super-admin console (D-LAB1-11). Set-up follows the flag
+ * alone, so a hospital can complete it before the production gate opens (S29).
+ */
+
+const uuid = z.uuid();
+const ok = (id: string): ActionResult => ({ ok: true, id, serverTime: new Date().toISOString() });
+const REAUTH: ActionResult = {
+  ok: false,
+  code: "forbidden",
+  error: "reauth: enter your authenticator code to sign.",
+};
+const decimal = z
+  .string()
+  .trim()
+  .regex(/^-?\d+([.,]\d+)?$/, "Type numbers.")
+  .transform((s) => s.replace(",", "."));
+
+async function asManager<T>(
+  fn: (
+    tx: Parameters<Parameters<typeof asClinicalWriter>[1]>[0],
+    actor: { userId: string; hospitalId: string },
+  ) => Promise<T>,
+) {
+  const actor = await requireEmrActor("lab");
+  if (!labUnitsRangesLiveFor(actor.hospitalId))
+    throw new EmrWriteError("config", "Units and ranges are not switched on here.");
+  if (!actor.labPermissions?.includes("lab.manage"))
+    throw new EmrWriteError("forbidden", "Only the laboratory lead changes the test catalogue.");
+  return asClinicalWriter({ userId: actor.userId, hospitalId: actor.hospitalId }, (tx) =>
+    fn(tx, actor),
+  );
+}
+
+const Measure = z.object({
+  testId: uuid,
+  conceptId: z.string().trim().min(3).max(80),
+  resultType: z.enum(["number", "coded", "text"]),
+  unitUcum: z.string().trim().max(40).nullable(),
+  decimalPlaces: z.number().int().min(0).max(6).nullable(),
+  loincCode: z.string().trim().max(20).nullable(),
+  entryCheckLow: decimal.nullable(),
+  entryCheckHigh: decimal.nullable(),
+});
+
+export async function saveMeasureAction(
+  raw: unknown,
+): Promise<ActionResult<{ version: number | null }>> {
+  const p = Measure.safeParse(raw);
+  if (!p.success)
+    return { ok: false, code: "invalid", error: p.error.issues[0]?.message ?? "Invalid input." };
+  try {
+    const out = await asManager(async (tx, a) => {
+      // The display is the curated list's notation for the code: one store per fact.
+      const display = p.data.unitUcum ? await unitDisplay(tx, p.data.unitUcum) : null;
+      return saveMeasure(
+        tx,
+        a,
+        {
+          testId: p.data.testId,
+          conceptId: p.data.conceptId,
+          draft: {
+            resultType: p.data.resultType,
+            unitUcum: p.data.unitUcum || null,
+            unitDisplay: display,
+            decimalPlaces: p.data.decimalPlaces,
+            loincCode: p.data.loincCode || null,
+            entryCheckLow: p.data.entryCheckLow,
+            entryCheckHigh: p.data.entryCheckHigh,
+          },
+        },
+        new Date(),
+      );
+    });
+    return {
+      ...(ok(p.data.testId) as { ok: true; id: string; serverTime: string }),
+      data: { version: out.kind === "same" ? null : out.version },
+    };
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+const Band = z.object({
+  sex: z.enum(["female", "male", "any"]),
+  ageFromDays: z.number().int().min(0).nullable(),
+  ageToDays: z.number().int().min(1).nullable(),
+  low: decimal.nullable(),
+  high: decimal.nullable(),
+  source: z.string().trim().min(3).max(500),
+});
+const Draft = z.object({
+  testId: uuid,
+  conceptId: z.string().trim().min(3).max(80),
+  bands: z.array(Band).min(1).max(40),
+});
+
+export async function saveRangeDraftAction(raw: unknown): Promise<ActionResult> {
+  const p = Draft.safeParse(raw);
+  if (!p.success)
+    return {
+      ok: false,
+      code: "invalid",
+      error: p.error.issues[0]?.message ?? "Check each band: a source, and numbers.",
+    };
+  try {
+    return ok(await asManager((tx, a) => saveRangeDraft(tx, a, p.data, new Date())));
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+const Sign = z.object({ versionId: uuid, exceptionNote: z.string().trim().max(500).nullable() });
+
+export async function signRangeAsLeadAction(raw: unknown): Promise<ActionResult> {
+  const p = Sign.safeParse(raw);
+  if (!p.success) return { ok: false, code: "invalid", error: "Invalid input." };
+  if (!(await secondFactorFresh())) return REAUTH;
+  try {
+    await asManager((tx, a) => signRangeVersion(tx, { ...a, as: "lead" }, p.data, new Date()));
+    return ok(p.data.versionId);
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+const CsoSign = Sign.extend({ hospitalId: uuid });
+
+export async function signRangeAsCsoAction(raw: unknown): Promise<ActionResult> {
+  const p = CsoSign.safeParse(raw);
+  if (!p.success) return { ok: false, code: "invalid", error: "Invalid input." };
+  const state = await getAuthState();
+  if (!state.user || state.aal !== "aal2" || !state.roles.includes("superadmin"))
+    return { ok: false, code: "forbidden", error: "Only the clinical safety officer signs here." };
+  if (!(await secondFactorFresh())) return REAUTH;
+  const userId = state.user.id;
+  try {
+    await asClinicalWriter({ userId, hospitalId: p.data.hospitalId }, (tx) =>
+      signRangeVersion(
+        tx,
+        { userId, hospitalId: p.data.hospitalId, as: "cso" },
+        p.data,
+        new Date(),
+      ),
+    );
+    return ok(p.data.versionId);
+  } catch (e) {
+    return actionError(e);
+  }
+}

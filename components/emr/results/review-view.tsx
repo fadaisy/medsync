@@ -187,6 +187,10 @@ export function ReviewView({
                           ) : null}
                         </span>
                         {v.flagText ? <span>{v.flagText}</span> : null}
+                        {v.labNote ? <span>{v.labNote}</span> : null}
+                        {v.asTyped ? (
+                          <span className="text-caption text-muted-foreground">Unit as typed</span>
+                        ) : null}
                         {v.uncatalogued ? (
                           <span className="text-caption text-muted-foreground">
                             Not read by decision support

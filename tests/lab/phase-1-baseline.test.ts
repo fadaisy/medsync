@@ -24,10 +24,13 @@ describe("Lab Phase 1 baseline — defects reproduced at Step 0", () => {
     expect(read("lib/emr/actions/results.ts")).toMatch(/correctAlerts/);
   });
 
-  it.fails("F5: the reference range comes from a signed store, not typed (fixed in Step 5)", () => {
-    // Today the technologist types low and high on every result (EntryLine.low/high).
-    const view = read("components/emr/results/result-entry-view.tsx");
-    expect(view).toMatch(/resolveRange|rangeFromStore/);
+  it("F5: the reference range comes from a signed store, not typed (fixed in Step 5)", () => {
+    // With LAB_UNITS_RANGES on, the write resolves the signed band at collection and snapshots it;
+    // the screen shows the same band. Behaviour: tests/emr-db/lab-units.test.ts S23–S25.
+    expect(read("lib/lab/units.ts")).toMatch(/resolveRange\(/);
+    expect(read("lib/lab/units-read.ts")).toMatch(/resolveRange\(/);
+    expect(read("lib/emr/write/results.ts")).toMatch(/prepareFixedUnits/);
+    expect(read("components/emr/results/result-entry-view.tsx")).toMatch(/FixedQuantityRow/);
   });
 
   it.fails("F9: a hospital can be switched to one result path (fixed in Step 8)", () => {

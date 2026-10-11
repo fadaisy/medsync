@@ -591,3 +591,22 @@ describe("bundle", () => {
     expect(seen).toBeGreaterThan(200);
   });
 });
+
+describe("Lab Phase 1 UN-7: a measured value", () => {
+  it("emits the catalogue's UCUM code and display and the LOINC code, never inventing either", () => {
+    const k = one<ObservationFact>(projectObservation(cfcRowFor("obs.potassium")));
+    const measured = toFhirObservation(k, undefined, {
+      unitUcum: "mmol/L",
+      unitDisplay: "mmol/L",
+      loincCode: "2823-3",
+    });
+    expect(get(measured, "valueQuantity.code")).toBe("mmol/L");
+    expect(JSON.stringify(measured)).toContain('"system":"http://loinc.org","code":"2823-3"');
+    const plain = toFhirObservation(k, undefined, {
+      unitUcum: "mmol/L",
+      unitDisplay: "mmol/L",
+      loincCode: null,
+    });
+    expect(JSON.stringify(plain)).not.toContain("http://loinc.org");
+  });
+});

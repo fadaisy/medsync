@@ -31,6 +31,11 @@ const Value = z.object({
   restricted: z.boolean().optional(),
   name: z.string().trim().max(120).optional(),
   replaces: uuid.optional(),
+  // Lab Phase 1 Step 5 (UN-6, FL-3).
+  entryCheckConfirmed: z.boolean().optional(),
+  flagChange: z
+    .object({ flag: z.enum(["low", "high", "normal"]), reason: z.string().trim().min(3).max(200) })
+    .optional(),
 });
 const values = z.array(Value).max(40);
 const conclusion = {
