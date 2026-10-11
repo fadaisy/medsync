@@ -35,6 +35,7 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { LAB_CADRES } from "@/lib/emr/write/orders";
 import { enterResults, releaseResults } from "@/lib/emr/write/results";
 import { encrypt } from "@/lib/encryption";
+import { collectedAtFor, evaluateReport } from "@/lib/lab/limits";
 import {
   applyEvent,
   correctionRecipients,
@@ -45,6 +46,7 @@ import {
 import { dueAtFor, escalateByHand, planEscalations } from "./escalation";
 import { planRelease } from "./marks";
 import { renderSms, smsDecision } from "./messages";
+import { unitsRangesLive } from "./readiness";
 import { resolveFrom } from "./recipients";
 
 /**
@@ -1249,6 +1251,15 @@ export async function releaseWithCriticalMark(ctx: WriteCtx, input: ReleaseWithM
         ...(input.conclusionText ? { conclusionText: input.conclusionText } : {}),
         clientKey: input.clientKey,
       });
+  // Step 6: the signed limits' verdict on each value (FL-4), when units and ranges are live here.
+  const evaluations = (await unitsRangesLive(ctx.actor.hospitalId))
+    ? await evaluateReport(ctx.tx, {
+        hospitalId: ctx.actor.hospitalId,
+        reportId: r.id,
+        patientUserId: input.patientUserId,
+        collectedAt: await collectedAtFor(ctx.tx, input.orderId, ctx.now),
+      })
+    : undefined;
   const alert = await createAlertOnRelease(ctx, {
     patientUserId: input.patientUserId,
     reportId: r.id,
@@ -1256,6 +1267,7 @@ export async function releaseWithCriticalMark(ctx: WriteCtx, input: ReleaseWithM
     marks: input.marks,
     note: input.note,
     clientKey: `${input.clientKey}:alert`,
+    ...(evaluations ? { evaluations } : {}),
   });
   return { ...r, alert };
 }

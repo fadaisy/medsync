@@ -17,8 +17,9 @@ import { unitWords } from "@/lib/emr/unit-words";
 import { cn } from "@/lib/utils";
 import { ChoiceChips } from "../orders/choice-chips";
 import { PRIORITY_WORD } from "../orders/model";
-import { StatusWord } from "../status-word";
+import { CriticalPill, StatusWord } from "../status-word";
 import {
+  autoCritical,
   checkLine,
   CONCLUSIONS,
   emptyLine,
@@ -67,6 +68,7 @@ export function ResultEntryView({
   rowAction,
   releaseLabel = "Release final",
   lockAll = false,
+  footerNote = null,
   ...on
 }: {
   data: ResultEntryData;
@@ -78,6 +80,8 @@ export function ResultEntryView({
   rowAction?: (c: EntryComponent, line: EntryLine) => ReactNode;
   releaseLabel?: string;
   lockAll?: boolean;
+  /** Step 6: "1 critical value needs a check before release." above the buttons. */
+  footerNote?: ReactNode;
 } & EntryHandlers) {
   const locked = phase === "released" || pending || lockAll;
   const report = data.kind === "imaging" || data.kind === "ecg";
@@ -270,6 +274,7 @@ export function ResultEntryView({
         </ul>
       ) : null}
 
+      {footerNote}
       <div className="flex flex-wrap items-center gap-3">
         {phase === "released" ? (
           <Button type="button" variant="secondary" onClick={on.onAmendStart}>
@@ -535,6 +540,7 @@ function FixedQuantityRow({
   const computed = f.released ? null : fixedFlag(c, line);
   const final = f.released ? f.released.flagFinal : (line.flagChange?.flag ?? computed);
   const confirm = needsEntryConfirm(c, line);
+  const critical = autoCritical(c, line);
   if (!f.unitUcum)
     return (
       <div className="flex flex-col gap-1 border-b py-3">
@@ -613,6 +619,12 @@ function FixedQuantityRow({
           </span>
         )}
         <span className="flex flex-col items-start gap-1">
+          {critical ? <CriticalPill /> : null}
+          {f.limit && "none" in f.limit && f.limit.none === "no_limit_for_age" && !f.released ? (
+            <span className="text-caption text-muted-foreground">
+              No critical limit for this age
+            </span>
+          ) : null}
           {final ? (
             <StatusWord tone={final === "normal" ? "neutral" : "caution"}>
               {FLAG_WORDS[final]}

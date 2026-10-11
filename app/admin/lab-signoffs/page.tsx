@@ -7,6 +7,8 @@ import { db } from "@/db";
 import { testCatalogue } from "@/db/schema/emr";
 import { hospitals } from "@/db/schema/hospitals";
 import {
+  criticalLimits,
+  criticalLimitVersions,
   criticalResponseVersions,
   referenceRangeBands,
   referenceRangeVersions,
@@ -63,10 +65,35 @@ export default async function LabSignoffsPage() {
           ),
       ])
     : [[], []];
-  const hospitalIds = [...new Set([...versions, ...ranges].map((v) => v.hospitalId))];
+  // Critical limits the laboratory lead has signed (§5.8).
+  const limitSets = (
+    await db
+      .select()
+      .from(criticalLimitVersions)
+      .orderBy(desc(criticalLimitVersions.createdAt))
+      .limit(100)
+  ).filter((v) => v.status === "draft" && v.leadSignedBy);
+  const limitRows = limitSets.length
+    ? await db
+        .select()
+        .from(criticalLimits)
+        .where(
+          inArray(
+            criticalLimits.versionId,
+            limitSets.map((v) => v.id),
+          ),
+        )
+    : [];
+  const limitTests = limitRows.length
+    ? await db
+        .select({ id: testCatalogue.id, display: testCatalogue.display })
+        .from(testCatalogue)
+        .where(inArray(testCatalogue.id, [...new Set(limitRows.map((l) => l.testId))]))
+    : [];
+  const hospitalIds = [...new Set([...versions, ...ranges, ...limitSets].map((v) => v.hospitalId))];
   const people = [
     ...new Set(
-      [...versions, ...ranges]
+      [...versions, ...ranges, ...limitSets]
         .flatMap((v) => [v.authoredBy, v.leadSignedBy, v.csoSignedBy])
         .filter((u): u is string => !!u),
     ),
@@ -192,6 +219,60 @@ export default async function LabSignoffsPage() {
             hospitalId={r.hospitalId}
             versionId={r.id}
             sameAsLead={r.leadSignedBy === state.user!.id}
+          />
+        </section>
+      ))}
+      {limitSets.map((v) => (
+        <section key={v.id} className="border-border flex flex-col gap-3 rounded-lg border p-4">
+          <p className="text-body-s flex flex-wrap items-center gap-2">
+            <StatusWord tone="caution">Waiting for the CSO</StatusWord>
+            <span className="font-medium">{hospital.get(v.hospitalId) ?? "Hospital"}</span>
+            <span>Critical limits, version {v.version}</span>
+          </p>
+          <table className="text-body-s w-full border-collapse text-left">
+            <thead>
+              <tr className="text-caption text-muted-foreground">
+                {[
+                  "Test",
+                  "Unit",
+                  "Ages (days)",
+                  "At or below",
+                  "At or above",
+                  "Reference",
+                  "Source",
+                ].map((h) => (
+                  <th key={h} scope="col" className="py-1 pr-3 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {limitRows
+                .filter((l) => l.versionId === v.id)
+                .map((l) => (
+                  <tr key={l.id}>
+                    <td className="py-1 pr-3">
+                      {limitTests.find((t) => t.id === l.testId)?.display}:{" "}
+                      {conceptDef(l.conceptId)?.display ?? l.conceptId}
+                    </td>
+                    <td className="py-1 pr-3 font-mono">{l.unitUcum}</td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">
+                      {l.ageFromDays ?? 0}–{l.ageToDays ?? "…"}
+                    </td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">{l.low ?? "—"}</td>
+                    <td className="py-1 pr-3 font-mono tabular-nums">{l.high ?? "—"}</td>
+                    <td className="py-1 pr-3 font-mono">{l.referenceId}</td>
+                    <td className="py-1 pr-3">{l.source}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          <CsoSign
+            kind="limits"
+            hospitalId={v.hospitalId}
+            versionId={v.id}
+            sameAsLead={v.leadSignedBy === state.user!.id}
           />
         </section>
       ))}

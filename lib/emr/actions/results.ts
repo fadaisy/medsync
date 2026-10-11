@@ -1,10 +1,12 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { diagnosticReports } from "@/db/schema/emr";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import * as results from "@/lib/emr/write/results";
-import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
 
 /**
  * Results, acknowledgement and critical-result communication (PROMPT §8, D-EMR-06/07/08). Same
@@ -92,12 +94,50 @@ const CriticalCommunication = z.object({
   clientKey,
 });
 
+/**
+ * Lab Phase 1 Step 6 (S31): with LAB_CRITICALS and LAB_UNITS_RANGES live, a final release by the lab
+ * with a value at or beyond a signed limit is refused unless it goes through Check and release.
+ */
+async function guardUncheckedCritical(
+  ctx: Parameters<Parameters<typeof runEmrWrite>[2]>[0],
+  r: { id: string },
+  patientUserId: string,
+) {
+  if (ctx.actor.surface !== "lab") return;
+  if (
+    !(await criticalsLive(ctx.actor.hospitalId)) ||
+    !(await unitsRangesLive(ctx.actor.hospitalId))
+  )
+    return;
+  const [order] = await ctx.tx
+    .select({ orderId: diagnosticReports.orderId })
+    .from(diagnosticReports)
+    .where(eq(diagnosticReports.id, r.id));
+  if (!order?.orderId) return;
+  const { refuseUncheckedCritical } = await import("@/lib/lab/limits");
+  await refuseUncheckedCritical(ctx.tx, {
+    hospitalId: ctx.actor.hospitalId,
+    reportId: r.id,
+    patientUserId,
+    orderId: order.orderId,
+    now: ctx.now,
+  });
+}
+
 export async function enterResults(raw: unknown) {
-  return runEmrWrite(EnterResults, raw, (ctx, input) => results.enterResults(ctx, input));
+  return runEmrWrite(EnterResults, raw, async (ctx, input) => {
+    const r = await results.enterResults(ctx, input);
+    if (input.status === "final") await guardUncheckedCritical(ctx, r, input.patientUserId);
+    return r;
+  });
 }
 
 export async function releaseResults(raw: unknown) {
-  return runEmrWrite(ReleaseResults, raw, (ctx, input) => results.releaseResults(ctx, input));
+  return runEmrWrite(ReleaseResults, raw, async (ctx, input) => {
+    const r = await results.releaseResults(ctx, input);
+    await guardUncheckedCritical(ctx, r, input.patientUserId);
+    return r;
+  });
 }
 
 /**

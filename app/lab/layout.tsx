@@ -46,6 +46,7 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     criticals: criticalsOpen,
     setup_catalogue: null,
     setup_ranges: null,
+    setup_limits: null,
     setup_criticals: null,
   };
   const words = {
@@ -55,6 +56,7 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     criticals: `${criticalsOpen} open critical ${criticalsOpen === 1 ? "alert" : "alerts"}`,
     setup_catalogue: "",
     setup_ranges: "",
+    setup_limits: "",
     setup_criticals: "",
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {

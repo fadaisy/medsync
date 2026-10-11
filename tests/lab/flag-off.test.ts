@@ -34,7 +34,7 @@ describe("LAB_WORKSPACE off", () => {
   it("the result screen adds nothing: notice and Reject are behind the flag", () => {
     const page = read("app/lab/results/[orderId]/page.tsx");
     expect(page).toMatch(
-      /workspace && !criticalFlaggingActive\(scope\.hospitalId\) \? <FlaggingNotice \/>/,
+      /workspace && !criticalFlaggingActive\(scope\.hospitalId\) \?\s*\(?\s*<FlaggingNotice \/>/,
     );
     expect(page).toMatch(/workspace && !data\.report\?\.released/);
   });

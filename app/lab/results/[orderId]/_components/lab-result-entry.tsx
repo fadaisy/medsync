@@ -4,7 +4,7 @@ import type { EntryComponent, EntryLine, ResultEntryData } from "@/components/em
 import type { CouldNotCheckReason } from "@/lib/lab/criticals/marks";
 import { useRef, useState } from "react";
 
-import { fixedFlag, toResultValues } from "@/components/emr/results/model";
+import { autoCritical, fixedFlag, toResultValues } from "@/components/emr/results/model";
 import { useResultEntry } from "@/components/emr/results/result-entry";
 import { ResultEntryView } from "@/components/emr/results/result-entry-view";
 import { Button } from "@/components/ui/button";
@@ -138,10 +138,21 @@ export function LabResultEntry({
       e.done(failed ? CRITICALS_COPY.notSent : "Released. The alert is sent.");
     });
 
+  // Step 6 (CM-3, CM-4): values at or beyond a signed limit are marked for the panel and stay marked.
+  const auto = data.components
+    .filter((c) => autoCritical(c, e.state.lines[c.conceptId]))
+    .map((c) => c.conceptId);
+  const allMarked = [...auto, ...marked.filter((m) => !auto.includes(m))];
+  const openPanel = () => {
+    setChecks((x) => Object.fromEntries(allMarked.map((id) => [id, x[id] ?? blank])));
+    setMarked(allMarked);
+    setError(null);
+    setOpen(true);
+  };
   const view = {
     ...e.view,
     onSave: (status: "preliminary" | "final") =>
-      status === "final" && marked.length > 0 ? setOpen(true) : e.view.onSave(status),
+      status === "final" && allMarked.length > 0 ? openPanel() : e.view.onSave(status),
   };
   const P = CRITICALS_UI.panel;
 
@@ -151,7 +162,17 @@ export function LabResultEntry({
         data={data}
         {...view}
         lockAll={open}
-        releaseLabel={marked.length > 0 ? P.release : "Release final"}
+        releaseLabel={
+          auto.length > 0 ? "Check and release" : allMarked.length > 0 ? P.release : "Release final"
+        }
+        footerNote={
+          auto.length > 0 && !open ? (
+            <p className="text-body-s" role="status">
+              {auto.length === 1 ? "1 critical value needs" : `${auto.length} critical values need`}{" "}
+              a check before release.
+            </p>
+          ) : null
+        }
         rowAction={(c, line) => {
           if (released || !(line.value || line.code)) return null;
           const isMarked = marked.includes(c.conceptId);
@@ -185,9 +206,7 @@ export function LabResultEntry({
               line: line ?? null,
               // With fixed units the flag is computed (FL-1); otherwise the lab's own.
               direction: c.fixed
-                ? f === "low" || f === "high"
-                  ? f
-                  : null
+                ? (autoCritical(c, line) ?? (f === "low" || f === "high" ? f : null))
                 : line
                   ? directionOf(line)
                   : null,
@@ -197,6 +216,7 @@ export function LabResultEntry({
           onCheck={(id, patch) =>
             setChecks((x) => ({ ...x, [id]: { ...(x[id] ?? blank), ...patch } }))
           }
+          locked={auto}
           onUnmark={(id) => {
             const rest = marked.filter((m) => m !== id);
             setMarked(rest);

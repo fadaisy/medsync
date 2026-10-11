@@ -35,6 +35,6 @@ describe("Lab Phase 0 baseline — defects reproduced at Step 0", () => {
   // LAB_WORKSPACE; rendered in tests/lab/ui.test.ts).
   it("L7: the lab result screen says critical flagging is off", () => {
     const screen = read("app/lab/results/[orderId]/page.tsx");
-    expect(screen).toMatch(/criticalFlaggingActive\(scope\.hospitalId\) \? <FlaggingNotice \/>/);
+    expect(screen).toMatch(/criticalFlaggingActive\(scope\.hospitalId\) \?\s*\(?\s*<FlaggingNotice \/>/);
   });
 });

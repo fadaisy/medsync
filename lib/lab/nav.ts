@@ -8,6 +8,7 @@ import type { LabPermission } from "./access";
  */
 
 export type LabNavId =
+  | "setup_limits"
   | "worklist"
   | "criticals"
   | "released"
@@ -84,8 +85,18 @@ export const LAB_NAV: readonly LabNavItem[] = [
     visibleFor: (p, f) => !!f.unitsRanges && p.has("lab.manage"),
   },
   {
+    id: "setup_limits",
+    label: "Critical limits",
+    href: "/lab/setup/limits",
+    order: 9.5,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) =>
+      !!f.unitsRanges && !!(f.criticalsSetup ?? f.criticals) && p.has("lab.manage"),
+  },
+  {
     id: "setup_criticals",
-    label: "Critical results",
+    label: "Response and contacts",
     href: "/lab/setup/criticals",
     order: 10,
     exact: false,

@@ -108,13 +108,19 @@ const coversAge = (l: CriticalLimit, days: number | null) =>
       (l.ageFromDays === null || days >= l.ageFromDays) &&
       (l.ageToDays === null || days < l.ageToDays);
 
-/** FL-4 to FL-7: critical low at or below the low limit, critical high at or above the high limit. */
-export function evaluateCritical(
-  q: CriticalQuery,
+export type LimitFor =
+  | { kind: "limit"; limit: CriticalLimit; versionId: string; version: number }
+  | {
+      kind: "none";
+      reason: "not_numeric" | "no_signed_limits" | "no_limit_for_test" | "no_limit_for_age";
+    };
+
+/** FL-4 to FL-6: the one signed, in-force limit for this component, unit and age, or why there is none. */
+export function limitFor(
+  q: Omit<CriticalQuery, "value">,
   versions: readonly CriticalLimitVersion[],
-): CriticalEvaluation {
-  if (q.resultType !== "number" || !isDecimal(q.value))
-    return { kind: "none", reason: "not_numeric" }; // FL-7
+): LimitFor {
+  if (q.resultType !== "number") return { kind: "none", reason: "not_numeric" }; // FL-7
   const set = versions
     .filter((v) => v.hospitalId === q.hospitalId && inForceAt(v, q.at))
     .sort((a, b) => b.version - a.version)[0];
@@ -126,12 +132,25 @@ export function evaluateCritical(
   if (forTest.length === 0) return { kind: "none", reason: "no_limit_for_test" };
   const limit = forTest.find((l) => coversAge(l, q.ageDays));
   if (!limit) return { kind: "none", reason: "no_limit_for_age" }; // FL-6
+  return { kind: "limit", limit, versionId: set.id, version: set.version };
+}
+
+/** FL-4 to FL-7: critical low at or below the low limit, critical high at or above the high limit. */
+export function evaluateCritical(
+  q: CriticalQuery,
+  versions: readonly CriticalLimitVersion[],
+): CriticalEvaluation {
+  if (q.resultType !== "number" || !isDecimal(q.value))
+    return { kind: "none", reason: "not_numeric" }; // FL-7
+  const found = limitFor(q, versions);
+  if (found.kind === "none") return found;
+  const { limit } = found;
   const hit = (direction: "low" | "high") => ({
     kind: "critical" as const,
     direction,
     limitId: limit.id,
-    versionId: set.id,
-    version: set.version,
+    versionId: found.versionId,
+    version: found.version,
   });
   if (limit.low !== null && compareDecimal(q.value, limit.low) <= 0) return hit("low");
   if (limit.high !== null && compareDecimal(q.value, limit.high) >= 0) return hit("high");

@@ -453,3 +453,34 @@ twice; empty table headers.
 4. **0103 changed before application:** the "current version" index is no longer unique (the next version is written
    before the current one can point at it; the per-version key still stops two writers racing).
 5. **FHIR** now takes the snapshot's UCUM and LOINC; no exporter calls the observation mapper yet.
+
+---
+
+## STOP 6 — Automatic flagging
+
+**Built:** **Critical limits** set-up (test and unit from the catalogue, applies to all ages or an age band, critical at
+or below / at or above, reference id, source; one versioned set per hospital; lead signs here, CSO in Lab sign-offs; the
+banner states whether MedSync flags here; a signed limit whose test's unit has since changed is listed as never firing);
+on entry, the Critical pill at or beyond a signed limit, "1 critical value needs a check before release." and **Check and
+release**, which opens the mark panel with that value already marked and not removable; the server refuses a plain
+final release with an unchecked auto-flagged value, in the release's own transaction; auto marks carry the limit, its
+version and the direction; the flagging notice now reads the hospital's signed state (CF-1): neutral "Critical limits
+are signed…" when limits and response times are both signed, the Phase 1 amber wording otherwise, and the Phase 0
+notice exactly as before with `labCriticals` off.
+
+| #   | Result                                                                                                                                  | Where            |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| S30 | Pass. Signed by both: a value at the limit shows the Critical pill at entry; the notice turns neutral; a value within releases unmarked | PGlite + harness |
+| S31 | Pass. Release without a check is refused and rolled back; with the check it releases and alerts with an auto mark (low, limit v1)       | PGlite + harness |
+| S32 | Pass. A limit's unit always comes from the catalogue; after a unit change the old limit never fires and set-up lists it                 | PGlite + page    |
+| S33 | Pass. No limit covers a child: not flagged, "No critical limit for this age"; a hand mark still works (manual)                          | PGlite           |
+| S34 | Pass. Editing signed limits opens an unsigned draft; the signed set stays in force until the new one is signed                          | PGlite + page    |
+| S35 | Pass. A value typed above the limit and corrected below it before release raises no mark                                                | PGlite           |
+| S36 | Pass. Second check on: the panel asks for a second lab user (or a solo reason); the mark records the second checker                     | PGlite + harness |
+
+**Tests:** `tests/emr-db/lab-limits.test.ts` (7). Full suite and PGlite lane green (571 on the lane). **axe:** 0 on the
+limits page and the entry screen. **Screens** (`shots/p1-s6/`): artboard 11 `a1-limits-*.png`; artboard 4
+`a3-entry.png`, `a3-panel-auto.png`.
+
+**For the owner:** the harness fixture has no child patient, so S33 is proven on PGlite only. The limit's age band
+uses the same day conversion as ranges (STOP 5, note 2).

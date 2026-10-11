@@ -25,6 +25,7 @@ export function MarkPanel({
   checks,
   onCheck,
   onUnmark,
+  locked = [],
   note,
   onNote,
   second,
@@ -47,6 +48,8 @@ export function MarkPanel({
   checks: Record<string, CheckDraft>;
   onCheck: (conceptId: string, patch: Partial<CheckDraft>) => void;
   onUnmark: (conceptId: string) => void;
+  /** Auto marks from the signed limits: they cannot be removed (CM-4). */
+  locked?: readonly string[];
   note: string;
   onNote: (s: string) => void;
   second: string;
@@ -115,7 +118,11 @@ export function MarkPanel({
                   <span className="text-muted-foreground">{range}</span>
                 </span>
               </p>
-              {items.length > 1 ? (
+              {locked.includes(i.conceptId) ? (
+                <span className="text-caption text-muted-foreground">
+                  At or beyond the signed limit
+                </span>
+              ) : items.length > 1 ? (
                 <Button
                   type="button"
                   variant="ghost"

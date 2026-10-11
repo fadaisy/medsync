@@ -1,6 +1,6 @@
 import type { PatientIdentity } from "../orders/model";
 
-import { entryCheck, parseResultInput } from "@/lib/lab/catalogue";
+import { compareDecimal, entryCheck, parseResultInput } from "@/lib/lab/catalogue";
 import { computeFlag } from "@/lib/lab/flags";
 import { acceptedUnits, mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
 
@@ -69,6 +69,10 @@ export interface FixedComponent {
   range: { state: RangeStateWord; low: string | null; high: string | null };
   /** The viewer may fix the catalogue (`lab.manage`). */
   canFix: boolean;
+  /** Step 6: the signed critical limit for this patient's age, or why there is none (FL-4, FL-6). */
+  limit?:
+    | { low: string | null; high: string | null }
+    | { none: "no_signed_limits" | "no_limit_for_test" | "no_limit_for_age" };
   /** A released value: what its snapshot holds (Law 8), shown as it was released. */
   released?: { flagFinal: "low" | "high" | "normal" | null; reason: string | null };
 }
@@ -216,6 +220,17 @@ export function needsEntryConfirm(c: EntryComponent, l: EntryLine): boolean {
       entryCheckHigh: f.entryHigh,
     }) === "outside"
   );
+}
+
+/** FL-4: at or beyond the signed limit, as typed now; the server decides again on release. */
+export function autoCritical(c: EntryComponent, l: EntryLine | undefined): "low" | "high" | null {
+  const f = c.fixed;
+  if (!f || !l || !f.limit || "none" in f.limit || f.released) return null;
+  const parsed = parseResultInput(l.value, f.decimals);
+  if (!parsed.ok) return null;
+  if (f.limit.low !== null && compareDecimal(parsed.value, f.limit.low) <= 0) return "low";
+  if (f.limit.high !== null && compareDecimal(parsed.value, f.limit.high) >= 0) return "high";
+  return null;
 }
 
 /** FL-1: the flag the signed band (or, with no signed range, the typed one) gives this value. */

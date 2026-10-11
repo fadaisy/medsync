@@ -8,7 +8,8 @@ import { secondFactorFresh } from "@/lib/auth-fresh";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { asClinicalWriter } from "@/lib/emr/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
-import { labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { labCriticalsLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { saveLimitsDraft, signLimitsVersion } from "./limits";
 import { unitDisplay } from "./measures-read";
 import { saveMeasure, saveRangeDraft, signRangeVersion } from "./measures-setup";
 
@@ -163,4 +164,77 @@ export async function signRangeAsCsoAction(raw: unknown): Promise<ActionResult> 
   } catch (e) {
     return actionError(e);
   }
+}
+
+/* ─── Critical limits (§5.8; Step 6) ──────────────────────────────────── */
+
+const LimitRow = z.object({
+  testId: uuid,
+  conceptId: z.string().trim().min(3).max(80),
+  ageFromDays: z.number().int().min(0).nullable(),
+  ageToDays: z.number().int().min(1).nullable(),
+  low: decimal.nullable(),
+  high: decimal.nullable(),
+  referenceId: z.string().trim().min(1).max(60),
+  source: z.string().trim().min(3).max(500),
+});
+
+export async function saveLimitsDraftAction(raw: unknown): Promise<ActionResult> {
+  const p = z.object({ limits: z.array(LimitRow).min(1).max(200) }).safeParse(raw);
+  if (!p.success)
+    return {
+      ok: false,
+      code: "invalid",
+      error: "Each limit needs a test, a number, a reference id and a source.",
+    };
+  try {
+    return ok(await asLimitsManager((tx, a) => saveLimitsDraft(tx, a, p.data, new Date())));
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+export async function signLimitsAsLeadAction(raw: unknown): Promise<ActionResult> {
+  const p = Sign.safeParse(raw);
+  if (!p.success) return { ok: false, code: "invalid", error: "Invalid input." };
+  if (!(await secondFactorFresh())) return REAUTH;
+  try {
+    await asLimitsManager((tx, a) =>
+      signLimitsVersion(tx, { ...a, as: "lead" }, p.data, new Date()),
+    );
+    return ok(p.data.versionId);
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+export async function signLimitsAsCsoAction(raw: unknown): Promise<ActionResult> {
+  const p = CsoSign.safeParse(raw);
+  if (!p.success) return { ok: false, code: "invalid", error: "Invalid input." };
+  const state = await getAuthState();
+  if (!state.user || state.aal !== "aal2" || !state.roles.includes("superadmin"))
+    return { ok: false, code: "forbidden", error: "Only the clinical safety officer signs here." };
+  if (!(await secondFactorFresh())) return REAUTH;
+  const userId = state.user.id;
+  try {
+    await asClinicalWriter({ userId, hospitalId: p.data.hospitalId }, (tx) =>
+      signLimitsVersion(
+        tx,
+        { userId, hospitalId: p.data.hospitalId, as: "cso" },
+        p.data,
+        new Date(),
+      ),
+    );
+    return ok(p.data.versionId);
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+/** Limits need both: the catalogue's units (LAB_UNITS_RANGES) and the alerts they raise (LAB_CRITICALS). */
+async function asLimitsManager<T>(fn: Parameters<typeof asManager<T>>[0]) {
+  const actor = await requireEmrActor("lab");
+  if (!labCriticalsLiveFor(actor.hospitalId))
+    throw new EmrWriteError("config", "Critical alerts are not switched on here.");
+  return asManager(fn);
 }

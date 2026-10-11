@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CriticalComm } from "@/components/emr/results/critical-comm";
 import { ResultEntry } from "@/components/emr/results/result-entry";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
+import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
 import { loadResultEntry } from "@/lib/emr/read/results";
@@ -12,6 +13,7 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
 import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
 import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { flaggingActiveFor } from "@/lib/lab/limits";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { loadRejectableSpecimen } from "@/lib/lab/read";
 import { fixedForOrder } from "@/lib/lab/units-read";
@@ -60,6 +62,7 @@ export default async function LabResultEntryPage({
           undefined,
           // Released: each value as its snapshot holds it (Law 8).
           loaded.report?.released ? loaded.report.id : undefined,
+          await criticalsLive(scope.hospitalId),
         )
       : null;
   const data = fixed
@@ -106,7 +109,13 @@ export default async function LabResultEntryPage({
       >
         Back to the worklist
       </Link>
-      {workspace && !criticalFlaggingActive(scope.hospitalId) ? <FlaggingNotice /> : null}
+      {workspace && criticals ? (
+        <FlaggingNotice
+          phase1={(await flaggingActiveFor(scope.hospitalId, db as never)) ? "on" : "off"}
+        />
+      ) : workspace && !criticalFlaggingActive(scope.hospitalId) ? (
+        <FlaggingNotice />
+      ) : null}
       {alerts.map((a) => (
         <section key={a.id} aria-label="Critical alert" className="flex flex-col gap-2">
           <p className="text-body-s flex flex-wrap items-center gap-2">

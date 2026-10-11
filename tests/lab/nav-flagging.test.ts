@@ -28,6 +28,20 @@ describe("lab navigation", () => {
       "rejected",
       "setup_criticals",
     ]);
+    // Steps 5 and 6: the catalogue and ranges with units; limits need both flags.
+    expect(navFor(all, { criticals: true, unitsRanges: true }).map((i) => i.id)).toEqual([
+      "worklist",
+      "criticals",
+      "released",
+      "rejected",
+      "setup_catalogue",
+      "setup_ranges",
+      "setup_limits",
+      "setup_criticals",
+    ]);
+    expect(navFor(all, { criticals: false, unitsRanges: true }).map((i) => i.id)).not.toContain(
+      "setup_limits",
+    );
     const noManage = new Set<LabPermission>(LAB_PERMISSIONS.filter((p) => p !== "lab.manage"));
     expect(navFor(noManage, { criticals: true }).map((i) => i.id)).not.toContain("setup_criticals");
     expect(LAB_NAV.find((i) => i.id === "setup_criticals")?.group).toBe("setup");
