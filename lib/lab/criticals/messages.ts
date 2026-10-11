@@ -67,6 +67,8 @@ export function bannedTermScan(
 }
 
 const FIELDS = /\{([^}]+)\}/g;
+/** One GSM-7 SMS part (lib/notifications/sink.ts SMS_MAX_BODY_CHARS). */
+export const SMS_ONE_PART = 160;
 
 /** MS-1: an approved template with the place and the lab's number, and nothing else. */
 export function renderSms(
@@ -77,7 +79,7 @@ export function renderSms(
   | { ok: true; text: string }
   | {
       ok: false;
-      reason: "not_approved" | "unknown_field" | "no_lab_number" | "banned_term";
+      reason: "not_approved" | "unknown_field" | "no_lab_number" | "too_long" | "banned_term";
       detail?: string[];
     } {
   if (template.status !== "approved") return { ok: false, reason: "not_approved" };
@@ -92,6 +94,9 @@ export function renderSms(
     .join(fields.place)
     .split("{lab number}")
     .join(fields.labNumber);
+  // One GSM-7 part: the transport refuses more rather than bill twice (lib/notifications/sink.ts).
+  if (text.length > SMS_ONE_PART || !/^[\x20-\x7E\n]*$/.test(text))
+    return { ok: false, reason: "too_long" };
   const hits = bannedTermScan(text, terms, [fields.labNumber]);
   return hits.length > 0 ? { ok: false, reason: "banned_term", detail: hits } : { ok: true, text };
 }
@@ -109,6 +114,7 @@ export function smsDecision(input: {
   alreadySent: boolean;
 }): SmsDecision {
   if (!input.smsLive) return { send: false, outcome: "off", reason: "sms_off" };
+  if (input.restricted) return { send: false, outcome: "skipped", reason: "restricted" }; // Law 12
   if (!input.templateApproved)
     return { send: false, outcome: "skipped", reason: "no_approved_template" };
   if (!input.staffPhone) return { send: false, outcome: "skipped", reason: "no_number" };
