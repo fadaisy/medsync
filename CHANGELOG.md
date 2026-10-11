@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Several accounts signed in to one browser — 2026-10-11
+
+- Signing in to another account no longer signs the first one out. Each account keeps its own session cookie; the
+  active one is used by every tab, and "Switch account" in each workspace header opens `/accounts` to switch, add or
+  sign out ([ADR 0280](docs/adr/0280-several-accounts-in-one-browser.md)).
+
 ### Fixed — Laboratory staff kept losing access to their patients — 2026-10-11
 
 - A technologist could not result a specimen after midnight or once the patient's visit had completed: the access rule

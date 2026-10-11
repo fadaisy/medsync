@@ -184,6 +184,12 @@ export function DoctorShell({
               />
               {workspace ? <EmergencyInlineLink /> : null}
               <Link
+                href="/accounts"
+                className="text-muted-foreground hover:text-foreground decoration-border text-[12px] underline-offset-4 transition-colors hover:underline"
+              >
+                Switch account
+              </Link>
+              <Link
                 href="/sign-out"
                 className="text-muted-foreground hover:text-foreground decoration-border text-[12px] underline-offset-4 transition-colors hover:underline"
               >

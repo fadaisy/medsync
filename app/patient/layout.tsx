@@ -84,6 +84,12 @@ export default async function PatientLayout({ children }: { children: ReactNode 
               glyph this header wants beside a plain text link. */}
           <ThemeToggle className="size-11 border-transparent bg-transparent" />
           <Link
+            href="/accounts"
+            className="text-muted-foreground hover:text-foreground decoration-border text-body-s inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:underline"
+          >
+            Switch account
+          </Link>
+          <Link
             href="/sign-out"
             className="text-muted-foreground hover:text-foreground decoration-border text-body-s inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:underline"
           >

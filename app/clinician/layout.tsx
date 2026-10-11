@@ -64,6 +64,12 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
             {scope.fullName ?? scope.userEmail}
           </span>
           <Link
+            href="/accounts"
+            className="text-muted-foreground hover:text-foreground text-body-s underline-offset-4 transition-colors hover:underline"
+          >
+            Switch account
+          </Link>
+          <Link
             href="/sign-out"
             className="text-muted-foreground hover:text-foreground text-body-s underline-offset-4 transition-colors hover:underline"
           >

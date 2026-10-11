@@ -2,7 +2,7 @@ import type { TintedRowIconKey } from "../_components/tinted-row";
 import type { RowTint } from "@/lib/patient/doses";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, UsersIcon } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
@@ -138,6 +138,16 @@ export default async function PatientMenuPage() {
       {/* Styled with `buttonVariants` rather than `<Button render={<Link/>}>`:
           this is a navigation, and base-ui's non-native path would stamp
           role="button" over the link semantics a screen reader wants here. */}
+      <Link
+        href="/accounts"
+        className={cn(
+          buttonVariants({ variant: "secondary", size: "lg" }),
+          "w-full @3xl/page:w-fit",
+        )}
+      >
+        <UsersIcon aria-hidden className="size-4" />
+        Switch account
+      </Link>
       <Link
         href="/sign-out"
         className={cn(

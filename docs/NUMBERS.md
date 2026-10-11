@@ -16,6 +16,7 @@ the work merges. Highest numbers are read across `origin/main` and every local a
 | ADR 0239–0259       | Lab Phase 1 and lab phases after it                            | `feat/lab-safety-floor`    | 11 Oct 2026 | claimed                      |
 | migration 0120–0139 | Pharmacy Phase 0 (0120, 0121) and the pharmacy phases after it | `feat/pharmacy-front-door` | 11 Oct 2026 | 0120–0121 used, rest claimed |
 | ADR 0260–0279       | The pharmacy phases after Phase 0                              | `feat/pharmacy-front-door` | 11 Oct 2026 | claimed                      |
+| ADR 0280            | Several accounts in one browser                                | `feat/multi-account`       | 11 Oct 2026 | used                         |
 
 On `origin/main` (4087e4c, 10 Oct 2026) the highest migration is **0096** and the highest ADR **0220**.
 

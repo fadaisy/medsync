@@ -61,6 +61,17 @@ export const SIGN_IN = {
   },
 } as const;
 
+/** /accounts — every account signed in to this browser (lib/supabase/accounts.ts). */
+export const ACCOUNTS = {
+  title: "Your accounts",
+  subtitle: "Signed in on this browser. Every tab uses the active account.",
+  active: "Active",
+  use: "Use this account",
+  add: "Add another account",
+  signOut: "Sign out of the active account",
+  link: "Switch account",
+} as const;
+
 export const MFA = {
   title: "Enter your authentication code",
   helper: "Open your authenticator app and enter the 6-digit code for MedSync.",

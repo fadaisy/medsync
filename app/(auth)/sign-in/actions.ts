@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { SIGN_IN } from "@/content/auth";
 import { logger } from "@/lib/logger";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, setActiveAccount, slotForSignIn } from "@/lib/supabase/server";
 import { safeRedirect, signInErrorMessage } from "./errors";
 import { landingFor } from "./landing";
 
@@ -36,7 +36,9 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     };
   }
 
-  const supabase = await createClient();
+  // Its own cookie slot, so the accounts already signed in here stay signed in.
+  const slot = await slotForSignIn(parsed.data.email);
+  const supabase = await createClient(slot);
   const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
@@ -48,6 +50,7 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     // wrong password. Only a rate limit (429) says something different.
     return { errors: { _form: signInErrorMessage(error) } };
   }
+  await setActiveAccount(slot);
 
   // The landing decides whether ?redirect= may be honoured (a path the user may open, LD-4).
   const landing = signInData.user

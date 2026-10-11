@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 import { env } from "@/lib/env";
+import { ACTIVE_ACCOUNT_COOKIE, authCookieName, parseSlot } from "@/lib/supabase/accounts";
 
 /**
  * Supabase client wired for the Next.js 16 proxy (formerly middleware).
@@ -21,6 +22,9 @@ export async function updateSession(request: NextRequest): Promise<{
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      cookieOptions: {
+        name: authCookieName(parseSlot(request.cookies.get(ACTIVE_ACCOUNT_COOKIE)?.value)),
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll();

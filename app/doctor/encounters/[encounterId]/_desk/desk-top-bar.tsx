@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeftIcon, ChevronLeftIcon, LogOutIcon } from "lucide-react";
+import { ArrowLeftIcon, ChevronLeftIcon, LogOutIcon, UsersIcon } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -82,6 +82,15 @@ export function DeskTopBar({
         <span className="hidden lg:inline">{department}</span>
         <span className={cn("text-foreground", m("max-sm:hidden"))}>{cadreWord}</span>
         <Link
+          href="/accounts"
+          className={cn(
+            "text-body-s hover:text-foreground underline-offset-4 hover:underline",
+            m("max-sm:hidden"),
+          )}
+        >
+          Switch account
+        </Link>
+        <Link
           href="/sign-out"
           className={cn(
             "text-body-s hover:text-foreground underline-offset-4 hover:underline",
@@ -117,6 +126,10 @@ export function DeskTopBar({
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/accounts" />} className="min-h-11">
+                <UsersIcon aria-hidden />
+                Switch account
+              </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/sign-out" />} className="min-h-11">
                 <LogOutIcon aria-hidden />
                 Sign out

@@ -118,6 +118,12 @@ export function ReceptionShell({
               }))}
             />
             <Link
+              href="/accounts"
+              className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out underline-offset-4 transition-colors duration-150 hover:underline"
+            >
+              Switch account
+            </Link>
+            <Link
               href="/sign-out"
               className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out underline-offset-4 transition-colors duration-150 hover:underline"
             >
