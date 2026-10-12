@@ -241,3 +241,33 @@ BEGIN
   END IF;
 END
 $do$;
+
+-- ─── 7. The cashier's list (PY-5, D-LAB2-03) ─────────────────────────────
+-- Reception (the RECEPTION cadre, approved or active here) records payment. It reads no order, result,
+-- clinical question or diagnosis: this function returns the patient, when and where the tests were ordered,
+-- the names of unrestricted tests and a count of restricted ones. Emergencies never appear (never held).
+CREATE OR REPLACE FUNCTION public.lab_awaiting_payment(p_hospital uuid)
+RETURNS TABLE (encounter_id uuid, patient_user_id uuid, ordered_at timestamptz, order_ids uuid[],
+               tests text[], restricted_count integer)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
+  WITH me AS (
+    SELECT 1 FROM public.staff_affiliations sa JOIN public.cadres c ON c.id = sa.cadre_id
+     WHERE sa.user_id = auth.uid() AND sa.hospital_id = p_hospital AND c.code = 'RECEPTION'
+       AND sa.state IN ('approved','active')
+  ), latest AS (
+    SELECT DISTINCT ON (e.order_id) e.order_id, e.state
+      FROM public.lab_payment_events e
+     WHERE e.hospital_id = p_hospital
+     ORDER BY e.order_id, e.recorded_at DESC
+  )
+  SELECT o.encounter_id, o.patient_user_id, min(o.effective_at), array_agg(o.id ORDER BY o.id),
+         array_agg(o.text ORDER BY o.text) FILTER (WHERE o.sensitivity <> 'restricted'),
+         (count(*) FILTER (WHERE o.sensitivity = 'restricted'))::int
+    FROM latest l JOIN public.encounter_orders o ON o.id = l.order_id
+   WHERE l.state = 'awaiting' AND EXISTS (SELECT 1 FROM me)
+     AND NOT EXISTS (SELECT 1 FROM public.encounter_order_events x
+                      WHERE x.order_id = o.id AND x.kind IN ('cancelled','dismissed'))
+   GROUP BY o.encounter_id, o.patient_user_id
+$$;
+REVOKE ALL ON FUNCTION public.lab_awaiting_payment(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.lab_awaiting_payment(uuid) TO authenticated;

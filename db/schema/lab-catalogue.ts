@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
@@ -81,7 +82,10 @@ export const labTestServices = pgTable(
 );
 
 export const labLabels = pgTable("lab_labels", {
-  labelNo: text("label_no").primaryKey(),
+  /** 0109: `L` + 8 digits from lab_label_seq. */
+  labelNo: text("label_no")
+    .primaryKey()
+    .default(sql`('L' || lpad(nextval('public.lab_label_seq')::text, 8, '0'))`),
   orderId: uuid("order_id").notNull(),
   hospitalId: uuid("hospital_id").notNull(),
   patientUserId: uuid("patient_user_id").notNull(),

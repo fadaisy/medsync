@@ -32,7 +32,13 @@ import { deriveOrderStatus, orderFrequencyFor, orderStatusText } from "@/lib/emr
 import { CLERKING_CADRE_CODES } from "@/lib/encounter/access";
 import { encrypt } from "@/lib/encryption";
 import { sensitivityFor } from "@/lib/facts/project/shared";
-import { labCatalogueV2LiveFor, labOneMenuLiveFor, labPaymentLiveFor } from "@/lib/lab/feature";
+import { issueLabel } from "@/lib/lab/collection-store";
+import {
+  labCatalogueV2LiveFor,
+  labCollectionCheckLiveFor,
+  labOneMenuLiveFor,
+  labPaymentLiveFor,
+} from "@/lib/lab/feature";
 import { paymentAtPlacement } from "@/lib/lab/one-menu";
 import { menuToday } from "@/lib/lab/one-menu-read";
 import { actionError, EmrWriteError, stampActivity, withPatientWrite } from "./context";
@@ -387,6 +393,9 @@ export async function placeOrders(
           : null,
       })
       .returning({ id: encounterOrders.id });
+    // ID-1: with the label check on, the order's label number exists from placement, to print before collecting.
+    if (test.kind === "lab" && labCollectionCheckLiveFor(actor.hospitalId) && !opts.propose)
+      await issueLabel(tx, actor, { id: order!.id, patientUserId: input.patientUserId });
     // PY-2: decided from the order itself; an emergency is written as such and never changes.
     if (payment && test.kind === "lab") {
       const state = paymentAtPlacement(

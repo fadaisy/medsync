@@ -30,6 +30,8 @@ import {
   testCatalogue,
 } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { labLabels } from "@/db/schema/lab-catalogue";
+import { labSettings } from "@/db/schema/lab-safety";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
@@ -45,7 +47,13 @@ import {
 import { loadOrderRecords } from "@/lib/emr/write/orders";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef, sensitivityFor } from "@/lib/facts/project/shared";
-import { labOneMenuLiveFor } from "@/lib/lab/feature";
+import { highRiskFor, paymentModeAt, paymentStates } from "@/lib/lab/collection-store";
+import {
+  labCollectionCheckLiveFor,
+  labHighRiskLiveFor,
+  labOneMenuLiveFor,
+  labPaymentLiveFor,
+} from "@/lib/lab/feature";
 import { menuToday } from "@/lib/lab/one-menu-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { entryComponents } from "./results";
@@ -73,6 +81,8 @@ export interface EncounterOrdersLoad {
   /** Transcription screens for the orders that can take a paper or imaging report now. */
   transcribe: Record<string, ResultEntryData>;
   collectorName: string | null;
+  /** Lab Phase 2 (labHighRisk, HR-1/HR-2): the encounter's high-risk warning, when the flag is on. */
+  highRisk?: { on: boolean; reason: string | null; manual: boolean } | null;
 }
 
 async function identityHead(
@@ -316,6 +326,16 @@ export async function loadEncounterOrders(
     : [];
   const names = new Map(nameRows.map((r) => [r.id, r.name]));
 
+  // Lab Phase 2 (§5.2): labels, payment and the high-risk warning for the collector.
+  const labIds = rec.orderRows.filter((o) => o.kind === "lab").map((o) => o.id);
+  const checkOn = labCollectionCheckLiveFor(actor.hospitalId);
+  const payOn = labPaymentLiveFor(actor.hospitalId);
+  const riskOn = labHighRiskLiveFor(actor.hospitalId);
+  const lab = await labCollectionFacts(conn, actor.hospitalId, encounterId, labIds, {
+    checkOn,
+    payOn,
+    riskOn,
+  });
   const orders: EncounterOrderRow[] = [];
   const transcribe: Record<string, ResultEntryData> = {};
   for (const o of rec.orderRows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())) {
@@ -352,6 +372,19 @@ export async function loadEncounterOrders(
               container: test?.container ?? null,
               needsFasting: needsFastingChip(o, test),
               rejection,
+              ...(checkOn || payOn || riskOn
+                ? {
+                    lab: {
+                      checkOn,
+                      labelNo: lab.labels.get(o.id) ?? null,
+                      payment: payOn
+                        ? { state: lab.payments.get(o.id) ?? "not_required", mode: lab.mode }
+                        : null,
+                      highRisk: lab.highRisk,
+                      procedure: lab.procedure,
+                    },
+                  }
+                : {}),
             }
           : null,
       specimenId: newestSpecimen,
@@ -378,6 +411,13 @@ export async function loadEncounterOrders(
     encounterId,
     patientUserId,
     identity: head.identity,
+    highRisk: riskOn
+      ? {
+          on: !!lab.highRisk,
+          reason: lab.highRisk?.reason ?? null,
+          manual: lab.highRisk?.manual ?? false,
+        }
+      : null,
     timeZone: DEFAULT_TIME_ZONE,
     menu,
     reasons,
@@ -441,4 +481,50 @@ export async function loadSpecimenLabel(
     },
     restricted: restricted ? { id: specimenId, label: row.test } : null,
   };
+}
+
+/** Lab Phase 2 (§5.2, ID-*, PY-*, HR-*): what the collector needs per lab order, read once per encounter. */
+async function labCollectionFacts(
+  conn: EmrDb,
+  hospitalId: string,
+  encounterId: string,
+  orderIds: string[],
+  on: { checkOn: boolean; payOn: boolean; riskOn: boolean },
+) {
+  const none = {
+    labels: new Map<string, string>(),
+    payments: new Map<string, string>(),
+    mode: "off",
+    highRisk: null as { manual: boolean; reason: string | null } | null,
+    procedure: null as string | null,
+  };
+  if (!orderIds.length || !(on.checkOn || on.payOn || on.riskOn)) return none;
+  return conn.transaction(async (tx) => {
+    const labels = on.checkOn
+      ? new Map(
+          (
+            await tx
+              .select({ orderId: labLabels.orderId, labelNo: labLabels.labelNo })
+              .from(labLabels)
+              .where(and(inArray(labLabels.orderId, orderIds), isNull(labLabels.voidedAt)))
+          ).map((l) => [l.orderId, l.labelNo]),
+        )
+      : none.labels;
+    const payments = on.payOn ? await paymentStates(tx, orderIds) : none.payments;
+    const mode = on.payOn ? await paymentModeAt(tx, hospitalId) : "off";
+    const risk = on.riskOn ? (await highRiskFor(tx, [encounterId])).get(encounterId) : undefined;
+    const [s] = on.riskOn
+      ? await tx
+          .select({ p: labSettings.highRiskProcedure })
+          .from(labSettings)
+          .where(eq(labSettings.hospitalId, hospitalId))
+      : [];
+    return {
+      labels,
+      payments: payments as Map<string, string>,
+      mode,
+      highRisk: risk ? { manual: risk.source === "manual", reason: risk.reason } : null,
+      procedure: s?.p ?? null,
+    };
+  });
 }

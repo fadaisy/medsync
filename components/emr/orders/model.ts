@@ -233,6 +233,14 @@ export interface CollectTarget {
   needsFasting: boolean;
   /** "Rejected: haemolysed — recollect" after a laboratory rejection. */
   rejection: string | null;
+  /** Lab Phase 2 (§5.2): the label check, payment and the high-risk warning, when their flags are on. */
+  lab?: {
+    checkOn: boolean;
+    labelNo: string | null;
+    payment: { state: string; mode: string } | null;
+    highRisk: { manual: boolean; reason: string | null } | null;
+    procedure: string | null;
+  };
 }
 
 /** The values the specimens CHECKs take (0071; lib/emr/write/specimens.ts), offered only when the
@@ -258,6 +266,13 @@ export const CONTAINER_OPTIONS: readonly { value: string; label: string }[] = [
 
 export interface CollectDraft {
   identifiersConfirmed: boolean;
+  /** Lab Phase 2: the label as scanned or typed, how, and what the check said (ID-1). */
+  labelNo?: string;
+  labelMethod?: "scan" | "typed";
+  labelOutcome?: string | null;
+  wristband?: boolean;
+  /** PY-3: why an order awaiting payment is collected now (inform mode). */
+  paymentReason?: string;
   /** Chosen at the bedside only when the test menu names none. */
   specimenType: string | null;
   container: string | null;
@@ -289,6 +304,14 @@ export function collectIssues(t: CollectTarget, d: CollectDraft): string[] {
   }
   if (!(t.specimenType ?? d.specimenType)) out.push("Choose the specimen.");
   if (!(t.container ?? d.container)) out.push("Choose the container.");
+  // Lab Phase 2: ID-2 (a matching label), PY-3 (payment as the mode allows).
+  if (t.lab?.checkOn && d.labelOutcome !== "match") out.push("Scan or type the label on the tube.");
+  if (t.lab?.payment?.state === "awaiting") {
+    if (t.lab.payment.mode === "hold")
+      out.push("Payment not recorded. The cashier must record it before this sample is collected.");
+    else if ((d.paymentReason?.trim().length ?? 0) < 3)
+      out.push("Payment not recorded. Give a reason to collect now.");
+  }
   return out;
 }
 
@@ -313,6 +336,16 @@ export function toCollectInput(t: CollectTarget, d: CollectDraft, clientKey: str
       ? { fastingHours: Number(d.fastingHours) }
       : {}),
     ...(at ? { collectedAt: at } : {}),
+    ...(t.lab?.checkOn && d.labelNo
+      ? {
+          labelNo: d.labelNo,
+          labelMethod: d.labelMethod ?? "typed",
+          wristbandChecked: !!d.wristband,
+        }
+      : {}),
+    ...(t.lab?.payment?.state === "awaiting" && d.paymentReason?.trim()
+      ? { paymentReason: d.paymentReason.trim() }
+      : {}),
     clientKey,
   };
 }
