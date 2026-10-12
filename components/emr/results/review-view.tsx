@@ -3,8 +3,9 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LAB2 } from "@/content/lab-phase-2";
 import { unitWords } from "@/lib/emr/unit-words";
-import { RestrictedMark } from "../chips";
+import { BedsideTag, RestrictedMark } from "../chips";
 import { EmptyState } from "../empty-state";
 import { formatters } from "../format";
 import { ChoiceChips } from "../orders/choice-chips";
@@ -166,6 +167,7 @@ export function ReviewView({
               <p className="text-body-s flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="font-medium">{i.test}</span>
                 {i.restricted ? <RestrictedMark /> : null}
+                {i.bedside ? <BedsideTag /> : null}
                 {i.downtimeTag ? <StatusWord>{i.downtimeTag}</StatusWord> : null}
                 <StatusWord tone="caution">{reviewWords(i)}</StatusWord>
                 <span className="text-muted-foreground">
@@ -173,6 +175,14 @@ export function ReviewView({
                   <span className="font-mono tabular-nums">{f.dateTime(i.releasedAtIso)}</span>
                 </span>
               </p>
+              {i.bedside ? (
+                <p className="text-body-s text-muted-foreground flex flex-col gap-0.5">
+                  <span>
+                    {i.bedside.device} · Lot {i.bedside.lot} · {i.bedside.operator}
+                  </span>
+                  {i.bedside.glucose ? <span>{LAB2.bedside.doctorLine}</span> : null}
+                </p>
+              ) : null}
               {i.values.length ? (
                 <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-[minmax(8rem,auto)_1fr]">
                   {i.values.map((v) => (

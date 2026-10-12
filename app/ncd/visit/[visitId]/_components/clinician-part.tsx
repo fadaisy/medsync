@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { CheckIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { LAB2 } from "@/content/lab-phase-2";
+import { saveVisitLabRefsAction } from "@/lib/ncd/lab-feed-actions";
 import { completeness } from "@/lib/ncdreg/indicators/engine";
 import {
   HYPOGLYCAEMIA,
@@ -65,6 +67,8 @@ export function ClinicianPart({
   intervalsWeeks,
   extraMedicines,
   nurse,
+  labFeed = false,
+  labHba1c = null,
 }: {
   visitId: string;
   personId: string;
@@ -78,6 +82,10 @@ export function ClinicianPart({
   /** I2: approved additions to the facility's medicine list. */
   extraMedicines: { code: string; label: string }[];
   nurse: { weight: boolean; bp: boolean; glucose: boolean };
+  /** Lab Phase 2 §5.9: the NCD lab feed is on here; the visit's lab references are saved with it. */
+  labFeed?: boolean;
+  /** NF-4: HbA1c filled from a released result, read-only; nothing is typed or sent for it. */
+  labHba1c?: { value: string; source: string } | null;
 }) {
   const { submit } = useOutbox();
   const router = useRouter();
@@ -174,7 +182,10 @@ export function ClinicianPart({
     hypoglycaemia: offers("hypoglycaemia") ? hypo : null,
     medicinesObtained: obtained,
     notObtainedReason: obtained === "partial" || obtained === "none" ? reason : null,
-    hba1c: offers("hba1c") && hba1c ? { percent: Number(hba1c), resultDate: hba1cDate } : null,
+    hba1c:
+      offers("hba1c") && !labHba1c && hba1c
+        ? { percent: Number(hba1c), resultDate: hba1cDate }
+        : null,
     conditionFields: regs
       .filter(
         (r) =>
@@ -195,20 +206,24 @@ export function ClinicianPart({
   const act = (kind: "visit.save_clinician" | "visit.close", confirmations: string[] = []) =>
     start(async () => {
       setMsg(null);
-      const flags = needsConfirmation({ hba1c_percent: hba1c ? Number(hba1c) : null }).filter(
-        (f) => !confirmations.includes(f),
-      );
+      const flags = needsConfirmation({
+        hba1c_percent: hba1c && !labHba1c ? Number(hba1c) : null,
+      }).filter((f) => !confirmations.includes(f));
       if (flags.length) return (setConfirmKind(kind), setConfirm(flags));
       const r = await submit(kind, payload(confirmations));
       if (!r.ok) return setMsg("message" in r ? r.message : "Not saved");
+      // NF-4: the references to the results shown, saved once the visit itself is saved online.
+      const refs =
+        labFeed && !("queued" in r) ? await saveVisitLabRefsAction({ visitId }) : { ok: true };
+      const refsNote = refs.ok ? "" : " The lab results shown were not linked to it.";
       if (kind === "visit.close") {
         setMsg(
           "queued" in r
             ? "Visit closed on this device. Sent when the connection returns."
-            : "Visit closed.",
+            : `Visit closed.${refsNote}`,
         );
         router.refresh();
-      } else setMsg("queued" in r ? "Draft saved on this device." : "Draft saved.");
+      } else setMsg("queued" in r ? "Draft saved on this device." : `Draft saved.${refsNote}`);
     });
 
   const medLabel = (c: string) =>
@@ -347,7 +362,16 @@ export function ClinicianPart({
             options={HYPOGLYCAEMIA.codes.map((c) => [c.code, c.label] as const)}
           />
         ) : null}
-        {offers("hba1c") ? (
+        {offers("hba1c") && labHba1c ? (
+          <div className="flex flex-col gap-1">
+            <span className="text-label">HbA1c</span>
+            <p className="flex flex-wrap items-baseline gap-2">
+              <span className="font-mono tabular-nums">{labHba1c.value}</span>
+              <span className="text-caption text-ink-600">{labHba1c.source}</span>
+            </p>
+            <p className="text-caption text-muted-foreground">{LAB2.ncd.readOnly}</p>
+          </div>
+        ) : offers("hba1c") ? (
           <div className="flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1">
               <span className="text-label">HbA1c % (if resulted)</span>

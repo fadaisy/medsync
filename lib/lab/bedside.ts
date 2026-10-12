@@ -77,3 +77,38 @@ export function deriveHivOutcome(
 ): HivOutcome | null {
   return version.rules.find((r) => r.t1 === t1 && r.t2 === t2 && r.t3 === t3)?.outcome ?? null;
 }
+
+/**
+ * AL-2..AL-4 on a report: the per-kit results decide the outcome by the signed version in force; a typed
+ * outcome is never taken. The outcome names its version, so a later version never re-derives it. Without a
+ * signed algorithm no outcome is written (the kit results still are).
+ */
+export function withHivOutcome<
+  V extends { conceptId: string; code?: string; extraContext?: Record<string, unknown> },
+>(
+  values: readonly V[],
+  algorithm: { id: string; version: number; payload: Payload<"hiv_algorithm"> } | null,
+): V[] {
+  const kept = values.filter((v) => v.conceptId !== "obs.hiv_algorithm_outcome");
+  const r = (n: 1 | 2 | 3) =>
+    (kept.find((v) => v.conceptId === `obs.hiv_rdt_t${n}`)?.code as
+      | Reactivity
+      | "invalid"
+      | undefined) ?? null;
+  const [t1, t2, t3] = [r(1), r(2), r(3)];
+  if (!algorithm || !t1 || t1 === "invalid" || t2 === "invalid" || t3 === "invalid") return kept;
+  const outcome = deriveHivOutcome(algorithm.payload, t1, t2, t3);
+  if (!outcome) return kept;
+  return [
+    ...kept,
+    {
+      conceptId: "obs.hiv_algorithm_outcome",
+      code: outcome,
+      extraContext: {
+        algorithmId: algorithm.id,
+        algorithmVersion: algorithm.version,
+        circular: algorithm.payload.circular,
+      },
+    } as unknown as V,
+  ];
+}

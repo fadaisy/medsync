@@ -5,7 +5,7 @@ import type { ChartPayload, EnteredInErrorItem, FlowCell, FlowRow } from "@/lib/
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { RestrictedMark } from "../chips";
+import { BedsideTag, RestrictedMark } from "../chips";
 import { EmptyState } from "../empty-state";
 import { dayLabel, formatters } from "../format";
 import { Sparkline } from "../sparkline";
@@ -133,6 +133,7 @@ export function ResultsView({
               >
                 <span className="inline-flex flex-wrap items-center gap-2">
                   <span className="text-foreground">{t.title}</span>
+                  {t.bedside ? <BedsideTag /> : null}
                   {t.restricted ? <RestrictedMark /> : null}
                 </span>
                 <span className="inline-flex flex-wrap items-center gap-3">

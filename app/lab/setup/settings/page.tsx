@@ -9,9 +9,15 @@ import { LAB2 } from "@/content/lab-phase-2";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
-import { labHighRiskLiveFor, labPaymentLiveFor, labSettingsLiveFor } from "@/lib/lab/feature";
+import {
+  labBedsideLiveFor,
+  labHighRiskLiveFor,
+  labPaymentLiveFor,
+  labSettingsLiveFor,
+} from "@/lib/lab/feature";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
-import { loadLabSettingsPage } from "@/lib/lab/settings-read";
+import { loadBedsideRegister, loadLabSettingsPage } from "@/lib/lab/settings-read";
+import { AddDevice, DeviceActions, OperatorToggle } from "./_components/bedside-register";
 import {
   EgfrSwitch,
   ElevationForm,
@@ -54,7 +60,11 @@ export default async function LabSettingsPage() {
   )
     notFound();
   if (!scope.access.permissions.has("lab.manage")) notFound();
-  const s = await db.transaction((tx) => loadLabSettingsPage(tx as never, scope.hospitalId));
+  const bedsideLive = labBedsideLiveFor(scope.hospitalId);
+  const [s, bedside] = await Promise.all([
+    db.transaction((tx) => loadLabSettingsPage(tx as never, scope.hospitalId)),
+    bedsideLive ? loadBedsideRegister(db as never, scope.hospitalId) : null,
+  ]);
   const date = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
@@ -92,6 +102,87 @@ export default async function LabSettingsPage() {
         <Section id="procedure-heading" title={C.procedure.title}>
           <ProcedureForm initial={s.highRiskProcedure} />
           <p className="text-body-s text-muted-foreground max-w-[75ch]">{C.procedure.line}</p>
+        </Section>
+      ) : null}
+
+      {bedside ? (
+        <Section id="bedside-heading" title={C.bedside.title}>
+          <p className="text-body-s text-muted-foreground max-w-[75ch]">{C.bedside.line}</p>
+          {bedside.devices.length === 0 ? (
+            <p className="text-body-s">{C.bedside.none}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="text-body-s w-full border-collapse text-left">
+                <thead>
+                  <tr className="text-caption text-muted-foreground">
+                    {C.bedside.columns.map((h) => (
+                      <th key={h} scope="col" className="py-2 pr-4 font-medium">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {bedside.devices.map((d) => (
+                    <tr key={d.id} className="border-border/60 border-t align-top">
+                      <td className="py-2 pr-4">
+                        <span className="flex flex-col">
+                          <span>{d.model}</span>
+                          <span className="text-caption text-muted-foreground">
+                            {C.bedside.kinds[d.kind as keyof typeof C.bedside.kinds] ?? d.kind}
+                            {d.serial ? ` · ${d.serial}` : ""}
+                          </span>
+                        </span>
+                      </td>
+                      <td className="py-2 pr-4">{d.test ?? "—"}</td>
+                      <td className="py-2 pr-4">{d.ward ?? C.bedside.hospitalWide}</td>
+                      <td className="py-2 pr-4">
+                        {d.lot
+                          ? C.bedside.lotUseBy(
+                              d.lot.lot,
+                              date.format(new Date(`${d.lot.useBy}T12:00:00Z`)),
+                            )
+                          : C.bedside.noLot}
+                      </td>
+                      <td className="py-2 pr-4">
+                        <StatusWord tone={d.state === "not_verified" ? "caution" : "neutral"}>
+                          {C.bedside.states[d.state as keyof typeof C.bedside.states] ?? d.state}
+                        </StatusWord>
+                      </td>
+                      <td className="py-2">
+                        <DeviceActions deviceId={d.id} model={d.model} state={d.state} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <AddDevice wards={bedside.wards} tests={bedside.tests} />
+          <h3 className="text-heading-s mt-2">{C.bedside.operators}</h3>
+          <p className="text-body-s text-muted-foreground max-w-[75ch]">
+            {C.bedside.operatorsLine}
+          </p>
+          {bedside.operators.length === 0 ? (
+            <p className="text-body-s">{C.bedside.noStaff}</p>
+          ) : (
+            <ul className="divide-border/60 flex flex-col divide-y">
+              {bedside.operators.map((o) => (
+                <li
+                  key={o.userId}
+                  className="flex flex-wrap items-start justify-between gap-3 py-2"
+                >
+                  <span className="text-body-s flex flex-col">
+                    <span>{o.name}</span>
+                    <span className="text-caption text-muted-foreground">
+                      {o.cadre} · {o.granted ? C.bedside.grantedWord : C.bedside.notGrantedWord}
+                    </span>
+                  </span>
+                  <OperatorToggle userId={o.userId} name={o.name} granted={o.granted} />
+                </li>
+              ))}
+            </ul>
+          )}
         </Section>
       ) : null}
 

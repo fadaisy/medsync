@@ -305,4 +305,34 @@ describe.skipIf(!laneOn)("Lab Phase 2 catalogue v2 (Step 4)", () => {
     const st = await snaps((await enter(teen, [{ conceptId: "obs.creatinine", value: "200" }])).id);
     expect(st[0]!.interpretation).toMatchObject({ egfr: "under_adult_age" });
   });
+
+  it("S15, AL-2..AL-4: the HIV outcome is derived by the signed algorithm, names its version, never taken as typed", async () => {
+    await config("hiv_algorithm", "serial", {
+      assays: [
+        { step: 1, kit: "Fixture kit A" },
+        { step: 2, kit: "Fixture kit B" },
+      ],
+      rules: [
+        { t1: "non_reactive", t2: null, t3: null, outcome: "negative" },
+        { t1: "reactive", t2: "reactive", t3: null, outcome: "positive" },
+      ],
+      retestDays: 14,
+      circular: "Fixture circular",
+    });
+    const HIV = (await pg.query<{ id: string }>(`SELECT id FROM test_catalogue WHERE code = 'test.hiv_rapid' AND hospital_id IS NULL`)).rows[0]!.id;
+    const r = await received(HIV, "female", "1990-01-01");
+    const rep = await enter(r, [
+      { conceptId: "obs.hiv_rdt_t1", value: undefined as never, code: "reactive", extraContext: { kit: "Fixture kit A", lot: "A-1" } } as never,
+      { conceptId: "obs.hiv_rdt_t2", code: "reactive" } as never,
+      { conceptId: "obs.hiv_algorithm_outcome", code: "negative" } as never, // typed: never taken
+    ]);
+    const obs = await pg.query<{ concept_id: string; value_code: string; context: Record<string, unknown> }>(
+      `SELECT concept_id, value_code, context FROM clinical_observations WHERE report_id = $1 ORDER BY concept_id`,
+      [rep.id],
+    );
+    const out = obs.rows.find((o) => o.concept_id === "obs.hiv_algorithm_outcome")!;
+    expect(out.value_code).toBe("positive");
+    expect(out.context).toMatchObject({ algorithmVersion: 1, circular: "Fixture circular" });
+    expect(obs.rows.find((o) => o.concept_id === "obs.hiv_rdt_t1")!.context).toMatchObject({ kit: "Fixture kit A", lot: "A-1" });
+  });
 });

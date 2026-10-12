@@ -485,6 +485,8 @@ export interface ReviewItem {
   encounterId: string | null;
   /** Lab Phase 1 DT-7: "Entered after downtime · Resulted 13:40 · entered 14:52 · paper form DT-00031". */
   downtimeTag?: string;
+  /** Lab Phase 2 (§5.8): measured at the bedside, with its device, lot and operator. */
+  bedside?: { device: string; lot: string; operator: string; glucose: boolean };
 }
 
 export const reviewWords = (i: Pick<ReviewItem, "state">): string =>

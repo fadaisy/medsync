@@ -21,8 +21,9 @@ import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { ageSexWords } from "@/components/emr/orders/model";
 import { LAB2 } from "@/content/lab-phase-2";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
-import { diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
+import { devices, diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { poctLots } from "@/db/schema/lab-catalogue";
 import { downtimeEntries, labResultSnapshots } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
@@ -41,8 +42,13 @@ import { ORDERING_CADRES } from "@/lib/emr/write/orders";
 import { UNCATALOGUED } from "@/lib/emr/write/results";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef } from "@/lib/facts/project/shared";
-import { componentsFor } from "@/lib/lab/catalogue-v2";
-import { labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { ABNORMAL_ANSWERS, componentsFor } from "@/lib/lab/catalogue-v2";
+import {
+  labBedsideLiveFor,
+  labCatalogueV2LiveFor,
+  labDowntimeLiveFor,
+  labUnitsRangesLiveFor,
+} from "@/lib/lab/feature";
 import { ANALYSER_MODELS } from "@/lib/lab/profiles";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 
@@ -241,6 +247,8 @@ export function reviewValues(
     string,
     { flagChangeReason: string | null; interpretation?: unknown; labOnly?: boolean }
   >,
+  /** Lab Phase 2 (CC-10): mark a coded answer the signed set calls abnormal. Never a critical flag. */
+  abnormalAnswers = false,
 ): ReviewValue[] {
   // Lab Phase 2 (AP-6, DP-2): a lab-only parameter never reaches a clinician's list.
   return values
@@ -271,7 +279,13 @@ export function reviewValues(
               ? humanise(v.valueCode)
               : "",
         unit: v.valueNum !== null ? v.valueUnit : null,
-        flagText: i.flag.text,
+        flagText:
+          abnormalAnswers &&
+          v.valueCode &&
+          v.conceptId &&
+          ABNORMAL_ANSWERS[v.conceptId]?.includes(v.valueCode)
+            ? "Abnormal"
+            : i.flag.text,
         critical: i.critical.isCritical,
         uncatalogued: false,
         ...(snapshots && v.valueNum !== null
@@ -595,6 +609,30 @@ export async function loadResultsToReview(
         ).map((d) => [d.reportId, d]),
       )
     : null;
+  // Lab Phase 2 (§5.8): bedside reports carry their device, lot and operator (the columns come with 0110).
+  const bedside = labBedsideLiveFor(actor.hospitalId)
+    ? new Map(
+        (
+          await conn
+            .select({
+              id: r.id,
+              device: devices.model,
+              lot: poctLots.lot,
+              operator: users.fullName,
+            })
+            .from(r)
+            .innerJoin(devices, eq(devices.id, r.deviceId))
+            .innerJoin(poctLots, eq(poctLots.id, r.lotId))
+            .leftJoin(users, eq(users.id, r.enteredByUserId))
+            .where(
+              inArray(
+                r.id,
+                rows.map((x) => x.id),
+              ),
+            )
+        ).map((b) => [b.id, b]),
+      )
+    : null;
   const hhmm = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -612,9 +650,23 @@ export async function loadResultsToReview(
     const vals = reviewValues(
       values.filter((v) => v.reportId === x.id),
       snapshots ?? undefined,
+      labCatalogueV2LiveFor(actor.hospitalId),
     );
     const critical = x.critical || vals.some((v) => v.critical);
+    const bs = shown ? bedside?.get(x.id) : undefined;
     items.push({
+      ...(bs
+        ? {
+            bedside: {
+              device: bs.device,
+              lot: bs.lot,
+              operator: bs.operator ?? "Name withheld",
+              glucose: values.some(
+                (v) => v.reportId === x.id && !!v.conceptId?.startsWith("obs.glucose"),
+              ),
+            },
+          }
+        : {}),
       ...(form
         ? {
             downtimeTag: `Entered after downtime · Resulted ${hhmm.format(form.resultedAt)} · entered ${hhmm.format(form.enteredAt)} · paper form DT-${String(form.formNumber).padStart(5, "0")}`,

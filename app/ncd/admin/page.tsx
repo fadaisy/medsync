@@ -1,5 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { buttonVariants } from "@/components/ui/button";
+import { ncdLabFeedLiveFor } from "@/lib/lab/feature";
 import {
   conditionSettings,
   definitionVersions,
@@ -58,6 +61,13 @@ export default async function AdminPage({
         place="admin"
         title="Administration"
         subline="Registry settings for this facility. Every change is versioned and audited."
+        right={
+          ctx.roles.includes("registry_lead") && ncdLabFeedLiveFor(ctx.facilityId) ? (
+            <Link href="/ncd/admin/lab-feed" className={buttonVariants({ variant: "secondary" })}>
+              Lab feed
+            </Link>
+          ) : null
+        }
       />
       <DemoCard
         demo={

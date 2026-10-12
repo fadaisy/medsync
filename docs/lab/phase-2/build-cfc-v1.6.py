@@ -79,8 +79,11 @@ testsAdd=[newtest('test.coag_screen','Coagulation screen (PT, INR, APTT)','venou
   newtest('test.rpr','RPR (syphilis, non-treponemal)','venous_serum','serum_plain'),
   newtest('test.tpha','TPHA (syphilis, treponemal)','venous_serum','serum_plain')]
 otherUnits={}
+# The research writes most factors as canonical x factor = other; these four run the other way, so they are left
+# out (an outside result in these units is refused, never mis-converted) until the CSO checks them.
+AMBIGUOUS={('obs.uacr','mg/g'),('obs.chol_ldl_direct','mg/dL'),('obs.d_dimer','ug/L{FEU}'),('obs.d_dimer_ddu','ug/L{DDU}')}
 for c in R['concepts']:
-  ok=[{'unit':o['unit'],'multiplyBy':o['multiplyBy']} for o in (c.get('otherUnits') or []) if isinstance(o,dict) and o.get('multiplyBy')]
+  ok=[{'unit':o['unit'],'multiplyBy':o['multiplyBy']} for o in (c.get('otherUnits') or []) if isinstance(o,dict) and o.get('multiplyBy') and (c['id'],o['unit']) not in AMBIGUOUS]
   if ok: otherUnits[c['id']]=ok
 out={
  'catalogue':'MS-EMR-CFC','version':'1.6.0','extends':'1.5.0','status':'draft','signedBy':None,'signedAt':None,

@@ -8,6 +8,7 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { labResultsLive } from "@/lib/encounter/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
+import { labBenchLiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE, labWorklistFor, requestNow } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
@@ -65,6 +66,10 @@ async function SectionWorklist({
     identities: Object.fromEntries(ids),
     restricted: [...data.restricted],
     highRisk: [...data.highRisk],
+    // Lab Phase 2 §5.5: with LAB_BENCH off the payload, and so the screen, is Phase 1's.
+    ...(labBenchLiveFor(scope.hospitalId)
+      ? { bench: { questions: Object.fromEntries(data.questions) } }
+      : {}),
     sections: data.sections,
     viewer: {
       hospitalId: scope.hospitalId,

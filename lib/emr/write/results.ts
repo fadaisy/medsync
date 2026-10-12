@@ -30,9 +30,10 @@ import {
 } from "@/lib/emr/results";
 import { encrypt } from "@/lib/encryption";
 import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/shared";
-import { METER_RANGE } from "@/lib/lab/bedside";
-import { componentsFor } from "@/lib/lab/catalogue-v2";
+import { METER_RANGE, withHivOutcome } from "@/lib/lab/bedside";
+import { componentsFor, loadConfigs } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { inForce } from "@/lib/lab/signed-config";
 import { prepareFixedUnits } from "@/lib/lab/units";
 import { mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
 import { EmrWriteError, stampActivity } from "./context";
@@ -87,6 +88,8 @@ export interface ResultValueInput {
   entryCheckConfirmed?: boolean;
   /** Lab Phase 1 (FL-3): the computed flag changed by the lab, with the reason. */
   flagChange?: { flag: "low" | "high" | "normal"; reason: string };
+  /** Lab Phase 2: kept with the value (AL-3 kit and lot per assay; AL-4 the algorithm version). */
+  extraContext?: Record<string, unknown>;
   /** Set by lib/lab/units.ts only: a fixed catalogue unit, never converted (UN-4, D-LAB1-26). */
   noConversion?: boolean;
 }
@@ -261,6 +264,7 @@ function labContext(v: ResultValueInput, specimen: SpecimenRow | null): Record<s
   if (v.labInterpretation) c.labInterpretation = v.labInterpretation;
   if (specimen && specimen.container !== "unknown") c.container = specimen.container;
   if (specimen?.fastingHours != null) c.fastingHours = Number(specimen.fastingHours);
+  if (v.extraContext) Object.assign(c, v.extraContext);
   return c;
 }
 
@@ -281,6 +285,11 @@ async function writeReportVersion(
       ? await componentsFor(tx, actor.hospitalId, spec.test, order.id)
       : null;
   const test = v2 && spec.test ? { ...spec.test, components: v2.components } : spec.test;
+  // AL-2..AL-4: with v2 on, the HIV outcome is derived from the kit results by the signed algorithm version.
+  if (v2?.active && test?.components.includes("obs.hiv_algorithm_outcome")) {
+    const algo = inForce(await loadConfigs(tx, actor.hospitalId), "hiv_algorithm", "serial", now);
+    spec = { ...spec, values: withHivOutcome(spec.values, algo) };
+  }
 
   // Lab Phase 1 Step 5: fixed units, signed ranges and snapshots for a laboratory's own entry.
   const fixed =

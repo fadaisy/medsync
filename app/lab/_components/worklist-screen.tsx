@@ -12,6 +12,7 @@ import type {
   WorklistInput,
   WorklistRow,
 } from "@/lib/lab/worklist";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
@@ -20,6 +21,7 @@ import { BiohazardIcon } from "lucide-react";
 import { RestrictedMark } from "@/components/emr/chips";
 import { PRIORITY_WORD } from "@/components/emr/orders/model";
 import { StatusWord } from "@/components/emr/status-word";
+import { LabLive } from "@/components/lab/lab-live";
 import { PageHeader } from "@/components/medsync/page-header";
 import { TabList } from "@/components/medsync/tab-list";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -30,6 +32,7 @@ import { receiveSpecimen } from "@/lib/emr/actions/orders";
 import { serverNowAt } from "@/lib/lab/turnaround";
 import { computeWorklist, LAB_STAGES, SORT_KEYS } from "@/lib/lab/worklist";
 import { cn } from "@/lib/utils";
+import { FindSpecimen, ScanReceive } from "./bench-bar";
 import { TurnaroundCell } from "./turnaround-cell";
 
 /**
@@ -55,6 +58,8 @@ export interface WorklistPayload {
   restricted: string[];
   /** Lab Phase 2 §5.5: orders whose encounter carries the high-risk warning. */
   highRisk: string[];
+  /** Lab Phase 2 (labBench): the scan field, Find, the live line and each order's clinical question. */
+  bench?: { questions: Record<string, string> };
   sections: { id: string; name: string }[];
   viewer: { hospitalId: string; permissions: LabPermission[]; sectionIds: string[] };
   serverNowIso: string;
@@ -197,6 +202,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
 
   const tableId = useId();
   const firstAction = rows.find((r) => r.action)?.orderId;
+  const question = (r: WorklistRow) => payload.bench?.questions[r.orderId];
   const identity = (r: WorklistRow) =>
     payload.identities[r.patientUserId] ?? { name: "Name withheld", mrn: "", ageSex: "" };
 
@@ -211,18 +217,20 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
       header: W.columns.test,
       sortable: true,
       cell: (r) => (
-        <span className="inline-flex flex-wrap items-center gap-x-2">
-          <Link
-            id={`t-${r.orderId}`}
-            href={`/lab/results/${r.orderId}`}
-            prefetch={false}
-            className="text-foreground focus-visible:shadow-focus rounded-sm underline-offset-4 outline-none hover:underline"
-          >
-            {r.test}
-          </Link>
-          {restricted.has(r.orderId) ? <RestrictedMark /> : null}
-          {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
-        </span>
+        <WithQuestion question={question(r)}>
+          <span className="inline-flex flex-wrap items-center gap-x-2">
+            <Link
+              id={`t-${r.orderId}`}
+              href={`/lab/results/${r.orderId}`}
+              prefetch={false}
+              className="text-foreground focus-visible:shadow-focus rounded-sm underline-offset-4 outline-none hover:underline"
+            >
+              {r.test}
+            </Link>
+            {restricted.has(r.orderId) ? <RestrictedMark /> : null}
+            {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
+          </span>
+        </WithQuestion>
       ),
     },
     {
@@ -284,6 +292,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
         title={W.title}
         right={
           <>
+            {payload.bench ? <LabLive hospitalId={payload.viewer.hospitalId} /> : null}
             <span className="text-body-s text-muted-foreground">
               {W.updated} <span className="font-mono tabular-nums">{updated}</span>
             </span>
@@ -302,6 +311,12 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
       <span role="status" aria-live="polite" className="sr-only">
         {announce}
       </span>
+      {payload.bench ? (
+        <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+          <ScanReceive />
+          <FindSpecimen />
+        </div>
+      ) : null}
 
       {w.noSectionAssigned ? (
         <p className="text-body-s text-muted-foreground">{W.noSectionAssigned}</p>
@@ -390,6 +405,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
                   {restricted.has(r.orderId) ? <RestrictedMark /> : null}
                   {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
                 </p>
+                {question(r) ? <QuestionLine text={question(r)!} /> : null}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2">
                     <StatusWord tone="neutral">{LAB.stage[r.stage]}</StatusWord>
@@ -417,6 +433,25 @@ function PatientCell({ id, identity }: { id: string; identity: PatientIdentity }
       <span className="text-muted-foreground font-mono text-[12px] tabular-nums">
         {identity.mrn}
       </span>
+    </span>
+  );
+}
+
+/** CX-1: the order's clinical question under the test; the cell is unchanged when there is none. */
+function WithQuestion({ question, children }: { question?: string; children: ReactNode }) {
+  if (!question) return children;
+  return (
+    <span className="flex flex-col gap-0.5">
+      {children}
+      <QuestionLine text={question} />
+    </span>
+  );
+}
+
+function QuestionLine({ text }: { text: string }) {
+  return (
+    <span className="text-caption text-muted-foreground max-w-prose">
+      {LAB.bench.question}: {text}
     </span>
   );
 }

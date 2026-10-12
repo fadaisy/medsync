@@ -12,11 +12,16 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { catalogueV2Active, profileInUse } from "@/lib/lab/catalogue-v2";
 import {
   guardCollection,
+  highRiskFor,
   recordLabelCheck,
   setHighRisk,
   voidAndReissue,
 } from "@/lib/lab/collection-store";
-import { labCollectionCheckLiveFor, labPaymentLiveFor } from "@/lib/lab/feature";
+import {
+  labCollectionCheckLiveFor,
+  labHighRiskLiveFor,
+  labPaymentLiveFor,
+} from "@/lib/lab/feature";
 import { EmrWriteError, stampActivity } from "./context";
 import {
   COLLECTING_CADRES,
@@ -205,6 +210,16 @@ export async function receiveSpecimen(
   );
   if (status.state !== "collected" || status.specimenId !== specimen.id)
     throw statusConflict(status, order, "receive this specimen");
+  // SR-3, HR-3: a high-risk specimen is received only after Procedure followed, by scan or by click.
+  if (
+    labHighRiskLiveFor(ctx.actor.hospitalId) &&
+    !input.procedureFollowed &&
+    (await highRiskFor(ctx.tx, [order.encounterId])).has(order.encounterId)
+  )
+    throw new EmrWriteError(
+      "conflict",
+      "High-risk specimen: follow the hospital's procedure, then tick Procedure followed to receive it.",
+    );
   // AP-5: the analyser profile in use is pinned at receipt; a later change never alters this specimen.
   const profileId =
     order.testId && (await catalogueV2Active(ctx.tx, ctx.actor.hospitalId))

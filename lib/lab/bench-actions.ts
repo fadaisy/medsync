@@ -12,7 +12,7 @@ import { asClinicalWriter } from "@/lib/emr/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { actionError, EmrWriteError, withPatientWrite } from "@/lib/emr/write/context";
 import { collectSpecimen, receiveSpecimen, undoReceipt } from "@/lib/emr/write/specimens";
-import { lookupLabel, workingDiagnosis } from "./bench-store";
+import { findSpecimens, lookupLabel, workingDiagnosis } from "./bench-store";
 import { labBenchLiveFor } from "./feature";
 import { receiveDecision, scannedLabel, UNDO_WINDOW_MS } from "./one-menu";
 
@@ -47,7 +47,14 @@ const Scan = z.object({
 });
 
 export type ScanOutcome =
-  | { kind: "received"; words: string; specimenId: string; eventId: string }
+  | {
+      kind: "received";
+      words: string;
+      specimenId: string;
+      eventId: string;
+      /** For Undo (SR-5): the patient whose write transaction reverses it. */
+      patientUserId: string;
+    }
   | {
       kind: "already" | "not_found" | "not_collected" | "rejected" | "voided" | "procedure_first";
       words: string;
@@ -138,6 +145,7 @@ export async function receiveByLabelAction(raw: unknown): Promise<ActionResult<S
         who ? `${who.name}, ${who.mrn}` : "patient",
         hhmm.format(new Date()),
       ),
+      patientUserId: f.patientUserId,
       ...result,
     });
   } catch (e) {
@@ -218,6 +226,43 @@ export async function revealWorkingDiagnosisAction(
           ? { kind: "masked", words: LAB2.workingDiagnosis.masked }
           : { kind: "none" };
     return { ok: true, id: p.data.orderId, serverTime: now.toISOString(), data: out };
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+export interface FoundSpecimen {
+  labelNo: string;
+  orderId: string;
+  test: string;
+  voided: boolean;
+}
+
+/** "Find a specimen" (§5.5): by label number or order number, at the actor's hospital only. */
+export async function findSpecimenAction(raw: unknown): Promise<ActionResult<FoundSpecimen[]>> {
+  const p = z.object({ q: z.string().trim().min(1).max(80) }).safeParse(raw);
+  if (!p.success) return { ok: false, code: "invalid", error: "Type a label or order number." };
+  try {
+    const actor = await requireEmrActor("lab");
+    if (!labBenchLiveFor(actor.hospitalId))
+      throw new EmrWriteError("config", "The live bench is not switched on here.");
+    if (!actor.labPermissions?.includes("lab.view"))
+      throw new EmrWriteError("forbidden", "Only laboratory staff can search specimens.");
+    const rows = await asClinicalWriter(
+      { userId: actor.userId, hospitalId: actor.hospitalId },
+      (tx) => findSpecimens(tx, actor.hospitalId, p.data.q),
+    );
+    return {
+      ok: true,
+      id: "find",
+      serverTime: new Date().toISOString(),
+      data: rows.map((r) => ({
+        labelNo: r.labelNo,
+        orderId: r.orderId,
+        test: r.test,
+        voided: r.voidedAt !== null,
+      })),
+    };
   } catch (e) {
     return actionError(e);
   }

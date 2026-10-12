@@ -216,3 +216,12 @@ export const fmtShort = (iso: string) =>
   });
 export const fmtTime = (iso: string, timeZone = "Africa/Kampala") =>
   new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone });
+export const fmtDateTime = (d: Date, timeZone = "Africa/Kampala") =>
+  d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone,
+  });

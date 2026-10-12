@@ -12,13 +12,17 @@ import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { diagnosticReports, specimenEvents, specimens, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { analyserProfiles, labIdentityChecks } from "@/db/schema/lab-catalogue";
 import { downtimeEntries, labSettings } from "@/db/schema/lab-safety";
 import { cadres } from "@/db/schema/reference-data";
 import { encounters } from "@/db/schema/scheduling";
 import { diagnosticOfferings } from "@/db/schema/services-hub";
+import { users } from "@/db/schema/users";
+import { decrypt } from "@/lib/encryption";
 import { startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { highRiskFor } from "./collection-store";
-import { labHighRiskLiveFor } from "./feature";
+import { labBenchLiveFor, labHighRiskLiveFor } from "./feature";
+import { ANALYSER_MODELS } from "./profiles";
 import { releasedTurnaround, targetFor } from "./turnaround";
 
 /**
@@ -57,7 +61,13 @@ interface Sources {
   /** order id → its LOINC code, the ordering department and the encounter. */
   orders: Map<
     string,
-    { loinc: string | null; from: { id: string; name: string } | null; encounterId: string }
+    {
+      loinc: string | null;
+      from: { id: string; name: string } | null;
+      encounterId: string;
+      /** The order's clinical question, still encrypted (CX-1). */
+      reasonCiphertext: string | null;
+    }
   >;
   /** LOINC code → the hub offering's section and stated turnaround. */
   offerings: Map<string, { sectionId: string | null; statedTat: string | null }>;
@@ -79,6 +89,7 @@ async function loadSources(
             id: encounterOrders.id,
             loinc: encounterOrders.loincCode,
             encounterId: encounterOrders.encounterId,
+            reasonCiphertext: encounterOrders.reasonTextCiphertext,
             fromId: fromDept.id,
             fromName: fromDept.name,
           })
@@ -121,6 +132,7 @@ async function loadSources(
           loinc: r.loinc,
           from: r.fromId && r.fromName ? { id: r.fromId, name: r.fromName } : null,
           encounterId: r.encounterId,
+          reasonCiphertext: r.reasonCiphertext,
         },
       ]),
     ),
@@ -169,6 +181,8 @@ export interface LabWorklistData {
   restricted: Set<string>;
   /** Lab Phase 2 §5.5 (labHighRiskWarning): orders whose encounter carries the high-risk warning. */
   highRisk: Set<string>;
+  /** Lab Phase 2 CX-1 (labBench): order id → its clinical question, decrypted; absent when none. */
+  questions: Map<string, string>;
 }
 
 export async function loadLabWorklist(
@@ -228,7 +242,78 @@ export async function loadLabWorklist(
       .filter((i) => flagged.has(sources.orders.get(i.orderId)?.encounterId ?? ""))
       .map((i) => i.orderId),
   );
-  return { inputs, sections, restricted, highRisk };
+  // CX-1: the lab sees the test, so it sees the question asked of it, restricted orders included.
+  const questions = new Map<string, string>();
+  if (labBenchLiveFor(hospitalId))
+    for (const i of inputs) {
+      const c = sources.orders.get(i.orderId)?.reasonCiphertext;
+      if (c) questions.set(i.orderId, decrypt(c));
+    }
+  return { inputs, sections, restricted, highRisk, questions };
+}
+
+/* ─── Result entry: the clinical question and this specimen (§5.6) ── */
+
+export interface BenchContext {
+  question: string | null;
+  orderedBy: string | null;
+  paymentState: string | null;
+  identity: { outcome: string; method: string; wristband: boolean; at: Date } | null;
+  analyser: { model: string; bench: string | null } | null;
+}
+
+/** Lab Phase 2 §5.6 (labBench): what the order asked and what the newest specimen carries. */
+export async function loadBenchContext(
+  hospitalId: string,
+  orderId: string,
+  database: EmrDb = defaultDb(),
+): Promise<BenchContext | null> {
+  const [[order], [specimen], [check]] = await Promise.all([
+    database
+      .select({ reason: encounterOrders.reasonTextCiphertext, author: users.fullName })
+      .from(encounterOrders)
+      .leftJoin(users, eq(users.id, encounterOrders.authoredByUserId))
+      .where(and(eq(encounterOrders.id, orderId), eq(encounterOrders.hospitalId, hospitalId))),
+    database
+      .select({ id: specimens.id, paymentState: specimens.paymentState })
+      .from(specimens)
+      .where(and(eq(specimens.orderId, orderId), eq(specimens.hospitalId, hospitalId)))
+      .orderBy(desc(specimens.recordedAt))
+      .limit(1),
+    database
+      .select({
+        outcome: labIdentityChecks.outcome,
+        method: labIdentityChecks.method,
+        wristband: labIdentityChecks.wristbandChecked,
+        at: labIdentityChecks.recordedAt,
+      })
+      .from(labIdentityChecks)
+      .where(
+        and(eq(labIdentityChecks.orderId, orderId), eq(labIdentityChecks.hospitalId, hospitalId)),
+      )
+      .orderBy(desc(labIdentityChecks.recordedAt))
+      .limit(1),
+  ]);
+  if (!order) return null;
+  // AP-5: the profile pinned on the specimen's newest receipt.
+  const [pinned] = specimen
+    ? await database
+        .select({ model: analyserProfiles.model, bench: analyserProfiles.bench })
+        .from(specimenEvents)
+        .innerJoin(analyserProfiles, eq(analyserProfiles.id, specimenEvents.profileId))
+        .where(and(eq(specimenEvents.specimenId, specimen.id), eq(specimenEvents.kind, "received")))
+        .orderBy(desc(specimenEvents.recordedAt))
+        .limit(1)
+    : [];
+  return {
+    question: order.reason ? decrypt(order.reason) : null,
+    orderedBy: order.author ?? null,
+    paymentState: specimen?.paymentState ?? null,
+    identity: check ?? null,
+    analyser: pinned
+      ? { model: ANALYSER_MODELS[pinned.model]?.display ?? pinned.model, bench: pinned.bench }
+      : null,
+  };
 }
 
 /** Lab Phase 2 §5.6: the order's active high-risk warning and the hospital's procedure, or null. */

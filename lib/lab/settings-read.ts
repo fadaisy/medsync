@@ -2,9 +2,21 @@ import "server-only";
 
 import type { Payload } from "./signed-config";
 import type { EmrTx } from "@/lib/emr/db";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 
-import { labSettings, labSignedConfigs } from "@/db/schema";
+import {
+  cadres,
+  devices,
+  hospitalWards,
+  labSettings,
+  labSignedConfigs,
+  poctLots,
+  poctOperators,
+  staffAffiliations,
+  testCatalogue,
+  users,
+} from "@/db/schema";
+import { NURSE_CADRES, ORDERING_CADRES } from "@/lib/emr/write/orders";
 import { PAYLOADS } from "./signed-config";
 
 /**
@@ -69,5 +81,82 @@ export async function loadLabSettingsPage(tx: EmrTx, hospitalId: string) {
     highRiskProcedure: settings?.highRiskProcedure ?? null,
     elevation: slot("elevation"),
     hiv: slot("hiv_algorithm"),
+  };
+}
+
+/**
+ * Bedside devices and kits (§5.14; PC-2, PC-10, D-LAB2-09..-12): every device registered here with its test,
+ * where it is used and its newest lot; the wards and tests to register against; and the nurses, midwives
+ * and clinicians who may be granted bedside testing, with whether they hold it now.
+ */
+export async function loadBedsideRegister(tx: EmrTx, hospitalId: string) {
+  const [devs, lots, wards, tests, staff, granted] = await Promise.all([
+    tx
+      .select({
+        id: devices.id,
+        kind: devices.kind,
+        model: devices.model,
+        serial: devices.serial,
+        testCode: devices.testCode,
+        wardId: devices.wardId,
+        state: devices.state,
+      })
+      .from(devices)
+      .where(eq(devices.hospitalId, hospitalId))
+      .orderBy(asc(devices.model)),
+    tx
+      .select({ deviceId: poctLots.deviceId, lot: poctLots.lot, useBy: poctLots.useBy })
+      .from(poctLots)
+      .where(eq(poctLots.hospitalId, hospitalId))
+      .orderBy(desc(poctLots.useBy)),
+    tx
+      .select({ id: hospitalWards.id, name: hospitalWards.name })
+      .from(hospitalWards)
+      .where(and(eq(hospitalWards.hospitalId, hospitalId), isNull(hospitalWards.archivedAt)))
+      .orderBy(asc(hospitalWards.name)),
+    tx
+      .select({ code: testCatalogue.code, display: testCatalogue.display })
+      .from(testCatalogue)
+      .where(
+        and(
+          isNull(testCatalogue.hospitalId),
+          eq(testCatalogue.kind, "lab"),
+          eq(testCatalogue.active, true),
+        ),
+      )
+      .orderBy(asc(testCatalogue.display)),
+    tx
+      .selectDistinct({ userId: users.id, name: users.fullName, cadre: cadres.name })
+      .from(staffAffiliations)
+      .innerJoin(users, eq(users.id, staffAffiliations.userId))
+      .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+      .where(
+        and(
+          eq(staffAffiliations.hospitalId, hospitalId),
+          inArray(staffAffiliations.state, ["active", "approved"]),
+          inArray(cadres.code, [...NURSE_CADRES, ...ORDERING_CADRES]),
+        ),
+      )
+      .limit(500),
+    tx
+      .select({ userId: poctOperators.userId })
+      .from(poctOperators)
+      .where(and(eq(poctOperators.hospitalId, hospitalId), isNull(poctOperators.revokedAt))),
+  ]);
+  const wardName = new Map(wards.map((w) => [w.id, w.name]));
+  const testName = new Map(tests.map((t) => [t.code, t.display]));
+  const on = new Set(granted.map((g) => g.userId));
+  return {
+    devices: devs.map((d) => ({
+      ...d,
+      test: d.testCode ? (testName.get(d.testCode) ?? d.testCode) : null,
+      ward: d.wardId ? (wardName.get(d.wardId) ?? null) : null,
+      lot: lots.find((l) => l.deviceId === d.id) ?? null,
+    })),
+    wards,
+    tests,
+    operators: staff
+      .map((s) => ({ ...s, granted: on.has(s.userId) }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
   };
 }
