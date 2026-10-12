@@ -133,3 +133,107 @@ None yet. Migrations 0107–0119 and ADRs 0251–0259 are free on this branch an
 4. A7: does the altitude adjustment shift every anaemia severity cut-off, or only the anaemia threshold?
 5. A10: does "nothing for 0–27 days" apply to every test or to haematology only; and is Lugada's 1–6-year
    band imported whole, cut at 18 months, or left out?
+
+## STOP 0 (continued): the one-menu prompt, Q1–Q20 (12 Oct 2026)
+
+The owner asked to run both Phase 2 prompts together (`PROMPT-LAB-PHASE-2.md`, the catalogue, and
+`PROMPT-LAB-PHASE-2-ONE-MENU.md`, one menu and one record) on one branch, `feat/lab-one-menu` (the catalogue
+branch renamed; it already holds the research and the first STOP 0), using Claude's recommendations at every
+gate. Where the two prompts differ, the one-menu prompt is newer and wins, except where the repo or a
+recommendation in the first STOP 0 says otherwise (each case is in the GATE A proposal, §1).
+
+**Q1 Phase 1.** Merged (PR #227, ff4be162 on `origin/main`, 00a37cf6 is this branch's base). Present: units and
+measures (`lib/lab/{catalogue,units,measures-setup}.ts`, migration 0103), ranges and limits (`ranges.ts`,
+`flags.ts`, `limits.ts`, 0104), snapshots (`lab_result_snapshots`), criticals (`lib/lab/criticals/**`, 0102,
+0106), downtime and cut-over (0105), flags `LAB_WORKSPACE`, `LAB_CRITICALS`, `LAB_UNITS_RANGES`,
+`LAB_DOWNTIME` (`lib/lab/feature.ts`).
+
+**Q2 The claims G1–G13.**
+
+| #   | Verdict                | Evidence                                                                                                                                                                                                              |
+| --- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1  | Confirmed              | Doctors order from `test_catalogue` (`lib/emr/read/orders.ts:151` `buildTestMenu`); `diagnostic_offerings` (0080:182) is read only by the worklist, by LOINC (`lib/lab/read.ts:94`). `getOrderingAvailability` (`lib/services/data.ts:841`) has no caller |
+| G2  | Confirmed              | `docs/emr/HARMONISATION.md:180-183`                                                                                                                                                                                   |
+| G3  | Confirmed              | No payment table or column. Only booking fees (`service_lines.fee_ugx`, 0058)                                                                                                                                         |
+| G4  | **Worse than claimed** | No label number is ever generated: `specimens.label_no` is written only if a caller passes it, and none does (`components/emr/orders/model.ts:297-311`). No check, no void                                           |
+| G5  | Confirmed              | `chart:<patient>` and `workspace:<hospital>` (0073, 0069), `user:<id>` (0106). The worklist refreshes on action                                                                                                      |
+| G6  | Corrected              | The working diagnosis is the encounter's primary `conditions` row (`lib/emr/diagnoses.ts:86`). The fever-with-bleeding rules (`FLAG-EX-FEVER-BLEEDING`, `FLAG-VHF-*`) are evaluated live and never stored; `outbreak_mode` is per hospital (`hospital_clinical_settings`, 0076) |
+| G7  | Confirmed              | HbA1c is typed (`app/ncd/visit/[visitId]/_components/clinician-part.tsx:350`); the NCD registry never reads lab results. The diabetes pack does (`lib/ncd/pack/from-clerking.ts:724`)                                  |
+| G8  | Corrected              | A path exists: nurses enter point-of-care results for `capillary_direct` tests (`lib/emr/write/results.ts:92-100,487`), with no device, lot or operator record                                                       |
+| G9  | Confirmed              | `encounter_orders.intent_source = 'resus_handover'` (`db/schema/encounter.ts:239`)                                                                                                                                  |
+| G10 | Confirmed              | See Q1                                                                                                                                                                                                                |
+| G11 | Confirmed              | Collectors are ordering cadres, nurses and lab (`lib/emr/write/orders.ts:48`)                                                                                                                                         |
+| G12 | Corrected              | `pregnancy_episodes` holds state and LNMP; gestation is derived (`lib/facts/project/pregnancy.ts:30`), read with `loadFactSnapshot` as of a time                                                                      |
+| G13 | Confirmed              | No elevation anywhere; `hospitals` has latitude and longitude                                                                                                                                                         |
+
+**Q3 The hub.** `diagnostic_offerings` (hospital, kind lab/imaging, code; `provision` in_house, referred or
+not_offered; `hours` 24h or scheduled; `stated_tat`; `referred_to`; `confirmed_at` NULL means planned). Lab
+codes are LOINC; imaging codes are words (`xray`, `ultrasound`, `ecg`). Machine down is an
+`availability_events` row (state unavailable or limited, reason `equipment_down`, `expected_back_at`), projected
+by ADR 0157. No hub realtime. About 9 of the 44 tests have a plausible offering match today; no test has a
+link.
+
+**Q4 Ordering.** All three surfaces end in one function, `placeOrders` (`lib/emr/write/orders.ts:245`): the
+order sheet (`components/emr/orders/order-sheet-view.tsx`, menu from `buildTestMenu`), the Plan basket
+(`lib/emr/write/plan.ts:501`; its list is the catalogue JSON) and resus (`lib/emr/write/handoff.ts:224`,
+proposed orders). One availability check inside `placeOrders` covers all three; each list needs the
+availability shown.
+
+**Q5 Orders.** `encounter_orders` is one row per test, immutable once on the events lifecycle (0071:413);
+state is derived from `encounter_order_events`. Priority `routine|urgent|immediate|emergency`. Free text: the
+encrypted `reason_text_ciphertext` (500 chars), already shown as the order's reason. Proposal: it *is* the
+clinical question (no second field).
+
+**Q6 Collection.** `collectSpecimen` (`lib/emr/write/specimens.ts:74`) from the doctor and nurse order panels;
+`specimens` is insert-only with `identifiers_confirmed`. Labels print per specimen after collection. No
+number, no void.
+
+**Q7 Receive.** `receiveSpecimen` (`specimens.ts:148`), `lab.receive`, idempotent per client key; the worklist
+sends a fresh key per click, so a second click fails on state. Rejection writes a `specimen_events` row.
+
+**Q8 Realtime.** Private broadcast via `realtime.send` from triggers and a `realtime.messages` SELECT policy.
+A `lab:{hospitalId}` topic fits the same pattern with a lab-staff predicate (the `workspace:` predicate needs a
+clinical cadre, which lab cadres are not).
+
+**Q9 Clerking.** Working diagnosis as G6. Reveal audit: `clinical_phi_access_log` (surface, basis); reuse it
+with a new surface. Restricted classes `hiv`, `tb`, `mental_health`, `sexual_reproductive_health`; per-user
+classes do not exist yet (every clinician holds all: `lib/emr/write/relations.ts:68`).
+
+**Q10 Pregnancy.** As G12. How often it is recorded for women of 15–49 with lab orders needs the production
+database (the owner can run the query in the GATE A proposal, §9).
+
+**Q11 NCD.** Lab fields: HbA1c (visit), fasting glucose with method and original unit (nurse part), and
+creatinine, ACR and lipids in the annual review (`ncd_review.data` jsonb); eGFR derived in the registry
+(`lib/ncdreg/standard/calculations.ts:98`). The "before" count of hand-typed HbA1c needs production data.
+
+**Q12 Catalogue.** As the first STOP 0, plus: `obs.glucose` is the fasting test's component; D-dimer is
+`mg/L` today; result counts for D-dimer, troponin and blood group need production data.
+
+**Q13 Cashier.** Nothing exists. Reception is a non-clinical cadre (`RECEPTION`) with its own scope.
+
+**Q14 Nurses.** `/nurse/patients/[patientId]` with the order panel; nurse cadres NURSE, MIDWIFE,
+SPECIALIST_NURSE.
+
+**Q15 Devices.** A `devices` table exists (0071:113: glucometer, ketone meter, HbA1c analyser, BP monitor)
+with no writer and no UI. Bedside devices reuse it.
+
+**Q16 Settings.** `lab_settings` (0102) for the procedure link and payment; elevation needs the CSO's
+signature, so it lives in the signed configuration (GATE A §2).
+
+**Q17 Research file.** 119 concepts, 33 tests, 64 range sets, 497 bands, 38 gaps, 21 decisions: matches. The
+Zod check is written at Step 3 with the importer. Ids the repo does not know: the 59 new concepts and the 4 new
+tests; no others.
+
+**Q18 Print.** Label `components/emr/orders/specimen-label.tsx` (`LABEL_CSS`, 60 × 30 mm); request form
+`components/emr/print-views.tsx:152` with `printCss()`; downtime form `app/lab/downtime/print/page.tsx`.
+
+**Q19 Test tools.** No Playwright: Phase 1's owner decision (D-LAB0-19, harness instead) stands, so this is not
+a stop. axe-core is installed and the harness runs it (`~/Desktop/lab0-harness/cdp.mjs`); vitest fake timers
+exist. A keyboard-wedge scan is typed text plus Enter in a harness plan step.
+
+**Q20 Tokens.** Amber is `status-caution-*` (no `amber-*` token); teal `teal-{solid,tint,edge,text,icon}`; sky
+`sky-{tint,edge,text,icon}`; neutral `slate-*`; `Pill` tones `caution`, `active`, `info`, `neutral`.
+
+**Baseline.** Screenshots and the scripted HbA1c run need the harness with a production build; I will take the
+"before" shots at Step 4 from the same harness run so the comparison is like for like. The three failing tests
+(G1, G4, G7) are written with the fixes they prove (Steps 5, 6, 9), each first run red against the old code.
