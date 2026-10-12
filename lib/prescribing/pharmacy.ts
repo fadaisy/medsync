@@ -71,6 +71,14 @@ export interface PointStockFacts {
   reorderLevel: number | null;
   /** D-PH1-23: none set → a count never goes stale. */
   countFreshnessDays: number | null;
+  /**
+   * Step 9's read sums the ledger in SQL (one round trip), so it hands over each batch's balance, the
+   * last receipt and the open stock-out (0124's projection) instead of every movement. When given, these
+   * replace what `movements` would give.
+   */
+  balances?: ReadonlyMap<string, number>;
+  lastReceiptAt?: Date | null;
+  openStockoutSince?: Date | null;
 }
 
 export interface Availability {
@@ -106,16 +114,20 @@ function pointAnswer(
   const ids = new Set(batches.map((b) => b.id));
   const movements = (facts?.movements ?? []).filter((m) => ids.has(m.batchId));
   const lastReceiptAt =
-    movements
-      .filter((m) => m.kind === "received")
-      .map((m) => m.effectiveAt)
-      .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+    facts?.lastReceiptAt !== undefined
+      ? facts.lastReceiptAt
+      : (movements
+          .filter((m) => m.kind === "received")
+          .map((m) => m.effectiveAt)
+          .sort((a, b) => b.getTime() - a.getTime())[0] ?? null);
   const lastCountAt = facts?.lastCountAt ?? null;
   const base = { lastCountAt, lastReceiptAt, since: null };
 
   if (!facts?.products.some((p) => p.medicineId === medicineId))
     return { ...base, state: "not_stocked" };
-  const bal = balances(movements);
+  const bal = facts.balances
+    ? new Map([...facts.balances].filter(([id]) => ids.has(id)))
+    : balances(movements);
   const stale =
     lastCountAt !== null &&
     facts.countFreshnessDays !== null &&
@@ -124,6 +136,8 @@ function pointAnswer(
     return { ...base, state: "not_counted" };
   const total = medicineTotal(batches, bal, medicineId, pointId, localDate(now));
   if (total <= 0) {
+    if (facts.openStockoutSince !== undefined)
+      return { ...base, state: "out", since: facts.openStockoutSince };
     const open = stockoutSpans(movements, batches, medicineId, pointId, localDate, now).find(
       (s) => s.endedAt === null,
     );
@@ -178,4 +192,103 @@ export function availabilityLevel(
 ): AvailabilityLevel {
   if (state === "not_linked" || !mapping) return "not_checked";
   return mapping[state] === "note" ? "note" : "check";
+}
+
+/** D-PH1-22's proposal (gate-a-content 2.16): Note for on the shelf, low, not counted; Check otherwise. */
+export const PROPOSED_MAPPING: AvailabilityMapping = {
+  in_stock: "note",
+  low: "note",
+  not_counted: "note",
+  out: "check",
+  not_stocked: "check",
+};
+
+/**
+ * The mapping in force: the hospital's signed `availability_mapping` set, else the proposal outside
+ * production only. In production with none signed the stock line stays "Pharmacy not linked yet."
+ */
+export function mappingInForce(signed: unknown, production: boolean): AvailabilityMapping | null {
+  if (signed && typeof signed === "object") {
+    const o = signed as Record<string, unknown>;
+    const keys = Object.keys(PROPOSED_MAPPING) as (keyof AvailabilityMapping)[];
+    if (keys.every((k) => o[k] === "note" || o[k] === "check"))
+      return Object.fromEntries(keys.map((k) => [k, o[k]])) as unknown as AvailabilityMapping;
+  }
+  return production ? null : PROPOSED_MAPPING;
+}
+
+/** What reaches the prescriber's side (AV-6): getAvailability's answer and its level, never a quantity. */
+export interface StockLine {
+  state: AvailabilityState;
+  level: AvailabilityLevel;
+  pointId: string | null;
+  point: string | null;
+  lastCountAt: string | null;
+  lastReceiptAt: string | null;
+  since: string | null;
+  elsewhere: string[];
+}
+
+export function toStockLine(a: Availability, mapping: AvailabilityMapping | null): StockLine {
+  const iso = (d: Date | null) => d?.toISOString() ?? null;
+  return {
+    state: a.state,
+    level: availabilityLevel(a.state, mapping),
+    pointId: a.point?.id ?? null,
+    point: a.point?.name ?? null,
+    lastCountAt: iso(a.lastCountAt),
+    lastReceiptAt: iso(a.lastReceiptAt),
+    since: iso(a.since),
+    elsewhere: a.elsewhere,
+  };
+}
+
+/** gate-a-content B-54..B-59, X-25. Draft wording for the CSO; the flag stays off in production. */
+export const STOCK_LINE_COPY = {
+  status: "draft",
+  notLinked: "Pharmacy not linked yet.",
+  footer: "Stock informs and never blocks. A dispensing point that has not counted says so.",
+  /** D-PH1-22: the other choice at a Check (the answer itself is STOCK_REASONS in plan-rx). */
+  pickElse: "Pick something else",
+} as const;
+
+const KAMPALA = "Africa/Kampala";
+const when = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: KAMPALA,
+  });
+const date = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: KAMPALA });
+
+/** 5.10's line for one medicine. Only times and names: no figure ever (AV-6). */
+export function stockLineWords(l: StockLine): string {
+  if (l.state === "not_linked" || !l.point) return STOCK_LINE_COPY.notLinked;
+  // AV-4: "Counted" only from a count; a receipt with no count says so.
+  const counted = l.lastCountAt
+    ? `Counted ${when(l.lastCountAt)}.`
+    : l.lastReceiptAt
+      ? `Received ${when(l.lastReceiptAt)}, not yet counted.`
+      : "";
+  const at = l.point;
+  switch (l.state) {
+    case "in_stock":
+      return `On the shelf at ${at}. ${counted}`.trim();
+    case "low":
+      return `Low at ${at}. ${counted}`.trim();
+    case "out":
+      return [
+        `Not on the shelf at ${at}${l.since ? ` since ${date(l.since)}` : ""}.`,
+        l.elsewhere.length ? `In stock at ${l.elsewhere.join(", ")}.` : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+    case "not_stocked":
+      return `Not stocked at ${at}.`;
+    case "not_counted":
+      return `Stock at ${at} has not been counted ${l.lastCountAt ? `since ${date(l.lastCountAt)}` : "yet"}. This answer may be wrong.`;
+  }
 }

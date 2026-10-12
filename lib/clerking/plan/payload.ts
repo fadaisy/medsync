@@ -35,4 +35,6 @@ export interface PlanPayload {
   monitoring: MonitoringPayload | null;
   /** Pharmacy Phase 1 (5.4): queries and notices from the pharmacy; absent with the flag off. */
   pharmacy?: PrescriberPharmacyView | null;
+  /** Pharmacy Phase 1 (5.10): where the dialog asks for the stock line; absent with the flag off (S88). */
+  stockAnswer?: { surface: "doctor" | "clinician"; patientUserId: string; encounterId: string };
 }

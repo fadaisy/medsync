@@ -22,7 +22,7 @@ import { loadMonitoring } from "@/lib/emr/read/monitoring";
 import { loadPlanFacts } from "@/lib/emr/write/plan";
 import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/prescriptions";
 import { decrypt } from "@/lib/encryption";
-import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyDispensingLiveFor, pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
 import { loadPrescriberPharmacy } from "@/lib/pharmacy/review/prescriber-read";
 import { drugById } from "@/lib/prescribing/formulary";
 import { willRead } from "@/lib/prescribing/plan-rx";
@@ -290,5 +290,15 @@ export async function loadPlanPayload(
     kidneyTestOrdered: reader.orders.some((o) => o.testId && KIDNEY.has(o.testId)),
     monitoring: reader.monitoring,
     ...(pharmacy ? { pharmacy } : {}),
+    ...((actor.surface === "doctor" || actor.surface === "clinician") &&
+    pharmacyStockAnswerLiveFor(actor.hospitalId)
+      ? {
+          stockAnswer: {
+            surface: actor.surface,
+            patientUserId: input.patientUserId,
+            encounterId: input.encounterId,
+          },
+        }
+      : {}),
   };
 }

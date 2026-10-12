@@ -33,7 +33,12 @@ export const CHECK_REASONS = {
   result_awaited: "Result awaited; will review",
   other: "Other, I will write it",
 } as const;
-export type AnswerId = keyof typeof OVERRIDE_REASONS | keyof typeof CHECK_REASONS;
+/** D-PH1-22: the one answer to a stock Check (the other choice, "Pick something else", answers nothing). */
+export const STOCK_REASONS = { prescribe_anyway: "Aware; prescribe anyway" } as const;
+export type AnswerId =
+  | keyof typeof OVERRIDE_REASONS
+  | keyof typeof CHECK_REASONS
+  | keyof typeof STOCK_REASONS;
 const ANSWER_IDS = [
   "not_allergic",
   "senior_agreed",
@@ -41,6 +46,7 @@ const ANSWER_IDS = [
   "aware_monitor",
   "result_awaited",
   "other",
+  "prescribe_anyway",
 ] as const satisfies readonly AnswerId[];
 
 export const PlanRxAnswer = z.object({

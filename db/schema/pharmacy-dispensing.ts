@@ -638,3 +638,23 @@ export const pharmacyNoticeAcknowledgements = pgTable("pharmacy_notice_acknowled
   actorUserId: uuid("actor_user_id").notNull(),
   acknowledgedAt: timestamp("acknowledged_at", tz).notNull().defaultNow(),
 });
+
+/* ─── 0133 the prescriber's stock answer (AV-8, D-PH1-44) ──────────── */
+
+export const pharmacyStockAnswers = pgTable("pharmacy_stock_answers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  patientUserId: uuid("patient_user_id").notNull(),
+  prescriptionId: uuid("prescription_id").notNull().unique(),
+  state: text("state")
+    .$type<"not_linked" | "not_stocked" | "not_counted" | "out" | "low" | "in_stock">()
+    .notNull(),
+  pointId: uuid("point_id"),
+  pointName: text("point_name"),
+  lastCountAt: timestamp("last_count_at", tz),
+  lastReceiptAt: timestamp("last_receipt_at", tz),
+  since: timestamp("since", tz),
+  level: text("level").$type<"note" | "check" | "not_checked">().notNull(),
+  answer: text("answer"),
+  recordedAt: timestamp("recorded_at", tz).notNull().defaultNow(),
+});

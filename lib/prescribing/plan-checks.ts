@@ -11,13 +11,14 @@
  *   note   — "Note": shown, no answer
  *   passed / not_applicable / not_checked — behind "Show n more checks", each with its reason
  */
-import type { PharmacyAvailability } from "./pharmacy";
+import type { PharmacyAvailability, StockLine } from "./pharmacy";
 import type { PlanRx } from "./plan-rx";
 import type { Drug } from "./reference/formulary-types";
 
 import { PAEDIATRIC_AGE_THRESHOLD, runSafetyChecks } from "./engine";
 import { allergyGroupName, classById, emergencyOriginOf, isFluid, regimenById } from "./formulary";
-import { CHECK_REASONS, OVERRIDE_REASONS } from "./plan-rx";
+import { stockLineWords } from "./pharmacy";
+import { CHECK_REASONS, OVERRIDE_REASONS, STOCK_REASONS } from "./plan-rx";
 import { getEmergencyDrug } from "./reference/emergency-drug-catalog";
 
 export type PlanCheckOutcome =
@@ -101,6 +102,8 @@ export interface PlanCheckContext {
   others: readonly OtherMedicine[];
   cosign: "allowed" | "cosign_required" | "blocked";
   pharmacy: PharmacyAvailability;
+  /** Pharmacy Phase 1 (5.10): the real answer, behind `pharmacyStockAnswer`; absent → `pharmacy` as before. */
+  stock?: StockLine | null;
 }
 
 /** Hypoglycaemia threshold (JBDS-IP 2023, signed in the emergency formulary: "CBG < 4.0 mmol/L"). */
@@ -318,6 +321,9 @@ function stockCheck(ctx: PlanCheckContext): PlanCheck {
     proposed: true,
     overrideable: true,
   };
+  // D-PH1-22: a linked answer is a Note or a Check from the mapping, never a Stop.
+  if (ctx.stock && ctx.stock.level !== "not_checked")
+    return { ...base, outcome: ctx.stock.level, message: stockLineWords(ctx.stock) };
   switch (ctx.pharmacy.status) {
     case "not_linked":
       return { ...base, outcome: "not_checked", message: "Pharmacy not linked yet." };
@@ -562,9 +568,11 @@ export function verifyAnswers(checks: readonly PlanCheck[], rx: PlanRx): AnswerV
     const words =
       a.answer === "other"
         ? a.text?.trim()
-        : c.outcome === "stop"
-          ? OVERRIDE_REASONS[a.answer as keyof typeof OVERRIDE_REASONS]
-          : CHECK_REASONS[a.answer as keyof typeof CHECK_REASONS];
+        : c.code === "stock"
+          ? STOCK_REASONS[a.answer as keyof typeof STOCK_REASONS]
+          : c.outcome === "stop"
+            ? OVERRIDE_REASONS[a.answer as keyof typeof OVERRIDE_REASONS]
+            : CHECK_REASONS[a.answer as keyof typeof CHECK_REASONS];
     if (!words || words.length < 3)
       return { ok: false, reason: `Write your reason for "${c.title}".`, reasonText: "" };
     lines.push(`${c.outcome === "stop" ? "Override" : "Check"} ${c.title.toLowerCase()}: ${words}`);

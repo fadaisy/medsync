@@ -5,6 +5,8 @@ import { requireEmrActor } from "@/lib/emr/actor";
 import { asClinicalReader } from "@/lib/emr/db";
 import { clerkingPlanV2LiveFor } from "@/lib/emr/feature";
 import { loadMonitoring } from "@/lib/emr/read/monitoring";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { loadWardChips } from "@/lib/pharmacy/ward-chip-read";
 import { FluidBalanceEntry } from "./fluid-balance-entry";
 
 /** Postgres 42P01 (undefined table), bare or wrapped in Drizzle's error (`cause`). */
@@ -46,6 +48,7 @@ export async function NurseMonitoring({
     throw e;
   }
   if (!payload || payload.charts.length === 0) return null;
+  if (pharmacyDispensingLiveFor(actor.hospitalId)) await withWardChips(actor, payload);
   const fluid = payload.charts.find((c) => c.kind === "fluid_balance" && c.closedAt === null);
 
   return (
@@ -70,4 +73,27 @@ export async function NurseMonitoring({
       <MonitoringChartsView payload={payload} />
     </section>
   );
+}
+
+/**
+ * Pharmacy Phase 1 (D-PH1-33): the read-only review chip on each MAR row, one read for all rows. A failed
+ * read leaves the record as it was (Law 10): the chip never holds a dose.
+ */
+async function withWardChips(
+  actor: { userId: string; hospitalId: string },
+  payload: MonitoringPayload,
+): Promise<void> {
+  const rows = payload.charts.flatMap((c) => (c.kind === "mar" ? c.body.rows : []));
+  try {
+    const chips = await loadWardChips(
+      actor,
+      rows.map((r) => r.prescriptionId),
+    );
+    for (const r of rows) {
+      const chip = chips.get(r.prescriptionId);
+      if (chip) r.pharmacy = chip;
+    }
+  } catch (e) {
+    console.warn("pharmacy.ward_chip_failed", e instanceof Error ? e.name : "error");
+  }
 }
