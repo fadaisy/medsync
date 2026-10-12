@@ -324,3 +324,61 @@ write path (Step 4); AP-5's pinning at receipt (Step 7); OM-6 and OM-7 at orderi
 ID-3, ID-5 to ID-7 (Step 6); CX-1, CX-3, HR-3 to HR-5 (Steps 6–7); PC-1, PC-8, PC-9 (Step 8); NF-4 to NF-6,
 NF-8 (Step 9). There is no `outside_hours` state: the hub stores hours as free text ("scheduled" plus a note),
 so the menu shows the hub's own words instead of computing "Done from {time}".
+
+## STOP 4: Catalogue v2 and the research import (12 Oct 2026)
+
+**Built** (behind `labCatalogueV2`; the v2 lists apply only once the addendum is signed):
+
+- **Concept addendum v1.6**: `data/emr/clinical-fact-concepts.v1.6.json` (60 concepts, 16 restricted; answer
+  extensions on 7 live concepts; abnormal answers per CC-10; four new tests, inactive until signed; the v2
+  component lists for 32 tests), built by `docs/lab/phase-2/build-cfc-v1.6.py` from the research and
+  generated into **migration 0108** by `scripts/emr/gen-seed.ts`.
+- **Stores and actions**: `lib/lab/catalogue-v2.ts` (signed configuration, the v2 component switch, the
+  pinned profile, pregnancy from the record), `research-store.ts`, `profile-store.ts`,
+  `catalogue-v2-actions.ts`.
+- **Write path**: every value gets its interpretation snapshotted (basis, scheme and version, category,
+  adjustments, notes, the reference band for information), its profile, method and lab-only mark; eGFR is
+  calculated with the creatinine and recalculated with an amendment; receipt pins the profile in use.
+- **Screens**: Research drafts, Ranges and cut-offs (flag basis, scheme table, scheme editor), Analyser
+  profiles, Lab settings (elevation, eGFR, HIV algorithm), the method register on the measure form, CSO
+  countersigning in the super-admin console, result entry ("Flagged against", the category, lab-only rows),
+  and the doctor's results (the category, the basis, the notes; lab-only rows hidden there and in the chart).
+
+**Scenarios** (`tests/emr-db/lab-catalogue-v2.test.ts`, 7 of 7 on PGlite; engines in `tests/lab/phase-2`):
+
+| #   | Result                                                                                                                   |
+| --- | ------------------------------------------------------------------------------------------------------------------------ |
+| S1  | Pass: drafts only, nothing signed, a second import of the same file does nothing                                         |
+| S2  | Pass: the CD4 draft is refused until the eight checks are recorded and one source kept; then the lead signs              |
+| S3  | Pass: rejected alternatives stay visible with their reason                                                               |
+| S4  | Pass: two signatures open the v2 lists (FBC 31) and the four new tests                                                   |
+| S5  | Pass: the DH-615 profile is refused while checks are open; usable after; receipt pins it                                 |
+| S6  | Pass (engine): research-use and GRAN→neutrophils mappings refused                                                        |
+| S7  | Pass: P-LCR stored as lab-only; hidden from the doctor's results and the chart                                           |
+| S8  | Pass on PGlite and in the harness: fixture scheme + 1,200 m → "↓ Moderate anaemia (fixture)", adjustment and basis shown |
+| S9  | Pass (engine, DS-5); the record read (`pregnancyAt`) runs in the write path; no DB-level pregnancy fixture yet           |
+| S10 | Pass (engine): a girl of 9 falls back to the reference interval with the reason                                          |
+| S11 | Pass: no signed elevation → "altitude not adjusted"                                                                      |
+| S12 | Pass: a later scheme version leaves the released snapshot as it was                                                      |
+| S13 | Pass: eGFR only with an IDMS-traceable method and an adult; otherwise the reason on the creatinine                       |
+| S14 | Pass: an amended creatinine recalculates eGFR                                                                            |
+| S15 | Engine pass (every path); storing the outcome with its version on a result comes with coded results, Step 6              |
+| S16 | Pass (data): each split test carries only its own components; no rule turns the dual RDT line into an HIV status         |
+| S17 | Engine pass (IFCC from the signed REF entry); the mmol/mol line beside HbA1c on screen comes at Step 10                  |
+| S18 | Pass: before the addendum is signed, or with the flag off, every test keeps Phase 1's components                         |
+
+**Harness** (`~/Desktop/lab0-harness`, plans `p2-s4*.json`; shots in `docs/lab/phase-2/shots/`): Research
+drafts, Ranges and cut-offs, Analyser profiles, Lab settings, result entry and the doctor's results at 1440 px,
+Research drafts and the doctor's results at 390 px. **axe: 0 violations on every page.** One harness finding was
+mine (a plan step that never inserted its fixture); the product behaved correctly, falling back to the reference
+interval with its reason.
+
+**Import report**: `docs/lab/phase-2/import-report.md` (45 reference drafts, 411 bands, 33 with disagreeing
+sources; 23 scheme drafts, all needing their boundaries set; 8 verification blockers; ESR's formula bands and
+urine SG rejected with reasons; 11 not imported).
+
+**Concepts by state**: 60 new (draft until the CSO signs the addendum in the product), 3 legacy kept for history
+(`obs.blood_group`, `obs.tb_xpert`, `obs.hiv_test`), 1 retired for new results (`obs.troponin`).
+
+**Checks**: typecheck and lint clean; full suite green except nothing (three count tests updated for the 60
+concepts; the NCD data inventory regenerated for the two new visit columns).

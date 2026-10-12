@@ -316,9 +316,7 @@ function interpretationWords(
         }
       : {}),
     basis:
-      c && t?.scheme
-        ? `${t.scheme.label} · ${t.scheme.source}. Reference interval ${band}, for information.`
-        : null,
+      c && t?.scheme ? `Flagged against ${t.scheme.label} (${t.scheme.source}). ${band}` : null,
     notes,
   };
 }
