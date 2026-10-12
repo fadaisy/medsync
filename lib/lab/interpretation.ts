@@ -80,49 +80,54 @@ export interface InterpretQuery {
 const bandOf = (r: ResolvedRange) =>
   r.kind === "band" ? { id: r.band.id, low: r.band.low, high: r.band.high } : null;
 
-/** DS-3: the basis, the band or category, the flag, every adjustment, the reference band, or a reason. */
-export function resolveInterpretation(q: InterpretQuery): Interpretation {
-  const reference = bandOf(q.reference);
-  const onReference = (fallback: FallbackReason | null, notes: Note[] = []): Interpretation => ({
-    basis: "reference",
-    flag: q.value !== null && reference ? computeFlag(q.value, reference) : null,
-    category: null,
-    scheme: null,
-    adjustments: [],
-    notes,
-    fallback,
-    reference,
-  });
-
+/**
+ * Steps 1–6 of the decision table: the basis, the signed scheme, the row that fits this patient (method, sex,
+ * age, recorded pregnancy) and the elevation shift. Shared by the resolver and by the entry screen, which
+ * shows what will flag a value before it is typed.
+ */
+export function pickRow(q: Omit<InterpretQuery, "value" | "notDetected" | "reference">):
+  | { fallback: FallbackReason | null; reference: true; notes?: Note[] }
+  | {
+      reference: false;
+      scheme: SignedConfig<"scheme">;
+      row: SchemePayload["rows"][number];
+      shift: string | null;
+      adjustments: Adjustment[];
+      notes: Note[];
+    } {
+  const notes: Note[] = [];
   // Step 1 (DS-2): no signed basis, or a reference basis, is Phase 1.
   const basis = inForce(q.configs, "flag_basis", q.conceptId, q.at);
-  if (!basis || basis.payload.basis !== "scheme") return onReference(null);
+  if (!basis || basis.payload.basis !== "scheme")
+    return { fallback: null, reference: true as const };
 
   // Step 2: the scheme, signed, in the result's unit (RR-6's rule for schemes).
   const scheme = inForce(q.configs, "scheme", q.conceptId, q.at);
-  if (!scheme || scheme.payload.unit !== q.unitUcum) return onReference("no_scheme_for_patient");
+  if (!scheme || scheme.payload.unit !== q.unitUcum)
+    return { fallback: "no_scheme_for_patient" as const, reference: true as const, notes };
   const s = scheme.payload;
 
   // Step 3 (Law 7, D-LAB2-10): a row must name this method.
   const forMethod = s.rows.filter((r) => r.methods.includes(q.method));
-  if (!forMethod.length) return onReference("method_not_covered");
+  if (!forMethod.length)
+    return { fallback: "method_not_covered" as const, reference: true as const, notes };
 
   // Step 4 (RR-4, RR-5): sex and age.
   const needs = forMethod.some(
     (r) => r.sex !== "any" || r.ageFromDays !== null || r.ageToDays !== null,
   );
   if (needs && (q.sex === null || q.ageDaysAtCollection === null))
-    return onReference("sex_or_age_missing");
+    return { fallback: "sex_or_age_missing" as const, reference: true as const, notes };
   const fits = forMethod.filter(
     (r) =>
       (r.sex === "any" || r.sex === q.sex) &&
       (r.ageFromDays === null || (q.ageDaysAtCollection ?? -1) >= r.ageFromDays) &&
       (r.ageToDays === null || (q.ageDaysAtCollection ?? Infinity) < r.ageToDays),
   );
-  if (!fits.length) return onReference("no_scheme_for_patient");
+  if (!fits.length)
+    return { fallback: "no_scheme_for_patient" as const, reference: true as const, notes };
 
   // Step 5 (DS-5): the pregnancy row from the record; not recorded → the non-pregnant row, said so.
-  const notes: Note[] = [];
   const pick = (ctx: SchemePayload["rows"][number]["context"]) =>
     fits.filter((r) => r.context === ctx);
   let rows: typeof fits;
@@ -135,7 +140,8 @@ export function resolveInterpretation(q: InterpretQuery): Interpretation {
           (r.gestationFromDays == null || g >= r.gestationFromDays) &&
           (r.gestationToDays == null || g < r.gestationToDays)),
     );
-    if (!rows.length && pick("pregnant").length) return onReference("context_not_recorded");
+    if (!rows.length && pick("pregnant").length)
+      return { fallback: "context_not_recorded" as const, reference: true as const, notes };
   } else {
     rows = pick("not_pregnant");
     if (
@@ -146,7 +152,8 @@ export function resolveInterpretation(q: InterpretQuery): Interpretation {
       notes.push("pregnancy_not_recorded");
   }
   if (!rows.length) rows = pick("any");
-  if (rows.length !== 1) return onReference("no_scheme_for_patient");
+  if (rows.length !== 1)
+    return { fallback: "no_scheme_for_patient" as const, reference: true as const, notes };
   const row = rows[0]!;
 
   // Step 6 (DS-6, DS-7): the signed elevation, added to every cut-off.
@@ -173,18 +180,44 @@ export function resolveInterpretation(q: InterpretQuery): Interpretation {
     }
   }
 
+  return { reference: false, scheme, row, shift, adjustments, notes };
+}
+
+/** DS-3: the basis, the band or category, the flag, every adjustment, the reference band, or a reason. */
+export function resolveInterpretation(q: InterpretQuery): Interpretation {
+  const reference = bandOf(q.reference);
+  const onReference = (fallback: FallbackReason | null, notes: Note[] = []): Interpretation => ({
+    basis: "reference",
+    flag: q.value !== null && reference ? computeFlag(q.value, reference) : null,
+    category: null,
+    scheme: null,
+    adjustments: [],
+    notes,
+    fallback,
+    reference,
+  });
+
+  const picked = pickRow(q);
+  if (picked.reference) return onReference(picked.fallback, picked.notes ?? []);
+  const { scheme, row, shift, adjustments, notes } = picked;
+  const s = scheme.payload;
+
   // Step 7 (DS-8): the category, bounds exactly as signed.
   const category = categoryFor(s, row.bounds, q.value, q.notDetected === true, shift);
-  if (!category) return onReference("no_scheme_for_patient", notes);
+  // No value yet (the entry screen's preview): the scheme and row, no category.
+  if (!category && (q.value !== null || q.notDetected))
+    return onReference("no_scheme_for_patient", notes);
   return {
     basis: "scheme",
     flag: null,
-    category: {
-      code: category.code,
-      label: category.label,
-      abnormal: category.abnormal,
-      direction: category.abnormal ? directionOf(s, row.bounds, category.code) : null,
-    },
+    category: category
+      ? {
+          code: category.code,
+          label: category.label,
+          abnormal: category.abnormal,
+          direction: category.abnormal ? directionOf(s, row.bounds, category.code) : null,
+        }
+      : null,
     scheme: {
       id: scheme.id,
       version: scheme.version,
@@ -200,7 +233,7 @@ export function resolveInterpretation(q: InterpretQuery): Interpretation {
 }
 
 /** An abnormal category lies below or above the row's normal categories. */
-function directionOf(
+export function directionOf(
   s: Pick<SchemePayload, "categories">,
   bounds: SchemePayload["rows"][number]["bounds"],
   code: string,

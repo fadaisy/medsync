@@ -24,6 +24,7 @@ export const SEED_SOURCES = {
   v12: "data/emr/clinical-fact-concepts.v1.2.json",
   v13: "data/emr/clinical-fact-concepts.v1.3.json",
   v15: "data/emr/clinical-fact-concepts.v1.5.json",
+  v16: "data/emr/clinical-fact-concepts.v1.6.json",
   tests: "data/emr/test-catalogue.v1.json",
   terms: "data/emr/diagnosis-terms.v1.json",
   terms11: "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json",
@@ -38,6 +39,7 @@ export const SEED_OUTPUTS = {
   sql86: "supabase/migrations/0086_ref_dx_terms_v1_1_icd11.sql",
   sql15: "supabase/migrations/0092_cfc_v1_5_ncd_diabetes.sql",
   sql95: "supabase/migrations/0095_ref_dx_terms_v1_2.sql",
+  sql108: "supabase/migrations/0108_cfc_v1_6_lab_catalogue.sql",
   ts: "lib/facts/catalogue.generated.ts",
 } as const;
 
@@ -59,6 +61,12 @@ const ADDENDA = [
     version: "1.5.0",
     sql: "sql15",
     title: "0092 — CFC v1.5: NCD diabetes (MS-NCD-DM-PACK-001)",
+  },
+  {
+    key: "v16",
+    version: "1.6.0",
+    sql: "sql108",
+    title: "0108 — CFC v1.6: the lab catalogue (Lab Phase 2, CD-06)",
   },
 ] as const;
 
@@ -91,6 +99,7 @@ export function readSeedSources(root: string) {
     v12: read(SEED_SOURCES.v12),
     v13: read(SEED_SOURCES.v13),
     v15: read(SEED_SOURCES.v15),
+    v16: read(SEED_SOURCES.v16),
     tests: read(SEED_SOURCES.tests),
     terms: read(SEED_SOURCES.terms),
     terms11: read(SEED_SOURCES.terms11),
@@ -149,6 +158,12 @@ export function registryConcepts(src: SeedSources) {
       const c = base.find((x) => x.id === id);
       if (!c) throw new Error(`${a.key} extends unknown concept ${id}`);
       c.answers = [...(c.answers ?? []), ...answers.filter((x) => !(c.answers ?? []).includes(x))];
+    }
+    // F-2: a unit an addendum changes (D-dimer to FEU); old results keep the unit they were written in.
+    for (const [id, unit] of Object.entries((add.canonicalUnitChanges ?? {}) as Record<string, string>)) {
+      const c = base.find((x) => x.id === id);
+      if (!c) throw new Error(`${a.key} changes the unit of unknown concept ${id}`);
+      c.canonicalUnit = unit;
     }
     base.push(
       ...add.concepts.map((c: Json) => ({
@@ -400,7 +415,7 @@ function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string
 --   clinical_concepts   ${concepts.length} at ${a.version} (${withCode} carry a symptom_catalog code${ext.length ? `; answers added to ${ext.map(([id]) => id).join(", ")}` : ""})
 --
 -- GATED: owner-applied (\`npm run db:migrate\`), after 0076 (symptom_code references symptom_catalog codes
--- 0076 adds) and after ${a.key === "v12" ? "0072" : a.key === "v13" ? "0082 (v1.3 reuses v1.2 concepts)" : "0083 and 0085 (v1.5 links terms 0085 seeds)"}. Until it runs, signing keeps these findings in the note only
+-- 0076 adds) and after ${a.key === "v12" ? "0072" : a.key === "v13" ? "0082 (v1.3 reuses v1.2 concepts)" : a.key === "v15" ? "0083 and 0085 (v1.5 links terms 0085 seeds)" : "0092 and 0107 (v1.6 uses the units 0107 adds)"}. Until it runs, signing keeps these findings in the note only
 -- (it charts only concepts present in clinical_concepts).
 `;
   const extSql = ext.map(
@@ -522,6 +537,30 @@ function buildV15Extra(src: SeedSources): string {
       .map(
         ([term, concept]) =>
           `UPDATE public.diagnosis_terms SET concept_id = ${lit(concept)}\n  WHERE id = ${lit(uuidV5(`diagnosis_terms:${term}`))} AND concept_id IS NULL; -- ${term}`,
+      )
+      .join("\n") + "\n",
+  ].join("\n");
+}
+
+// ─── 0108: v1.6's new tests (inactive) and D-dimer's unit ────────────
+/**
+ * The four tests the syphilis split and the coagulation screen add (CC-7) arrive inactive: they become
+ * orderable when the addendum is signed in the product (CC-1). D-dimer's canonical unit becomes FEU (F-2) only
+ * while it is still the unit 0072 seeded. Existing tests' component lists are not touched: the v2 lists live in
+ * the data file and apply only behind labCatalogueV2 (gate-a-proposal §3).
+ */
+function buildV16Extra(src: SeedSources): string {
+  const add = src.v16;
+  const tests = [...add.testsAdd].sort(byId((t: Json) => t.id));
+  const units = Object.entries(add.canonicalUnitChanges as Record<string, string>);
+  return [
+    "-- ─── test_catalogue (inactive until the addendum is signed) ─────────",
+    insert("test_catalogue", TEST_CATALOGUE_COLS, tests.map(testRow)),
+    "-- ─── canonical units (F-2) ──────────────────────────────────────────",
+    units
+      .map(
+        ([id, unit]) =>
+          `UPDATE public.clinical_concepts SET canonical_unit = ${lit(unit)}\n  WHERE id = ${lit(id)} AND canonical_unit = 'mg/L';`,
       )
       .join("\n") + "\n",
   ].join("\n");
@@ -742,6 +781,7 @@ export async function generateSeed(root: string = process.cwd()): Promise<{
   sql86: string;
   sql15: string;
   sql95: string;
+  sql108: string;
 }> {
   const src = readSeedSources(root);
   const tsPath = join(root, SEED_OUTPUTS.ts);
@@ -754,13 +794,14 @@ export async function generateSeed(root: string = process.cwd()): Promise<{
     sql86: buildTermsCodesSql(src),
     sql15: buildAddendumSql(src, ADDENDA[2]) + "\n" + buildV15Extra(src),
     sql95: buildTermsV12Sql(src),
+    sql108: buildAddendumSql(src, ADDENDA[3]) + "\n" + buildV16Extra(src),
     ts: await prettier.format(buildTs(src), { ...config, filepath: tsPath }),
   };
 }
 
 if (process.argv[1]?.endsWith("gen-seed.ts")) {
   const root = process.cwd();
-  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85, sql86, sql15, sql95 }) => {
+  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85, sql86, sql15, sql95, sql108 }) => {
     writeFileSync(join(root, SEED_OUTPUTS.sql), sql);
     writeFileSync(join(root, SEED_OUTPUTS.sql12), sql12);
     writeFileSync(join(root, SEED_OUTPUTS.sql13), sql13);
@@ -768,6 +809,7 @@ if (process.argv[1]?.endsWith("gen-seed.ts")) {
     writeFileSync(join(root, SEED_OUTPUTS.sql86), sql86);
     writeFileSync(join(root, SEED_OUTPUTS.sql15), sql15);
     writeFileSync(join(root, SEED_OUTPUTS.sql95), sql95);
+    writeFileSync(join(root, SEED_OUTPUTS.sql108), sql108);
     writeFileSync(join(root, SEED_OUTPUTS.ts), ts);
     console.log(`wrote ${Object.values(SEED_OUTPUTS).join(", ")}`);
   });

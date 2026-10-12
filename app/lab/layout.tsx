@@ -9,7 +9,12 @@ import { loadLabWorklist as loadLegacyWorklist } from "@/lib/lab-tech/worklist";
 import { countOpenCriticals } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { countFormsWaiting } from "@/lib/lab/downtime-read";
-import { labCriticalsLiveFor, labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import {
+  labCatalogueV2LiveFor,
+  labCriticalsLiveFor,
+  labDowntimeLiveFor,
+  labUnitsRangesLiveFor,
+} from "@/lib/lab/feature";
 import { navFor } from "@/lib/lab/nav";
 import { labWorklistFor, rejectedFor, releasedTodayFor } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
@@ -62,6 +67,9 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_ranges: "",
     setup_limits: "",
     setup_criticals: "",
+    setup_profiles: "",
+    setup_drafts: "",
+    setup_settings: "",
     downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
@@ -70,6 +78,7 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     criticalsSetup: emr && labCriticalsLiveFor(scope.hospitalId),
     unitsRanges: emr && labUnitsRangesLiveFor(scope.hospitalId),
     downtime,
+    catalogueV2: emr && labCatalogueV2LiveFor(scope.hospitalId),
   }).map((i) => ({
     id: i.id,
     label: i.label,

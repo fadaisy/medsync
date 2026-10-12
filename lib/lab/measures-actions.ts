@@ -58,6 +58,13 @@ const Measure = z.object({
   loincCode: z.string().trim().max(20).nullable(),
   entryCheckLow: decimal.nullable(),
   entryCheckHigh: decimal.nullable(),
+  // Lab Phase 2 (ME-1, LD-10): the method register, versioned with the measure.
+  methodCode: z
+    .string()
+    .regex(/^[a-z0-9_]{2,40}$/)
+    .nullable()
+    .optional(),
+  idmsTraceable: z.boolean().nullable().optional(),
 });
 
 export async function saveMeasureAction(
@@ -84,6 +91,8 @@ export async function saveMeasureAction(
             loincCode: p.data.loincCode || null,
             entryCheckLow: p.data.entryCheckLow,
             entryCheckHigh: p.data.entryCheckHigh,
+            methodCode: p.data.methodCode ?? null,
+            idmsTraceable: p.data.idmsTraceable ?? null,
           },
         },
         new Date(),

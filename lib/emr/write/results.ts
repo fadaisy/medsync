@@ -30,6 +30,7 @@ import {
 } from "@/lib/emr/results";
 import { encrypt } from "@/lib/encryption";
 import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/shared";
+import { componentsFor } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
 import { prepareFixedUnits } from "@/lib/lab/units";
 import { mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
@@ -266,6 +267,14 @@ async function writeReportVersion(
   if (kind !== "lab" && kind !== "imaging" && kind !== "ecg")
     throw invalid("Only laboratory, imaging and ECG orders carry a report.");
 
+  // Lab Phase 2 (labCatalogueV2 and the signed addendum): the v2 components, or the rows of the analyser
+  // profile pinned at receipt (AP-5). Otherwise the test's own list, exactly as before (S18).
+  const v2 =
+    kind === "lab" && spec.test
+      ? await componentsFor(tx, actor.hospitalId, spec.test, order.id)
+      : null;
+  const test = v2 && spec.test ? { ...spec.test, components: v2.components } : spec.test;
+
   // Lab Phase 1 Step 5: fixed units, signed ranges and snapshots for a laboratory's own entry.
   const fixed =
     kind === "lab" &&
@@ -277,6 +286,7 @@ async function writeReportVersion(
           testId: order.testId,
           values: spec.values,
           collectedAt: specimen?.collectedAt ?? prior?.effectiveAt ?? now,
+          v2: v2?.active ? { ...v2, status } : null,
         })
       : null;
   const values = fixed?.values ?? spec.values;
@@ -327,7 +337,7 @@ async function writeReportVersion(
   const used = new Set<string>();
   const seen = new Set<string>();
   for (const v of values) {
-    const cols = valueColumns(v, spec.test);
+    const cols = valueColumns(v, test);
     if (cols.conceptId !== UNCATALOGUED) {
       if (seen.has(v.conceptId)) throw invalid(`${v.conceptId} is entered twice.`);
       seen.add(v.conceptId);

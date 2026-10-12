@@ -19,6 +19,9 @@ export interface Measure {
   loincCode: string | null;
   entryCheckLow: string | null;
   entryCheckHigh: string | null;
+  /** Lab Phase 2 (ME-1): the method in force and, for creatinine, IDMS traceability. */
+  methodCode?: string | null;
+  idmsTraceable?: boolean | null;
 }
 
 // ─── Exact decimals (UN-3) ───────────────────────────────────────────────
@@ -118,6 +121,8 @@ const DEFINING = [
   "loincCode",
   "entryCheckLow",
   "entryCheckHigh",
+  "methodCode",
+  "idmsTraceable",
 ] as const;
 
 export type MeasureDraft = Pick<Measure, (typeof DEFINING)[number]>;
@@ -127,7 +132,8 @@ export function measureChange(
   current: Measure | null,
   draft: MeasureDraft,
 ): { kind: "same" } | { kind: "new_version"; version: number } {
-  if (current && DEFINING.every((k) => current[k] === draft[k])) return { kind: "same" };
+  if (current && DEFINING.every((k) => (current[k] ?? null) === (draft[k] ?? null)))
+    return { kind: "same" };
   return { kind: "new_version", version: (current?.version ?? 0) + 1 };
 }
 

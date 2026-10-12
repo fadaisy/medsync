@@ -1,0 +1,1971 @@
+{
+ "catalogue": "MS-EMR-CFC",
+ "version": "1.6.0",
+ "extends": "1.5.0",
+ "status": "draft",
+ "signedBy": null,
+ "signedAt": null,
+ "signature": "In the product: the laboratory lead and the CSO sign the addendum (CC-1; lab_signed_configs kind 'addendum', key 'cfc-1.6.0', payload the SHA-256 of this file).",
+ "source": "docs/lab/catalogue-research/lab-catalogue-research.v1.json (12 Oct 2026), reconciled by docs/lab/phase-2/STOP-REPORTS.md STOP 0 and gate-a-proposal.md: the 3 concepts that already exist dropped (obs.eosinophils_abs, obs.bicarbonate, obs.aptt); the 2 free-text blood-culture concepts held for microbiology (F-4); units in valid UCUM (F-1); live answer codes kept and only answers new in meaning added (A1); obs.abo_group, obs.tb_xpert_mtb and obs.hiv_algorithm_outcome added so obs.blood_group, obs.tb_xpert and obs.hiv_test keep their meaning (A2).",
+ "note": "No clinical number: units, codes and answer sets only. New tests arrive inactive and are orderable once the addendum is signed. The v2 component lists apply only where labCatalogueV2 is on and the addendum is signed; with the flag off, Phase 1's lists stand.",
+ "answerExtensions": {
+  "obs.urine_blood_dipstick": [
+   "trace_haemolysed",
+   "trace_nonhaemolysed"
+  ],
+  "obs.crag": [
+   "invalid"
+  ],
+  "obs.syphilis_test": [
+   "invalid"
+  ],
+  "obs.pregnancy_test": [
+   "invalid"
+  ],
+  "obs.hbsag": [
+   "invalid"
+  ],
+  "obs.hcv_ab": [
+   "invalid"
+  ],
+  "obs.tb_lam": [
+   "equivocal",
+   "invalid"
+  ]
+ },
+ "canonicalUnitChanges": {
+  "obs.d_dimer": "mg/L{FEU}"
+ },
+ "retired": {
+  "obs.troponin": "split into obs.troponin_i_hs and obs.troponin_t_hs (CD-03); old results keep it"
+ },
+ "legacy": {
+  "obs.blood_group": "obs.abo_group + obs.rhd_type",
+  "obs.tb_xpert": "obs.tb_xpert_mtb + obs.tb_xpert_rif",
+  "obs.hiv_test": "obs.hiv_rdt_t1..t3 + obs.hiv_algorithm_outcome"
+ },
+ "concepts": [
+  {
+   "id": "obs.abo_group",
+   "display": "ABO blood group",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "A",
+    "B",
+    "AB",
+    "O"
+   ]
+  },
+  {
+   "id": "obs.basophils_abs",
+   "display": "Basophils (absolute)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*9/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "704-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.basophils_pct",
+   "display": "Basophils %",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "706-2",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.blood_culture_days_incubated",
+   "display": "Blood culture days incubated",
+   "kind": "observation",
+   "group": "microbiology",
+   "valueType": "quantity",
+   "canonicalUnit": "d",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.cd4_percent",
+   "display": "CD4+ T cells (% of lymphocytes)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "8123-2",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.chol_ldl_direct",
+   "display": "LDL cholesterol (direct assay)",
+   "kind": "observation",
+   "group": "lipids",
+   "valueType": "quantity",
+   "canonicalUnit": "mmol/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "69419-0",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.crag_titre",
+   "display": "CrAg LFA titre",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "ordinal",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "9818-6",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "1_5",
+    "1_10",
+    "1_20",
+    "1_40",
+    "1_80",
+    "1_160",
+    "1_320",
+    "1_640",
+    "1_1280",
+    "ge_1_2560"
+   ]
+  },
+  {
+   "id": "obs.d_dimer_ddu",
+   "display": "D-dimer (DDU)",
+   "kind": "observation",
+   "group": "coagulation",
+   "valueType": "quantity",
+   "canonicalUnit": "mg/L{DDU}",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "48066-5",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.dual_rdt_hiv_line",
+   "display": "Dual HIV/syphilis RDT - HIV line",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "reactive",
+    "non_reactive",
+    "invalid"
+   ]
+  },
+  {
+   "id": "obs.dual_rdt_syphilis_line",
+   "display": "Dual HIV/syphilis RDT - syphilis line",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "reactive",
+    "non_reactive",
+    "invalid"
+   ]
+  },
+  {
+   "id": "obs.egfr",
+   "display": "eGFR (CKD-EPI 2021, creatinine)",
+   "kind": "observation",
+   "group": "renal",
+   "valueType": "quantity",
+   "canonicalUnit": "mL/min/{1.73_m2}",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "98979-8",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.eosinophils_pct",
+   "display": "Eosinophils %",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "713-8",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.ft3",
+   "display": "Free T3",
+   "kind": "observation",
+   "group": "endocrine",
+   "valueType": "quantity",
+   "canonicalUnit": "pmol/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "14928-6",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.ggt",
+   "display": "Gamma-glutamyl transferase (GGT)",
+   "kind": "observation",
+   "group": "liver",
+   "valueType": "quantity",
+   "canonicalUnit": "U/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "2324-2",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.glucose_fasting",
+   "display": "Glucose, fasting",
+   "kind": "observation",
+   "group": "glycaemia",
+   "valueType": "quantity",
+   "canonicalUnit": "mmol/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "14771-0",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.granulocytes_abs",
+   "display": "Granulocytes (absolute, 3-part)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*9/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.granulocytes_pct",
+   "display": "Granulocytes % (3-part)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.haematocrit",
+   "display": "Haematocrit",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "4544-3",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.hiv_algorithm_outcome",
+   "display": "HIV status (national testing algorithm)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "negative",
+    "positive",
+    "inconclusive",
+    "inconclusive_refer",
+    "discrepant"
+   ]
+  },
+  {
+   "id": "obs.hiv_rdt_t1",
+   "display": "HIV test 1 (screening) result",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "reactive",
+    "non_reactive",
+    "invalid"
+   ]
+  },
+  {
+   "id": "obs.hiv_rdt_t2",
+   "display": "HIV test 2 (confirmatory) result",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "reactive",
+    "non_reactive",
+    "invalid"
+   ]
+  },
+  {
+   "id": "obs.hiv_rdt_t3",
+   "display": "HIV test 3 (tie-breaker) result",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "reactive",
+    "non_reactive",
+    "invalid"
+   ]
+  },
+  {
+   "id": "obs.hiv_viral_load_log10",
+   "display": "HIV-1 viral load (log10)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "quantity",
+   "canonicalUnit": "{log_copies}/mL",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "29541-0",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.ig_abs",
+   "display": "Immature granulocytes (absolute)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*9/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "53115-2",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.ig_pct",
+   "display": "Immature granulocytes %",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "71695-1",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.lymphocytes_pct",
+   "display": "Lymphocytes %",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "736-9",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.malaria_density_method",
+   "display": "Density method",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "thick_wbc_assumed",
+    "thick_wbc_measured",
+    "thin_rbc"
+   ]
+  },
+  {
+   "id": "obs.malaria_parasites_counted",
+   "display": "Asexual parasites counted",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "quantity",
+   "canonicalUnit": "{count}",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.malaria_plus_grade",
+   "display": "Malaria parasite grade (plus system)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "ordinal",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "1plus",
+    "2plus",
+    "3plus",
+    "4plus"
+   ]
+  },
+  {
+   "id": "obs.malaria_rdt_lines",
+   "display": "Malaria RDT result",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "70569-9",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "negative",
+    "pf_pos",
+    "pan_pos",
+    "pf_pan_pos",
+    "invalid"
+   ]
+  },
+  {
+   "id": "obs.malaria_species",
+   "display": "Plasmodium species seen",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "pf",
+    "pv",
+    "pm",
+    "po",
+    "pk",
+    "not_determined"
+   ]
+  },
+  {
+   "id": "obs.malaria_stages_seen",
+   "display": "Malaria stages seen",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "trophozoites",
+    "schizonts",
+    "gametocytes"
+   ]
+  },
+  {
+   "id": "obs.malaria_wbc_counted",
+   "display": "WBC counted (thick film)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "quantity",
+   "canonicalUnit": "{count}",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.mch",
+   "display": "Mean cell haemoglobin",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "pg",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "785-6",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.mchc",
+   "display": "Mean cell haemoglobin concentration",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "g/dL",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "786-4",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.mid_abs",
+   "display": "Mid-sized cells (absolute, 3-part)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*9/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.mid_pct",
+   "display": "Mid-sized cells % (3-part)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.monocytes_abs",
+   "display": "Monocytes (absolute)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*9/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "742-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.monocytes_pct",
+   "display": "Monocytes %",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "5905-5",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.mpv",
+   "display": "Mean platelet volume",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "fL",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "32623-1",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.neutrophils_pct",
+   "display": "Neutrophils %",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "770-8",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.p_lcc",
+   "display": "Platelet large cell count",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*9/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.p_lcr",
+   "display": "Platelet large cell ratio",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "48386-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.pdw",
+   "display": "Platelet distribution width",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "fL",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "32207-3",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.plateletcrit",
+   "display": "Plateletcrit",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "51637-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.rbc",
+   "display": "Red blood cell count",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "10*12/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "789-8",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.rdw_cv",
+   "display": "Red cell distribution width (CV)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "%",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "788-0",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.rdw_sd",
+   "display": "Red cell distribution width (SD)",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "quantity",
+   "canonicalUnit": "fL",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "115742-9",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.rhd_type",
+   "display": "RhD type",
+   "kind": "observation",
+   "group": "haematology",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "10331-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "pos",
+    "neg",
+    "weak_d"
+   ]
+  },
+  {
+   "id": "obs.rpr_result",
+   "display": "RPR (non-treponemal)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "20507-0",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "non_reactive",
+    "reactive"
+   ]
+  },
+  {
+   "id": "obs.rpr_titre",
+   "display": "RPR titre",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "ordinal",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "31147-2",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "1_1",
+    "1_2",
+    "1_4",
+    "1_8",
+    "1_16",
+    "1_32",
+    "1_64",
+    "1_128"
+   ]
+  },
+  {
+   "id": "obs.sputum_afb_scanty_count",
+   "display": "AFB count (scanty)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "quantity",
+   "canonicalUnit": "{count}",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.sputum_afb_stain_method",
+   "display": "AFB stain method",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "zn",
+    "fm"
+   ]
+  },
+  {
+   "id": "obs.tb_xpert_mtb",
+   "display": "Xpert MTB/RIF Ultra: MTB result",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "not_detected",
+    "detected_trace",
+    "detected_very_low",
+    "detected_low",
+    "detected_medium",
+    "detected_high",
+    "invalid",
+    "error",
+    "no_result"
+   ]
+  },
+  {
+   "id": "obs.tb_xpert_rif",
+   "display": "Xpert MTB/RIF Ultra - rifampicin resistance",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "89372-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "not_detected",
+    "detected",
+    "indeterminate"
+   ]
+  },
+  {
+   "id": "obs.treponemal_lab_result",
+   "display": "Treponemal antibody (TPPA / TPHA)",
+   "kind": "observation",
+   "group": "infection",
+   "valueType": "coded",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [],
+   "lanes": [],
+   "sensitivity": "restricted",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "non_reactive",
+    "inconclusive",
+    "reactive"
+   ]
+  },
+  {
+   "id": "obs.troponin_i_hs",
+   "display": "Troponin I, high-sensitivity",
+   "kind": "observation",
+   "group": "cardiac",
+   "valueType": "quantity",
+   "canonicalUnit": "ng/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "89579-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.troponin_t_hs",
+   "display": "Troponin T, high-sensitivity",
+   "kind": "observation",
+   "group": "cardiac",
+   "valueType": "quantity",
+   "canonicalUnit": "ng/L",
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "67151-1",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null
+  },
+  {
+   "id": "obs.urine_bilirubin_dipstick",
+   "display": "Urine bilirubin (dipstick)",
+   "kind": "observation",
+   "group": "urinalysis",
+   "valueType": "ordinal",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "5770-3",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "neg",
+    "small",
+    "moderate",
+    "large"
+   ]
+  },
+  {
+   "id": "obs.urine_urobilinogen_dipstick",
+   "display": "Urine urobilinogen (dipstick)",
+   "kind": "observation",
+   "group": "urinalysis",
+   "valueType": "ordinal",
+   "canonicalUnit": null,
+   "acceptedUnits": [],
+   "contextRequired": [],
+   "codes": [
+    {
+     "system": "LOINC",
+     "code": "20405-7",
+     "status": "verified"
+    }
+   ],
+   "lanes": [],
+   "sensitivity": "standard",
+   "phase": "v1.6",
+   "symptomCode": null,
+   "answers": [
+    "0_2",
+    "1",
+    "2",
+    "4",
+    "8"
+   ]
+  }
+ ],
+ "abnormalAnswers": {
+  "obs.crag": [
+   "positive"
+  ],
+  "obs.crag_titre": [
+   "1_10",
+   "1_1280",
+   "1_160",
+   "1_20",
+   "1_320",
+   "1_40",
+   "1_5",
+   "1_640",
+   "1_80",
+   "ge_1_2560"
+  ],
+  "obs.dual_rdt_hiv_line": [
+   "reactive"
+  ],
+  "obs.dual_rdt_syphilis_line": [
+   "reactive"
+  ],
+  "obs.glucose_urine": [
+   "plus1",
+   "plus2",
+   "plus3",
+   "plus4"
+  ],
+  "obs.hbsag": [
+   "positive"
+  ],
+  "obs.hcv_ab": [
+   "positive"
+  ],
+  "obs.hiv_algorithm_outcome": [
+   "inconclusive",
+   "inconclusive_refer",
+   "discrepant",
+   "positive"
+  ],
+  "obs.hiv_rdt_t1": [
+   "reactive"
+  ],
+  "obs.hiv_rdt_t2": [
+   "reactive"
+  ],
+  "obs.hiv_rdt_t3": [
+   "reactive"
+  ],
+  "obs.ketones_urine": [
+   "plus1",
+   "plus2",
+   "plus3"
+  ],
+  "obs.malaria_plus_grade": [
+   "1plus",
+   "2plus",
+   "3plus",
+   "4plus"
+  ],
+  "obs.malaria_rdt_lines": [
+   "pan_pos",
+   "pf_pan_pos",
+   "pf_pos"
+  ],
+  "obs.malaria_species": [
+   "not_determined",
+   "pf",
+   "pk",
+   "pm",
+   "po",
+   "pv"
+  ],
+  "obs.malaria_stages_seen": [
+   "gametocytes",
+   "schizonts",
+   "trophozoites"
+  ],
+  "obs.malaria_test": [
+   "positive"
+  ],
+  "obs.rhd_type": [
+   "weak_d"
+  ],
+  "obs.rpr_result": [
+   "reactive"
+  ],
+  "obs.rpr_titre": [
+   "1_1",
+   "1_128",
+   "1_16",
+   "1_2",
+   "1_32",
+   "1_4",
+   "1_64",
+   "1_8"
+  ],
+  "obs.sputum_afb": [
+   "plus1",
+   "plus2",
+   "plus3"
+  ],
+  "obs.syphilis_test": [
+   "reactive"
+  ],
+  "obs.tb_lam": [
+   "positive"
+  ],
+  "obs.tb_xpert_mtb": [
+   "detected_high",
+   "detected_low",
+   "detected_medium",
+   "detected_trace",
+   "detected_very_low"
+  ],
+  "obs.tb_xpert_rif": [
+   "detected",
+   "indeterminate"
+  ],
+  "obs.treponemal_lab_result": [
+   "inconclusive",
+   "reactive"
+  ],
+  "obs.urine_bilirubin_dipstick": [
+   "large",
+   "moderate",
+   "small"
+  ],
+  "obs.urine_blood_dipstick": [
+   "plus1",
+   "plus2",
+   "plus3"
+  ],
+  "obs.urine_leukocytes_dipstick": [
+   "plus1",
+   "plus2",
+   "plus3"
+  ],
+  "obs.urine_nitrite_dipstick": [
+   "positive"
+  ],
+  "obs.urine_protein_dipstick": [
+   "plus1",
+   "plus2",
+   "plus3",
+   "plus4"
+  ],
+  "obs.urine_urobilinogen_dipstick": [
+   "2",
+   "4",
+   "8"
+  ]
+ },
+ "otherUnits": {
+  "obs.wbc": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.neutrophils_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.neutrophils_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.lymphocytes_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.lymphocytes_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.monocytes_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.monocytes_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.eosinophils_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.eosinophils_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.basophils_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.basophils_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.ig_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.ig_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.rbc": [
+   {
+    "unit": "10*6/uL",
+    "multiplyBy": 1
+   }
+  ],
+  "obs.haemoglobin": [
+   {
+    "unit": "g/L",
+    "multiplyBy": 10
+   }
+  ],
+  "obs.haematocrit": [
+   {
+    "unit": "L/L",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.mchc": [
+   {
+    "unit": "g/L",
+    "multiplyBy": 10
+   }
+  ],
+  "obs.platelets": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.plateletcrit": [
+   {
+    "unit": "mL/L",
+    "multiplyBy": 10
+   }
+  ],
+  "obs.p_lcc": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.mid_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.mid_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.granulocytes_pct": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.granulocytes_abs": [
+   {
+    "unit": "10*3/uL",
+    "multiplyBy": 1
+   },
+   {
+    "unit": "/uL",
+    "multiplyBy": 1000
+   }
+  ],
+  "obs.cd4": [
+   {
+    "unit": "10*9/L",
+    "multiplyBy": 0.001
+   },
+   {
+    "unit": "/mm3",
+    "multiplyBy": 1
+   }
+  ],
+  "obs.cd4_percent": [
+   {
+    "unit": "1",
+    "multiplyBy": 0.01
+   }
+  ],
+  "obs.bicarbonate": [
+   {
+    "unit": "mEq/L",
+    "multiplyBy": 1
+   }
+  ],
+  "obs.ggt": [
+   {
+    "unit": "IU/L",
+    "multiplyBy": 1
+   }
+  ],
+  "obs.glucose_fasting": [
+   {
+    "unit": "mg/dL",
+    "multiplyBy": 18.0
+   }
+  ],
+  "obs.tsh": [
+   {
+    "unit": "uIU/mL",
+    "multiplyBy": 1
+   }
+  ],
+  "obs.d_dimer": [
+   {
+    "unit": "ug/L{FEU}",
+    "multiplyBy": 0.001
+   }
+  ],
+  "obs.uacr": [
+   {
+    "unit": "mg/g",
+    "multiplyBy": 0.113
+   }
+  ],
+  "obs.d_dimer_ddu": [
+   {
+    "unit": "ug/L{DDU}",
+    "multiplyBy": 0.001
+   }
+  ],
+  "obs.chol_ldl_direct": [
+   {
+    "unit": "mg/dL",
+    "multiplyBy": 0.02586
+   }
+  ]
+ },
+ "testsAdd": [
+  {
+   "id": "test.coag_screen",
+   "display": "Coagulation screen (PT, INR, APTT)",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.pt",
+    "obs.inr",
+    "obs.aptt"
+   ],
+   "specimenType": "venous_plasma",
+   "container": "unknown",
+   "fasting_required": false,
+   "defaultUnits": {},
+   "capability_id": null,
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": false
+  },
+  {
+   "id": "test.dual_hiv_syphilis_rdt",
+   "display": "Dual HIV/syphilis rapid test",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.dual_rdt_hiv_line",
+    "obs.dual_rdt_syphilis_line"
+   ],
+   "specimenType": "capillary_whole_blood",
+   "container": "capillary_direct",
+   "fasting_required": false,
+   "defaultUnits": {},
+   "capability_id": null,
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": false
+  },
+  {
+   "id": "test.rpr",
+   "display": "RPR (syphilis, non-treponemal)",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.rpr_result",
+    "obs.rpr_titre"
+   ],
+   "specimenType": "venous_serum",
+   "container": "serum_plain",
+   "fasting_required": false,
+   "defaultUnits": {},
+   "capability_id": null,
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": false
+  },
+  {
+   "id": "test.tpha",
+   "display": "TPHA (syphilis, treponemal)",
+   "kind": "lab",
+   "panelComponents": [
+    "obs.treponemal_lab_result"
+   ],
+   "specimenType": "venous_serum",
+   "container": "serum_plain",
+   "fasting_required": false,
+   "defaultUnits": {},
+   "capability_id": null,
+   "turnaround_target_minutes": null,
+   "in_house": true,
+   "active": false
+  }
+ ],
+ "testsV2": {
+  "test.blood_culture": [
+   "obs.blood_culture",
+   "obs.blood_culture_days_incubated"
+  ],
+  "test.blood_group": [
+   "obs.abo_group",
+   "obs.rhd_type"
+  ],
+  "test.cd4": [
+   "obs.cd4",
+   "obs.cd4_percent"
+  ],
+  "test.crag": [
+   "obs.crag",
+   "obs.crag_titre"
+  ],
+  "test.creatinine": [
+   "obs.creatinine",
+   "obs.egfr"
+  ],
+  "test.crp": [
+   "obs.crp"
+  ],
+  "test.d_dimer": [
+   "obs.d_dimer",
+   "obs.d_dimer_ddu"
+  ],
+  "test.esr": [
+   "obs.esr"
+  ],
+  "test.fbc": [
+   "obs.wbc",
+   "obs.neutrophils_pct",
+   "obs.neutrophils_abs",
+   "obs.lymphocytes_pct",
+   "obs.lymphocytes_abs",
+   "obs.monocytes_pct",
+   "obs.monocytes_abs",
+   "obs.eosinophils_pct",
+   "obs.eosinophils_abs",
+   "obs.basophils_pct",
+   "obs.basophils_abs",
+   "obs.ig_pct",
+   "obs.ig_abs",
+   "obs.rbc",
+   "obs.haemoglobin",
+   "obs.haematocrit",
+   "obs.mcv",
+   "obs.mch",
+   "obs.mchc",
+   "obs.rdw_cv",
+   "obs.rdw_sd",
+   "obs.platelets",
+   "obs.mpv",
+   "obs.pdw",
+   "obs.plateletcrit",
+   "obs.p_lcr",
+   "obs.p_lcc",
+   "obs.mid_pct",
+   "obs.mid_abs",
+   "obs.granulocytes_pct",
+   "obs.granulocytes_abs"
+  ],
+  "test.glucose_fasting": [
+   "obs.glucose_fasting"
+  ],
+  "test.glucose_random": [
+   "obs.glucose"
+  ],
+  "test.hba1c": [
+   "obs.hba1c"
+  ],
+  "test.hbsag": [
+   "obs.hbsag"
+  ],
+  "test.hcv_ab": [
+   "obs.hcv_ab"
+  ],
+  "test.hiv_rapid": [
+   "obs.hiv_rdt_t1",
+   "obs.hiv_rdt_t2",
+   "obs.hiv_rdt_t3",
+   "obs.hiv_algorithm_outcome"
+  ],
+  "test.hiv_viral_load": [
+   "obs.hiv_viral_load",
+   "obs.hiv_viral_load_log10"
+  ],
+  "test.inr_pt": [
+   "obs.pt",
+   "obs.inr"
+  ],
+  "test.lactate": [
+   "obs.lactate"
+  ],
+  "test.lft": [
+   "obs.alt",
+   "obs.ast",
+   "obs.alp",
+   "obs.ggt",
+   "obs.bilirubin_total",
+   "obs.bilirubin_direct",
+   "obs.albumin",
+   "obs.total_protein"
+  ],
+  "test.lipid_panel": [
+   "obs.chol_total",
+   "obs.chol_hdl",
+   "obs.chol_ldl",
+   "obs.triglycerides",
+   "obs.chol_ldl_direct"
+  ],
+  "test.malaria_rdt": [
+   "obs.malaria_test",
+   "obs.malaria_rdt_lines"
+  ],
+  "test.malaria_smear": [
+   "obs.malaria_test",
+   "obs.malaria_species",
+   "obs.malaria_stages_seen",
+   "obs.malaria_parasites_counted",
+   "obs.malaria_wbc_counted",
+   "obs.malaria_parasite_density",
+   "obs.malaria_density_method",
+   "obs.malaria_plus_grade"
+  ],
+  "test.pregnancy_urine": [
+   "obs.pregnancy_test"
+  ],
+  "test.sputum_afb": [
+   "obs.sputum_afb_stain_method",
+   "obs.sputum_afb",
+   "obs.sputum_afb_scanty_count"
+  ],
+  "test.syphilis": [
+   "obs.syphilis_test"
+  ],
+  "test.tb_lam": [
+   "obs.tb_lam"
+  ],
+  "test.tb_xpert": [
+   "obs.tb_xpert_mtb",
+   "obs.tb_xpert_rif"
+  ],
+  "test.thyroid": [
+   "obs.tsh",
+   "obs.ft4",
+   "obs.ft3"
+  ],
+  "test.troponin": [
+   "obs.troponin_i_hs",
+   "obs.troponin_t_hs"
+  ],
+  "test.uacr": [
+   "obs.uacr"
+  ],
+  "test.urea_electrolytes": [
+   "obs.sodium",
+   "obs.potassium",
+   "obs.chloride",
+   "obs.bicarbonate",
+   "obs.urea",
+   "obs.creatinine",
+   "obs.egfr"
+  ],
+  "test.urinalysis_dipstick": [
+   "obs.urine_leukocytes_dipstick",
+   "obs.urine_nitrite_dipstick",
+   "obs.urine_urobilinogen_dipstick",
+   "obs.urine_protein_dipstick",
+   "obs.urine_ph",
+   "obs.urine_blood_dipstick",
+   "obs.urine_sg",
+   "obs.ketones_urine",
+   "obs.urine_bilirubin_dipstick",
+   "obs.glucose_urine"
+  ]
+ },
+ "counts": {
+  "concepts": 60,
+  "restricted": 16,
+  "testsAdd": 4,
+  "testsV2": 32
+ }
+}

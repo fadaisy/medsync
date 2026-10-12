@@ -1,5 +1,8 @@
 import "server-only";
 
+import type { PregnancyContext } from "./interpretation";
+import type { Sex } from "./ranges";
+import type { SignedConfig } from "./signed-config";
 import type { FixedComponent } from "@/components/emr/results/model";
 import type { EmrDb } from "@/lib/emr/db";
 import { eq } from "drizzle-orm";
@@ -10,7 +13,10 @@ import { encounterOrders } from "@/db/schema/encounter";
 import { labResultSnapshots, ucumUnits } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { conceptDef } from "@/lib/facts/project/shared";
+import { addDecimal } from "./catalogue";
+import { componentsFor, loadConfigs, pregnancyAt } from "./catalogue-v2";
 import { limitFor } from "./flags";
+import { pickRow } from "./interpretation";
 import { limitVersions } from "./limits";
 import { resolveRange } from "./ranges";
 import { currentMeasures, patientSexAge, rangeVersions } from "./units";
@@ -64,6 +70,9 @@ export async function fixedForOrder(
               released: {
                 flagFinal: r.s.flagFinal as "low" | "high" | "normal" | null,
                 reason: r.s.flagChangeReason,
+                category:
+                  (r.s.interpretation as { category?: { label: string } | null } | null)?.category
+                    ?.label ?? null,
               },
             } satisfies FixedComponent,
           ]),
@@ -93,7 +102,11 @@ export async function fixedForOrder(
       where: (t, { eq: e }) => e(t.id, order.testId!),
       limit: 1,
     });
-    for (const conceptId of test?.components ?? []) {
+    // Lab Phase 2: the v2 components or the pinned profile's rows, and what flags each one here.
+    const v2 = test ? await componentsFor(tx, hospitalId, test, orderId) : null;
+    const configs = v2?.active ? await loadConfigs(tx, hospitalId) : [];
+    const pregnancy = v2?.active ? await pregnancyAt(tx, patientUserId, at) : null;
+    for (const conceptId of v2?.components ?? test?.components ?? []) {
       if (conceptDef(conceptId)?.valueType !== "quantity") continue;
       const m = measures.get(conceptId);
       const unit = m?.resultType === "number" ? m.unitUcum : null;
@@ -128,6 +141,9 @@ export async function fixedForOrder(
                 high: null,
               },
         canFix,
+        ...(v2?.active && unit && pregnancy
+          ? { basis: basisFor(conceptId, unit, who, at, pregnancy, configs) }
+          : {}),
         ...(limits && unit
           ? (() => {
               const l = limitFor(
@@ -157,4 +173,42 @@ export async function fixedForOrder(
     }
     return out;
   });
+}
+
+/** §5.6 "Flagged against": the scheme row (bounds with the elevation added), or the reference basis. */
+function basisFor(
+  conceptId: string,
+  unitUcum: string,
+  who: { sex: Sex | null; ageDays: number | null },
+  at: Date,
+  pregnancy: PregnancyContext,
+  configs: SignedConfig[],
+): NonNullable<FixedComponent["basis"]> {
+  const p = pickRow({
+    conceptId,
+    unitUcum,
+    sex: who.sex,
+    ageDaysAtCollection: who.ageDays,
+    pregnancy,
+    method: "lab",
+    at,
+    configs,
+  });
+  if (p.reference) return { kind: "reference", fallback: p.fallback, notes: p.notes ?? [] };
+  const shift = (d: string | null) => (d === null || p.shift === null ? d : addDecimal(d, p.shift));
+  return {
+    kind: "scheme",
+    label: p.scheme.payload.label,
+    rowSource: p.row.source,
+    categories: p.scheme.payload.categories.map(({ code, label, abnormal }) => ({
+      code,
+      label,
+      abnormal,
+    })),
+    bounds: p.row.bounds.map((b) => ({ ...b, from: shift(b.from), to: shift(b.to) })),
+    adjustment: p.adjustments[0]
+      ? `adjusted for ${p.adjustments[0].metres.toLocaleString("en-GB")} m`
+      : null,
+    notes: p.notes,
+  };
 }

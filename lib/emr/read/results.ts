@@ -13,7 +13,7 @@ import type {
   UncataloguedLine,
 } from "@/components/emr/results/model";
 import type { EmrActor } from "@/lib/emr/actor";
-import type { EmrDb } from "@/lib/emr/db";
+import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { ReportStatus } from "@/lib/emr/results";
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
@@ -39,7 +39,9 @@ import { ORDERING_CADRES } from "@/lib/emr/write/orders";
 import { UNCATALOGUED } from "@/lib/emr/write/results";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef } from "@/lib/facts/project/shared";
+import { componentsFor } from "@/lib/lab/catalogue-v2";
 import { labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { ANALYSER_MODELS } from "@/lib/lab/profiles";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 
 /**
@@ -351,7 +353,24 @@ export async function loadResultEntry(
     requisitionNo: order.requisitionNo,
     priority: order.priority,
     mode: opts.mode,
-    components: entryComponents(test ?? null),
+    ...(await (async () => {
+      // Lab Phase 2: the v2 components, or the pinned profile's rows (AP-5, AP-6); else Phase 1's.
+      const v2 = test
+        ? await componentsFor(conn as unknown as EmrTx, actor.hospitalId, test, order.id)
+        : null;
+      const list = entryComponents(
+        test && v2 ? { ...test, components: v2.components } : (test ?? null),
+      );
+      return {
+        components: list.map((c) => (v2?.labOnly.has(c.conceptId) ? { ...c, labOnly: true } : c)),
+        profile: v2?.profile
+          ? {
+              model: ANALYSER_MODELS[v2.profile.model]?.display ?? v2.profile.model,
+              labOnly: v2.labOnly.size,
+            }
+          : null,
+      };
+    })()),
     report: current
       ? {
           id: current.id,

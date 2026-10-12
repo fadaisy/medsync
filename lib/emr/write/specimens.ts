@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 
 import { specimenEvents, specimens } from "@/db/schema/emr";
 import { needsFastingChip } from "@/lib/emr/orders";
+import { catalogueV2Active, profileInUse } from "@/lib/lab/catalogue-v2";
 import { EmrWriteError, stampActivity } from "./context";
 import {
   COLLECTING_CADRES,
@@ -143,6 +144,8 @@ export interface SpecimenActInput {
   patientUserId: string;
   specimenId: string;
   clientKey: string;
+  /** Lab Phase 2 (SR-1): how it was received. */
+  via?: "scan" | "click";
 }
 
 export async function receiveSpecimen(
@@ -160,6 +163,11 @@ export async function receiveSpecimen(
   );
   if (status.state !== "collected" || status.specimenId !== specimen.id)
     throw statusConflict(status, order, "receive this specimen");
+  // AP-5: the analyser profile in use is pinned at receipt; a later change never alters this specimen.
+  const profileId =
+    order.testId && (await catalogueV2Active(ctx.tx, ctx.actor.hospitalId))
+      ? await profileInUse(ctx.tx, ctx.actor.hospitalId, order.testId)
+      : null;
   const [e] = await ctx.tx
     .insert(specimenEvents)
     .values({
@@ -167,6 +175,8 @@ export async function receiveSpecimen(
       hospitalId: ctx.actor.hospitalId,
       patientUserId: input.patientUserId,
       kind: "received",
+      profileId,
+      receivedVia: input.via ?? null,
       actorUserId: ctx.actor.userId,
       actorCadre: ctx.actor.cadreCode,
       recordedAt: ctx.now,
