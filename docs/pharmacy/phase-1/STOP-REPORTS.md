@@ -488,3 +488,16 @@ WHERE p.created_at >= now() - interval '30 days';
 
 Step 1 (the GATE A proposal) also needs the **pharmacist reviewer's name** and **interim answers to legal
 questions 1–6** (Appendix E). Without them STOP 1 cannot be signed.
+
+### Owner's answers to STOP 0 (12 Oct 2026)
+
+- **Item 1:** `fix/pharmacy-signed-wording` merged (in PR #228 with this branch's STOP 0 commit). The owner reports
+  the pharmacy workspace live in production.
+- **Items 2 to 6:** "go with your recommendation". Recorded as decided: build on `main`; the harness instead of
+  Playwright; supply races closed in the database, proven sequentially in PGlite, with one real race test for
+  the owner's dev Supabase; a line version is the prescription row id; migrations 0122–0146 and ADRs 0260–0279.
+- **Item 2 overtaken:** lab Phase 1 merged to `main` as PR #227 the same day (0102–0106, ADRs 0239–0250). Its
+  downtime tables, the per-user topic `user:<id>` (`private.notify_user`, 0106) and the second-approver
+  cut-over (`lab_cutover`, 0105) are therefore on this branch from Step 1. GATE A builds on them directly (DT-1,
+  E-PH1-06), not after a later rebase.
+- **SQL A–D:** not yet returned. Q7's counts are marked "awaiting" in the GATE A proposal.
