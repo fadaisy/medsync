@@ -9,8 +9,10 @@ import {
   FileClockIcon,
   FileSearchIcon,
   GaugeIcon,
+  ListChecksIcon,
   ListIcon,
   RulerIcon,
+  SendIcon,
   SettingsIcon,
   SirenIcon,
   SlidersHorizontalIcon,
@@ -41,6 +43,8 @@ const ICON = {
   setup_profiles: CpuIcon,
   setup_drafts: FileSearchIcon,
   setup_settings: SlidersHorizontalIcon,
+  to_refer: SendIcon,
+  setup_menu: ListChecksIcon,
 } as const;
 
 export interface LabNavEntry {

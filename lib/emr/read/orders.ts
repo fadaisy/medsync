@@ -195,9 +195,18 @@ export async function loadTestMenu(
     .select({ id: facilityCapabilities.capabilityId, status: facilityCapabilities.status })
     .from(facilityCapabilities)
     .where(eq(facilityCapabilities.hospitalId, hospitalId));
-  const menu = buildTestMenu(tests, caps);
-  // Lab Phase 2 (labOneMenu): each lab test's state today from the hub; a test with no service link is
-  // hidden from doctors (OM-1) and set up by the lab (§5.10).
+  return withToday(buildTestMenu(tests, caps), tx, hospitalId);
+}
+
+/**
+ * Lab Phase 2 (labOneMenu): each lab test's state today from the hub; a test with no service link is hidden
+ * from doctors (OM-1) and set up by the lab (§5.10). Every ordering surface's menu passes through here.
+ */
+async function withToday(
+  menu: MenuTest[],
+  tx: Pick<EmrDb, "select">,
+  hospitalId: string,
+): Promise<MenuTest[]> {
   if (!labOneMenuLiveFor(hospitalId)) return menu;
   const today = await menuToday(tx, hospitalId);
   return menu.flatMap((t) => {
@@ -273,7 +282,11 @@ export async function loadEncounterOrders(
     opts.database,
   );
 
-  const menu = buildTestMenu(rec.tests, rec.caps);
+  const menu = await withToday(
+    buildTestMenu(rec.tests, rec.caps),
+    opts.database ?? ((await import("@/db")).db as unknown as EmrDb),
+    actor.hospitalId,
+  );
 
   // Current versions only: not superseded, not withdrawn, not refuted.
   const superseded = new Set(rec.dx.map((d) => d.supersedesId).filter(Boolean));

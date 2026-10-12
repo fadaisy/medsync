@@ -13,6 +13,8 @@ export type CosignRequirement = "allowed" | "cosign_required" | "blocked";
 export interface PlanPayload {
   /** EMR_PRESCRIBING is on here: the Plan can prescribe. */
   prescribing: boolean;
+  /** Lab Phase 2 (labOneMenu): each test's state here today, by `test.*` id. */
+  labToday?: Record<string, { words: string | null; orderable: boolean; linked: boolean }>;
   record: PlanRecord;
   /** The hospital's ward names, for Admit. */
   /** The wards that take admissions; counts (words) with WARD_BUILDER on (ADR 0197 §5). */

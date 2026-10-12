@@ -382,3 +382,40 @@ urine SG rejected with reasons; 11 not imported).
 
 **Checks**: typecheck and lint clean; full suite green (three count tests updated for the 60
 concepts; the NCD data inventory regenerated for the two new visit columns).
+
+## STOP 5: One menu (12 Oct 2026)
+
+**Built** (behind `labOneMenu`):
+
+- `lib/lab/one-menu-read.ts`: one read of the hub per menu (offerings, the availability projection the hub
+  itself uses, the hospital's service links), then a pure lookup per test. A failed read makes every test
+  "Not known today" and orderable.
+- **All three ordering surfaces** read it: the order sheet (`loadEncounterOrders`), the resus close-out's
+  outstanding tests (`loadTestMenu`) and the Plan basket (`loadPlanPayload`), through one function
+  (`withToday` / `menuToday`). Not-linked tests are hidden from doctors; not-offered tests show the hub's
+  words and no Add; the others show today's line.
+- **`placeOrders`** refuses a not-offered or not-linked test on the server (OM-4, Law 5) and stores what
+  ordering showed on the order line (OM-6). An order is never cancelled when the hub changes (OM-7).
+- **Test menu** (`/lab/setup/menu`, §5.10): every lab test with Today (from the hub), the service link,
+  and the restricted class (shown, not edited); filters All, Not linked, Restricted; the header counts the
+  tests that cannot be ordered yet. The link lives in `lab_test_services` (per hospital, migration 0109),
+  because the default menu is shared and the hub's offerings are not.
+- **To refer** (`/lab/refer`): worklist specimens whose test the hub marks as referred or down today.
+
+**Scenarios** (`tests/emr-db/lab-one-menu.test.ts`, 5 of 5; harness `plans/p2-s5*.json`):
+
+| #   | Result                                                                                                                                  |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| G1  | Proved red then green: with the flag off a not-offered test is ordered; with it on, refused                                             |
+| S19 | Pass: "Analyser down since 17:05. Will be referred, result in about 2 h" in the order sheet's search (harness) and in the menu (PGlite) |
+| S20 | Pass: not offered has no Add (harness: "Not offered at Test Hospital-1") and is refused on the server                                   |
+| S21 | Pass: not linked is hidden from doctors and refused; counted in set-up                                                                  |
+| S22 | Pass: an unconfirmed offering reads "Not known today" and is orderable                                                                  |
+| S23 | Pass: the hub changes after ordering; the order is not cancelled; the specimen shows on To refer (harness)                              |
+| S24 | Pass: the order line keeps the availability it was placed with                                                                          |
+| S25 | Not measured: the search is the order sheet's existing client-side filter over the menu already loaded                                  |
+
+**axe**: 0 violations on Test menu (1440, 390), To refer and the order sheet. **Linked or not** (harness
+fixture hospital): 7 tests linked, 33 cannot be ordered yet — the starting state a lab lead works through.
+
+**Not built here**: the "Also at the bedside" line needs the bedside device register (Step 8).

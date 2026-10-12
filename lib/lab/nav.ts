@@ -22,7 +22,9 @@ export type LabNavId =
   | "setup_criticals"
   | "setup_profiles"
   | "setup_drafts"
-  | "setup_settings";
+  | "setup_settings"
+  | "to_refer"
+  | "setup_menu";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -34,6 +36,8 @@ export interface LabNavFlags {
   downtime?: boolean;
   /** Lab Phase 2 (§5.15): labCatalogueV2. */
   catalogueV2?: boolean;
+  /** Lab Phase 2 (§5.15): labOneMenu. */
+  oneMenu?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -111,7 +115,24 @@ export const LAB_NAV: readonly LabNavItem[] = [
     group: "setup",
     visibleFor: (p, f) => (f.criticalsSetup ?? f.criticals) && p.has("lab.manage"),
   },
-  // Lab Phase 2 (§5.15): set-up for catalogue v2, each only with its flag and lab.manage.
+  // Lab Phase 2 (§5.15): To refer and the test menu (labOneMenu); set-up for catalogue v2.
+  {
+    id: "to_refer",
+    label: "To refer",
+    href: "/lab/refer",
+    order: 2.5,
+    exact: false,
+    visibleFor: (p, f) => !!f.oneMenu && p.has("lab.view"),
+  },
+  {
+    id: "setup_menu",
+    label: "Test menu",
+    href: "/lab/setup/menu",
+    order: 7.5,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.oneMenu && p.has("lab.manage"),
+  },
   {
     id: "setup_profiles",
     label: "Analyser profiles",
