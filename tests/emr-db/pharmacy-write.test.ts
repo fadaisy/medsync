@@ -158,6 +158,27 @@ describe.skipIf(!laneOn)("the pharmacy write path (PA2-4, D-PH1-45)", () => {
     expect(asHead).toBe(true);
   });
 
+  it("PA2-7: a suspended affiliation leaves no pharmacy permission, in the same transaction", async () => {
+    let seen: boolean[] = [];
+    await lane.db
+      .transaction(async (tx) => {
+        const can = async () => {
+          const res = (await tx.execute(
+            sql`SELECT private.pharmacy_can_user(${f.tech}::uuid, ${f.h}::uuid, 'pharmacy.dispense') AS ok`,
+          )) as unknown as { ok: boolean }[] | { rows: { ok: boolean }[] };
+          return (Array.isArray(res) ? res : res.rows)[0]!.ok;
+        };
+        const before = await can();
+        await tx.execute(
+          sql`UPDATE public.staff_affiliations SET state = 'suspended' WHERE user_id = ${f.tech}`,
+        );
+        seen = [before, await can()];
+        tx.rollback();
+      })
+      .catch(() => undefined); // the rollback throws by design
+    expect(seen).toEqual([true, false]);
+  });
+
   it("turns the database's own refusals into words (0124, 0126)", () => {
     expect(databaseRefusal(new Error("pharmacy_stock: batch FX-001 holds 3"))).toBe(
       "Batch FX-001 now holds 3. Choose again.",

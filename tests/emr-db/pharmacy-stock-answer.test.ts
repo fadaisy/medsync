@@ -323,7 +323,7 @@ describe.skipIf(!laneOn)("the prescriber's stock line and the nurse's chip (Step
 
   /* ─── S85: out → "Aware; prescribe anyway" → placed, stored, readable by the pharmacy ─── */
 
-  it("S85: a medicine that is out is prescribed anyway; the answer is stored and the pharmacy reads it", async () => {
+  it("S85, AV-8: a medicine that is out is prescribed anyway; the answer is stored and the pharmacy reads it", async () => {
     const v = await visit("opd");
     const r = await place(v, ceftriaxone(v.cond, "prescribe_anyway"));
     const [rx] = await rows<{

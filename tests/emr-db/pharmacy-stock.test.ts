@@ -144,7 +144,7 @@ describe.skipIf(!laneOn)("Stock at the dispensing point (Step 4, S1–S11)", () 
     f.productA = await product(MED_A, "Fixture tablet A 28s");
   }, 180_000);
 
-  it("S1: a receipt with a batch and an expiry; the balance is the quantity and the ledger holds one row", async () => {
+  it("S1, SL-8: a receipt with a batch and an expiry; the balance is the quantity and the ledger holds one row carrying its actor, point and times", async () => {
     const r = await receive(f.productA!, "FX-001", "2030-03", 120);
     expect(r.ok).toBe(true);
     const { batchId } = (r as { data: { batchId: string } }).data;
@@ -157,6 +157,14 @@ describe.skipIf(!laneOn)("Stock at the dispensing point (Step 4, S1–S11)", () 
     expect(rows.rows).toEqual([
       { kind: "received", quantity: 120, delivery_from: "main_store", source_kind: "delivery" },
     ]);
+    // SL-8: every movement names who, where and when (effective and recorded).
+    const fields = await pg.query<{ ok: boolean }>(
+      `SELECT bool_and(actor_user_id IS NOT NULL AND dispensing_point_id IS NOT NULL
+                       AND effective_at IS NOT NULL AND recorded_at IS NOT NULL) AS ok
+         FROM public.pharmacy_stock_movements WHERE batch_id = $1`,
+      [batchId],
+    );
+    expect(fields.rows[0]!.ok).toBe(true);
     // The same client key again returns the same movement and writes nothing more.
     const key = randomUUID();
     const raw = {
@@ -292,7 +300,7 @@ describe.skipIf(!laneOn)("Stock at the dispensing point (Step 4, S1–S11)", () 
     ).toEqual({ ok: false, reason: "not_enough", available: 0 });
   });
 
-  it("S5: a transfer writes both movements; with a failure between them, neither exists", async () => {
+  it("S5, SL-7: a transfer writes both movements; with a failure between them, neither exists", async () => {
     const key = randomUUID();
     const ok = await write(store.TransferInput, store.transferStock, {
       clientKey: key,

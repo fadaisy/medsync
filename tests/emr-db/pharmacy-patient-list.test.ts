@@ -498,7 +498,7 @@ describe.skipIf(!laneOn)("the patient's medicine list and messages (Step 9, S90â
     expect((await entries(m.line)).rows[0]).toMatchObject({ state: "ended" });
   });
 
-  it("S91: 'I have bought it' closes the line as reported by the patient; 'I could not get it' keeps it open, marked, and nudges the prescriber; the pharmacy changes it to owed", async () => {
+  it("S91, ML-4: 'I have bought it' closes the line as reported by the patient; 'I could not get it' keeps it open, marked, and nudges the prescriber; the pharmacy changes it to owed", async () => {
     const bought = await medicine();
     await notSupplied(bought.line, "buying_outside");
     const notGiven = (await patientList()).notGiven.find((x) => x.lineId === bought.line)!;
