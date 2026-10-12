@@ -380,5 +380,5 @@ urine SG rejected with reasons; 11 not imported).
 **Concepts by state**: 60 new (draft until the CSO signs the addendum in the product), 3 legacy kept for history
 (`obs.blood_group`, `obs.tb_xpert`, `obs.hiv_test`), 1 retired for new results (`obs.troponin`).
 
-**Checks**: typecheck and lint clean; full suite green except nothing (three count tests updated for the 60
+**Checks**: typecheck and lint clean; full suite green (three count tests updated for the 60
 concepts; the NCD data inventory regenerated for the two new visit columns).
