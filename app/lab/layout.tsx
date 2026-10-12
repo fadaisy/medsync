@@ -56,6 +56,9 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_ranges: null,
     setup_limits: null,
     setup_criticals: null,
+    setup_profiles: null,
+    setup_drafts: null,
+    setup_settings: null,
     downtime: formsWaiting,
   };
   const words = {

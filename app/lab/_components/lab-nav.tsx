@@ -5,12 +5,15 @@ import type { LabNavId } from "@/lib/lab/nav";
 import {
   BanIcon,
   CheckCheckIcon,
+  CpuIcon,
   FileClockIcon,
+  FileSearchIcon,
   GaugeIcon,
   ListIcon,
   RulerIcon,
   SettingsIcon,
   SirenIcon,
+  SlidersHorizontalIcon,
   TestTubesIcon,
 } from "lucide-react";
 
@@ -35,6 +38,9 @@ const ICON = {
   setup_limits: GaugeIcon,
   downtime: FileClockIcon,
   setup_criticals: SettingsIcon,
+  setup_profiles: CpuIcon,
+  setup_drafts: FileSearchIcon,
+  setup_settings: SlidersHorizontalIcon,
 } as const;
 
 export interface LabNavEntry {
