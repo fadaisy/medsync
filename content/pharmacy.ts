@@ -213,3 +213,15 @@ export const PHARMACY = {
     body: "You do not have access to the pharmacy workspace. Ask your hospital admin.",
   },
 } as const;
+
+/**
+ * Pharmacy Phase 1 wording (docs/pharmacy/phase-1/gate-a-content.md, Part 1): 109 strings, all draft.
+ * The Phase 1 flags stay off in production while this is draft (RD-4); the strings themselves land
+ * with the screens that show them (Steps 4 to 9) and are signed as a set.
+ */
+export const PHARMACY_PHASE1_COPY_STATUS: SignedCopy = {
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
+};
+export const PHARMACY_PHASE1_COPY: readonly SignedCopy[] = [PHARMACY_PHASE1_COPY_STATUS];

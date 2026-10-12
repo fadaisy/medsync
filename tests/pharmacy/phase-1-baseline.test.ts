@@ -26,8 +26,8 @@ describe("Pharmacy Phase 1 baseline — the gap reproduced at Step 0", () => {
     expect(migrations()).toMatch(/CREATE TABLE[^;]*pharmacy_line_events/);
   });
 
-  // Floor condition 4: no stock record, so a supply cannot name a batch or move stock.
-  it.fails("a supply names a batch and moves stock in the same action", () => {
+  // Floor condition 4: closed at Step 2 (0124 the ledger, 0126 the supply and its commit-time pairing).
+  it("a supply names a batch and moves stock in the same action", () => {
     expect(migrations()).toMatch(/CREATE TABLE[^;]*pharmacy_stock_movements/);
     expect(migrations()).toMatch(/CREATE TABLE[^;]*pharmacy_supplies/);
   });

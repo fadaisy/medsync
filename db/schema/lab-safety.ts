@@ -262,6 +262,12 @@ export const downtimeFormNumbers = pgTable(
     reservedAt: timestamp("reserved_at", tz).notNull().defaultNow(),
     reportId: uuid("report_id"),
     voidedReason: text("voided_reason"),
+    /** 0128 (DT-1, D-PH1-46): one number space per hospital, shared with the pharmacy. */
+    workspace: text("workspace").$type<"lab" | "pharmacy">().notNull().default("lab"),
+    dispensingPointId: uuid("dispensing_point_id"),
+    downtimePeriodId: uuid("downtime_period_id"),
+    completedAt: timestamp("completed_at", tz),
+    completedBy: uuid("completed_by"),
   },
   (t) => [primaryKey({ columns: [t.hospitalId, t.number] })],
 );
@@ -288,6 +294,9 @@ export const downtimeDrills = pgTable("downtime_drills", {
   problems: text("problems"),
   recordedBy: uuid("recorded_by").notNull(),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  /** 0128 (DT-1, D-PH1-46). */
+  workspace: text("workspace").$type<"lab" | "pharmacy">().notNull().default("lab"),
+  dispensingPointId: uuid("dispensing_point_id"),
 });
 
 export const labBriefings = pgTable("lab_briefings", {

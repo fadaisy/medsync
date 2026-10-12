@@ -1,6 +1,7 @@
 import type { PermissionMap } from "@/lib/workspace-access/access";
 
 import MAP from "@/data/pharmacy/permission-map.v1.json";
+import MAP_V2 from "@/data/pharmacy/permission-map.v2.json";
 import { cadrePermissions, mapProblems as problemsOf } from "@/lib/workspace-access/access";
 
 /**
@@ -50,4 +51,31 @@ export function can(access: PharmacyAccess, permission: PharmacyPermission): boo
 
 export function mapProblems(map: PermissionMap = PERMISSION_MAP): string[] {
   return problemsOf(map, PHARMACY_PERMISSIONS, NOT_GRANTED_YET);
+}
+
+/* ─── Pharmacy Phase 1: the permission map, version 2 (D-PH1-03, PA2-1, PA2-2) ─── */
+
+/** `pharmacy.manage` never comes from a cadre: only from a hub head assignment (PA2-3). */
+const NOT_FROM_CADRE_V2: readonly PharmacyPermission[] = ["pharmacy.manage"];
+export const PHARMACY_MAP_V2: PermissionMap = MAP_V2;
+
+/**
+ * The map the dispensing paths read. Version 2 is signed for building but provisional until legal
+ * question 1 has an interim answer on record (D-PH1-03), so production keeps version 1 — the same
+ * production gate as Phase 0's wording (CS-5). Phase 0's own paths keep `pharmacyAccess` and v1.
+ */
+export function dispensingMap(env: string | undefined = process.env.VERCEL_ENV): PermissionMap {
+  return env === "production" ? PERMISSION_MAP : PHARMACY_MAP_V2;
+}
+
+export function pharmacyDispensingAccess(
+  cadreCode: string | null,
+  map: PermissionMap = dispensingMap(),
+): PharmacyAccess {
+  const reserved = map === PERMISSION_MAP ? NOT_GRANTED_YET : NOT_FROM_CADRE_V2;
+  return { permissions: cadrePermissions(map, cadreCode, PHARMACY_PERMISSIONS, reserved) };
+}
+
+export function mapV2Problems(map: PermissionMap = PHARMACY_MAP_V2): string[] {
+  return problemsOf(map, PHARMACY_PERMISSIONS, NOT_FROM_CADRE_V2);
 }

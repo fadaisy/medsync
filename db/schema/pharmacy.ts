@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { authUsers } from "./_auth";
 import { hospitalDepartments } from "./hospital-departments";
@@ -25,6 +25,13 @@ export const pharmacyDispensingPoints = pgTable(
     updatedByUserId: uuid("updated_by_user_id").references(() => authUsers.id, {
       onDelete: "set null",
     }),
+    /** 0129 (Pharmacy Phase 1): stamped by an approved go-live request, never by hand (RD-2). */
+    liveAt: timestamp("live_at", { withTimezone: true }),
+    switchedOffAt: timestamp("switched_off_at", { withTimezone: true }),
+    labelMode: text("label_mode").$type<"printed" | "by_hand">().notNull().default("printed"),
+    countFreshnessDays: integer("count_freshness_days"),
+    /** The point's own number (gate-a-proposal §1 W1); the hub holds none. */
+    phone: text("phone"),
   },
   (t) => [index("pharmacy_dispensing_points_hospital_idx").on(t.hospitalId)],
 );

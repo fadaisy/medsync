@@ -104,6 +104,7 @@ export async function voidFormNumber(
     .where(
       and(
         eq(downtimeFormNumbers.hospitalId, actor.hospitalId),
+        eq(downtimeFormNumbers.workspace, "lab"),
         eq(downtimeFormNumbers.number, input.number),
       ),
     )
@@ -122,6 +123,7 @@ export async function voidFormNumber(
     .where(
       and(
         eq(downtimeFormNumbers.hospitalId, actor.hospitalId),
+        eq(downtimeFormNumbers.workspace, "lab"),
         eq(downtimeFormNumbers.number, input.number),
       ),
     );
@@ -204,6 +206,7 @@ export async function enterDowntimeForm(ctx: WriteCtx, input: DowntimeFormInput)
     .where(
       and(
         eq(downtimeFormNumbers.hospitalId, actor.hospitalId),
+        eq(downtimeFormNumbers.workspace, "lab"),
         eq(downtimeFormNumbers.number, input.formNumber),
       ),
     )
@@ -339,6 +342,7 @@ export async function enterDowntimeForm(ctx: WriteCtx, input: DowntimeFormInput)
     .where(
       and(
         eq(downtimeFormNumbers.hospitalId, actor.hospitalId),
+        eq(downtimeFormNumbers.workspace, "lab"),
         eq(downtimeFormNumbers.number, input.formNumber),
       ),
     );
@@ -408,6 +412,7 @@ export async function loadDowntime(tx: EmrTx, hospitalId: string, since: Date) {
       .where(
         and(
           eq(downtimeFormNumbers.hospitalId, hospitalId),
+          eq(downtimeFormNumbers.workspace, "lab"),
           eq(downtimeFormNumbers.state, "unused"),
         ),
       )
@@ -421,7 +426,7 @@ export async function loadDowntime(tx: EmrTx, hospitalId: string, since: Date) {
     tx
       .select()
       .from(downtimeDrills)
-      .where(eq(downtimeDrills.hospitalId, hospitalId))
+      .where(and(eq(downtimeDrills.hospitalId, hospitalId), eq(downtimeDrills.workspace, "lab")))
       .orderBy(desc(downtimeDrills.heldOn))
       .limit(10),
     tx

@@ -551,3 +551,146 @@ Through the GATE A decisions page (https://claude.ai/artifact/LVDHizt73bKagVvHZN
   without Q7's counts in hand. The counts go into the lane-reasons pack when they arrive.
 
 GATE A is signed for building. Step 2 (the data layer) proceeds.
+
+---
+
+## STOP 2 — Data layer (12 Oct 2026)
+
+Nine migrations, the Drizzle mirrors, the permission map v2 and its access path, the four flags, the national list
+dry run, and the lane tests. **No migration is applied**: all nine are GATED, for the owner to apply in order with
+`npm run db:migrate`.
+
+### The migration diff (0122–0130, 1,568 lines of SQL)
+
+| Migration             | Adds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0122 foundations      | `private.pharmacy_cadre_permissions` (map v2 in SQL), `private.pharmacy_can_user` / `pharmacy_can` (`pharmacy.manage` from an open `department_heads` row on the Pharmacy department or a point, already audited by 0080); `pharmacy_signed_sets` (D-PH1-43: two signers or a written exception; signed content never changes; one signed per kind); `pharmacy_attestations` (D-PH1-42; no secret; never self for a witness)                                                                                                                                                                      |
+| 0123 catalogue        | `pharmacy_products` (medicine = catalogue id; strength as on the pack, H2; price optional), `pharmacy_product_points`, national-list editions, rows and person-made links                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 0124 stock            | `pharmacy_batches` (first number and expiry kept; changes only beside a correction), `pharmacy_stock_movements` (append-only; the **guard** locks the batch row and refuses a live movement below zero or a live supply from an expired batch, month-only expiry to the month's end, Africa/Kampala date; downtime lets through), counts and count lines (blind: the recorded balance is stored with the line), reorder levels, requests between points, batch corrections, the stock-out projection; the issue unit locks after the first movement                                               |
+| 0125 review           | `pharmacy_scope_entries`, `pharmacy_line_events` (append-only; lane snapshot; `replaced` names its new line), `pharmacy_queries` + `pharmacy_query_events` (append-only; a phone answer can only be "keep"); `private.notify_user_event` on `user:<id>` with `{kind, ref, at}`; `private.may_prescribe_here` (the co-sign policy, fail closed); prescriber read policies; `public.pharmacy_line_review_state` for the nurse's chip                                                                                                                                                                |
+| 0126 supply           | `pharmacy_handovers` (identity route checked: two identifiers, identified another way, ward staff, or the sheet's own record; client key unique; one sheet row once), `pharmacy_supplies` (line or paper line; supplying point and organisation), and **Law 3 at commit**: a deferred constraint trigger on both tables requires exactly one matching `supplied` movement per supply and a supply for every `supplied` movement; reversals (fit or written off), corrections, look-backs, identity attempts (never the typed value), print events, slips (8–12 characters, no 0/O/1/I/L), notices |
+| 0127 controlled       | `pharmacy_controlled_entries` (a supply needs the count, both attestations and the witness's agreed balance; the witness attestation must be passed, separate, for this actor, and under 30 minutes old), `pharmacy_controlled_differences` (only closing changes one)                                                                                                                                                                                                                                                                                                                            |
+| 0128 downtime, shared | `downtime_form_numbers.workspace` + point + period + completion, the guard rewritten with the lab's moves unchanged; `downtime_drills.workspace` + point; `paper_prescriptions` + lines (append-only)                                                                                                                                                                                                                                                                                                                                                                                             |
+| 0129 going live       | point `live_at`, `switched_off_at`, `label_mode`, `count_freshness_days`, `phone`; `pharmacy_golive` (second person; approval stamps the point in the same transaction); briefings, legal answers, pilot notes; `pharmacy_hospital_settings` (supply without a pharmacist refused without a second approver **and** an answer to legal question 1 on record, RQ-12)                                                                                                                                                                                                                               |
+| 0130 prescribing side | `prescription_cancellations` (D-PH1-41; reason, optional "replaced by"), `prescription_print_events` (D-PH1-49)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+**Code outside the new files:**
+
+- **Lab:** three reads filter `workspace = 'lab'` (`lib/lab/downtime-read.ts`, `downtime-store.ts`,
+  `cutover-store.ts`). Without the filter, a pharmacy sheet or drill would count on the lab's screens.
+- **Pharmacy:** `lib/pharmacy/access.ts` adds `pharmacyDispensingAccess`, which reads map v2 outside production
+  and v1 in production (D-PH1-03 is provisional). Phase 0's `pharmacyAccess` is untouched.
+- **Flags:** `lib/pharmacy/feature.ts` adds `PHARMACY_DISPENSING`, `PHARMACY_STOCK_ANSWER`,
+  `PHARMACY_PATIENT_LIST` and `PHARMACY_DOWNTIME`. Each is off by default, needs `PHARMACY_WORKSPACE`, and stays
+  off in production while `PHARMACY_PHASE1_COPY_STATUS` is draft.
+
+### The RLS probe table
+
+All tables have RLS forced. `anon` and `authenticated` have no grant at all. Reads go through
+`medsync_clinical_reader`; writes go through the owner in server actions.
+
+From `tests/emr-db/pharmacy-dispensing-data.test.ts`: every row below is a probe over all 39 new tables.
+
+| Actor                                                                | What they get                                                                                                                                |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pharmacist, same hospital                                            | Every table, except `pharmacy_attestations` (in-charge only)                                                                                 |
+| Pharmacy technician, same hospital                                   | The same rows as the pharmacist                                                                                                              |
+| Pharmacist of another hospital, at their own hospital                | Only the three national-list tables (national reference data)                                                                                |
+| Pharmacist of another hospital, claiming this hospital               | Nothing                                                                                                                                      |
+| Prescriber who may prescribe here, for a patient they may see        | Queries, query events, line events, supplies, cancellations, print events. **Nothing** else: no product, batch, movement, count or stock-out |
+| Nurse, reception, lab staff, hospital admin, superadmin, no identity | Nothing on any table                                                                                                                         |
+| `anon`, `authenticated` (a pharmacist's own JWT)                     | Read refused, write refused, on every table                                                                                                  |
+| `medsync_clinical_reader`, any identity                              | Write refused on every table                                                                                                                 |
+
+The nurse's chip is `pharmacy_line_review_state(prescription)`. It returns one word to a reader who may see the
+patient, and null to anyone else (probed with another hospital's pharmacist).
+
+### Append-only, proved
+
+UPDATE and DELETE are refused on each of the 28 event tables:
+
+- as the table owner, by the trigger (the message names "append-only");
+- as `service_role`, by the trigger, or by permission where the bootstrap grants none.
+
+Covered:
+
+- attestations;
+- movements, counts, count lines, reorder levels, batch corrections;
+- scope entries, line events, queries, query events;
+- hand-overs, supplies, reversals, corrections, look-backs, identity attempts, print events, slips, notices;
+- controlled entries;
+- paper prescriptions and lines;
+- briefings, legal answers, pilot notes;
+- cancellations, print events.
+
+The mutable tables each allow only their named moves:
+
+- signed sets: draft → signed → retired;
+- requests and differences: closing only;
+- go-live: the decision only;
+- batches: number and expiry, beside a correction;
+- products: never the issue unit after stock has moved.
+
+### Guarantees the lane proves
+
+| Rule                                       | Probe                                                                                                     |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| SL-4: no live movement below zero          | refused with "batch FX-LOW holds 3"                                                                       |
+| DT-7: back-entry may go below zero         | recorded at −4                                                                                            |
+| SL-5: no live supply from an expired batch | refused; a month-only expiry of Feb 2027 runs to 28 Feb 2027                                              |
+| SL-3: one batch number per point           | refused                                                                                                   |
+| SL-11: corrections keep the first values   | a bare change refused; with a correction, the first expiry stays beside the new one                       |
+| CT-4: the issue unit locks                 | refused after a movement                                                                                  |
+| Law 3: a supply and its movement together  | a supply alone, a movement alone, and a quantity mismatch each fail at commit; the pair commits           |
+| SU-10: one hand-over per client key        | refused                                                                                                   |
+| D-PH1-43: two signers                      | the same signer twice refused; with an exception it signs; then the content cannot change                 |
+| PA2-3: manage from the hub                 | false → true with an open head row → false when it ends; a nurse's head row grants nothing                |
+| RD-2: two people to go live                | self-approval refused; another's approval stamps `live_at`                                                |
+| RQ-12: the legal gate                      | refused without question 1 on record; accepted with it                                                    |
+| PA2-6: a separate witness                  | a self-attestation refused; another actor's attestation refused on the entry                              |
+| D-PH1-46: sheet states                     | pharmacy: unused → to_enter → complete, and back refused; the lab's `entered` refused on a pharmacy sheet |
+| SL-9: stock-outs                           | one opens at zero and closes on the next receipt                                                          |
+| D-PH1-47: delivery                         | the prescriber's `user:<id>` topic gets event `pharmacy` with exactly `at, kind, ref`                     |
+
+**Map v2 and SQL agree** (`private.pharmacy_cadre_permissions` equals `data/pharmacy/permission-map.v2.json`), in
+both the lane and a static unit test.
+
+### Backfill (dry run)
+
+- **Map v2:** needs no backfill. Pharmacy staff already hold the carrier role from 0098, and their v2 permissions
+  follow their cadre.
+- **Who to re-check:** anyone approved since Phase 0's backfill. The Phase 0 dry run checks them:
+  `npm run pharmacy:backfill-access` (lists only, writes nothing). For the owner to run against production.
+- **`pharmacy.manage`:** granted by `department_heads` rows, already audited.
+
+### The national list import (dry run)
+
+- **Built:** `scripts/pharmacy/import-national-list.ts` reads an edition's CSV and reports, without writing:
+  - proposals: exactly one prescribing-list medicine by generic name;
+  - ambiguous rows;
+  - unmatched rows;
+  - unreadable lines.
+
+  Strength is never compared, because the prescribing list has none (Q6). A person confirms every link.
+
+- **Not run:** no edition is in the repo. Counts need the EMHSLU file from the owner or the pharmacy in charge, as
+  CSV with columns `generic_name, form, strength, level_of_care, ven_class, therapeutic_class`.
+
+### Checks
+
+| Check                                               | Result                                                                                            |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run typecheck` (app + Edge)                    | exit 0                                                                                            |
+| ESLint over every changed path                      | 0 errors, 0 warnings                                                                              |
+| `vitest run` (fixture Supabase URL, see STOP 0 11d) | 379 files; 9,061 passed, 3 expected fail, 1,318 skipped                                           |
+| PGlite lane (`tests/emr-db`, `tests/ncdreg-db`)     | 56 files; 1,062 passed (204 of them new: `pharmacy-dispensing-data.test.ts`), 2 skipped           |
+| Lab tests                                           | unchanged and passing (`lab-downtime`, `lab-cutover` and the rest of the lane)                    |
+| Drizzle ↔ SQL parity                                | passes with the 39 new tables and the widened columns                                             |
+| Step 0 baseline                                     | "a supply names a batch and moves stock" now passes and is a plain test; 3 still expected to fail |
+
+**STOP 2.** For the owner:
+
+1. Apply 0122 → 0130 when ready, in order (`npm run db:migrate`). Nothing reads them until the Phase 1 flags are
+   on, and those stay off in production while the Phase 1 wording is draft.
+2. Send the national list edition (CSV) when it is to hand.
+3. Optional: run the Phase 0 backfill dry run against production.
