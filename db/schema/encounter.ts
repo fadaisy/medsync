@@ -241,6 +241,8 @@ export const encounterOrders = pgTable(
     /** Triage recommendation code or resus event id. */
     sourceIntentId: text("source_intent_id"),
     requisitionNo: text("requisition_no"),
+    /** 0109 (OM-6): what ordering showed for this test here, kept on the line. */
+    availabilitySnapshot: jsonb("availability_snapshot"),
     sensitivity: text("sensitivity").notNull().default("standard"),
     clientKey: text("client_key"),
     effectiveAt: timestamp("effective_at", { withTimezone: true }),

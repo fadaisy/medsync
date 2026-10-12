@@ -5,6 +5,7 @@ import type { EmrSurface } from "@/lib/emr/actor";
 import type { EmrTx } from "@/lib/emr/db";
 import type { OrderFrequency, OrderPriority, OrderRecords, OrderStatus } from "@/lib/emr/orders";
 import type { FactConcept } from "@/lib/facts/types";
+import type { PaymentMode } from "@/lib/lab/one-menu";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { z } from "zod";
 import { refresh } from "next/cache";
@@ -21,6 +22,8 @@ import {
   testCatalogue,
 } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { labPaymentEvents } from "@/db/schema/lab-catalogue";
+import { labSettings } from "@/db/schema/lab-safety";
 import { encounters } from "@/db/schema/scheduling";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { isOpen } from "@/lib/emr/encounter";
@@ -29,6 +32,9 @@ import { deriveOrderStatus, orderFrequencyFor, orderStatusText } from "@/lib/emr
 import { CLERKING_CADRE_CODES } from "@/lib/encounter/access";
 import { encrypt } from "@/lib/encryption";
 import { sensitivityFor } from "@/lib/facts/project/shared";
+import { labCatalogueV2LiveFor, labOneMenuLiveFor, labPaymentLiveFor } from "@/lib/lab/feature";
+import { paymentAtPlacement } from "@/lib/lab/one-menu";
+import { menuToday } from "@/lib/lab/one-menu-read";
 import { actionError, EmrWriteError, stampActivity, withPatientWrite } from "./context";
 
 /**
@@ -269,6 +275,18 @@ export async function placeOrders(
   const { actor, tx, now } = ctx;
   const orderIds: string[] = [];
   const warnings: string[] = [];
+  // Lab Phase 2: one menu (OM-4, OM-6), restricted class per test (CC-8), payment at placement (PY-2).
+  const oneMenu = labOneMenuLiveFor(actor.hospitalId) && !opts.downtime;
+  const today = oneMenu ? await menuToday(tx, actor.hospitalId, now) : null;
+  const classes = labCatalogueV2LiveFor(actor.hospitalId);
+  const payment = labPaymentLiveFor(actor.hospitalId)
+    ? ((
+        await tx
+          .select({ mode: labSettings.paymentMode })
+          .from(labSettings)
+          .where(eq(labSettings.hospitalId, actor.hospitalId))
+      )[0]?.mode ?? "off")
+    : null;
 
   for (const line of input.orders) {
     const replay = await replayed(tx, encounterOrders, line.clientKey, input.patientUserId);
@@ -292,12 +310,19 @@ export async function placeOrders(
         ),
       );
     if (!test) throw new EmrWriteError("not_found", "That test is not on this hospital's menu.");
+    // OM-4, Law 5: a test the hub says is not offered here, or one not linked to a service, is not ordered.
+    const seen = today && test.kind === "lab" ? today(test.code) : null;
+    if (seen && !seen.orderable)
+      throw new EmrWriteError(
+        "invalid",
+        `${test.display}: ${seen.words ?? "not offered here"}. Refer the patient instead.`,
+      );
 
     // Sensitivity at insert (C9): a restricted component (HIV, TB…) or a restricted reason
     // diagnosis restricts the order itself.
-    let restricted = test.components.some(
-      (c) => sensitivityFor(c as FactConcept, null) === "restricted",
-    );
+    let restricted =
+      test.components.some((c) => sensitivityFor(c as FactConcept, null) === "restricted") ||
+      (classes && test.restrictedClass !== null); // CC-8: the class propagates to every result
     if (reasonIds.length) {
       const reasons = await tx
         .select({
@@ -352,8 +377,34 @@ export async function placeOrders(
         sensitivity: restricted ? "restricted" : "standard",
         clientKey: line.clientKey,
         effectiveAt: now,
+        availabilitySnapshot: seen
+          ? {
+              state: seen.state,
+              words: seen.words,
+              turnaround: seen.turnaround,
+              at: now.toISOString(),
+            }
+          : null,
       })
       .returning({ id: encounterOrders.id });
+    // PY-2: decided from the order itself; an emergency is written as such and never changes.
+    if (payment && test.kind === "lab") {
+      const state = paymentAtPlacement(
+        {
+          priority: line.priority,
+          intentSource: opts.downtime ? "downtime_form" : (line.intentSource ?? "clinician"),
+        },
+        payment as PaymentMode,
+      );
+      if (state !== "not_required")
+        await tx.insert(labPaymentEvents).values({
+          orderId: order!.id,
+          hospitalId: actor.hospitalId,
+          state,
+          actorUserId: actor.userId,
+          recordedAt: now,
+        });
+    }
     await tx.insert(encounterOrderEvents).values({
       orderId: order!.id,
       hospitalId: actor.hospitalId,

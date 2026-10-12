@@ -44,6 +44,18 @@ DROP TRIGGER IF EXISTS lab_labels_guard ON public.lab_labels;
 CREATE TRIGGER lab_labels_guard BEFORE UPDATE OR DELETE ON public.lab_labels
   FOR EACH ROW EXECUTE FUNCTION private.lab_label_guard();
 
+-- ─── 1b. One menu: each test's hub service here, and what ordering saw (OM-1, OM-6) ─
+-- HARMONISATION §9's link, per hospital: the default menu is shared, the hub's offerings are not.
+CREATE TABLE IF NOT EXISTS public.lab_test_services (
+  hospital_id uuid NOT NULL REFERENCES public.hospitals(id) ON DELETE CASCADE,
+  test_code text NOT NULL CHECK (test_code ~ '^test\.[a-z0-9_]{2,60}$'),
+  offering_code text NOT NULL CHECK (offering_code ~ '^[A-Za-z0-9._-]{1,40}$'),
+  set_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  set_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (hospital_id, test_code)
+);
+ALTER TABLE public.encounter_orders ADD COLUMN IF NOT EXISTS availability_snapshot jsonb;
+
 -- ─── 2–4. Event tables ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.lab_payment_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -136,7 +148,8 @@ BEGIN
     EXECUTE format('CREATE TRIGGER %1$s_no_mutation BEFORE UPDATE OR DELETE ON public.%1$I
       FOR EACH ROW EXECUTE FUNCTION public.block_modify_append_only()', t);
   END LOOP;
-  FOREACH t IN ARRAY ARRAY['lab_labels','lab_payment_events','lab_identity_checks','lab_high_risk_events'] LOOP
+  FOREACH t IN ARRAY ARRAY['lab_labels','lab_payment_events','lab_identity_checks','lab_high_risk_events',
+    'lab_test_services'] LOOP
     EXECUTE format('DROP TRIGGER IF EXISTS audit_%1$s ON public.%1$I', t);
     EXECUTE format('CREATE TRIGGER audit_%1$s AFTER INSERT OR UPDATE OR DELETE ON public.%1$I
       FOR EACH ROW EXECUTE FUNCTION public.audit_log_changes()', t);
@@ -146,6 +159,9 @@ BEGIN
     EXECUTE format('GRANT SELECT ON public.%I TO medsync_clinical_reader', t);
   END LOOP;
 END $$;
+DROP POLICY IF EXISTS lts_select ON public.lab_test_services;
+CREATE POLICY lts_select ON public.lab_test_services FOR SELECT TO medsync_clinical_reader
+  USING (hospital_id = (SELECT private.current_hospital_id()));
 DROP POLICY IF EXISTS ll_select ON public.lab_labels;
 CREATE POLICY ll_select ON public.lab_labels FOR SELECT TO medsync_clinical_reader
   USING (hospital_id = (SELECT private.current_hospital_id())

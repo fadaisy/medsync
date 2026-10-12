@@ -352,7 +352,9 @@ export async function prepareFixedUnits(
     const e = egfrFor({
       creatinine: creat.valueText,
       unitUcum: creat.measure.unitUcum!,
-      released: ["final", "amended", "corrected"].includes(v2.status),
+      // Calculated with the creatinine it comes from and released with it: a preliminary creatinine
+      // carries a preliminary eGFR, and release carries both forward unchanged (EG-1, EG-4).
+      released: true,
       ageYears: ageDays === null ? null : Math.floor(ageDays / 365.25),
       sex,
       idmsTraceable: creat.measure.idmsTraceable,

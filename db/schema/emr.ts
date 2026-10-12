@@ -220,9 +220,8 @@ export const testCatalogue = pgTable(
     turnaroundTargetMinutes: integer("turnaround_target_minutes"),
     favouriteRank: integer("favourite_rank"),
     active: boolean("active").notNull().default(true),
-    /** 0107: CC-8 (changed only by the CSO) and the hub offering it links to (OM-1). */
+    /** 0107: CC-8 (changed only by the CSO). */
     restrictedClass: text("restricted_class"),
-    offeringCode: text("offering_code"),
     createdAt: timestamp("created_at", tz).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
   },

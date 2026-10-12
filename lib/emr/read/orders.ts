@@ -45,6 +45,8 @@ import {
 import { loadOrderRecords } from "@/lib/emr/write/orders";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef, sensitivityFor } from "@/lib/facts/project/shared";
+import { labOneMenuLiveFor } from "@/lib/lab/feature";
+import { menuToday } from "@/lib/lab/one-menu-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { entryComponents } from "./results";
 
@@ -193,7 +195,18 @@ export async function loadTestMenu(
     .select({ id: facilityCapabilities.capabilityId, status: facilityCapabilities.status })
     .from(facilityCapabilities)
     .where(eq(facilityCapabilities.hospitalId, hospitalId));
-  return buildTestMenu(tests, caps);
+  const menu = buildTestMenu(tests, caps);
+  // Lab Phase 2 (labOneMenu): each lab test's state today from the hub; a test with no service link is
+  // hidden from doctors (OM-1) and set up by the lab (§5.10).
+  if (!labOneMenuLiveFor(hospitalId)) return menu;
+  const today = await menuToday(tx, hospitalId);
+  return menu.flatMap((t) => {
+    if (t.kind !== "lab") return [t];
+    const d = today(t.code);
+    return d.state === "not_linked"
+      ? []
+      : [{ ...t, today: { state: d.state, words: d.words, orderable: d.orderable } }];
+  });
 }
 
 export async function loadEncounterOrders(

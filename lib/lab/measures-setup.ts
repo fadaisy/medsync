@@ -313,6 +313,9 @@ export async function signRangeVersion(
       )
     : ["unit_mismatch"];
   if (errors.length) throw invalid(bandWords(errors));
+  // RI-5: a researched band whose check is not recorded cannot be sent for sign-off.
+  if (bands.some((b) => b.rejectedReason === null && b.verification && !b.checkedBy))
+    throw invalid("Record the check on every band marked for checking before signing.");
   if (signer.as === "lead") {
     if (v.leadSignedBy)
       throw new EmrWriteError("conflict", "The laboratory lead has already signed.");

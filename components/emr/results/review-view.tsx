@@ -189,6 +189,10 @@ export function ReviewView({
                         </span>
                         {v.flagText ? <span>{v.flagText}</span> : null}
                         {v.labNote ? <span>{v.labNote}</span> : null}
+                        {v.basis ? <span>{v.basis}</span> : null}
+                        {v.notes?.map((n) => (
+                          <span key={n}>{n}</span>
+                        ))}
                         {v.asTyped ? (
                           <span className="text-caption text-muted-foreground">Unit as typed</span>
                         ) : null}

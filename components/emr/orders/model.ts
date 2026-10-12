@@ -64,6 +64,8 @@ export interface MenuTest {
   favouriteRank: number | null;
   availability: Availability;
   restricted: boolean;
+  /** Lab Phase 2 (labOneMenu, §5.1): what this test is here today, from the hub. */
+  today?: { state: string; words: string | null; orderable: boolean } | null;
 }
 
 /** A diagnosis on this encounter, offered as the order's reason. */
@@ -93,6 +95,11 @@ export function menuSections(
 }
 
 /** Availability informs, never blocks (HARMONISATION §9): words for the caution chip, or null. */
+/** §5.1: the hub's words win when one menu is on; otherwise the capability words. */
+export function menuWords(t: Pick<MenuTest, "availability" | "today">): string | null {
+  return t.today ? t.today.words : availabilityWords(t.availability);
+}
+
 export function availabilityWords(a: Availability): string | null {
   if (a === "intermittent") return "Intermittent — check with the laboratory";
   if (a === "unavailable") return "Not available here — it can still be ordered";

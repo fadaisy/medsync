@@ -9,10 +9,12 @@ import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
-import { labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { loadCutoffs } from "@/lib/lab/cutoffs-read";
+import { labCatalogueV2LiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { loadMeasuresSetup } from "@/lib/lab/measures-setup";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { RangeEditor } from "./_components/range-editor";
+import { SchemeSection } from "./_components/scheme-section";
 import { bandFromDays } from "./_lib/ages";
 
 export const metadata: Metadata = { title: "Reference ranges · Laboratory · MedSync" };
@@ -21,7 +23,9 @@ export const dynamic = "force-dynamic";
 /**
  * Reference ranges (Lab Phase 1 §5.7, artboard 10): each numeric component with its state, and the
  * editor for one. Gaps between bands are allowed; the preview shows what a patient in a gap gets. No
- * band ships: every number is typed by the hospital, with its source (Law 5).
+ * band ships: every number is typed by the hospital, with its source (Law 5). With labCatalogueV2 on
+ * (Lab Phase 2 §5.12, artboard 12) the page is "Ranges and cut-offs": the same reference intervals, then
+ * the decision cut-offs.
  */
 export default async function RangesSetupPage({
   searchParams,
@@ -37,7 +41,13 @@ export default async function RangesSetupPage({
     notFound();
   if (!scope.access.permissions.has("lab.manage")) notFound();
   const { edit } = await searchParams;
-  const s = await db.transaction((tx) => loadMeasuresSetup(tx as never, scope.hospitalId));
+  const v2 = labCatalogueV2LiveFor(scope.hospitalId);
+  const [s, cutoffs] = await db.transaction((tx) =>
+    Promise.all([
+      loadMeasuresSetup(tx as never, scope.hospitalId),
+      v2 ? loadCutoffs(tx as never, scope.hospitalId, new Date()) : null,
+    ]),
+  );
   const date = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
@@ -88,7 +98,7 @@ export default async function RangesSetupPage({
       <PageHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
-        title="Reference ranges"
+        title={v2 ? "Ranges and cut-offs" : "Reference ranges"}
       />
       <p className="text-body-s text-muted-foreground max-w-[75ch]">
         A range is used only once the laboratory lead and the CSO have signed it. An interval from a
@@ -159,6 +169,13 @@ export default async function RangesSetupPage({
           </tbody>
         </table>
       </div>
+      {cutoffs ? (
+        <SchemeSection
+          concepts={cutoffs.concepts}
+          elevation={cutoffs.elevation}
+          userId={scope.userId}
+        />
+      ) : null}
     </div>
   );
 }

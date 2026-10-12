@@ -15,9 +15,11 @@ import type {
 import type { EmrActor } from "@/lib/emr/actor";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { ReportStatus } from "@/lib/emr/results";
+import type { Interpretation } from "@/lib/lab/interpretation";
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { ageSexWords } from "@/components/emr/orders/model";
+import { LAB2 } from "@/content/lab-phase-2";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
@@ -235,48 +237,90 @@ export function linesFromValues(values: readonly ObsRow[]): {
 export function reviewValues(
   values: readonly ObsRow[],
   /** Lab Phase 1, with LAB_UNITS_RANGES on: each value's snapshot (lib/lab/units.ts). */
-  snapshots?: ReadonlyMap<string, { flagChangeReason: string | null }>,
+  snapshots?: ReadonlyMap<
+    string,
+    { flagChangeReason: string | null; interpretation?: unknown; labOnly?: boolean }
+  >,
 ): ReviewValue[] {
-  return values.map((v): ReviewValue => {
-    const uncatalogued = v.conceptId === UNCATALOGUED;
-    const i = interpretResult(v, { uncatalogued });
-    if (uncatalogued) {
-      const t = asTyped(v);
+  // Lab Phase 2 (AP-6, DP-2): a lab-only parameter never reaches a clinician's list.
+  return values
+    .filter((v) => !snapshots?.get(v.id)?.labOnly)
+    .map((v): ReviewValue => {
+      const uncatalogued = v.conceptId === UNCATALOGUED;
+      const i = interpretResult(v, { uncatalogued });
+      if (uncatalogued) {
+        const t = asTyped(v);
+        return {
+          key: v.id,
+          display: t.name,
+          valueText: t.value,
+          unit: t.unit,
+          flagText: i.flag.text,
+          critical: false,
+          uncatalogued: true,
+        };
+      }
+      const def = v.conceptId ? conceptDef(v.conceptId) : undefined;
       return {
         key: v.id,
-        display: t.name,
-        valueText: t.value,
-        unit: t.unit,
+        display: def?.display ?? v.conceptId ?? "Result",
+        valueText:
+          v.valueNum !== null
+            ? `${v.valueComparator ?? ""}${v.valueNum}`
+            : v.valueCode
+              ? humanise(v.valueCode)
+              : "",
+        unit: v.valueNum !== null ? v.valueUnit : null,
         flagText: i.flag.text,
-        critical: false,
-        uncatalogued: true,
+        critical: i.critical.isCritical,
+        uncatalogued: false,
+        ...(snapshots && v.valueNum !== null
+          ? snapshots.has(v.id)
+            ? {
+                labNote: snapshots.get(v.id)!.flagChangeReason
+                  ? `Flag changed by the lab: ${snapshots.get(v.id)!.flagChangeReason}`
+                  : null,
+                ...interpretationWords(v.conceptId, snapshots.get(v.id)!.interpretation),
+              }
+            : { asTyped: true }
+          : {}),
       };
-    }
-    const def = v.conceptId ? conceptDef(v.conceptId) : undefined;
-    return {
-      key: v.id,
-      display: def?.display ?? v.conceptId ?? "Result",
-      valueText:
-        v.valueNum !== null
-          ? `${v.valueComparator ?? ""}${v.valueNum}`
-          : v.valueCode
-            ? humanise(v.valueCode)
-            : "",
-      unit: v.valueNum !== null ? v.valueUnit : null,
-      flagText: i.flag.text,
-      critical: i.critical.isCritical,
-      uncatalogued: false,
-      ...(snapshots && v.valueNum !== null
-        ? snapshots.has(v.id)
-          ? {
-              labNote: snapshots.get(v.id)!.flagChangeReason
-                ? `Flag changed by the lab: ${snapshots.get(v.id)!.flagChangeReason}`
-                : null,
-            }
-          : { asTyped: true }
-        : {}),
-    };
-  });
+    });
+}
+
+/**
+ * Lab Phase 2 (§5.8, DP-1, EG-5, LD-05): a scheme's category in words beside the value, the line saying what
+ * flagged it, the notes (pregnancy not recorded, altitude not adjusted, the fallback), the eGFR caveat, and
+ * why no eGFR was reported. Only what the snapshot holds: a later set-up change never alters it (DS-9).
+ */
+function interpretationWords(
+  conceptId: string | null,
+  raw: unknown,
+): Partial<Pick<ReviewValue, "flagText" | "basis" | "notes">> {
+  const t = raw as (Interpretation & { egfr?: string }) | null | undefined;
+  if (!t && conceptId !== "obs.egfr") return {};
+  const notes: string[] = [];
+  if (t?.notes?.includes("pregnancy_not_recorded")) notes.push(LAB2.basis.pregnancyNotRecorded);
+  if (t?.notes?.includes("altitude_not_adjusted")) notes.push(LAB2.basis.altitudeNotAdjusted);
+  if (t?.fallback) notes.push(LAB2.basis.fallback(t.fallback.replaceAll("_", " ")));
+  if (conceptId === "obs.egfr") notes.push(LAB2.egfr.caveat);
+  if (t?.egfr) notes.push(LAB2.egfr.notReported(t.egfr.replaceAll("_", " ")));
+  const c = t?.basis === "scheme" ? t.category : null;
+  const band = t?.reference
+    ? `${t.reference.low ?? ""} – ${t.reference.high ?? ""}`.trim()
+    : "none";
+  return {
+    ...(c
+      ? {
+          flagText: `${c.direction === "low" ? "↓ " : c.direction === "high" ? "↑ " : ""}${c.label}`,
+        }
+      : {}),
+    basis:
+      c && t?.scheme
+        ? `${t.scheme.label} · ${t.scheme.source}. Reference interval ${band}, for information.`
+        : null,
+    notes,
+  };
 }
 
 const RELEASED = ["final", "amended", "corrected"];
@@ -523,6 +567,8 @@ export async function loadResultsToReview(
               .select({
                 id: labResultSnapshots.observationId,
                 flagChangeReason: labResultSnapshots.flagChangeReason,
+                interpretation: labResultSnapshots.interpretation,
+                labOnly: labResultSnapshots.labOnly,
               })
               .from(labResultSnapshots)
               .where(

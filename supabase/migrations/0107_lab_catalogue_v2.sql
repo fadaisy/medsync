@@ -9,7 +9,7 @@
 --      rejected alternative's reason (RI-2, RI-5, RI-6).
 --   4. lab_component_measures: method and IDMS traceability, versioned with the measure (ME-1, P2).
 --   5. lab_settings: eGFR reporting, payment mode, the high-risk procedure link.
---   6. test_catalogue: restricted class (CC-8) and the hub offering code (OM-1).
+--   6. test_catalogue: restricted class (CC-8).
 --   7. analyser_profiles (AP-*), research_imports (RI-1), interpretation on the snapshot (DS-9).
 --
 -- No clinical number ships here: every range, cut-off, elevation and constant arrives as a draft and is
@@ -111,11 +111,11 @@ ALTER TABLE public.lab_settings
   ADD COLUMN IF NOT EXISTS high_risk_procedure text
     CHECK (high_risk_procedure IS NULL OR char_length(high_risk_procedure) BETWEEN 3 AND 300);
 
--- ─── 6. Test catalogue: restricted class and hub link ────────────────────
+-- ─── 6. Test catalogue: restricted class ─────────────────────────────────
+-- (The hub link is per hospital, so it lives in 0109's lab_test_services, not on the shared default menu.)
 ALTER TABLE public.test_catalogue
   ADD COLUMN IF NOT EXISTS restricted_class text
-    CHECK (restricted_class IS NULL OR restricted_class IN ('hiv','tb','mental_health','sexual_reproductive_health')),
-  ADD COLUMN IF NOT EXISTS offering_code text CHECK (offering_code IS NULL OR offering_code ~ '^[A-Za-z0-9._-]{1,40}$');
+    CHECK (restricted_class IS NULL OR restricted_class IN ('hiv','tb','mental_health','sexual_reproductive_health'));
 -- CC-8 with CrAg kept restricted (P9). Only the default menu (hospital_id NULL) and only while unset: a
 -- hospital's own row and a class the CSO has since changed are never touched.
 UPDATE public.test_catalogue t SET restricted_class = v.cls

@@ -67,6 +67,19 @@ export const researchImports = pgTable(
   (t) => [primaryKey({ columns: [t.hospitalId, t.hash] })],
 );
 
+/** OM-1: the hub offering each test is linked to at a hospital (HARMONISATION §9). */
+export const labTestServices = pgTable(
+  "lab_test_services",
+  {
+    hospitalId: uuid("hospital_id").notNull(),
+    testCode: text("test_code").notNull(),
+    offeringCode: text("offering_code").notNull(),
+    setBy: uuid("set_by").notNull(),
+    setAt: timestamp("set_at", tz).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.hospitalId, t.testCode] })],
+);
+
 export const labLabels = pgTable("lab_labels", {
   labelNo: text("label_no").primaryKey(),
   orderId: uuid("order_id").notNull(),

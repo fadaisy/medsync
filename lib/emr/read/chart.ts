@@ -11,7 +11,7 @@ import type {
 } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { ReportInput } from "@/lib/emr/orders";
-import { and, eq, getTableName, inArray } from "drizzle-orm";
+import { and, eq, getTableName, inArray, sql } from "drizzle-orm";
 
 import { provenanceFor } from "@/components/emr/provenance";
 import {
@@ -296,7 +296,14 @@ export async function loadChartFor(
                 context: clinicalObservations.context,
               })
               .from(clinicalObservations)
-              .where(inArray(clinicalObservations.reportId, reportIds)),
+              .where(
+                and(
+                  inArray(clinicalObservations.reportId, reportIds),
+                  // Lab Phase 2 (AP-6): a lab-only parameter never reaches the chart or a print.
+                  sql`NOT EXISTS (SELECT 1 FROM lab_result_snapshots s
+                        WHERE s.observation_id = ${clinicalObservations.id} AND s.lab_only)`,
+                ),
+              ),
           ])
         : [[], []];
       const testIds = [

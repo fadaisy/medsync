@@ -466,6 +466,9 @@ export interface ReviewValue {
   labNote?: string | null;
   /** Lab Phase 1 (UN-8): entered before fixed units; the unit and range are as typed. */
   asTyped?: boolean;
+  /** Lab Phase 2 (§5.8): what flagged it (a scheme, with its source), and the notes beside it. */
+  basis?: string | null;
+  notes?: string[];
 }
 
 export interface ReviewItem {
