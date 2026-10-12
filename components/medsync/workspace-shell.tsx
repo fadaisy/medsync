@@ -24,6 +24,7 @@ export function WorkspaceShell({
   phoneNav,
   crumb,
   who,
+  point,
   userName,
   children,
 }: {
@@ -37,6 +38,8 @@ export function WorkspaceShell({
   phoneNav: ReactNode;
   crumb: ReactNode;
   who: string;
+  /** A control beside `who`: the pharmacy's acting-point chooser (D-PH1-45). */
+  point?: ReactNode;
   userName: string;
   children: ReactNode;
 }) {
@@ -80,6 +83,7 @@ export function WorkspaceShell({
             <span className="text-body-s text-ink-600 truncate" title={who}>
               {who}
             </span>
+            {point}
             <Link
               href="/accounts"
               className="text-muted-foreground hover:text-foreground decoration-border shrink-0 text-[12px] underline-offset-4 transition-colors hover:underline"

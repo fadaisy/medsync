@@ -1,9 +1,12 @@
 "use server";
 
 import type { PatientIdentity } from "@/components/emr/orders/model";
+import { refresh } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 
 import { identitiesFor } from "@/lib/emr/read/results";
+import { POINT_COOKIE, requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { findPrescriptions } from "@/lib/pharmacy/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 
@@ -47,4 +50,26 @@ export async function findByPatientNumber(
     })),
     identities: Object.fromEntries(ids),
   };
+}
+
+/**
+ * The acting dispensing point (5.1, D-PH1-45): remembered in a cookie, only for a point the person may
+ * act at, and checked again on every write (PA2-4). Not a clinical record: no audit row.
+ */
+const PointInput = z.object({ pointId: z.uuid() });
+
+export async function chooseActingPoint(input: unknown): Promise<{ ok: boolean }> {
+  const parsed = PointInput.safeParse(input);
+  if (!parsed.success) return { ok: false };
+  const actor = await requirePharmacyActor();
+  if (!actor.points.some((p) => p.id === parsed.data.pointId)) return { ok: false };
+  (await cookies()).set(POINT_COOKIE, parsed.data.pointId, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/pharmacy",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  refresh();
+  return { ok: true };
 }

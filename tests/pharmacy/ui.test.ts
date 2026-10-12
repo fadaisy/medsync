@@ -195,6 +195,7 @@ describe("source rules", () => {
     ...walk("app/pharmacy"),
     ...walk("lib/pharmacy"),
     "content/pharmacy.ts",
+    "content/pharmacy-stock.ts",
   ].filter((f) => /\.tsx?$/.test(f));
 
   it("Law 4: no pharmacy screen calls anyone 'Pharmacist' except through the approved cadre's name", () => {
@@ -206,13 +207,15 @@ describe("source rules", () => {
     }
   });
 
-  it("Law 2: nothing reachable from /pharmacy writes; the one server action is a read", () => {
+  it("Law 2: nothing reachable from /pharmacy writes a clinical record; stock writes go through the pharmacy write path", () => {
     const actions = PHARMACY_SRC.filter((f) => /^\s*["']use server["']/m.test(read(f)));
-    expect(actions).toEqual(["app/pharmacy/actions.ts"]);
-    const src = read("app/pharmacy/actions.ts");
-    expect(src).not.toMatch(
-      /\.(insert|update|delete)\(|lib\/emr\/(write|actions)|withPatientWrite/,
-    );
+    // Phase 0's read and the acting-point cookie; Phase 1's stock actions (Step 4, Section 8).
+    expect(actions).toEqual(["app/pharmacy/actions.ts", "app/pharmacy/stock/actions.ts"]);
+    for (const f of actions)
+      expect(read(f), f).not.toMatch(
+        /\.(insert|update|delete)\(|lib\/emr\/(write|actions)|withPatientWrite/,
+      );
+    expect(read("app/pharmacy/stock/actions.ts")).toMatch(/runPharmacyWrite/);
     for (const f of walk("app/pharmacy"))
       expect(read(f), f).not.toMatch(
         /@\/lib\/emr\/(write|actions)|@\/app\/(doctor|nurse|lab)\/.*actions/,

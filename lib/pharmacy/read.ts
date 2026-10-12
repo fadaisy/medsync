@@ -149,7 +149,7 @@ async function cadreNames(database: EmrDb) {
 }
 
 /** Each user's cadre name at this hospital (their newest affiliation there). One trip. */
-async function cadreOfUsers(database: EmrDb, hospitalId: string, userIds: string[]) {
+export async function cadreOfUsers(database: EmrDb, hospitalId: string, userIds: string[]) {
   const ids = [...new Set(userIds)];
   if (!ids.length) return new Map<string, string>();
   const rows = await database
