@@ -5,6 +5,7 @@ import { SUPPLY } from "@/content/pharmacy-supply";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { downtimeTagsFor, paperMedicinesFor } from "@/lib/pharmacy/downtime-entry";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
@@ -42,11 +43,20 @@ export default async function SuppliedPage({
     getLookBack(scope.hospitalId),
     managesPharmacy(scope.userId, scope.hospitalId),
   ]);
-  const ids = await identitiesFor(
-    scope,
-    [...supplied.rows.map((r) => r.patientUserId), ...lookBack.map((r) => r.patientUserId)],
-    "pharmacy_supplied",
-  );
+  const handoverIds = supplied.rows.map((r) => r.handoverId);
+  const [ids, downtimeTags, paperMedicines] = await Promise.all([
+    identitiesFor(
+      scope,
+      [...supplied.rows.map((r) => r.patientUserId), ...lookBack.map((r) => r.patientUserId)],
+      "pharmacy_supplied",
+    ),
+    // Law 13: back-entered supplies carry their tag; paper supplies show the medicine as written.
+    downtimeTagsFor(
+      scope.hospitalId,
+      supplied.rows.filter((r) => r.enteredAfterDowntime).map((r) => r.handoverId),
+    ),
+    paperMedicinesFor(scope.hospitalId, handoverIds),
+  ]);
   const point = actor.points.find((p) => p.id === actor.pointId);
   return (
     <Supplied
@@ -64,6 +74,8 @@ export default async function SuppliedPage({
       canReprint={can(actor.access, "pharmacy.dispense")}
       canLookBack={can(actor.access, "pharmacy.review")}
       timeZone={DEFAULT_TIME_ZONE}
+      downtimeTags={downtimeTags}
+      paperMedicines={paperMedicines}
     />
   );
 }

@@ -420,16 +420,27 @@ describe.skipIf(!laneOn)("Stock at the dispensing point (Step 4, S1–S11)", () 
     row = (await page()).rows.find((x) => x.medicineId === MED_C)!;
     expect(row.state).toBe("low");
 
-    // A controlled medicine cannot be set up yet.
+    // Step 7: a controlled medicine's product is added; it is received only with a witness (CD-5).
     const controlled = await write(store.ProductInput, store.addProduct, {
       clientKey: randomUUID(),
       medicineId: MED_CONTROLLED,
       name: "Fixture injection E",
       issueUnit: "ampoule",
     });
-    expect(controlled).toMatchObject({
+    expect(controlled.ok).toBe(true);
+    if (!controlled.ok) return;
+    const unwitnessed = await write(store.ReceiveInput, store.receiveStock, {
+      clientKey: randomUUID(),
+      productId: controlled.id,
+      batchNumber: "FX-CD-1",
+      expiry: "2031-01",
+      quantity: 5,
+      from: "main_store",
+    });
+    expect(unwitnessed).toMatchObject({
       ok: false,
-      error: "Controlled drugs are set up in the next step.",
+      error:
+        "A controlled drug is received, counted and moved with a witness, on the Controlled drugs page.",
     });
   });
 

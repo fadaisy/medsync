@@ -301,23 +301,34 @@ async function outcomesOf(ctx: PharmacyCtx, handoverId: string): Promise<Handove
 
 /* ─── recordHandover (SU-1, SU-2, SU-10, SU-12) ───────────────────────── */
 
-export async function recordHandover(
+/** SU-10: the hand-over this client key already recorded, with its outcomes; null when there is none. */
+export async function recordHandoverIfDone(
   ctx: PharmacyCtx,
-  input: z.infer<typeof HandoverInput>,
-): Promise<{ id: string; lines: HandoverOutcome[] }> {
-  const hospitalId = ctx.actor.hospitalId;
-  const point = ctx.point!;
-  // SU-10: a repeat of this key returns the hand-over already recorded.
+  clientKey: string,
+): Promise<{ id: string; lines: HandoverOutcome[] } | null> {
   const [done] = await ctx.tx
     .select({ id: pharmacyHandovers.id })
     .from(pharmacyHandovers)
     .where(
       and(
-        eq(pharmacyHandovers.clientKey, input.clientKey),
-        eq(pharmacyHandovers.hospitalId, hospitalId),
+        eq(pharmacyHandovers.clientKey, clientKey),
+        eq(pharmacyHandovers.hospitalId, ctx.actor.hospitalId),
       ),
     );
-  if (done) return { id: done.id, lines: await outcomesOf(ctx, done.id) };
+  return done ? { id: done.id, lines: await outcomesOf(ctx, done.id) } : null;
+}
+
+export async function recordHandover(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof HandoverInput>,
+  /** CD-2: set only by `recordControlledSupply`, once its own checks have passed in this transaction. */
+  controlled: { witnessAttestationId: string } | null = null,
+): Promise<{ id: string; lines: HandoverOutcome[] }> {
+  const hospitalId = ctx.actor.hospitalId;
+  const point = ctx.point!;
+  // SU-10: a repeat of this key returns the hand-over already recorded.
+  const done = await recordHandoverIfDone(ctx, input.clientKey);
+  if (done) return done;
 
   const lineIds = input.lines.map((l) => l.lineId);
   const { h, group } = await lockedGroup(ctx, lineIds[0]!, lineIds);
@@ -326,9 +337,7 @@ export async function recordHandover(
   const lineOf = new Map(group.lines.map((l) => [l.row.id, l]));
   if (lineIds.some((id) => !lineOf.has(id)))
     throw new EmrWriteError("invalid", "Each line must be of this prescription.");
-  // Until Step 7, a controlled line has no supply decision (CD-4, controlled.ts handoverRoute).
-  if (lineIds.some((id) => lineOf.get(id)!.row.controlled))
-    throw conflict(REVIEW.review.controlledBeforeStep7);
+  // A controlled line is refused by the re-check unless the controlled supply cleared it (CD-1, CD-2).
   if (input.payment.status === "exempt") throw conflict(REVIEW.review.exemptUnsigned);
 
   // The batches of every product in the plan, at this point, locked in id order; then their balances.
@@ -486,6 +495,7 @@ export async function recordHandover(
       medicineId: products.find((p) => p.id === b.productId)?.medicineId ?? "",
     })),
     balances: new Map(sums.map((s) => [s.batchId, Number(s.n)])),
+    controlledCleared: controlled !== null,
   };
   const allowedPoints = new Set(counselling?.items.map((c) => c.code) ?? []);
   const plan: HandoverPlan = {
@@ -518,6 +528,7 @@ export async function recordHandover(
     language: input.language ?? null,
     payment: { status: input.payment.status as PaymentStatus, detail: input.payment.detail },
     suppliedAt: ctx.now,
+    witnessAttestationId: controlled?.witnessAttestationId ?? null,
   };
 
   const result = handoverWrites(plan, facts, randomUUID);
@@ -795,9 +806,14 @@ const REFUSE = {
 /**
  * SU-11: a supply handed back the same day. The quantity returns to its batch; a pack that is not fit is
  * written off in the same step. The supply stays in the record; the line returns to where it stood.
- * Controlled: refused until Step 7 brings the witness (CD-5).
+ * Controlled: needs `pharmacy.controlled` and a witness (CD-5), through `controlled-store.ts`.
  */
-export async function reverseSupply(ctx: PharmacyCtx, input: z.infer<typeof ReverseInput>) {
+export async function reverseSupply(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof ReverseInput>,
+  /** CD-5: a standing witness attestation, checked by `lib/pharmacy/controlled-store.ts`. */
+  witness: string | null = null,
+) {
   const rows = await suppliesOf(ctx, input.handoverId, input.lineId);
   const reversed = rows.find((r) => r.reversal);
   if (reversed) return { id: reversed.reversal! };
@@ -811,7 +827,7 @@ export async function reverseSupply(ctx: PharmacyCtx, input: z.infer<typeof Reve
     today: localDate(ctx.now),
     actorHolds: accessOf(ctx),
     controlled: line.row.controlled,
-    witness: null,
+    witness,
   });
   if (!allowed.ok) throw conflict(REFUSE[allowed.reason]);
   const w = reversalWrites({
@@ -819,7 +835,7 @@ export async function reverseSupply(ctx: PharmacyCtx, input: z.infer<typeof Reve
     packFit: input.packFit,
     reasonCode: input.reasonCode,
     actor: { userId: ctx.actor.userId, cadre: ctx.actor.cadreName },
-    witness: null,
+    witness,
     now: ctx.now,
     newId: randomUUID,
   });
@@ -843,7 +859,11 @@ export async function reverseSupply(ctx: PharmacyCtx, input: z.infer<typeof Reve
 }
 
 /** SU-14: "recorded in error", on any day, by the pharmacy in charge. It moves no stock. */
-export async function correctSupplyRecord(ctx: PharmacyCtx, input: z.infer<typeof CorrectInput>) {
+export async function correctSupplyRecord(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof CorrectInput>,
+  witness: string | null = null,
+) {
   const rows = await suppliesOf(ctx, input.handoverId, input.lineId);
   const corrected = rows.find((r) => r.correction);
   if (corrected) return { id: corrected.correction! };
@@ -853,7 +873,7 @@ export async function correctSupplyRecord(ctx: PharmacyCtx, input: z.infer<typeo
   const allowed = correctionAllowed({
     actorHolds: accessOf(ctx),
     controlled: line.row.controlled,
-    witness: null,
+    witness,
   });
   if (!allowed.ok) throw conflict(REFUSE[allowed.reason]);
   const w = correctionWrites({

@@ -235,7 +235,7 @@ export const SUPPLY = {
       "The line returns to where it stood before this hand-over. The prescriber is told, and the entry leaves the patient's list.",
     submit: "Reverse",
     controlled:
-      "A controlled supply is reversed with a witness. MedSync does not record controlled supplies yet: put it right on paper.",
+      "A controlled supply is put right by a holder of the controlled drugs permission, with a witness.",
     notToday: "A supply can be reversed only on the day it was recorded. Use Correct the record.",
   },
 
@@ -265,7 +265,7 @@ export const SUPPLY = {
     done: "This supply has already been reversed or marked in error.",
     notHere: "That hand-over is not at your hospital.",
     controlledReverse:
-      "A controlled supply is reversed with a witness. MedSync does not record controlled supplies yet: put it right on paper.",
+      "A controlled supply is put right by a holder of the controlled drugs permission, with a witness.",
     permission: "You do not have permission to do this.",
     closed:
       "Five wrong tries today. The typed check is closed for this patient until the pharmacy in charge reopens it.",

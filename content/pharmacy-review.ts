@@ -300,9 +300,6 @@ export const REVIEW = {
     replacedSr: "Replaced:",
     /** B-12. */
     ward: "Ward doses come from ward stock, which MedSync does not count yet.",
-    /** B-13. */
-    controlledBeforeStep7:
-      "Supply this on paper as you do today. MedSync does not record controlled supplies yet.",
     /** B-07 (C2: the signed S-2 stays; N-3 leads). */
     cosignLead: "Cannot be supplied yet.",
     checksTitle: "Checks that came with it",

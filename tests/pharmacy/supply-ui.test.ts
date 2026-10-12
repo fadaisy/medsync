@@ -17,6 +17,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/app/pharmacy/review-actions", () => ({}));
 vi.mock("@/app/pharmacy/supply-actions", () => ({}));
+vi.mock("@/app/pharmacy/controlled-actions", () => ({}));
 vi.mock("@/app/pharmacy/stock/actions", () => ({}));
 
 const { HandoverScreen } =
@@ -66,6 +67,7 @@ const handover = (o: Partial<HandoverData> = {}): HandoverData => ({
   lines: [
     {
       lineId: "l1",
+      medicineId: "fixture_a",
       medicine: "Fixture tablet A",
       concentration: null,
       directions: "1  tablet · oral · [fixture frequency]",
@@ -83,10 +85,11 @@ const handover = (o: Partial<HandoverData> = {}): HandoverData => ({
         notSupplied: null,
         rest: null,
       },
+      controlled: false,
       stock,
     },
   ],
-  controlled: [],
+  controlled: null,
   labelMode: "printed",
   pointName: "Fixture point A",
   pointLive: true,
@@ -166,10 +169,10 @@ describe("the hand-over screen (5.6, S36, S47, S56)", () => {
     expect(html).toContain("Ward 4A");
   });
 
-  it("nothing staged: says so, and a controlled line is supplied on paper", () => {
-    const html = render(handover({ lines: [], controlled: ["Fixture morphine"] }));
+  it("nothing staged: says so", () => {
+    const html = render(handover({ lines: [] }));
     expect(html).toContain("No line of this prescription is ready to hand over.");
-    expect(html).toContain("Supply this on paper as you do today.");
+    expect(html).not.toContain("MedSync does not record controlled supplies yet");
   });
 
   it("S56: no fixed page widths that break 834 px (the table scrolls inside its card)", () => {
@@ -344,5 +347,113 @@ describe("Law 14 and the design rules, on every Step 6 route and component", () 
       expect(src, f).not.toMatch(/tone="critical"/);
       expect(src, f).not.toMatch(/jspdf|pdfkit|html2canvas/i);
     }
+  });
+});
+
+describe("the controlled supply screen (5.9, S59, S61, S65, S66, Law 9)", () => {
+  const controlled = (o: Partial<NonNullable<HandoverData["controlled"]>> = {}) =>
+    handover({
+      lines: [
+        { ...handover().lines[0]!, controlled: true },
+        { ...handover().lines[0]!, lineId: "l2", medicineId: "fixture_b", medicine: "Fixture B" },
+      ],
+      controlled: {
+        classLabel: "Controlled drug",
+        changedSincePrinting: false,
+        prescriber: "Medical officer",
+        medicines: [
+          {
+            medicineId: "fixture_a",
+            name: "Fixture tablet A",
+            unit: "tablet",
+            batches: [
+              { id: "b1", batchNumber: "FX-001", expiry: "2027-03-01", expiryMonthOnly: true },
+              { id: "b2", batchNumber: "FX-002", expiry: "2027-09-01", expiryMonthOnly: true },
+            ],
+          },
+        ],
+        ...o,
+      },
+    });
+  const renderC = (d: HandoverData, canSupplyControlled = true) =>
+    renderToStaticMarkup(
+      h(HandoverScreen, {
+        data: d,
+        canManage: false,
+        timeZone: "Africa/Kampala",
+        canSupplyControlled,
+        witnesses: [{ userId: "w1", label: "Fixture Witness · Pharmacy technician", cadre: "x" }],
+        slip: {
+          hospital: "Fixture Hospital",
+          patientName: "Fixture Patient",
+          medsyncNumber: "FX-1",
+        },
+      }),
+    );
+
+  it("S59: the witness comes first, then the count; the notice is amber and not dismissible", () => {
+    const html = renderC(controlled());
+    const order = [
+      "The witness",
+      "The count, batch by batch",
+      "Paper that still applies",
+      "The witness agrees",
+      "Confirm who is at the window",
+    ].map((t) => html.indexOf(t));
+    expect(order.every((i) => i > 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(html).toContain(
+      "MedSync&#x27;s record does not replace the paper. Keep the signed prescription and make the entry in the hospital&#x27;s controlled drugs register, as you do today.",
+    );
+    expect(html).toMatch(/role="status"[^>]*>[^]*MedSync&#x27;s record does not replace the paper/);
+    expect(html).not.toMatch(/aria-label="(Close|Dismiss)/);
+    // The count is typed, never pre-filled, and no balance is on the page before it is committed.
+    expect(html).toContain("In the cupboard before");
+    expect(html).not.toContain("MedSync&#x27;s figure");
+    expect(html).toMatch(/type="password"/);
+    expect(html).toContain("Fixture Witness · Pharmacy technician");
+  });
+
+  it("S61: no signed class: the chip says Controlled drug and names no class", () => {
+    const html = renderC(controlled());
+    expect(html).toContain(">Controlled drug<");
+    expect(renderC(controlled({ classLabel: "Fixture class B" }))).toContain("Fixture class B");
+  });
+
+  it("S65: changed since printing shows the caution, and the first attestation is that the paper matches", () => {
+    const html = renderC(controlled({ changedSincePrinting: true }));
+    expect(html).toContain("Changed since printing. The paper the patient carries is out of date.");
+    const first = html.indexOf(
+      "The signed prescription is here, matches what is on this screen, and will be kept.",
+    );
+    const second = html.indexOf(
+      "The entry is made in the controlled drugs register, and the person collecting has signed it.",
+    );
+    expect(first).toBeGreaterThan(0);
+    expect(second).toBeGreaterThan(first);
+  });
+
+  it("CD-2: Record supply stays off, and says what it waits for in words", () => {
+    const html = renderC(controlled());
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Record supply<\/button>/);
+    for (const w of [
+      "The witness has not confirmed who they are.",
+      "Count every batch in the cupboard with the witness.",
+      "Tick that the signed prescription is here.",
+      "Tick that the register entry is made.",
+      "The witness has not agreed the balance.",
+    ])
+      expect(html).toContain(w);
+    expect(renderC(controlled(), false)).toContain(
+      "Only a holder of the controlled drugs permission can supply this.",
+    );
+  });
+
+  it("S66 Law 9: the screen prints a copy for the register and never says the paper is not needed", () => {
+    const html = renderC(controlled());
+    expect(html).toContain("Print the register entry");
+    expect(html).not.toMatch(
+      /no longer (needed|required)|instead of the (paper|register)|replaces the (paper|register)/i,
+    );
   });
 });

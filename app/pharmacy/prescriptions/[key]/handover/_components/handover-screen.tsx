@@ -1,5 +1,7 @@
 "use client";
 
+import type { CountedLine, Witnessed } from "../../../../_components/controlled-blocks";
+import type { WitnessOption } from "@/lib/pharmacy/controlled-read";
 import type { PaymentStatus } from "@/lib/pharmacy/review/load";
 import type { HandoverData, HandoverLineView } from "@/lib/pharmacy/supply/read";
 import type { HandoverOutcome } from "@/lib/pharmacy/supply/store";
@@ -15,14 +17,24 @@ import { CautionNotice } from "@/components/medsync/caution-notice";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CONTROLLED_UI } from "@/content/pharmacy-controlled";
 import { PAYMENT_WORDS, REVIEW } from "@/content/pharmacy-review";
 import { expiryText } from "@/content/pharmacy-stock";
 import { SUPPLY } from "@/content/pharmacy-supply";
+import {
+  attestationsFor,
+  CONTROLLED_COPY,
+  controlledSupplyReady,
+  witnessAgreementText,
+} from "@/lib/pharmacy/controlled";
+import { registerSlipFor } from "@/lib/pharmacy/print/register";
 import { proposeBatches } from "@/lib/pharmacy/stock/fefo";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { IDENTITY_COPY, MAX_WRONG_ATTEMPTS } from "@/lib/pharmacy/supply/identity";
 import { outcomeWords, whenYouRecord } from "@/lib/pharmacy/supply/summary";
+import { ControlledCount, WitnessBlock } from "../../../../_components/controlled-blocks";
 import { Refusal, SELECT, TARGET, TEXTAREA } from "../../../../_components/review-dialogs";
+import * as controlledActions from "../../../../controlled-actions";
 import * as reviewActions from "../../../../review-actions";
 import * as actions from "../../../../supply-actions";
 
@@ -32,7 +44,13 @@ import * as actions from "../../../../supply-actions";
  * identifier is typed by the supplier and compared on the server: the field starts empty, nothing
  * stored is ever sent here, and the answer is only "Matches." or "This does not match." (SU-4). One
  * client key for the whole hand-over, so a retry or a double tap records it once (SU-10).
+ *
+ * With a controlled line this is the controlled supply (5.9, wireframe §9.1): the head with the class
+ * chip and the paper notice, then 1 the witness, 2 the count batch by batch, 3 the paper that still
+ * applies, 4 the witness's agreement, and the four hand-over sections as 5 to 8. Record supply stays
+ * off until 1 to 4 are complete (`controlledSupplyReady`) and records every line in one transaction.
  */
+const C = CONTROLLED_UI;
 
 const H = SUPPLY.handover;
 const newKey = () => crypto.randomUUID();
@@ -46,8 +64,16 @@ interface LinePlan {
   strengthOk: boolean;
 }
 
-/** The batches a line takes: the staged decision's, or first to expire for a "Supply now" quantity. */
-function rowsOf(line: HandoverLineView, plan: LinePlan, today: string) {
+/**
+ * The batches a line takes: the staged decision's, or first to expire for a "Supply now" quantity. A
+ * controlled line's balances are its counted figures, once counted (CD-3); before that, none.
+ */
+function rowsOf(
+  line: HandoverLineView,
+  plan: LinePlan,
+  today: string,
+  counted: ReadonlyMap<string, number>,
+) {
   if (line.mode === "staged" && line.staged?.batches)
     return { productId: line.staged.productId ?? plan.productId, rows: line.staged.batches };
   const q = int(plan.qty);
@@ -55,7 +81,9 @@ function rowsOf(line: HandoverLineView, plan: LinePlan, today: string) {
   const usable = line.stock.batches.filter((b) => !b.expired && b.productId === plan.productId);
   const p = proposeBatches({
     batches: usable.map((b) => ({ ...b, pointId: "", medicineId: "" })),
-    balances: new Map(usable.map((b) => [b.id, b.balance])),
+    balances: new Map(
+      usable.map((b) => [b.id, line.controlled ? (counted.get(b.id) ?? 0) : b.balance]),
+    ),
     quantity: q,
     localDate: today,
   });
@@ -66,10 +94,19 @@ export function HandoverScreen({
   data,
   canManage,
   timeZone,
+  witnesses = [],
+  canSupplyControlled = false,
+  slip = null,
 }: {
   data: HandoverData;
   canManage: boolean;
   timeZone: string;
+  /** 5.9: the staff allowed to witness (never the supplier), for a controlled supply. */
+  witnesses?: WitnessOption[];
+  /** CD-2: the supplier holds `pharmacy.controlled`. */
+  canSupplyControlled?: boolean;
+  /** LB-7: what the register slip needs that the screen does not hold. */
+  slip?: { hospital: string; patientName: string; medsyncNumber: string } | null;
 }) {
   const router = useRouter();
   const [clientKey] = useState(newKey);
@@ -125,18 +162,22 @@ export function HandoverScreen({
   const [error, setError] = useState<string | null>(null);
   const [checking, startCheck] = useTransition();
   const [pending, start] = useTransition();
-  const [done, setDone] = useState<{ id: string; lines: HandoverOutcome[]; at: string } | null>(
-    null,
-  );
+  const [done, setDone] = useState<{
+    id: string;
+    lines: HandoverOutcome[];
+    at: string;
+    entryIds?: string[];
+  } | null>(null);
+  // 5.9: the witness, the counts per controlled medicine, the paper ticks, the witness's agreement.
+  const [witness, setWitness] = useState<Witnessed | null>(null);
+  const [counts, setCounts] = useState<Record<string, CountedLine[]>>({});
+  const [paper, setPaper] = useState(false);
+  const [register, setRegister] = useState(false);
+  const [agreed, setAgreed] = useState<Record<string, boolean>>({});
 
   if (!data.lines.length)
     return (
       <div className="flex flex-col gap-4">
-        {data.controlled.length ? (
-          <CautionNotice lead={REVIEW.review.controlledBeforeStep7}>
-            {data.controlled.join(", ")}
-          </CautionNotice>
-        ) : null}
         <p className="text-body-s">{H.nothing}</p>
         <BackLink href={`/pharmacy/prescriptions/${encodeURIComponent(data.key)}`} />
       </div>
@@ -146,10 +187,16 @@ export function HandoverScreen({
   const patchPlan = (id: string, p: Partial<LinePlan>) =>
     setPlans((x) => ({ ...x, [id]: { ...x[id]!, ...p } }));
 
+  const cd = data.controlled;
+  const counted = new Map(
+    Object.values(counts)
+      .flat()
+      .map((l) => [l.batchId, l.counted] as const),
+  );
   // The lines as the server will be asked to write them.
   const built = data.lines.map((l) => {
     const p = plan(l.lineId);
-    const r = rowsOf(l, p, today);
+    const r = rowsOf(l, p, today, counted);
     const total = r.rows.reduce((s, x) => s + x.quantity, 0);
     const product = l.stock.products.find((x) => x.id === r.productId);
     const rest =
@@ -176,6 +223,73 @@ export function HandoverScreen({
     rest: b.rest ? { outcome: b.rest.outcome, notSupplied: b.rest.quantityNotSupplied } : null,
   }));
 
+  // CD-2, CD-3: what each controlled medicine supplies per batch, and the balance after it.
+  const medicineOfLine = new Map(
+    data.lines.filter((l) => l.controlled).map((l) => [l.lineId, l.medicineId] as const),
+  );
+  const supplyingOf = (medicineId: string) => {
+    const out = new Map<string, number>();
+    for (const b of built)
+      if (medicineOfLine.get(b.line.lineId) === medicineId)
+        for (const r of b.rows) out.set(r.batchId, (out.get(r.batchId) ?? 0) + r.quantity);
+    return out;
+  };
+  const balanceAfter = (medicineId: string) => {
+    const lines = counts[medicineId];
+    if (!lines) return null;
+    const out = [...supplyingOf(medicineId).values()].reduce((a, n) => a + n, 0);
+    return lines.reduce((a, l) => a + l.counted, 0) - out;
+  };
+  const paperTexts = attestationsFor({ changedSincePrinting: !!cd?.changedSincePrinting });
+  const readiness = cd
+    ? controlledSupplyReady({
+        actorPermissions: canSupplyControlled ? ["pharmacy.controlled"] : [],
+        // A pharmacist's acceptance of every line is re-checked on the server (CD-2).
+        everyLineAccepted: true,
+        witnessStands: !!witness,
+        batchIds: cd.medicines.flatMap((m) => m.batches.map((b) => b.id)),
+        countedBatchIds: [...counted.keys()],
+        paperAttested: paper,
+        registerAttested: register,
+        witnessAgreedBalance: cd.medicines.every(
+          (m) => agreed[m.medicineId] && counts[m.medicineId],
+        )
+          ? 0
+          : null,
+      })
+    : null;
+  const slipFacts = cd
+    ? cd.medicines.flatMap((m) =>
+        built
+          .filter((b) => medicineOfLine.get(b.line.lineId) === m.medicineId)
+          .flatMap((b) =>
+            b.rows.map((r) => {
+              const batch = b.line.stock.batches.find((x) => x.id === r.batchId);
+              return registerSlipFor({
+                hospital: slip?.hospital ?? "",
+                point: data.pointName ?? "",
+                recordedAt: new Date().toISOString(),
+                patient: {
+                  name: slip?.patientName ?? "",
+                  medsyncNumber: slip?.medsyncNumber ?? "",
+                },
+                medicine: [b.line.medicine, b.line.concentration].filter(Boolean).join(" · "),
+                quantity: r.quantity,
+                issueUnit: b.product?.issueUnit ?? "",
+                batchNumber: batch?.batchNumber ?? "",
+                expiry: batch ? expiryText(batch) : "",
+                balanceAfter: balanceAfter(m.medicineId),
+                prescriber: cd.prescriber,
+                suppliedBy: "",
+                witness: witness?.cadre ?? "",
+                collectedBy: null,
+                timeZone,
+              });
+            }),
+          ),
+      )
+    : [];
+
   const runCheck = () =>
     startCheck(async () => {
       const r = await actions.checkSecondIdentifier({
@@ -192,7 +306,7 @@ export function HandoverScreen({
 
   const record = () =>
     start(async () => {
-      const r = await actions.recordHandover({
+      const payload = {
         clientKey,
         lines: built.map((b) => ({
           lineId: b.line.lineId,
@@ -229,10 +343,27 @@ export function HandoverScreen({
           status: payment,
           ...((payment === "paid" || payment === "insured") && detail.trim() ? { detail } : {}),
         },
-      });
+      };
+      const r = cd
+        ? await controlledActions.recordControlledSupply({
+            ...payload,
+            witnessAttestationId: witness?.attestationId,
+            paperPrescriptionAttested: paper,
+            registerAttested: register,
+            agreedBalances: cd.medicines.map((m) => ({
+              medicineId: m.medicineId,
+              balance: balanceAfter(m.medicineId) ?? -1,
+            })),
+          })
+        : await actions.recordHandover(payload);
       if (!r.ok) return setError(r.error);
       setError(null);
-      setDone({ id: r.id, lines: r.lines ?? [], at: r.serverTime });
+      setDone({
+        id: r.id,
+        lines: r.lines ?? [],
+        at: r.serverTime,
+        entryIds: "entryIds" in r ? (r.entryIds as string[]) : undefined,
+      });
       router.refresh();
     });
 
@@ -250,13 +381,109 @@ export function HandoverScreen({
               ? H.standard
               : null}
       </p>
-      {data.controlled.length ? (
-        <CautionNotice lead={REVIEW.review.controlledBeforeStep7}>
-          {data.controlled.join(", ")}
-        </CautionNotice>
+      {cd ? (
+        <>
+          <p className="text-body-s flex flex-wrap items-center gap-2">
+            <span className="text-heading-s font-medium">{C.title}</span>
+            {cd.prescriber ? <span>{C.prescribed(cd.prescriber)}</span> : null}
+            <StatusWord tone="neutral">{cd.classLabel}</StatusWord>
+            {paperTexts.caution ? (
+              <StatusWord tone="caution" glyph={TriangleAlertIcon}>
+                {paperTexts.caution}
+              </StatusWord>
+            ) : null}
+          </p>
+          <CautionNotice lead={CONTROLLED_COPY.notice} />
+          {canSupplyControlled ? null : <p className="text-body-s">{C.permission}</p>}
+
+          <Section n={1} title={C.section.witness}>
+            <WitnessBlock
+              witnesses={witnesses}
+              action="controlled_supply"
+              witnessed={witness}
+              onWitnessed={setWitness}
+              timeZone={timeZone}
+            />
+          </Section>
+
+          <Section n={2} title={C.section.count}>
+            {cd.medicines.map((m) => (
+              <div key={m.medicineId} className="flex flex-col gap-1">
+                <p className="text-body-s font-medium">{m.name}</p>
+                <ControlledCount
+                  medicineId={m.medicineId}
+                  medicine={m.name}
+                  unit={m.unit}
+                  scope="controlled_supply"
+                  witness={witness}
+                  batches={m.batches}
+                  result={counts[m.medicineId] ?? null}
+                  onCounted={(lines) => setCounts((c) => ({ ...c, [m.medicineId]: lines }))}
+                  supplying={supplyingOf(m.medicineId)}
+                />
+              </div>
+            ))}
+          </Section>
+
+          <Section n={3} title={C.section.paper}>
+            <label className="flex min-h-11 items-center gap-2">
+              <input type="checkbox" checked={paper} onChange={(e) => setPaper(e.target.checked)} />
+              <span className="text-body-s">{paperTexts.attestations[0]}</span>
+            </label>
+            <label className="flex min-h-11 items-center gap-2">
+              <input
+                type="checkbox"
+                checked={register}
+                onChange={(e) => setRegister(e.target.checked)}
+              />
+              <span className="text-body-s">{paperTexts.attestations[1]}</span>
+            </label>
+            <span>
+              <Button
+                type="button"
+                variant="secondary"
+                className={TARGET}
+                disabled={!slipFacts.length || !canSupplyControlled}
+                onClick={() =>
+                  start(async () => {
+                    const r = await controlledActions.printRegisterEntry({
+                      clientKey: newKey(),
+                      entryId: null,
+                    });
+                    setError(r.ok ? null : r.error);
+                    window.print();
+                  })
+                }
+              >
+                {C.printEntry}
+              </Button>
+            </span>
+            <RegisterSlips slips={slipFacts} />
+          </Section>
+
+          <Section n={4} title={C.section.agrees}>
+            {cd.medicines.map((m) => {
+              const n = balanceAfter(m.medicineId);
+              return (
+                <label key={m.medicineId} className="flex min-h-11 items-center gap-2">
+                  <input
+                    type="checkbox"
+                    disabled={n === null}
+                    checked={!!agreed[m.medicineId] && n !== null}
+                    onChange={(e) => setAgreed((a) => ({ ...a, [m.medicineId]: e.target.checked }))}
+                  />
+                  <span className="text-body-s">
+                    {cd.medicines.length > 1 ? `${m.name}: ` : ""}
+                    {n === null ? C.witness.first : witnessAgreementText(n)}
+                  </span>
+                </label>
+              );
+            })}
+          </Section>
+        </>
       ) : null}
 
-      <Section n={1} title={H.section.who}>
+      <Section n={cd ? 5 : 1} title={H.section.who}>
         <fieldset className="flex flex-col gap-2">
           <legend className="text-label mb-1">{H.collectedBy}</legend>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
@@ -477,7 +704,7 @@ export function HandoverScreen({
         ) : null}
       </Section>
 
-      <Section n={2} title={H.section.supplying}>
+      <Section n={cd ? 6 : 2} title={H.section.supplying}>
         <div className="overflow-x-auto">
           <table className="text-body-s w-full">
             <thead className="text-caption text-muted-foreground border-border border-b text-left">
@@ -583,7 +810,7 @@ export function HandoverScreen({
         )}
       </Section>
 
-      <Section n={3} title={H.section.explained}>
+      <Section n={cd ? 7 : 3} title={H.section.explained}>
         {data.counselling?.length ? (
           <fieldset className="flex flex-col gap-1">
             <legend className="text-label mb-1">{H.counselling}</legend>
@@ -614,7 +841,7 @@ export function HandoverScreen({
         </Field>
       </Section>
 
-      <Section n={4} title={H.section.payment}>
+      <Section n={cd ? 8 : 4} title={H.section.payment}>
         {data.paymentRequired ? (
           <p className="text-body-s text-muted-foreground">{H.paymentRequired}</p>
         ) : null}
@@ -655,6 +882,17 @@ export function HandoverScreen({
         </ul>
       </section>
 
+      {readiness && !readiness.ready ? (
+        <div className="text-body-s flex flex-col gap-1">
+          <p className="text-muted-foreground">{C.waitingFor}</p>
+          <ul className="flex list-disc flex-col gap-0.5 pl-5">
+            {readiness.missing.map((m) => (
+              <li key={m.item}>{m.words}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-end gap-3">
         <Refusal error={error} />
         <Link
@@ -667,10 +905,10 @@ export function HandoverScreen({
         <Button
           type="button"
           className={TARGET}
-          disabled={pending || !data.pointLive}
+          disabled={pending || !data.pointLive || (readiness !== null && !readiness.ready)}
           onClick={record}
         >
-          {H.record}
+          {cd ? C.record : H.record}
         </Button>
       </div>
     </div>
@@ -684,7 +922,7 @@ function Recorded({
   time,
 }: {
   data: HandoverData;
-  done: { id: string; lines: HandoverOutcome[]; at: string };
+  done: { id: string; lines: HandoverOutcome[]; at: string; entryIds?: string[] };
   time: Intl.DateTimeFormat;
 }) {
   const router = useRouter();
@@ -740,6 +978,17 @@ function Recorded({
             {H.printSlip}
           </Button>
         ) : null}
+        {done.entryIds?.map((id, i) => (
+          <Link
+            key={id}
+            href={`/pharmacy/controlled/register/${id}`}
+            prefetch={false}
+            className={buttonVariants({ variant: "secondary", size: "md", className: "min-h-11" })}
+          >
+            {C.printEntry}
+            {done.entryIds!.length > 1 ? ` ${i + 1}` : ""}
+          </Link>
+        ))}
         <Link
           href="/pharmacy"
           prefetch={false}
@@ -750,6 +999,41 @@ function Recorded({
       </span>
       <Refusal error={error} />
     </section>
+  );
+}
+
+/** LB-7: the register slip of the screen as it stands, for print only (CSS); never called the register. */
+function RegisterSlips({ slips }: { slips: ReturnType<typeof registerSlipFor>[] }) {
+  if (!slips.length) return null;
+  return (
+    <>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .register-slips, .register-slips * { visibility: visible; }
+          .register-slips { position: absolute; inset: 0; display: block !important; }
+          .register-slip { break-inside: avoid; }
+        }
+      `}</style>
+      <div className="register-slips hidden">
+        {slips.map((s, i) => (
+          <article
+            key={i}
+            className="register-slip mb-4 flex flex-col gap-1 border border-black bg-white p-4 text-[13px] text-black"
+          >
+            <h2 className="font-medium">{s.heading}</h2>
+            <dl className="grid grid-cols-[max-content_1fr] gap-x-4">
+              {s.rows.map((r) => (
+                <div key={r.label} className="contents">
+                  <dt>{r.label}</dt>
+                  <dd>{r.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </article>
+        ))}
+      </div>
+    </>
   );
 }
 

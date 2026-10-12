@@ -188,18 +188,42 @@ const int = (f: FormData, k: string) => Number(str(f, k));
 
 /* ─── Receive stock ───────────────────────────────────────────────────── */
 
-export function ReceiveDialog({ products }: { products: DialogProduct[] }) {
+type ReceiveFields = {
+  clientKey: string;
+  productId: string;
+  batchNumber: string;
+  expiry: string;
+  quantity: number;
+  from: string;
+  deliveryRef: string;
+};
+
+/**
+ * 5.8 Receive stock. The Controlled drugs page passes its own `save` (the witnessed receipt, CD-5) and
+ * the witness block as `before`, rendered first.
+ */
+export function ReceiveDialog({
+  products,
+  title = STOCK.receive.title,
+  save = actions.receiveStock,
+  before,
+}: {
+  products: DialogProduct[];
+  title?: string;
+  save?: (input: ReceiveFields) => Promise<StockResult<unknown>>;
+  before?: ReactNode;
+}) {
   const ids = { product: useId(), batch: useId(), qty: useId(), ref: useId() };
   const [productId, setProductId] = useState(products[0]?.id ?? "");
   const product = products.find((p) => p.id === productId);
   return (
     <StockDialog
       label={STOCK.actions.receive}
-      title={STOCK.receive.title}
+      title={title}
       submit={STOCK.receive.submit}
       variant="primary"
       onSave={async (clientKey, d) => {
-        return actions.receiveStock({
+        return save({
           clientKey,
           productId,
           batchNumber: str(d, "batchNumber"),
@@ -210,6 +234,7 @@ export function ReceiveDialog({ products }: { products: DialogProduct[] }) {
         });
       }}
     >
+      {before}
       <div className="grid gap-4 sm:grid-cols-2">
         {products.length === 0 ? (
           <p className="text-body-s text-muted-foreground sm:col-span-2">
@@ -741,7 +766,7 @@ export function AddProductDialog({
   medicines,
   medicineId,
 }: {
-  /** The medicine list (CT-1), controlled medicines left out until Step 7. */
+  /** The medicine list (CT-1). A controlled medicine's product is added here; it moves with a witness. */
   medicines?: { id: string; name: string }[];
   medicineId?: string;
 }) {
@@ -750,7 +775,7 @@ export function AddProductDialog({
     <StockDialog
       label={STOCK.actions.addProduct}
       title={STOCK.product.title}
-      description={`${STOCK.product.unitLocks} ${STOCK.controlledNextStep}`}
+      description={STOCK.product.unitLocks}
       submit={STOCK.product.submit}
       width="wide"
       onSave={async (clientKey, d) => {

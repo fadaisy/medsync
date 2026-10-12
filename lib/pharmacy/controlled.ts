@@ -71,6 +71,19 @@ export interface ControlledFacts {
 export const isControlledLine = (l: ControlledFacts): boolean =>
   l.rxControlled || !!l.signedClass?.trim();
 
+/**
+ * CT-7, D-PH1-28: a signed `controlled_classes` set is `{ [medicineId]: class | "not_controlled" }`. The
+ * medicines signed controlled, with their class; nothing while the set is unsigned or malformed.
+ */
+export function controlledClasses(content: unknown): ReadonlyMap<string, string> {
+  if (!content || typeof content !== "object" || Array.isArray(content)) return new Map();
+  return new Map(
+    Object.entries(content as Record<string, unknown>).flatMap(([id, v]) =>
+      typeof v === "string" && v.trim() && v !== "not_controlled" ? [[id, v.trim()] as const] : [],
+    ),
+  );
+}
+
 /** CD-1: the class chip from signed data only; with no signed class, no class is named. */
 export const classLabel = (signedClass: string | null): string =>
   signedClass?.trim() || CONTROLLED_COPY.noClass;

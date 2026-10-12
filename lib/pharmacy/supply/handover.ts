@@ -126,6 +126,8 @@ export interface HandoverPlan {
   language?: string | null;
   payment: { status: PaymentStatus; detail?: string | null };
   suppliedAt: Date;
+  /** CD-2: the standing witness attestation of a controlled supply; on each controlled movement. */
+  witnessAttestationId?: string | null;
 }
 
 /** What the server read under the locks for one line of the plan. */
@@ -169,6 +171,12 @@ export interface HandoverFacts {
   >;
   batches: readonly Batch[];
   balances: ReadonlyMap<string, number>;
+  /**
+   * CD-2: the controlled supply's own checks passed (pharmacy.controlled, a standing witness, a committed
+   * count of each batch, both paper attestations, the witness's agreement). Only then is a controlled
+   * line supplied here, and only on a pharmacist's acceptance.
+   */
+  controlledCleared?: boolean;
 }
 
 export type RefusalCode =
@@ -295,7 +303,8 @@ function checkLine(
     ];
   if (f.status.kind === "closed")
     return [refuse("has_outcome", fill(HANDOVER_COPY.hasOutcome, { Medicine }))];
-  if (f.controlled) return [refuse("controlled", fill(HANDOVER_COPY.controlled, { Medicine }))];
+  if (f.controlled && !facts.controlledCleared)
+    return [refuse("controlled", fill(HANDOVER_COPY.controlled, { Medicine }))];
 
   const out: Refusal[] = [];
 
@@ -303,6 +312,7 @@ function checkLine(
   const basis = reviewBasis(f.lane, line.lineId, f.reviewEvents);
   const cleared =
     basis !== null &&
+    (f.controlled ? basis.kind === "accepted" : true) &&
     (basis.kind !== "supplied_without_review" ||
       supplyWithoutReviewAllowed({
         ...facts.supplyWithoutReview,
@@ -652,7 +662,7 @@ export function handoverWrites(
         reasonCode: null,
         sourceKind: "supply",
         sourceId: supplyId,
-        witnessAttestationId: null,
+        witnessAttestationId: f.controlled ? (plan.witnessAttestationId ?? null) : null,
         downtime: false,
       });
       if (basis?.kind === "supplied_without_review")

@@ -40,6 +40,7 @@ import {
   prescriptionPrintEvents,
 } from "@/db/schema/pharmacy-dispensing";
 import { prescriptions } from "@/db/schema/prescribing";
+import { controlledClasses } from "@/lib/pharmacy/controlled";
 import { LANE_REASON_ORDER, laneFor } from "@/lib/pharmacy/lanes";
 import { inScope, lineStatus } from "@/lib/pharmacy/lines";
 import { byWrittenOrder, laneOf, placementKey } from "@/lib/pharmacy/queue";
@@ -88,6 +89,8 @@ export interface HospitalContext {
   rule: LaneRule;
   /** D-PH1-29: the signed high-risk list's medicine ids, or null when none is signed. */
   highRisk: ReadonlySet<string> | null;
+  /** CD-1, CT-7: the signed controlled class of each medicine signed controlled (none while unsigned). */
+  controlledClasses: ReadonlyMap<string, string>;
 }
 
 export const pointIsLive = (p: Pick<PointRow, "liveAt" | "switchedOffAt">) =>
@@ -156,7 +159,7 @@ export async function loadHospitalContext(
         and(
           eq(pharmacySignedSets.hospitalId, hospitalId),
           eq(pharmacySignedSets.status, "signed"),
-          inArray(pharmacySignedSets.kind, ["lane_rule", "high_risk_list"]),
+          inArray(pharmacySignedSets.kind, ["lane_rule", "high_risk_list", "controlled_classes"]),
         ),
       ),
   ]);
@@ -178,6 +181,9 @@ export async function loadHospitalContext(
       highRisk && highRisk.content && typeof highRisk.content === "object"
         ? new Set(Object.keys(highRisk.content as Record<string, unknown>))
         : null,
+    controlledClasses: controlledClasses(
+      sets.find((s) => s.kind === "controlled_classes")?.content,
+    ),
   };
 }
 
@@ -325,7 +331,11 @@ export async function loadGroups(
   >();
   const add = (list: RxRow[]) => {
     const fresh = list.filter((r) => !rows.has(r.id));
-    for (const r of fresh) rows.set(r.id, r);
+    for (const r of fresh) {
+      // CD-1, S61: a medicine signed controlled is controlled on every path, flagged at prescribing or not.
+      if (ctx.controlledClasses.has(r.drugId)) r.controlled = true;
+      rows.set(r.id, r);
+    }
     return fresh;
   };
   let fresh = add(await rowsWhere(database, hospitalId, seed));
@@ -414,6 +424,7 @@ export async function loadGroups(
           patientTold: pharmacyLineEvents.patientTold,
           dispensingPointId: pharmacyLineEvents.dispensingPointId,
           enteredAfterDowntime: pharmacyHandovers.enteredAfterDowntime,
+          clientKey: pharmacyLineEvents.clientKey,
         })
         .from(pharmacyLineEvents)
         .leftJoin(pharmacyHandovers, eq(pharmacyHandovers.id, pharmacyLineEvents.handoverId))
@@ -531,12 +542,13 @@ export async function loadGroups(
   }
 
   const eventsOf = new Map<string, LoadedEvent[]>();
-  for (const e of events) {
+  for (const { clientKey, ...e } of events) {
     const le: LoadedEvent = {
       ...e,
       kind: e.kind as LineEventKind,
       lane: e.lane,
-      enteredAfterDowntime: e.enteredAfterDowntime === true,
+      // DT-9: a "not supplied" row from a downtime sheet has no hand-over; its key marks it.
+      enteredAfterDowntime: e.enteredAfterDowntime === true || !!clientKey?.startsWith("dtns:"),
     };
     eventsOf.set(e.prescriptionId, [...(eventsOf.get(e.prescriptionId) ?? []), le]);
   }

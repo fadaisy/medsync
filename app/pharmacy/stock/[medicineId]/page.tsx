@@ -9,8 +9,10 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { Tag } from "@/components/medsync/tag";
 import { PHARMACY } from "@/content/pharmacy";
 import { DELIVERY_FROM, expiryText, stateWord, STOCK } from "@/content/pharmacy-stock";
+import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { noProductText } from "@/lib/pharmacy/catalogue";
+import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { getStockDetail, pointsBesides } from "@/lib/pharmacy/stock/read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -50,13 +52,16 @@ export default async function StockMedicinePage({
   const medicineId = decodeURIComponent((await params).medicineId);
   const point = actor.points.find((p) => p.id === actor.pointId);
   if (!point || !/^[a-z0-9_]{2,80}$/.test(medicineId)) notFound();
-  const [d, points] = await Promise.all([
+  const [d, points, signed] = await Promise.all([
     getStockDetail(actor, point, medicineId),
     pointsBesides(actor.hospitalId, point.id),
+    controlledMedicineIds(db, actor.hospitalId),
   ]);
   if (!d) notFound();
-
-  const canStock = actor.access.permissions.has("pharmacy.stock") && !d.controlled;
+  // CD-1, CD-5: a controlled medicine is received, counted and moved with a witness, on its own page.
+  const controlled = d.controlled || signed.has(d.medicineId);
+  const holdsStock = actor.access.permissions.has("pharmacy.stock");
+  const canStock = holdsStock && !controlled;
   const here = d.products.filter((p) => p.atPoint);
   const dialogProducts: DialogProduct[] = here.map((p) => ({
     id: p.id,
@@ -118,17 +123,27 @@ export default async function StockMedicinePage({
                   <TransferDialog batches={batches} points={points} />
                 ) : null}
                 <FoundDialog what={d.name} medicineId={d.medicineId} products={dialogProducts} />
-                <AddProductDialog medicineId={d.medicineId} />
               </>
             ) : null}
-            {d.manages && !d.controlled ? (
+            {holdsStock ? <AddProductDialog medicineId={d.medicineId} /> : null}
+            {d.manages ? (
               <LevelDialog what={d.name} medicineId={d.medicineId} unit={unit} current={d.level} />
             ) : null}
           </>
         }
       />
 
-      {d.controlled ? <CautionNotice tone="neutral" lead={STOCK.controlledNextStep} /> : null}
+      {controlled ? (
+        <CautionNotice tone="neutral" lead={STOCK.controlledWitnessed}>
+          <Link
+            href={`/pharmacy/controlled?medicine=${encodeURIComponent(d.medicineId)}`}
+            prefetch={false}
+            className="font-medium text-teal-700 underline-offset-4 hover:underline"
+          >
+            {STOCK.toControlled}
+          </Link>
+        </CautionNotice>
+      ) : null}
       {here.length === 0 ? <CautionNotice tone="neutral" lead={noProductText(point.name)} /> : null}
 
       {d.openDifferences.length ? (
@@ -208,7 +223,7 @@ export default async function StockMedicinePage({
                             ) : b.balance < 0 ? (
                               <StatusWord tone="caution">{STOCK.state.count_needed}</StatusWord>
                             ) : null}
-                            {d.manages && !d.controlled ? <CorrectDialog batch={b} /> : null}
+                            {d.manages && !controlled ? <CorrectDialog batch={b} /> : null}
                           </span>
                         </td>
                       </tr>

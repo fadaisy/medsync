@@ -483,7 +483,9 @@ export async function saveLineDecisions(ctx: PharmacyCtx, input: z.infer<typeof 
     if (!line) throw new EmrWriteError("invalid", "Each line must be of this prescription.");
     const stage = stageOf(line);
     if (stage !== "to_review" && stage !== "ready") throw conflict(refusal(line));
-    if (line.row.controlled) throw conflict(REVIEW.review.controlledBeforeStep7);
+    // CD-4: a controlled line's rest is never bought outside; it is supplied on the controlled screen.
+    if (line.row.controlled && d.kind === "part" && d.rest === "buying_outside")
+      throw conflict(REVIEW.notOnShelf.controlled);
     if (
       group.lane.lane === "pharmacist_first" &&
       reviewBasis(group.lane.lane, line.row.id, line.reviewEvents) === null

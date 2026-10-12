@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
@@ -39,8 +40,8 @@ const TD = "px-3 py-2 align-top";
 /**
  * Downtime entry (5.12, artboard 1.9, wireframe §12.2), the set-up half: the sheets at the acting
  * point and their states, the count still to enter, Print blank sheets, Record a downtime and Void a
- * sheet number (the in-charge), Record a drill, and H6's list of sheets nobody has named. Entering
- * the rows of a sheet comes with the hand-over (DT-3). Behind `pharmacyDowntime`; no patient here.
+ * sheet number (the in-charge), Record a drill, and H6's list of sheets nobody has named. A sheet to
+ * enter opens its row-by-row entry (enter/[sheet]). Behind `pharmacyDowntime`; no patient here.
  */
 export default async function DowntimePage() {
   const actor = await requirePharmacyActor();
@@ -120,6 +121,9 @@ export default async function DowntimePage() {
                   <th scope="col" className={TH}>
                     {D.columns.note}
                   </th>
+                  <th scope="col" className={TH}>
+                    <span className="sr-only">{D.enter}</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-border divide-y">
@@ -133,6 +137,18 @@ export default async function DowntimePage() {
                     </td>
                     <td className={`${TD} tabular-nums`}>{when.format(s.reservedAt)}</td>
                     <td className={TD}>{note(s)}</td>
+                    <td className={TD}>
+                      {s.state === "to_enter" ? (
+                        <Link
+                          href={`/pharmacy/downtime/enter/${s.number}`}
+                          prefetch={false}
+                          className="text-body-s font-medium text-teal-700 underline-offset-4 hover:underline"
+                        >
+                          {D.enter}
+                          <span className="sr-only"> {pharmacySheetLabel(s.number)}</span>
+                        </Link>
+                      ) : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>

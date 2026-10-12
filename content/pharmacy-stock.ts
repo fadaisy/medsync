@@ -63,8 +63,10 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 export const STOCK = {
   title: "Stock",
-  /** X-16, until Step 7. */
-  controlledNextStep: "Controlled drugs are set up in the next step.",
+  /** Replaces X-16 now that Step 7 is built (draft staff copy). */
+  controlledWitnessed:
+    "A controlled drug is received, counted and moved with a witness, on the Controlled drugs page.",
+  toControlled: "Open Controlled drugs",
   /** X-15. */
   noLevelNeverLow: "A medicine with no reorder level set is never shown as low.",
   /** X-3. */

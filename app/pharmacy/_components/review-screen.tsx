@@ -117,16 +117,12 @@ export function ReviewScreen(props: ReviewScreenProps) {
   );
   const lineNo = new Map(data.lines.map((l, i) => [l.id, i + 1]));
   // 5.3: Continue once at least one line is to be supplied and every other line has a decision, an
-  // outcome or an open query. A controlled line is supplied on paper until Step 7 and does not hold it up.
+  // outcome or an open query. A controlled line goes to the controlled supply with the rest (CD-2).
   const staged = (l: ReviewLineView) =>
     l.status?.kind === "stage" && l.status.stage === "ready" && !!l.staged;
-  const toSupply = live.filter((l) => staged(l) && !l.input.controlled);
+  const toSupply = live.filter(staged);
   const waiting = live.filter(
-    (l) =>
-      l.status?.kind === "stage" &&
-      l.status.stage !== "queried" &&
-      !staged(l) &&
-      !l.input.controlled,
+    (l) => l.status?.kind === "stage" && l.status.stage !== "queried" && !staged(l),
   );
   const canContinue = canDispense && data.pointLive && toSupply.length > 0 && !waiting.length;
 
@@ -478,7 +474,6 @@ function LineBody({
           )}
         </p>
       ) : null}
-      {r.controlled ? <CautionNotice lead={R.controlledBeforeStep7} /> : null}
       {s && !replaced && line.status?.kind !== "closed" ? (
         <dl className="text-body-s grid gap-x-6 gap-y-1 sm:grid-cols-2">
           <div className="flex flex-col">
@@ -608,11 +603,7 @@ function LineActions({
   const accepted = !!line.basis;
   const toReview = s.stage === "to_review";
   const queried = data.queries.some((q) => q.lineIds.includes(line.id));
-  const decidable =
-    canDispense &&
-    !reviewOnly &&
-    !line.input.controlled &&
-    (s.stage === "ready" || (toReview && !pf));
+  const decidable = canDispense && !reviewOnly && (s.stage === "ready" || (toReview && !pf));
   const unit = line.shelf?.issueUnit ?? "units";
   const name = line.input.drugName;
   return (

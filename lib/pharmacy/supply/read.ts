@@ -27,6 +27,8 @@ import {
 import { prescriptions } from "@/db/schema/prescribing";
 import { cadres } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
+import { classLabel } from "@/lib/pharmacy/controlled";
+import { countableBatches } from "@/lib/pharmacy/controlled-read";
 import { quantityLeft } from "@/lib/pharmacy/lines";
 import { cadreOfUsers } from "@/lib/pharmacy/read";
 import {
@@ -57,6 +59,7 @@ const uniq = <T>(xs: readonly T[]) => [...new Set(xs)];
 
 export interface HandoverLineView {
   lineId: string;
+  medicineId: string;
   medicine: string;
   concentration: string | null;
   /** Law 7: each stored field as stored, joined only by the separator the review screen uses. */
@@ -67,7 +70,25 @@ export interface HandoverLineView {
   /** LO-9: what is left to supply, where recorded. */
   left: number | null;
   staged: StagedDecision | null;
+  /** CD-1: a controlled line. Its batches carry no balance here: the count comes first (CD-3). */
+  controlled: boolean;
   stock: LineStock;
+}
+
+/** 5.9: the controlled supply's head and the cupboard to count, for a hand-over with a controlled line. */
+export interface ControlledHandover {
+  /** CD-1: the class from signed data, or "Controlled drug" with no class. */
+  classLabel: string;
+  /** CD-8, B-08. */
+  changedSincePrinting: boolean;
+  prescriber: string | null;
+  medicines: {
+    medicineId: string;
+    name: string;
+    unit: string;
+    /** Every batch in the cupboard to count (an expired, empty one is not), without its figure. */
+    batches: { id: string; batchNumber: string; expiry: string; expiryMonthOnly: boolean }[];
+  }[];
 }
 
 export interface HandoverData {
@@ -82,8 +103,8 @@ export interface HandoverData {
     | { kind: "without"; reason: string }
     | null;
   lines: HandoverLineView[];
-  /** Until Step 7: controlled lines have no supply decision here (B-13). */
-  controlled: string[];
+  /** 5.9: set when any line is controlled; the whole hand-over then goes through the controlled supply. */
+  controlled: ControlledHandover | null;
   labelMode: "printed" | "by_hand";
   pointName: string | null;
   pointLive: boolean;
@@ -111,19 +132,12 @@ export async function getHandover(
   if (!g || g.scope !== "supply") return null;
   const picked = g.lines.filter((l) => {
     const s = l.status;
-    if (!s || l.row.controlled) return false;
+    if (!s) return false;
     if (supplyNowLineId) return l.row.id === supplyNowLineId && s.kind === "open";
     return (
       s.kind === "stage" && s.stage === "ready" && l.events.some((e) => e.kind === "decision_saved")
     );
   });
-  const controlled = g.lines
-    .filter(
-      (l) =>
-        l.row.controlled &&
-        (l.status?.kind === "open" || (l.status?.kind === "stage" && l.status.stage === "ready")),
-    )
-    .map((l) => l.row.drugName);
   const pointRow = h.points.find((p) => p.id === point?.id) ?? null;
   const [shelf, routes, counselling, attempts, wardStaff, people] = await Promise.all([
     loadShelf(
@@ -191,6 +205,7 @@ export async function getHandover(
       const decided = staged ? staged.quantity + (staged.notSupplied ?? 0) : null;
       return {
         lineId: l.row.id,
+        medicineId: l.row.drugId,
         medicine: l.row.drugName,
         concentration: l.row.concentration,
         directions: [l.row.dose, l.row.route, l.row.frequency].filter(Boolean).join(" · "),
@@ -198,10 +213,14 @@ export async function getHandover(
         status: s.kind === "open" ? s.outcome : "ready",
         left: quantityLeft(s, decided),
         staged: s.kind === "open" ? null : staged,
-        stock: lineStock(shelf, point?.id ?? null, l.row.drugId, now, l.row.concentration),
+        controlled: l.row.controlled,
+        stock: blind(
+          lineStock(shelf, point?.id ?? null, l.row.drugId, now, l.row.concentration),
+          l.row.controlled,
+        ),
       };
     }),
-    controlled,
+    controlled: controlledOf(g, picked, h.controlledClasses, shelf, point?.id ?? null, now),
     labelMode: point?.labelMode ?? "printed",
     pointName: pointRow?.name ?? null,
     pointLive: pointRow ? pointIsLive(pointRow) : false,
@@ -213,6 +232,51 @@ export async function getHandover(
     wardStaff,
     typedCheck: { attemptsLeft: attemptsLeft(attempts, localDate(now)) },
     serverNow: now.toISOString(),
+  };
+}
+
+/** CD-3: a controlled line's batches go to the screen without their figures. */
+const blind = (stock: LineStock, controlled: boolean): LineStock =>
+  controlled ? { ...stock, batches: stock.batches.map((b) => ({ ...b, balance: 0 })) } : stock;
+
+function controlledOf(
+  g: NonNullable<Awaited<ReturnType<typeof loadGroupByKey>>>,
+  picked: typeof g.lines,
+  classes: ReadonlyMap<string, string>,
+  shelf: Awaited<ReturnType<typeof loadShelf>>,
+  pointId: string | null,
+  now: Date,
+): ControlledHandover | null {
+  const lines = picked.filter((l) => l.row.controlled);
+  if (!lines.length) return null;
+  const today = localDate(now);
+  const medicineIds = [...new Set(lines.map((l) => l.row.drugId))];
+  const signed = [
+    ...new Set(medicineIds.flatMap((m) => (classes.get(m) ? [classes.get(m)!] : []))),
+  ];
+  return {
+    classLabel: classLabel(signed.join(", ") || null),
+    changedSincePrinting: g.changedSincePrint,
+    prescriber: g.prescriberCadre,
+    medicines: medicineIds.map((medicineId) => {
+      const stock = lineStock(shelf, pointId, medicineId, now);
+      const batches = countableBatches(
+        stock.batches,
+        new Map(stock.batches.map((b) => [b.id, b.balance])),
+        today,
+      );
+      return {
+        medicineId,
+        name: lines.find((l) => l.row.drugId === medicineId)!.row.drugName,
+        unit: stock.products[0]?.issueUnit ?? "",
+        batches: batches.map((b) => ({
+          id: b.id,
+          batchNumber: b.batchNumber,
+          expiry: b.expiry,
+          expiryMonthOnly: b.expiryMonthOnly,
+        })),
+      };
+    }),
   };
 }
 

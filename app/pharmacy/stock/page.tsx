@@ -7,7 +7,9 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { StatCard } from "@/components/medsync/stat-card";
 import { PHARMACY } from "@/content/pharmacy";
 import { expiryText, STOCK } from "@/content/pharmacy-stock";
+import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { getStockPage } from "@/lib/pharmacy/stock/read";
 import { DRUGS } from "@/lib/prescribing/formulary";
@@ -41,27 +43,37 @@ export default async function StockPage() {
       </div>
     );
   const now = new Date();
-  const data = await getStockPage(actor, point, now);
+  const [data, signed] = await Promise.all([
+    getStockPage(actor, point, now),
+    controlledMedicineIds(db, actor.hospitalId),
+  ]);
   const canStock = actor.access.permissions.has("pharmacy.stock");
+  // CD-5: a controlled product moves only with a witness, on the Controlled drugs page.
+  const plain = (medicineId: string) =>
+    !signed.has(medicineId) && !DRUGS.find((d) => d.id === medicineId)?.flags.controlled;
   const unitOf = new Map(data.products.map((p) => [p.id, p.issueUnit]));
-  const batches: DialogBatch[] = data.batches.map((b) => ({
-    id: b.id,
-    productId: b.productId,
-    medicineId: b.medicineId,
-    medicineName: b.medicineName,
-    batchNumber: b.batchNumber,
-    expiryText: expiryText(b),
-    issueUnit: unitOf.get(b.productId) ?? "",
-  }));
-  const products: DialogProduct[] = data.products.map((p) => ({
-    id: p.id,
-    medicineName: data.rows.find((r) => r.medicineId === p.medicineId)?.name ?? p.medicineId,
-    name: p.name,
-    issueUnit: p.issueUnit,
-  }));
-  const medicines = DRUGS.filter((d) => !d.flags.controlled)
-    .map((d) => ({ id: d.id, name: d.generic }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const batches: DialogBatch[] = data.batches
+    .filter((b) => plain(b.medicineId))
+    .map((b) => ({
+      id: b.id,
+      productId: b.productId,
+      medicineId: b.medicineId,
+      medicineName: b.medicineName,
+      batchNumber: b.batchNumber,
+      expiryText: expiryText(b),
+      issueUnit: unitOf.get(b.productId) ?? "",
+    }));
+  const products: DialogProduct[] = data.products
+    .filter((p) => plain(p.medicineId))
+    .map((p) => ({
+      id: p.id,
+      medicineName: data.rows.find((r) => r.medicineId === p.medicineId)?.name ?? p.medicineId,
+      name: p.name,
+      issueUnit: p.issueUnit,
+    }));
+  const medicines = DRUGS.map((d) => ({ id: d.id, name: d.generic })).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
   const F = STOCK.figures;
   const fig = data.figures;
 
@@ -144,7 +156,7 @@ export default async function StockPage() {
       <StockTable rows={data.rows.map((r) => tableRow(r, now))} />
 
       <p className="text-muted-foreground text-body-s">
-        {STOCK.noLevelNeverLow} {STOCK.controlledNextStep}
+        {STOCK.noLevelNeverLow} {STOCK.controlledWitnessed}
       </p>
     </div>
   );

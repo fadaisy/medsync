@@ -11,8 +11,10 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LOG_PAGE } from "@/content/pharmacy-golive";
 import { expiryText } from "@/content/pharmacy-stock";
 import { LOOK_BACK_REASONS, SUPPLY } from "@/content/pharmacy-supply";
+import { DOWNTIME_DRAFT_COPY } from "@/lib/pharmacy/downtime";
 import { cn } from "@/lib/utils";
 import { TARGET } from "../../_components/review-dialogs";
 import { CorrectDialog, LookBackDialog, ReverseDialog } from "../../_components/supply-dialogs";
@@ -41,6 +43,10 @@ export function Supplied(props: {
   canReprint: boolean;
   canLookBack: boolean;
   timeZone: string;
+  /** Law 13: "Entered after downtime · Supplied … · entered … · sheet …", by hand-over. */
+  downtimeTags: Record<string, string>;
+  /** DT-5: the medicine as written, by supply, for supplies against a paper prescription. */
+  paperMedicines: Record<string, string>;
 }) {
   const [tab, setTab] = useState<Tab>(props.initialTab);
   const [anotherOnly, setAnotherOnly] = useState(false);
@@ -83,9 +89,18 @@ export function Supplied(props: {
         placeInTopBar
         title={props.title}
         right={
-          props.pointName ? (
-            <span className="text-body-s text-muted-foreground">{props.pointName}</span>
-          ) : null
+          <span className="flex flex-wrap items-center gap-3">
+            {props.pointName ? (
+              <span className="text-body-s text-muted-foreground">{props.pointName}</span>
+            ) : null}
+            <Link
+              href={`/pharmacy/supplied/log?day=${props.day}`}
+              prefetch={false}
+              className="text-body-s font-medium text-teal-700 underline-offset-4 hover:underline"
+            >
+              {LOG_PAGE.link}
+            </Link>
+          </span>
         }
       />
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -203,12 +218,23 @@ export function Supplied(props: {
                                   {S.another(r.identifiedAnotherWay)}
                                 </span>
                               ) : null}
+                              {props.downtimeTags[r.handoverId] ? (
+                                <span className="text-caption mt-1">
+                                  <StatusWord tone="neutral">
+                                    {props.downtimeTags[r.handoverId]}
+                                  </StatusWord>
+                                </span>
+                              ) : null}
                             </span>
                           </td>
                           <td className="px-3 py-3" colSpan={2}>
                             <ul className="flex flex-col gap-3">
                               {r.lines.map((l) => {
                                 const struck = !!l.reversed || !!l.inError;
+                                // A paper-prescription supply has no prescription line to reverse or
+                                // correct through Step 6's actions; it shows the medicine as written.
+                                const paper = props.paperMedicines[l.lineId];
+                                const medicine = l.medicine || paper || "";
                                 const batches = l.batches
                                   .map((b) => `${b.number} · ${expiryText(b)}`)
                                   .join(", ");
@@ -219,7 +245,7 @@ export function Supplied(props: {
                                         {struck ? (
                                           <span className="sr-only">{S.reversedSr} </span>
                                         ) : null}
-                                        {l.medicine}{" "}
+                                        {medicine}{" "}
                                         <span className="font-mono tabular-nums">
                                           {l.quantity} {l.unit}
                                         </span>
@@ -250,7 +276,7 @@ export function Supplied(props: {
                                     {l.inError ? (
                                       <span className="text-caption">{S.inError(l.inError)}</span>
                                     ) : null}
-                                    {!struck && !l.controlled ? (
+                                    {!struck && !l.controlled && !paper ? (
                                       <span className="flex flex-wrap gap-2">
                                         {props.canReverse && r.reversible ? (
                                           <ReverseDialog
@@ -332,7 +358,14 @@ export function Supplied(props: {
                 ) : (
                   props.lookBack.map((l) => {
                     const p = who(l.patientUserId);
-                    const why = l.reasons.map((x) => LOOK_BACK_REASONS[x] ?? x).join("; ");
+                    const why = l.reasons
+                      .map(
+                        (x) =>
+                          LOOK_BACK_REASONS[x] ??
+                          DOWNTIME_DRAFT_COPY[x as keyof typeof DOWNTIME_DRAFT_COPY] ??
+                          x,
+                      )
+                      .join("; ");
                     return (
                       <tr key={l.supplyId} className="align-top">
                         <td className="px-3 py-3 font-mono whitespace-nowrap tabular-nums">

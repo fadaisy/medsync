@@ -1223,10 +1223,8 @@ describe.skipIf(!laneOn)("pharmacy hand-over and supply (Step 6, S35–S55)", ()
     expect(cdWithout).toMatchObject({ ok: false });
     const cdHandover = await handover(pharmacist(), [planLine(cd!, p, [[b.id, 1]])]);
     expect(cdHandover).toMatchObject({ ok: false });
-    if (!cdHandover.ok)
-      expect(cdHandover.error).toBe(
-        "Supply this on paper as you do today. MedSync does not record controlled supplies yet.",
-      );
+    // Step 7: the plain hand-over sends a controlled line to the controlled supply (CD-1, CD-2).
+    if (!cdHandover.ok) expect(cdHandover.error).toContain("Use the controlled supply.");
     await pg.query(
       `UPDATE public.pharmacy_hospital_settings SET supply_without_pharmacist = false WHERE hospital_id = $1`,
       [f.h],

@@ -27,6 +27,7 @@ import {
 } from "@/db/schema/pharmacy-dispensing";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { isMedicine } from "@/lib/pharmacy/catalogue";
+import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
 import { loadPoint } from "@/lib/pharmacy/write";
 import { drugById } from "@/lib/prescribing/formulary";
 import { correctBatch, expiresOn, isExpired, localDate } from "./ledger";
@@ -37,7 +38,10 @@ import { correctBatch, expiresOn, isExpired, localDate } from "./ledger";
  * point is the acting point the write path checked, the database guard (0124) refuses a live
  * movement below zero, and every row carries the actor. The client key becomes the id of the row a
  * write creates, so a retried request finds its own row and returns it (no client_key columns on
- * these tables). A controlled medicine is refused everywhere until the witnessed path (Step 7).
+ * these tables). A controlled medicine (CD-1) moves only with a witness (CD-5): receive, adjust,
+ * transfer and correct batch details take the standing attestation from `controlled-store.ts`, which
+ * checks it and `pharmacy.controlled` and writes the controlled entry; a controlled count is
+ * `recordControlledCount` there. Without one, a controlled medicine is refused here.
  */
 
 export type StockResult<R> = ActionResult<R>;
@@ -225,9 +229,22 @@ function pointOf(ctx: PharmacyCtx): PharmacyPoint {
   return ctx.point;
 }
 
-const refuseControlled = (medicine: string) => {
-  if (drugById(medicine)?.flags.controlled) throw fail("config", STOCK.controlledNextStep);
-};
+/**
+ * CD-1, CD-5: a controlled medicine moves only with a witness. Returns the attestation to put on its
+ * movements (null for any other medicine).
+ */
+async function witnessFor(
+  ctx: PharmacyCtx,
+  medicine: string,
+  witness: string | null,
+): Promise<string | null> {
+  const controlled =
+    !!drugById(medicine)?.flags.controlled ||
+    (await controlledMedicineIds(ctx.tx, ctx.actor.hospitalId)).has(medicine);
+  if (!controlled) return null;
+  if (!witness) throw fail("config", STOCK.controlledWitnessed);
+  return witness;
+}
 
 /** A retried request: the row its client key created, at this hospital. */
 async function replayed(
@@ -355,6 +372,7 @@ async function move(
     reasonNote?: string | null;
     deliveryFrom?: string | null;
     deliveryRef?: string | null;
+    witnessAttestationId?: string | null;
   },
 ): Promise<string> {
   const { pointId, ...rest } = m;
@@ -390,7 +408,6 @@ async function newProduct(
   p: Omit<z.infer<typeof ProductInput>, "clientKey"> & { clientKey?: string },
   addedAtWindow: boolean,
 ): Promise<string> {
-  refuseControlled(p.medicineId);
   const [row] = await ctx.tx
     .insert(pharmacyProducts)
     .values({
@@ -414,12 +431,16 @@ async function newProduct(
 /* ─── Writes ──────────────────────────────────────────────────────────── */
 
 /** 5.8 Receive stock (S1, S6). */
-export async function receiveStock(ctx: PharmacyCtx, input: z.infer<typeof ReceiveInput>) {
+export async function receiveStock(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof ReceiveInput>,
+  witness: string | null = null,
+) {
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
   const product = await productOf(ctx, input.productId);
-  refuseControlled(product.medicineId);
+  const witnessAttestationId = await witnessFor(ctx, product.medicineId, witness);
   if (!product.active) throw fail("conflict", "That product has been ended.");
   await placeProduct(ctx, product.id, point.id);
   const batchId = await batchFor(ctx, point.id, product.id, input.batchNumber, input.expiry);
@@ -432,8 +453,9 @@ export async function receiveStock(ctx: PharmacyCtx, input: z.infer<typeof Recei
     sourceKind: "delivery",
     deliveryFrom: input.from,
     deliveryRef: input.deliveryRef,
+    witnessAttestationId,
   });
-  return { id, batchId };
+  return { id, batchId, medicineId: product.medicineId };
 }
 
 /** 5.3.1 Add a batch found on the shelf (S8); a new product is marked "Added at the window". */
@@ -444,10 +466,11 @@ export async function addBatchFoundOnShelf(ctx: PharmacyCtx, input: z.infer<type
   let productId: string;
   if ("productId" in input) {
     const product = await productOf(ctx, input.productId);
-    refuseControlled(product.medicineId);
+    await witnessFor(ctx, product.medicineId, null);
     await placeProduct(ctx, product.id, point.id);
     productId = product.id;
   } else {
+    await witnessFor(ctx, input.newProduct.medicineId, null);
     productId = await newProduct(ctx, point.id, input.newProduct, true);
   }
   const batchId = await batchFor(
@@ -491,8 +514,10 @@ export async function recordCount(ctx: PharmacyCtx, input: z.infer<typeof CountI
 
   if (await replayed(ctx.tx, pharmacyCounts, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey, lines: await countLines(ctx.tx, input.clientKey) };
-  if (input.medicineId) refuseControlled(input.medicineId);
-  const scoped = await ctx.tx
+  // A controlled medicine is counted with a witness, on the Controlled drugs page (CD-3, CD-5).
+  if (input.medicineId) await witnessFor(ctx, input.medicineId, null);
+  const controlled = await controlledMedicineIds(ctx.tx, ctx.actor.hospitalId);
+  const all = await ctx.tx
     .select({
       id: pharmacyBatches.id,
       batchNumber: pharmacyBatches.batchNumber,
@@ -509,13 +534,15 @@ export async function recordCount(ctx: PharmacyCtx, input: z.infer<typeof CountI
       ),
     )
     .for("update", { of: pharmacyBatches });
+  const scoped = all.filter(
+    (b) => !controlled.has(b.medicineId) && !drugById(b.medicineId)?.flags.controlled,
+  );
   const byId = new Map(scoped.map((b) => [b.id, b]));
   const typed = new Map(input.lines.map((l) => [l.batchId, l.counted]));
   if (typed.size !== input.lines.length) throw fail("invalid", "Each batch is counted once.");
   for (const id of typed.keys()) {
     const b = byId.get(id);
     if (!b) throw fail("not_found", "That batch is not at this dispensing point.");
-    refuseControlled(b.medicineId);
   }
   const balance = await balancesOf(
     ctx.tx,
@@ -632,12 +659,16 @@ async function correctCount(
 }
 
 /** 5.8 Adjust (S3): a signed quantity and a coded reason; `other` with text. */
-export async function adjustStock(ctx: PharmacyCtx, input: z.infer<typeof AdjustInput>) {
+export async function adjustStock(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof AdjustInput>,
+  witness: string | null = null,
+) {
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
   const batch = await batchAt(ctx, input.batchId, point.id);
-  refuseControlled(batch.medicineId);
+  const witnessAttestationId = await witnessFor(ctx, batch.medicineId, witness);
   const id = await move(ctx, {
     id: input.clientKey,
     pointId: point.id,
@@ -647,8 +678,9 @@ export async function adjustStock(ctx: PharmacyCtx, input: z.infer<typeof Adjust
     sourceKind: "adjustment",
     reasonCode: input.reasonCode,
     reasonNote: input.note,
+    witnessAttestationId,
   });
-  return { id };
+  return { id, medicineId: batch.medicineId };
 }
 
 /**
@@ -656,7 +688,11 @@ export async function adjustStock(ctx: PharmacyCtx, input: z.infer<typeof Adjust
  * transaction. The destination gets the same batch (number and expiry), made if absent. Sent for a
  * request, the request closes with the movement.
  */
-export async function transferStock(ctx: PharmacyCtx, input: z.infer<typeof TransferInput>) {
+export async function transferStock(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof TransferInput>,
+  witness: string | null = null,
+) {
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
@@ -664,7 +700,7 @@ export async function transferStock(ctx: PharmacyCtx, input: z.infer<typeof Tran
   const to = await loadPoint(ctx.tx, ctx.actor.hospitalId, input.toPointId);
   if (!to) throw fail("not_found", "That dispensing point is not at your hospital.");
   const batch = await batchAt(ctx, input.batchId, point.id);
-  refuseControlled(batch.medicineId);
+  const witnessAttestationId = await witnessFor(ctx, batch.medicineId, witness);
 
   const request = input.requestId ? await openRequest(ctx, input.requestId, point.id) : null;
   if (request && (request.fromPointId !== to.id || request.medicineId !== batch.medicineId))
@@ -683,21 +719,23 @@ export async function transferStock(ctx: PharmacyCtx, input: z.infer<typeof Tran
     quantity: -input.quantity,
     sourceKind: "transfer",
     sourceId: input.clientKey,
+    witnessAttestationId,
   });
-  await move(ctx, {
+  const inId = await move(ctx, {
     pointId: to.id,
     batchId: there,
     kind: "transfer_in",
     quantity: input.quantity,
     sourceKind: "transfer",
     sourceId: out,
+    witnessAttestationId,
   });
   if (request)
     await ctx.tx
       .update(pharmacyStockRequests)
       .set({ closedAt: ctx.now, closedBy: ctx.actor.userId, transferMovementId: out })
       .where(eq(pharmacyStockRequests.id, request.id));
-  return { id: out };
+  return { id: out, inId, toPointId: to.id, medicineId: batch.medicineId };
 }
 
 /** An open request that this point was asked, or (to withdraw it) made. */
@@ -816,12 +854,16 @@ export async function setCountFreshness(ctx: PharmacyCtx, input: z.infer<typeof 
  * SL-11, S11: a mistyped batch number or expiry (manage). The correction row comes first, then the
  * batch, in this transaction (the 0124 guard insists); movements are untouched.
  */
-export async function correctBatchDetails(ctx: PharmacyCtx, input: z.infer<typeof CorrectInput>) {
+export async function correctBatchDetails(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof CorrectInput>,
+  witness: string | null = null,
+) {
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyBatchCorrections, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
   const batch = await batchAt(ctx, input.batchId, point.id);
-  refuseControlled(batch.medicineId);
+  const witnessAttestationId = await witnessFor(ctx, batch.medicineId, witness);
   const change = correctBatch(batch, {
     batchNumber: input.batchNumber,
     expiry: input.expiry.expiry,
@@ -858,6 +900,7 @@ export async function correctBatchDetails(ctx: PharmacyCtx, input: z.infer<typeo
       newExpiry: c.newExpiry,
       actorUserId: ctx.actor.userId,
       reason: c.reason,
+      witnessAttestationId,
     })
     .returning({ id: pharmacyBatchCorrections.id });
   await ctx.tx
@@ -868,5 +911,5 @@ export async function correctBatchDetails(ctx: PharmacyCtx, input: z.infer<typeo
       expiryMonthOnly: input.expiry.monthOnly,
     })
     .where(eq(pharmacyBatches.id, batch.id));
-  return { id: row!.id };
+  return { id: row!.id, medicineId: batch.medicineId };
 }
