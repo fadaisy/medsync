@@ -889,3 +889,54 @@ screen are the baseline (Phase 0's queue tests pass).
 
 **Drafted wording:** query types, keep reasons, stop reasons and outcome reasons are drafted lists, acting only
 outside production until signed.
+
+---
+
+## STOP 6 — Hand-over and supply (12 Oct 2026; the first merge)
+
+Commit `9e86e10a`. Behind `pharmacyDispensing` and a live point.
+
+**What it does:**
+
+- **`recordHandover` is one transaction.** It locks every line (sorted) and the batches, re-checks, writes exactly
+  the engine's rows, and stamps the payment status.
+- **Identity:** the second identifier is typed and compared on the server, by blind index with a decrypt fallback,
+  and is never shown. Five wrong tries per patient per day close it; the in-charge reopens it.
+- **Labels:** one per batch, directions byte for byte, by hand where the point says so.
+- **Supplied today,** with the look-back tab.
+- **Reversal** on the same day, fit or written off.
+- **"Recorded in error"** later.
+- **Supply now** from Open lines.
+- **Ward-staff collectors** with inpatient supply on.
+
+| Scenario | Result (PGlite lane, `tests/emr-db/pharmacy-supply.test.ts`)                                                                                                                                               |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S35      | One hand-over, 3 supplies, 3 movements; each batch down by exactly its quantity; each supply names batch and expiry. 39 ms warm (PGlite in-process; production timing in the final report)                 |
+| S36      | Name alone refused; five wrong dates of birth logged as outcomes only, the fifth closes the check; another way passes and is listed and counted; the in-charge reopens; no response carries a stored value |
+| S37      | A representative's name and relationship stored                                                                                                                                                            |
+| S38      | Split across two batches in expiry order: two supplies, two movements, two labels                                                                                                                          |
+| S39      | A batch other than first to expire needs a reason, at the decision and at hand-over                                                                                                                        |
+| S40–S41  | Part supply, the rest owed or bought outside; a later Supply now of part keeps it open; more than owed refused                                                                                             |
+| S42      | "Batch FX-… now holds 7. Choose again." Nothing written                                                                                                                                                    |
+| S43      | The second point refused: "…was already supplied at Fixture point A, HH:MM." (concurrent version: the owner-run race test)                                                                                 |
+| S44      | "Changed by the prescriber at … Review it again." Nothing written                                                                                                                                          |
+| S45–S46  | A double tap writes one hand-over; awaiting co-sign refused                                                                                                                                                |
+| S47      | One label per batch, directions byte for byte; by hand: the tick, nothing printed                                                                                                                          |
+| S48      | A technician supplies another pack of the same strength; a different strength is refused for everyone until a strength mapping is signed (W4)                                                              |
+| S49–S50  | Nothing pre-filled; payment status required → "not recorded" refused, Emergency passes                                                                                                                     |
+| S51–S52  | Reversal fit / written off, the line back where it was, the prescriber told; next day not offered. "Recorded in error" moves no stock                                                                      |
+| S53–S55  | Supplied today count equals the day's hand-overs; D-PH1-05 off/on by fixture, controlled still refused; ward staff collector                                                                               |
+| S56      | No fixed widths; checked in the harness at the end                                                                                                                                                         |
+
+**Not built as specified:**
+
+- "Identified another way" is part of `recordHandover`, not a separate action.
+- Supply now uses first-expiry batches without the Change dialog.
+- Look-back offers "Looked at" only, not "Send a query".
+- The ward name is shown but not stored.
+- A label reprint needs a live point.
+
+**ADRs:** 0260 to 0279 are now all written.
+
+**First merge:** Steps 0 to 6 are complete on the branch. The owner can review and merge whenever they choose;
+nothing reaches production behaviour while the flags are off.
