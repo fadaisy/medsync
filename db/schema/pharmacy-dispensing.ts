@@ -608,3 +608,20 @@ export const prescriptionPrintEvents = pgTable("prescription_print_events", {
   printedBy: uuid("printed_by").notNull(),
   printedAt: timestamp("printed_at", tz).notNull().defaultNow(),
 });
+
+/* ─── 0131 payment status before the hand-over (SU-12) ─────────────── */
+
+export const pharmacyPaymentStatuses = pgTable("pharmacy_payment_statuses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  patientUserId: uuid("patient_user_id").notNull(),
+  prescriptionId: uuid("prescription_id").notNull(),
+  placementId: uuid("placement_id"),
+  status: text("status")
+    .$type<"paid" | "exempt" | "insured" | "emergency" | "not_recorded">()
+    .notNull(),
+  detail: text("detail"),
+  dispensingPointId: uuid("dispensing_point_id").notNull(),
+  actorUserId: uuid("actor_user_id").notNull(),
+  recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+});

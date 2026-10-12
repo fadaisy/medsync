@@ -73,6 +73,7 @@ const TABLES: [string, boolean][] = [
   ["pharmacy_hospital_settings", false],
   ["prescription_cancellations", true],
   ["prescription_print_events", true],
+  ["pharmacy_payment_statuses", true],
 ];
 
 /** Tables a prescriber who may prescribe for the patient reads (PA2-5); everything else is pharmacy-only. */
@@ -370,6 +371,11 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
       `INSERT INTO public.prescription_cancellations (prescription_id, hospital_id, patient_user_id, reason_code, actor_user_id)
        VALUES ($1, $2, $3, 'stopped', $4)`,
       [rx2, hA, pt, f.doctor],
+    );
+    await pg.query(
+      `INSERT INTO public.pharmacy_payment_statuses (hospital_id, patient_user_id, prescription_id, status,
+         dispensing_point_id, actor_user_id) VALUES ($1, $2, $3, 'paid', $4, $5)`,
+      [hA, pt, rx, pointA, tech],
     );
     await pg.query(
       `INSERT INTO public.prescription_print_events (prescription_id, hospital_id, patient_user_id, printed_by)
