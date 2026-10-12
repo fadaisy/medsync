@@ -820,3 +820,72 @@ detail is its own page, W10); both are not found with the flag off. The acting-p
 
 **Screenshots:** with the rest, at the end of Step 9 (the harness rebuilds its database from every migration on
 start).
+
+---
+
+## STOP 5 — Review, queries and outcomes (12 Oct 2026)
+
+Commits `2cf1921d` (both sides) and `e3316571` (the change link made atomic), plus migration 0131 (`e1008eb6`,
+payment status). Behind `pharmacyDispensing` and a live point. With the flag off, `/pharmacy` and every doctor
+screen are the baseline (Phase 0's queue tests pass).
+
+**The pharmacy side:**
+
+- the review queue: signed lanes, LN-4 with no rule, stages, the earlier-still-open group;
+- the review screen: acceptance, decisions, the overridden-stop block, changed lines struck through;
+- queries, with recipients resolved and a delivery step that never throws;
+- phone answers and disputes;
+- not on the shelf, and the A5 slip with its verification code (Find opens it, this hospital only);
+- Open lines, close as not collected, bring into the queue, payment status.
+
+**The prescriber side:**
+
+- the chip and the "{n} from the pharmacy" count on the plan step;
+- the query, with keep, change and stop;
+- the not-supplied notice;
+- `cancelPrescriptionLine` (D-PH1-41);
+- the print record on the doctor's prescription print (D-PH1-49; the paper is byte-identical, hash-checked);
+- the `user:<id>` nudge through the listener the doctor layout already mounts, with polling when unsubscribed.
+
+| Scenario | Result (PGlite lane)                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S12      | No signed rule: every prescription pharmacist-first. With a rule: plain → standard; stop, controlled, changed pre-set → pharmacist-first          |
+| S13      | A technician's forged accept refused; a forged not-supplied and a decision refused "Waiting for a pharmacist"                                     |
+| S14      | `accepted_overridden_stop` written; "Accept the remaining lines" takes only unflagged lines                                                       |
+| S15      | `notified` written for the prescriber; the message lands on `user:<doctor>`; the other two lines stay decidable. Timing in the harness at the end |
+| S16–S18  | Keep returns the line to review with the answer; change replaces it; stop cancels it                                                              |
+| S19      | Changing one line leaves a whole-prescription query open; "Changes made" closes it                                                                |
+| S20      | Delivery forced to fail: the query stands; "The prescriber has NOT been told…"; nothing threw                                                     |
+| S21      | Nobody to tell: not sent, "Nobody can be told…", answered by a logged phone keep; withdrawn → to review → owed                                    |
+| S22      | Phone keep answers via phone naming both people; "will change it" answers nothing; the named clinician's dispute reopens it                       |
+| S23      | A second clinician answers; a third attempt is shown the first and writes nothing; a nurse is refused                                             |
+| S24      | Owed listed under Open lines; no supply exists                                                                                                    |
+| S25      | The slip prints with a valid code that resolves for this hospital only; a controlled line is never offered buying outside                         |
+| S26      | Owed ⇄ buying outside, with the slip                                                                                                              |
+| S27      | Returned to the prescriber; an alternative chosen (old line replaced) or left as it is                                                            |
+| S28      | Awaiting co-sign: queried, no decision; after co-sign, to review                                                                                  |
+| S29      | Decline refused before a query; allowed after a keep; while open it closes the query                                                              |
+| S30      | 30 days later still listed; close as not collected                                                                                                |
+| S31      | Confirmed filled elsewhere, naming who said so                                                                                                    |
+| S32      | Before go-live: out of scope; brought into the queue                                                                                              |
+| S33      | Inpatient supply off: ward lines review-only; a standard ward prescription never appears                                                          |
+| S34      | Nurse, receptionist, another hospital's pharmacist refused at all 16 actions; nothing written                                                     |
+
+**Decided while building:**
+
+1. **Payment status** is its own append-only table (0131); the latest per prescription is in force. "Exempt" is
+   refused until a signed exemption list exists.
+2. **"Change" is atomic** (HZ-PH1-45): the replacement travels with the prescription into `placePlan`, which
+   cancels the old line naming the new one before commit. If the link is refused, nothing is placed.
+3. **Not-supplied acknowledgements** get their own table (0132, in progress), so "Leave it as it is" always records.
+4. **Prescriber writes live in `lib/emr/write/pharmacy-answers.ts`.** `lib/pharmacy` stays free of any write to
+   prescriptions, and its Law 2 test still holds.
+
+**Not built yet:**
+
+- the doctor-workspace lane badge (`FlowTask`);
+- "Send for it from another point" (it records owed and links to Stock; the request itself is made from Stock);
+- Find a prescription still searches the last 30 days.
+
+**Drafted wording:** query types, keep reasons, stop reasons and outcome reasons are drafted lists, acting only
+outside production until signed.
