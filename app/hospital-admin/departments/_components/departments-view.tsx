@@ -67,6 +67,8 @@ export function DepartmentsView(props: {
   departments: DepartmentRow[];
   /** Pharmacy units that are dispensing points → what each serves (Pharmacy Phase 0, ADR 0236). */
   points: Record<string, string>;
+  /** Pharmacy Phase 1 (5.13): each point links to its going-live page while `pharmacyDispensing` is on. */
+  goLive?: boolean;
   heads: { current: HeadRow[]; history: HeadRow[] };
   counts: Counts;
   pool: Person[];
@@ -209,6 +211,7 @@ export function DepartmentsView(props: {
           dept={open}
           all={departments}
           points={props.points}
+          goLive={props.goLive ?? false}
           heads={heads}
           counts={counts}
           pool={props.pool}
@@ -700,6 +703,7 @@ function DepartmentPanel({
   dept,
   all,
   points,
+  goLive,
   heads,
   counts,
   pool,
@@ -712,6 +716,7 @@ function DepartmentPanel({
   dept: DepartmentRow;
   all: DepartmentRow[];
   points: Record<string, string>;
+  goLive: boolean;
   heads: { current: HeadRow[]; history: HeadRow[] };
   counts: Counts;
   pool: Person[];
@@ -982,6 +987,7 @@ function DepartmentPanel({
                         <DispensingPoints
                           units={units}
                           points={points}
+                          goLive={goLive}
                           staff={counts.staff}
                           pending={hub.pending}
                           onServes={(id, serves) =>
@@ -1179,12 +1185,14 @@ const SERVES = [
 function DispensingPoints({
   units,
   points,
+  goLive,
   staff,
   pending,
   onServes,
 }: {
   units: DepartmentRow[];
   points: Record<string, string>;
+  goLive: boolean;
   staff: Record<string, number>;
   pending: boolean;
   onServes: (id: string, serves: string) => void;
@@ -1205,6 +1213,11 @@ function DispensingPoints({
               <th scope="col" className="px-3 py-2 font-medium">
                 Hours
               </th>
+              {goLive ? (
+                <th scope="col" className="px-3 py-2 font-medium">
+                  <span className="sr-only">Going live</span>
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
@@ -1240,12 +1253,32 @@ function DispensingPoints({
                     </select>
                   </td>
                   <td className="px-3 py-2">{u.serviceHours ?? "Not set"}</td>
+                  {goLive ? (
+                    <td className="px-3 py-2">
+                      {points[u.id] ? (
+                        <Link
+                          href={`/hospital-admin/departments/pharmacy/${u.id}`}
+                          className="inline-flex min-h-11 items-center text-teal-700 underline-offset-4 hover:underline sm:min-h-9"
+                        >
+                          Going live
+                        </Link>
+                      ) : null}
+                    </td>
+                  ) : null}
                 </tr>
               ))}
           </tbody>
         </table>
       </div>
       <p className="text-body-s text-muted-foreground">{PHARMACY.points.note}</p>
+      {goLive ? (
+        <Link
+          href="/hospital-admin/departments/pharmacy"
+          className="text-body-s text-teal-700 underline-offset-4 hover:underline"
+        >
+          Pharmacy settings
+        </Link>
+      ) : null}
     </div>
   );
 }

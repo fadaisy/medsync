@@ -6,8 +6,10 @@ import { cookies } from "next/headers";
 
 import { sentenceCase, WorkspaceShell } from "@/components/medsync/workspace-shell";
 import { PHARMACY } from "@/content/pharmacy";
+import { DOWNTIME_PAGE } from "@/content/pharmacy-golive";
 import { db } from "@/db";
 import { POINT_COOKIE } from "@/lib/pharmacy/actor";
+import { countSheetsToEnter } from "@/lib/pharmacy/downtime-store";
 import { pharmacyDispensingLiveFor, pharmacyDowntimeLiveFor } from "@/lib/pharmacy/feature";
 import { pharmacyNavFor } from "@/lib/pharmacy/nav";
 import { dosesCountFor, queueFor } from "@/lib/pharmacy/page-data";
@@ -38,17 +40,21 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
     dosesCountFor(scope.hospitalId),
   ]);
   const written = toRows(today.lines, today.encounters, scope.hospitalId).length;
+  const flags = {
+    dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
+    downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
+  };
+  // 5.12: the nav count of sheets still to enter, read only with the downtime flag on.
+  const sheets = flags.downtime ? await countSheetsToEnter(scope.hospitalId) : 0;
   const counts: Partial<Record<PharmacyNavEntry["id"], number>> = {
     queue: written,
     emergency: doses,
+    downtime: sheets,
   };
   const words: Partial<Record<PharmacyNavEntry["id"], string>> = {
     queue: PHARMACY.nav.queueCount(written),
     emergency: PHARMACY.nav.dosesCount(doses),
-  };
-  const flags = {
-    dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
-    downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
+    downtime: DOWNTIME_PAGE.toEnter(sheets),
   };
   const nav: PharmacyNavEntry[] = pharmacyNavFor(scope.access.permissions, flags).map((i) => ({
     id: i.id,
