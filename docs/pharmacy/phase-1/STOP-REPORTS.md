@@ -781,3 +781,42 @@ built:
 No lab test changed.
 
 **STOP 3.** No owner action. Step 4 is in progress.
+
+---
+
+## STOP 4 — Stock at the dispensing point (12 Oct 2026)
+
+Commit `d96c620e`, behind `pharmacyDispensing`. Routes `/pharmacy/stock` and `/pharmacy/stock/{medicineId}` (the
+detail is its own page, W10); both are not found with the flag off. The acting-point chooser is in the top bar
+(D-PH1-45). With the flag off, the layout reads no point and no cookie.
+
+| Scenario | Result (PGlite lane, `tests/emr-db/pharmacy-stock.test.ts`)                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1       | A receipt makes the balance the quantity, with one ledger row; a retry with the same key writes nothing more                                                  |
+| S2       | A matching blind count records "matched"; a differing one is saved, then shows both figures; with the reason, one correction is written                       |
+| S3       | No reason, or "Other" without text: refused. With a reason the balance moves; below zero is refused in words                                                  |
+| S4       | An expired batch shows "Expired, remove", is not offered by first expiry first out, and counts as nothing on the shelf                                        |
+| S5       | A transfer writes both movements. With a failure injected between them, neither exists. A transfer for a request closes it                                    |
+| S6       | The same batch number with another expiry is refused, showing both. A month and its last day are the same expiry                                              |
+| S7       | "No product" shown; a technician adds one. No reorder level means never Low. A controlled product is refused: "Controlled drugs are set up in the next step." |
+| S8       | A batch found on the shelf needs a reason and can then be chosen; a new product is marked "Added at the window"                                               |
+| S9       | A view-only actor is refused on all 11 writes and still reads the page                                                                                        |
+| S10      | Another hospital's pharmacist reads nothing (seven tables probed) and writes nothing                                                                          |
+| S11      | Only the in-charge corrects a batch; the old expiry and the first expiry are kept; no movement changes                                                        |
+
+**Choices:**
+
+- **The blind count saves in two steps.** The typed figures are saved with the recorded balance first. The reason
+  for a difference comes second, and only then is the correction movement written, with the reason on it. Asking
+  for the reason first would reveal that a difference exists.
+- **Retries:** every stock write uses the action's client key as the new row's id, so a retry finds the row it
+  already wrote.
+- **"Counted this week"** means the last 7 days.
+
+**Not built as dialogs** (the actions exist): a request to another point, setting a price, setting count freshness.
+
+**Phase 0 test changed:** the server-action file check in `tests/pharmacy/ui.test.ts` now admits
+`app/pharmacy/stock/actions.ts` and checks that its writes go through `runPharmacyWrite`.
+
+**Screenshots:** with the rest, at the end of Step 9 (the harness rebuilds its database from every migration on
+start).
