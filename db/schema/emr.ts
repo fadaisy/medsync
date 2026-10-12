@@ -172,11 +172,18 @@ export const devices = pgTable(
     calibratedOn: date("calibrated_on"),
     createdAt: timestamp("created_at", tz).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+    /* 0110: bedside registration (PC-2, PC-10). */
+    testCode: text("test_code"),
+    wardId: uuid("ward_id"),
+    state: text("state").notNull().default("not_verified"),
+    verifiedBy: uuid("verified_by"),
+    verifiedAt: timestamp("verified_at", tz),
+    verificationNote: text("verification_note"),
   },
   (t) => [
     check(
       "devices_kind_check",
-      sql`${t.kind} IN ('glucometer','ketone_meter','hba1c_analyser','bp_monitor')`,
+      sql`${t.kind} IN ('glucometer','ketone_meter','hba1c_analyser','bp_monitor','rdt_kit','dipstick')`,
     ),
     check(
       "devices_calibration_check",
@@ -213,6 +220,9 @@ export const testCatalogue = pgTable(
     turnaroundTargetMinutes: integer("turnaround_target_minutes"),
     favouriteRank: integer("favourite_rank"),
     active: boolean("active").notNull().default(true),
+    /** 0107: CC-8 (changed only by the CSO) and the hub offering it links to (OM-1). */
+    restrictedClass: text("restricted_class"),
+    offeringCode: text("offering_code"),
     createdAt: timestamp("created_at", tz).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
   },
@@ -532,6 +542,9 @@ export const specimens = pgTable(
     labelNo: text("label_no"),
     recordedAt: timestamp("recorded_at", tz).notNull().defaultNow(),
     clientKey: text("client_key"),
+    /** 0109: payment state at collection, and the reason when collected while awaiting (PY-3). */
+    paymentState: text("payment_state"),
+    paymentReason: text("payment_reason"),
   },
   (t) => [
     check(
@@ -579,9 +592,15 @@ export const specimenEvents = pgTable(
     actorCadre: text("actor_cadre").notNull(),
     recordedAt: timestamp("recorded_at", tz).notNull().defaultNow(),
     clientKey: text("client_key"),
+    /** 0109: profile pinned at receipt (AP-5), scan or click, Procedure followed (SR-3), undo (SR-5). */
+    profileId: uuid("profile_id"),
+    receivedVia: text("received_via"),
+    procedureFollowedAt: timestamp("procedure_followed_at", tz),
+    reversalOf: uuid("reversal_of"),
+    receiveReason: text("receive_reason"),
   },
   (t) => [
-    check("specimen_events_kind_check", sql`${t.kind} IN ('received','rejected')`),
+    check("specimen_events_kind_check", sql`${t.kind} IN ('received','rejected','receipt_undone')`),
     check(
       "specimen_events_reason_code_check",
       sql`${t.reasonCode} IS NULL OR ${t.reasonCode} IN ('haemolysed','clotted','insufficient','unlabelled_or_mislabelled','wrong_container','delayed')`,
@@ -620,6 +639,9 @@ export const diagnosticReports = pgTable(
     /** Signed REF-CRIT-* entries only; none signed yet. */
     critical: boolean("critical").notNull().default(false),
     uncatalogued: boolean("uncatalogued").notNull().default(false),
+    /** 0110: a bedside report carries its device and lot (P11). */
+    deviceId: uuid("device_id"),
+    lotId: uuid("lot_id"),
   },
   (t) => [
     ...factEnvelopeExtras("diagnostic_reports", t),

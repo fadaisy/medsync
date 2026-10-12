@@ -150,21 +150,21 @@ measures (`lib/lab/{catalogue,units,measures-setup}.ts`, migration 0103), ranges
 
 **Q2 The claims G1–G13.**
 
-| #   | Verdict                | Evidence                                                                                                                                                                                                              |
-| --- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| G1  | Confirmed              | Doctors order from `test_catalogue` (`lib/emr/read/orders.ts:151` `buildTestMenu`); `diagnostic_offerings` (0080:182) is read only by the worklist, by LOINC (`lib/lab/read.ts:94`). `getOrderingAvailability` (`lib/services/data.ts:841`) has no caller |
-| G2  | Confirmed              | `docs/emr/HARMONISATION.md:180-183`                                                                                                                                                                                   |
-| G3  | Confirmed              | No payment table or column. Only booking fees (`service_lines.fee_ugx`, 0058)                                                                                                                                         |
-| G4  | **Worse than claimed** | No label number is ever generated: `specimens.label_no` is written only if a caller passes it, and none does (`components/emr/orders/model.ts:297-311`). No check, no void                                           |
-| G5  | Confirmed              | `chart:<patient>` and `workspace:<hospital>` (0073, 0069), `user:<id>` (0106). The worklist refreshes on action                                                                                                      |
+| #   | Verdict                | Evidence                                                                                                                                                                                                                                                                        |
+| --- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1  | Confirmed              | Doctors order from `test_catalogue` (`lib/emr/read/orders.ts:151` `buildTestMenu`); `diagnostic_offerings` (0080:182) is read only by the worklist, by LOINC (`lib/lab/read.ts:94`). `getOrderingAvailability` (`lib/services/data.ts:841`) has no caller                       |
+| G2  | Confirmed              | `docs/emr/HARMONISATION.md:180-183`                                                                                                                                                                                                                                             |
+| G3  | Confirmed              | No payment table or column. Only booking fees (`service_lines.fee_ugx`, 0058)                                                                                                                                                                                                   |
+| G4  | **Worse than claimed** | No label number is ever generated: `specimens.label_no` is written only if a caller passes it, and none does (`components/emr/orders/model.ts:297-311`). No check, no void                                                                                                      |
+| G5  | Confirmed              | `chart:<patient>` and `workspace:<hospital>` (0073, 0069), `user:<id>` (0106). The worklist refreshes on action                                                                                                                                                                 |
 | G6  | Corrected              | The working diagnosis is the encounter's primary `conditions` row (`lib/emr/diagnoses.ts:86`). The fever-with-bleeding rules (`FLAG-EX-FEVER-BLEEDING`, `FLAG-VHF-*`) are evaluated live and never stored; `outbreak_mode` is per hospital (`hospital_clinical_settings`, 0076) |
-| G7  | Confirmed              | HbA1c is typed (`app/ncd/visit/[visitId]/_components/clinician-part.tsx:350`); the NCD registry never reads lab results. The diabetes pack does (`lib/ncd/pack/from-clerking.ts:724`)                                  |
-| G8  | Corrected              | A path exists: nurses enter point-of-care results for `capillary_direct` tests (`lib/emr/write/results.ts:92-100,487`), with no device, lot or operator record                                                       |
-| G9  | Confirmed              | `encounter_orders.intent_source = 'resus_handover'` (`db/schema/encounter.ts:239`)                                                                                                                                  |
-| G10 | Confirmed              | See Q1                                                                                                                                                                                                                |
-| G11 | Confirmed              | Collectors are ordering cadres, nurses and lab (`lib/emr/write/orders.ts:48`)                                                                                                                                         |
-| G12 | Corrected              | `pregnancy_episodes` holds state and LNMP; gestation is derived (`lib/facts/project/pregnancy.ts:30`), read with `loadFactSnapshot` as of a time                                                                      |
-| G13 | Confirmed              | No elevation anywhere; `hospitals` has latitude and longitude                                                                                                                                                         |
+| G7  | Confirmed              | HbA1c is typed (`app/ncd/visit/[visitId]/_components/clinician-part.tsx:350`); the NCD registry never reads lab results. The diabetes pack does (`lib/ncd/pack/from-clerking.ts:724`)                                                                                           |
+| G8  | Corrected              | A path exists: nurses enter point-of-care results for `capillary_direct` tests (`lib/emr/write/results.ts:92-100,487`), with no device, lot or operator record                                                                                                                  |
+| G9  | Confirmed              | `encounter_orders.intent_source = 'resus_handover'` (`db/schema/encounter.ts:239`)                                                                                                                                                                                              |
+| G10 | Confirmed              | See Q1                                                                                                                                                                                                                                                                          |
+| G11 | Confirmed              | Collectors are ordering cadres, nurses and lab (`lib/emr/write/orders.ts:48`)                                                                                                                                                                                                   |
+| G12 | Corrected              | `pregnancy_episodes` holds state and LNMP; gestation is derived (`lib/facts/project/pregnancy.ts:30`), read with `loadFactSnapshot` as of a time                                                                                                                                |
+| G13 | Confirmed              | No elevation anywhere; `hospitals` has latitude and longitude                                                                                                                                                                                                                   |
 
 **Q3 The hub.** `diagnostic_offerings` (hospital, kind lab/imaging, code; `provision` in_house, referred or
 not_offered; `hours` 24h or scheduled; `stated_tat`; `referred_to`; `confirmed_at` NULL means planned). Lab
@@ -181,7 +181,7 @@ availability shown.
 
 **Q5 Orders.** `encounter_orders` is one row per test, immutable once on the events lifecycle (0071:413);
 state is derived from `encounter_order_events`. Priority `routine|urgent|immediate|emergency`. Free text: the
-encrypted `reason_text_ciphertext` (500 chars), already shown as the order's reason. Proposal: it *is* the
+encrypted `reason_text_ciphertext` (500 chars), already shown as the order's reason. Proposal: it _is_ the
 clinical question (no second field).
 
 **Q6 Collection.** `collectSpecimen` (`lib/emr/write/specimens.ts:74`) from the doctor and nurse order panels;
@@ -250,3 +250,43 @@ The main simplifications: one signed-configuration table instead of nine; the cr
 versioned measures; the order's existing reason text as the clinical question; the identity reveal's access
 log reused for the working diagnosis; a bedside report recognised by its device. Seventeen differences from
 the prompts are listed with reasons in §1 of the proposal.
+
+## STOP 2: Data layer (12 Oct 2026)
+
+**Migrations** (written, not applied; the owner applies them, in order, after 0106):
+
+| File                        | What it adds                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0107_lab_catalogue_v2.sql` | 8 curated units; `lab_signed_configs` (one two-signature store, payload frozen once signed); research provenance, verification and rejection on range bands; method and IDMS on measures; eGFR, payment mode and procedure link in lab settings; restricted class (CC-8, CrAg kept) and offering code on tests; `analyser_profiles` (frozen in use); `research_imports`; interpretation, profile, method and lab-only on snapshots |
+| `0108` (Step 4)             | Reserved for the generated concept addendum v1.6                                                                                                                                                                                                                                                                                                                                                                                   |
+| `0109_lab_one_menu.sql`     | `lab_labels` (numbered, voidable once), `lab_payment_events` (an emergency never changes), `lab_identity_checks`, `lab_high_risk_events`; payment at collection; profile, scan, procedure and undo on receipt; the `lab:<hospital>` channel                                                                                                                                                                                        |
+| `0110_lab_bedside.sql`      | Device state and verification on 0071's `devices`; `poct_lots`; `poct_operators`; device and lot on reports                                                                                                                                                                                                                                                                                                                        |
+| `0111_ncd_lab_feed.sql`     | Result references and outside results on the NCD visit                                                                                                                                                                                                                                                                                                                                                                             |
+
+**Drizzle parity:** `tests/emr-db/drizzle-parity.test.ts` 214 of 214 (new file `db/schema/lab-catalogue.ts`,
+columns added to six existing tables).
+
+**RLS and append-only probes** (`tests/emr-db/lab-phase2-data.test.ts`, 12 of 12):
+
+| Probe                                                                                                  | Result |
+| ------------------------------------------------------------------------------------------------------ | ------ |
+| No client INSERT, UPDATE or DELETE on any of the 9 new tables                                          | pass   |
+| Anonymous reads nothing                                                                                | pass   |
+| Another hospital's reader sees none of hospital A's rows                                               | pass   |
+| The lab (lab_work access) sees label, payment, check and warning; a clinician without access sees none | pass   |
+| Payment, identity and high-risk events, imports and lots are append-only for the owner too             | pass   |
+| A signed configuration needs two different signers, freezes, only moves forward, one signed per key    | pass   |
+| A band with an open verification cannot be signed until the check is recorded (RI-5)                   | pass   |
+| An emergency's payment state never changes (PY-2)                                                      | pass   |
+| A label is only voided, once; one live label per order                                                 | pass   |
+| An analyser profile in use is frozen                                                                   | pass   |
+| A device is in use only with a recorded verification                                                   | pass   |
+| The lab channel reaches only that hospital's lab staff (LV-5), with ids and event names                | pass   |
+
+The cashier's restricted-name probe needs the cashier function, which comes with the cashier at Step 6.
+
+**Flags:** `LAB_CATALOGUE_V2`, `LAB_ONE_MENU`, `LAB_PAYMENT`, `LAB_COLLECTION_CHECK`, `LAB_BENCH`,
+`LAB_HIGH_RISK`, `LAB_BEDSIDE`, `NCD_LAB_FEED` (`lib/lab/feature.ts`). All stay off in production while the
+Appendix A copy (`content/lab-phase-2.ts`) is `draft`. `.env.example` is untouched.
+
+**Checks:** typecheck clean, lint clean on the new files.

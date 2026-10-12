@@ -26,6 +26,10 @@ export const labSettings = pgTable("lab_settings", {
   labPhone: text("lab_phone"),
   secondCheck: boolean("second_check").notNull().default(false),
   smsLive: boolean("sms_live").notNull().default(false),
+  /* 0107 */
+  reportEgfr: boolean("report_egfr").notNull().default(false),
+  paymentMode: text("payment_mode").notNull().default("off"),
+  highRiskProcedure: text("high_risk_procedure"),
   updatedBy: uuid("updated_by"),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });
@@ -166,6 +170,9 @@ export const labComponentMeasures = pgTable("lab_component_measures", {
   loincCode: text("loinc_code"),
   entryCheckLow: numeric("entry_check_low"),
   entryCheckHigh: numeric("entry_check_high"),
+  /* 0107: the method is versioned with the measure (ME-1). */
+  methodCode: text("method_code"),
+  idmsTraceable: boolean("idms_traceable"),
   supersededBy: uuid("superseded_by"),
   authoredBy: uuid("authored_by").notNull(),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
@@ -193,6 +200,11 @@ export const labResultSnapshots = pgTable("lab_result_snapshots", {
   flagChangedBy: uuid("flag_changed_by"),
   entryCheckConfirmedBy: uuid("entry_check_confirmed_by"),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  /* 0107: what flagged it (DS-9), the profile and method in force, lab-only rows (AP-6). */
+  interpretation: jsonb("interpretation"),
+  profileId: uuid("profile_id"),
+  methodCode: text("method_code"),
+  labOnly: boolean("lab_only").notNull().default(false),
 });
 
 /* ─── 0104 ranges and limits ───────────────────────────────────────── */
@@ -205,6 +217,7 @@ export const referenceRangeVersions = pgTable("reference_range_versions", {
   unitUcum: text("unit_ucum").notNull(),
   inForceFrom: timestamp("in_force_from", tz),
   ...signedSet,
+  importHash: text("import_hash"),
 });
 
 export const referenceRangeBands = pgTable("reference_range_bands", {
@@ -216,6 +229,13 @@ export const referenceRangeBands = pgTable("reference_range_bands", {
   low: numeric("low"),
   high: numeric("high"),
   source: text("source").notNull(),
+  /* 0107: research drafts (RI-2, RI-5, RI-6). */
+  provenance: jsonb("provenance"),
+  verification: text("verification"),
+  checkNote: text("check_note"),
+  checkedBy: uuid("checked_by"),
+  checkedAt: timestamp("checked_at", tz),
+  rejectedReason: text("rejected_reason"),
 });
 
 export const criticalLimitVersions = pgTable("critical_limit_versions", {

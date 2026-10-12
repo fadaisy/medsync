@@ -1,5 +1,6 @@
 import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
 import { CRITICALS_COPY_STATUS } from "@/content/lab-criticals";
+import { LAB2_COPY_STATUS } from "@/content/lab-phase-2";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -41,3 +42,24 @@ export const labUnitsRangesLiveFor = (hospitalId: string) =>
 export const labDowntimeLiveFor = (hospitalId: string) =>
   workspaceLiveFor(process.env.LAB_DOWNTIME, hospitalId, [], "lab_downtime") &&
   labWorkspaceLiveFor(hospitalId);
+
+/**
+ * Lab Phase 2 (one menu, one record; gate-a-proposal §8): eight per-hospital flags, off by default. Each
+ * needs the lab workspace except the NCD feed, and all stay off in production while the Phase 2 copy
+ * (Appendix A) is unsigned. With all eight off, behaviour is Phase 1's.
+ */
+const phase2 = (v: string | undefined, tag: string, hospitalId: string, needsLab = true) =>
+  workspaceLiveFor(v, hospitalId, [LAB2_COPY_STATUS], tag) &&
+  (!needsLab || labWorkspaceLiveFor(hospitalId));
+export const labCatalogueV2LiveFor = (h: string) =>
+  phase2(process.env.LAB_CATALOGUE_V2, "lab_catalogue_v2", h);
+export const labOneMenuLiveFor = (h: string) => phase2(process.env.LAB_ONE_MENU, "lab_one_menu", h);
+export const labPaymentLiveFor = (h: string) => phase2(process.env.LAB_PAYMENT, "lab_payment", h);
+export const labCollectionCheckLiveFor = (h: string) =>
+  phase2(process.env.LAB_COLLECTION_CHECK, "lab_collection_check", h);
+export const labBenchLiveFor = (h: string) => phase2(process.env.LAB_BENCH, "lab_bench", h);
+export const labHighRiskLiveFor = (h: string) =>
+  phase2(process.env.LAB_HIGH_RISK, "lab_high_risk", h);
+export const labBedsideLiveFor = (h: string) => phase2(process.env.LAB_BEDSIDE, "lab_bedside", h);
+export const ncdLabFeedLiveFor = (h: string) =>
+  phase2(process.env.NCD_LAB_FEED, "ncd_lab_feed", h, false);
