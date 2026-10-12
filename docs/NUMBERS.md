@@ -19,7 +19,7 @@ the work merges. Highest numbers are read across `origin/main` and every local a
 | ADR 0280            | Several accounts in one browser                                | `feat/multi-account`       | 11 Oct 2026 | used                         |
 | migration 0140–0146 | Pharmacy Phase 1 (extends the pharmacy block to 0122–0146)     | `feat/pharmacy-dispensing` | 11 Oct 2026 | claimed                      |
 | migration 0107–0111 | Lab Phase 2 (catalogue v2, one menu, bedside, NCD feed)        | `feat/lab-one-menu`        | 12 Oct 2026 | used (unapplied)             |
-| ADR 0251–0259       | Lab Phase 2                                                    | `feat/lab-one-menu`        | 12 Oct 2026 | claimed                      |
+| ADR 0251–0259       | Lab Phase 2                                                    | `feat/lab-one-menu`        | 12 Oct 2026 | used                         |
 
 On `origin/main` (cf404abd, 11 Oct 2026) the highest migration is **0121** and the highest ADR **0280**.
 

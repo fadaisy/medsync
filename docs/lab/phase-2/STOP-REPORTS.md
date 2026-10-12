@@ -419,3 +419,72 @@ concepts; the NCD data inventory regenerated for the two new visit columns).
 fixture hospital): 7 tests linked, 33 cannot be ordered yet — the starting state a lab lead works through.
 
 **Not built here**: the "Also at the bedside" line needs the bedside device register (Step 8).
+
+## STOP 6: Payment, collection check and the high-risk warning (12 Oct 2026)
+
+**Built**: payment state per order line (events; emergency fixed at placement and refused any later change by the
+database), the payment modes, the cashier's list (`/reception/lab-payments`, a database function returning
+identifiers, unrestricted names and a restricted count), label numbers issued at placement and printable before
+collection, the label check inside "collected" (every check recorded, no override, void and print new), the high-risk
+warning per encounter (the clerking desk's fever-with-bleeding rules flag it once; a clinician flags or clears it with
+a reason) on collection, the label, the request form, the worklist, the specimen page and the downtime form, and the
+payment and procedure settings.
+
+**Scenarios** (`tests/emr-db/lab-collection.test.ts`, 9 of 9): G4 red then green, S26, S27, S28, S30 (at the database),
+S31, S32, S33, S34 (data), S35, S37. S29 does not apply: no event changes an order's priority after placement.
+**Harness**: the collection sheet (high-risk block, procedure, Awaiting payment with the reason rule, label to print,
+unknown label refused, the right label matched), the cashier list, the printed label with HIGH-RISK SPECIMEN, the
+request form; axe 0 on each at 1440 and 390 px.
+
+## STOP 7: The bench (12 Oct 2026)
+
+**Built**: scan to receive (one action, scoped to the hospital, idempotent, "Receive anyway" with a reason), undo within
+five minutes, the live worklist (`lab:<hospital>`, with "Live updates paused. Refreshing every 15 seconds." when the
+channel is down), Find a specimen, the clinical question on the worklist and the specimen page, the working
+diagnosis revealed on demand (logged, masked when restricted), and Procedure followed for a high-risk receipt, now
+enforced in the receive write itself (by scan and by click).
+
+**Scenarios** (`tests/emr-db/lab-bench.test.ts`, 6 of 6): S38, S39, S40, S41, S44, S45; S43 in the data layer. S42: the
+harness has no realtime server, so the worklist shows the amber fallback line and polls (seen in the shot); the
+realtime path itself is proven by the channel test at STOP 2.
+
+## STOP 8: Bedside tests (12 Oct 2026)
+
+**Built**: the device, lot and operator register (Lab settings), the bedside form for nurses
+(`/nurse/patients/[patientId]/bedside`: test, fasting answer, device, lot, value or the meter's HI/LO, measured time,
+"Not for diagnosis", the doctor's preview), bedside results as orders fulfilled at the bedside (intent `bedside`, no
+label, never held for payment) carrying their device and lot, and the Bedside tag in the doctor's results and the chart.
+
+**Scenarios** (`tests/emr-db/lab-bedside.test.ts`, 6 of 6): S46, S47, S48, S49, S50, S53 and PC-2. S51 (the dipstick
+pads) and S52 (a bedside HbA1c device) follow from the same paths but have no dedicated test. S54 (the timed trial):
+not run, as no trial users were available. **Not built**: marking a bedside result critical (PC-9: the HI prompt is
+there, the mark is not), the bedside entry from the doctor's patient page, and the "Also at the bedside" line when
+ordering.
+
+## STOP 9: The NCD feed (12 Oct 2026)
+
+**Built**: field mappings (concept, unit, methods, look-back window) drafted and signed by the registry lead, then the
+CSO, with no default in code (`/ncd/admin/lab-feed`); "From the lab" on the visit (filled values read-only with their
+source, previous value and amendment line; reasons when nothing is usable; results in another unit listed, never
+dropped); the hand-typed HbA1c replaced by the filled value; the visit's references saved with the clinician's part;
+outside results with their laboratory, converted by plain factor only.
+
+**Scenarios** (`tests/emr-db/ncd-lab-feed.test.ts`, 6 of 6): G7 red then green, S55, S56, S59, S60, S62; an unlinked
+registry person is said so. **Not built**: NF-8 (the diabetes pack keeps its own reader: its look-back windows are signed
+pack data, and moving it to the feed's windows needs the CSO); S58 (bedside fasting glucose into the field) is a mapping
+choice the tests do not exercise; S61 holds where the pack's and the mapping's windows agree. **Found in the research
+data**: four unit factors run the opposite way to the rest (UACR mg/g, direct LDL mg/dL, D-dimer µg/L FEU and DDU);
+they are left out of the addendum, so an outside result in those units is refused rather than mis-converted. The CSO
+should confirm them before they return.
+
+## STOP 10: Hardening and documents (12 Oct 2026)
+
+- **S63** (all flags off = Phase 1): S18 (catalogue), G1 and G4 red runs, S37 (collection), the bench-off UI test, and the
+  flag gates on every new query.
+- **S64**: `tests/design/red-reserved.test.ts` extended to every Phase 2 surface outside `app/lab` and `lib/lab`, and to
+  the high-risk block (amber, icon, words, never red). 36 of 36.
+- **S65**: the realtime payload carries `specimenId`, `event`, `at` only (STOP 2 test). No new SMS or push string.
+- **S66**: every event table is append-only for the database owner (STOP 2), which the service role is.
+- **Checks**: typecheck, lint, the full suite (445 files, 10,113 tests, 0 failed with the PGlite lane on) and the
+  production build all pass.
+- **Documents**: ADRs 0251–0259, `hazard-log.md`, `user-guide.md`, `import-report.md`, `FINAL-REPORT.md`.

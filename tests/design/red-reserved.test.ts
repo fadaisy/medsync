@@ -669,3 +669,47 @@ describe("red is reserved — the critical-result alert", () => {
     }
   });
 });
+
+// ─── Lab Phase 2 (Law 12, S64): every new surface outside app/lab and lib/lab ──────────────
+
+describe("red is reserved — Lab Phase 2 surfaces", () => {
+  const PHASE2 = tree(
+    "app/reception/lab-payments",
+    "app/nurse/patients/[patientId]/bedside",
+    "app/ncd/admin/lab-feed",
+    "components/lab",
+  ).concat(
+    (
+      [
+        "content/lab-phase-2.ts",
+        "components/emr/orders/collect-view.tsx",
+        "components/emr/orders/use-collect-lab.ts",
+        "app/ncd/visit/[visitId]/_components/from-the-lab.tsx",
+        "app/ncd/visit/[visitId]/_components/outside-result.tsx",
+        "lib/ncd/lab-feed.ts",
+        "lib/ncd/lab-feed-read.ts",
+        "lib/ncd/lab-feed-actions.ts",
+      ] as const
+    ).map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),
+  );
+
+  it("adds no red: payment, labels, bedside, the NCD feed and the live line are amber or neutral", () => {
+    expect(PHASE2.length).toBeGreaterThan(8);
+    for (const [path, src] of PHASE2) {
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+      expect(src, path).not.toMatch(/\b(?:text|bg|border|ring)-(?:red|rose|green|emerald)-\d/);
+      expect(src, path).not.toMatch(/border-l-\d|border-l-(?:grape|plum|teal|amber)/);
+    }
+  });
+
+  it("D-LAB2-05: the high-risk warning is amber with an icon and words, never red", () => {
+    const view = stripComments(
+      readFileSync(resolve(ROOT, "components/emr/orders/collect-view.tsx"), "utf8"),
+    );
+    const block = view.slice(view.indexOf("export function HighRiskBlock"));
+    expect(block).toMatch(/status-caution/);
+    expect(block).toMatch(/Icon/);
+    expect(block).not.toMatch(/critical|destructive|red-|rose-/);
+  });
+});
