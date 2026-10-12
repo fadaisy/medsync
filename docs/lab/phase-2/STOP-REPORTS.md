@@ -290,3 +290,37 @@ The cashier's restricted-name probe needs the cashier function, which comes with
 Appendix A copy (`content/lab-phase-2.ts`) is `draft`. `.env.example` is untouched.
 
 **Checks:** typecheck clean, lint clean on the new files.
+
+## STOP 3: Engines (12 Oct 2026)
+
+Pure engines, no UI. **66 new tests, all passing**; the lab suites with Phase 1 and the PGlite lane: 30 files,
+347 tests, all passing. Typecheck and lint clean.
+
+| File                                                       | Rules                                                                                                                        |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `lib/lab/signed-config.ts`                                 | Payload schemas for every signed kind; `inForce`; scheme sign checks (no gap, no overlap)                                    |
+| `lib/lab/interpretation.ts`                                | DS-1 to DS-11, CC-9 (IFCC display from the signed REF entry)                                                                 |
+| `lib/lab/ranges.ts` (Phase 1)                              | ME-2 (method bands first), RI-6 (rejected alternatives never used or checked)                                                |
+| `lib/lab/egfr.ts`                                          | EG-1 to EG-3: the equation's shape only; every constant, and the adult age, from the REF entry                               |
+| `lib/lab/profiles.ts` + `data/lab/analyser-models.v1.json` | AP-1 to AP-6; DH-615 (27 codes) and 3-part (19 codes) from the research                                                      |
+| `lib/lab/research-import.ts`                               | RI-1 to RI-8                                                                                                                 |
+| `lib/lab/one-menu.ts`                                      | OM-1 to OM-5 (wrapping the hub's own `orderingAvailability`), PY-1 to PY-3, ID-1, SR-1 to SR-5, LV-4, CX-2, CX-4, HR-1, HR-2 |
+| `lib/lab/bedside.ts`                                       | PC-2 to PC-7, PC-10, AL-2                                                                                                    |
+| `lib/ncd/lab-feed.ts`                                      | NF-1 to NF-3, NF-7                                                                                                           |
+| `lib/lab/display.ts`                                       | DP-1 to DP-3                                                                                                                 |
+
+**Property test (PY-3):** every priority × source × payment mode × reason (4 × 5 × 3 × 4 = 240 cases). No
+input makes an Immediate, emergency or resus order uncollectable.
+
+**The import, planned on the real file:** 44 reference drafts (410 bands; in 33 of them two sources
+disagree and the lead must choose), 23 scheme drafts (72 bands), 8 verification blockers (all the Lugada CD4
+absolute bands), 2 rejections (ESR's two age-continuous formula bands, entered by hand), and 11 concepts not
+imported (kit-specific and INR). Every scheme draft is unsignable as imported, because the research prints its
+category limits as closed ranges with gaps between them (STOP 0 A6, A7). A person sets each boundary in the
+scheme table before signing. That is deliberate: the importer guesses no inclusivity.
+
+**Not in Step 3, and where it lands:** DS-9's snapshot and the eGFR recalculation on amendment (EG-4) need the
+write path (Step 4); AP-5's pinning at receipt (Step 7); OM-6 and OM-7 at ordering (Step 5); PY-4, PY-5, ID-2,
+ID-3, ID-5 to ID-7 (Step 6); CX-1, CX-3, HR-3 to HR-5 (Steps 6–7); PC-1, PC-8, PC-9 (Step 8); NF-4 to NF-6,
+NF-8 (Step 9). There is no `outside_hours` state: the hub stores hours as free text ("scheduled" plus a note),
+so the menu shows the hub's own words instead of computing "Done from {time}".

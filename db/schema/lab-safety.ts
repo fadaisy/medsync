@@ -236,6 +236,8 @@ export const referenceRangeBands = pgTable("reference_range_bands", {
   checkedBy: uuid("checked_by"),
   checkedAt: timestamp("checked_at", tz),
   rejectedReason: text("rejected_reason"),
+  /** ME-2: a band for one method only; NULL = any method. */
+  methodCode: text("method_code"),
 });
 
 export const criticalLimitVersions = pgTable("critical_limit_versions", {

@@ -44,6 +44,18 @@ export function compareDecimal(a: string, b: string): -1 | 0 | 1 {
 
 export const isDecimal = (s: string) => DECIMAL.test(s);
 
+/** Exact sum of two decimal strings, at the larger scale: "11.0" + "0.8" → "11.8". */
+export function addDecimal(a: string, b: string): string {
+  const x = scaled(a);
+  const y = scaled(b);
+  const s = Math.max(x.scale, y.scale);
+  const n = x.n * 10n ** BigInt(s - x.scale) + y.n * 10n ** BigInt(s - y.scale);
+  const neg = n < 0n;
+  const digits = (neg ? -n : n).toString().padStart(s + 1, "0");
+  const out = s ? `${digits.slice(0, -s)}.${digits.slice(-s)}` : digits;
+  return neg ? `-${out}` : out;
+}
+
 // ─── UN-1: a numeric component needs its unit ────────────────────────────
 
 export type ResultableCheck = { ok: true } | { ok: false; reason: "no_unit" | "no_measure" };

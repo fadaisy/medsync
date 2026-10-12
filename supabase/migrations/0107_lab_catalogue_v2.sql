@@ -80,7 +80,8 @@ ALTER TABLE public.reference_range_bands
   ADD COLUMN IF NOT EXISTS check_note text CHECK (check_note IS NULL OR char_length(check_note) BETWEEN 3 AND 500),
   ADD COLUMN IF NOT EXISTS checked_by uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
   ADD COLUMN IF NOT EXISTS checked_at timestamptz,
-  ADD COLUMN IF NOT EXISTS rejected_reason text CHECK (rejected_reason IS NULL OR char_length(rejected_reason) BETWEEN 3 AND 300);
+  ADD COLUMN IF NOT EXISTS rejected_reason text CHECK (rejected_reason IS NULL OR char_length(rejected_reason) BETWEEN 3 AND 300),
+  ADD COLUMN IF NOT EXISTS method_code text CHECK (method_code IS NULL OR method_code ~ '^[a-z0-9_]{2,40}$');  -- ME-2
 -- A band with an open verification problem cannot be in a signed set (RI-5): the check must be recorded.
 CREATE OR REPLACE FUNCTION private.lab_version_checks_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = public, pg_temp AS $$

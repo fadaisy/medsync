@@ -19,6 +19,10 @@ export interface RangeBand {
   ageToDays: number | null;
   low: string | null;
   high: string | null;
+  /** ME-2: a band for one method only; null or absent = any method. */
+  methodCode?: string | null;
+  /** RI-6: an alternative the laboratory lead rejected; never used, never checked. */
+  rejected?: boolean;
 }
 
 export interface RangeVersion {
@@ -76,6 +80,8 @@ export interface RangeQuery {
   sex: Sex | null;
   ageDaysAtCollection: number | null;
   at: Date;
+  /** ME-2: the method in force; method-specific bands first, then bands naming none. */
+  methodCode?: string | null;
 }
 
 const needsAge = (b: RangeBand) => b.ageFromDays !== null || b.ageToDays !== null;
@@ -97,12 +103,18 @@ export function resolveRange(q: RangeQuery, versions: readonly RangeVersion[]): 
     .sort((a, b) => b.version - a.version)[0];
   if (!version) return { kind: "none", reason: "no_signed_range" };
 
+  // ME-2: a band for another method is never used; one for this method beats one naming none.
+  const live = version.bands.filter(
+    (b) => !b.rejected && (!b.methodCode || b.methodCode === (q.methodCode ?? null)),
+  );
   // RR-5: a missing sex or age reaches only the bands that do not need it.
-  const usable = version.bands.filter(
+  const matching = live.filter(
     (b) =>
       (b.sex === "any" || b.sex === q.sex) &&
       (needsAge(b) ? q.ageDaysAtCollection !== null && coversAge(b, q.ageDaysAtCollection) : true),
   );
+  const own = matching.filter((b) => b.methodCode);
+  const usable = own.length ? own : matching;
   const specific = usable.filter((b) => b.sex !== "any");
   const pool = specific.length > 0 ? specific : usable; // RR-3
   if (pool.length === 1) return { kind: "band", band: pool[0]!, version };
@@ -110,7 +122,7 @@ export function resolveRange(q: RangeQuery, versions: readonly RangeVersion[]): 
     return { kind: "none", reason: "no_signed_range", conflict: pool.map((b) => b.id) };
 
   const missing = q.sex === null || q.ageDaysAtCollection === null;
-  const wouldNeed = version.bands.some((b) => b.sex !== "any" || needsAge(b));
+  const wouldNeed = live.some((b) => b.sex !== "any" || needsAge(b));
   return { kind: "none", reason: missing && wouldNeed ? "sex_or_age_missing" : "no_band_for_age" };
 }
 
@@ -122,8 +134,9 @@ export function rangeSignErrors(
   const errors: string[] = [];
   if (measure.resultType !== "number") errors.push("not_numeric");
   if (v.unitUcum !== measure.unitUcum) errors.push("unit_mismatch");
-  if (v.bands.length === 0) errors.push("no_bands");
-  for (const b of v.bands) {
+  const bands = v.bands.filter((b) => !b.rejected); // RI-6: a rejected alternative is not checked
+  if (bands.length === 0) errors.push("no_bands");
+  for (const b of bands) {
     if (b.low === null && b.high === null) errors.push(`band_empty:${b.id}`);
     if ((b.low !== null && !isDecimal(b.low)) || (b.high !== null && !isDecimal(b.high)))
       errors.push(`band_not_decimal:${b.id}`);
@@ -134,9 +147,14 @@ export function rangeSignErrors(
   }
   const lo = (b: RangeBand) => b.ageFromDays ?? 0;
   const hi = (b: RangeBand) => b.ageToDays ?? Number.POSITIVE_INFINITY;
-  v.bands.forEach((a, i) =>
-    v.bands.slice(i + 1).forEach((b) => {
-      if (a.sex === b.sex && lo(a) < hi(b) && lo(b) < hi(a))
+  bands.forEach((a, i) =>
+    bands.slice(i + 1).forEach((b) => {
+      if (
+        a.sex === b.sex &&
+        (a.methodCode ?? null) === (b.methodCode ?? null) &&
+        lo(a) < hi(b) &&
+        lo(b) < hi(a)
+      )
         errors.push(`band_overlap:${a.id}:${b.id}`);
     }),
   );

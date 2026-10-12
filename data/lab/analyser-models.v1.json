@@ -1,0 +1,77 @@
+{
+  "catalogue": "medsync.lab-analyser-models",
+  "version": "1.0.0",
+  "status": "draft",
+  "note": "Analyser models as data (AP-1, CD-05, CD-09). Codes and suggested concepts from docs/lab/catalogue-research (strand A1: the DH-615 brochure P/N EN-DH615[3.0] and the Mindray BC-3000Plus brochure). No clinical number. The DH-615 has 29 research-use parameters; the brochure names only those listed, so the blocklist is incomplete until the operator manual is read (gap in the research). Open checks are the research's unresolved questions; each must be answered at the hospital before the profile is used.",
+  "models": {
+    "dymind_dh615": {
+      "display": "Dymind DH-615 (5-part)",
+      "kind": "five_part",
+      "test": "test.fbc",
+      "codes": {
+        "WBC": "obs.wbc",
+        "NEU%": "obs.neutrophils_pct",
+        "LYM%": "obs.lymphocytes_pct",
+        "MON%": "obs.monocytes_pct",
+        "EOS%": "obs.eosinophils_pct",
+        "BAS%": "obs.basophils_pct",
+        "IG%": "obs.ig_pct",
+        "NEU#": "obs.neutrophils_abs",
+        "LYM#": "obs.lymphocytes_abs",
+        "MON#": "obs.monocytes_abs",
+        "EOS#": "obs.eosinophils_abs",
+        "BAS#": "obs.basophils_abs",
+        "IG#": "obs.ig_abs",
+        "RBC": "obs.rbc",
+        "HGB": "obs.haemoglobin",
+        "HCT": "obs.haematocrit",
+        "MCV": "obs.mcv",
+        "MCH": "obs.mch",
+        "MCHC": "obs.mchc",
+        "RDW-CV": "obs.rdw_cv",
+        "RDW-SD": "obs.rdw_sd",
+        "PLT": "obs.platelets",
+        "MPV": "obs.mpv",
+        "PDW": "obs.pdw",
+        "PCT": "obs.plateletcrit",
+        "P-LCR": "obs.p_lcr",
+        "P-LCC": "obs.p_lcc"
+      },
+      "labOnly": ["P-LCR", "P-LCC"],
+      "researchUse": ["NRBC#", "NRBC%", "NLR", "PLR", "PDW-CV", "Micro", "Macro", "HFC", "IME", "FRC"],
+      "openChecks": [
+        { "code": "HCT", "question": "Measured or calculated? Confirm in the operator manual." },
+        { "code": "PDW", "question": "Unit to confirm on the printed report (fL or %)." }
+      ]
+    },
+    "three_part_generic": {
+      "display": "3-part analyser (for example Mindray BC-3000Plus)",
+      "kind": "three_part",
+      "test": "test.fbc",
+      "codes": {
+        "WBC": "obs.wbc",
+        "LYM#": "obs.lymphocytes_abs",
+        "MID#": "obs.mid_abs",
+        "GRAN#": "obs.granulocytes_abs",
+        "LYM%": "obs.lymphocytes_pct",
+        "MID%": "obs.mid_pct",
+        "GRAN%": "obs.granulocytes_pct",
+        "RBC": "obs.rbc",
+        "HGB": "obs.haemoglobin",
+        "HCT": "obs.haematocrit",
+        "MCV": "obs.mcv",
+        "MCH": "obs.mch",
+        "MCHC": "obs.mchc",
+        "RDW-CV": "obs.rdw_cv",
+        "RDW-SD": "obs.rdw_sd",
+        "PLT": "obs.platelets",
+        "MPV": "obs.mpv",
+        "PDW": "obs.pdw",
+        "PCT": "obs.plateletcrit"
+      },
+      "labOnly": [],
+      "researchUse": [],
+      "openChecks": [{ "code": "PDW", "question": "Unit to confirm on the printed report (fL or %)." }]
+    }
+  }
+}
