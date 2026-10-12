@@ -5,6 +5,7 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { getOpenLines } from "@/lib/pharmacy/review/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -17,13 +18,13 @@ export const dynamic = "force-dynamic";
  * first, until a person acts on it (Law 4, LO-3, LO-5). Behind `pharmacyDispensing`; a point that
  * was live and is switched off keeps this page so what it left open can be closed (RD-3). "Supply now"
  * (Step 6) opens the hand-over for that line when it is on the shelf here; "Tell the patient it is
- * here" comes with the messages (Step 9).
+ * here" (MS-4) shows on an owed line on the shelf here, only where a message can be sent (S94).
  */
 export default async function OpenLinesPage() {
   const scope = await requirePharmacyScope();
   if (!pharmacyDispensingLiveFor(scope.hospitalId)) notFound();
   const actor = await requirePharmacyActor();
-  const { rows, points } = await getOpenLines(scope.hospitalId, undefined, actor.pointId);
+  const { rows, points, liveSms } = await getOpenLines(scope.hospitalId, undefined, actor.pointId);
   const ids = await identitiesFor(
     scope,
     rows.map((r) => r.patientUserId),
@@ -38,6 +39,12 @@ export default async function OpenLinesPage() {
       identities={Object.fromEntries(ids)}
       canChange={can(actor.access, "pharmacy.dispense") && !!point?.live}
       canClose={can(actor.access, "pharmacy.dispense") && !!point?.wasLive}
+      canTell={
+        can(actor.access, "pharmacy.dispense") &&
+        !!point?.live &&
+        liveSms &&
+        (await patientListLive(scope.hospitalId))
+      }
       serverNow={new Date().toISOString()}
       timeZone={DEFAULT_TIME_ZONE}
       title={REVIEW.open.title}

@@ -547,6 +547,22 @@ export const inQueue = (statuses: readonly LineStatus[]): boolean =>
 /** LO-3: a line with an open outcome is listed in Open lines. */
 export const inOpenLines = (status: LineStatus): boolean => status.kind === "open";
 
+/**
+ * ML-4: since the line's outcome was last recorded (or changed), the patient said in the app that they
+ * could not get it. A `patient_reported` event moves nothing; Open lines and the patient's list mark it.
+ */
+export function saidCouldNotGet(
+  events: readonly Pick<PharmacyLineEvent, "kind" | "reasonCode" | "occurredAt">[],
+): boolean {
+  let said = false;
+  for (const e of [...events].sort((x, y) => x.occurredAt.getTime() - y.occurredAt.getTime())) {
+    if (e.kind === "owed" || e.kind === "buying_outside" || e.kind === "open_outcome_changed")
+      said = false;
+    if (e.kind === "patient_reported" && e.reasonCode === "could_not_get") said = true;
+  }
+  return said;
+}
+
 /** LO-1: the prescription's stage cell is its least advanced line stage. */
 export function leastAdvanced(stages: readonly Stage[]): Stage | null {
   if (!stages.length) return null;

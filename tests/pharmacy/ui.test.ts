@@ -216,12 +216,13 @@ describe("source rules", () => {
   it("Law 2: nothing reachable from /pharmacy writes a clinical record; stock writes go through the pharmacy write path", () => {
     const actions = PHARMACY_SRC.filter((f) => /^\s*["']use server["']/m.test(read(f)));
     // Phase 0's read and the acting-point cookie; Phase 1's stock (Step 4), review (Step 5), supply
-    // (Step 6), controlled (Step 7) and downtime (Step 8) actions.
+    // (Step 6), controlled (Step 7), downtime (Step 8) and messages (Step 9) actions.
     expect(actions).toEqual([
       "app/pharmacy/actions.ts",
       "app/pharmacy/controlled-actions.ts",
       "app/pharmacy/downtime/actions.ts",
       "app/pharmacy/downtime/entry-actions.ts",
+      "app/pharmacy/open-lines/actions.ts",
       "app/pharmacy/review-actions.ts",
       "app/pharmacy/stock/actions.ts",
       "app/pharmacy/supply-actions.ts",
@@ -235,6 +236,7 @@ describe("source rules", () => {
     expect(read("app/pharmacy/downtime/actions.ts")).toMatch(/runPharmacyWrite/);
     expect(read("app/pharmacy/supply-actions.ts")).toMatch(/runPharmacyWrite/);
     expect(read("app/pharmacy/controlled-actions.ts")).toMatch(/runPharmacyWrite/);
+    expect(read("app/pharmacy/open-lines/actions.ts")).toMatch(/runPharmacyWrite/);
     for (const f of walk("app/pharmacy"))
       expect(read(f), f).not.toMatch(
         /@\/lib\/emr\/(write|actions)|@\/app\/(doctor|nurse|lab)\/.*actions/,

@@ -585,6 +585,44 @@ describe.skipIf(!laneOn)("Pharmacy downtime and going live (Step 8)", () => {
     ).toMatch(/Live SMS stays off/);
   });
 
+  it("HZ-PH1-48: individual inpatient supply cannot be switched on yet", async () => {
+    const input = {
+      individualInpatientSupply: true,
+      paymentStatusRequired: false,
+      expiryLookaheadDays: null,
+      liveSms: false,
+    };
+    expect(
+      await fails(
+        asAdmin(admin("a"), (tx) =>
+          gl.updateHospitalSettings(tx, admin("a"), input, new Date(), false),
+        ),
+      ),
+    ).toMatch(/Individual inpatient supply stays off/);
+  });
+
+  it("HZ-PH1-57: a signed set's fingerprint is computed from its content, whatever the writer gives", async () => {
+    const r = await pg.transaction(async (tx) => {
+      const author = (
+        await tx.query<{ id: string }>(
+          `INSERT INTO auth.users (email) VALUES ('hash-author@lane.test') RETURNING id`,
+        )
+      ).rows[0]!.id;
+      const row = (
+        await tx.query<{ sha256: string; expect: string }>(
+          `INSERT INTO public.pharmacy_signed_sets (hospital_id, kind, version, content, sha256, authored_by)
+           VALUES ($1, 'query_codes', 99, '{"items":[{"code":"x"}]}', repeat('0', 64), $2)
+           RETURNING sha256, encode(sha256(convert_to(content::text, 'UTF8')), 'hex') AS expect`,
+          [f.h2, author],
+        )
+      ).rows[0]!;
+      await tx.rollback();
+      return row;
+    });
+    expect(r.sha256).toBe(r.expect);
+    expect(r.sha256).not.toBe("0".repeat(64));
+  });
+
   it("S82: switch off needs a reason and a second approver; the point returns to not live, its open lines still workable", async () => {
     expect(gl.SwitchOffInput.safeParse({ pointId: f.op, reason: "Too short" }).success).toBe(false);
     const raw = {

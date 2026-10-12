@@ -219,10 +219,22 @@ export async function enterDowntimeRow(ctx: PharmacyCtx, input: RowInputT): Prom
               eq(pharmacyHandovers.sheetRow, input.row),
             ),
           )
-      : ctx.tx
-          .select({ id: pharmacyLineEvents.id })
-          .from(pharmacyLineEvents)
-          .where(eq(pharmacyLineEvents.clientKey, nsKey)),
+      : input.prescription.kind === "paper"
+        ? // 0134: a "not supplied" paper row is held to its sheet and row, as a supply row is.
+          ctx.tx
+            .select({ id: paperPrescriptions.id })
+            .from(paperPrescriptions)
+            .where(
+              and(
+                eq(paperPrescriptions.hospitalId, hospitalId),
+                eq(paperPrescriptions.sheetNumber, input.sheet),
+                eq(paperPrescriptions.sheetRow, input.row),
+              ),
+            )
+        : ctx.tx
+            .select({ id: pharmacyLineEvents.id })
+            .from(pharmacyLineEvents)
+            .where(eq(pharmacyLineEvents.clientKey, nsKey)),
     ctx.tx
       .select({ startsAt: downtimePeriods.startsAt, endsAt: downtimePeriods.endsAt })
       .from(downtimePeriods)
@@ -517,6 +529,8 @@ async function insertPaper(
       prescriberCadre: rx.prescriberCadre,
       writtenOn: rx.writtenOn,
       sheetNumber: input.sheet,
+      // 0134: only a "not supplied" paper row takes the sheet's row (a supply row's is on its hand-over).
+      sheetRow: notSupplied ? input.row : null,
       transcribedBy: ctx.actor.userId,
       transcribedAt: ctx.now,
     })
@@ -553,8 +567,6 @@ async function notSuppliedRow(
   const ns = input.notSupplied!;
   const out = { suppliedAt: input.suppliedAt.toISOString(), enteredAt: ctx.now.toISOString() };
   if (input.prescription.kind === "paper") {
-    // ponytail: 0128 gives a paper prescription a sheet but no row, so a not-supplied paper row is not
-    // held to "entered once"; a `sheet_row` column on paper_prescriptions closes it.
     const line = await insertPaper(ctx, input, input.prescription, null, ns);
     return { id: line.id, ...out };
   }

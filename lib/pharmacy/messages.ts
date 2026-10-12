@@ -42,6 +42,12 @@ export const PATIENT_COPY = {
   owed: "The hospital pharmacy had none today. Ask at the pharmacy, or call {phone}, to find out when it has arrived.",
   declined: "The pharmacy did not give this medicine. Speak to your doctor or the pharmacy.",
   refill: "Next supply due around {date}",
+  // Step 9 build: the page's own words, drafted with B-61 to B-69 and signed with them (RD-4).
+  section: "From the hospital pharmacy",
+  notGivenSection: "Not given",
+  boughtIt: "I have bought it",
+  couldNotGet: "I could not get it",
+  saidCouldNotGet: "You said you could not get it. The pharmacy and your doctor have been told.",
 } as const satisfies SignedCopy & Record<string, unknown>;
 
 export const MESSAGE_COPY = {
@@ -216,28 +222,37 @@ export type RenderResult =
   | { ok: true; text: string; fitsOneSms: boolean }
   | { ok: false; reason: "no_point_phone" | "no_message_name" };
 
+/**
+ * MS-1. `template` is the approved body read from the template store (D-PH1-48) for this kind; without
+ * one, the Appendix B wording. Either way it is given the message name and the phone, nothing else.
+ */
 export function renderMessage(
   kind: MessageKind,
   { messageName, phone }: { messageName: string; phone: string | null },
   channel: MessageChannel = "sms",
+  template?: string,
 ): RenderResult {
   const name = messageName.trim();
   if (!name) return { ok: false, reason: "no_message_name" };
   const p = phone?.trim() ?? "";
   if (kind !== "in_stock" && channel === "sms" && !p)
     return { ok: false, reason: "no_point_phone" };
-  const template =
-    kind === "in_stock"
-      ? MESSAGE_COPY.inStock
-      : channel === "in_app"
-        ? MESSAGE_COPY.inAppNotAvailable
-        : kind === "owed"
-          ? MESSAGE_COPY.smsOwed
-          : MESSAGE_COPY.smsBuyingOutside;
-  const text = fill(template, { "hospital message name": name, phone: p });
+  const text = fill(template ?? copyFor(kind, channel), {
+    "hospital message name": name,
+    phone: p,
+  });
   const len = gsm7Length(text);
   return { ok: true, text, fitsOneSms: len !== null && len <= SMS_LIMIT };
 }
+
+const copyFor = (kind: MessageKind, channel: MessageChannel) =>
+  kind === "in_stock"
+    ? MESSAGE_COPY.inStock
+    : channel === "in_app"
+      ? MESSAGE_COPY.inAppNotAvailable
+      : kind === "owed"
+        ? MESSAGE_COPY.smsOwed
+        : MESSAGE_COPY.smsBuyingOutside;
 
 // ─── MS-2: the banned-term scan ──────────────────────────────────────────
 

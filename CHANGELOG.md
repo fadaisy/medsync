@@ -5,6 +5,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Pharmacy Phase 1: dispensing with stock at the window — 2026-10-12
+
+Built dark on `feat/pharmacy-dispensing`, behind four per-hospital flags (`PHARMACY_DISPENSING`,
+`PHARMACY_STOCK_ANSWER`, `PHARMACY_PATIENT_LIST`, `PHARMACY_DOWNTIME`) that stay off in production while the Phase 1
+wording is draft, and live only per dispensing point through a two-person switch. Migrations 0122–0135 are GATED
+and owner-applied. GATE A was signed by the CSO on 12 Oct 2026 (seven decisions provisional until the legal
+answers); a registered pharmacist co-signs before any production point goes live.
+
+- Review lanes from signed reasons, every line ending in a recorded outcome, queries to the prescriber with
+  never-throwing delivery and the prescriber's keep, change or stop
+  ([ADR 0260](docs/adr/0260-pharmacy-records-beside-the-prescription.md) to
+  [ADR 0263](docs/adr/0263-queries-to-the-prescriber.md)).
+- An append-only stock ledger per batch and point, with the guard and "a supply and its movement together" enforced
+  by the database ([ADR 0264](docs/adr/0264-the-stock-ledger.md), [ADR 0265](docs/adr/0265-one-action-two-records.md)).
+- Hand-over with two identifiers compared on the server and never shown, labels one per batch with the directions
+  as written, reversal and correction ([ADR 0266](docs/adr/0266-identity-at-hand-over.md),
+  [ADR 0267](docs/adr/0267-substitution-and-no-conversion.md)).
+- Controlled drugs with a witness who proves who they are, a count committed before the figure is shown, and a
+  register slip that says it is not the register ([ADR 0268](docs/adr/0268-controlled-drugs-witnessed-record.md),
+  [ADR 0279](docs/adr/0279-second-person-attestation.md)).
+- The prescriber's stock line in words with no quantity, the nurse's review chip, the patient's medicine list from
+  supplies, and messages that name no medicine ([ADR 0269](docs/adr/0269-the-availability-seams-real-answer.md),
+  [ADR 0270](docs/adr/0270-patient-list-refill-and-messages.md)).
+- Downtime sheets entered with their true times, the daily dispensing log, and going live per point with six
+  conditions and two people ([ADR 0271](docs/adr/0271-downtime-one-shared-module.md),
+  [ADR 0272](docs/adr/0272-going-live-per-point.md)).
+
 ### Fixed — The lab and NCD registry sidebars showed on phones — 2026-10-11
 
 - `SIDEBAR_CLASS` lived in a "use client" module; the lab shell and the NCD registry layout built a string from it on

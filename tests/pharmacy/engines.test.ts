@@ -382,8 +382,12 @@ describe("Law 2: no clinical write from the pharmacy's code", () => {
       for (const m of src.matchAll(/\.(insert|update|delete)\(([a-zA-Z]+)\)/g))
         writes.push(`${f}: ${m[1]} ${m[2]}`);
     }
+    // ML-1, ML-6 (Step 9): the patient's own medicine list, written only by patient-list.ts, in the
+    // supply's transaction. It is the patient's tracker, not a clinical record.
     const foreign = writes.filter(
-      (w) => !/ (pharmacy[A-Z]\w*|paper\w*|downtime\w*|auditLog)$/.test(w),
+      (w) =>
+        !/ (pharmacy[A-Z]\w*|paper\w*|downtime\w*|auditLog)$/.test(w) &&
+        !/^patient-list\.ts: (insert|update) selfMedications$/.test(w),
     );
     expect(foreign).toEqual([]);
     expect(writes.some((w) => / (prescriptions|prescriptionCancellations)$/.test(w))).toBe(false);

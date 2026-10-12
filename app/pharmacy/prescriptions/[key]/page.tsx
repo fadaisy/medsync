@@ -18,7 +18,8 @@ import { REVIEW } from "@/content/pharmacy-review";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
-import { pharmacyDispensingLiveFor, pharmacyPatientListLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { getPrescription, logPrescriptionViewed, patientFacts } from "@/lib/pharmacy/read";
 import { getReview, prescribersHere } from "@/lib/pharmacy/review/read";
@@ -412,7 +413,7 @@ async function ReviewPage({
         canDispense={can(actor.access, "pharmacy.dispense")}
         canStock={can(actor.access, "pharmacy.stock")}
         prescribers={prescribers}
-        patientListOn={pharmacyPatientListLiveFor(scope.hospitalId)}
+        patientListOn={await patientListLive(scope.hospitalId)}
         timeZone={DEFAULT_TIME_ZONE}
       />
     </div>

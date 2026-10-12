@@ -349,6 +349,14 @@ export async function updateHospitalSettings(
       "conflict",
       "Live SMS stays off until the patient wording, the message templates and the message name are signed.",
     );
+  // HZ-PH1-48: stopping an admission medicine does not yet stop its prescription, so a ward line could
+  // stay active after the doctor stopped it. Individual inpatient supply stays off until prescribing
+  // fixes that (gate-a-proposal §1 H7); reviewing ward lines is unaffected.
+  if (input.individualInpatientSupply && !current?.individualInpatientSupply)
+    throw refuse(
+      "conflict",
+      "Individual inpatient supply stays off for now: stopping a medicine on the admission list does not yet stop its prescription.",
+    );
   await tx
     .insert(pharmacyHospitalSettings)
     .values({ hospitalId: admin.hospitalId, ...input, updatedBy: admin.userId, updatedAt: now })

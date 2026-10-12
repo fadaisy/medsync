@@ -714,6 +714,41 @@ describe.skipIf(!laneOn)("pharmacy downtime entry and the dispensing log (Step 8
     expect(sheet?.rows.some((x) => x.section === "not_supplied" && x.row === 3)).toBe(true);
   });
 
+  it("0134: a not-supplied row about a paper prescription is entered once (DT-2)", async () => {
+    const ns = {
+      section: "not_supplied",
+      row: 7,
+      prescription: {
+        kind: "paper",
+        prescriberName: "Dr Fixture Writer",
+        prescriberCadre: "Medical officer",
+        writtenOn: localDate(sheetTime),
+        lines: [
+          {
+            medicineAsWritten: "Fixture tab C",
+            directionsAsWritten: "[as on the paper, 3]",
+            quantityAsWritten: null,
+          },
+        ],
+        lineNo: 1,
+      },
+      supply: null,
+      notSupplied: { outcome: "owed", reasonCode: "out_point" },
+    };
+    expect(await row(ns)).toMatchObject({ ok: true });
+    const again = await row(ns);
+    expect(!again.ok && again.error).toBe(
+      `Row 7 of ${pharmacySheetLabel(sheets[0]!)} is already entered.`,
+    );
+    expect(
+      await n(
+        `SELECT count(*)::int AS n FROM public.paper_prescriptions WHERE hospital_id = $1 AND sheet_number = $2
+            AND sheet_row = 7`,
+        [f.h, sheets[0]],
+      ),
+    ).toBe(1);
+  });
+
   it("S78: the log prints the day's supplies, one row per batch, back-entered on their day and reversed struck through", async () => {
     // A live-supplied line reversed the same day, entered back first so it lands on the sheet's day.
     const line = await place();

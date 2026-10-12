@@ -450,6 +450,10 @@ export const pharmacyPatientNotices = pgTable("pharmacy_patient_notices", {
   outcome: text("outcome").notNull(),
   sentBy: uuid("sent_by").notNull(),
   sentAt: timestamp("sent_at", tz).notNull().defaultNow(),
+  /** 0134: why it was not sent (Law 11); null when sent. */
+  reason: text("reason"),
+  /** 0134: the outcome event an owed or buying-outside message answers (one per event, MS-3). */
+  lineEventId: uuid("line_event_id"),
 });
 
 /* ─── 0127 controlled ──────────────────────────────────────────────── */
@@ -502,6 +506,8 @@ export const paperPrescriptions = pgTable("paper_prescriptions", {
   prescriberCadre: text("prescriber_cadre").notNull(),
   writtenOn: date("written_on").notNull(),
   sheetNumber: integer("sheet_number").notNull(),
+  /** 0134: the row of a "not supplied" paper entry, once per sheet (DT-2). */
+  sheetRow: integer("sheet_row"),
   transcribedBy: uuid("transcribed_by").notNull(),
   transcribedAt: timestamp("transcribed_at", tz).notNull().defaultNow(),
 });

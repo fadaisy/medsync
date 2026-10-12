@@ -21,8 +21,9 @@ the work merges. Highest numbers are read across `origin/main` and every local a
 
 On `origin/main` (cf404abd, 11 Oct 2026) the highest migration is **0121** and the highest ADR **0280**.
 
-**Pharmacy Phase 1** (`feat/pharmacy-dispensing`) uses migrations **0122–0146** (25: the rest of the pharmacy
-block plus 0140–0146) and ADRs **0260–0279** (20).
+**Pharmacy Phase 1** (`feat/pharmacy-dispensing`) holds migrations **0122–0146** and ADRs **0260–0279**. Used:
+migrations 0122–0135 and every ADR 0260–0279. 0136–0146 stay claimed for fixes until the slice merges, then are
+released.
 
 **Resolved 11 Oct 2026:** the lab's hotfix took migration 0101 and ADR 0238 while the pharmacy branch held
 unapplied files numbered 0101 and 0102; the pharmacy's became 0120 and 0121. Released by the pharmacy: migrations

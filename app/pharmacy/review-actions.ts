@@ -10,7 +10,10 @@ import { REVIEW } from "@/content/pharmacy-review";
 import { logger } from "@/lib/logger";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { notifyNotSupplied } from "@/lib/pharmacy/notify";
+import { patientListLive } from "@/lib/pharmacy/patient-list";
 import * as store from "@/lib/pharmacy/review/store";
+import { smsSender } from "@/lib/pharmacy/sms-sender";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
 
 /**
@@ -104,8 +107,25 @@ export async function withdrawQuery(raw: unknown) {
 }
 
 /* Outcomes */
-export async function recordNotSupplied(raw: unknown) {
-  return bare(await act(store.NotSuppliedInput, raw, store.DISPENSE_NEED, store.recordNotSupplied));
+/**
+ * 5.11, MS-3, MS-5: the outcome commits first; the owed or buying-outside message is a second step after
+ * commit, only where the patient's list is live and the hospital's live SMS is on. It never throws: the
+ * pharmacy reads what happened in words (`message`), or nothing when no message is sent.
+ */
+export async function recordNotSupplied(raw: unknown): Promise<Result & { message?: string }> {
+  const r = bare(
+    await act(store.NotSuppliedInput, raw, store.DISPENSE_NEED, store.recordNotSupplied),
+  );
+  if (!r.ok) return r;
+  try {
+    const actor = await requirePharmacyActor();
+    if (!(await patientListLive(actor.hospitalId))) return r;
+    const notice = await notifyNotSupplied(actor, r.id, smsSender());
+    return notice ? { ...r, message: notice.words } : r;
+  } catch (e) {
+    unstable_rethrow(e);
+    return r;
+  }
 }
 export async function changeOpenOutcome(raw: unknown) {
   return bare(await act(store.LineInput, raw, store.DISPENSE_NEED, store.changeOpenOutcome));

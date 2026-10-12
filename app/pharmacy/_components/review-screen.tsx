@@ -526,6 +526,9 @@ function LineBody({
             line.outcomeReason}
         </p>
       ) : null}
+      {line.stockAnswer ? (
+        <p className="text-body-s text-muted-foreground">{line.stockAnswer}</p>
+      ) : null}
     </div>
   );
 }
@@ -844,6 +847,8 @@ function NotOnShelf({
   const heading = useRef<HTMLHeadingElement>(null);
   const [what, setWhat] = useState<"owed" | "buying_outside" | "send" | "return">("owed");
   const [error, setError] = useState<string | null>(null);
+  /** MS-5: what happened to the patient's message, in words, before the pharmacy moves on. */
+  const [notice, setNotice] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const qty = useId();
   const reason = useId();
@@ -884,6 +889,10 @@ function NotOnShelf({
         quantityNotSupplied: get("quantity") ? Number(get("quantity")) : undefined,
       });
       if (!r.ok) return setError(r.error);
+      if (r.message) {
+        setNotice(r.message);
+        return router.refresh();
+      }
       if (outcome === "buying_outside") {
         const slip = await actions.printSlip({ clientKey: newKey(), lineId: line.id });
         if (slip.ok) return router.push(`/pharmacy/slip/${slip.id}`);
@@ -1008,17 +1017,39 @@ function NotOnShelf({
         </div>
         <p className="text-body-s text-muted-foreground">{N.footer}</p>
         <Refusal error={error} />
+        {notice ? (
+          <p role="status" className="text-body-s">
+            {notice}
+          </p>
+        ) : null}
         <span className="flex flex-wrap justify-end gap-2">
           <Button type="button" variant="secondary" className={TARGET} onClick={onClose}>
             {N.cancel}
           </Button>
-          <Button type="submit" className={TARGET} disabled={pending}>
-            {what === "buying_outside"
-              ? N.recordPrint
-              : what === "return"
-                ? REVIEW.query.send
-                : N.record}
-          </Button>
+          {notice && what === "buying_outside" ? (
+            <Button
+              type="button"
+              className={TARGET}
+              disabled={pending}
+              onClick={() =>
+                start(async () => {
+                  const slip = await actions.printSlip({ clientKey: newKey(), lineId: line.id });
+                  if (slip.ok) return router.push(`/pharmacy/slip/${slip.id}`);
+                  setError(slip.error);
+                })
+              }
+            >
+              {REVIEW.open.printSlip}
+            </Button>
+          ) : notice ? null : (
+            <Button type="submit" className={TARGET} disabled={pending}>
+              {what === "buying_outside"
+                ? N.recordPrint
+                : what === "return"
+                  ? REVIEW.query.send
+                  : N.record}
+            </Button>
+          )}
         </span>
       </form>
     </section>

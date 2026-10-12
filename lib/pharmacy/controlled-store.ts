@@ -449,6 +449,8 @@ export async function recordControlledCount(
 export async function recordControlledSupply(
   ctx: PharmacyCtx,
   input: z.infer<typeof ControlledSupplyInput>,
+  /** ML-1: as `recordHandover`'s, decided by the action. */
+  list: { patientList: boolean } = { patientList: false },
 ): Promise<{ id: string; lines: HandoverOutcome[]; entryIds: string[] }> {
   mustHoldControlled(ctx);
   const replay = await supply.recordHandoverIfDone(ctx, input.clientKey);
@@ -502,7 +504,7 @@ export async function recordControlledSupply(
     agreedBalances: _a,
     ...handover
   } = input;
-  const r = await supply.recordHandover(ctx, handover, { witnessAttestationId: witness });
+  const r = await supply.recordHandover(ctx, handover, { witnessAttestationId: witness }, list);
 
   // B-50: the balance the witness agreed is the balance after this supply, or nothing is written.
   for (const medicineId of medicines) {

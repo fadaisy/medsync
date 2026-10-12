@@ -1,5 +1,6 @@
 "use server";
 
+import type { EmrDb } from "@/lib/emr/db";
 import type { ReviewResult as ActionResult } from "@/lib/pharmacy/review/store";
 import type { HandoverOutcome } from "@/lib/pharmacy/supply/store";
 import type { PharmacyCtx, PharmacyNeed } from "@/lib/pharmacy/write";
@@ -12,6 +13,7 @@ import { SUPPLY } from "@/content/pharmacy-supply";
 import { logger } from "@/lib/logger";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { patientListLive } from "@/lib/pharmacy/patient-list";
 import * as store from "@/lib/pharmacy/supply/store";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
 
@@ -54,7 +56,15 @@ const bare = <R>(r: ActionResult<R>): ActionResult =>
 export async function recordHandover(
   raw: unknown,
 ): Promise<ActionResult & { lines?: HandoverOutcome[] }> {
-  const r = await act(store.HandoverInput, raw, store.DISPENSE_LIVE, store.recordHandover);
+  const r = await act(
+    store.HandoverInput,
+    raw,
+    store.DISPENSE_LIVE,
+    async (ctx, input: z.infer<typeof store.HandoverInput>) =>
+      store.recordHandover(ctx, input, null, {
+        patientList: await patientListLive(ctx.actor.hospitalId, ctx.tx as unknown as EmrDb),
+      }),
+  );
   return r.ok ? { ...bare(r), lines: r.data?.lines ?? [] } : r;
 }
 

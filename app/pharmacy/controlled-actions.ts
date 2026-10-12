@@ -1,5 +1,6 @@
 "use server";
 
+import type { EmrDb } from "@/lib/emr/db";
 import type { ReviewResult as ActionResult } from "@/lib/pharmacy/review/store";
 import type { PharmacyCtx, PharmacyNeed } from "@/lib/pharmacy/write";
 import type { z } from "zod";
@@ -11,6 +12,7 @@ import { logger } from "@/lib/logger";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import * as store from "@/lib/pharmacy/controlled-store";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { MANAGE_AT_POINT, STOCK_NEED } from "@/lib/pharmacy/stock/store";
 import { MANAGE_NEED, REVERSE_NEED } from "@/lib/pharmacy/supply/store";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
@@ -81,7 +83,10 @@ export async function recordControlledSupply(raw: unknown) {
     store.ControlledSupplyInput,
     raw,
     store.CONTROLLED_LIVE,
-    store.recordControlledSupply,
+    async (ctx, input: z.infer<typeof store.ControlledSupplyInput>) =>
+      store.recordControlledSupply(ctx, input, {
+        patientList: await patientListLive(ctx.actor.hospitalId, ctx.tx as unknown as EmrDb),
+      }),
   );
   return r.ok ? { ...bare(r), lines: r.data?.lines ?? [], entryIds: r.data?.entryIds ?? [] } : r;
 }

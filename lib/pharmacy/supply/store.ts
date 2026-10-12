@@ -39,6 +39,7 @@ import {
 import { prescriptions } from "@/db/schema/prescribing";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { blindIndex, decrypt } from "@/lib/encryption";
+import { withdrawListEntry, writeListEntries } from "@/lib/pharmacy/patient-list";
 import { foldWith, loadGroupOfLine, loadHospitalContext } from "@/lib/pharmacy/review/load";
 import { nudge } from "@/lib/pharmacy/review/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
@@ -323,6 +324,8 @@ export async function recordHandover(
   input: z.infer<typeof HandoverInput>,
   /** CD-2: set only by `recordControlledSupply`, once its own checks have passed in this transaction. */
   controlled: { witnessAttestationId: string } | null = null,
+  /** ML-1: `pharmacyPatientList` for the hospital, decided by the action (the store reads no environment). */
+  list: { patientList: boolean } = { patientList: false },
 ): Promise<{ id: string; lines: HandoverOutcome[] }> {
   const hospitalId = ctx.actor.hospitalId;
   const point = ctx.point!;
@@ -548,6 +551,13 @@ export async function recordHandover(
   );
   if (w.lookBacks.length)
     await ctx.tx.insert(pharmacyLookBacks).values(w.lookBacks.map((l) => ({ ...l, at: ctx.now })));
+  // ML-1, SU-1: the patient's list entries commit with the supply, or neither does.
+  if (list.patientList)
+    await writeListEntries(ctx.tx, {
+      patientUserId: group.patientUserId,
+      lineIds: uniq(w.supplies.map((s) => s.prescriptionId)),
+      now: ctx.now,
+    });
   return {
     id: w.handover.id,
     lines: w.lineEvents.map((e) => ({
@@ -854,6 +864,12 @@ export async function reverseSupply(
       effectiveAt: ctx.now,
     })),
   );
+  // ML-6: the patient's list entry is withdrawn in the same transaction.
+  await withdrawListEntry(ctx.tx, {
+    patientUserId: group.patientUserId,
+    lineId: input.lineId,
+    now: ctx.now,
+  });
   await nudge(ctx, line.row.prescriberUserId, "supply_reversed", w.reversals[0]!.id);
   return { id: w.reversals[0]!.id };
 }
@@ -896,6 +912,11 @@ export async function correctSupplyRecord(
       effectiveAt: ctx.now,
     })),
   );
+  await withdrawListEntry(ctx.tx, {
+    patientUserId: group.patientUserId,
+    lineId: input.lineId,
+    now: ctx.now,
+  });
   await nudge(ctx, line.row.prescriberUserId, "supply_corrected", w.corrections[0]!.id);
   return { id: w.corrections[0]!.id };
 }

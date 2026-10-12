@@ -17,6 +17,7 @@ import {
   FilledDialog,
   PrintSlipButton,
 } from "../../_components/review-dialogs";
+import { TellPatientButton } from "./tell-patient";
 
 /**
  * Open lines (5.7): tabs All · Owed · Buying outside with counts in their names (Section 10); each row
@@ -34,6 +35,8 @@ export function OpenLines(props: {
   identities: Record<string, PatientIdentity>;
   canChange: boolean;
   canClose: boolean;
+  /** S94: the patient's list is live and the hospital's live SMS is on. */
+  canTell: boolean;
   serverNow: string;
   timeZone: string;
   title: string;
@@ -143,6 +146,11 @@ export function OpenLines(props: {
                             {O.slipPrinted(when.format(new Date(r.slipPrintedAt)))}
                           </span>
                         ) : null}
+                        {r.patientCouldNotGet ? (
+                          <span>
+                            <StatusWord tone="caution">{O.patientCouldNotGet}</StatusWord>
+                          </span>
+                        ) : null}
                       </span>
                     </td>
                     <td className="px-3 py-3">
@@ -169,6 +177,9 @@ export function OpenLines(props: {
                           >
                             {SUPPLY.supplied.supplyNow}
                           </Link>
+                        ) : null}
+                        {props.canTell && r.outcome === "owed" && r.onShelfHere ? (
+                          <TellPatientButton lineId={r.lineId} />
                         ) : null}
                         {r.outcome === "buying_outside" && props.canClose ? (
                           <FilledDialog lineId={r.lineId} medicine={r.medicine} />

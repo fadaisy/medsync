@@ -446,6 +446,45 @@ export const REVIEW = {
     empty: "No line is owed or being bought outside.",
     today: "today",
     ago: (n: number) => plural(n, "day", "days"),
+    /** 5.7, ML-4: a line the patient marked in the app (amber, with an icon, still open). */
+    patientCouldNotGet: "The patient could not get it",
+    /** 5.7, MS-4: sends the "in stock today" message (B-69); a person's press only. */
+    tellPatient: "Tell the patient it is here",
+  },
+
+  /** 5.10, D-PH1-44: what the prescriber was shown when writing the line (stored; never a quantity). */
+  stockAnswer: {
+    out: "The prescriber was told it was not on the shelf.",
+    not_stocked: "The prescriber was told it is not stocked here.",
+    not_counted: "The prescriber was told the stock had not been counted.",
+    low: "The prescriber was told the stock was low.",
+  } as Partial<Record<string, string>>,
+
+  /**
+   * 5.11, MS-3, MS-5, Law 11: what happened to a message, in words, with what to do. Every outcome but
+   * `sent` ends with the same next step; nothing here names the medicine.
+   */
+  message: {
+    sent: "A text message went to the patient's own number.",
+    next: "Tell the patient another way.",
+    why: {
+      sms_off: "SMS is off at this hospital.",
+      not_signed:
+        "No message was sent: the patient wording and the message templates are not yet signed.",
+      no_message_name: "No message was sent: the hospital has no message name.",
+      no_template: "No message was sent: there is no approved message template.",
+      no_point_phone: "No message was sent: this dispensing point has no phone set.",
+      banned_term: "No message was sent: the message failed the privacy check.",
+      no_phone: "No message was sent: the patient has no phone number on file.",
+      no_consent: "No message was sent: the patient has not agreed to text messages.",
+      opted_out: "No message was sent: the patient's number has opted out of text messages.",
+      too_long: "No message was sent: the message does not fit one text message.",
+      no_transport: "No message was sent: text messages are not set up on this server.",
+      send_failed: "The text message could not be sent.",
+      failed: "The message could not be recorded.",
+    },
+    notOwed: "Only a medicine that is owed can be announced.",
+    notOnShelf: "It is not on the shelf here, so no message is sent.",
   },
 
   slip: {

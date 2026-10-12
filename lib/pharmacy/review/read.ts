@@ -15,15 +15,20 @@ import type {
 import type { Recipients } from "@/lib/pharmacy/review/store";
 import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 
+import { REVIEW } from "@/content/pharmacy-review";
 import { db as appDb } from "@/db";
 import { clinicianProfiles, staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitals } from "@/db/schema/hospitals";
-import { pharmacyPrintEvents, pharmacySlips } from "@/db/schema/pharmacy-dispensing";
+import {
+  pharmacyPrintEvents,
+  pharmacySlips,
+  pharmacyStockAnswers,
+} from "@/db/schema/pharmacy-dispensing";
 import { cadres, councils } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
 import { decrypt } from "@/lib/encryption";
 import { sameStrength } from "@/lib/pharmacy/catalogue";
-import { leastAdvanced, queryState } from "@/lib/pharmacy/lines";
+import { leastAdvanced, queryState, saidCouldNotGet } from "@/lib/pharmacy/lines";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { slipFor, VERIFICATION_CODE_PATTERN } from "@/lib/pharmacy/print/slip";
 import { cadreOfUsers } from "@/lib/pharmacy/read";
@@ -346,6 +351,8 @@ export interface ReviewLineView {
   doseSource: "regimen" | "typed" | null;
   outcomeReason: string | null;
   outcomeSince: string | null;
+  /** D-PH1-44: the stock answer the prescriber was shown, in words; null for none or "in stock". */
+  stockAnswer?: string | null;
 }
 
 export interface ReviewData {
@@ -439,6 +446,7 @@ function lineView(
     doseSource: view?.doseSource ?? null,
     outcomeReason: opened?.reasonCode ?? null,
     outcomeSince: opened?.occurredAt.toISOString() ?? null,
+    stockAnswer: null,
   };
 }
 
@@ -509,7 +517,7 @@ async function reviewOf(
   now: Date,
 ): Promise<ReviewData> {
   const first = g.lines[0]!.row;
-  const [shelf, people, who] = await Promise.all([
+  const [shelf, people, who, answers] = await Promise.all([
     loadShelf(
       database,
       h.hospitalId,
@@ -524,7 +532,20 @@ async function reviewOf(
       ]),
     ),
     recipientsFor(database, h.hospitalId, first.prescriberUserId, first.encounterId),
+    database
+      .select({ line: pharmacyStockAnswers.prescriptionId, state: pharmacyStockAnswers.state })
+      .from(pharmacyStockAnswers)
+      .where(
+        and(
+          eq(pharmacyStockAnswers.hospitalId, h.hospitalId),
+          inArray(
+            pharmacyStockAnswers.prescriptionId,
+            g.lines.map((l) => l.row.id),
+          ),
+        ),
+      ),
   ]);
+  const answerOf = new Map(answers.map((a) => [a.line, REVIEW.stockAnswer[a.state] ?? null]));
   const whoCadres = await cadreOfUsers(database, h.hospitalId, [
     ...who.recipients.map((r) => r.userId),
     ...who.skipped.map((r) => r.userId),
@@ -559,9 +580,20 @@ async function reviewOf(
     ),
     changedSincePrint: g.changedSincePrint,
     payment: g.payment ? { status: g.payment.status, detail: g.payment.detail } : null,
-    lines: g.lines.map((l) =>
-      lineView(g, l, shelf, h, pointId, people, viewOf.get(l.row.id), inputs.get(l.row.id)!, now),
-    ),
+    lines: g.lines.map((l) => ({
+      ...lineView(
+        g,
+        l,
+        shelf,
+        h,
+        pointId,
+        people,
+        viewOf.get(l.row.id),
+        inputs.get(l.row.id)!,
+        now,
+      ),
+      stockAnswer: answerOf.get(l.row.id) ?? null,
+    })),
     queries: g.queries.map((q) => {
       const o = queryOutcomeForPharmacy({ sentAt: q.createdAt, events: q.events });
       return {
@@ -661,6 +693,8 @@ export interface OpenLineRow {
   slipPrintedAt: string | null;
   /** 5.7: "Supply now" only when the medicine is on the shelf at the acting point. */
   onShelfHere: boolean;
+  /** 5.7, ML-4: the patient said in the app they could not get it (still open). */
+  patientCouldNotGet: boolean;
 }
 
 /** `getOpenLines` (LO-3): every line with an open outcome, oldest first. Nothing drops off (LO-5). */
@@ -704,6 +738,7 @@ export async function getOpenLines(
           !!shelf &&
           !!pointId &&
           shelfAnswer(shelf, pointId, l.row.drugId, now).state === "on_shelf",
+        patientCouldNotGet: saidCouldNotGet(l.events),
       });
     }
   if (rows.length) {
@@ -716,6 +751,7 @@ export async function getOpenLines(
       r.slipPrintedAt = slips.find((s) => s.ids.includes(r.lineId))?.at.toISOString() ?? null;
   }
   return {
+    liveSms: h.settings.liveSms,
     rows: rows.sort((a, b) => a.since.localeCompare(b.since)),
     points: h.points.map((p) => ({
       id: p.id,

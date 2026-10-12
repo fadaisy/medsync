@@ -55,7 +55,9 @@ export async function ensureTemplates(ctx: NcdContext): Promise<void> {
       const [any] = await tx
         .select({ id: ncdSmsTemplate.id })
         .from(ncdSmsTemplate)
-        .where(eq(ncdSmsTemplate.facilityId, ctx.facilityId))
+        .where(
+          and(eq(ncdSmsTemplate.facilityId, ctx.facilityId), eq(ncdSmsTemplate.workspace, "ncd")),
+        )
         .limit(1);
       if (!any) await tx.insert(ncdSmsTemplate).values(seedRows(ctx.facilityId, ctx.userId));
     },
@@ -72,7 +74,12 @@ export async function listTemplates(ctx: NcdContext): Promise<SmsTemplate[]> {
         .select()
         .from(ncdSmsTemplate)
         .where(
-          and(eq(ncdSmsTemplate.facilityId, ctx.facilityId), ne(ncdSmsTemplate.status, "retired")),
+          and(
+            eq(ncdSmsTemplate.facilityId, ctx.facilityId),
+            // 0134 shares this table with the pharmacy (D-PH1-48); the NCD screens list only their own.
+            eq(ncdSmsTemplate.workspace, "ncd"),
+            ne(ncdSmsTemplate.status, "retired"),
+          ),
         )
         .orderBy(asc(ncdSmsTemplate.purpose), asc(ncdSmsTemplate.language)),
     ctx.db,
@@ -115,7 +122,13 @@ async function load(tx: NcdTx, ctx: NcdContext, id: string): Promise<SmsTemplate
   const [t] = await tx
     .select()
     .from(ncdSmsTemplate)
-    .where(and(eq(ncdSmsTemplate.id, id), eq(ncdSmsTemplate.facilityId, ctx.facilityId)));
+    .where(
+      and(
+        eq(ncdSmsTemplate.id, id),
+        eq(ncdSmsTemplate.facilityId, ctx.facilityId),
+        eq(ncdSmsTemplate.workspace, "ncd"),
+      ),
+    );
   if (!t) throw new NcdError("not_found", "Template not found.");
   return t;
 }

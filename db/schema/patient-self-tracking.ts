@@ -91,6 +91,8 @@ export const selfMedications = pgTable(
     notes: text("notes"),
     /** 0091 (ADR 0203 §7): added from a shared visit summary; once per prescription. FK in SQL. */
     sourcePrescriptionId: uuid("source_prescription_id"),
+    /** 0134 (Pharmacy Phase 1, ML-1): the line's first supply; withdrawn (ML-6) as state `ended`. FK in SQL. */
+    sourceSupplyId: uuid("source_supply_id"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

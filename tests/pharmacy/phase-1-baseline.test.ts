@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { pharmacyChecksState } from "@/lib/pharmacy/check-state";
-import { pharmacyAvailability } from "@/lib/prescribing/pharmacy";
+import { getAvailability, pharmacyAvailability } from "@/lib/prescribing/pharmacy";
 
 /**
  * Pharmacy Phase 1, Step 0 (docs/pharmacy/phase-1/PROMPT-PHARMACY-PHASE-1.md §9): failing tests that
@@ -33,8 +33,52 @@ describe("Pharmacy Phase 1 baseline — the gap reproduced at Step 0", () => {
   });
 
   // ADR 0190's seam: whatever a hospital holds, the prescriber is told "not linked".
-  it.fails("the availability seam answers from stock where a hospital holds it", () => {
-    expect(pharmacyAvailability("fixture-medicine", "a-hospital-with-stock").status).not.toBe(
+  // Closed at Step 9 (AV-1..AV-9): with a live point holding the medicine, the seam answers from stock.
+  it("the availability seam answers from stock where a hospital holds it", () => {
+    const now = new Date("2026-10-12T09:00:00Z");
+    const answer = getAvailability({
+      medicineId: "fixture_medicine",
+      hospitalId: "fixture-hospital",
+      origin: "window",
+      points: [
+        { id: "point", name: "Fixture point", hospitalId: "fixture-hospital", serves: "window" },
+      ],
+      stock: {
+        point: {
+          products: [{ id: "product", medicineId: "fixture_medicine" }],
+          batches: [
+            {
+              id: "batch",
+              pointId: "point",
+              productId: "product",
+              medicineId: "fixture_medicine",
+              batchNumber: "FX-001",
+              expiry: "2099-01-31",
+              expiryMonthOnly: false,
+            },
+          ],
+          movements: [
+            {
+              id: "m1",
+              batchId: "batch",
+              pointId: "point",
+              kind: "received",
+              quantity: 10,
+              effectiveAt: now,
+              recordedAt: now,
+              downtime: false,
+            },
+          ],
+          lastCountAt: now,
+          reorderLevel: null,
+          countFreshnessDays: null,
+        },
+      },
+      now,
+    });
+    expect(answer.state).toBe("in_stock");
+    // The old seam stays for its callers and still says "not linked" on its own.
+    expect(pharmacyAvailability("fixture-medicine", "a-hospital-with-stock").status).toBe(
       "not_linked",
     );
   });

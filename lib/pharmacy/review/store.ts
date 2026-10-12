@@ -353,7 +353,12 @@ async function writeEvent(
 }
 
 /** RQ-11, D-PH1-47: a PHI-free nudge on the prescriber's own topic. Never throws, never rolls back. */
-export async function nudge(ctx: PharmacyCtx, userId: string, kind: string, ref: string) {
+export async function nudge(
+  ctx: Pick<PharmacyCtx, "tx">,
+  userId: string,
+  kind: string,
+  ref: string,
+) {
   await ctx.tx
     .transaction(async (sp) => {
       await sp.execute(
