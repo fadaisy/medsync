@@ -940,3 +940,49 @@ Commit `9e86e10a`. Behind `pharmacyDispensing` and a live point.
 
 **First merge:** Steps 0 to 6 are complete on the branch. The owner can review and merge whenever they choose;
 nothing reaches production behaviour while the flags are off.
+
+---
+
+## STOP 7 — Controlled drugs (12 Oct 2026)
+
+Commit `6dfe8f46`.
+
+- **The witness:** proves who they are with their own password and authenticator code on a throwaway client
+  (`lib/auth/attest.ts`, D-PH1-42). Five failures lock that witness for an hour.
+- **The count:** committed before MedSync's figure is shown. A difference is recorded with both people and
+  corrected by a witnessed movement.
+- **The supply:** the controlled supply records the whole hand-over in one transaction, with both paper
+  attestations and the witness's agreement.
+- **The stock side:** witnessed receipts, counts and transfers.
+- **The paper:** the Controlled drugs page, and the register slip headed "This is not the register."
+- **Tests:** S57–S66 pass on the PGlite lane, with the verifier injected.
+
+## STOP 8 — Downtime, the dispensing log and going live (12 Oct 2026; the second merge)
+
+Commits `c5758ab7` and `6dfe8f46`.
+
+- **Sheets:** reserved and printed (DS-numbers, A4).
+- **Back-entry:** keeps the sheet's time, refuses only what DT-4 lists, and flags the rest for look-back.
+- **Paper prescriptions:** their own record.
+- **The daily dispensing log:** one row per batch, in the hospital's confirmed column order.
+- **Going live:** the page has six conditions and needs two admins. A second point needs a pilot note by someone
+  else.
+- **Switching off:** needs a reason and a second admin.
+- **Tests:** S67–S83 pass.
+
+## STOP 9 — Beyond the floor, hardening and documents (12 Oct 2026; the third merge)
+
+Commits `d7457597`, `3920e97b`, `68459bf8` and `74127538`.
+
+- **The prescriber's stock line:** in words, no quantity, never a Stop. Every answer shown is stored.
+- **The nurse's chip.**
+- **The patient's medicine list:** from supplies, with refill dates only from recorded days or a course supplied
+  in full.
+- **The patient's taps.**
+- **Messages:** go through one guarded path and never name a medicine.
+- **The screenshot fixes:** the nav permissions, phone layouts, counts, the go-live wording, the opening count.
+- **Guards:** HZ-48 and HZ-57.
+- **Documents:** the user guide, the completed hazard log, the final report.
+- **Tests:** S84–S96 pass.
+
+**Final numbers and what remains: [FINAL-REPORT.md](FINAL-REPORT.md).**
