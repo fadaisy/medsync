@@ -292,7 +292,8 @@ export const REVIEW = {
       `${n} of ${total} lines have an outcome. Each supply takes its quantity from the batch shown, in the same step.`,
     saveDecisions: "Save and keep in the queue",
     handover: "Continue to hand-over",
-    handoverNext: "Hand-over comes in the next step",
+    handoverNext:
+      "Save a decision on each line to supply. Every other line needs a decision, an outcome or an open query.",
     /** B-21. */
     changed: (medicine: string, time: string) =>
       `${medicine} was changed by the prescriber at ${time}. Review it again.`,

@@ -19,10 +19,12 @@ import {
   WITHDRAW_REASONS,
   WITHOUT_PHARMACIST_REASONS,
 } from "@/content/pharmacy-review";
+import { BATCH_CHOICE_REASONS } from "@/content/pharmacy-supply";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import {
   pharmacyLegalAnswers,
   pharmacyLineEvents,
+  pharmacyLookBacks,
   pharmacyPaymentStatuses,
   pharmacyPrintEvents,
   pharmacyQueries,
@@ -57,8 +59,8 @@ import {
   supplyWithoutReviewAllowed,
   WAITING_FOR_PHARMACIST,
 } from "@/lib/pharmacy/review/review";
-import { proposeBatches } from "@/lib/pharmacy/stock/fefo";
-import { localDate } from "@/lib/pharmacy/stock/ledger";
+import { batchChoiceNeedsReason, proposeBatches } from "@/lib/pharmacy/stock/fefo";
+import { isExpired, localDate } from "@/lib/pharmacy/stock/ledger";
 import { lockLine } from "@/lib/pharmacy/write";
 
 /**
@@ -118,19 +120,38 @@ export const LineInput = z.object({ clientKey: key, lineId });
 export const DeclineInput = z
   .object({ clientKey: key, lineId, reasonCode: keys(DECLINE_REASONS), note })
   .refine(otherNeedsNote, noteMessage);
+/** 5.3.1: the product and batches chosen in the Change dialog; absent, the first to expire. */
+const chosen = {
+  productId: z.uuid().optional(),
+  batches: z
+    .array(z.object({ batchId: z.uuid(), quantity: qty }))
+    .min(1)
+    .max(10)
+    .optional(),
+  batchChoiceReason: keys(BATCH_CHOICE_REASONS).optional(),
+};
 export const DecisionsInput = z.object({
   clientKey: key,
   decisions: z
     .array(
       z.union([
-        z.object({ lineId, kind: z.literal("full"), quantity: qty, daysCovered: qty.optional() }),
+        z.object({
+          lineId,
+          kind: z.literal("full"),
+          quantity: qty,
+          daysCovered: qty.optional(),
+          ...chosen,
+        }),
         z.object({
           lineId,
           kind: z.literal("part"),
           quantity: qty,
           notSupplied: qty.optional(),
           rest: z.enum(["owed", "buying_outside"]),
+          /** SU-7: why the rest is not supplied now (Appendix D, not supplied). */
+          reasonCode: keys(NOT_SUPPLIED_REASONS).optional(),
           daysCovered: qty.optional(),
+          ...chosen,
         }),
       ]),
     )
@@ -332,7 +353,7 @@ async function writeEvent(
 }
 
 /** RQ-11, D-PH1-47: a PHI-free nudge on the prescriber's own topic. Never throws, never rolls back. */
-async function nudge(ctx: PharmacyCtx, userId: string, kind: string, ref: string) {
+export async function nudge(ctx: PharmacyCtx, userId: string, kind: string, ref: string) {
   await ctx.tx
     .transaction(async (sp) => {
       await sp.execute(
@@ -472,16 +493,45 @@ export async function saveLineDecisions(ctx: PharmacyCtx, input: z.infer<typeof 
       );
     const products = shelf.products.get(shelfKey(point.id, line.row.drugId)) ?? [];
     if (!products.length) throw conflict(REVIEW.review.noProduct(point.name));
+    const unit = products[0]!.issueUnit;
     let chosen: { productId: string; batches: { batchId: string; quantity: number }[] } | null =
       null;
     let available = 0;
-    for (const p of products) {
+    const offered = d.productId ? products.filter((p) => p.id === d.productId) : products;
+    if (!offered.length) throw conflict(REVIEW.review.noProduct(point.name));
+    for (const p of offered) {
       const proposal = proposeBatches({
         batches: shelf.batches.filter((b) => b.productId === p.id && b.pointId === point.id),
         balances: shelf.balances,
         quantity: d.quantity,
         localDate: today,
       });
+      // 5.3.1, SU-3: batches chosen by hand are this product's, unexpired, enough, and need a reason.
+      if (d.batches) {
+        const total = d.batches.reduce((s, r) => s + r.quantity, 0);
+        for (const r of d.batches) {
+          const b = shelf.batches.find(
+            (x) => x.id === r.batchId && x.productId === p.id && x.pointId === point.id,
+          );
+          if (!b || isExpired(b, today))
+            throw conflict(`${line.row.drugName}: choose an unexpired batch of this product.`);
+          if (r.quantity > (shelf.balances.get(b.id) ?? 0))
+            throw conflict(
+              `Batch ${b.batchNumber} now holds ${shelf.balances.get(b.id) ?? 0}. Choose again.`,
+            );
+        }
+        if (total !== d.quantity)
+          throw conflict(`${line.row.drugName}: the batches must add up to ${d.quantity}.`);
+        if (
+          (!proposal.ok || batchChoiceNeedsReason(d.batches, proposal.rows)) &&
+          !d.batchChoiceReason
+        )
+          throw conflict(
+            `${line.row.drugName}: a batch that is not first to expire needs a reason.`,
+          );
+        chosen = { productId: p.id, batches: d.batches };
+        break;
+      }
       if (proposal.ok) {
         chosen = { productId: p.id, batches: proposal.rows };
         break;
@@ -490,7 +540,7 @@ export async function saveLineDecisions(ctx: PharmacyCtx, input: z.infer<typeof 
     }
     if (!chosen)
       throw conflict(
-        `Only ${available} ${products[0]!.issueUnit} of ${line.row.drugName} on the shelf here. Choose Supply part, or Not on the shelf.`,
+        `Only ${available} ${unit} of ${line.row.drugName} on the shelf here. Choose Supply part, or Not on the shelf.`,
       );
     const decision = {
       kind: d.kind,
@@ -499,6 +549,8 @@ export async function saveLineDecisions(ctx: PharmacyCtx, input: z.infer<typeof 
       quantity: d.quantity,
       notSupplied: d.kind === "part" ? (d.notSupplied ?? null) : null,
       rest: d.kind === "part" ? d.rest : null,
+      reasonCode: d.kind === "part" ? (d.reasonCode ?? null) : null,
+      batchChoiceReason: d.batches ? (d.batchChoiceReason ?? null) : null,
       daysCovered: d.daysCovered ?? null,
     };
     mustMove(ctx, { group, line }, "decision_saved", "ready");
@@ -628,6 +680,54 @@ export async function recordSupplyWithoutReview(
       reasonNote: input.note,
     }),
   };
+}
+
+/** 5.7: the look-back tab. A pharmacist records "Looked at", with a note, on a flagged supply. */
+export const LookBackInput = z.object({
+  clientKey: key,
+  supplyId: z.uuid(),
+  note: z
+    .string()
+    .trim()
+    .max(1000)
+    .optional()
+    .transform((s) => (s ? s : null)),
+});
+export const LOOK_BACK_NEED: PharmacyNeed = {
+  permission: "pharmacy.review",
+  point: "live_or_was_live",
+};
+
+export async function recordLookBack(ctx: PharmacyCtx, input: z.infer<typeof LookBackInput>) {
+  const rows = await ctx.tx
+    .select({ id: pharmacyLookBacks.id, kind: pharmacyLookBacks.kind })
+    .from(pharmacyLookBacks)
+    .where(
+      and(
+        eq(pharmacyLookBacks.hospitalId, ctx.actor.hospitalId),
+        eq(pharmacyLookBacks.supplyId, input.supplyId),
+      ),
+    );
+  const again = rows.find((r) => r.id === input.clientKey);
+  if (again) return { id: again.id };
+  if (!rows.some((r) => r.kind === "flagged"))
+    throw new EmrWriteError("not_found", "That supply is not on the look-back list.");
+  if (rows.some((r) => r.kind === "looked"))
+    throw conflict("A pharmacist has already looked at this supply.");
+  const [row] = await ctx.tx
+    .insert(pharmacyLookBacks)
+    .values({
+      id: input.clientKey,
+      hospitalId: ctx.actor.hospitalId,
+      supplyId: input.supplyId,
+      kind: "looked",
+      reasons: [],
+      note: input.note,
+      actorUserId: ctx.actor.userId,
+      at: ctx.now,
+    })
+    .returning({ id: pharmacyLookBacks.id });
+  return { id: row!.id };
 }
 
 /* ─── Queries, pharmacy (Section 8: dispense or review) ───────────────── */

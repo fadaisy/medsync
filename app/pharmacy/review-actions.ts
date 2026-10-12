@@ -125,3 +125,8 @@ export async function closePrescriptionNotCollected(raw: unknown) {
 export async function printSlip(raw: unknown) {
   return bare(await act(store.LineInput, raw, store.DISPENSE_NEED, store.printSlip));
 }
+
+/** 5.7: the look-back tab's "Looked at" (`pharmacy.review`). */
+export async function recordLookBack(raw: unknown) {
+  return bare(await act(store.LookBackInput, raw, store.LOOK_BACK_NEED, store.recordLookBack));
+}

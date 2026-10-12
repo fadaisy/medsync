@@ -410,6 +410,7 @@ async function ReviewPage({
         data={data}
         canReview={can(actor.access, "pharmacy.review")}
         canDispense={can(actor.access, "pharmacy.dispense")}
+        canStock={can(actor.access, "pharmacy.stock")}
         prescribers={prescribers}
         patientListOn={pharmacyPatientListLiveFor(scope.hospitalId)}
         timeZone={DEFAULT_TIME_ZONE}

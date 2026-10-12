@@ -1,4 +1,5 @@
 import type { EmrDb } from "@/lib/emr/db";
+import type { StrengthMatch } from "@/lib/pharmacy/catalogue";
 import type { LaneReasonCode, PrescriptionLane } from "@/lib/pharmacy/lanes";
 import type { LineStatus, OpenOutcome, Stage } from "@/lib/pharmacy/lines";
 import type { ViewLineInput } from "@/lib/pharmacy/prescription-view";
@@ -21,6 +22,7 @@ import { pharmacyPrintEvents, pharmacySlips } from "@/db/schema/pharmacy-dispens
 import { cadres, councils } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
 import { decrypt } from "@/lib/encryption";
+import { sameStrength } from "@/lib/pharmacy/catalogue";
 import { leastAdvanced, queryState } from "@/lib/pharmacy/lines";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { slipFor, VERIFICATION_CODE_PATTERN } from "@/lib/pharmacy/print/slip";
@@ -249,6 +251,74 @@ export interface ReviewQueryView {
   caution: boolean;
 }
 
+/** The staged decision (`decision_saved`), as saveLineDecisions wrote it. */
+export interface StagedDecision {
+  kind: "full" | "part";
+  productId?: string;
+  batches?: { batchId: string; quantity: number }[];
+  quantity: number;
+  notSupplied: number | null;
+  rest: "owed" | "buying_outside" | null;
+  reasonCode?: string | null;
+  batchChoiceReason?: string | null;
+  daysCovered?: number | null;
+}
+
+export interface LineStock {
+  products: {
+    id: string;
+    name: string;
+    strength: string | null;
+    issueUnit: string;
+    /** H2, CT-4: the pack's strength against the prescribed one, as text. */
+    match: StrengthMatch;
+  }[];
+  batches: {
+    id: string;
+    productId: string;
+    batchNumber: string;
+    expiry: string;
+    expiryMonthOnly: boolean;
+    balance: number;
+    expired: boolean;
+  }[];
+}
+
+/** The products and batches of one medicine at one point (5.3.1, SU-3); expired ones flagged, never offered. */
+export function lineStock(
+  shelf: Shelf,
+  pointId: string | null,
+  medicineId: string,
+  now: Date,
+  prescribedStrength: string | null = null,
+): LineStock {
+  if (!pointId) return { products: [], batches: [] };
+  const today = localDate(now);
+  const products = shelf.products.get(shelfKey(pointId, medicineId)) ?? [];
+  const ids = new Set(products.map((p) => p.id));
+  return {
+    products: products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      strength: p.strength,
+      issueUnit: p.issueUnit,
+      match: sameStrength(prescribedStrength, p.strength),
+    })),
+    batches: shelf.batches
+      .filter((b) => b.pointId === pointId && ids.has(b.productId) && b.balance > 0)
+      .sort((a, b) => expiresOn(a).localeCompare(expiresOn(b)))
+      .map((b) => ({
+        id: b.id,
+        productId: b.productId,
+        batchNumber: b.batchNumber,
+        expiry: b.expiry,
+        expiryMonthOnly: b.expiryMonthOnly,
+        balance: b.balance,
+        expired: isExpired(b, today),
+      })),
+  };
+}
+
 export interface ReviewLineView {
   id: string;
   input: ViewLineInput;
@@ -262,13 +332,10 @@ export interface ReviewLineView {
     byCadre: string | null;
     at: string;
   } | null;
-  staged: {
-    kind: "full" | "part";
-    quantity: number;
-    notSupplied: number | null;
-    rest: "owed" | "buying_outside" | null;
-  } | null;
+  staged: StagedDecision | null;
   shelf: ShelfAnswer | null;
+  /** 5.3.1: the products set up here for this medicine and their batches, for the Change dialog. */
+  stock: LineStock;
   elsewhere: string[];
   /** RQ-9: replaced by the prescriber, with when. */
   replacedAt: string | null;
@@ -357,6 +424,7 @@ function lineView(
         : null,
     staged: d && (d.kind === "full" || d.kind === "part") ? d : null,
     shelf: here,
+    stock: lineStock(shelf, pointId, l.row.drugId, now, l.row.concentration),
     elsewhere:
       here && here.state !== "on_shelf"
         ? live.filter((p) => p.id !== pointId && holds(p)).map((p) => p.name)
@@ -591,12 +659,28 @@ export interface OpenLineRow {
   reasonCode: string | null;
   since: string;
   slipPrintedAt: string | null;
+  /** 5.7: "Supply now" only when the medicine is on the shelf at the acting point. */
+  onShelfHere: boolean;
 }
 
 /** `getOpenLines` (LO-3): every line with an open outcome, oldest first. Nothing drops off (LO-5). */
-export async function getOpenLines(hospitalId: string, database: EmrDb = defaultDb()) {
+export async function getOpenLines(
+  hospitalId: string,
+  database: EmrDb = defaultDb(),
+  pointId: string | null = null,
+  now = new Date(),
+) {
   const h = await loadHospitalContext(database, hospitalId);
   const groups = await loadScopeGroups(database, h);
+  const shelf = pointId
+    ? await loadShelf(
+        database,
+        hospitalId,
+        groups.flatMap((g) =>
+          g.lines.filter((l) => l.status?.kind === "open").map((l) => l.row.drugId),
+        ),
+      )
+    : null;
   const rows: OpenLineRow[] = [];
   for (const g of groups)
     for (const l of g.lines) {
@@ -616,6 +700,10 @@ export async function getOpenLines(hospitalId: string, database: EmrDb = default
         reasonCode: opened?.reasonCode ?? null,
         since: (opened?.occurredAt ?? g.writtenAt).toISOString(),
         slipPrintedAt: null,
+        onShelfHere:
+          !!shelf &&
+          !!pointId &&
+          shelfAnswer(shelf, pointId, l.row.drugId, now).state === "on_shelf",
       });
     }
   if (rows.length) {

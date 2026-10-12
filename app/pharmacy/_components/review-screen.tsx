@@ -1,5 +1,6 @@
 "use client";
 
+import type { BatchChoice } from "./supply-dialogs";
 import type { ReviewData, ReviewLineView, ReviewQueryView } from "@/lib/pharmacy/review/read";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import { ClockIcon, TriangleAlertIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { CautionNotice } from "@/components/medsync/caution-notice";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { COSIGN_CAUTION, OVERRIDE_CAUTION, PHARMACY } from "@/content/pharmacy";
@@ -20,8 +21,11 @@ import {
   REVIEW,
 } from "@/content/pharmacy-review";
 import { expiryText, STOCK } from "@/content/pharmacy-stock";
+import { SUPPLY } from "@/content/pharmacy-supply";
 import { WAITING_FOR_PHARMACIST } from "@/lib/pharmacy/review/review";
+import { localDate } from "@/lib/pharmacy/stock/ledger";
 import * as actions from "../review-actions";
+import { FoundDialog } from "../stock/_components/stock-dialogs";
 import {
   ActionButton,
   DeclineDialog,
@@ -34,6 +38,7 @@ import {
   WithdrawDialog,
   WithoutPharmacistDialog,
 } from "./review-dialogs";
+import { ChangeDialog } from "./supply-dialogs";
 
 /**
  * One prescription at a live dispensing point (5.3, artboard 1.2; wireframes §3, §4.1, §5.1). Left:
@@ -48,6 +53,8 @@ export interface ReviewScreenProps {
   data: ReviewData;
   canReview: boolean;
   canDispense: boolean;
+  /** `pharmacy.stock`: "Add a batch found on the shelf" (5.3.1). */
+  canStock?: boolean;
   prescribers: { userId: string; label: string }[];
   patientListOn: boolean;
   timeZone: string;
@@ -60,7 +67,11 @@ interface Draft {
   now: string;
   notSupplied: string;
   rest: "owed" | "buying_outside";
+  /** SU-7: why the rest is not supplied now. */
+  reason: string;
   days: string;
+  /** 5.3.1: a product or batch chosen in the Change dialog. */
+  batch: BatchChoice | null;
 }
 const EMPTY: Draft = {
   choice: null,
@@ -68,7 +79,9 @@ const EMPTY: Draft = {
   now: "",
   notSupplied: "",
   rest: "owed",
+  reason: "",
   days: "",
+  batch: null,
 };
 const R = REVIEW.review;
 const newKey = () => crypto.randomUUID();
@@ -103,6 +116,19 @@ export function ReviewScreen(props: ReviewScreenProps) {
       !l.basis,
   );
   const lineNo = new Map(data.lines.map((l, i) => [l.id, i + 1]));
+  // 5.3: Continue once at least one line is to be supplied and every other line has a decision, an
+  // outcome or an open query. A controlled line is supplied on paper until Step 7 and does not hold it up.
+  const staged = (l: ReviewLineView) =>
+    l.status?.kind === "stage" && l.status.stage === "ready" && !!l.staged;
+  const toSupply = live.filter((l) => staged(l) && !l.input.controlled);
+  const waiting = live.filter(
+    (l) =>
+      l.status?.kind === "stage" &&
+      l.status.stage !== "queried" &&
+      !staged(l) &&
+      !l.input.controlled,
+  );
+  const canContinue = canDispense && data.pointLive && toSupply.length > 0 && !waiting.length;
 
   const choose = (line: ReviewLineView, c: Choice) => {
     patch(line.id, { choice: c });
@@ -113,19 +139,29 @@ export function ReviewScreen(props: ReviewScreenProps) {
   const save = () => {
     const decisions = live.flatMap((l) => {
       const d = draft(l.id);
-      if (d.choice === "full" && int(d.quantity))
-        return [
-          { lineId: l.id, kind: "full", quantity: int(d.quantity), daysCovered: int(d.days) },
-        ];
-      if (d.choice === "part" && int(d.now))
+      const q = d.choice === "full" ? int(d.quantity) : int(d.now);
+      // A batch choice stands only for the quantity it was made for.
+      const chosen =
+        d.batch && d.batch.batches.reduce((s, r) => s + r.quantity, 0) === q
+          ? {
+              productId: d.batch.productId,
+              batches: d.batch.batches,
+              batchChoiceReason: d.batch.reason,
+            }
+          : {};
+      if (d.choice === "full" && q)
+        return [{ lineId: l.id, kind: "full", quantity: q, daysCovered: int(d.days), ...chosen }];
+      if (d.choice === "part" && q)
         return [
           {
             lineId: l.id,
             kind: "part",
-            quantity: int(d.now),
+            quantity: q,
             notSupplied: int(d.notSupplied),
             rest: d.rest,
+            reasonCode: d.reason || undefined,
             daysCovered: int(d.days),
+            ...chosen,
           },
         ];
       return [];
@@ -193,6 +229,7 @@ export function ReviewScreen(props: ReviewScreenProps) {
                   patch={(p) => patch(l.id, p)}
                   choose={(c) => choose(l, c)}
                   time={time}
+                  canStock={!!props.canStock}
                 />
                 {panel === l.id ? (
                   <NotOnShelf
@@ -251,7 +288,19 @@ export function ReviewScreen(props: ReviewScreenProps) {
                 {R.saveDecisions}
               </Button>
             ) : null}
-            {!reviewOnly ? (
+            {!reviewOnly && canContinue ? (
+              <Link
+                href={`/pharmacy/prescriptions/${encodeURIComponent(data.key)}/handover`}
+                prefetch={false}
+                className={buttonVariants({
+                  variant: "primary",
+                  size: "md",
+                  className: "min-h-11",
+                })}
+              >
+                {R.handover}
+              </Link>
+            ) : !reviewOnly ? (
               <span className="inline-flex flex-col items-end">
                 <Button type="button" className={TARGET} disabled aria-describedby="handover-next">
                   {R.handover}
@@ -539,8 +588,10 @@ function LineActions({
   patch,
   choose,
   time,
+  canStock,
 }: {
   time: Fmt;
+  canStock: boolean;
   line: ReviewLineView;
   data: ReviewData;
   canReview: boolean;
@@ -669,6 +720,47 @@ function LineActions({
               </fieldset>
             </div>
           ) : null}
+          {draft.choice === "part" ? (
+            <RestReason value={draft.reason} onChange={(v) => patch({ reason: v })} />
+          ) : null}
+          {draft.choice === "full" || draft.choice === "part" ? (
+            <span className="flex flex-wrap items-center gap-2">
+              {line.stock.products.length ? (
+                <ChangeDialog
+                  medicine={name}
+                  quantity={int(draft.choice === "full" ? draft.quantity : draft.now)}
+                  stock={line.stock}
+                  value={draft.batch}
+                  today={localDate(new Date(data.serverNow))}
+                  onUse={(batch) => patch({ batch })}
+                />
+              ) : null}
+              {canStock ? (
+                <FoundDialog
+                  what={name}
+                  medicineId={line.drugId}
+                  products={line.stock.products.map((p) => ({
+                    id: p.id,
+                    medicineName: name,
+                    name: p.name,
+                    issueUnit: p.issueUnit,
+                  }))}
+                />
+              ) : null}
+              {draft.batch ? (
+                <span className="text-caption text-muted-foreground">
+                  {SUPPLY.change.chosen(
+                    draft.batch.batches
+                      .map(
+                        (r) =>
+                          `${line.stock.batches.find((b) => b.id === r.batchId)?.batchNumber ?? ""} × ${r.quantity}`,
+                      )
+                      .join(", "),
+                  )}
+                </span>
+              ) : null}
+            </span>
+          ) : null}
           {draft.choice === "full" || draft.choice === "part" ? (
             <Qty label={R.daysCovered} value={draft.days} onChange={(v) => patch({ days: v })} />
           ) : null}
@@ -681,6 +773,33 @@ function LineActions({
           ) : null}
         </fieldset>
       ) : null}
+    </div>
+  );
+}
+
+function RestReason({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const id = useId();
+  return (
+    <div className="flex max-w-sm flex-col gap-1">
+      <Label htmlFor={id} className="text-caption">
+        {SUPPLY.handover.restReason}
+      </Label>
+      <select
+        id={id}
+        required
+        className={SELECT}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="" disabled>
+          {REVIEW.query.choose}
+        </option>
+        {Object.entries(NOT_SUPPLIED_REASONS).map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

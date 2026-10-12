@@ -2,12 +2,15 @@
 
 import type { PatientIdentity } from "@/components/emr/orders/model";
 import type { OpenLineRow } from "@/lib/pharmacy/review/read";
+import Link from "next/link";
 import { useId, useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { TabList } from "@/components/medsync/tab-list";
+import { buttonVariants } from "@/components/ui/button";
 import { CLOSE_REASONS, NOT_SUPPLIED_REASONS, REVIEW } from "@/content/pharmacy-review";
+import { SUPPLY } from "@/content/pharmacy-supply";
 import {
   ChangeOutcomeButton,
   CloseLineDialog,
@@ -154,6 +157,19 @@ export function OpenLines(props: {
                     </td>
                     <td className="px-3 py-3">
                       <span className="flex flex-wrap justify-end gap-2">
+                        {props.canChange && r.onShelfHere && !r.controlled ? (
+                          <Link
+                            href={`/pharmacy/prescriptions/${encodeURIComponent(r.key)}/handover?line=${r.lineId}`}
+                            prefetch={false}
+                            className={buttonVariants({
+                              variant: "primary",
+                              size: "md",
+                              className: "min-h-11",
+                            })}
+                          >
+                            {SUPPLY.supplied.supplyNow}
+                          </Link>
+                        ) : null}
                         {r.outcome === "buying_outside" && props.canClose ? (
                           <FilledDialog lineId={r.lineId} medicine={r.medicine} />
                         ) : null}

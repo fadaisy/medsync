@@ -169,6 +169,7 @@ const line = (o: Partial<ReviewLineView> & { id: string }): ReviewLineView => ({
     firstBatch: { batchNumber: "FX-001", expiry: "2027-03-01", expiryMonthOnly: true },
     expired: [],
   },
+  stock: { products: [], batches: [] },
   elsewhere: [],
   replacedAt: null,
   replaces: null,
@@ -233,7 +234,7 @@ describe("the review screen (5.3, S13, S14)", () => {
     expect(html).toContain("Fixture reason, verbatim");
     expect(html).toContain("120 tablet · counted");
     expect(html).toContain("FX-001 · exp 03/2027");
-    expect(html).toContain("Hand-over comes in the next step");
+    expect(html).toContain("Every other line needs a decision, an outcome or an open query.");
   });
 
   it("S13: a technician sees a pharmacist-first prescription read-only, waiting for a pharmacist", () => {

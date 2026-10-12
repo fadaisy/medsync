@@ -15,14 +15,15 @@ export const dynamic = "force-dynamic";
 /**
  * Open lines (5.7, artboard 1.7; wireframe §7.1): every line owed or being bought outside, oldest
  * first, until a person acts on it (Law 4, LO-3, LO-5). Behind `pharmacyDispensing`; a point that
- * was live and is switched off keeps this page so what it left open can be closed (RD-3). Supply now
- * and "Tell the patient it is here" come with the hand-over (Step 6) and the messages (Step 9).
+ * was live and is switched off keeps this page so what it left open can be closed (RD-3). "Supply now"
+ * (Step 6) opens the hand-over for that line when it is on the shelf here; "Tell the patient it is
+ * here" comes with the messages (Step 9).
  */
 export default async function OpenLinesPage() {
   const scope = await requirePharmacyScope();
   if (!pharmacyDispensingLiveFor(scope.hospitalId)) notFound();
   const actor = await requirePharmacyActor();
-  const { rows, points } = await getOpenLines(scope.hospitalId);
+  const { rows, points } = await getOpenLines(scope.hospitalId, undefined, actor.pointId);
   const ids = await identitiesFor(
     scope,
     rows.map((r) => r.patientUserId),

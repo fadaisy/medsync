@@ -182,7 +182,7 @@ export function ActionButton({
   );
 }
 
-function Select({
+export function Select({
   label,
   name,
   options,
@@ -211,7 +211,7 @@ function Select({
   );
 }
 
-function Note({ label, name = "note" }: { label: string; name?: string }) {
+export function Note({ label, name = "note" }: { label: string; name?: string }) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
