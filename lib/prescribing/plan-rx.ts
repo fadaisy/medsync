@@ -65,6 +65,17 @@ export const PlanRxFluid = z.object({
 });
 export type PlanRxFluid = z.infer<typeof PlanRxFluid>;
 
+/**
+ * Pharmacy Phase 1 (5.4, H4, HZ-PH1-45): this line changes a placed one in answer to the pharmacy. The
+ * placement cancels the old line naming this one, in the same transaction, or places nothing.
+ */
+export const PlanRxReplaces = z.object({
+  lineId: z.uuid(),
+  /** The query's id, or the not-supplied line event's. */
+  ref: z.uuid(),
+  kind: z.enum(["query", "notice"]),
+});
+
 export const PlanRxSchema = z.object({
   clientKey: z.string().trim().min(8).max(120),
   kind: z.enum(["drug", "fluid"]),
@@ -92,6 +103,7 @@ export const PlanRxSchema = z.object({
   weightAt: z.string().max(40).nullable(),
   /** The typed dose, when the dose check calls the dose egregious. */
   typedDose: z.number().nullable(),
+  replaces: PlanRxReplaces.optional(),
 });
 export type PlanRx = z.infer<typeof PlanRxSchema>;
 

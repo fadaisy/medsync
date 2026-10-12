@@ -33,6 +33,7 @@ import { EmrWriteError, stampActivity } from "./context";
 import { loadEncounterDiagnoses } from "./diagnoses";
 import { recordMedicationStatements } from "./facts";
 import { openEncounter, placeOrders, replayed, requireCadre } from "./orders";
+import { answerQuery, chooseAlternative } from "./pharmacy-answers";
 import { prescribeRequirement, PRESCRIBING_CADRES, statementRoute } from "./prescriptions";
 
 /**
@@ -564,6 +565,9 @@ export async function placePlan(
       others,
     );
     prescriptionIds.push(placed.id);
+    // HZ-PH1-45: a line placed to change one the pharmacy asked about cancels the old line naming it,
+    // in this transaction; if the link is refused, nothing in the basket is placed.
+    if (rx.replaces) await linkReplacement(ctx, input.patientUserId, rx.clientKey, rx.replaces);
     others.push({
       drugId: placed.drugId,
       classId: placed.classId,
@@ -586,4 +590,28 @@ export async function placePlan(
     chartIds,
     warnings,
   };
+}
+
+async function linkReplacement(
+  ctx: WriteCtx,
+  patientUserId: string,
+  clientKey: string,
+  replaces: NonNullable<PlanRx["replaces"]>,
+): Promise<void> {
+  if (replaces.kind === "notice") {
+    await chooseAlternative(ctx, {
+      patientUserId,
+      lineEventId: replaces.ref,
+      replacedByClientKey: clientKey,
+    });
+    return;
+  }
+  await answerQuery(ctx, {
+    patientUserId,
+    queryId: replaces.ref,
+    clientKey: `${clientKey}:answer`,
+    answer: "changed",
+    lineId: replaces.lineId,
+    replacedByClientKey: clientKey,
+  });
 }
