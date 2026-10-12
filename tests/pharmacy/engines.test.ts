@@ -314,10 +314,34 @@ describe("ED: emergency doses from the resus timeline", () => {
 });
 
 describe("NV-P1: navigation", () => {
-  it("two items, nothing else, both behind pharmacy.view", () => {
-    expect(PHARMACY_NAV.map((i) => i.label)).toEqual(["Queue", "Emergency doses"]);
-    expect(pharmacyNavFor(new Set(["pharmacy.view"]))).toHaveLength(2);
+  it("with the Phase 1 flags off: two items, nothing else, both behind pharmacy.view", () => {
+    expect(pharmacyNavFor(new Set(["pharmacy.view"])).map((i) => i.label)).toEqual([
+      "Queue",
+      "Emergency doses",
+    ]);
     expect(pharmacyNavFor(new Set())).toHaveLength(0);
+  });
+
+  it("Phase 1 (5.1): the full order, each item behind its flag", () => {
+    expect(PHARMACY_NAV.map((i) => i.label)).toEqual([
+      "Queue",
+      "Open lines",
+      "Supplied today",
+      "Stock",
+      "Controlled drugs",
+      "Downtime entry",
+      "Emergency doses",
+    ]);
+    const view = new Set(["pharmacy.view"] as const);
+    expect(pharmacyNavFor(view, { dispensing: true, downtime: false })).toHaveLength(6);
+    // Downtime entry needs pharmacy.dispense as well as its flag.
+    expect(pharmacyNavFor(view, { dispensing: false, downtime: true })).toHaveLength(2);
+    expect(
+      pharmacyNavFor(new Set(["pharmacy.view", "pharmacy.dispense"] as const), {
+        dispensing: false,
+        downtime: true,
+      }),
+    ).toHaveLength(3);
   });
 });
 

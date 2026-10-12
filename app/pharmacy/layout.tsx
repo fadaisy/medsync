@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { sentenceCase, WorkspaceShell } from "@/components/medsync/workspace-shell";
 import { PHARMACY } from "@/content/pharmacy";
+import { pharmacyDispensingLiveFor, pharmacyDowntimeLiveFor } from "@/lib/pharmacy/feature";
 import { pharmacyNavFor } from "@/lib/pharmacy/nav";
 import { dosesCountFor, queueFor } from "@/lib/pharmacy/page-data";
 import { toRows } from "@/lib/pharmacy/queue";
@@ -29,18 +30,25 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
     dosesCountFor(scope.hospitalId),
   ]);
   const written = toRows(today.lines, today.encounters, scope.hospitalId).length;
-  const counts = { queue: written, emergency: doses };
-  const words = {
+  const counts: Partial<Record<PharmacyNavEntry["id"], number>> = {
+    queue: written,
+    emergency: doses,
+  };
+  const words: Partial<Record<PharmacyNavEntry["id"], string>> = {
     queue: PHARMACY.nav.queueCount(written),
     emergency: PHARMACY.nav.dosesCount(doses),
   };
-  const nav: PharmacyNavEntry[] = pharmacyNavFor(scope.access.permissions).map((i) => ({
+  const flags = {
+    dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
+    downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
+  };
+  const nav: PharmacyNavEntry[] = pharmacyNavFor(scope.access.permissions, flags).map((i) => ({
     id: i.id,
     label: i.label,
     href: i.href,
     exact: i.exact,
-    count: counts[i.id],
-    countLabel: words[i.id],
+    count: counts[i.id] ?? 0,
+    countLabel: words[i.id] ?? "",
   }));
   const point = scope.departmentParentCode === "PHARMACY" ? scope.departmentName : null;
   return (
