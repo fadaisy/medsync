@@ -694,3 +694,90 @@ both the lane and a static unit test.
    on, and those stay off in production while the Phase 1 wording is draft.
 2. Send the national list edition (CSV) when it is to hand.
 3. Optional: run the Phase 0 backfill dry run against production.
+
+---
+
+## STOP 3 — Engines (12 Oct 2026)
+
+Pure engines, no I/O; commits `ad6f4587` (wave 1) and `54e982d0` (wave 2), plus the shared write path in
+`lib/pharmacy/write.ts`, `points.ts`, `actor.ts`.
+
+| Engine                              | File(s)                                                                    | Tests |
+| ----------------------------------- | -------------------------------------------------------------------------- | ----- |
+| Lanes (LN)                          | `lib/pharmacy/lanes.ts`                                                    | 15    |
+| Line stages and outcomes (LO)       | `lib/pharmacy/lines.ts` (the LO-4 table as data: `MOVES`)                  | 34    |
+| Stock ledger (SL)                   | `lib/pharmacy/stock/ledger.ts`                                             | 24    |
+| First expiry first out (SU-3)       | `lib/pharmacy/stock/fefo.ts`                                               | 9     |
+| Catalogue (CT)                      | `lib/pharmacy/catalogue.ts`                                                | 10    |
+| Availability (AV)                   | `lib/prescribing/pharmacy.ts` (`getAvailability`; the old seam unchanged)  | 23    |
+| Review (RQ-1, RQ-9, RQ-12)          | `lib/pharmacy/review/review.ts`                                            | 15    |
+| Queries (RQ-2 to RQ-11)             | `lib/pharmacy/review/queries.ts`                                           | 31    |
+| Hand-over (SU-2 to SU-12)           | `lib/pharmacy/supply/handover.ts`                                          | 42    |
+| Identity (SU-4, SU-5, H5)           | `lib/pharmacy/supply/identity.ts`                                          | 16    |
+| Reversal and correction (SU-11, 14) | `lib/pharmacy/supply/reversal.ts`                                          | 13    |
+| Controlled (CD)                     | `lib/pharmacy/controlled.ts`                                               | 22    |
+| Downtime (DT), shared sheets        | `lib/pharmacy/downtime.ts`, `lib/downtime/sheets.ts` (the lab now uses it) | 29    |
+| Labels and paper (LB, DL)           | `lib/pharmacy/print/{label,slip,register,dispensing-log}.ts`               | 22    |
+| Patient list and messages (ML, MS)  | `lib/pharmacy/messages.ts`                                                 | 16    |
+| Readiness and check state (RD, CK)  | `lib/pharmacy/readiness.ts`, `lib/pharmacy/check-state.ts`                 | 14    |
+
+(Counts are `it` blocks; `it.each` tables expand further. The suite runs 792 tests over `tests/pharmacy`,
+`tests/downtime` and `tests/lab`, plus 1 expected failure, the stock-answer seam that Step 9 closes.)
+
+**Rule coverage:** 124 rule IDs in Section 6; 115 are named in a test today. The 9 not yet named belong to steps not
+built:
+
+- **Step 4 store:** SL-7, SL-8.
+- **Step 8:** DT-6.
+- **Step 9:** AV-8, ML-4, MS-3, MS-4, MS-5.
+- **PA2-7:** proven by Phase 0's lane test of the 0098 trigger.
+
+**The required proofs:**
+
+- **LO-4:** exhaustive, 13 statuses × 31 moves against a separately typed copy of the table.
+- **LO-5:** a 30-day clock leaves every fixture unchanged.
+- **Property tests (seeded mulberry32, no new dependency):**
+  - LO-9: 3 × 2,000 sequences;
+  - SL-10: 60 seeds × 150 operations, every balance rebuilt from the ledger.
+- **Concurrency:** PGlite, the deferred Law 3 triggers; and `tests/rls/pharmacy-races.test.ts`, owner-run with two
+  connections.
+- **FEFO:** first expiry, a split, an expired first batch, month-only February in 2027 and 2028.
+- **Lanes:** every reason on and off, the no-rule case, and the proposal's P/W/N table row by row.
+- **Availability:** every state, 11 co-holding pairs, and two no-quantity proofs (a type that cannot hold a number,
+  and a deep walk over 20 shapes).
+- **Byte equality:** screen, label and slip, with "500mg/5 mL", trailing spaces, "2,5 mg", tabs, a non-breaking
+  space and a newline.
+- **Banned-term scan:**
+  - fixtures that must fail: a medicine name, a synonym, a clinic name, a point name, a product name, a patient
+    name, an MS number, "500 mg", "2,5 mg";
+  - every template passes.
+- **Two-hospital fixtures** throughout. **Law 2:** Phase 0's test now checks that `lib/pharmacy` writes nothing
+  outside pharmacy tables.
+
+**Choices made while building, all stricter or recorded:**
+
+1. **SL-9:** an expiry stock-out starts the day after `expiresOn`, because a batch is suppliable on its expiry date.
+2. **AV-3 freshness:** applies only once a count exists. A received but uncounted medicine says "Received {when},
+   not yet counted".
+3. **Witness list (D-PH1-27):** with no signed witness list, nobody may witness (Law 8). The proposed list is the
+   default to sign.
+4. **Pharmacist co-signature (RD-1):** required on the clinical packs and the hazard log for any switch-on, the owner's
+   condition for production.
+5. **The slip needs the point's phone (W1).** No phone, no slip.
+6. **`decision_cleared`:** moves nothing (LO-4 has no move for it); a decision is replaced by saving a new one.
+7. **H1:** a `completed` line stays `cancelled_by_prescriber` ("not continued at visit close") whatever follows.
+8. **Phone normalising:** reuses sign-up's `normalizeUgPhone`, landlines included, so a stored blind index always
+   matches its own number.
+9. **Message name:** the SMS templates leave about 28 characters for the hospital's message name before a message
+   exceeds one SMS. The CSO should cap the message name there.
+10. **New draft wording** (about 30 strings: refusal words, ready-check words, look-back reasons) is in
+    `HANDOVER_COPY`, `READY_COPY` and `DOWNTIME_DRAFT_COPY`, marked draft, for signature with the Phase 1 copy.
+
+**Phase 0 tests changed, with reason:**
+
+- **The nav registry test:** with flags off it still asserts Phase 0's two items, and it adds the Phase 1 order.
+- **The Law 2 scan:** recursive, and narrowed to the law itself.
+
+No lab test changed.
+
+**STOP 3.** No owner action. Step 4 is in progress.
