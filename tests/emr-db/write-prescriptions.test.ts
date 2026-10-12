@@ -194,6 +194,9 @@ describe.skipIf(!laneOn)("prescriptions from the encounter (PGlite lane)", () =>
       confirmed_flags: [],
       confirm_reason_ciphertext: null,
       medication_statement_id: r.statementId,
+      // One sheet prescribe is one placement (Pharmacy Phase 0, ADR 0230).
+      placement_id: expect.any(String),
+      placement_line: 1,
     });
     expect(decrypt(row!.instructions_ciphertext as string)).toBe("Take with food");
     const [st] = await q(`SELECT * FROM medication_statements WHERE id = $1`, [r.statementId]);

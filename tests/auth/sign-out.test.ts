@@ -11,7 +11,15 @@ import { POST } from "@/app/sign-out/route";
  */
 
 const signOut = vi.hoisted(() => vi.fn(async () => ({ error: null })));
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { signOut } }) }));
+const accounts = vi.hoisted(() => ({
+  list: [] as { slot: number; email: string; active: boolean }[],
+}));
+const setActiveAccount = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({ auth: { signOut } }),
+  listAccounts: async () => accounts.list,
+  setActiveAccount,
+}));
 
 describe("sign-out scope", () => {
   it("web: POST /sign-out signs this browser out, then goes to /sign-in", async () => {
@@ -19,6 +27,17 @@ describe("sign-out scope", () => {
     expect(signOut).toHaveBeenCalledWith({ scope: "local" });
     expect(res.status).toBe(303);
     expect(new URL(res.headers.get("location")!).pathname).toBe("/sign-in");
+  });
+
+  it("web: another account signed in here takes over, and the user picks on /accounts", async () => {
+    accounts.list = [
+      { slot: 0, email: "a@medsync.test", active: true },
+      { slot: 2, email: "b@medsync.test", active: false },
+    ];
+    const res = await POST(new Request("https://medsync.test/sign-out", { method: "POST" }));
+    expect(setActiveAccount).toHaveBeenCalledWith(2);
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/accounts");
+    accounts.list = [];
   });
 
   it("phone: the app signs this phone out, not the patient's web session", () => {

@@ -350,6 +350,12 @@ function WorkspaceTopBar({
           {CADRE_LABEL[scope.cadreCode] ?? scope.cadreCode}
         </span>
         <Link
+          href="/accounts"
+          className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+        >
+          Switch account
+        </Link>
+        <Link
           href="/sign-out"
           className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
         >

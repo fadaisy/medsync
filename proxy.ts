@@ -51,6 +51,9 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // Lab-technician workspace — same auth + AAL2 + MFA gate. The AHPC
   // lab-cadre scope resolves in app/lab/layout.tsx (requireLabTechScope).
   "/lab",
+  // Pharmacy workspace — same auth + AAL2 + MFA gate. The pharmacy-cadre scope, pharmacy.view and
+  // PHARMACY_WORKSPACE resolve in app/pharmacy/layout.tsx (requirePharmacyScope).
+  "/pharmacy",
   // Patient workspace — requires auth. Patients are MFA-optional
   // (per kickoff), so the MFA branches in proxy.ts don't fire for
   // pure patients; a clinician-also-patient still gets MFA.

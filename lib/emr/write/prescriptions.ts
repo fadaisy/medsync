@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import type { WriteCtx } from "./context";
 import type { WriteResult } from "./orders";
 import type { PrescribeSheetPatient } from "@/components/emr/prescribing/model";
@@ -242,6 +243,9 @@ export async function prescribe(
       sensitivity: "standard",
       clientKey: input.clientKey,
       medicationStatementId: statement.id,
+      // One sheet prescribe is one placement (ADR 0230).
+      placementId: randomUUID(),
+      placementLine: 1,
       createdAt: now,
     })
     .returning({ id: prescriptions.id });

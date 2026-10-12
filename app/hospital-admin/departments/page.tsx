@@ -1,4 +1,5 @@
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { loadDispensingServes } from "@/lib/pharmacy/dispensing-points";
 import {
   loadClinics,
   loadDepartmentCounts,
@@ -27,16 +28,19 @@ export const dynamic = "force-dynamic";
 export default async function DepartmentsPage() {
   const scope = await requireHospitalAdminScope();
   const h = scope.hospitalId;
-  const [departments, heads, counts, pool, places, hub, clinics, wards] = await Promise.all([
-    loadDepartments(h),
-    loadHeads(h),
-    loadDepartmentCounts(h),
-    loadStaffPool(h),
-    loadPlaces(h),
-    loadHubState(h),
-    loadClinics(h),
-    loadWards(h),
-  ]);
+  const [departments, heads, counts, pool, places, hub, clinics, wards, points] = await Promise.all(
+    [
+      loadDepartments(h),
+      loadHeads(h),
+      loadDepartmentCounts(h),
+      loadStaffPool(h),
+      loadPlaces(h),
+      loadHubState(h),
+      loadClinics(h),
+      loadWards(h),
+      loadDispensingServes(h),
+    ],
+  );
 
   const top = departments.filter((d) => d.parentId === null && !d.archived);
   const lab = top.find((d) => d.catalogueCode === "LABORATORY");
@@ -73,6 +77,7 @@ export default async function DepartmentsPage() {
   return (
     <DepartmentsView
       departments={departments}
+      points={points}
       heads={heads}
       counts={{
         staff: obj(counts.staff),

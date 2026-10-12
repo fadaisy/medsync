@@ -187,6 +187,12 @@ export function HospitalShell({
             <div className="flex flex-1 items-center justify-end gap-3">
               <HospitalCommandPalette navEntries={paletteEntries} />
               <Link
+                href="/accounts"
+                className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+              >
+                Switch account
+              </Link>
+              <Link
                 href="/sign-out"
                 className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
               >

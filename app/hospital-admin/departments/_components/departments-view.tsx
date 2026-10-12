@@ -8,6 +8,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { BuildingIcon, ClipboardListIcon, PlusIcon, SparklesIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { PHARMACY } from "@/content/pharmacy";
 import { cn } from "@/lib/utils";
 import {
   CATALOGUE_DEPARTMENTS,
@@ -64,6 +65,8 @@ interface FirstRun {
 
 export function DepartmentsView(props: {
   departments: DepartmentRow[];
+  /** Pharmacy units that are dispensing points → what each serves (Pharmacy Phase 0, ADR 0236). */
+  points: Record<string, string>;
   heads: { current: HeadRow[]; history: HeadRow[] };
   counts: Counts;
   pool: Person[];
@@ -205,6 +208,7 @@ export function DepartmentsView(props: {
           key={open.id}
           dept={open}
           all={departments}
+          points={props.points}
           heads={heads}
           counts={counts}
           pool={props.pool}
@@ -695,6 +699,7 @@ const PANEL_TABS = ["Units", "Wards", "Clinics", "Staff", "History"] as const;
 function DepartmentPanel({
   dept,
   all,
+  points,
   heads,
   counts,
   pool,
@@ -706,6 +711,7 @@ function DepartmentPanel({
 }: {
   dept: DepartmentRow;
   all: DepartmentRow[];
+  points: Record<string, string>;
   heads: { current: HeadRow[]; history: HeadRow[] };
   counts: Counts;
   pool: Person[];
@@ -736,7 +742,8 @@ function DepartmentPanel({
   );
   const inUse = staff + booked + wardCount > 0;
   const isLab = dept.catalogueCode === "LABORATORY";
-  const unitLabel = isLab ? "section" : "unit";
+  const isPharmacy = dept.catalogueCode === "PHARMACY";
+  const unitLabel = isLab ? "section" : isPharmacy ? "dispensing point" : "unit";
 
   return (
     <HubPanel
@@ -960,14 +967,28 @@ function DepartmentPanel({
                           : "text-muted-foreground hover:text-foreground border-transparent",
                       )}
                     >
-                      {t === "Units" && isLab ? "Sections" : t}
+                      {t === "Units" && isLab
+                        ? "Sections"
+                        : t === "Units" && isPharmacy
+                          ? "Dispensing points"
+                          : t}
                     </button>
                   ))}
                 </div>
                 <div role="tabpanel">
                   {tab === "Units" ? (
                     <div className="flex flex-col gap-3">
-                      {units.length ? (
+                      {isPharmacy && units.length ? (
+                        <DispensingPoints
+                          units={units}
+                          points={points}
+                          staff={counts.staff}
+                          pending={hub.pending}
+                          onServes={(id, serves) =>
+                            hub.run({ op: "set_dispensing_point", department_id: id, serves })
+                          }
+                        />
+                      ) : units.length ? (
                         <ul className="text-body-s flex flex-wrap gap-1.5">
                           {units.map((u) => (
                             <li
@@ -1141,6 +1162,91 @@ function DepartmentPanel({
         />
       )}
     </HubPanel>
+  );
+}
+
+/**
+ * The Pharmacy department's units as dispensing points (Pharmacy Phase 0 §5.8; canvas 0.4): name,
+ * what it serves, hours and staff. Serves only picks the lane its staff's queue opens on (DP-4).
+ */
+const SERVES = [
+  { value: "window", label: "Outpatients, clinics and discharges" },
+  { value: "wards", label: "Wards" },
+  { value: "emergency", label: "Emergency unit" },
+  { value: "all", label: "Everything" },
+];
+
+function DispensingPoints({
+  units,
+  points,
+  staff,
+  pending,
+  onServes,
+}: {
+  units: DepartmentRow[];
+  points: Record<string, string>;
+  staff: Record<string, number>;
+  pending: boolean;
+  onServes: (id: string, serves: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="border-border overflow-x-auto rounded-lg border">
+        <table className="text-body-s w-full">
+          <caption className="sr-only">Dispensing points</caption>
+          <thead className="text-muted-foreground text-left">
+            <tr className="border-border border-b">
+              <th scope="col" className="px-3 py-2 font-medium">
+                Dispensing point
+              </th>
+              <th scope="col" className="px-3 py-2 font-medium">
+                Serves
+              </th>
+              <th scope="col" className="px-3 py-2 font-medium">
+                Hours
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-border divide-y">
+            {units
+              .filter((u) => !u.archived)
+              .map((u) => (
+                <tr key={u.id}>
+                  <td className="px-3 py-2">
+                    <span className="font-medium">{u.name}</span>
+                    <span className="text-muted-foreground text-caption block">
+                      {staff[u.id] ?? 0} staff
+                    </span>
+                  </td>
+                  <td className="px-3 py-2">
+                    <label className="sr-only" htmlFor={`serves-${u.id}`}>
+                      What {u.name} serves
+                    </label>
+                    <select
+                      id={`serves-${u.id}`}
+                      value={points[u.id] ?? ""}
+                      disabled={pending}
+                      onChange={(e) => e.target.value && onServes(u.id, e.target.value)}
+                      className="border-input bg-card text-body-s focus-visible:shadow-focus h-9 min-h-11 rounded-md border px-2 outline-none sm:min-h-9"
+                    >
+                      <option value="" disabled>
+                        Not set
+                      </option>
+                      {SERVES.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2">{u.serviceHours ?? "Not set"}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-body-s text-muted-foreground">{PHARMACY.points.note}</p>
+    </div>
   );
 }
 

@@ -15,6 +15,7 @@ import {
   departmentSlug,
   isImagingCode,
   LAB_SECTIONS,
+  PHARMACY_DERIVED_KEYS,
   planLegacyImport,
   planPreset,
   projectAvailability,
@@ -397,6 +398,17 @@ const setCapability: OpHandler = async (ctx, i) => {
   if (!key) throw new HubError(`Unknown capability: ${i.key}`);
   const checked = checkCapabilityValue(i.key, i.value);
   if (!checked.ok) throw new HubError(checked.error);
+  // DP-2 (CAP-3 pattern): once a hospital has a dispensing point, these two are worked out from the
+  // points and can no longer be typed.
+  if (PHARMACY_DERIVED_KEYS.includes(key.key)) {
+    const { count, error } = await ctx.sb
+      .from("pharmacy_dispensing_points")
+      .select("department_id", { count: "exact", head: true })
+      .eq("hospital_id", ctx.hospitalId);
+    if (error) throw new Error(`dispensing points: ${error.message}`);
+    if ((count ?? 0) > 0)
+      throw new HubError(`${key.label} is worked out from the dispensing points.`);
+  }
   const outcome = setOutcome(key, checked.value);
   const row = await capabilityRow(ctx, key.key);
   return {

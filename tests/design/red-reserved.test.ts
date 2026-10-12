@@ -327,9 +327,49 @@ describe("red is reserved — the laboratory workspace", () => {
   it("Late carries a clock and the words; the notice a triangle and the words", () => {
     const cell = readFileSync(resolve(ROOT, "app/lab/_components/turnaround-cell.tsx"), "utf8");
     expect(cell).toMatch(/bg-status-caution-bg[\s\S]*<ClockIcon/);
+    // The notice is the shared caution notice since Pharmacy Phase 0 (ADR 0229).
     const notice = readFileSync(resolve(ROOT, "app/lab/_components/flagging-notice.tsx"), "utf8");
-    expect(notice).toMatch(/role="status"/);
-    expect(notice).toMatch(/<TriangleAlertIcon/);
+    expect(notice).toMatch(/<CautionNotice/);
+    const shared = readFileSync(resolve(ROOT, "components/medsync/caution-notice.tsx"), "utf8");
+    expect(shared).toMatch(/role="status"/);
+    expect(shared).toMatch(/TriangleAlertIcon/);
+  });
+});
+
+describe("red is reserved — the pharmacy workspace", () => {
+  // Every /pharmacy route, the pharmacy engines and copy, and the shared workspace pieces the
+  // pharmacy draws with (Pharmacy Phase 0 Law 10: this slice adds no red, and nothing is green).
+  const PHARMACY_TREE = tree("app/pharmacy", "lib/pharmacy", "lib/workspace-access").concat(
+    (
+      [
+        "content/pharmacy.ts",
+        "components/medsync/caution-notice.tsx",
+        "components/medsync/workspace-nav.tsx",
+        "components/medsync/workspace-shell.tsx",
+        "components/medsync/tab-list.tsx",
+      ] as const
+    ).map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),
+  );
+
+  it("adds no red and no green anywhere, and no left-edge bars", () => {
+    expect(PHARMACY_TREE.length).toBeGreaterThan(15);
+    for (const [path, src] of PHARMACY_TREE) {
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+      expect(src, path).not.toMatch(/\b(?:text|bg|border|ring)-(?:red|rose|green|emerald)-\d/);
+      expect(src, path).not.toMatch(/status-critical|tone="critical"/);
+      expect(src, path).not.toMatch(/border-l-\d|border-l-(?:grape|plum|teal|amber)/);
+    }
+  });
+
+  it("cautions are amber with an icon and the words; the notice is status, not an alert", () => {
+    const queue = readFileSync(resolve(ROOT, "app/pharmacy/_components/queue-screen.tsx"), "utf8");
+    expect(queue).toMatch(/tone="caution" glyph=\{row\.state === "awaiting_cosign" \? ClockIcon/);
+    const notice = readFileSync(
+      resolve(ROOT, "app/pharmacy/_components/pharmacy-notice.tsx"),
+      "utf8",
+    );
+    expect(notice).toMatch(/<CautionNotice/);
   });
 });
 

@@ -187,6 +187,12 @@ export function AdminShell({
               people={palettePeople}
             />
             <Link
+              href="/accounts"
+              className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+            >
+              Switch account
+            </Link>
+            <Link
               href="/sign-out"
               className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
             >

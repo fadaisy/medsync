@@ -43,11 +43,43 @@ laboratory lead and the CSO. The Appendix A wording and the hazard log were sign
 - Docs: [user guide](docs/lab/phase-1/user-guide.md), [hazard log](docs/lab/phase-1/hazard-log.md) (draft),
   [final report](docs/lab/phase-1/FINAL-REPORT.md).
 
+### Added — Several accounts signed in to one browser — 2026-10-11
+
+- Signing in to another account no longer signs the first one out. Each account keeps its own session cookie; the
+  active one is used by every tab, and "Switch account" in each workspace header opens `/accounts` to switch, add or
+  sign out ([ADR 0280](docs/adr/0280-several-accounts-in-one-browser.md)).
+
 ### Fixed — Laboratory staff kept losing access to their patients — 2026-10-11
 
 - A technologist could not result a specimen after midnight or once the patient's visit had completed: the access rule
   had no basis for laboratory work. Migration 0101 adds `lab_work` (a lab cadre, and a lab order for the patient within
   30 days) ([ADR 0238](docs/adr/0238-lab-staff-keep-access-to-their-specimens.md)).
+
+### Added — Pharmacy Phase 0: the pharmacy's front door — 2026-10-10
+
+- Pharmacy access is six permission names, one granted (`pharmacy.view`), derived from the approved cadre through a
+  signed map and carried by a new role value `pharmacy_staff`; screens show the cadre's own name, never a role
+  ([ADR 0227](docs/adr/0227-pharmacy-access-and-the-title-rule.md)). A trigger grants and revokes it with every
+  affiliation change, audited (migration 0098, owner-applied;
+  [ADR 0228](docs/adr/0228-pharmacy-access-follows-the-affiliation.md)); `npm run pharmacy:backfill-access` grants staff
+  approved before it.
+- Prescriptions record their placement and the order written (migration 0099;
+  [ADR 0230](docs/adr/0230-the-pharmacy-queue-as-a-projection.md)), and the Plan stores each answered check's level
+  ([ADR 0233](docs/adr/0233-as-written-and-no-second-check-engine.md)).
+- Prescriptions, emergency doses and the chart are no longer readable by every affiliated staff member through the
+  client: reception, lab and superadmin-by-role lose the prescription read; pharmacy staff read only through the
+  pharmacy's server reads (migrations 0100, 0120; [ADR 0232](docs/adr/0232-who-may-read-prescriptions-in-the-database.md)).
+- Behind `PHARMACY_WORKSPACE` (per hospital, off by default): the pharmacy workspace — a read-only queue of every
+  prescription written, in three lanes; a read-only prescription view with a read log
+  ([ADR 0231](docs/adr/0231-what-pharmacy-staff-may-read.md)); emergency doses by cart from the resus timeline
+  ([ADR 0235](docs/adr/0235-emergency-doses-from-the-resus-timeline.md)); "MedSync does not record dispensing yet" on
+  every prescription screen ([ADR 0234](docs/adr/0234-the-check-state-seam-and-the-pharmacy-notice.md)). Production
+  stays off until the CSO signs the wording.
+- Dispensing points in the hub's Pharmacy department pick each pharmacy user's opening lane; the hub's pharmacy count
+  and 24-hour value are worked out from them (migration 0121; [ADR 0236](docs/adr/0236-dispensing-points.md)).
+- The lab's access, flag, navigation, notice and shell are shared workspace modules now, unchanged for the lab
+  ([ADR 0229](docs/adr/0229-workspace-neutral-access-landing-navigation.md)); a numbers ledger in `docs/NUMBERS.md`
+  ([ADR 0237](docs/adr/0237-the-numbers-ledger.md)).
 
 ### Added — Lab Phase 0: the laboratory's front door — 2026-10-10
 

@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { CircleIcon, OctagonAlertIcon, TriangleAlertIcon } from "lucide-react";
 
@@ -31,16 +32,19 @@ const ICON = {
 export function StatusWord({
   tone = "neutral",
   icon = tone !== "neutral",
+  glyph,
   className,
   children,
 }: {
   tone?: StatusTone;
   /** Neutral words need no glyph; caution and critical always carry one. */
   icon?: boolean;
+  /** A glyph that says more than the tone's own (a clock for "awaiting"); same size and place. */
+  glyph?: LucideIcon;
   className?: string;
   children: ReactNode;
 }) {
-  const Icon = ICON[tone];
+  const Icon = glyph ?? ICON[tone];
   return (
     <span
       data-tone={tone}

@@ -945,6 +945,35 @@ export function derivedCapabilities(wards: readonly WardForCapability[]) {
   };
 }
 
+/* ─── DP-2: pharmacy capabilities derived from dispensing points ────── */
+
+/** Typed until a hospital has a dispensing point; worked out from the points after (ADR 0236). */
+export const PHARMACY_DERIVED_KEYS: readonly string[] = [
+  "pharmacy_dispensing_points",
+  "pharmacy_24h",
+];
+
+export interface PointForCapability {
+  serviceHours: string | null;
+  archived: boolean;
+}
+
+/**
+ * The two pharmacy values from the hospital's dispensing points, or null when it has none (the typed
+ * values stand). Open 24 hours: a point whose hub hours read exactly "24 hours"; any other text is
+ * not counted as 24 hours, so a guess never says the pharmacy is always open.
+ */
+export function derivedPharmacy(
+  points: readonly PointForCapability[],
+): { pharmacy_dispensing_points: number; pharmacy_24h: boolean } | null {
+  const live = points.filter((p) => !p.archived);
+  if (!live.length) return null;
+  return {
+    pharmacy_dispensing_points: live.length,
+    pharmacy_24h: live.some((p) => p.serviceHours?.trim().toLowerCase() === "24 hours"),
+  };
+}
+
 /* ─── CAP-1: typed values ───────────────────────────────────────────── */
 
 /** Mirrors the emergency pathway's CHECKs (0066 §6): a mobile, or a landline (+256 2/3/4/8/9…). */
