@@ -9,12 +9,42 @@ import { LAB_NAV, navFor } from "@/lib/lab/nav";
 
 /** Lab Phase 0 — the navigation registry (NV-1..NV-3) and the flagging seam (CF-1, CF-2 copy). */
 describe("lab navigation", () => {
-  it("NV-1, NV-3: exactly Worklist, Released today and Rejected, in order", () => {
-    expect(LAB_NAV.map((i) => [i.id, i.label, i.href])).toEqual([
+  it("NV-1, NV-3: with the Phase 1 flags off, exactly Worklist, Released today and Rejected, in order", () => {
+    expect(
+      navFor(new Set<LabPermission>(LAB_PERMISSIONS)).map((i) => [i.id, i.label, i.href]),
+    ).toEqual([
       ["worklist", "Worklist", "/lab"],
       ["released", "Released today", "/lab/released"],
       ["rejected", "Rejected", "/lab/rejected"],
     ]);
+  });
+
+  it("Lab Phase 1 §5.10: Criticals after Worklist, and the set-up group for lab.manage, only with the flag", () => {
+    const all = new Set<LabPermission>(LAB_PERMISSIONS);
+    expect(navFor(all, { criticals: true }).map((i) => i.id)).toEqual([
+      "worklist",
+      "criticals",
+      "released",
+      "rejected",
+      "setup_criticals",
+    ]);
+    // Steps 5 and 6: the catalogue and ranges with units; limits need both flags.
+    expect(navFor(all, { criticals: true, unitsRanges: true }).map((i) => i.id)).toEqual([
+      "worklist",
+      "criticals",
+      "released",
+      "rejected",
+      "setup_catalogue",
+      "setup_ranges",
+      "setup_limits",
+      "setup_criticals",
+    ]);
+    expect(navFor(all, { criticals: false, unitsRanges: true }).map((i) => i.id)).not.toContain(
+      "setup_limits",
+    );
+    const noManage = new Set<LabPermission>(LAB_PERMISSIONS.filter((p) => p !== "lab.manage"));
+    expect(navFor(noManage, { criticals: true }).map((i) => i.id)).not.toContain("setup_criticals");
+    expect(LAB_NAV.find((i) => i.id === "setup_criticals")?.group).toBe("setup");
   });
 
   it("NV-2: only what the viewer may see", () => {

@@ -10,6 +10,7 @@ import {
   MessageSquareTextIcon,
   ScrollTextIcon,
   ShieldAlertIcon,
+  SignatureIcon,
   SirenIcon,
   UserCogIcon,
   UsersRoundIcon,
@@ -39,6 +40,7 @@ export type SidebarIconKey =
   | "health"
   | "feedback"
   | "emergency"
+  | "lab-signoffs"
   | "break-glass";
 
 const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
@@ -49,6 +51,7 @@ const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
   "scheduling-rollup": CalendarClockIcon,
   catalog: KeyIcon,
   emergency: SirenIcon,
+  "lab-signoffs": SignatureIcon,
   audit: ScrollTextIcon,
   health: GaugeIcon,
   feedback: MessageSquareTextIcon,
@@ -63,6 +66,7 @@ const DOMAIN: Partial<Record<SidebarIconKey, Domain>> = {
   "staff-rollup": "admin",
   "scheduling-rollup": "operations",
   catalog: "clinical",
+  "lab-signoffs": "clinical",
   audit: "admin",
   health: "admin",
   feedback: "admin",

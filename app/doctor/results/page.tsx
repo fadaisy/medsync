@@ -6,8 +6,11 @@ import { ReviewList } from "@/components/emr/results/review-list";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { clinicianOptions, loadResultsToReview } from "@/lib/emr/read/results";
+import { reportsWithOpenAlert } from "@/lib/lab/criticals/read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
+import { PinnedCriticals } from "../_components/critical-alerts";
 import { PageHeader } from "../_components/page-header";
+import { myCriticals } from "../_lib/criticals";
 
 export const metadata: Metadata = { title: "Results to review · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -20,10 +23,18 @@ export const dynamic = "force-dynamic";
 export default async function ResultsToReviewPage() {
   const scope = await requireDoctorScope();
   if (!emrV1LiveFor(scope.hospitalId)) notFound();
-  const [items, staff] = await Promise.all([
+  const [items, staff, criticals] = await Promise.all([
     loadResultsToReview(scope),
     clinicianOptions(scope.hospitalId),
+    myCriticals(scope.userId, scope.hospitalId),
   ]);
+  // CA-12: a report with an open critical alert is acknowledged through its alert, never in a batch.
+  const alerted = criticals
+    ? await reportsWithOpenAlert(
+        scope.hospitalId,
+        items.map((i) => i.reportId),
+      )
+    : new Set<string>();
   const n = items.length;
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-8 lg:py-10">
@@ -37,8 +48,20 @@ export default async function ResultsToReviewPage() {
             : `${n} ${n === 1 ? "result" : "results"} waiting for acknowledgement.`
         }
       />
+      {criticals ? (
+        <PinnedCriticals
+          alerts={criticals.alerts}
+          ids={criticals.ids}
+          now={criticals.now}
+          time={criticals.time}
+        />
+      ) : null}
       <ReviewList
-        items={sortReview(items)}
+        // An open critical alert first (CA-12): the baseline left it fourth of four.
+        items={[...sortReview(items)].sort(
+          (a, b) => Number(alerted.has(b.reportId)) - Number(alerted.has(a.reportId)),
+        )}
+        notInBatch={alerted}
         staff={staff.filter((s) => s.userId !== scope.userId)}
         surface="doctor"
         timeZone={DEFAULT_TIME_ZONE}

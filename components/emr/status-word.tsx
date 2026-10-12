@@ -82,3 +82,11 @@ export function ResultValueText({
     </span>
   );
 }
+
+/**
+ * Lab Phase 1 §5.1 (D-LAB1-18): the Critical pill on a result row at or beyond a signed limit. The
+ * word and the icon; the critical tint stays in this file.
+ */
+export function CriticalPill() {
+  return <StatusWord tone="critical">Critical</StatusWord>;
+}

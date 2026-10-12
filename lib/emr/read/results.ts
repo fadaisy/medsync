@@ -21,6 +21,7 @@ import { ageSexWords } from "@/components/emr/orders/model";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { downtimeEntries, labResultSnapshots } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { cadres } from "@/db/schema/reference-data";
@@ -38,6 +39,7 @@ import { ORDERING_CADRES } from "@/lib/emr/write/orders";
 import { UNCATALOGUED } from "@/lib/emr/write/results";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef } from "@/lib/facts/project/shared";
+import { labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 
 /**
@@ -228,7 +230,11 @@ export function linesFromValues(values: readonly ObsRow[]): {
 
 /** Values for review: as reported (comparator kept), the lab's own flag as text, and critical
  *  only from a signed REF-CRIT entry (lib/emr/results.ts). */
-export function reviewValues(values: readonly ObsRow[]): ReviewValue[] {
+export function reviewValues(
+  values: readonly ObsRow[],
+  /** Lab Phase 1, with LAB_UNITS_RANGES on: each value's snapshot (lib/lab/units.ts). */
+  snapshots?: ReadonlyMap<string, { flagChangeReason: string | null }>,
+): ReviewValue[] {
   return values.map((v): ReviewValue => {
     const uncatalogued = v.conceptId === UNCATALOGUED;
     const i = interpretResult(v, { uncatalogued });
@@ -258,6 +264,15 @@ export function reviewValues(values: readonly ObsRow[]): ReviewValue[] {
       flagText: i.flag.text,
       critical: i.critical.isCritical,
       uncatalogued: false,
+      ...(snapshots && v.valueNum !== null
+        ? snapshots.has(v.id)
+          ? {
+              labNote: snapshots.get(v.id)!.flagChangeReason
+                ? `Flag changed by the lab: ${snapshots.get(v.id)!.flagChangeReason}`
+                : null,
+            }
+          : { asTyped: true }
+        : {}),
     };
   });
 }
@@ -481,17 +496,67 @@ export async function loadResultsToReview(
     ),
   ]);
 
+  // Lab Phase 1 (LAB_UNITS_RANGES): each value's snapshot, for the lab's flag note and "unit as typed".
+  const snapshots = labUnitsRangesLiveFor(actor.hospitalId)
+    ? new Map(
+        (values.length
+          ? await conn
+              .select({
+                id: labResultSnapshots.observationId,
+                flagChangeReason: labResultSnapshots.flagChangeReason,
+              })
+              .from(labResultSnapshots)
+              .where(
+                inArray(
+                  labResultSnapshots.observationId,
+                  values.map((v) => v.id),
+                ),
+              )
+          : []
+        ).map((r) => [r.id, r]),
+      )
+    : null;
+  // Lab Phase 1 DT-7: results entered after downtime say so, with the form's times.
+  const paper = labDowntimeLiveFor(actor.hospitalId)
+    ? new Map(
+        (
+          await conn
+            .select()
+            .from(downtimeEntries)
+            .where(
+              inArray(
+                downtimeEntries.reportId,
+                chainRows.map((c) => c.id),
+              ),
+            )
+        ).map((d) => [d.reportId, d]),
+      )
+    : null;
+  const hhmm = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Kampala",
+  });
   const items: ReviewItem[] = [];
   for (const x of rows) {
     const chain = chainRows.filter((c) => c.logicalId === x.logicalId);
+    const form = paper ? chain.map((c) => paper.get(c.id)).find(Boolean) : undefined;
     const ack = ackState(chain, acks);
     if (ack.kind === "forwarded" && ack.toUserId !== actor.userId) continue;
     if (ack.kind !== "needs_review" && ack.kind !== "needs_re_ack" && ack.kind !== "forwarded")
       continue;
     const shown = !x.restricted || x.orderer === actor.userId;
-    const vals = reviewValues(values.filter((v) => v.reportId === x.id));
+    const vals = reviewValues(
+      values.filter((v) => v.reportId === x.id),
+      snapshots ?? undefined,
+    );
     const critical = x.critical || vals.some((v) => v.critical);
     items.push({
+      ...(form
+        ? {
+            downtimeTag: `Entered after downtime · Resulted ${hhmm.format(form.resultedAt)} · entered ${hhmm.format(form.enteredAt)} · paper form DT-${String(form.formNumber).padStart(5, "0")}`,
+          }
+        : {}),
       reportId: x.id,
       patientUserId: x.patientUserId,
       identity: identities.get(x.patientUserId) ?? {

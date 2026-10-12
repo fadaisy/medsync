@@ -19,7 +19,8 @@ export interface WorkspaceNavEntry {
   label: string;
   href: string;
   exact: boolean;
-  count: number;
+  /** null: an item with nothing to count (the lab's set-up pages). */
+  count: number | null;
   countLabel: string;
   icon: LucideIcon;
   also?: readonly string[];
@@ -47,7 +48,7 @@ export function WorkspaceSidebarNav({ items }: { items: readonly WorkspaceNavEnt
             icon={item.icon}
             domain="pharmacy"
             exact={item.exact && !(item.sidebarAlso && isActiveEntry(pathname, item))}
-            count={item.count}
+            count={item.count ?? undefined}
             countLabel={item.countLabel}
           />
         </li>
@@ -83,14 +84,16 @@ export function WorkspacePhoneNav({
                 )}
               >
                 {item.label}
-                <span
-                  className={cn(
-                    "font-mono text-[11px] tabular-nums",
-                    active ? "text-ink-600" : "text-muted-foreground",
-                  )}
-                >
-                  {item.count}
-                </span>
+                {item.count !== null ? (
+                  <span
+                    className={cn(
+                      "font-mono text-[11px] tabular-nums",
+                      active ? "text-ink-600" : "text-muted-foreground",
+                    )}
+                  >
+                    {item.count}
+                  </span>
+                ) : null}
               </Link>
             </li>
           );

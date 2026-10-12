@@ -210,7 +210,21 @@ export function toFhirEncounter(e: FhirEncounterInput): FhirResource {
 
 /* ─── Facts ───────────────────────────────────────────────────────── */
 
-export function toFhirObservation(f: ObservationFact, codes?: CodeIndex): FhirResource {
+/**
+ * Lab Phase 1 (UN-7): a value entered against the test catalogue carries its UCUM code and display
+ * and the component's LOINC code, from its snapshot. Neither is ever invented.
+ */
+export interface Measured {
+  unitUcum: string;
+  unitDisplay: string;
+  loincCode: string | null;
+}
+
+export function toFhirObservation(
+  f: ObservationFact,
+  codes?: CodeIndex,
+  measured?: Measured,
+): FhirResource {
   const v = f.value;
   const value =
     v.type === "quantity"
@@ -218,9 +232,9 @@ export function toFhirObservation(f: ObservationFact, codes?: CodeIndex): FhirRe
           valueQuantity: {
             value: v.value,
             comparator: v.comparator,
-            unit: v.unit,
+            unit: measured?.unitDisplay ?? v.unit,
             system: "http://unitsofmeasure.org",
-            code: v.unit,
+            code: measured?.unitUcum ?? v.unit,
           },
         }
       : v.type === "coded"
@@ -235,7 +249,15 @@ export function toFhirObservation(f: ObservationFact, codes?: CodeIndex): FhirRe
   return {
     ...base("Observation", f),
     status: FACT_STATUS[f.status],
-    code: conceptCode(f.concept, codes),
+    code: measured?.loincCode
+      ? (() => {
+          const c = conceptCode(f.concept, codes) as { coding: Json[]; text: string };
+          const has = c.coding.some((x) => (x as { system?: string }).system === EXTERNAL.LOINC);
+          return has
+            ? c
+            : { ...c, coding: [...c.coding, { system: EXTERNAL.LOINC, code: measured.loincCode }] };
+        })()
+      : conceptCode(f.concept, codes),
     subject: ref("Patient", f.patientId),
     encounter: ref("Encounter", f.provenance.encounterId),
     ...effective(f),

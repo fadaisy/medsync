@@ -12,6 +12,7 @@ import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { diagnosticReports, specimenEvents, specimens, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { downtimeEntries } from "@/db/schema/lab-safety";
 import { cadres } from "@/db/schema/reference-data";
 import { encounters } from "@/db/schema/scheduling";
 import { diagnosticOfferings } from "@/db/schema/services-hub";
@@ -222,6 +223,8 @@ export interface ReleasedRow {
   turnaround: { minutes: number; lateBy: number | null } | null;
   target: Target | null;
   state: "final" | "amended";
+  /** Lab Phase 1 DT-7: entered after downtime from this paper form. */
+  downtimeForm?: number;
 }
 
 /** Final reports released since 00:00 at the hospital, newest first (§5.5). */
@@ -234,6 +237,7 @@ export async function loadReleasedToday(
   const since = startOfLocalDay(serverNow, timeZone);
   const finals = await database
     .select({
+      id: diagnosticReports.id,
       logicalId: diagnosticReports.logicalId,
       orderId: diagnosticReports.orderId,
       specimenId: diagnosticReports.specimenId,
@@ -291,19 +295,37 @@ export async function loadReleasedToday(
   const newest = new Map<string, string>();
   for (const r of latest) if (!newest.has(r.logicalId)) newest.set(r.logicalId, r.status);
   const cadreOf = new Map(cadreRows.map((c) => [c.userId, c.cadre]));
+  // DT-7: a paper form keeps its own times: released when resulted on paper, turnaround from collection.
+  const paper = await database
+    .select()
+    .from(downtimeEntries)
+    .where(
+      inArray(
+        downtimeEntries.reportId,
+        finals.map((f) => f.id),
+      ),
+    );
+  const formOf = new Map(paper.map((p) => [p.reportId, p]));
   return finals.map((f) => {
     const target = f.orderId ? targetFrom(sources, f.orderId, f.testId) : null;
-    const receivedAt = f.specimenId ? (times.get(f.specimenId)?.receivedAt ?? null) : null;
+    const form = formOf.get(f.id);
+    const receivedAt = form
+      ? form.collectedAt
+      : f.specimenId
+        ? (times.get(f.specimenId)?.receivedAt ?? null)
+        : null;
+    const releasedAt = form ? form.resultedAt : f.releasedAt;
     const status = newest.get(f.logicalId);
     return {
       orderId: f.orderId ?? "",
       patientUserId: f.patientUserId,
       test: f.test,
-      releasedAt: f.releasedAt,
+      releasedAt,
       releasedByCadre: f.verifier ? (cadreOf.get(f.verifier) ?? null) : null,
-      turnaround: releasedTurnaround(receivedAt, f.releasedAt, target),
+      turnaround: releasedTurnaround(receivedAt, releasedAt, target),
       target,
       state: status === "amended" || status === "corrected" ? "amended" : "final",
+      ...(form ? { downtimeForm: form.formNumber } : {}),
     };
   });
 }

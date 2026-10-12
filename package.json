@@ -22,6 +22,8 @@
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
     "db:backfill-phone-hmac": "node --experimental-strip-types scripts/backfill-phone-hmac.ts",
     "lab:backfill-access": "node --experimental-strip-types scripts/lab/backfill-lab-access.ts",
+    "lab:import-loinc": "node --experimental-strip-types scripts/lab/import-loinc.ts",
+    "lab:trial": "node --experimental-strip-types scripts/lab/trial.ts",
     "pharmacy:backfill-access": "node --experimental-strip-types scripts/pharmacy/backfill-pharmacy-access.ts",
     "db:seed-symptom-catalog": "tsx scripts/seed-symptom-catalog.ts",
     "db:migrate:drizzle": "drizzle-kit migrate",

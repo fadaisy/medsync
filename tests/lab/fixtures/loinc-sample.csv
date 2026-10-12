@@ -1,0 +1,5 @@
+"LOINC_NUM","COMPONENT","LONG_COMMON_NAME","CLASS","CLASSTYPE","STATUS"
+"FX-0001-1","Fixture analyte","Fixture analyte, ""quoted"", in serum","CHEM","1","ACTIVE"
+"FX-0002-2","Fixture analyte two","Fixture analyte two in blood","HEM/BC","1","ACTIVE"
+"FX-0003-3","Deprecated fixture","Deprecated fixture term","CHEM","1","DEPRECATED"
+"FX-0004-4","Clinical fixture","A clinical, not laboratory, fixture","H&P.HX","2","ACTIVE"

@@ -1,5 +1,7 @@
 import type { PatientIdentity } from "../orders/model";
 
+import { compareDecimal, entryCheck, parseResultInput } from "@/lib/lab/catalogue";
+import { computeFlag } from "@/lib/lab/flags";
 import { acceptedUnits, mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
 
 /**
@@ -43,6 +45,36 @@ export interface EntryComponent {
   defaultUnit: string | null;
   /** Signed plausibility bounds only; empty while pending. */
   bounds: readonly SignedBound[];
+  /** Lab Phase 1 (LAB_UNITS_RANGES): the catalogue's fixed unit and the resolved range (§5.1). */
+  fixed?: FixedComponent;
+}
+
+export type RangeStateWord =
+  | "signed"
+  | "unsigned"
+  | "no_band_for_age"
+  | "sex_or_age_missing"
+  | "no_signed_range";
+
+export interface FixedComponent {
+  /** Null: the component has no unit yet and cannot be resulted (UN-1). */
+  unitUcum: string | null;
+  unitDisplay: string | null;
+  /** "millimoles per litre": the unit's words, part of the field's accessible name (§10). */
+  unitWords: string | null;
+  decimals: number | null;
+  entryLow: string | null;
+  entryHigh: string | null;
+  /** A signed band, or why there is none; with no signed range at all, the lab types it (D-LAB1-09). */
+  range: { state: RangeStateWord; low: string | null; high: string | null };
+  /** The viewer may fix the catalogue (`lab.manage`). */
+  canFix: boolean;
+  /** Step 6: the signed critical limit for this patient's age, or why there is none (FL-4, FL-6). */
+  limit?:
+    | { low: string | null; high: string | null }
+    | { none: "no_signed_limits" | "no_limit_for_test" | "no_limit_for_age" };
+  /** A released value: what its snapshot holds (Law 8), shown as it was released. */
+  released?: { flagFinal: "low" | "high" | "normal" | null; reason: string | null };
 }
 
 export interface EntryLine {
@@ -54,6 +86,10 @@ export interface EntryLine {
   flag: LabFlag | "";
   /** "Keep g/dL" was chosen for the mismatch question. */
   unitConfirmed: boolean;
+  /** Lab Phase 1: the value outside the entry check was confirmed (UN-6). */
+  entryConfirmed?: boolean;
+  /** Lab Phase 1: the computed flag changed, with the reason (FL-3). */
+  flagChange?: { flag: "low" | "high" | "normal"; reason: string } | null;
 }
 export const emptyLine = (c: EntryComponent): EntryLine => ({
   value: "",
@@ -100,6 +136,7 @@ const num = (s: string): number | null => {
 
 export function checkLine(c: EntryComponent, l: EntryLine): LineCheck {
   if (c.valueType !== "quantity") return OK;
+  if (c.fixed) return checkFixed(c, c.fixed, l);
   if (l.value.trim() === "") return OK;
   const parsed = parseComparator(l.value);
   if ("error" in parsed)
@@ -133,6 +170,85 @@ export function checkLine(c: EntryComponent, l: EntryLine): LineCheck {
     }
   }
   return { error: null, ask, unusual };
+}
+
+/** Lab Phase 1 §5.1: the catalogue's unit, strict numbers (UN-5), the entry check (UN-6). */
+function checkFixed(c: EntryComponent, f: FixedComponent, l: EntryLine): LineCheck {
+  if (!f.unitUcum) return l.value.trim() ? { ...OK, error: NO_UNIT } : OK;
+  if (l.value.trim() === "") return OK;
+  const parsed = parseResultInput(l.value, f.decimals);
+  if (!parsed.ok)
+    return {
+      ...OK,
+      error:
+        parsed.reason === "too_many_decimals"
+          ? `${c.display} takes ${f.decimals} decimal ${f.decimals === 1 ? "place" : "places"}.`
+          : "Type a number. A decimal comma is read as a point.",
+    };
+  if (f.range.state === "no_signed_range") {
+    const low = num(l.low);
+    const high = num(l.high);
+    if (Number.isNaN(low) || Number.isNaN(high))
+      return { ...OK, error: "The laboratory range takes numbers." };
+    if (low !== null && high !== null && low > high)
+      return { ...OK, error: "The range's low end is above its high end." };
+  }
+  if (l.flagChange && l.flagChange.reason.trim().length < 3)
+    return { ...OK, error: "Say why the flag is changed." };
+  return OK;
+}
+
+export const NO_UNIT =
+  "This test has no unit yet, so it cannot be resulted. Ask the laboratory lead to set it in the test catalogue.";
+
+/** UN-6: outside the entry band, and not yet confirmed. */
+export function needsEntryConfirm(c: EntryComponent, l: EntryLine): boolean {
+  const f = c.fixed;
+  if (!f?.unitUcum || l.entryConfirmed) return false;
+  const parsed = parseResultInput(l.value, f.decimals);
+  if (!parsed.ok) return false;
+  return (
+    entryCheck(parsed.value, {
+      id: "",
+      version: 0,
+      resultType: "number",
+      unitUcum: f.unitUcum,
+      unitDisplay: f.unitDisplay,
+      decimalPlaces: f.decimals,
+      loincCode: null,
+      entryCheckLow: f.entryLow,
+      entryCheckHigh: f.entryHigh,
+    }) === "outside"
+  );
+}
+
+/** FL-4: at or beyond the signed limit, as typed now; the server decides again on release. */
+export function autoCritical(c: EntryComponent, l: EntryLine | undefined): "low" | "high" | null {
+  const f = c.fixed;
+  if (!f || !l || !f.limit || "none" in f.limit || f.released) return null;
+  const parsed = parseResultInput(l.value, f.decimals);
+  if (!parsed.ok) return null;
+  if (f.limit.low !== null && compareDecimal(parsed.value, f.limit.low) <= 0) return "low";
+  if (f.limit.high !== null && compareDecimal(parsed.value, f.limit.high) >= 0) return "high";
+  return null;
+}
+
+/** FL-1: the flag the signed band (or, with no signed range, the typed one) gives this value. */
+export function fixedFlag(c: EntryComponent, l: EntryLine): "low" | "high" | "normal" | null {
+  const f = c.fixed;
+  if (!f) return null;
+  const parsed = parseResultInput(l.value, f.decimals);
+  if (!parsed.ok) return null;
+  const band =
+    f.range.state === "signed"
+      ? { low: f.range.low, high: f.range.high }
+      : f.range.state === "no_signed_range"
+        ? {
+            low: l.low.trim() ? l.low.trim().replace(",", ".") : null,
+            high: l.high.trim() ? l.high.trim().replace(",", ".") : null,
+          }
+        : null;
+  return computeFlag(parsed.value, band);
 }
 
 const filled = (c: EntryComponent, l: EntryLine | undefined) =>
@@ -173,8 +289,11 @@ export function entryIssues(
     const l = s.lines[c.conceptId];
     if (!l) continue;
     const check = checkLine(c, l);
-    if (check.error) out.push(`${c.display}: ${check.error}`);
+    if (check.error)
+      out.push(check.error.startsWith(c.display) ? check.error : `${c.display}: ${check.error}`);
     else if (check.ask) out.push(`${c.display}: ${check.ask.question} Answer to save.`);
+    else if (needsEntryConfirm(c, l))
+      out.push(`${c.display}: confirm the value is the one on the analyser.`);
   }
   for (const u of s.uncatalogued)
     if (u.value.trim() && !u.name.trim()) out.push("An uncatalogued result needs its test name.");
@@ -191,6 +310,30 @@ export function toResultValues(components: readonly EntryComponent[], s: EntrySt
     const flag = l!.flag || undefined;
     if (c.valueType !== "quantity") {
       out.push({ conceptId: c.conceptId, code: l!.code, labInterpretation: flag });
+      continue;
+    }
+    if (c.fixed) {
+      // The server applies the catalogue's unit, the signed range and the flag (lib/lab/units.ts).
+      const low = c.fixed.range.state === "no_signed_range" ? num(l!.low) : null;
+      const high = c.fixed.range.state === "no_signed_range" ? num(l!.high) : null;
+      out.push({
+        conceptId: c.conceptId,
+        value: l!.value.trim(),
+        ...(c.fixed.unitUcum ? { unit: c.fixed.unitUcum } : {}),
+        ...((low !== null || high !== null) && c.fixed.unitUcum
+          ? {
+              referenceRange: {
+                ...(low !== null ? { low } : {}),
+                ...(high !== null ? { high } : {}),
+                unit: c.fixed.unitUcum,
+              },
+            }
+          : {}),
+        ...(l!.entryConfirmed ? { entryCheckConfirmed: true } : {}),
+        ...(l!.flagChange
+          ? { flagChange: { flag: l!.flagChange.flag, reason: l!.flagChange.reason.trim() } }
+          : {}),
+      });
       continue;
     }
     const unit = l!.unit || c.defaultUnit || undefined;
@@ -269,6 +412,10 @@ export interface ReviewValue {
   /** MedSync-critical: a signed REF-CRIT entry matched. None is signed today. */
   critical: boolean;
   uncatalogued: boolean;
+  /** Lab Phase 1 (FL-3): "Flag changed by the lab: {reason}". */
+  labNote?: string | null;
+  /** Lab Phase 1 (UN-8): entered before fixed units; the unit and range are as typed. */
+  asTyped?: boolean;
 }
 
 export interface ReviewItem {
@@ -283,6 +430,8 @@ export interface ReviewItem {
   values: ReviewValue[];
   conclusion: { code: string; text: string | null } | null;
   encounterId: string | null;
+  /** Lab Phase 1 DT-7: "Entered after downtime · Resulted 13:40 · entered 14:52 · paper form DT-00031". */
+  downtimeTag?: string;
 }
 
 export const reviewWords = (i: Pick<ReviewItem, "state">): string =>

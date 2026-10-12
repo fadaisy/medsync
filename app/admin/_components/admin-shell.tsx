@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ShieldAlertIcon, ShieldCheckIcon } from "lucide-react";
 
 import { Avatar } from "@/components/medsync/avatar";
-import { SIDEBAR_CLASS, SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
+import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
+import { SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { AdminSidebarItem } from "./admin-sidebar-active";
 import { CommandPaletteRoot } from "./command-palette";
 import { MobileSidebar } from "./mobile-sidebar";
@@ -69,6 +70,12 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   },
   { href: "/admin/catalog", label: "Catalog", iconKey: "catalog", superadminOnly: true },
   { href: "/admin/emergency", label: "Emergency", iconKey: "emergency", superadminOnly: true },
+  {
+    href: "/admin/lab-signoffs",
+    label: "Lab sign-offs",
+    iconKey: "lab-signoffs",
+    superadminOnly: true,
+  },
   { href: "/admin/audit", label: "Audit", iconKey: "audit", superadminOnly: true },
   { href: "/admin/health", label: "Health", iconKey: "health" },
   { href: "/admin/feedback", label: "Tester feedback", iconKey: "feedback", superadminOnly: true },

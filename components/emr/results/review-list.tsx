@@ -18,11 +18,14 @@ export function ReviewList({
   staff,
   surface,
   timeZone,
+  notInBatch = new Set<string>(),
 }: {
   items: readonly ReviewItem[];
   staff: readonly StaffOption[];
   surface: "doctor" | "clinician";
   timeZone?: string;
+  /** Lab Phase 1 CA-12: reports with an open critical alert, acknowledged only through the alert. */
+  notInBatch?: ReadonlySet<string>;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -68,7 +71,14 @@ export function ReviewList({
           return n;
         })
       }
-      onSelectAll={(on) => setSelected(on ? new Set(items.map((i) => i.reportId)) : new Set())}
+      alerted={notInBatch}
+      onSelectAll={(on) =>
+        setSelected(
+          on
+            ? new Set(items.map((i) => i.reportId).filter((id) => !notInBatch.has(id)))
+            : new Set(),
+        )
+      }
       onQuick={(id, action) => run(new Set([id]), { action, note: "", forwardedToUserId: "" })}
       onAction={(action) => setDraft((d) => ({ ...d, action }))}
       onNote={(note) => setDraft((d) => ({ ...d, note }))}

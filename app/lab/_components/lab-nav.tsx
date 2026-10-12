@@ -2,7 +2,17 @@
 
 import type { WorkspaceNavEntry } from "@/components/medsync/workspace-nav";
 import type { LabNavId } from "@/lib/lab/nav";
-import { BanIcon, CheckCheckIcon, ListIcon } from "lucide-react";
+import {
+  BanIcon,
+  CheckCheckIcon,
+  FileClockIcon,
+  GaugeIcon,
+  ListIcon,
+  RulerIcon,
+  SettingsIcon,
+  SirenIcon,
+  TestTubesIcon,
+} from "lucide-react";
 
 import {
   WorkspaceCrumb,
@@ -15,15 +25,26 @@ import {
  * workspace nav (ADR 0229). Items come from the registry in lib/lab/nav.ts.
  */
 
-const ICON = { worklist: ListIcon, released: CheckCheckIcon, rejected: BanIcon } as const;
+const ICON = {
+  worklist: ListIcon,
+  criticals: SirenIcon,
+  released: CheckCheckIcon,
+  rejected: BanIcon,
+  setup_catalogue: TestTubesIcon,
+  setup_ranges: RulerIcon,
+  setup_limits: GaugeIcon,
+  downtime: FileClockIcon,
+  setup_criticals: SettingsIcon,
+} as const;
 
 export interface LabNavEntry {
   id: LabNavId;
   label: string;
   href: string;
   exact: boolean;
-  count: number;
+  count: number | null;
   countLabel: string;
+  group?: string;
 }
 
 const entries = (items: readonly LabNavEntry[]): WorkspaceNavEntry[] =>
@@ -33,7 +54,7 @@ export function LabSidebarNav({ items }: { items: readonly LabNavEntry[] }) {
   return <WorkspaceSidebarNav items={entries(items)} />;
 }
 
-/** Below the sidebar breakpoint: the same three items as a row of links under the top bar. */
+/** Below the sidebar breakpoint: the same items as a row of links under the top bar. */
 export function LabPhoneNav({ items }: { items: readonly LabNavEntry[] }) {
   return <WorkspacePhoneNav label="Laboratory" items={entries(items)} />;
 }

@@ -3,8 +3,10 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ShieldCheckIcon } from "lucide-react";
 
+import { StatusWord } from "@/components/emr/status-word";
 import { Avatar } from "@/components/medsync/avatar";
-import { SIDEBAR_CLASS, SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
+import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
+import { SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { Tag } from "@/components/medsync/tag";
 import { DOCTOR_FEATURE_AREAS, doctorFeaturePath, WORKSPACE_NAV } from "../_lib/features";
 import { DoctorCommandBar, DoctorSidebarItem } from "./doctor-sidebar-item";
@@ -54,6 +56,7 @@ export function DoctorShell({
   scope,
   avatarUrl,
   workspace = false,
+  criticalCount = null,
   children,
 }: {
   scope: DoctorScope;
@@ -61,6 +64,8 @@ export function DoctorShell({
   avatarUrl: string | null;
   /** The doctor workspace is on for this hospital: three nav items, Emergency in the header. */
   workspace?: boolean;
+  /** Lab Phase 1 §5.4: open critical alerts for me, shown on every page while any is open. */
+  criticalCount?: number | null;
   children: ReactNode;
 }) {
   const navItems = workspace
@@ -174,6 +179,16 @@ export function DoctorShell({
             </div>
 
             <div className="flex items-center justify-end gap-3">
+              {criticalCount ? (
+                <Link
+                  href="/doctor/criticals"
+                  className="focus-visible:shadow-focus inline-flex min-h-11 items-center rounded-sm outline-none sm:min-h-0"
+                >
+                  <StatusWord tone="critical">
+                    {criticalCount} critical {criticalCount === 1 ? "result" : "results"}
+                  </StatusWord>
+                </Link>
+              ) : null}
               <DoctorCommandBar
                 items={navItems.map((item) => ({
                   href: doctorFeaturePath(item.slug),

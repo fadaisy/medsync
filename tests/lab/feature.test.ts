@@ -40,3 +40,46 @@ describe("LAB_WORKSPACE", () => {
     expect(labWorkspaceLiveFor("h1")).toBe(true);
   });
 });
+
+describe("Lab Phase 1 flags (Law 14)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("are off by default and live only inside the lab workspace", async () => {
+    const { labCriticalsLiveFor, labDowntimeLiveFor, labUnitsRangesLiveFor } =
+      await import("@/lib/lab/feature");
+    vi.stubEnv("LAB_WORKSPACE", "");
+    vi.stubEnv("LAB_CRITICALS", "1");
+    vi.stubEnv("LAB_UNITS_RANGES", "1");
+    vi.stubEnv("LAB_DOWNTIME", "1");
+    expect([
+      labCriticalsLiveFor("h1"),
+      labUnitsRangesLiveFor("h1"),
+      labDowntimeLiveFor("h1"),
+    ]).toEqual([false, false, false]);
+    vi.stubEnv("LAB_WORKSPACE", "1");
+    vi.stubEnv("LAB_UNITS_RANGES", "h2");
+    vi.stubEnv("LAB_DOWNTIME", "");
+    expect([
+      labCriticalsLiveFor("h1"),
+      labUnitsRangesLiveFor("h1"),
+      labDowntimeLiveFor("h1"),
+    ]).toEqual([true, false, false]);
+    expect(labUnitsRangesLiveFor("h2")).toBe(true);
+  });
+
+  it("S19: production refuses LAB_CRITICALS while the alert wording (Appendix A) is a draft", async () => {
+    const { labCriticalsLiveFor } = await import("@/lib/lab/feature");
+    const { CRITICALS_COPY_STATUS } = await import("@/content/lab-criticals");
+    // The shipped wording is signed (CSO, 2026-10-12): production allows it.
+    expect(CRITICALS_COPY_STATUS).toMatchObject({ status: "signed", signedBy: "Fadhul (CSO)" });
+    vi.stubEnv("LAB_WORKSPACE", "1");
+    vi.stubEnv("LAB_CRITICALS", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(labCriticalsLiveFor("h1")).toBe(true);
+    // The gate, proven on a draft copy: refused in production, allowed elsewhere.
+    vi.spyOn(CRITICALS_COPY_STATUS, "status", "get").mockReturnValue("draft");
+    expect(labCriticalsLiveFor("h1")).toBe(false);
+    vi.stubEnv("VERCEL_ENV", "preview");
+    expect(labCriticalsLiveFor("h1")).toBe(true);
+  });
+});

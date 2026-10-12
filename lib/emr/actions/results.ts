@@ -1,9 +1,12 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { diagnosticReports } from "@/db/schema/emr";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import * as results from "@/lib/emr/write/results";
+import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
 
 /**
  * Results, acknowledgement and critical-result communication (PROMPT §8, D-EMR-06/07/08). Same
@@ -30,6 +33,11 @@ const Value = z.object({
   restricted: z.boolean().optional(),
   name: z.string().trim().max(120).optional(),
   replaces: uuid.optional(),
+  // Lab Phase 1 Step 5 (UN-6, FL-3).
+  entryCheckConfirmed: z.boolean().optional(),
+  flagChange: z
+    .object({ flag: z.enum(["low", "high", "normal"]), reason: z.string().trim().min(3).max(200) })
+    .optional(),
 });
 const values = z.array(Value).max(40);
 const conclusion = {
@@ -86,16 +94,78 @@ const CriticalCommunication = z.object({
   clientKey,
 });
 
+/**
+ * Lab Phase 1 Step 6 (S31): with LAB_CRITICALS and LAB_UNITS_RANGES live, a final release by the lab
+ * with a value at or beyond a signed limit is refused unless it goes through Check and release.
+ */
+async function guardUncheckedCritical(
+  ctx: Parameters<Parameters<typeof runEmrWrite>[2]>[0],
+  r: { id: string },
+  patientUserId: string,
+) {
+  if (ctx.actor.surface !== "lab") return;
+  if (
+    !(await criticalsLive(ctx.actor.hospitalId)) ||
+    !(await unitsRangesLive(ctx.actor.hospitalId))
+  )
+    return;
+  const [order] = await ctx.tx
+    .select({ orderId: diagnosticReports.orderId })
+    .from(diagnosticReports)
+    .where(eq(diagnosticReports.id, r.id));
+  if (!order?.orderId) return;
+  const { refuseUncheckedCritical } = await import("@/lib/lab/limits");
+  await refuseUncheckedCritical(ctx.tx, {
+    hospitalId: ctx.actor.hospitalId,
+    reportId: r.id,
+    patientUserId,
+    orderId: order.orderId,
+    now: ctx.now,
+  });
+}
+
 export async function enterResults(raw: unknown) {
-  return runEmrWrite(EnterResults, raw, (ctx, input) => results.enterResults(ctx, input));
+  return runEmrWrite(EnterResults, raw, async (ctx, input) => {
+    const r = await results.enterResults(ctx, input);
+    if (input.status === "final") await guardUncheckedCritical(ctx, r, input.patientUserId);
+    return r;
+  });
 }
 
 export async function releaseResults(raw: unknown) {
-  return runEmrWrite(ReleaseResults, raw, (ctx, input) => results.releaseResults(ctx, input));
+  return runEmrWrite(ReleaseResults, raw, async (ctx, input) => {
+    const r = await results.releaseResults(ctx, input);
+    await guardUncheckedCritical(ctx, r, input.patientUserId);
+    return r;
+  });
 }
 
+/**
+ * Lab Phase 1 (CA-10): with LAB_CRITICALS on, amending a result that was alerted opens a linked
+ * correction alert in the same transaction; delivery follows commit and never throws.
+ */
 export async function amendResults(raw: unknown) {
-  return runEmrWrite(AmendResults, raw, (ctx, input) => results.amendResults(ctx, input));
+  const r = await runEmrWrite(AmendResults, raw, async (ctx, input) => {
+    const amended = await results.amendResults(ctx, input);
+    if (!(await criticalsLive(ctx.actor.hospitalId))) return { ...amended, jobs: [] };
+    const { correctAlerts } = await import("@/lib/lab/criticals/store");
+    const c = await correctAlerts(ctx, {
+      patientUserId: input.patientUserId,
+      priorReportId: input.reportId,
+      newReportId: amended.id,
+    });
+    return { ...amended, jobs: c.jobs };
+  });
+  if (!r.ok) return r;
+  const { jobs, ...data } = r.data!;
+  if (jobs.length) {
+    const { deliverAfterCommit } = await import("@/lib/lab/criticals/store");
+    const { db } = await import("@/db");
+    await deliverAfterCommit(db as unknown as Parameters<typeof deliverAfterCommit>[0], jobs).catch(
+      () => undefined,
+    );
+  }
+  return { ...r, data };
 }
 
 export async function acknowledgeResults(raw: unknown) {

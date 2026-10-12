@@ -1,6 +1,6 @@
 "use client";
 
-import type { EntryState, ResultEntryData, UncataloguedLine } from "./model";
+import type { ConclusionCode, EntryState, ResultEntryData, UncataloguedLine } from "./model";
 import type { EntryPhase } from "./result-entry-view";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -25,6 +25,19 @@ export function ResultEntry({
   /** Called after a successful save (the sheet closes); otherwise the route refreshes. */
   onDone?: () => void;
 }) {
+  const e = useResultEntry(data, surface, onDone);
+  return <ResultEntryView data={data} {...e.view} />;
+}
+
+/**
+ * The entry state and its handlers, shared by ResultEntry and the lab's critical-mark entry
+ * (app/lab/results/[orderId]/_components/lab-result-entry.tsx), which adds the mark panel.
+ */
+export function useResultEntry(
+  data: ResultEntryData,
+  surface: "lab" | "doctor",
+  onDone?: () => void,
+) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -77,14 +90,18 @@ export function ResultEntry({
       uncatalogued: s.uncatalogued.map((u) => (u.key === key ? { ...u, ...patch } : u)),
     }));
 
-  return (
-    <ResultEntryView
-      data={data}
-      state={state}
-      phase={phase}
-      pending={pending}
-      message={message}
-      onLine={(conceptId, patch) =>
+  return {
+    state,
+    pending,
+    start,
+    setMessage,
+    done,
+    view: {
+      state,
+      phase,
+      pending,
+      message,
+      onLine: (conceptId: string, patch: Partial<EntryState["lines"][string]>) =>
         setState((s) => {
           const c = data.components.find((x) => x.conceptId === conceptId)!;
           return {
@@ -94,32 +111,29 @@ export function ResultEntry({
               [conceptId]: { ...(s.lines[conceptId] ?? emptyLine(c)), ...patch },
             },
           };
-        })
-      }
-      onUncatalogued={patchUncat}
-      onAddUncatalogued={() =>
+        }),
+      onUncatalogued: patchUncat,
+      onAddUncatalogued: () =>
         setState((s) => ({
           ...s,
           uncatalogued: [
             ...s.uncatalogued,
             { key: crypto.randomUUID(), name: "", value: "", unit: "" },
           ],
-        }))
-      }
-      onRemoveUncatalogued={(key) =>
-        setState((s) => ({ ...s, uncatalogued: s.uncatalogued.filter((u) => u.key !== key) }))
-      }
-      onConclusion={(conclusionCode) => setState((s) => ({ ...s, conclusionCode }))}
-      onConclusionText={(conclusionText) => setState((s) => ({ ...s, conclusionText }))}
-      onReason={(reasonText) => setState((s) => ({ ...s, reasonText }))}
-      onSave={save}
-      onAmendStart={() => {
+        })),
+      onRemoveUncatalogued: (key: string) =>
+        setState((s) => ({ ...s, uncatalogued: s.uncatalogued.filter((u) => u.key !== key) })),
+      onConclusion: (conclusionCode: ConclusionCode) => setState((s) => ({ ...s, conclusionCode })),
+      onConclusionText: (conclusionText: string) => setState((s) => ({ ...s, conclusionText })),
+      onReason: (reasonText: string) => setState((s) => ({ ...s, reasonText })),
+      onSave: save,
+      onAmendStart: () => {
         setMessage(null);
         setPhase("amend");
-      }}
-      onAmendSave={amend}
-    />
-  );
+      },
+      onAmendSave: amend,
+    },
+  };
 }
 
 function initial(data: ResultEntryData): EntryState {

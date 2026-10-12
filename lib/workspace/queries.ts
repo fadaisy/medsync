@@ -23,6 +23,7 @@ import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { clinicalCosignPolicies, clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { clinicalNotes, diagnosticReports } from "@/db/schema/emr";
 import { clinicalDocumentation, encounterOrders } from "@/db/schema/encounter";
+import { criticalAlertEvents, criticalAlerts } from "@/db/schema/lab-safety";
 import { entryTypes, patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { resusEpisodes } from "@/db/schema/resus";
@@ -33,6 +34,7 @@ import { computeAgeYears } from "@/lib/age";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { OPEN_RESULT_ORDER, openResultFor } from "@/lib/emr/read/results";
 import { SENIOR_CADRES } from "@/lib/emr/write/facts";
+import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { fetchResusBoardV2, OPENABLE_LOOKBACK_MS } from "@/lib/resus/board-v2";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 import { resolveTriageAuthority } from "@/lib/triage/authority";
@@ -471,12 +473,31 @@ export async function loadEmrTasks(database: EmrDb, viewer: WorkspaceViewer): Pr
           .limit(ROW_CAP)
       : [],
   ]);
+  // Lab Phase 1 §5.4: an open critical alert sent to me puts its report in Critical results, and
+  // an alert reaching me as a department or hospital contact joins the lane though I did not order it.
+  const alerted = (await criticalsLive(viewer.hospitalId))
+    ? await openAlertsSentTo(database, viewer)
+    : [];
+  const alertedIds = new Set(alerted.map((a) => a.reportId));
+  const own = new Set(results.map((x) => x.id));
   return [
+    ...alerted
+      .filter((a) => !own.has(a.reportId) && a.encounterId)
+      .map(
+        (a): FlowTask => ({
+          id: a.reportId,
+          patientId: a.patientUserId,
+          kind: "critical_result",
+          encounterId: a.encounterId!,
+          atMs: a.at.getTime(),
+          label: a.restricted ? null : a.text,
+        }),
+      ),
     ...results.map(
       (x): FlowTask => ({
         id: x.id,
         patientId: x.patientUserId,
-        kind: x.critical ? "critical_result" : "result_to_review",
+        kind: x.critical || alertedIds.has(x.id) ? "critical_result" : "result_to_review",
         encounterId: x.encounterId,
         atMs: x.at.getTime(),
         label: x.restricted ? null : x.text,
@@ -645,4 +666,30 @@ function firstReason(breakdown: unknown): string | null {
   if (typeof b?.lifeThreatReason === "string") return b.lifeThreatReason;
   if (Array.isArray(b?.reasoning) && typeof b.reasoning[0] === "string") return b.reasoning[0];
   return null;
+}
+
+/** Open critical alerts with an in-app notification to this viewer (Lab Phase 1, ADR 0242). */
+async function openAlertsSentTo(database: EmrDb, viewer: WorkspaceViewer) {
+  return database
+    .selectDistinct({
+      reportId: criticalAlerts.reportId,
+      patientUserId: criticalAlerts.patientUserId,
+      at: criticalAlerts.sentAt,
+      restricted: criticalAlerts.restricted,
+      encounterId: encounterOrders.encounterId,
+      text: encounterOrders.text,
+    })
+    .from(criticalAlerts)
+    .innerJoin(
+      criticalAlertEvents,
+      and(
+        eq(criticalAlertEvents.alertId, criticalAlerts.id),
+        eq(criticalAlertEvents.kind, "notified"),
+        eq(criticalAlertEvents.channel, "app"),
+        eq(criticalAlertEvents.recipientId, viewer.userId),
+      ),
+    )
+    .leftJoin(encounterOrders, eq(encounterOrders.id, criticalAlerts.orderId))
+    .where(and(eq(criticalAlerts.hospitalId, viewer.hospitalId), eq(criticalAlerts.state, "open")))
+    .limit(ROW_CAP);
 }

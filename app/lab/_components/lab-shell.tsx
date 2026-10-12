@@ -2,6 +2,7 @@ import type { LabNavEntry } from "./lab-nav";
 import type { LabTechScope } from "@/lib/lab-tech/scope";
 import type { ReactNode } from "react";
 
+import { SidebarGroupLabel } from "@/components/medsync/sidebar-nav";
 import { sentenceCase, WorkspaceShell } from "@/components/medsync/workspace-shell";
 import { LAB } from "@/content/lab";
 import { LabCrumb, LabPhoneNav, LabSidebarNav } from "./lab-nav";
@@ -30,7 +31,17 @@ export function LabShell({
       homeHref="/lab"
       navLabel="Laboratory"
       groupLabel={LAB.nav.label}
-      sidebarNav={<LabSidebarNav items={nav} />}
+      sidebarNav={
+        <>
+          <LabSidebarNav items={nav.filter((i) => !i.group)} />
+          {nav.some((i) => i.group === "setup") ? (
+            <>
+              <SidebarGroupLabel>{LAB.nav.setup}</SidebarGroupLabel>
+              <LabSidebarNav items={nav.filter((i) => i.group === "setup")} />
+            </>
+          ) : null}
+        </>
+      }
       phoneNav={<LabPhoneNav items={nav} />}
       crumb={<LabCrumb items={nav} />}
       who={[sentenceCase(scope.cadreName), sectionName].filter(Boolean).join(" · ")}

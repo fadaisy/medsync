@@ -3,18 +3,15 @@ import Link from "next/link";
 import { ShieldCheckIcon } from "lucide-react";
 
 import { Avatar } from "@/components/medsync/avatar";
-import {
-  SIDEBAR_CLASS,
-  SidebarGroupLabel,
-  SidebarWorkspace,
-} from "@/components/medsync/sidebar-nav";
+import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
+import { SidebarGroupLabel, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 
 /**
  * A staff workspace shell (Lab Phase 0 §5.2, Pharmacy Phase 0 §5.2; ADR 0229): the shared 248 px
  * sidebar with the facility mark and the registered items, a 48 px top bar that says where you are
  * and who you are (the approved cadre, and the section or dispensing point), and the main slot.
  * Below the sidebar breakpoint the items become a row of links under the top bar; nothing slides
- * in from an edge (ADR 0161).
+ * in from an edge (ADR 0161). On paper only the main slot prints (the lab's downtime forms).
  */
 export function WorkspaceShell({
   hospitalName,
@@ -45,7 +42,7 @@ export function WorkspaceShell({
 }) {
   return (
     <div className="bg-background text-foreground flex min-h-svh w-full">
-      <aside aria-label={`${navLabel} navigation`} className={SIDEBAR_CLASS}>
+      <aside aria-label={`${navLabel} navigation`} className={`${SIDEBAR_CLASS} print:hidden`}>
         <div className="flex flex-col gap-1.5 p-2">
           <SidebarWorkspace name={hospitalName} sub={place} href={homeHref} />
           {sidebarTop}
@@ -69,7 +66,7 @@ export function WorkspaceShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border glass sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b px-4 sm:px-6">
+        <header className="border-border glass sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b px-4 sm:px-6 print:hidden">
           <div className="flex min-w-0 items-center gap-2.5">
             <Link
               href={homeHref}

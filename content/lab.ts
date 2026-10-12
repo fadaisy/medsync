@@ -24,6 +24,7 @@ export const LAB = {
     worklist: "Worklist",
     released: "Released today",
     rejected: "Rejected",
+    setup: "Set-up",
   },
   worklist: {
     title: "Worklist",

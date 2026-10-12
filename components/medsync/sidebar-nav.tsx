@@ -163,7 +163,3 @@ export function SidebarSearch({ label = "Search" }: { label?: string }) {
     </button>
   );
 }
-
-/** The sidebar column itself: `sidebar` ground, 248px, hairline right edge. */
-export const SIDEBAR_CLASS =
-  "bg-sidebar border-sidebar-border hidden w-[248px] shrink-0 flex-col border-r lg:flex";
