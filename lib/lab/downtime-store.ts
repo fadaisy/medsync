@@ -16,6 +16,7 @@ import {
   labBriefings,
 } from "@/db/schema/lab-safety";
 import { cadres } from "@/db/schema/reference-data";
+import { sheetLabel } from "@/lib/downtime/sheets";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { loadOrder, orderStatus, placeOrders } from "@/lib/emr/write/orders";
 import { enterResults } from "@/lib/emr/write/results";
@@ -439,4 +440,4 @@ export async function loadDowntime(tx: EmrTx, hospitalId: string, since: Date) {
   return { periods, unused, entries, drills, briefings };
 }
 
-export const formLabel = (n: number) => `DT-${String(n).padStart(5, "0")}`;
+export const formLabel = (n: number) => sheetLabel(n, "lab");

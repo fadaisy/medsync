@@ -4,49 +4,30 @@
  * A downtime period is a record, not a mode (DT-1): nothing here is read by any other engine to change
  * behaviour. A paper result keeps the form's collection and result times; the server's entry time is
  * kept beside them, and everything clinical is evaluated as at the form's collection time (Law 9, DT-5).
+ *
+ * The workspace-neutral parts (periods, the number space, sheet moves, drills) live in
+ * `lib/downtime/sheets.ts`, shared with the pharmacy (Pharmacy Phase 1 DT-1, ADR 0271). What stays here
+ * is the lab's own: form times, criticals on the form, turnaround.
  */
 
-export interface DowntimePeriod {
-  startsAt: Date;
-  endsAt: Date;
-}
+import type { DowntimePeriod, LabSheetState } from "@/lib/downtime/sheets";
 
-export type DowntimeReason = "network" | "power" | "system" | "other";
+import { sheetMove, withinAPeriod } from "@/lib/downtime/sheets";
 
-/** DT-1: what a period record needs. */
-export function periodErrors(p: {
-  startsAt: Date;
-  endsAt: Date;
-  reason: string;
-  now: Date;
-}): string[] {
-  const errors: string[] = [];
-  if (!(p.startsAt < p.endsAt)) errors.push("order");
-  if (p.endsAt > p.now) errors.push("future");
-  if (!["network", "power", "system", "other"].includes(p.reason)) errors.push("reason");
-  return errors;
-}
+export type { DowntimePeriod, DowntimeReason } from "@/lib/downtime/sheets";
+export { periodErrors, nextSheetNumbers as nextFormNumbers } from "@/lib/downtime/sheets";
 
 // ─── DT-2: form numbers ──────────────────────────────────────────────────
 
-export type FormNumberState = "unused" | "entered" | "voided";
-
-/** The next run of numbers to reserve, after the highest ever reserved at this hospital. */
-export function nextFormNumbers(highestReserved: number | null, count: number): number[] {
-  if (!Number.isInteger(count) || count < 1 || count > 200)
-    throw new Error("reserve 1–200 numbers at a time");
-  const from = (highestReserved ?? 0) + 1;
-  return Array.from({ length: count }, (_, i) => from + i);
-}
+export type FormNumberState = LabSheetState;
 
 /** A number is entered or voided once, from unused (0105 enforces the same). */
 export function formNumberMove(
   state: FormNumberState | null,
 ): { ok: true } | { ok: false; reason: "not_reserved" | "already_entered" | "already_voided" } {
   if (state === null) return { ok: false, reason: "not_reserved" };
-  if (state === "entered") return { ok: false, reason: "already_entered" };
-  if (state === "voided") return { ok: false, reason: "already_voided" };
-  return { ok: true };
+  if (sheetMove(state, "entered", "lab")) return { ok: true };
+  return { ok: false, reason: state === "entered" ? "already_entered" : "already_voided" };
 }
 
 // ─── DT-4: the form's times ──────────────────────────────────────────────
@@ -68,7 +49,7 @@ export function checkFormTimes(
   const errors: ("future" | "result_before_collection" | "outside_period_reason")[] = [];
   if (t.collectedAt > input.now || t.resultedAt > input.now) errors.push("future");
   if (t.resultedAt < t.collectedAt) errors.push("result_before_collection");
-  const inside = input.periods.some((p) => p.startsAt <= t.collectedAt && t.resultedAt <= p.endsAt);
+  const inside = withinAPeriod(input.periods, t.collectedAt, t.resultedAt);
   if (!inside && (input.outsidePeriodReason ?? "").trim().length < 3)
     errors.push("outside_period_reason");
   return errors.length > 0 ? { ok: false, errors } : { ok: true, insidePeriod: inside };
