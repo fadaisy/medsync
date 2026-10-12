@@ -4,10 +4,11 @@ import type { TimelineDrugEvent } from "@/lib/pharmacy/emergency-doses";
 import type { ViewLineInput } from "@/lib/pharmacy/prescription-view";
 import { describe, expect, it } from "vitest";
 
+import { dispensingMap, PHARMACY_MAP_V2, pharmacyAccess } from "@/lib/pharmacy/access";
 import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state";
 import { answeredChecks, CHECK_TITLE } from "@/lib/pharmacy/checks";
 import { computeDoses, NO_CART, toDoseRow } from "@/lib/pharmacy/emergency-doses";
-import { PHARMACY_NAV, pharmacyNavFor } from "@/lib/pharmacy/nav";
+import { PHARMACY_NAV, pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { DRUGS, offersRegimens } from "@/lib/prescribing/formulary";
 
@@ -342,6 +343,28 @@ describe("NV-P1: navigation", () => {
         downtime: true,
       }),
     ).toHaveLength(3);
+  });
+
+  it("the layout's permissions: Phase 0's with both flags off, the dispensing map with a Phase 1 flag on", () => {
+    const phase0 = pharmacyAccess("PHARMACIST").permissions;
+    const off = { dispensing: false, downtime: false };
+    expect(pharmacyNavPermissions(phase0, "PHARMACIST", off, PHARMACY_MAP_V2)).toBe(phase0);
+    const labels = (flags: typeof off, map = PHARMACY_MAP_V2) =>
+      pharmacyNavFor(pharmacyNavPermissions(phase0, "PHARMACIST", flags, map), flags).map(
+        (i) => i.label,
+      );
+    expect(labels(off)).toEqual(["Queue", "Emergency doses"]);
+    // The harness's defect: v2 grants pharmacy.dispense, so Downtime entry shows (map v1 hid it).
+    expect(labels({ dispensing: true, downtime: true })).toContain("Downtime entry");
+    expect(labels({ dispensing: false, downtime: true })).toEqual([
+      "Queue",
+      "Downtime entry",
+      "Emergency doses",
+    ]);
+    // Production keeps map v1 (D-PH1-03): no pharmacy.dispense, no Downtime entry.
+    expect(labels({ dispensing: true, downtime: true }, dispensingMap("production"))).not.toContain(
+      "Downtime entry",
+    );
   });
 });
 

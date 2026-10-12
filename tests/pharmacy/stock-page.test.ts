@@ -137,6 +137,19 @@ describe("the Stock rows (5.8)", () => {
       ]),
     ).toBe(2); // before the products came
     expect(
+      openingCountMissing(
+        products,
+        [
+          {
+            medicineId: "fixture_a",
+            scope: "medicine",
+            countedAt: new Date("2026-10-09T08:00:00Z"),
+          },
+        ],
+        new Set(["p1"]),
+      ),
+    ).toBe(1); // a count line on p1's batch here counts, whenever and whatever the scope
+    expect(
       openingCountMissing(products, [
         { medicineId: null, scope: "full", countedAt: new Date("2026-10-11T08:00:00Z") },
       ]),

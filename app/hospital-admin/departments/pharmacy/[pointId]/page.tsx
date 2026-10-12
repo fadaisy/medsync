@@ -1,5 +1,6 @@
 import type { EmrTx } from "@/lib/emr/db";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -40,8 +41,8 @@ const words = (e: string) => e.replace(/\b[a-z]+(?:_[a-z]+)+\b/g, (k) => k.repla
 
 /**
  * Going live at a dispensing point (Pharmacy Phase 1, 5.13; wireframe §13; RD-1 to
- * RD-5): six conditions, each with its state, its evidence and its action; a seventh, the first
- * point's pilot note, for a later point; the point's phone and label mode; Switch on and Switch off,
+ * RD-5): six conditions, each with its state, its evidence and its action; for a second or later
+ * point, the first point's pilot note as a separate requirement (RD-5); the point's phone and label mode; Switch on and Switch off,
  * each needing a second hospital admin. Behind `pharmacyDispensing`. No PHI on the page.
  */
 export default async function GoLivePage({ params }: { params: Promise<{ pointId: string }> }) {
@@ -60,12 +61,7 @@ export default async function GoLivePage({ params }: { params: Promise<{ pointId
     : point.liveAt
       ? GOLIVE.state.live(day.format(point.liveAt))
       : GOLIVE.state.notLive;
-  const rows = [
-    ...readiness.conditions.map((c) => ({ ...c, key: String(c.id) })),
-    ...(readiness.pilotNote
-      ? [{ ...readiness.pilotNote, id: 7, key: "7", title: GOLIVE.pilotTitle }]
-      : []),
-  ];
+  const pilot = readiness.pilotNote ? { ...readiness.pilotNote, title: GOLIVE.pilotTitle } : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
@@ -93,31 +89,13 @@ export default async function GoLivePage({ params }: { params: Promise<{ pointId
       />
 
       <ol className="flex flex-col gap-3">
-        {rows.map((c) => (
-          <li key={c.key} className="border-border flex flex-col gap-2 rounded-lg border p-4">
-            <p className="text-body-s flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground font-mono">{c.id}.</span>
-              <span className="font-medium">{c.title}</span>
-              {c.met ? (
-                <StatusWord>{GOLIVE.met}</StatusWord>
-              ) : (
-                <StatusWord tone="caution">{GOLIVE.notYet}</StatusWord>
-              )}
-            </p>
-            {c.evidence.length ? (
-              <ul className="text-body-s text-muted-foreground flex flex-col gap-0.5 pl-6">
-                {c.evidence.map((e) => (
-                  <li key={e}>{words(e)}</li>
-                ))}
-              </ul>
-            ) : null}
-            {c.action ? <p className="text-body-s pl-6">{c.action}</p> : null}
-            {!c.met && c.id <= 6 && GOLIVE.conditionHelp[c.id as 1] ? (
-              <p className="text-body-s text-muted-foreground pl-6">
-                {GOLIVE.conditionHelp[c.id as 1]}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap gap-2 pl-6">
+        {readiness.conditions.map((c) => (
+          <li key={c.id}>
+            <Condition
+              c={c}
+              number={c.id}
+              help={c.met ? undefined : GOLIVE.conditionHelp[c.id as 1]}
+            >
               {c.id === 2 ? <LegalAnswerDialog /> : null}
               {c.id === 5 ? <BriefingDialog pointId={point.id} /> : null}
               {c.id === 6 && !c.met ? (
@@ -128,13 +106,28 @@ export default async function GoLivePage({ params }: { params: Promise<{ pointId
                   {GOLIVE.openPanel}
                 </Link>
               ) : null}
-              {c.id === 7 && !c.met && r.firstLivePointId ? (
-                <PilotNoteDialog pointId={r.firstLivePointId} />
-              ) : null}
-            </div>
+            </Condition>
           </li>
         ))}
       </ol>
+
+      {pilot ? (
+        <section aria-labelledby="later-point" className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 id="later-point" className="text-heading-s font-medium">
+              {GOLIVE.laterPoint.heading}
+            </h2>
+            <p className="text-body-s text-muted-foreground max-w-[70ch]">
+              {GOLIVE.laterPoint.lead}
+            </p>
+          </div>
+          <Condition c={pilot}>
+            {!pilot.met && r.firstLivePointId ? (
+              <PilotNoteDialog pointId={r.firstLivePointId} />
+            ) : null}
+          </Condition>
+        </section>
+      ) : null}
 
       <SwitchControls
         pointId={point.id}
@@ -151,6 +144,43 @@ export default async function GoLivePage({ params }: { params: Promise<{ pointId
             : null
         }
       />
+    </div>
+  );
+}
+
+/** One requirement: its title and state in words, its evidence, its action and its controls. */
+function Condition({
+  c,
+  number,
+  help,
+  children,
+}: {
+  c: { title: string; met: boolean; evidence: string[]; action: string | null };
+  number?: number;
+  help?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="border-border flex flex-col gap-2 rounded-lg border p-4">
+      <p className="text-body-s flex flex-wrap items-center gap-2">
+        {number ? <span className="text-muted-foreground font-mono">{number}.</span> : null}
+        <span className="font-medium">{c.title}</span>
+        {c.met ? (
+          <StatusWord>{GOLIVE.met}</StatusWord>
+        ) : (
+          <StatusWord tone="caution">{GOLIVE.notYet}</StatusWord>
+        )}
+      </p>
+      {c.evidence.length ? (
+        <ul className="text-body-s text-muted-foreground flex flex-col gap-0.5 pl-6">
+          {c.evidence.map((e) => (
+            <li key={e}>{words(e)}</li>
+          ))}
+        </ul>
+      ) : null}
+      {c.action ? <p className="text-body-s pl-6">{c.action}</p> : null}
+      {help ? <p className="text-body-s text-muted-foreground pl-6">{help}</p> : null}
+      {children ? <div className="flex flex-wrap gap-2 pl-6">{children}</div> : null}
     </div>
   );
 }

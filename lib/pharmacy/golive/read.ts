@@ -25,7 +25,7 @@ import { cadres } from "@/db/schema/reference-data";
 import { departmentHeads } from "@/db/schema/services-hub";
 import { PHARMACY_MAP_V2 } from "@/lib/pharmacy/access";
 import { pharmacyReadiness } from "@/lib/pharmacy/readiness";
-import { openingCountMissing } from "@/lib/pharmacy/stock/read";
+import { countedProductsAt, openingCountMissing } from "@/lib/pharmacy/stock/read";
 import { loadPoint } from "@/lib/pharmacy/write";
 
 /**
@@ -207,6 +207,7 @@ export async function goLiveFactsFor(
         .orderBy(desc(pharmacyPilotNotes.writtenAt))
     : [];
 
+  const counted = await countedProductsAt(tx, pointId);
   const controlled = signed.find((s) => s.kind === "controlled_classes")?.content;
   const head =
     heads.find((h) => h.departmentId === pointId && h.cadreCode === "PHARMACIST") ??
@@ -238,7 +239,7 @@ export async function goLiveFactsFor(
     q1RequiresPharmacistInCharge: q1 ? true : null,
     activeProducts: products.map((p) => ({
       name: p.name,
-      hasOpeningCount: openingCountMissing([p], counts) === 0,
+      hasOpeningCount: openingCountMissing([p], counts, counted) === 0,
     })),
     drillOn: drill ? isoDate(drill.heldOn) : null,
     briefings: briefings.map((b) => ({ audience: b.audience, on: isoDate(b.heldOn) })),

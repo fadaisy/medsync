@@ -177,21 +177,35 @@ export function stockFigures(
 }
 
 /**
- * RD-1 condition 3: products at the point without a count. A count covers a product when it is a full
- * count, or a count of its medicine, taken at or after the product came to the point.
+ * RD-1 condition 3: products at the point without a count. A product is counted when a count, of any
+ * scope, has a line for one of its batches at the point (`counted`, from `countedProductsAt`); or,
+ * for a product with no batch to count yet, a full count or a count of its medicine taken at or after
+ * it came to the point.
  */
 export function openingCountMissing(
   products: readonly { productId: string; medicineId: string; since: Date }[],
   counts: readonly { medicineId: string | null; scope: string; countedAt: Date }[],
+  counted: ReadonlySet<string> = new Set(),
 ): number {
   return products.filter(
     (p) =>
+      !counted.has(p.productId) &&
       !counts.some(
         (c) =>
           (c.scope === "full" || c.medicineId === p.medicineId) &&
           c.countedAt.getTime() >= p.since.getTime(),
       ),
   ).length;
+}
+
+/** The products with a count line on one of their batches at the point (RD-1 condition 3). */
+export async function countedProductsAt(tx: EmrTx, pointId: string): Promise<Set<string>> {
+  const rows = await tx
+    .selectDistinct({ productId: pharmacyBatches.productId })
+    .from(pharmacyCountLines)
+    .innerJoin(pharmacyBatches, eq(pharmacyBatches.id, pharmacyCountLines.batchId))
+    .where(eq(pharmacyBatches.dispensingPointId, pointId));
+  return new Set(rows.map((r) => r.productId));
 }
 
 /* ─── The loads ───────────────────────────────────────────────────────── */
@@ -363,6 +377,7 @@ async function loadPointStock(
     products,
     atPoint,
     counts,
+    counted: await countedProductsAt(tx, pointId),
     activeHere,
     listImported: !!edition,
     manages: manage?.ok === true,
@@ -427,7 +442,7 @@ export async function getStockPage(
   return {
     rows,
     figures: stockFigures(rows, read.input, read.listImported),
-    openingMissing: openingCountMissing(read.activeHere, read.counts),
+    openingMissing: openingCountMissing(read.activeHere, read.counts, read.counted),
     products: read.products
       .filter((p) => p.active && read.atPoint.get(p.id)?.active)
       .map((p) => ({ id: p.id, medicineId: p.medicineId, name: p.name, issueUnit: p.issueUnit })),

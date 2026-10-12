@@ -1,7 +1,7 @@
 import type { EmrDb } from "@/lib/emr/db";
 import type { PaymentStatus } from "@/lib/pharmacy/review/load";
 import type { LineStock, StagedDecision } from "@/lib/pharmacy/review/read";
-import { and, asc, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 
 import { WITHOUT_PHARMACIST_REASONS } from "@/content/pharmacy-review";
 import {
@@ -334,6 +334,36 @@ export interface SuppliedRow {
   reversible: boolean;
 }
 
+/** One hospital-local day, as [start, end). */
+function dayBounds(day: string) {
+  const start = startOfLocalDay(new Date(`${day}T12:00:00+03:00`), DEFAULT_TIME_ZONE);
+  return [start, new Date(start.getTime() + DAY_MS)] as const;
+}
+
+const handoversOn = (hospitalId: string, pointId: string, day: string) => {
+  const [start, end] = dayBounds(day);
+  return and(
+    eq(pharmacyHandovers.hospitalId, hospitalId),
+    eq(pharmacyHandovers.dispensingPointId, pointId),
+    gte(pharmacyHandovers.suppliedAt, start),
+    lt(pharmacyHandovers.suppliedAt, end),
+  );
+};
+
+/** The nav's Supplied today count: the rows `getSupplied` lists for today, as one COUNT. */
+export async function countSuppliedToday(
+  hospitalId: string,
+  pointId: string,
+  database: EmrDb = defaultDb(),
+  now = new Date(),
+): Promise<number> {
+  const [row] = await database
+    .select({ n: count() })
+    .from(pharmacyHandovers)
+    .where(handoversOn(hospitalId, pointId, localDate(now)));
+  return row?.n ?? 0;
+}
+
 /** `getSuppliedToday` (5.7): every hand-over at this point on one hospital-local day, newest first. */
 export async function getSupplied(
   hospitalId: string,
@@ -342,19 +372,10 @@ export async function getSupplied(
   database: EmrDb = defaultDb(),
   now = new Date(),
 ): Promise<{ rows: SuppliedRow[]; lookBackWaiting: number; day: string; today: string }> {
-  const start = startOfLocalDay(new Date(`${day}T12:00:00+03:00`), DEFAULT_TIME_ZONE);
-  const end = new Date(start.getTime() + DAY_MS);
   const handovers = await database
     .select()
     .from(pharmacyHandovers)
-    .where(
-      and(
-        eq(pharmacyHandovers.hospitalId, hospitalId),
-        eq(pharmacyHandovers.dispensingPointId, pointId),
-        gte(pharmacyHandovers.suppliedAt, start),
-        lt(pharmacyHandovers.suppliedAt, end),
-      ),
-    )
+    .where(handoversOn(hospitalId, pointId, day))
     .orderBy(desc(pharmacyHandovers.suppliedAt));
   const today = localDate(now);
   const waiting = await lookBackRows(database, hospitalId);

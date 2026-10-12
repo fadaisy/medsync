@@ -98,6 +98,28 @@ export function ReviewQueue({
     r.stage !== "awaiting_cosign" &&
     (payload.canReview || (payload.canDispense && r.lane === "standard"));
 
+  const empty = q.today.length === 0 && q.earlier.length === 0;
+  const emptyWords = REVIEW.fill(Q.empty, { point: pointName });
+  /** Close as not collected: rows written before today, for a viewer who may dispense (B-10). */
+  const closeLede = (r: ReviewRow) =>
+    r.earlier && payload.canDispense
+      ? `${identity(r).name} · ${REVIEW.close.lede(
+          new Intl.DateTimeFormat("en-GB", {
+            day: "2-digit",
+            month: "short",
+            timeZone: payload.timeZone,
+          }).format(new Date(r.writtenAt)),
+          r.lineCount,
+        )}`
+      : null;
+  const rowProps = (r: ReviewRow) => ({
+    row: r,
+    who: identity(r),
+    minutes,
+    review: mayReview(r),
+    closeLede: closeLede(r),
+  });
+
   const lanes = payload.rule.signed
     ? (["pharmacist_first", "standard", "all"] as const)
     : (["all"] as const);
@@ -172,113 +194,143 @@ export function ReviewQueue({
         onChange={setStage}
       />
 
-      <div id={tableId} className="border-border bg-card overflow-x-auto rounded-lg border">
-        <table className="text-body-s w-full">
-          <caption className="sr-only">{`${Q.title}: ${REVIEW.lane[lane]}, ${pointName}`}</caption>
-          <thead className="text-caption text-muted-foreground border-border border-b text-left">
-            <tr>
-              <th className="px-3 py-2 font-medium">{Q.columns.patient}</th>
-              <th className="px-3 py-2 font-medium">{Q.columns.medicines}</th>
-              <th className="px-3 py-2 font-medium">{Q.columns.why}</th>
-              <th className="px-3 py-2 font-medium">{Q.columns.stage}</th>
-              <th className="px-3 py-2 font-medium">{Q.columns.waiting}</th>
-              <th className="px-3 py-2 font-medium">{Q.columns.payment}</th>
-              <th className="px-3 py-2 font-medium">
-                <span className="sr-only">{Q.columns.action}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-border divide-y">
-            {q.today.length === 0 && q.earlier.length === 0 ? (
+      <div id={tableId}>
+        <div className="border-border bg-card hidden overflow-x-auto rounded-lg border md:block">
+          <table className="text-body-s w-full">
+            <caption className="sr-only">{`${Q.title}: ${REVIEW.lane[lane]}, ${pointName}`}</caption>
+            <thead className="text-caption text-muted-foreground border-border border-b text-left">
               <tr>
-                <td colSpan={7} className="text-muted-foreground px-3 py-8 text-center">
-                  {REVIEW.fill(Q.empty, { point: pointName })}
-                </td>
-              </tr>
-            ) : null}
-            {q.today.map((r) => (
-              <tr key={r.key} className="align-top">
-                <td className="px-3 py-3">
-                  <PatientCell id={`p-${r.key}`} who={identity(r)} row={r} />
-                </td>
-                <td className="px-3 py-3">
-                  <MedicinesCell id={`m-${r.key}`} row={r} />
-                </td>
-                <td className="px-3 py-3">
-                  {r.lane === "pharmacist_first" ? <Reasons reasons={r.reasons} /> : null}
-                </td>
-                <td className="px-3 py-3">
-                  <StageCell row={r} minutes={minutes} />
-                </td>
-                <td className="px-3 py-3 font-mono whitespace-nowrap tabular-nums">
-                  {minutes(r.writtenAt)}
-                </td>
-                <td className="px-3 py-3">
-                  {r.payment ? PAYMENT_WORDS[r.payment] : PAYMENT_WORDS.not_recorded}
-                </td>
-                <td className="px-3 py-3 text-right">
-                  <Control row={r} review={mayReview(r)} />
-                </td>
-              </tr>
-            ))}
-            {q.earlier.length ? (
-              <tr>
-                <th
-                  colSpan={7}
-                  scope="rowgroup"
-                  className="bg-muted text-label px-3 py-2 text-left font-medium"
-                >
-                  {Q.earlier}
+                <th className="px-3 py-2 font-medium">{Q.columns.patient}</th>
+                <th className="px-3 py-2 font-medium">{Q.columns.medicines}</th>
+                <th className="px-3 py-2 font-medium">{Q.columns.why}</th>
+                <th className="px-3 py-2 font-medium">{Q.columns.stage}</th>
+                <th className="px-3 py-2 font-medium">{Q.columns.waiting}</th>
+                <th className="px-3 py-2 font-medium">{Q.columns.payment}</th>
+                <th className="px-3 py-2 font-medium">
+                  <span className="sr-only">{Q.columns.action}</span>
                 </th>
               </tr>
-            ) : null}
-            {q.earlier.map((r) => (
-              <tr key={r.key} className="align-top">
-                <td className="px-3 py-3">
-                  <PatientCell id={`p-${r.key}`} who={identity(r)} row={r} />
-                </td>
-                <td className="px-3 py-3">
-                  <MedicinesCell id={`m-${r.key}`} row={r} />
-                </td>
-                <td className="px-3 py-3">
-                  {r.lane === "pharmacist_first" ? <Reasons reasons={r.reasons} /> : null}
-                </td>
-                <td className="px-3 py-3">
-                  <StageCell row={r} minutes={minutes} />
-                </td>
-                <td className="px-3 py-3 font-mono whitespace-nowrap tabular-nums">
-                  {Q.age(r.ageDays)}
-                </td>
-                <td className="px-3 py-3">
-                  {r.payment ? PAYMENT_WORDS[r.payment] : PAYMENT_WORDS.not_recorded}
-                </td>
-                <td className="px-3 py-3">
-                  <span className="flex flex-wrap justify-end gap-2">
-                    <Control row={r} review={mayReview(r)} />
-                    {payload.canDispense ? (
-                      <CloseNotCollectedDialog
-                        lineId={r.firstLineId}
-                        lede={`${identity(r).name} · ${REVIEW.close.lede(
-                          new Intl.DateTimeFormat("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            timeZone: payload.timeZone,
-                          }).format(new Date(r.writtenAt)),
-                          r.lineCount,
-                        )}`}
-                      />
-                    ) : null}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-border divide-y">
+              {empty ? (
+                <tr>
+                  <td colSpan={7} className="text-muted-foreground px-3 py-8 text-center">
+                    {emptyWords}
+                  </td>
+                </tr>
+              ) : null}
+              {q.today.map((r) => (
+                <TableRow key={r.key} {...rowProps(r)} waiting={minutes(r.writtenAt)} />
+              ))}
+              {q.earlier.length ? (
+                <tr>
+                  <th
+                    colSpan={7}
+                    scope="rowgroup"
+                    className="bg-muted text-label px-3 py-2 text-left font-medium"
+                  >
+                    {Q.earlier}
+                  </th>
+                </tr>
+              ) : null}
+              {q.earlier.map((r) => (
+                <TableRow key={r.key} {...rowProps(r)} waiting={Q.age(r.ageDays)} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Below md: one stacked card per prescription, as the Phase 0 queue (§5.14, 390 px). */}
+        <ul className="divide-border border-border flex flex-col divide-y border-y md:hidden">
+          {empty ? (
+            <li className="text-body-s text-muted-foreground py-8 text-center">{emptyWords}</li>
+          ) : null}
+          {q.today.map((r) => (
+            <PhoneRow key={r.key} {...rowProps(r)} waiting={minutes(r.writtenAt)} />
+          ))}
+          {q.earlier.length ? (
+            <li className="bg-muted text-label px-3 py-2 font-medium">{Q.earlier}</li>
+          ) : null}
+          {q.earlier.map((r) => (
+            <PhoneRow key={r.key} {...rowProps(r)} waiting={Q.age(r.ageDays)} />
+          ))}
+        </ul>
       </div>
 
       <p className="text-body-s text-muted-foreground">{footer}</p>
       <LaneExplainer rule={payload.rule} />
     </div>
+  );
+}
+
+interface RowProps {
+  row: ReviewRow;
+  who: PatientIdentity;
+  minutes: (iso: string) => string;
+  review: boolean;
+  closeLede: string | null;
+  /** "2 h" today; "3 days" under Written before today. */
+  waiting: string;
+}
+
+/** The row's controls: Review or Open, and Close as not collected on an earlier row. */
+function Actions({ row, review, closeLede, prefix }: RowProps & { prefix: string }) {
+  return (
+    <span className="flex flex-wrap justify-end gap-2">
+      <Control row={row} review={review} prefix={prefix} />
+      {closeLede ? <CloseNotCollectedDialog lineId={row.firstLineId} lede={closeLede} /> : null}
+    </span>
+  );
+}
+
+function TableRow(p: RowProps) {
+  const { row: r } = p;
+  return (
+    <tr className="align-top">
+      <td className="px-3 py-3">
+        <PatientCell id={`p-${r.key}`} who={p.who} row={r} />
+      </td>
+      <td className="px-3 py-3">
+        <MedicinesCell id={`m-${r.key}`} row={r} />
+      </td>
+      <td className="px-3 py-3">
+        {r.lane === "pharmacist_first" ? <Reasons reasons={r.reasons} /> : null}
+      </td>
+      <td className="px-3 py-3">
+        <StageCell row={r} minutes={p.minutes} />
+      </td>
+      <td className="px-3 py-3 font-mono whitespace-nowrap tabular-nums">{p.waiting}</td>
+      <td className="px-3 py-3">
+        {r.payment ? PAYMENT_WORDS[r.payment] : PAYMENT_WORDS.not_recorded}
+      </td>
+      <td className="px-3 py-3">
+        <Actions {...p} prefix="" />
+      </td>
+    </tr>
+  );
+}
+
+/** Below md: the same facts stacked, each small one named, the controls full-height (44 px). */
+function PhoneRow(p: RowProps) {
+  const { row: r } = p;
+  return (
+    <li className="flex flex-col gap-1.5 py-3">
+      <PatientCell id={`cp-${r.key}`} who={p.who} row={r} />
+      <p className="text-body-s">
+        <MedicinesCell id={`cm-${r.key}`} row={r} />
+      </p>
+      {r.lane === "pharmacist_first" ? <Reasons reasons={r.reasons} /> : null}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <span className="flex flex-col gap-1">
+          <StageCell row={r} minutes={p.minutes} />
+          <span className="text-caption text-muted-foreground">
+            {Q.columns.waiting} <span className="font-mono tabular-nums">{p.waiting}</span>
+            {" · "}
+            {Q.columns.payment} {r.payment ? PAYMENT_WORDS[r.payment] : PAYMENT_WORDS.not_recorded}
+          </span>
+        </span>
+        <Actions {...p} prefix="c" />
+      </div>
+    </li>
   );
 }
 
@@ -354,19 +406,19 @@ function StageCell({ row, minutes }: { row: ReviewRow; minutes: (iso: string) =>
 }
 
 /** The row's one control: Review for a viewer who may review this lane, Open otherwise (5.2). */
-function Control({ row, review }: { row: ReviewRow; review: boolean }) {
-  const id = `o-${row.key}`;
+function Control({ row, review, prefix }: { row: ReviewRow; review: boolean; prefix: string }) {
+  const id = `${prefix}o-${row.key}`;
   return (
     <span className="inline-flex flex-col items-end gap-1">
       <Link
         id={id}
         href={`/pharmacy/prescriptions/${encodeURIComponent(row.key)}`}
         prefetch={false}
-        aria-labelledby={`${id} p-${row.key} m-${row.key}`}
+        aria-labelledby={`${id} ${prefix}p-${row.key} ${prefix}m-${row.key}`}
         className={buttonVariants({
           variant: review ? "primary" : "secondary",
           size: "md",
-          className: "min-h-11 sm:min-h-0",
+          className: "min-h-11 md:min-h-0",
         })}
       >
         {review ? Q.review : Q.open}

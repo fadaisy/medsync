@@ -34,6 +34,10 @@ export const GOLIVE = {
   met: "Met",
   notYet: "Not yet",
   pilotTitle: "A note on how the first point's pilot went",
+  laterPoint: {
+    heading: "For a second or later point",
+    lead: "This is not the hospital's first live point, so switching on also needs a note on how the first point's pilot went, written by someone other than the admin who asks.",
+  },
   conditionHelp: {
     1: "The signed sets are signed by the CSO and the pharmacist reviewer; the hazard log is co-signed by a registered pharmacist.",
     3: "The pharmacy sets up the products and records an opening count on its Stock page.",

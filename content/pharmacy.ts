@@ -60,6 +60,10 @@ export const PHARMACY = {
     emergency: "Emergency doses",
     queueCount: (n: number) => `${n} written today`,
     dosesCount: (n: number) => `${n} in the last 7 days`,
+    /** Pharmacy Phase 1 (5.1): the review queue at the acting point, open lines, today's hand-overs. */
+    waitingCount: (n: number) => `${n} waiting at this point`,
+    openCount: (n: number) => `${n} open`,
+    suppliedCount: (n: number) => `${n} supplied today at this point`,
   },
   lane: { window: "For the window", ward: "On the wards", open: "Visit open", all: "All" },
   laneInFooter: {

@@ -16,7 +16,11 @@ import { asClinicalWriter } from "@/lib/emr/db";
 import { reserveFormNumbers } from "@/lib/lab/downtime-store";
 import { PHARMACY_MAP_V2, pharmacyDispensingAccess } from "@/lib/pharmacy/access";
 import * as dt from "@/lib/pharmacy/downtime-store";
-import { getPharmacyReadiness, PHARMACIST_REVIEWER_ROLE } from "@/lib/pharmacy/golive/read";
+import {
+  getPharmacyReadiness,
+  goLiveFactsFor,
+  PHARMACIST_REVIEWER_ROLE,
+} from "@/lib/pharmacy/golive/read";
 import * as gl from "@/lib/pharmacy/golive/store";
 import { GO_LIVE_SETS } from "@/lib/pharmacy/readiness";
 import { isLive, runPharmacyWrite, withPharmacyWrite } from "@/lib/pharmacy/write";
@@ -646,5 +650,45 @@ describe.skipIf(!laneOn)("Pharmacy downtime and going live (Step 8)", () => {
     await expect(goLive({ params: Promise.resolve({ pointId: f.op! }) })).rejects.toMatchObject(
       notFound,
     );
+  });
+
+  it("RD-1 condition 3: a count line on one of the product's batches at the point is its opening count, any scope", async () => {
+    const one = async (q: string, p: unknown[]) =>
+      (await pg.query<{ id: string }>(q, p)).rows[0]!.id;
+    const product = (name: string, medicine: string) =>
+      one(
+        `INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by)
+         VALUES ($1, $2, $3, 'tablet', $4) RETURNING id`,
+        [f.h, medicine, name, f.head],
+      );
+    const lined = await product("Fixture tablet counted by line", "fixture_lined");
+    const bare = await product("Fixture tablet never counted", "fixture_bare");
+    // Both came to the point now; the harness's count was dated a day earlier than that.
+    for (const id of [lined, bare])
+      await pg.query(
+        `INSERT INTO public.pharmacy_product_points (product_id, dispensing_point_id, hospital_id) VALUES ($1, $2, $3)`,
+        [id, f.ip, f.h],
+      );
+    const batch = await one(
+      `INSERT INTO public.pharmacy_batches (hospital_id, dispensing_point_id, product_id, batch_number, expiry, first_batch_number, first_expiry, created_by)
+       VALUES ($1, $2, $3, 'FX-L1', '2027-03-31', 'FX-L1', '2027-03-31', $4) RETURNING id`,
+      [f.h, f.ip, lined, f.head],
+    );
+    const counted = await one(
+      `INSERT INTO public.pharmacy_counts (hospital_id, dispensing_point_id, scope, medicine_id, counted_by, counted_at)
+       VALUES ($1, $2, 'medicine', 'fixture_lined', $3, now() - interval '1 day') RETURNING id`,
+      [f.h, f.ip, f.head],
+    );
+    await pg.query(
+      `INSERT INTO public.pharmacy_count_lines (count_id, batch_id, counted_quantity, recorded_balance) VALUES ($1, $2, 30, 30)`,
+      [counted, batch],
+    );
+    const { facts } = await lane.db.transaction((tx) =>
+      goLiveFactsFor(tx, f.h!, f.ip!, new Date()),
+    );
+    const has = (name: string) =>
+      facts.activeProducts.find((p) => p.name === name)?.hasOpeningCount;
+    expect(has("Fixture tablet counted by line")).toBe(true);
+    expect(has("Fixture tablet never counted")).toBe(false);
   });
 });

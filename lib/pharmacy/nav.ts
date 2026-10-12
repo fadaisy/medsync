@@ -2,6 +2,7 @@ import type { PharmacyPermission } from "./access";
 import type { NavItem } from "@/lib/workspace-access/nav";
 
 import { navFor as navItemsFor } from "@/lib/workspace-access/nav";
+import { dispensingMap, pharmacyDispensingAccess } from "./access";
 
 /**
  * The pharmacy workspace navigation (Pharmacy Phase 0, NV-P1; Phase 1, 5.1). Queue · Open lines ·
@@ -83,4 +84,20 @@ export function pharmacyNavFor(
   flags: PharmacyNavFlags = { dispensing: false, downtime: false },
 ): PharmacyNavItem[] {
   return navItemsFor(PHARMACY_NAV, permissions, flags);
+}
+
+/**
+ * The permissions the navigation reads: Phase 0's (`pharmacyAccess`, map v1) with both Phase 1 flags
+ * off, so the Phase 0 navigation is unchanged; with either flag on, the dispensing access (map v2
+ * outside production, v1 in production), so an item needing `pharmacy.dispense` can show.
+ */
+export function pharmacyNavPermissions(
+  phase0: ReadonlySet<PharmacyPermission>,
+  cadreCode: string | null,
+  flags: PharmacyNavFlags,
+  map = dispensingMap(),
+): ReadonlySet<PharmacyPermission> {
+  return flags.dispensing || flags.downtime
+    ? pharmacyDispensingAccess(cadreCode, map).permissions
+    : phase0;
 }

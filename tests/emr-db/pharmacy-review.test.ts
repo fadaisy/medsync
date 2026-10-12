@@ -944,4 +944,29 @@ describe.skipIf(!laneOn)("pharmacy review, queries and outcomes (Step 5, S12–S
     );
     expect(n).toBe(0);
   });
+
+  it("the nav counts are what the pages show: the queue at the acting point, every open line, today's hand-overs", async () => {
+    const { dispensingNavCounts } = await import("@/lib/pharmacy/page-data");
+    const { computeReviewQueue } = await import("@/lib/pharmacy/queue");
+    const { getSupplied } = await import("@/lib/pharmacy/supply/read");
+    const { localDate } = await import("@/lib/pharmacy/stock/ledger");
+    const counts = await dispensingNavCounts(f.hA!, f.pointA!, lane.db);
+    const q = await read.getReviewQueue(f.hA!, f.pointA!, lane.db);
+    const serves = q.points.find((p) => p.id === f.pointA)!.serves;
+    expect(counts.queue).toBe(
+      computeReviewQueue(q.rows, { lane: "all", stage: "all", serves }).total,
+    );
+    expect(counts.queue).toBeGreaterThan(0);
+    const open = await read.getOpenLines(f.hA!, lane.db, f.pointA!);
+    expect(counts.open).toBe(open.rows.length);
+    expect(counts.open).toBeGreaterThan(0);
+    const supplied = await getSupplied(f.hA!, f.pointA!, localDate(new Date()), lane.db);
+    expect(counts.supplied).toBe(supplied.rows.length);
+    // No acting point: no review-queue count (the layout keeps Phase 0's), nothing supplied here.
+    expect(await dispensingNavCounts(f.hA!, null, lane.db)).toMatchObject({
+      queue: null,
+      open: counts.open,
+      supplied: 0,
+    });
+  });
 });

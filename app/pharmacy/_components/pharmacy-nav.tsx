@@ -38,7 +38,8 @@ export interface PharmacyNavEntry {
   label: string;
   href: string;
   exact: boolean;
-  count: number;
+  /** null: nothing to count (Stock, Controlled drugs). */
+  count: number | null;
   countLabel: string;
 }
 
