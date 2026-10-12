@@ -472,9 +472,7 @@ function NoticeBlock({
               {COPY.chooseAlternative}
             </Button>
           ) : null}
-          {item.ackQueryId ? (
-            // 0125 records the acknowledgement on a query; with none, the notice stays until the
-            // line closes and needs nothing from the prescriber.
+          {item.canAcknowledge ? (
             <Button
               size="sm"
               variant="secondary"

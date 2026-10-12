@@ -22,6 +22,7 @@ import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { pharmacyDispensingPoints } from "@/db/schema/pharmacy";
 import {
   pharmacyLineEvents,
+  pharmacyNoticeAcknowledgements,
   pharmacyQueries,
   pharmacyQueryEvents,
   pharmacySignedSets,
@@ -44,9 +45,9 @@ import { notSuppliedNotice, QUERY_COPY } from "@/lib/pharmacy/review/queries";
  *
  * A not-supplied notice (RQ-11) is the pharmacy's own outcome on the line (`owed`, `buying_outside`
  * or `declined` in pharmacy_line_events, with its reason and what the patient was told), nudged to
- * the prescriber on `user:<id>`. It needs no answer and shows until the line closes (5.4).
- * `not_supplied_acknowledged` is a query event (0125), so "Leave it as it is" is recorded on a query
- * that covers the line; with none, there is nowhere to record it and the notice simply stays.
+ * the prescriber on `user:<id>`. It needs no answer and shows until the line closes (5.4) or the
+ * prescriber acknowledges it: "Leave it as it is" or "Choose an alternative" writes one
+ * pharmacy_notice_acknowledgements row for the line event (0132), whether or not a query covers it.
  */
 
 export const NOT_SUPPLIED_KINDS: ReadonlySet<string> = new Set([
@@ -117,6 +118,8 @@ export interface PatientPharmacy {
     { replacedBy: string | null; reasonCode: string; queryId: string | null }
   >;
   cosign: Map<string, { cosign: LineInput["cosign"]; cosignedAt: Date | null }>;
+  /** RQ-11: line events whose not-supplied notice the prescriber acknowledged (0132). */
+  acknowledged: Set<string>;
 }
 
 /**
@@ -161,6 +164,7 @@ export async function loadPatientPharmacy(
       lineEvents: new Map(),
       cancellations: new Map(),
       cosign: new Map(),
+      acknowledged: new Set(),
     };
 
   const eRows = qRows.length
@@ -207,7 +211,7 @@ export async function loadPatientPharmacy(
       ),
     );
   const ids = lineRows.map((l) => l.id);
-  const [leRows, cRows, csRows] = ids.length
+  const [leRows, cRows, csRows, ackRows] = ids.length
     ? await Promise.all([
         tx
           .select()
@@ -234,8 +238,17 @@ export async function loadPatientPharmacy(
               ]),
             ),
           ),
+        tx
+          .select({ id: pharmacyNoticeAcknowledgements.lineEventId })
+          .from(pharmacyNoticeAcknowledgements)
+          .where(
+            and(
+              eq(pharmacyNoticeAcknowledgements.hospitalId, p.hospitalId),
+              eq(pharmacyNoticeAcknowledgements.patientUserId, p.patientUserId),
+            ),
+          ),
       ])
-    : [[], [], []];
+    : [[], [], [], []];
 
   const lineEvents = new Map<string, LineEventRow[]>();
   for (const e of leRows) {
@@ -306,6 +319,7 @@ export async function loadPatientPharmacy(
       ]),
     ),
     cosign,
+    acknowledged: new Set(ackRows.map((a) => a.id)),
   };
 }
 
@@ -332,13 +346,6 @@ export function queryLites(data: PatientPharmacy): QueryLite[] {
     events: q.events.map((e) => ({ kind: e.kind, at: e.at, answer: e.answer })),
   }));
 }
-
-/** The newest query that covers the line (any state), or null. */
-export const queryCovering = (data: PatientPharmacy, lineId: string): QueryRow | null =>
-  data.queries.filter((q) => coveredLineIds(q, data.lines).includes(lineId)).at(-1) ?? null;
-
-/** The client key that ties "Leave it as it is" to one not-supplied outcome. */
-export const ackKey = (lineEventId: string) => `ack:${lineEventId}`;
 
 /** RQ-11: the line's not-supplied outcome while it stands (the latest event, still the status). */
 export function notSuppliedOutcome(data: PatientPharmacy, lineId: string): LineEventRow | null {
@@ -465,9 +472,9 @@ export interface PharmacyNoticeItem extends ItemBase {
   kind: "not_supplied";
   /** B-27, filled. */
   words: string;
-  /** The query covering the line that "Leave it as it is" is recorded on; null: nowhere to record
-   *  it (0125 keeps `not_supplied_acknowledged` on a query), so the notice stays until the line closes. */
-  ackQueryId: string | null;
+  /** "Leave it as it is" is offered. Every notice shown is unacknowledged, and RLS shows notices only
+   *  to a clinician who may prescribe here for this patient (0125), so this is true for every one. */
+  canAcknowledge: boolean;
 }
 
 export type PharmacyItem = PharmacyQueryItem | PharmacyNoticeItem;
@@ -578,16 +585,9 @@ export function buildView(
     });
   }
   // RQ-11: each line the pharmacy did not supply, until acknowledged or the line moves on.
-  const acked = new Set(
-    data.queries.flatMap((q) =>
-      q.events.flatMap((e) =>
-        e.kind === "not_supplied_acknowledged" && e.clientKey ? [e.clientKey] : [],
-      ),
-    ),
-  );
   for (const [lineId, l] of data.lines) {
     const outcome = notSuppliedOutcome(data, lineId);
-    if (!outcome || acked.has(ackKey(outcome.id))) continue;
+    if (!outcome || data.acknowledged.has(outcome.id)) continue;
     const s = statusOf(data, lineId);
     if (s) lineStatus[lineId] = s;
     items.push({
@@ -611,7 +611,7 @@ export function buildView(
         reason: wordOf(ctx.words.outcomeReasons, outcome.reasonCode),
         patientTold: outcome.patientTold ?? "",
       }).words,
-      ackQueryId: queryCovering(data, lineId)?.id ?? null,
+      canAcknowledge: true,
     });
   }
   const open = items.filter(

@@ -8,10 +8,13 @@ import { randomUUID } from "node:crypto";
 import type { Lane } from "./_pglite";
 import type { EmrActor } from "@/lib/emr/actor";
 import type { WriteCtx } from "@/lib/emr/write/context";
+import type { PlanRx } from "@/lib/prescribing/plan-rx";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { dxTermUuid } from "@/lib/clerking/impression/load";
 import { asClinicalWriter } from "@/lib/emr/db";
 import { withPatientWrite } from "@/lib/emr/write/context";
+import { recordEncounterDiagnosis } from "@/lib/emr/write/facts";
 import {
   acknowledgeNotSupplied,
   answerQuery,
@@ -22,6 +25,8 @@ import {
   recordPrescriptionPrint,
   recordQuerySeen,
 } from "@/lib/emr/write/pharmacy-answers";
+import { placePlan } from "@/lib/emr/write/plan";
+import { encrypt, generateKey } from "@/lib/encryption";
 import {
   loadPatientPharmacy,
   loadPrescriberPharmacy,
@@ -566,7 +571,14 @@ describe.skipIf(!laneOn)("the prescriber answers the pharmacy (PGlite lane)", ()
         database: lane.db,
       });
 
-    // 1. No query on the line: the notice shows, needs nothing, and there is nowhere to acknowledge it.
+    const acks = (lineEventId: string) =>
+      q(
+        `SELECT choice, replaced_by_prescription_id, actor_user_id FROM public.pharmacy_notice_acknowledgements
+         WHERE line_event_id = $1`,
+        [lineEventId],
+      );
+
+    // 1. No query on the line: the notice shows, needs nothing, and may still be left as it is (0132).
     const rx = await line(p, enc);
     const ev = await owed(rx, 2);
     expect(await stage(p, rx)).toBe("owed");
@@ -576,17 +588,32 @@ describe.skipIf(!laneOn)("the prescriber answers the pharmacy (PGlite lane)", ()
     expect(item.words).toMatch(
       /^From the pharmacy, \d\d:\d\d\. Fixture tablet A was not supplied: Out of stock at this dispensing point\. Told to come back\.$/,
     );
-    expect(item.kind === "not_supplied" && item.ackQueryId).toBe(null);
+    expect(item.kind === "not_supplied" && item.canAcknowledge).toBe(true);
     expect(item.phone).toBe("+256 700 000000");
     expect(view.count).toBe(1);
-    const nowhere = await err(
-      as(mo, p, (ctx) => acknowledgeNotSupplied(ctx, { patientUserId: p, lineEventId: ev })),
+    // A nurse may not; nothing is written.
+    expect(
+      (
+        await err(
+          as(nurse, p, (ctx) => acknowledgeNotSupplied(ctx, { patientUserId: p, lineEventId: ev })),
+        )
+      )?.code,
+    ).toBe("forbidden");
+    const first = await as(mo, p, (ctx) =>
+      acknowledgeNotSupplied(ctx, { patientUserId: p, lineEventId: ev }),
     );
-    expect(nowhere?.code).toBe("conflict");
+    // A repeat, by anyone, is the same acknowledgement and writes nothing.
+    const again = await as(mo2, p, (ctx) =>
+      acknowledgeNotSupplied(ctx, { patientUserId: p, lineEventId: ev }),
+    );
+    expect(again.id).toBe(first.id);
+    expect(await acks(ev)).toEqual([
+      { choice: "left_as_is", replaced_by_prescription_id: null, actor_user_id: mo.userId },
+    ]);
+    expect((await plan()).items.some((i) => i.id === ev)).toBe(false);
     expect(await stage(p, rx)).toBe("owed");
 
-    // 2. Returned to the prescriber earlier (a query on the line), then owed: Leave it as it is
-    //    records the acknowledgement once, on that query, and the notice goes.
+    // 2. A query on the line changes nothing: the acknowledgement is its own row, never a query event.
     const rx2 = await line(p, enc);
     const q2 = await query(p, rx2, { type: "not_available" });
     await as(mo, p, (ctx) =>
@@ -599,29 +626,145 @@ describe.skipIf(!laneOn)("the prescriber answers the pharmacy (PGlite lane)", ()
       }),
     );
     const ev2 = await owed(rx2, 300);
-    const before = (await plan()).items.find((i) => i.id === ev2);
-    expect(before?.kind === "not_supplied" && before.ackQueryId).toBe(q2);
     await as(mo, p, (ctx) => acknowledgeNotSupplied(ctx, { patientUserId: p, lineEventId: ev2 }));
-    await as(mo2, p, (ctx) => acknowledgeNotSupplied(ctx, { patientUserId: p, lineEventId: ev2 }));
-    expect((await events(q2)).filter((e) => e.kind === "not_supplied_acknowledged")).toHaveLength(
-      1,
-    );
+    expect(await acks(ev2)).toHaveLength(1);
+    expect((await events(q2)).map((e) => e.kind)).toEqual(["notified", "answered"]);
     expect((await plan()).items.some((i) => i.id === ev2)).toBe(false);
-    expect(await stage(p, rx2)).toBe("owed");
 
-    // 3. Choose an alternative: the new line is placed, the owed line is cancelled naming it.
+    // 3. Choose an alternative: the new line is placed, the owed line is cancelled naming it, and the
+    //    notice is acknowledged naming it too.
+    const rx3 = await line(p, enc);
+    const ev3 = await owed(rx3, 10);
     const nk = key();
     const alt = await line(p, enc, { min: 30, clientKey: nk });
     await as(mo, p, (ctx) =>
-      chooseAlternative(ctx, { patientUserId: p, lineEventId: ev, replacedByClientKey: nk }),
+      chooseAlternative(ctx, { patientUserId: p, lineEventId: ev3, replacedByClientKey: nk }),
     );
     expect(
       await one(
         `SELECT reason_code, replaced_by_prescription_id FROM public.prescription_cancellations WHERE prescription_id = $1`,
-        [rx],
+        [rx3],
       ),
     ).toEqual({ reason_code: "changed", replaced_by_prescription_id: alt });
-    expect((await plan()).items.some((i) => i.id === ev)).toBe(false);
+    expect(await acks(ev3)).toEqual([
+      { choice: "alternative_chosen", replaced_by_prescription_id: alt, actor_user_id: mo.userId },
+    ]);
+    expect((await plan()).items.some((i) => i.id === ev3)).toBe(false);
+  });
+
+  it("HZ-PH1-45: placing a change cancels the old line in the same transaction; a refused link places nothing", async () => {
+    process.env.MEDSYNC_PHI_KEY ??= generateKey();
+    const planVisit = async () => {
+      const v = await visit();
+      await q(
+        `INSERT INTO public.patient_profiles (id, first_name_encrypted, surname_encrypted, sex, date_of_birth,
+           id_type, phone_encrypted, district_id)
+         VALUES ($1, $2, $3, 'female', '1968-03-01', 'none', $4, (SELECT id FROM public.districts LIMIT 1))`,
+        [v.p, encrypt("Test"), encrypt("Patient"), encrypt("0700000000")],
+      );
+      const dx = await as(mo, v.p, (ctx) =>
+        recordEncounterDiagnosis(ctx, {
+          patientUserId: v.p,
+          encounterId: v.enc,
+          clientKey: key(),
+          termId: dxTermUuid("dx.sepsis"),
+          rank: "primary",
+        }),
+      );
+      return { ...v, cond: dx.id };
+    };
+    const rxFor = (cond: string, replaces: PlanRx["replaces"]): PlanRx => ({
+      clientKey: key(),
+      kind: "drug",
+      drugId: "ceftriaxone",
+      conditionId: cond,
+      regimenId: null,
+      doseNum: 2,
+      unit: "g",
+      strength: null,
+      route: "iv",
+      method: "Intermittent infusion",
+      infusionOver: "30 min",
+      diluent: "Sodium chloride 0.9%",
+      frequency: "daily",
+      prn: false,
+      course: "5d",
+      start: "now",
+      note: null,
+      fluid: null,
+      answers: [
+        { code: "cultures", answer: "aware_monitor" },
+        { code: "allergy_status", answer: "aware_monitor" },
+      ],
+      witness: null,
+      weightAt: null,
+      typedDose: null,
+      replaces,
+    });
+    const place = (v: { p: string; enc: string }, rx: PlanRx) =>
+      as(mo, v.p, (ctx) =>
+        placePlan(ctx, {
+          patientUserId: v.p,
+          encounterId: v.enc,
+          orders: [],
+          prescriptions: [rx],
+          observationFrequency: null,
+          measureUrine: false,
+        }),
+      );
+    const placed = (clientKey: string) =>
+      q(`SELECT id FROM public.prescriptions WHERE client_key = $1`, [clientKey]);
+    const cancellations = (rx: string) =>
+      q<{ reason_code: string; replaced_by_prescription_id: string | null }>(
+        `SELECT reason_code, replaced_by_prescription_id FROM public.prescription_cancellations
+         WHERE prescription_id = $1`,
+        [rx],
+      );
+
+    // Linked: the old line is cancelled naming the new one, and the line query closes as changed.
+    const a = await planVisit();
+    const old = await line(a.p, a.enc);
+    const qa = await query(a.p, old);
+    const change = rxFor(a.cond, { lineId: old, ref: qa, kind: "query" });
+    const r = await place(a, change);
+    expect(await cancellations(old)).toEqual([
+      { reason_code: "changed", replaced_by_prescription_id: r.prescriptionIds[0] },
+    ]);
+    expect(await one(`SELECT state FROM public.prescriptions WHERE id = $1`, [old])).toEqual({
+      state: "cancelled",
+    });
+    expect((await events(qa)).at(-1)).toEqual({ kind: "answered", answer: "changed" });
+
+    // Refused: `ref` names another patient's query. Nothing is placed, nothing cancelled.
+    const b = await planVisit();
+    const oldB = await line(b.p, b.enc);
+    const other = await visit();
+    const foreign = await query(other.p, await line(other.p, other.enc));
+    const stray = rxFor(b.cond, { lineId: oldB, ref: foreign, kind: "query" });
+    expect((await err(place(b, stray)))?.code).toBe("not_found");
+    expect(await placed(stray.clientKey)).toEqual([]);
+    expect(await cancellations(oldB)).toEqual([]);
+    expect(await one(`SELECT state FROM public.prescriptions WHERE id = $1`, [oldB])).toEqual({
+      state: "active",
+    });
+
+    // Refused: the old line was already stopped. The stop stands alone; the new line is not placed.
+    const c = await planVisit();
+    const oldC = await line(c.p, c.enc);
+    const qc = await query(c.p, oldC);
+    await as(mo, c.p, (ctx) =>
+      cancelPrescriptionLine(ctx, {
+        patientUserId: c.p,
+        prescriptionId: oldC,
+        reasonCode: "no_longer_needed",
+      }),
+    );
+    const late = rxFor(c.cond, { lineId: oldC, ref: qc, kind: "query" });
+    expect((await err(place(c, late)))?.code).toBe("conflict");
+    expect(await placed(late.clientKey)).toEqual([]);
+    expect(await cancellations(oldC)).toEqual([
+      { reason_code: "no_longer_needed", replaced_by_prescription_id: null },
+    ]);
   });
 
   it("D-PH1-41: only an active line, with a reason, by a clinician who may prescribe; the new line comes after", async () => {

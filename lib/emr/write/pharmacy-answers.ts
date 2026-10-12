@@ -8,6 +8,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { CHANGED_REASON, DRAFT_KEEP_REASONS, STOP_REASONS } from "@/content/pharmacy-prescriber";
 import {
+  pharmacyNoticeAcknowledgements,
   pharmacyQueries,
   pharmacyQueryEvents,
   prescriptionCancellations,
@@ -19,13 +20,11 @@ import { stopMedicationStatement } from "@/lib/emr/write/facts";
 import { prescribeRequirement } from "@/lib/emr/write/prescriptions";
 import { printTime } from "@/lib/pharmacy/print/label";
 import {
-  ackKey,
   cadresOfUsers,
   coveredLineIds,
   firstAnswerWords,
   loadPatientPharmacy,
   notSuppliedOutcome,
-  queryCovering,
   signedList,
   standingEvent,
   statusOf,
@@ -256,7 +255,7 @@ async function writeEvent(
     .onConflictDoNothing({ target: pharmacyQueryEvents.clientKey })
     .returning({ id: pharmacyQueryEvents.id });
   if (e) return e.id;
-  // Already written under this key (a deterministic key: seen, acknowledged).
+  // Already written under this key (a deterministic key: seen).
   const [had] = await ctx.tx
     .select({ id: pharmacyQueryEvents.id })
     .from(pharmacyQueryEvents)
@@ -479,7 +478,7 @@ async function noticeOf(ctx: WriteCtx, patientUserId: string, lineEventId: strin
   });
   for (const lineId of data.lines.keys()) {
     const outcome = notSuppliedOutcome(data, lineId);
-    if (outcome?.id === lineEventId) return { data, lineId };
+    if (outcome?.id === lineEventId) return { lineId };
   }
   throw new EmrWriteError(
     "not_found",
@@ -487,51 +486,65 @@ async function noticeOf(ctx: WriteCtx, patientUserId: string, lineEventId: strin
   );
 }
 
-/**
- * RQ-11: "Leave it as it is". Needs no answer; written once per notice as `not_supplied_acknowledged`
- * on the query that covers the line (0125 keeps the kind on a query). With no query there is nowhere
- * to record it: refused, and the notice stays until the line closes.
- */
+/** RQ-11: one acknowledgement per notice (0132, UNIQUE on the line event); a repeat returns the first. */
+async function writeAck(
+  ctx: WriteCtx,
+  input: { patientUserId: string; lineEventId: string },
+  choice: "left_as_is" | "alternative_chosen",
+  replacedBy: string | null = null,
+): Promise<string> {
+  const [row] = await ctx.tx
+    .insert(pharmacyNoticeAcknowledgements)
+    .values({
+      hospitalId: ctx.actor.hospitalId,
+      patientUserId: input.patientUserId,
+      lineEventId: input.lineEventId,
+      choice,
+      replacedByPrescriptionId: replacedBy,
+      actorUserId: ctx.actor.userId,
+      acknowledgedAt: ctx.now,
+    })
+    .onConflictDoNothing({ target: pharmacyNoticeAcknowledgements.lineEventId })
+    .returning({ id: pharmacyNoticeAcknowledgements.id });
+  if (row) return row.id;
+  const [had] = await ctx.tx
+    .select({ id: pharmacyNoticeAcknowledgements.id })
+    .from(pharmacyNoticeAcknowledgements)
+    .where(eq(pharmacyNoticeAcknowledgements.lineEventId, input.lineEventId));
+  return had!.id;
+}
+
+/** RQ-11: "Leave it as it is". Needs no answer; recorded once per notice, query or not. */
 export async function acknowledgeNotSupplied(
   ctx: WriteCtx,
   input: { patientUserId: string; lineEventId: string },
 ): Promise<WriteResult> {
   await requirePrescriber(ctx, "acknowledge a not-supplied notice");
-  const { data, lineId } = await noticeOf(ctx, input.patientUserId, input.lineEventId);
-  const q = queryCovering(data, lineId);
-  if (!q)
-    throw new EmrWriteError(
-      "conflict",
-      "There is no query to record this on. The notice stays until the line is closed.",
-    );
-  const id = await writeEvent(ctx, q, {
-    kind: "not_supplied_acknowledged",
-    clientKey: ackKey(input.lineEventId),
-  });
-  return { id };
+  await noticeOf(ctx, input.patientUserId, input.lineEventId);
+  return { id: await writeAck(ctx, input, "left_as_is") };
 }
 
 /**
  * "Choose an alternative" on a not-supplied notice: the new line was placed through the plan; the
- * old one is cancelled naming it (H4), and the notice acknowledged where a query can hold it.
+ * old one is cancelled naming it (H4), and the notice acknowledged naming it too.
  */
 export async function chooseAlternative(
   ctx: WriteCtx,
   input: { patientUserId: string; lineEventId: string; replacedByClientKey: string },
 ): Promise<WriteResult> {
-  const { data, lineId } = await noticeOf(ctx, input.patientUserId, input.lineEventId);
-  const q = queryCovering(data, lineId);
-  if (q)
-    await writeEvent(ctx, q, {
-      kind: "not_supplied_acknowledged",
-      clientKey: ackKey(input.lineEventId),
-    });
-  return cancelPrescriptionLine(ctx, {
+  const { lineId } = await noticeOf(ctx, input.patientUserId, input.lineEventId);
+  const cancel = await cancelPrescriptionLine(ctx, {
     patientUserId: input.patientUserId,
     prescriptionId: lineId,
     reasonCode: CHANGED_REASON,
     replacedByClientKey: input.replacedByClientKey,
   });
+  const [link] = await ctx.tx
+    .select({ replacedBy: prescriptionCancellations.replacedByPrescriptionId })
+    .from(prescriptionCancellations)
+    .where(eq(prescriptionCancellations.prescriptionId, lineId));
+  await writeAck(ctx, input, "alternative_chosen", link?.replacedBy ?? null);
+  return cancel;
 }
 
 /* ─── D-PH1-49: the doctor's print record ─────────────────────────── */

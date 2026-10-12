@@ -122,6 +122,7 @@ describe("buildView (5.4)", () => {
     lineEvents: new Map(),
     cancellations: new Map(),
     cosign: new Map(),
+    acknowledged: new Set(),
   });
   const view = (d: PatientPharmacy) =>
     buildView(d, {
@@ -203,7 +204,7 @@ describe("buildView (5.4)", () => {
     expect(n.words).toBe(
       "From the pharmacy, 10:01. Fixture tablet a was not supplied: Out of stock at this dispensing point. Told to come back.",
     );
-    expect(n.kind === "not_supplied" && n.ackQueryId).toBe(null);
+    expect(n.kind === "not_supplied" && n.canAcknowledge).toBe(true);
     expect(v.count).toBe(1);
     expect(v.lineStatus.a).toEqual({
       kind: "open",
@@ -211,16 +212,10 @@ describe("buildView (5.4)", () => {
       supplied: 0,
       notSupplied: null,
     });
-    // Acknowledged on a query that covers the line (0125), it goes.
-    const covering = query("q1", "a", {
-      createdAt: t(0),
-      events: [
-        ev("answered", { at: t(0), answer: "keep", via: "app", answeredByUserId: "x" }),
-        ev("not_supplied_acknowledged", { at: t(6), clientKey: "ack:e1" }),
-      ],
-    });
-    const gone = data([covering], [line("a", "this")]);
+    // Acknowledged (0132), with no query anywhere, it goes.
+    const gone = data([], [line("a", "this")]);
     gone.lineEvents.set("a", [owed]);
+    gone.acknowledged.add(owed.id);
     expect(view(gone).items.filter((i) => i.kind === "not_supplied")).toEqual([]);
   });
 });

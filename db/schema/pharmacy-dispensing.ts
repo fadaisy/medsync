@@ -625,3 +625,16 @@ export const pharmacyPaymentStatuses = pgTable("pharmacy_payment_statuses", {
   actorUserId: uuid("actor_user_id").notNull(),
   recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/* ─── 0132 not-supplied notice acknowledgements (RQ-11) ────────────── */
+
+export const pharmacyNoticeAcknowledgements = pgTable("pharmacy_notice_acknowledgements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  patientUserId: uuid("patient_user_id").notNull(),
+  lineEventId: uuid("line_event_id").notNull().unique(),
+  choice: text("choice").$type<"left_as_is" | "alternative_chosen">().notNull(),
+  replacedByPrescriptionId: uuid("replaced_by_prescription_id"),
+  actorUserId: uuid("actor_user_id").notNull(),
+  acknowledgedAt: timestamp("acknowledged_at", tz).notNull().defaultNow(),
+});
