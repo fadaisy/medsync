@@ -21,7 +21,7 @@ const migrations = () => {
 
 describe("Pharmacy Phase 1 baseline — the gap reproduced at Step 0", () => {
   // Floor condition 3: nothing records what happened to a prescription line at the pharmacy.
-  it.fails("a prescription line can end in a recorded pharmacy outcome", () => {
+  it("a prescription line can end in a recorded pharmacy outcome", () => {
     expect(existsSync(resolve(process.cwd(), "lib/pharmacy/lines.ts"))).toBe(true);
     expect(migrations()).toMatch(/CREATE TABLE[^;]*pharmacy_line_events/);
   });
@@ -39,8 +39,11 @@ describe("Pharmacy Phase 1 baseline — the gap reproduced at Step 0", () => {
     );
   });
 
-  // The check state still says dispensing is not recorded anywhere.
-  it.fails("a hospital with a live dispensing point records dispensing", () => {
-    expect(pharmacyChecksState("a-hospital-with-a-live-point").dispensingRecorded).toBe(true);
+  // Closed at Step 3 (CK-1): the caller passes the hospital's points with their liveness.
+  it("a hospital with a live dispensing point records dispensing", () => {
+    const s = pharmacyChecksState("a-hospital-with-a-live-point", [
+      { id: "fixture-point", live: true },
+    ]);
+    expect(s.dispensingRecorded).toBe(true);
   });
 });

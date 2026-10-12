@@ -322,14 +322,23 @@ describe("NV-P1: navigation", () => {
 });
 
 describe("Law 2: no clinical write from the pharmacy's code", () => {
-  it("the only write in lib/pharmacy is the view log into audit_log", () => {
-    const dir = resolve(process.cwd(), "lib/pharmacy");
+  // Phase 0 asserted the view log was the only write. Phase 1 records its own events (ADR 0260), so
+  // the invariant is now the law itself: the pharmacy writes only its own tables and the audit log,
+  // never a prescription or any other clinical record.
+  it("lib/pharmacy writes only pharmacy tables, downtime and paper records, and the audit log", () => {
+    const files = (
+      readdirSync(resolve(process.cwd(), "lib/pharmacy"), { recursive: true }) as string[]
+    ).filter((f) => f.endsWith(".ts"));
     const writes: string[] = [];
-    for (const f of readdirSync(dir)) {
+    for (const f of files) {
       const src = read(`lib/pharmacy/${f}`);
       for (const m of src.matchAll(/\.(insert|update|delete)\(([a-zA-Z]+)\)/g))
         writes.push(`${f}: ${m[1]} ${m[2]}`);
     }
-    expect(writes).toEqual(["read.ts: insert auditLog"]);
+    const foreign = writes.filter(
+      (w) => !/ (pharmacy[A-Z]\w*|paper\w*|downtime\w*|auditLog)$/.test(w),
+    );
+    expect(foreign).toEqual([]);
+    expect(writes.some((w) => / (prescriptions|prescriptionCancellations)$/.test(w))).toBe(false);
   });
 });
