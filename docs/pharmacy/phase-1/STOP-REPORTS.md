@@ -534,3 +534,20 @@ continue, so a `completed` line is never supplied.
    date. None is on record. D-PH1-03, 05, 13, 17, 26 and 28 cannot be signed without them.
 
 Also still open: owner SQL A–D from STOP 0. Q7's lane counts are needed for D-PH1-04.
+
+### Owner's answers to STOP 1 (12 Oct 2026)
+
+Through the GATE A decisions page (https://claude.ai/artifact/LVDHizt73bKagVvHZNQn7D):
+
+- **All 63 decisions approved as recommended, no changes.** That is D-PH1-01 to 49, E-PH1-01 to 13, and the §1
+  corrections. Seven are provisional until their legal answer: D-PH1-03, 05, 13, 17, 26, 28 and 31.
+- **Pharmacist reviewer:** none for now. The CSO signs alone. A registered pharmacist co-signs the clinical packs
+  and the hazard log before any production point goes live. The owner asked whether Claude could be the reviewer;
+  it cannot stand as one, because it is not a registered pharmacist. It does the review work, and that is recorded
+  as such.
+- **Legal questions 1 to 6:** deferred. Building continues at the test hospital. No production point can be
+  switched on until all six interim answers are on record (RD-1 condition 2).
+- **Owner SQL A–D:** run by the owner; the results have not reached this report yet. D-PH1-04 was approved
+  without Q7's counts in hand. The counts go into the lane-reasons pack when they arrive.
+
+GATE A is signed for building. Step 2 (the data layer) proceeds.
