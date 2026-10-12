@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BiohazardIcon } from "lucide-react";
 
 import { CriticalComm } from "@/components/emr/results/critical-comm";
 import { ResultEntry } from "@/components/emr/results/result-entry";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
+import { LAB2 } from "@/content/lab-phase-2";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
@@ -13,9 +15,10 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
 import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
 import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { labHighRiskLiveFor } from "@/lib/lab/feature";
 import { flaggingActiveFor } from "@/lib/lab/limits";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
-import { loadRejectableSpecimen } from "@/lib/lab/read";
+import { highRiskForOrder, loadRejectableSpecimen } from "@/lib/lab/read";
 import { fixedForOrder } from "@/lib/lab/units-read";
 import { FlaggingNotice } from "../../_components/flagging-notice";
 import { RejectSpecimen } from "../../_components/reject-specimen";
@@ -97,6 +100,10 @@ export default async function LabResultEntryPage({
           loadLabCriticals(scope.hospitalId, now, LAB_TIME_ZONE),
         ])
       : [[], null];
+  // Lab Phase 2 §5.6, HR-3: the high-risk warning above the results while it is on.
+  const highRisk = labHighRiskLiveFor(scope.hospitalId)
+    ? await highRiskForOrder(scope.hospitalId, orderId)
+    : null;
   const specimenId =
     workspace && !data.report?.released
       ? await loadRejectableSpecimen(scope.hospitalId, orderId)
@@ -138,6 +145,7 @@ export default async function LabResultEntryPage({
           ) : null}
         </section>
       ))}
+      {highRisk ? <HighRiskBlock {...highRisk} /> : null}
       {preview ? (
         <LabResultEntry
           data={data}
@@ -176,6 +184,42 @@ export default async function LabResultEntryPage({
           target={data.communicate}
         />
       ) : null}
+    </div>
+  );
+}
+
+/** Amber, bordered, an icon and the words (never red: a warning to take care, not an emergency). */
+function HighRiskBlock({
+  source,
+  procedure,
+}: {
+  source: "rule" | "manual";
+  procedure: string | null;
+}) {
+  const link = procedure && /^https?:\/\//i.test(procedure) ? procedure : null;
+  return (
+    <div
+      role="status"
+      className="bg-status-caution-bg border-status-caution-fg dark:text-status-caution-fg text-body-s flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-amber-800"
+    >
+      <BiohazardIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <div className="flex flex-col gap-1">
+        <p className="font-medium">
+          {source === "manual" ? LAB2.highRisk.manual : LAB2.highRisk.block}
+        </p>
+        {link ? (
+          <a
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            className="w-fit font-medium underline underline-offset-4"
+          >
+            Open the procedure
+          </a>
+        ) : procedure ? (
+          <p>Procedure: {procedure}</p>
+        ) : null}
+      </div>
     </div>
   );
 }

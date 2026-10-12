@@ -64,6 +64,7 @@ async function SectionWorklist({
     })),
     identities: Object.fromEntries(ids),
     restricted: [...data.restricted],
+    highRisk: [...data.highRisk],
     sections: data.sections,
     viewer: {
       hospitalId: scope.hospitalId,

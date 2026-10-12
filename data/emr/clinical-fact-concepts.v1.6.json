@@ -1792,6 +1792,10 @@
    "obs.abo_group",
    "obs.rhd_type"
   ],
+  "test.capillary_glucose": [
+   "obs.glucose",
+   "obs.glucose_fasting"
+  ],
   "test.cd4": [
    "obs.cd4",
    "obs.cd4_percent"
@@ -1966,6 +1970,6 @@
   "concepts": 60,
   "restricted": 16,
   "testsAdd": 4,
-  "testsV2": 32
+  "testsV2": 33
  }
 }

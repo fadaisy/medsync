@@ -67,6 +67,8 @@ v2['test.syphilis']=['obs.syphilis_test']
 v2['test.rpr']=['obs.rpr_result','obs.rpr_titre']
 v2['test.tpha']=['obs.treponemal_lab_result']
 v2['test.dual_hiv_syphilis_rdt']=['obs.dual_rdt_hiv_line','obs.dual_rdt_syphilis_line']
+# PC-7: the bedside glucose answers fasting or not, which picks the concept (CC-3).
+v2['test.capillary_glucose']=['obs.glucose','obs.glucose_fasting']
 if 'obs.d_dimer_ddu' not in v2['test.d_dimer']: v2['test.d_dimer'].append('obs.d_dimer_ddu')
 if 'obs.chol_ldl_direct' not in v2['test.lipid_panel']: v2['test.lipid_panel'].append('obs.chol_ldl_direct')
 def newtest(tid, display, spec, cont):

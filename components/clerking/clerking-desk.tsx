@@ -127,6 +127,8 @@ export interface ClerkingDeskProps {
   /** NCD_DM_DESK (ADR 0216): the diabetes pack runs on this record; `onMore` opens the questions
    *  the clerking does not ask. */
   dm?: { pack: DiabetesPack; fields: readonly string[]; onMore?: () => void } | null;
+  /** The ids of the rules that fired, each time the set changes (rule ids only, never their words). */
+  onRuleIds?: (ruleIds: string[]) => void;
 }
 
 const GROUPS = [
@@ -479,6 +481,11 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     [cat, p, view, ecat, fmt, dxData, props.dm],
   );
   const si = derived?.si ?? null;
+  const ruleIds = derived?.flags.map((f) => f.ruleId).join(" ") ?? "";
+  const onRuleIds = props.onRuleIds;
+  useEffect(() => {
+    if (ruleIds) onRuleIds?.(ruleIds.split(" "));
+  }, [ruleIds, onRuleIds]);
   // Step 08 on screen says what it is doing: Composed, Reviewed or Changed (§5.1).
   const statuses =
     derived && si && props.current === "summary"

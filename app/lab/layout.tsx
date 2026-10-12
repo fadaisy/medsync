@@ -14,6 +14,7 @@ import {
   labCriticalsLiveFor,
   labDowntimeLiveFor,
   labOneMenuLiveFor,
+  labSettingsLiveFor,
   labUnitsRangesLiveFor,
 } from "@/lib/lab/feature";
 import { navFor } from "@/lib/lab/nav";
@@ -88,6 +89,7 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     downtime,
     catalogueV2: emr && labCatalogueV2LiveFor(scope.hospitalId),
     oneMenu: emr && labOneMenuLiveFor(scope.hospitalId),
+    settings: emr && labSettingsLiveFor(scope.hospitalId),
   }).map((i) => ({
     id: i.id,
     label: i.label,

@@ -15,6 +15,7 @@ import type {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
+import { BiohazardIcon } from "lucide-react";
 
 import { RestrictedMark } from "@/components/emr/chips";
 import { PRIORITY_WORD } from "@/components/emr/orders/model";
@@ -24,6 +25,7 @@ import { TabList } from "@/components/medsync/tab-list";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { LAB } from "@/content/lab";
+import { LAB2 } from "@/content/lab-phase-2";
 import { receiveSpecimen } from "@/lib/emr/actions/orders";
 import { serverNowAt } from "@/lib/lab/turnaround";
 import { computeWorklist, LAB_STAGES, SORT_KEYS } from "@/lib/lab/worklist";
@@ -51,6 +53,8 @@ export interface WorklistPayload {
   inputs: Wire<WorklistInput>[];
   identities: Record<string, PatientIdentity>;
   restricted: string[];
+  /** Lab Phase 2 §5.5: orders whose encounter carries the high-risk warning. */
+  highRisk: string[];
   sections: { id: string; name: string }[];
   viewer: { hospitalId: string; permissions: LabPermission[]; sectionIds: string[] };
   serverNowIso: string;
@@ -171,6 +175,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
   );
   const rows = sort.key !== "default" && sort.dir === "desc" ? [...w.rows].reverse() : w.rows;
   const restricted = useMemo(() => new Set(payload.restricted), [payload.restricted]);
+  const highRisk = useMemo(() => new Set(payload.highRisk), [payload.highRisk]);
   const sectionName = sectionLabel(
     w.sectionTabs.find((t) => t.key === w.section) ?? { key: "all", name: null },
   );
@@ -216,6 +221,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
             {r.test}
           </Link>
           {restricted.has(r.orderId) ? <RestrictedMark /> : null}
+          {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
         </span>
       ),
     },
@@ -382,6 +388,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
                   <span className="text-muted-foreground">{r.from?.name ?? W.notRecorded}</span>
                   <PriorityWord priority={r.priority} />
                   {restricted.has(r.orderId) ? <RestrictedMark /> : null}
+                  {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
                 </p>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2">
@@ -411,6 +418,15 @@ function PatientCell({ id, identity }: { id: string; identity: PatientIdentity }
         {identity.mrn}
       </span>
     </span>
+  );
+}
+
+/** Amber with its icon and the words (§5.5): take care, never an emergency colour. */
+function HighRiskTag() {
+  return (
+    <StatusWord tone="caution" glyph={BiohazardIcon}>
+      {LAB2.highRisk.tag}
+    </StatusWord>
   );
 }
 

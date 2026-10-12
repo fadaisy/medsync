@@ -72,3 +72,9 @@ CREATE POLICY pl_select ON public.poct_lots FOR SELECT TO medsync_clinical_reade
 DROP POLICY IF EXISTS po_select ON public.poct_operators;
 CREATE POLICY po_select ON public.poct_operators FOR SELECT TO medsync_clinical_reader
   USING (hospital_id = (SELECT private.current_hospital_id()));
+
+-- A bedside test is an order fulfilled at the bedside by its operator (PC-1): its own intent source, so it
+-- never reaches the cashier and never needs a printed label.
+ALTER TABLE public.encounter_orders DROP CONSTRAINT IF EXISTS enc_order_intent_check;
+ALTER TABLE public.encounter_orders ADD CONSTRAINT enc_order_intent_check CHECK (intent_source IS NULL OR intent_source IN
+  ('clinician','triage_recommendation','resus_handover','downtime_form','bedside'));

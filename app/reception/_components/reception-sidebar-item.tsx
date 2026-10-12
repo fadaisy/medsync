@@ -9,6 +9,7 @@ import {
   LayoutDashboardIcon,
   ListChecksIcon,
   RadioIcon,
+  ReceiptIcon,
   SearchIcon,
   UserPlusIcon,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const ICONS: Record<ReceptionIconKey, LucideIcon> = {
   book: CalendarPlusIcon,
   find: SearchIcon,
   flow: ListChecksIcon,
+  labPayments: ReceiptIcon,
 };
 
 /** Which part of the hospital each item belongs to (ADR 0162); none = neutral. */
@@ -34,6 +36,7 @@ const DOMAIN: Partial<Record<ReceptionIconKey, Domain>> = {
   book: "operations",
   find: "patients",
   flow: "operations",
+  labPayments: "operations",
 };
 
 interface Props {

@@ -5,6 +5,7 @@ import { formatters } from "@/components/emr/format";
 import { printable, PrintLayout } from "@/components/emr/print-layout";
 import { PrintToolbar } from "@/components/emr/print-toolbar";
 import { identityOf, LabRequestPrint } from "@/components/emr/print-views";
+import { loadLabRequestFacts } from "@/lib/emr/read/orders";
 import { includeSet, loadPrint, restrictedChoices } from "../_lib/load";
 
 export const metadata: Metadata = { title: "Laboratory request · MedSync" };
@@ -15,9 +16,15 @@ const LAB_KINDS = new Set(["lab", "bloods"]);
 export default async function LabRequestPrintPage({ params, searchParams }: PrintPageProps) {
   const { encounterId } = await params;
   const include = includeSet((await searchParams).include);
-  const { chart, encounter } = await loadPrint(encounterId, "emr_print_lab_request");
+  const { chart, encounter, hospitalId } = await loadPrint(encounterId, "emr_print_lab_request");
   const orders = chart.orders.filter(
     (o) => o.encounterId === encounterId && LAB_KINDS.has(o.kind) && o.open,
+  );
+  const kept = printable(orders, include).kept;
+  const lab = await loadLabRequestFacts(
+    hospitalId,
+    encounterId,
+    kept.map((o) => o.id),
   );
   const choices = restrictedChoices(
     orders.map((o) => ({ ...o, label: o.display })),
@@ -31,7 +38,7 @@ export default async function LabRequestPrintPage({ params, searchParams }: Prin
       date={formatters(chart.timeZone).date(encounter.startedAt)}
       toolbar={<PrintToolbar withheld={choices.withheld} included={choices.included} />}
     >
-      <LabRequestPrint orders={printable(orders, include).kept} timeZone={chart.timeZone} />
+      <LabRequestPrint orders={kept} timeZone={chart.timeZone} lab={lab} />
     </PrintLayout>
   );
 }

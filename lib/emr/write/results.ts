@@ -30,6 +30,7 @@ import {
 } from "@/lib/emr/results";
 import { encrypt } from "@/lib/encryption";
 import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/shared";
+import { METER_RANGE } from "@/lib/lab/bedside";
 import { componentsFor } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
 import { prepareFixedUnits } from "@/lib/lab/units";
@@ -164,6 +165,8 @@ interface VersionSpec {
   reasonText?: string;
   clientKey: string | null;
   criticalRefs: readonly CriticalRef[];
+  /** Lab Phase 2 (PC-1, PC-8): a bedside result's registered device and current lot. */
+  bedside?: { deviceId: string; lotId: string } | null;
 }
 
 function valueColumns(
@@ -204,6 +207,10 @@ function valueColumns(
     return { conceptId: v.conceptId, valueType: def.valueType, valueCode: code };
   }
   if (def.valueType !== "quantity") throw invalid(`${def.display} cannot be entered as a result.`);
+  // Lab Phase 2 (PC-6): a meter's HI or LO is an answer, never a number; it is stored as a code so no
+  // engine ever reads it as a value.
+  if (v.code && (METER_RANGE as readonly string[]).includes(v.code))
+    return { conceptId: v.conceptId, valueType: "coded", valueCode: v.code };
   const parsed = parseComparator(v.value ?? "");
   if ("error" in parsed)
     throw invalid(`${def.display}: enter a number (a comparator such as < is allowed).`);
@@ -278,15 +285,16 @@ async function writeReportVersion(
   // Lab Phase 1 Step 5: fixed units, signed ranges and snapshots for a laboratory's own entry.
   const fixed =
     kind === "lab" &&
-    entry.source === "lab" &&
-    entry.entryMode === "direct" &&
+    ((entry.source === "lab" && entry.entryMode === "direct") || !!spec.bedside) &&
     (await unitsRangesLive(actor.hospitalId))
       ? await prepareFixedUnits(ctx, {
           patientUserId: spec.patientUserId,
           testId: order.testId,
           values: spec.values,
           collectedAt: specimen?.collectedAt ?? prior?.effectiveAt ?? now,
-          v2: v2?.active ? { ...v2, status } : null,
+          v2: v2?.active
+            ? { ...v2, status, method: spec.bedside ? ("bedside" as const) : ("lab" as const) }
+            : null,
         })
       : null;
   const values = fixed?.values ?? spec.values;
@@ -448,6 +456,8 @@ async function writeReportVersion(
       : (prior?.conclusionCiphertext ?? null),
     critical,
     uncatalogued: rows.some((r) => r.conceptId === UNCATALOGUED),
+    deviceId: spec.bedside?.deviceId ?? null,
+    lotId: spec.bedside?.lotId ?? null,
   });
   if (rows.length) await tx.insert(clinicalObservations).values(rows);
   await fixed?.snapshot(
@@ -475,6 +485,8 @@ export interface EnterResultsInput {
   conclusionText?: string;
   performerLabName?: string;
   clientKey: string;
+  /** Lab Phase 2 (labBedside): recorded at the bedside on a registered device and lot (PC-*). */
+  bedside?: { deviceId: string; lotId: string };
 }
 
 export type ReportResult = WriteResult & { critical?: boolean };
@@ -489,14 +501,17 @@ export async function enterResults(
   criticalRefs: readonly CriticalRef[] = CRITICAL_REFS,
 ): Promise<ReportResult> {
   requireLabPermission(ctx, "lab.result.enter", "enter results");
-  const entry = entryFor(ctx);
+  // A bedside result is entered directly by its operator, whatever their cadre (PC-1).
+  const entry: Entry = input.bedside
+    ? { entryMode: "direct", source: "poc_staff", poc: true }
+    : entryFor(ctx);
   const replay = await replayed(ctx.tx, diagnosticReports, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const order = await loadOrder(ctx, input.patientUserId, input.orderId);
   const test = await loadTest(ctx.tx, order.testId);
   // ponytail: "point of care" = a bedside test (capillary_direct container); a POC flag on the
   // test menu replaces this when the hub's offerings carry one.
-  if (entry.poc && test?.container !== "capillary_direct")
+  if (entry.poc && !input.bedside && test?.container !== "capillary_direct")
     throw new EmrWriteError("forbidden", "Nurses enter point-of-care (bedside) results only.");
 
   const status = await orderStatus(ctx.tx, order);
@@ -549,6 +564,7 @@ export async function enterResults(
     performerLabName: input.performerLabName,
     clientKey: input.clientKey,
     criticalRefs,
+    bedside: input.bedside ?? null,
   });
   await stampActivity(ctx, order.encounterId);
   return { id: r.id, critical: r.critical, warnings: r.critical ? [CRITICAL_WARNING] : [] };

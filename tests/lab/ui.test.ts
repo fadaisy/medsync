@@ -83,6 +83,7 @@ const payload = (o: Partial<WorklistPayload> = {}): WorklistPayload => {
       ]),
     ),
     restricted: [],
+    highRisk: [],
     sections: [{ id: CHEM, name: "Clinical chemistry" }],
     viewer: { hospitalId: "h1", permissions: [...LAB_PERMISSIONS], sectionIds: [CHEM] },
     serverNowIso: NOW,
@@ -105,6 +106,13 @@ describe("the worklist screen", () => {
     expect(html).toMatch(/aria-label="No section, 2"/);
     expect(html).toContain("3 of 5 specimens, in Clinical chemistry.");
     expect(html).toContain("The clock starts when the lab receives the specimen.");
+  });
+
+  it("§5.5: a flagged row carries the amber High-risk specimen tag in words; others none", () => {
+    const p = payload({ initial: { section: "all", stage: null, dept: null, sort: null } });
+    expect(render(p)).not.toContain("High-risk specimen");
+    const html = render({ ...p, highRisk: [p.inputs[0]!.orderId] });
+    expect(html).toMatch(/data-tone="caution"[^>]*>(<svg[\s\S]*?<\/svg>)?High-risk specimen/);
   });
 
   it("shows the Late chip in words, targets from data, and 'no target set' without colour (§5.4)", () => {

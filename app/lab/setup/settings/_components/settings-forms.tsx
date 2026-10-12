@@ -20,6 +20,7 @@ import {
   setReportEgfrAction,
   signConfigAsLeadAction,
 } from "@/lib/lab/catalogue-v2-actions";
+import { setLabSettingsAction } from "@/lib/lab/one-menu-actions";
 import { PAYLOADS } from "@/lib/lab/signed-config";
 import { SETTINGS as C } from "../_lib/copy";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
@@ -143,6 +144,83 @@ export function EgfrSwitch({ on }: { on: boolean }) {
         {C.egfr.switch}
         <span className="text-muted-foreground">{on ? C.egfr.on : C.egfr.off}</span>
       </button>
+      <Said message={message} />
+    </div>
+  );
+}
+
+type PaymentMode = "off" | "inform" | "hold";
+
+/** §5.14: payment before the sample. The never-held line is fixed and shown by the page, not here. */
+export function PaymentModeForm({ mode: saved }: { mode: PaymentMode }) {
+  const { pending, message, act } = useAct();
+  const [mode, setMode] = useState<PaymentMode>(saved);
+  return (
+    <div className="flex flex-col gap-2">
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="text-body-s text-muted-foreground mb-1">{C.payment.mode}</legend>
+        {(["off", "inform", "hold"] as const).map((m) => (
+          <label key={m} className="text-body-s flex min-h-11 items-center gap-2 sm:min-h-7">
+            <input
+              type="radio"
+              name="paymentMode"
+              value={m}
+              checked={mode === m}
+              onChange={() => setMode(m)}
+              className="size-4 accent-teal-600"
+            />
+            {C.payment[m]}
+          </label>
+        ))}
+      </fieldset>
+      <div>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={pending || mode === saved}
+          onClick={() => act(() => setLabSettingsAction({ paymentMode: mode }), C.payment.saved)}
+        >
+          {C.payment.save}
+        </Button>
+      </div>
+      <Said message={message} />
+    </div>
+  );
+}
+
+/** §5.14: the hospital's high-risk specimen procedure, a link or a document title. Empty removes it. */
+export function ProcedureForm({ initial }: { initial: string | null }) {
+  const { pending, message, act } = useAct();
+  const [text, setText] = useState(initial ?? "");
+  const save = () =>
+    act(
+      async () => {
+        const v = text.trim();
+        if (v && v.length < 3) return { ok: false, error: C.procedure.tooShort };
+        return setLabSettingsAction({ highRiskProcedure: v || null });
+      },
+      text.trim() ? C.procedure.saved : C.procedure.cleared,
+    );
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label={C.procedure.field}>
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={300}
+            className="min-h-11 min-w-72 sm:min-h-9"
+          />
+        </Field>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={save}
+          disabled={pending || text.trim() === (initial ?? "")}
+        >
+          {C.procedure.save}
+        </Button>
+      </div>
       <Said message={message} />
     </div>
   );

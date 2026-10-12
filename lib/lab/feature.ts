@@ -63,3 +63,7 @@ export const labHighRiskLiveFor = (h: string) =>
 export const labBedsideLiveFor = (h: string) => phase2(process.env.LAB_BEDSIDE, "lab_bedside", h);
 export const ncdLabFeedLiveFor = (h: string) =>
   phase2(process.env.NCD_LAB_FEED, "ncd_lab_feed", h, false);
+
+/** §5.14: Lab settings holds catalogue v2, payment, high-risk and bedside settings: open with any of them. */
+export const labSettingsLiveFor = (h: string) =>
+  labCatalogueV2LiveFor(h) || labPaymentLiveFor(h) || labHighRiskLiveFor(h) || labBedsideLiveFor(h);

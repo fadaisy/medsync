@@ -7,6 +7,7 @@ import { Avatar } from "@/components/medsync/avatar";
 import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
 import { SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { Tag } from "@/components/medsync/tag";
+import { labPaymentLiveFor } from "@/lib/lab/feature";
 import { RECEPTION_FEATURE_AREAS, receptionFeaturePath } from "../_lib/features";
 import { ReceptionCommandBar, ReceptionSidebarItem } from "./reception-sidebar-item";
 
@@ -32,7 +33,8 @@ export function ReceptionShell({
   scope: ReceptionScope;
   children: ReactNode;
 }) {
-  const navItems = RECEPTION_FEATURE_AREAS;
+  const lab = labPaymentLiveFor(scope.hospitalId);
+  const navItems = RECEPTION_FEATURE_AREAS.filter((a) => a.slug !== "lab-payments" || lab);
 
   return (
     <div className="bg-background text-foreground flex min-h-svh w-full">

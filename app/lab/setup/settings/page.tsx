@@ -5,13 +5,21 @@ import { notFound } from "next/navigation";
 import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
+import { LAB2 } from "@/content/lab-phase-2";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
-import { labCatalogueV2LiveFor } from "@/lib/lab/feature";
+import { labHighRiskLiveFor, labPaymentLiveFor, labSettingsLiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { loadLabSettingsPage } from "@/lib/lab/settings-read";
-import { EgfrSwitch, ElevationForm, HivEditor, SignAsLead } from "./_components/settings-forms";
+import {
+  EgfrSwitch,
+  ElevationForm,
+  HivEditor,
+  PaymentModeForm,
+  ProcedureForm,
+  SignAsLead,
+} from "./_components/settings-forms";
 import { SETTINGS as C } from "./_lib/copy";
 
 export const metadata: Metadata = { title: "Lab settings · Laboratory · MedSync" };
@@ -32,7 +40,8 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 /**
- * Lab settings (Lab Phase 2 §5.14, artboard 14): the hospital's elevation and HIV algorithm (each signed by
+ * Lab settings (Lab Phase 2 §5.14, artboard 14): payment before the sample (labPayment) and the high-risk
+ * specimen procedure (labHighRiskWarning), the hospital's elevation and HIV algorithm (each signed by
  * the laboratory lead and the CSO, DS-7) and eGFR reporting (EG-1). No field is pre-filled: a value shows
  * only when a saved draft or a signed version holds it.
  */
@@ -41,7 +50,7 @@ export default async function LabSettingsPage() {
   if (
     !scope.workspaceLive ||
     !emrV1LiveFor(scope.hospitalId) ||
-    !labCatalogueV2LiveFor(scope.hospitalId)
+    !labSettingsLiveFor(scope.hospitalId)
   )
     notFound();
   if (!scope.access.permissions.has("lab.manage")) notFound();
@@ -66,9 +75,25 @@ export default async function LabSettingsPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
       <PageHeader place={`${scope.hospitalName} · ${LAB.place}`} placeInTopBar title={C.title} />
 
-      {/* Payment before the sample (§5.14, labPayment) and High-risk specimen procedure (§5.14,
-          labHighRiskWarning) go here in a later step: s.paymentMode and s.highRiskProcedure are read
-          already. No UI until then. */}
+      {labPaymentLiveFor(scope.hospitalId) ? (
+        <Section id="payment-heading" title={C.payment.title}>
+          <PaymentModeForm
+            mode={s.paymentMode === "inform" || s.paymentMode === "hold" ? s.paymentMode : "off"}
+          />
+          <p className="text-body-s">{LAB2.payment.neverHeld}</p>
+          <p className="text-body-s">
+            <span className="text-muted-foreground">{C.payment.recordedBy}:</span>{" "}
+            {C.payment.cashier}
+          </p>
+        </Section>
+      ) : null}
+
+      {labHighRiskLiveFor(scope.hospitalId) ? (
+        <Section id="procedure-heading" title={C.procedure.title}>
+          <ProcedureForm initial={s.highRiskProcedure} />
+          <p className="text-body-s text-muted-foreground max-w-[75ch]">{C.procedure.line}</p>
+        </Section>
+      ) : null}
 
       <Section id="elevation-heading" title={C.elevation.title}>
         <p className="text-body-s">

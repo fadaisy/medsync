@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { and, eq, gte, lte } from "drizzle-orm";
 
+import { LAB2 } from "@/content/lab-phase-2";
 import { db } from "@/db";
 import { downtimeFormNumbers } from "@/db/schema/lab-safety";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { formLabel } from "@/lib/lab/downtime-store";
-import { labDowntimeLiveFor } from "@/lib/lab/feature";
+import { labDowntimeLiveFor, labHighRiskLiveFor } from "@/lib/lab/feature";
 import { PrintButton } from "./print-button";
 
 export const metadata: Metadata = { title: "Downtime forms · Laboratory · MedSync" };
@@ -45,6 +46,8 @@ export default async function DowntimePrintPage({
       ),
     )
     .orderBy(downtimeFormNumbers.number);
+  // HR-5: the form prints blank, so the high-risk box is a square to tick by hand.
+  const highRisk = labHighRiskLiveFor(scope.hospitalId);
   const line = "border-b border-black min-h-7";
   const box = "border border-black p-2";
   return (
@@ -68,6 +71,12 @@ export default async function DowntimePrintPage({
             </div>
             <p className="font-mono text-[18px] font-semibold">{formLabel(r.number)}</p>
           </header>
+          {highRisk ? (
+            <section className="flex items-center gap-3 border-2 border-black p-2">
+              <span aria-hidden className="size-5 shrink-0 border-2 border-black" />
+              <p className="text-[14px] font-semibold">{LAB2.highRisk.labelBox}</p>
+            </section>
+          ) : null}
           <section className={box}>
             <p className="font-semibold">Patient</p>
             <div className="grid grid-cols-3 gap-3">

@@ -184,6 +184,7 @@ export async function prepareFixedUnits(
       profile: Profile | null;
       labOnly: Set<string>;
       status: string;
+      method?: "lab" | "bedside";
     } | null;
   },
 ): Promise<FixedUnits | null> {
@@ -207,7 +208,8 @@ export async function prepareFixedUnits(
 
   const process = (v: ResultValueInput, extra: Record<string, unknown> | null = null) => {
     const def = conceptDef(v.conceptId);
-    if (!def || def.valueType !== "quantity") {
+    // PC-6: a meter's HI or LO is an answer, not a number: no unit check, no range, no flag.
+    if (!def || def.valueType !== "quantity" || (v.code && !v.value)) {
       values.push(v);
       return;
     }
@@ -271,7 +273,7 @@ export async function prepareFixedUnits(
           sex,
           ageDaysAtCollection: ageDays,
           pregnancy,
-          method: "lab",
+          method: v2.method ?? "lab", // Law 7: a scheme applies to bedside only if it names it
           at: spec.collectedAt,
           reference: resolved,
           configs,

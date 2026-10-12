@@ -3,6 +3,7 @@ import type { AllergyLine, ChartPayload, ResultItem } from "@/lib/emr/chart";
 import type { ChartEncounterRow, ChartOrderRow } from "@/lib/emr/read/chart";
 import type { ReactNode } from "react";
 
+import { LAB2 } from "@/content/lab-phase-2";
 import { formatters, withoutNameOnly } from "./format";
 import { printable, PrintField } from "./print-layout";
 
@@ -149,18 +150,42 @@ const PRIORITY: Record<string, string> = {
   immediate: "Immediate",
 };
 
+/** Lab Phase 2 (§5.4): what the request form adds, each part only when its flag is on. */
+export interface LabRequestExtras {
+  /** Order id → the clinical question (the order's reason text). */
+  questions: Record<string, string>;
+  /** Order id → payment state in words; null when payment is off. */
+  payments: Record<string, string> | null;
+  /** labCollectionCheck: "Label checked against wristband ☐". */
+  checkOn: boolean;
+  /** The encounter's high-risk warning (labHighRisk on and flagged). */
+  highRisk: { manual: boolean } | null;
+}
+
 export function LabRequestPrint({
   orders,
   timeZone,
+  lab,
 }: {
   orders: readonly ChartOrderRow[];
   timeZone?: string;
+  lab?: LabRequestExtras;
 }) {
   const fmt = formatters(timeZone);
   if (orders.length === 0) return <p>No laboratory tests ordered in this encounter.</p>;
   const first = orders[0]!;
+  const questions = orders.flatMap((o) =>
+    lab?.questions[o.id] ? [`${o.display}: ${lab.questions[o.id]}`] : [],
+  );
   return (
     <section className="flex flex-col gap-3">
+      {lab?.highRisk ? (
+        // Black on white, legible in greyscale (HR-3). The VHF wording is the clerking rule's; a
+        // clinician's own flag prints the manual words.
+        <p className="text-body-m border-[3px] border-black p-3 font-bold text-black">
+          {lab.highRisk.manual ? LAB2.highRisk.manual : LAB2.highRisk.formBox}
+        </p>
+      ) : null}
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-gray-400 text-left">
@@ -168,6 +193,7 @@ export function LabRequestPrint({
             <th className="py-1 pr-3 font-medium">Requisition</th>
             <th className="py-1 pr-3 font-medium">Priority</th>
             <th className="py-1 pr-3 font-medium">Fasting required</th>
+            {lab?.payments ? <th className="py-1 pr-3 font-medium">Payment</th> : null}
             <th className="py-1 font-medium">Ordered</th>
           </tr>
         </thead>
@@ -180,11 +206,17 @@ export function LabRequestPrint({
               <td className="py-1 pr-3">
                 {o.fastingRequired === null ? "Not applicable" : o.fastingRequired ? "Yes" : "No"}
               </td>
+              {lab?.payments ? <td className="py-1 pr-3">{lab.payments[o.id] ?? "—"}</td> : null}
               <td className="py-1 font-mono tabular-nums">{fmt.dateTime(o.orderedAt)}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      {lab ? (
+        <PrintField label="Clinical question">
+          {questions.length ? <List items={questions} empty="" /> : undefined}
+        </PrintField>
+      ) : null}
       <PrintField label="Specimen and container" />
       <PrintField label="Collected at, by" />
       <PrintField label="Reason (working diagnosis)" />
@@ -193,6 +225,14 @@ export function LabRequestPrint({
           ? `${first.requesterName}${first.requesterCadre ? `, ${first.requesterCadre.replace(/_/g, " ").toLowerCase()}` : ""}`
           : undefined}
       </PrintField>
+      {lab?.checkOn ? <p>Label checked against wristband ☐</p> : null}
+      {lab?.highRisk ? (
+        <div className="flex break-inside-avoid flex-col gap-1 border-t border-gray-300 pt-3">
+          <p className="font-medium">For laboratory use</p>
+          <p>Procedure followed ☐</p>
+        </div>
+      ) : null}
+      {lab?.highRisk && !lab.highRisk.manual ? <p>{LAB2.highRisk.formFooter}</p> : null}
     </section>
   );
 }

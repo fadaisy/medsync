@@ -261,3 +261,74 @@ describe("rejection and labels", () => {
     expect(all).not.toMatch(/status-critical|red-\d|rose-\d/);
   });
 });
+
+/* ─── Lab Phase 2 at the bedside (§5.2, §5.4) ────────────────────── */
+
+describe("lab phase 2: label check, payment, high-risk", () => {
+  const LAB2_FBC: CollectTarget = {
+    ...COLLECT_FBC,
+    lab: {
+      checkOn: true,
+      labelNo: "L00000012",
+      payment: { state: "awaiting", mode: "inform" },
+      highRisk: { manual: false, reason: null },
+      procedure: "https://example.org/high-risk",
+    },
+  };
+  const ready = { identifiersConfirmed: true, paymentReason: "Clinician asked to proceed" };
+
+  it("Mark collected waits for a matching label, and says why", () => {
+    const markup = html(
+      h(CollectView, {
+        identity: IDENTITY_A,
+        target: LAB2_FBC,
+        draft: { ...m.EMPTY_COLLECT, ...ready },
+        collectorName: null,
+        printHref: "/label/order",
+      }),
+    );
+    const button = /<button[^>]*>Mark collected<\/button>/.exec(markup)?.[0] ?? "";
+    expect(button).toMatch(/ disabled=""/);
+    expect(button).toMatch(/aria-describedby="collect-issues-/);
+    expect(text(markup)).toContain("L00000012");
+    expect(markup).toContain('href="/label/order"');
+    const matched = { ...m.EMPTY_COLLECT, ...ready, labelNo: "L00000012", labelOutcome: "match" };
+    expect(m.collectIssues(LAB2_FBC, matched)).toEqual([]);
+  });
+
+  it("a mismatch names the other patient in an alert; the high-risk block is amber, never red", () => {
+    const markup = html(
+      h(CollectView, {
+        identity: IDENTITY_A,
+        target: LAB2_FBC,
+        draft: {
+          ...m.EMPTY_COLLECT,
+          ...ready,
+          labelNo: "L00000099",
+          labelOutcome: "other_patient",
+        },
+        collectorName: null,
+        labelCheck: {
+          labelNo: "L00000099",
+          outcome: "other_patient",
+          other: { name: "Test Patient B", mrn: "MRN-2026-90002" },
+        },
+      }),
+    );
+    expect(text(markup)).toContain(
+      "L00000099 belongs to Test Patient B, MRN-2026-90002, not Test Patient A.",
+    );
+    expect(markup.match(/role="alert"/g)).toHaveLength(2); // the high-risk block and the mismatch
+    expect(text(markup)).toContain("High-risk specimen: suspected viral haemorrhagic fever.");
+    expect(text(markup)).toContain("Awaiting payment");
+    expect(markup).not.toMatch(/status-critical|red-\d|rose-\d/);
+  });
+
+  it("the label prints its number and the HIGH-RISK box", () => {
+    const t = text(html(h(SpecimenLabel, { data: { ...LABEL, labelNo: "L1", highRisk: true } })));
+    expect(t).toContain("HIGH-RISK SPECIMEN");
+    expect(t).toContain("L1");
+    expect(m.paymentWords("paid", "R-77")).toBe("Paid · R-77");
+    expect(m.paymentWords("not_required")).toBeNull();
+  });
+});

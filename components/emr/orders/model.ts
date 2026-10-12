@@ -5,6 +5,8 @@
  * the concept catalogue: the server has already turned codes into words.
  */
 
+import { LAB2 } from "@/content/lab-phase-2";
+
 /* ─── Identity (two identifiers, age and sex in words) ─────────────── */
 
 export interface PatientIdentity {
@@ -237,7 +239,7 @@ export interface CollectTarget {
   lab?: {
     checkOn: boolean;
     labelNo: string | null;
-    payment: { state: string; mode: string } | null;
+    payment: { state: string; mode: string; receipt?: string | null } | null;
     highRisk: { manual: boolean; reason: string | null } | null;
     procedure: string | null;
   };
@@ -313,6 +315,15 @@ export function collectIssues(t: CollectTarget, d: CollectDraft): string[] {
       out.push("Payment not recorded. Give a reason to collect now.");
   }
   return out;
+}
+
+/** §5.2 payment chip words (LAB2.payment.chips); null when payment is not taken for this order. */
+export function paymentWords(state: string, receipt?: string | null): string | null {
+  const c = LAB2.payment.chips;
+  if (state === "paid") return receipt ? c.paid(receipt) : c.paid("").split(" · ")[0]!;
+  if (state === "insured" || state === "waived" || state === "emergency" || state === "awaiting")
+    return c[state];
+  return null;
 }
 
 /** `datetime-local` in the hospital's zone → an instant. Kampala has no DST, so a fixed offset

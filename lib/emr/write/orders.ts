@@ -223,7 +223,9 @@ export type IntentSource =
   | "triage_recommendation"
   | "resus_handover"
   /** Lab Phase 1 DT-3: transcribed by the lab from a paper request entered after downtime. */
-  | "downtime_form";
+  | "downtime_form"
+  /** Lab Phase 2 PC-1: a test done at the bedside by its operator. */
+  | "bedside";
 
 export interface OrderLine {
   /** Idempotency key for this line: a replay returns the order it already placed. */
@@ -265,6 +267,8 @@ export async function placeOrders(
      * is recorded as the one who placed it in MedSync.
      */
     downtime?: { requestedByUserId: string; requesterCadre: string };
+    /** Lab Phase 2 PC-1: the bedside operator (a nurse, midwife or clinician with poct.record). */
+    bedside?: boolean;
   } = {},
 ): Promise<WriteResult & { orderIds: string[] }> {
   if (opts.downtime) {
@@ -275,14 +279,15 @@ export async function placeOrders(
         "invalid",
         "The requesting clinician must be one who may order tests.",
       );
-  } else if (!opts.propose) requireCadre(ctx, ORDERING_CADRES, "place orders");
+  } else if (opts.bedside) requireCadre(ctx, COLLECTING_CADRES, "record a bedside test");
+  else if (!opts.propose) requireCadre(ctx, ORDERING_CADRES, "place orders");
   if (input.orders.length === 0) throw new EmrWriteError("invalid", "Nothing to order.");
   const encounter = await openEncounter(ctx, input.patientUserId, input.encounterId);
   const { actor, tx, now } = ctx;
   const orderIds: string[] = [];
   const warnings: string[] = [];
   // Lab Phase 2: one menu (OM-4, OM-6), restricted class per test (CC-8), payment at placement (PY-2).
-  const oneMenu = labOneMenuLiveFor(actor.hospitalId) && !opts.downtime;
+  const oneMenu = labOneMenuLiveFor(actor.hospitalId) && !opts.downtime && !opts.bedside;
   const today = oneMenu ? await menuToday(tx, actor.hospitalId, now) : null;
   const classes = labCatalogueV2LiveFor(actor.hospitalId);
   const payment = labPaymentLiveFor(actor.hospitalId)
@@ -378,7 +383,11 @@ export async function placeOrders(
         fastingRequired: test.fastingRequired,
         requesterCadre: opts.downtime?.requesterCadre ?? actor.cadreCode,
         performer: test.inHouse ? "in_house" : "external",
-        intentSource: opts.downtime ? "downtime_form" : (line.intentSource ?? "clinician"),
+        intentSource: opts.downtime
+          ? "downtime_form"
+          : opts.bedside
+            ? "bedside"
+            : (line.intentSource ?? "clinician"),
         sourceIntentId: line.sourceIntentId ?? null,
         sensitivity: restricted ? "restricted" : "standard",
         clientKey: line.clientKey,
@@ -394,10 +403,15 @@ export async function placeOrders(
       })
       .returning({ id: encounterOrders.id });
     // ID-1: with the label check on, the order's label number exists from placement, to print before collecting.
-    if (test.kind === "lab" && labCollectionCheckLiveFor(actor.hospitalId) && !opts.propose)
+    if (
+      test.kind === "lab" &&
+      labCollectionCheckLiveFor(actor.hospitalId) &&
+      !opts.propose &&
+      !opts.bedside
+    )
       await issueLabel(tx, actor, { id: order!.id, patientUserId: input.patientUserId });
     // PY-2: decided from the order itself; an emergency is written as such and never changes.
-    if (payment && test.kind === "lab") {
+    if (payment && test.kind === "lab" && !opts.bedside) {
       const state = paymentAtPlacement(
         {
           priority: line.priority,

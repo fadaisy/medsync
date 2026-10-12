@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useReducer, useState, useTransition } from "react";
 
 import { EmrDialog } from "@/components/emr/emr-dialog";
-import { CollectView } from "@/components/emr/orders/collect-view";
+import { CollectView, HighRiskBlock } from "@/components/emr/orders/collect-view";
 import { EncounterOrdersView } from "@/components/emr/orders/encounter-orders-view";
 import {
   defaultReasonIds,
@@ -17,8 +17,12 @@ import {
   toOrderLines,
 } from "@/components/emr/orders/model";
 import { OrderSheetView } from "@/components/emr/orders/order-sheet-view";
+import { useCollectLab } from "@/components/emr/orders/use-collect-lab";
 import { ResultEntry } from "@/components/emr/results/result-entry";
-import { collectSpecimen, placeOrders } from "@/lib/emr/actions/orders";
+import { StatusWord } from "@/components/emr/status-word";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { collectSpecimen, placeOrders, setHighRisk } from "@/lib/emr/actions/orders";
 
 type Msg = { ok: boolean; text: string } | null;
 
@@ -37,6 +41,7 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
     | { kind: "order" }
     | { kind: "collect"; target: CollectTarget }
     | { kind: "transcribe"; orderId: string }
+    | { kind: "risk"; clear: boolean }
     | null
   >(null);
   const [draft, dispatch] = useReducer(draftReducer, EMPTY_DRAFT as OrderDraft);
@@ -45,6 +50,7 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
   const [labelHref, setLabelHref] = useState<string | null>(null);
   const [message, setMessage] = useState<Msg>(null);
   const [said, setSaid] = useState<string | null>(null);
+  const [riskReason, setRiskReason] = useState("");
 
   const base = { surface: "doctor" as const, patientUserId: load.patientUserId };
   const close = () => {
@@ -69,6 +75,17 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
     });
 
   const target = sheet?.kind === "collect" ? sheet.target : null;
+  const lab = useCollectLab({
+    surface: "doctor",
+    patientUserId: load.patientUserId,
+    target,
+    draft: collect,
+    setDraft: setCollect,
+    setTarget: (t) => setSheet({ kind: "collect", target: t }),
+    setMessage,
+    start,
+  });
+  const labelFor = (id: string) => `/doctor/encounters/${load.encounterId}/print/label/${id}`;
   const saveCollect = () =>
     start(async () => {
       if (!target) return;
@@ -78,25 +95,79 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
       });
       if (!r.ok) return setMessage({ ok: false, text: r.error });
       setMessage({ ok: true, text: "Specimen collected." });
-      setLabelHref(`/doctor/encounters/${load.encounterId}/print/label/${r.id}`);
+      setLabelHref(labelFor(r.id));
       router.refresh();
     });
+
+  // HR-1, HR-2 (D-LAB2-06): a clinician flags a suspected high-risk infection, or clears the
+  // warning, with a reason. The doctor's desk is clinicians only.
+  const risk = load.highRisk ?? null;
+  const riskSheet = sheet?.kind === "risk" ? sheet : null;
+  const saveRisk = () =>
+    start(async () => {
+      if (!riskSheet) return;
+      const r = await setHighRisk({
+        ...base,
+        encounterId: load.encounterId,
+        kind: riskSheet.clear ? "clear" : "flag",
+        source: "manual",
+        reason: riskReason.trim(),
+        clientKey: crypto.randomUUID(),
+      });
+      if (!r.ok) return setMessage({ ok: false, text: r.error });
+      setSaid(riskSheet.clear ? "High-risk warning cleared." : "High-risk warning added.");
+      close();
+      router.refresh();
+    });
+  const openRisk = (clear: boolean) => {
+    setRiskReason("");
+    setMessage(null);
+    setSheet({ kind: "risk", clear });
+  };
 
   const entry = sheet?.kind === "transcribe" ? load.transcribe[sheet.orderId] : null;
 
   return (
     <>
+      {risk ? (
+        <div className="mb-3 flex flex-col">
+          {risk.on ? (
+            <HighRiskBlock manual={risk.manual} procedure={risk.procedure ?? null}>
+              {risk.reason ? <p>Reason: {risk.reason}</p> : null}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => openRisk(true)}
+                className="min-h-11 self-start sm:min-h-9"
+              >
+                Clear the warning
+              </Button>
+            </HighRiskBlock>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => openRisk(false)}
+              className="min-h-11 self-start sm:min-h-9"
+            >
+              Suspected high-risk infection
+            </Button>
+          )}
+        </div>
+      ) : null}
       <EncounterOrdersView
         identity={load.identity}
         orders={load.orders}
         timeZone={load.timeZone}
-        labelHref={(id) => `/doctor/encounters/${load.encounterId}/print/label/${id}`}
+        labelHref={labelFor}
         onOrder={() => setSheet({ kind: "order" })}
         onCollect={(orderId) => {
           const t = load.orders.find((o) => o.id === orderId)?.collect;
           if (!t) return;
           setCollect(EMPTY_COLLECT);
           setLabelHref(null);
+          setMessage(null);
+          lab.reset();
           setSheet({ kind: "collect", target: t });
         }}
         onTranscribe={(orderId) => setSheet({ kind: "transcribe", orderId })}
@@ -113,7 +184,11 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
             ? "Collect specimen"
             : sheet?.kind === "transcribe"
               ? "Enter result"
-              : "Order"
+              : riskSheet
+                ? riskSheet.clear
+                  ? "Clear the warning"
+                  : "Suspected high-risk infection"
+                : "Order"
         }
         description={`${load.identity.name}, ${load.identity.mrn}`}
       >
@@ -159,7 +234,39 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
             onSpecimen={(specimenType) => setCollect((d) => ({ ...d, specimenType }))}
             onContainer={(container) => setCollect((d) => ({ ...d, container }))}
             onSave={saveCollect}
+            printHref={labelFor(target.orderId)}
+            {...lab.props}
           />
+        ) : null}
+        {riskSheet ? (
+          <div className="flex flex-col gap-4">
+            <label className="text-body-s flex flex-col gap-1">
+              {riskSheet.clear
+                ? "Why is the warning no longer needed? (required)"
+                : "Why do you suspect a high-risk infection? (required)"}
+              <Input
+                required
+                value={riskReason}
+                onChange={(e) => setRiskReason(e.target.value)}
+                className="min-h-11 sm:min-h-9"
+              />
+            </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                onClick={saveRisk}
+                disabled={pending || riskReason.trim().length < 3}
+                className="min-h-11 sm:min-h-9"
+              >
+                {pending ? "Saving…" : riskSheet.clear ? "Clear the warning" : "Flag high-risk"}
+              </Button>
+              <span role="status" aria-live="polite" className="text-body-s">
+                {message && !message.ok ? (
+                  <StatusWord tone="caution">{message.text}</StatusWord>
+                ) : null}
+              </span>
+            </div>
+          </div>
         ) : null}
         {entry ? (
           <ResultEntry

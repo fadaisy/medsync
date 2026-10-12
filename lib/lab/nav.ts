@@ -38,6 +38,8 @@ export interface LabNavFlags {
   catalogueV2?: boolean;
   /** Lab Phase 2 (§5.15): labOneMenu. */
   oneMenu?: boolean;
+  /** Lab Phase 2 (§5.14): any flag with a lab setting (catalogue v2, payment, high-risk, bedside). */
+  settings?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -158,7 +160,7 @@ export const LAB_NAV: readonly LabNavItem[] = [
     order: 11,
     exact: false,
     group: "setup",
-    visibleFor: (p, f) => !!f.catalogueV2 && p.has("lab.manage"),
+    visibleFor: (p, f) => !!(f.settings ?? f.catalogueV2) && p.has("lab.manage"),
   },
 ];
 

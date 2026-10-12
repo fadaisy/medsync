@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Target } from "./turnaround";
 import type { LabStage, WorklistInput } from "./worklist";
-import type { EmrDb } from "@/lib/emr/db";
+import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import { and, desc, eq, gte, inArray, isNull, max, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -12,11 +12,13 @@ import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { diagnosticReports, specimenEvents, specimens, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
-import { downtimeEntries } from "@/db/schema/lab-safety";
+import { downtimeEntries, labSettings } from "@/db/schema/lab-safety";
 import { cadres } from "@/db/schema/reference-data";
 import { encounters } from "@/db/schema/scheduling";
 import { diagnosticOfferings } from "@/db/schema/services-hub";
 import { startOfLocalDay } from "@/supabase/functions/_shared/slots";
+import { highRiskFor } from "./collection-store";
+import { labHighRiskLiveFor } from "./feature";
 import { releasedTurnaround, targetFor } from "./turnaround";
 
 /**
@@ -52,8 +54,11 @@ export async function loadLabSections(hospitalId: string, database: EmrDb = defa
 }
 
 interface Sources {
-  /** order id → its LOINC code and the ordering department. */
-  orders: Map<string, { loinc: string | null; from: { id: string; name: string } | null }>;
+  /** order id → its LOINC code, the ordering department and the encounter. */
+  orders: Map<
+    string,
+    { loinc: string | null; from: { id: string; name: string } | null; encounterId: string }
+  >;
   /** LOINC code → the hub offering's section and stated turnaround. */
   offerings: Map<string, { sectionId: string | null; statedTat: string | null }>;
   /** test id → the catalogue's target minutes. */
@@ -73,6 +78,7 @@ async function loadSources(
           .select({
             id: encounterOrders.id,
             loinc: encounterOrders.loincCode,
+            encounterId: encounterOrders.encounterId,
             fromId: fromDept.id,
             fromName: fromDept.name,
           })
@@ -114,6 +120,7 @@ async function loadSources(
         {
           loinc: r.loinc,
           from: r.fromId && r.fromName ? { id: r.fromId, name: r.fromName } : null,
+          encounterId: r.encounterId,
         },
       ]),
     ),
@@ -160,6 +167,8 @@ export interface LabWorklistData {
   sections: { id: string; name: string }[];
   /** Restricted orders, for the mark beside the test (never the reason). */
   restricted: Set<string>;
+  /** Lab Phase 2 §5.5 (labHighRiskWarning): orders whose encounter carries the high-risk warning. */
+  highRisk: Set<string>;
 }
 
 export async function loadLabWorklist(
@@ -209,7 +218,37 @@ export async function loadLabWorklist(
   const restricted = new Set(
     base.filter((b) => b.sensitivity === "restricted").map((b) => b.orderId),
   );
-  return { inputs, sections, restricted };
+  const flagged = labHighRiskLiveFor(hospitalId)
+    ? await highRiskFor(database as unknown as EmrTx, [
+        ...new Set([...sources.orders.values()].map((o) => o.encounterId)),
+      ])
+    : new Map();
+  const highRisk = new Set(
+    inputs
+      .filter((i) => flagged.has(sources.orders.get(i.orderId)?.encounterId ?? ""))
+      .map((i) => i.orderId),
+  );
+  return { inputs, sections, restricted, highRisk };
+}
+
+/** Lab Phase 2 §5.6: the order's active high-risk warning and the hospital's procedure, or null. */
+export async function highRiskForOrder(
+  hospitalId: string,
+  orderId: string,
+  database: EmrDb = defaultDb(),
+): Promise<{ source: "rule" | "manual"; procedure: string | null } | null> {
+  const [o] = await database
+    .select({ encounterId: encounterOrders.encounterId })
+    .from(encounterOrders)
+    .where(and(eq(encounterOrders.id, orderId), eq(encounterOrders.hospitalId, hospitalId)));
+  if (!o) return null;
+  const on = (await highRiskFor(database as unknown as EmrTx, [o.encounterId])).get(o.encounterId);
+  if (!on) return null;
+  const [s] = await database
+    .select({ procedure: labSettings.highRiskProcedure })
+    .from(labSettings)
+    .where(eq(labSettings.hospitalId, hospitalId));
+  return { source: on.source, procedure: s?.procedure ?? null };
 }
 
 /* ─── Released today ──────────────────────────────────────────────── */

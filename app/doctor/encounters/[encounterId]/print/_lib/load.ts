@@ -25,7 +25,7 @@ export async function loadPrint(encounterId: string, logSurface: string) {
   const chart = await loadChartFor(actor, enc.patientUserId, { logSurface });
   const encounter = chart?.encounters.find((e) => e.id === encounterId);
   if (!chart || !encounter) notFound();
-  return { chart, encounter };
+  return { chart, encounter, hospitalId: actor.hospitalId };
 }
 
 /** `?include=<id>&include=<id>`: the restricted items the clinician chose to print. */
