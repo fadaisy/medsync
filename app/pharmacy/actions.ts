@@ -7,7 +7,9 @@ import { z } from "zod";
 
 import { identitiesFor } from "@/lib/emr/read/results";
 import { POINT_COOKIE, requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { findPrescriptions } from "@/lib/pharmacy/read";
+import { findSlipByCode } from "@/lib/pharmacy/review/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 
 /**
@@ -15,6 +17,9 @@ import { requirePharmacyScope } from "@/lib/pharmacy/scope";
  * pharmacy scope (auth, AAL2, pharmacy.view, the flag), then an exact match at the viewer's
  * hospital only. The number travels in the request body, never the URL (§12). An unknown number and
  * a number from another hospital give the same empty answer.
+ *
+ * Pharmacy Phase 1 (LB-6): with `pharmacyDispensing` on, a slip's verification code typed here opens
+ * that slip, for this hospital's pharmacy only; for anyone else it is the same as an unknown number.
  */
 const Input = z.object({ patientNumber: z.string().trim().min(1).max(40) });
 
@@ -29,10 +34,14 @@ export interface FoundRow {
 
 export async function findByPatientNumber(
   input: unknown,
-): Promise<{ rows: FoundRow[]; identities: Record<string, PatientIdentity> }> {
+): Promise<{ rows: FoundRow[]; identities: Record<string, PatientIdentity>; slip?: string }> {
   const parsed = Input.safeParse(input);
   if (!parsed.success) return { rows: [], identities: {} };
   const scope = await requirePharmacyScope();
+  if (pharmacyDispensingLiveFor(scope.hospitalId)) {
+    const slip = await findSlipByCode(scope.hospitalId, parsed.data.patientNumber);
+    if (slip) return { rows: [], identities: {}, slip: slip.id };
+  }
   const { rows } = await findPrescriptions(scope.hospitalId, parsed.data.patientNumber);
   const ids = await identitiesFor(
     scope,

@@ -15,7 +15,9 @@ import { asClinicalWriter } from "@/lib/emr/db";
 import { emrPrescribingLive } from "@/lib/emr/feature";
 import { encounterPrescriptions } from "@/lib/emr/write/prescriptions";
 import { decrypt } from "@/lib/encryption";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { includeSet, loadPrint, restrictedChoices } from "../_lib/load";
+import { PrintRecord } from "./_components/print-record";
 
 export const metadata: Metadata = { title: "Prescription · MedSync" };
 export const dynamic = "force-dynamic";
@@ -93,6 +95,13 @@ export default async function PrescriptionPrintPage({ params, searchParams }: Pr
       date={newest ? f.date(newest.toISOString()) : ""}
       toolbar={<PrintToolbar withheld={choices.withheld} included={choices.included} />}
     >
+      {kept.length && pharmacyDispensingLiveFor(actor.hospitalId) ? (
+        <PrintRecord
+          patientUserId={chart.patientUserId}
+          encounterId={encounterId}
+          prescriptionIds={kept.map((r) => r.id)}
+        />
+      ) : null}
       <section className="flex flex-col gap-3">
         {kept.length ? (
           <ol className="flex flex-col gap-3">

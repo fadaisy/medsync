@@ -68,7 +68,7 @@ const safeDecrypt = (c: string | null) => {
 
 /* ─── The queue ──────────────────────────────────────────────────────── */
 
-const lineColumns = {
+export const lineColumns = {
   id: prescriptions.id,
   placementId: prescriptions.placementId,
   placementLine: prescriptions.placementLine,
@@ -97,7 +97,7 @@ interface CosignRow {
 }
 
 /** The newest co-sign request per prescription line. One round trip. */
-async function cosignsFor(database: EmrDb, hospitalId: string, ids: string[]) {
+export async function cosignsFor(database: EmrDb, hospitalId: string, ids: string[]) {
   if (!ids.length) return new Map<string, CosignRow>();
   const pid = sql<string>`${clinicalCosignRequests.actionPayload}->>'prescriptionId'`;
   const rows = await database
@@ -125,7 +125,7 @@ async function cosignsFor(database: EmrDb, hospitalId: string, ids: string[]) {
 }
 
 /** The encounters behind the lines: department, type, disposition and admission (PQ-3). One trip. */
-async function encountersFor(database: EmrDb, hospitalId: string, ids: string[]) {
+export async function encountersFor(database: EmrDb, hospitalId: string, ids: string[]) {
   if (!ids.length) return new Map<string, QueueEncounter>();
   const rows = await database
     .select({
@@ -143,7 +143,7 @@ async function encountersFor(database: EmrDb, hospitalId: string, ids: string[])
 }
 
 /** Every cadre code → its name: the only title a pharmacy screen shows (Law 4). One trip. */
-async function cadreNames(database: EmrDb) {
+export async function cadreNames(database: EmrDb) {
   const rows = await database.select({ code: cadres.code, name: cadres.name }).from(cadres);
   return new Map(rows.map((r) => [r.code, sentence(r.name)]));
 }
@@ -296,7 +296,7 @@ const TIME_KEY = /^t:([0-9a-f-]{36}|none):([0-9a-f-]{36}):(\d{4}-\d{2}-\d{2}T[\d
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** The rows of one placement key (PQ-1), or null for a key that is neither shape. */
-function keyFilter(key: string) {
+export function keyFilter(key: string) {
   if (UUID.test(key)) return eq(prescriptions.placementId, key);
   const m = TIME_KEY.exec(key);
   if (!m) return null;

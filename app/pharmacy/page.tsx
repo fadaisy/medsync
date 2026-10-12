@@ -1,14 +1,23 @@
 import type { QueuePayload } from "./_components/queue-screen";
 import type { QueuePeriod } from "@/lib/pharmacy/read";
 
+import { CautionNotice } from "@/components/medsync/caution-notice";
+import { REVIEW } from "@/content/pharmacy-review";
 import { identitiesFor } from "@/lib/emr/read/results";
+import { can } from "@/lib/pharmacy/access";
+import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state";
 import { servesOf } from "@/lib/pharmacy/dispensing-points";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { queueFor } from "@/lib/pharmacy/page-data";
 import { defaultLane } from "@/lib/pharmacy/queue";
+import { getReviewQueue } from "@/lib/pharmacy/review/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
+import { isLive } from "@/lib/pharmacy/write";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PharmacyNotice } from "./_components/pharmacy-notice";
 import { QueueScreen } from "./_components/queue-screen";
+import { ReviewQueue } from "./_components/review-queue";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +26,9 @@ const PERIODS: readonly QueuePeriod[] = ["today", "yesterday", "7d"];
 /**
  * The queue (§5.3): every prescription written in the period at the viewer's hospital, one row per
  * placed prescription, read-only. Identities are revealed once per load, in one batch (PQ-12).
+ *
+ * Pharmacy Phase 1 (5.1, 5.2): with `pharmacyDispensing` on and the acting point live, the review
+ * queue instead. A point that is not live keeps this Phase 0 queue, unchanged.
  */
 export default async function PharmacyQueuePage({
   searchParams,
@@ -30,6 +42,12 @@ export default async function PharmacyQueuePage({
   }>;
 }) {
   const scope = await requirePharmacyScope();
+  if (pharmacyDispensingLiveFor(scope.hospitalId)) {
+    const actor = await requirePharmacyActor();
+    const point = actor.points.find((p) => p.id === actor.pointId);
+    if (point && isLive(point))
+      return <ReviewQueuePage scope={scope} actor={actor} pointId={point.id} />;
+  }
   const sp = await searchParams;
   const raw = sp.period;
   const period = PERIODS.includes(raw as QueuePeriod) ? (raw as QueuePeriod) : "today";
@@ -66,5 +84,51 @@ export default async function PharmacyQueuePage({
   };
   return (
     <QueueScreen payload={payload} notice={<PharmacyNotice hospitalId={scope.hospitalId} />} />
+  );
+}
+
+/** 5.2 at a live point: the review queue, with the notice at a live point (B-02, CK-1, C1). */
+async function ReviewQueuePage({
+  scope,
+  actor,
+  pointId,
+}: {
+  scope: Awaited<ReturnType<typeof requirePharmacyScope>>;
+  actor: Awaited<ReturnType<typeof requirePharmacyActor>>;
+  pointId: string;
+}) {
+  const data = await getReviewQueue(scope.hospitalId, pointId);
+  const ids = await identitiesFor(
+    scope,
+    data.rows.map((r) => r.patientUserId),
+    "pharmacy_queue",
+  );
+  const state = pharmacyChecksState(
+    scope.hospitalId,
+    data.points.map((p) => ({ id: p.id, live: p.live })),
+  );
+  const refs = state.doseReferences;
+  const notice = anythingNotDone(state) ? (
+    <CautionNotice
+      lead={
+        refs
+          ? REVIEW.fill(REVIEW.noticeQueue, { signed: refs.signed, total: refs.total })
+          : REVIEW.noticeQueueNoCounts
+      }
+    />
+  ) : null;
+  return (
+    <ReviewQueue
+      notice={notice}
+      payload={{
+        ...data,
+        hospitalName: scope.hospitalName,
+        identities: Object.fromEntries(ids),
+        actingPointId: pointId,
+        canReview: can(actor.access, "pharmacy.review"),
+        canDispense: can(actor.access, "pharmacy.dispense"),
+        timeZone: DEFAULT_TIME_ZONE,
+      }}
+    />
   );
 }

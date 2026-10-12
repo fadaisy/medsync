@@ -1,13 +1,15 @@
-import type { QueueEncounter, QueueFilters, QueueLine } from "@/lib/pharmacy/queue";
+import type { QueueEncounter, QueueFilters, QueueLine, ReviewQueueRow } from "@/lib/pharmacy/queue";
 import { describe, expect, it } from "vitest";
 
 import {
   computeQueue,
+  computeReviewQueue,
   defaultLane,
   laneOf,
   lineState,
   placementKey,
   rowState,
+  servesRow,
 } from "@/lib/pharmacy/queue";
 
 /**
@@ -342,5 +344,62 @@ describe("DP-4: the dispensing point picks the opening lane", () => {
     [null, "all"],
   ] as const)("%s → %s", (serves, lane) => {
     expect(defaultLane(serves)).toBe(lane);
+  });
+});
+
+describe("the review queue (Pharmacy Phase 1, 5.2)", () => {
+  const r = (o: Partial<ReviewQueueRow> & { key: string }): ReviewQueueRow => ({
+    lane: "standard",
+    stage: "to_review",
+    origin: "window",
+    reasons: [],
+    writtenAt: "2026-10-12T07:00:00.000Z",
+    earlier: false,
+    ...o,
+  });
+  const rows = [
+    r({
+      key: "a",
+      lane: "pharmacist_first",
+      reasons: ["renal_check"],
+      writtenAt: "2026-10-12T06:00:00.000Z",
+    }),
+    r({
+      key: "b",
+      lane: "pharmacist_first",
+      reasons: ["overridden_stop"],
+      writtenAt: "2026-10-12T07:30:00.000Z",
+    }),
+    r({ key: "c", stage: "queried" }),
+    r({ key: "d", origin: "ward", lane: "pharmacist_first", reasons: ["controlled"] }),
+    r({ key: "e", earlier: true, writtenAt: "2026-10-09T07:00:00.000Z" }),
+  ];
+
+  it("lane counts ignore the lane filter and add up to All; stage counts are within lane and point", () => {
+    const q = computeReviewQueue(rows, {
+      lane: "pharmacist_first",
+      stage: "all",
+      serves: "window",
+    });
+    expect(q.laneCounts).toEqual({ pharmacist_first: 2, standard: 2, all: 4 });
+    expect(q.laneCounts.pharmacist_first + q.laneCounts.standard).toBe(q.laneCounts.all);
+    expect(q.stageCounts).toMatchObject({ all: 2, to_review: 2, queried: 0 });
+    const all = computeReviewQueue(rows, { lane: "all", stage: "all", serves: null });
+    expect(all.total).toBe(5);
+  });
+
+  it("an overridden stop first, then oldest first; earlier rows under the divider", () => {
+    const q = computeReviewQueue(rows, { lane: "all", stage: "all", serves: "window" });
+    expect(q.today.map((x) => x.key)).toEqual(["b", "a", "c"]);
+    expect(q.earlier.map((x) => x.key)).toEqual(["e"]);
+    const std = computeReviewQueue(rows, { lane: "standard", stage: "queried", serves: "all" });
+    expect(std.today.map((x) => x.key)).toEqual(["c"]);
+  });
+
+  it("5.1: a point serves the prescriptions written where it serves", () => {
+    expect(servesRow("wards", "ward")).toBe(true);
+    expect(servesRow("window", "ward")).toBe(false);
+    expect(servesRow("all", "window")).toBe(true);
+    expect(servesRow(null, "ward")).toBe(true);
   });
 });

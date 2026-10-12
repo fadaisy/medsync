@@ -39,6 +39,18 @@ export const PlanBasketRxSchema = PlanRxSchema.extend({
   display: text(400),
   drugName: text(160),
   problemLogicalId: uuid.nullable(),
+  /**
+   * Pharmacy Phase 1 (5.4, H4): this line changes a placed one in answer to the pharmacy. After the
+   * basket is placed, the old line is cancelled naming this one. Never sent to placePlan.
+   */
+  replaces: z
+    .object({
+      lineId: uuid,
+      /** The query's id, or the not-supplied line event's. */
+      ref: uuid,
+      kind: z.enum(["query", "notice"]),
+    })
+    .optional(),
 });
 export type PlanBasketRx = z.infer<typeof PlanBasketRxSchema>;
 

@@ -2,16 +2,19 @@
 
 import type { AllergyItems } from "./medicines";
 import type { PlanView } from "./model";
+import type { PharmacyHandlers } from "./pharmacy";
 import type { PrescribeTarget } from "./problem-card";
 import type { PlanBasketRx, PlanDraft, PlanOrderLine } from "@/lib/clerking/plan/draft";
 import type { ObsFrequency } from "@/lib/emr/charts/rules";
 import type { PlanRx } from "@/lib/prescribing/plan-rx";
+import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { ChevronLeftIcon, XIcon } from "lucide-react";
 
 import { MonitoringChartsView } from "@/components/emr/chart/monitoring/monitoring-charts-view";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
+import { PRESCRIBER_PHARMACY_COPY } from "@/content/pharmacy-prescriber";
 import { words } from "@/lib/clerking/impression/board";
 import { REASON_WORDS, statusWord } from "@/lib/clerking/plan/checklist";
 import {
@@ -26,6 +29,8 @@ import {
   OBS_WORD,
   urgentBandLine,
 } from "@/lib/clerking/plan/observations";
+import { standing } from "@/lib/clerking/plan/record";
+import { answerQuery, chooseAlternative } from "@/lib/emr/actions/pharmacy-queries";
 import { CHART_FREQUENCY_WORD, CHART_NAME } from "@/lib/emr/charts/rules";
 import { ORDER_PRIORITY_WORD } from "@/lib/emr/orders";
 import { cn } from "@/lib/utils";
@@ -42,6 +47,7 @@ import {
   Tag,
   Toggle,
 } from "./parts";
+import { PharmacyAnnounce, PharmacyItemBlock } from "./pharmacy";
 import { PlanPrescribeDialog } from "./prescribe-dialog";
 import { ProblemCard } from "./problem-card";
 
@@ -370,6 +376,11 @@ export function PlanStep(props: PlanStepProps) {
   const canWrite = editable && act;
   const [target, setTarget] = useState<PrescribeTarget | null>(null);
   const [placing, setPlacing] = useState(false);
+  const router = useRouter();
+  const pharmacy = v.payload.pharmacy ?? null;
+  // Pharmacy Phase 1 (5.4): the line a dialog opened from a query or notice is changing.
+  const [replacing, setReplacing] = useState<PlanBasketRx["replaces"] | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const d = v.draft;
   const discharge = d.disposition?.kind === "discharge";
   const whereId = useId();
@@ -384,11 +395,12 @@ export function PlanStep(props: PlanStepProps) {
     const ok = await on.onPlacePlan?.({
       orders: b.orders,
       prescriptions: b.prescriptions.map(
-        ({ display: _d, drugName: _n, problemLogicalId: _p, ...rx }) => rx,
+        ({ display: _d, drugName: _n, problemLogicalId: _p, replaces: _r, ...rx }) => rx,
       ),
       observationFrequency: v.draft.observations?.frequency ?? null,
       measureUrine: !!v.draft.measureUrine,
     });
+    if (ok) await linkChanges(b.prescriptions);
     setPlacing(false);
     if (ok)
       onPlan((x) => {
@@ -405,6 +417,68 @@ export function PlanStep(props: PlanStepProps) {
         };
       });
   };
+
+  /**
+   * 5.4, H4: once placed, a line placed to change one the pharmacy asked about cancels the old line
+   * naming it. A query about one line closes; a whole prescription waits for Changes made.
+   */
+  // ponytail: a failed link after a successful place leaves both lines standing (said below); the
+  // doctor stops the old one from its query. A server-side link inside placePlan would be atomic.
+  const linkChanges = async (placed: readonly PlanBasketRx[]) => {
+    const links = placed.filter((r) => r.replaces);
+    if (!pharmacy || !links.length) return;
+    const base = { surface: "doctor" as const, patientUserId: pharmacy.patientUserId };
+    const failed: string[] = [];
+    for (const r of links) {
+      const x = r.replaces!;
+      const res = await (
+        x.kind === "notice"
+          ? chooseAlternative({ ...base, lineEventId: x.ref, replacedByClientKey: r.clientKey })
+          : answerQuery({
+              ...base,
+              queryId: x.ref,
+              clientKey: `${r.clientKey}:answer`,
+              answer: "changed",
+              lineId: x.lineId,
+              replacedByClientKey: r.clientKey,
+            })
+      ).catch(() => null);
+      if (!res?.ok) failed.push(res?.error ?? `${r.drugName}: the change was not linked.`);
+    }
+    setLinkError(failed.length ? failed.join(" ") : null);
+    router.refresh();
+  };
+
+  const pharmacyHandlers: PharmacyHandlers | undefined = pharmacy
+    ? {
+        canChange: v.payload.prescribing && v.cards.length > 0,
+        inBasket: new Set(
+          basketOf(v.draft).prescriptions.flatMap((r) => (r.replaces ? [r.replaces.lineId] : [])),
+        ),
+        onChange: (item, line) => {
+          const problem = v.cards.find((c) => c.versionId === line.conditionId) ?? v.cards[0];
+          if (!problem) return;
+          setReplacing({
+            lineId: line.id,
+            ref: item.id,
+            kind: item.kind === "query" ? "query" : "notice",
+          });
+          setTarget({ problem, drugId: line.drugId });
+        },
+      }
+    : undefined;
+  // Items not shown under a line on a card: a whole prescription, or a line from another visit.
+  const onCard = new Set(
+    v.record.prescriptions
+      .filter((r) => standing(r) && v.cards.some((c) => c.versionId === r.conditionId))
+      .map((r) => r.id),
+  );
+  const loose =
+    pharmacy?.items.filter(
+      (i) =>
+        (i.kind === "query" && i.scope === "prescription") ||
+        !i.lines.some((l) => onCard.has(l.id)),
+    ) ?? [];
 
   const markDone = async () => {
     onPlan((x) => ({
@@ -425,6 +499,33 @@ export function PlanStep(props: PlanStepProps) {
 
   return (
     <div className="flex flex-col gap-8">
+      {pharmacy ? <PharmacyAnnounce announce={pharmacy.announce} /> : null}
+      {pharmacy && pharmacyHandlers && (loose.length || linkError) ? (
+        <Section id="plan-pharmacy" title={PRESCRIBER_PHARMACY_COPY.heading}>
+          {linkError ? (
+            <p role="status" className="text-body-s text-foreground">
+              {linkError}
+            </p>
+          ) : null}
+          <ul className="flex flex-col gap-3">
+            {loose.map((i) => (
+              <li key={i.id} className="flex flex-col gap-1">
+                {!i.thisVisit ? (
+                  <span className="text-caption text-muted-foreground">
+                    {PRESCRIBER_PHARMACY_COPY.earlier}
+                  </span>
+                ) : null}
+                <PharmacyItemBlock
+                  item={i}
+                  view={pharmacy}
+                  canWrite={canWrite}
+                  handlers={pharmacyHandlers}
+                />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
       <Where v={v} editable={editable} onPlan={onPlan} />
 
       <Section id="plan-problems" title="By problem">
@@ -438,9 +539,13 @@ export function PlanStep(props: PlanStepProps) {
                 editable={editable}
                 act={act}
                 onPlan={onPlan}
-                onPrescribe={setTarget}
+                onPrescribe={(t) => {
+                  setReplacing(null);
+                  setTarget(t);
+                }}
                 time={time}
                 defaultOpen={i === 0 || c.mustNotMiss}
+                pharmacy={pharmacyHandlers}
               />
             ))}
           </ul>
@@ -625,10 +730,14 @@ export function PlanStep(props: PlanStepProps) {
           v={v}
           allergies={props.allergies}
           target={target}
-          onClose={() => setTarget(null)}
-          onAdd={(rx) => {
-            addRx(rx);
+          onClose={() => {
             setTarget(null);
+            setReplacing(null);
+          }}
+          onAdd={(rx) => {
+            addRx(replacing ? { ...rx, replaces: replacing } : rx);
+            setTarget(null);
+            setReplacing(null);
           }}
           time={time}
         />
