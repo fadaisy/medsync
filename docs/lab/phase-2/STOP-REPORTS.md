@@ -237,3 +237,16 @@ exist. A keyboard-wedge scan is typed text plus Enter in a harness plan step.
 **Baseline.** Screenshots and the scripted HbA1c run need the harness with a production build; I will take the
 "before" shots at Step 4 from the same harness run so the comparison is like for like. The three failing tests
 (G1, G4, G7) are written with the fixes they prove (Steps 5, 6, 9), each first run red against the old code.
+
+## STOP 1: GATE A (12 Oct 2026)
+
+The proposal is `docs/lab/phase-2/gate-a-proposal.md`. The owner told the session to pass every gate on
+Claude's recommendations, so every design decision is recorded as accepted and the build goes on. Nothing
+clinical is signed by that: ranges, schemes, elevation, the HIV algorithm, the eGFR and IFCC constants, the
+concept addendum and every string a clinician reads stay drafts until they are signed in the product, and
+the eight flags stay off in production until the CSO signs the copy.
+
+The main simplifications: one signed-configuration table instead of nine; the creatinine method on Phase 1's
+versioned measures; the order's existing reason text as the clinical question; the identity reveal's access
+log reused for the working diagnosis; a bedside report recognised by its device. Seventeen differences from
+the prompts are listed with reasons in §1 of the proposal.
