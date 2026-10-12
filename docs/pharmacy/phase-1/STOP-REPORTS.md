@@ -501,3 +501,36 @@ questions 1–6** (Appendix E). Without them STOP 1 cannot be signed.
   cut-over (`lab_cutover`, 0105) are therefore on this branch from Step 1. GATE A builds on them directly (DT-1,
   E-PH1-06), not after a later rebase.
 - **SQL A–D:** not yet returned. Q7's counts are marked "awaiting" in the GATE A proposal.
+
+---
+
+## STOP 1 — GATE A proposal (12 Oct 2026)
+
+Documents only, commit `797a3ac6`.
+
+| Document                                     | What it holds                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [gate-a-proposal.md](gate-a-proposal.md)     | Prompt-vs-repo changes (D-PH1-41 to 49); access; the LO-4 diagram with 30 worked moves and the two-point race; lanes with three reason sets over six fixtures; the ledger's worked day; queries and delivery; schema diff 0122–0131; RLS probe plan; concurrency plan; test plan; rollout; ADR drafts 0260–0279; the decision table and signature block |
+| [gate-a-wireframes.md](gate-a-wireframes.md) | Every screen of Section 5, annotated, with 5.14's differences as built; tablet and phone behaviour                                                                                                                                                                                                                                                      |
+| [gate-a-content.md](gate-a-content.md)       | 115 strings (6 signed in Phase 0, 109 draft) with signers; 19 blank sign-off packs; the legal sheet; permission map v2 (draft JSON)                                                                                                                                                                                                                     |
+| [hazard-log.md](hazard-log.md)               | 59 hazards (43 from Appendix C, 16 added), each with control, proving test and residual risk                                                                                                                                                                                                                                                            |
+| [gate-a-brief.md](gate-a-brief.md)           | The design choices every GATE A document follows                                                                                                                                                                                                                                                                                                        |
+
+**Stage 1 critique, two passes.** The first pass added the replacement-line grouping and a home for the
+prescriber's cancel reason. The second folded in what the annexes found:
+
+- W1–W11, from drawing the screens;
+- H1–H8, from the hazard log;
+- C1–C4, from the strings.
+
+H1 was corrected against the code: visit close sets `completed` only on lines the prescriber chose not to
+continue, so a `completed` line is never supplied.
+
+**STOP 1. Nothing proceeds until all three are on record:**
+
+1. **The CSO's decision on every row of the proposal's §14** (D-PH1-01 to 49, E-PH1-01 to 13).
+2. **The pharmacist reviewer's name.** They co-sign the rows marked PR, the clinical packs and the hazard log.
+3. **An interim written answer to legal questions 1 to 6:** for each, a document reference, who gave it and the
+   date. None is on record. D-PH1-03, 05, 13, 17, 26 and 28 cannot be signed without them.
+
+Also still open: owner SQL A–D from STOP 0. Q7's lane counts are needed for D-PH1-04.
