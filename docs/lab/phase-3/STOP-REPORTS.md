@@ -318,3 +318,290 @@ tests need the lead's mapping choice before the mapping can be signed: `test.uri
 `test.syphilis`, `test.islet_autoantibodies`.
 
 **Next:** Step 2, the data layer (0112–0117, the triggers, the `poct_lots` move, flags, permissions, RLS probes).
+
+## STOP 2: Data layer (13 Oct 2026)
+
+Migrations written, never applied (the owner applies them). All six are GATED, additive and re-runnable; every new
+table has RLS enabled and forced, INSERT, UPDATE, DELETE and TRUNCATE revoked from `anon` and `authenticated`, the
+`audit_log_changes` trigger, and SELECT for `medsync_clinical_reader` only, scoped to `private.current_hospital_id()`.
+
+### Migrations
+
+| File                           | What it adds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0112_lab_stock.sql`           | Reader helpers `private.lab_reader()` (lab cadre, or open head of LABORATORY or a section, substantive or acting) and `private.bedside_device_ids()` (a live bedside operator's bedside devices on a ward of their department, or on no ward). `lab_signed_configs`: eight new kinds, `lsc_signed_by_two` with lead-only kinds. `lab_settings.quality`. `lab_stock_items`, `lab_stock_lots` (state guard), `lab_stock_lot_events`, `lab_deliveries`, `lab_stock_counts`, `lab_stock_transactions`, `lab_lot_acceptances`, `lab_lots_in_use` (accepted-lot guard). `lab_result_snapshots.lots`, `.qc`. The `poct_lots` move, the foreign-key repoint and the count check |
+| `0113_lab_equipment.sql`       | `devices`: twelve equipment kinds, states `down` and `blocked`, `section_id`, `details`, `linked_concepts`, `linked_tests`, `schedules`. `analyser_profiles.device_id`. `lab_equipment_logs`, `lab_breakdowns` (closed once; one open per device)                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `0114_lab_qc.sql`              | `lab_qc_runs`, `lab_qc_status`, `lab_control_checks`, `lab_nonconformities` (opened facts kept, frozen when closed), `lab_nc_events`, `lab_lookback_items` (decided once; PHI policy), `diagnostic_reports.qc_held`                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `0115_lab_eqa.sql`             | `lab_eqa_schemes`, `lab_eqa_rounds`, `lab_alt_assessments`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `0116_lab_bedside_quality.sql` | `lab_competencies` (a reassessment is a new row; only the revocation is ever set, once)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `0117_lab_registers_hmis.sql`  | `hmis_designations` with `private.hmis_designated()` and `private.hospital_admin_reader()`; `lab_register_prints`; `lab_hmis_reports` (frozen once signed, never deleted) with `private.lab_hmis_aggregates()`; `encounter_orders.test_purpose`; seven specimen types                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+Code beside them: Drizzle `db/schema/lab-quality.ts` (23 tables) and the new columns on `devices`, `specimens`
+(CHECK), `diagnostic_reports`, `encounter_orders`, `lab_settings`, `lab_result_snapshots`, `analyser_profiles`;
+`SPECIMEN_TYPES` gains the seven; eight flags in `lib/lab/feature.ts` behind `LAB3_COPY_STATUS` (draft) in
+`content/lab-phase-3.ts`, which holds Appendix A word for word (`hmisCountingRules` is the nine HM-3 texts of §8.3);
+five permissions in `lib/lab/access.ts`; `lib/lab/hmis-designations.ts` (`hmisRolesFor`).
+
+**Permissions.** `lab.qc.override`, `lab.eqa.manage` and `lab.hmis.check` come with `lab.manage` from headship
+(the scope already counts acting heads); no cadre can carry them. `lab.stock.manage` and `poct.assess` are in
+`data/lab/permission-map.v2.json`, **draft**: until the CSO signs it, 1.0.0 stays in force and no cadre holds them.
+
+### RLS probe table (every object × every actor; `tests/emr-db/lab-phase3-data.test.ts`)
+
+Fixtures in hospital A: two bedside meters (one on the nurse's ward, one on another), an analyser, a strip item with
+two moved lots, a reagent item and lot, one row or more in every table. "read" = every hospital-A row; "own" = only
+the rows below; "0" = nothing. The test asserts exact counts.
+
+| Object                                                                                                        | Lab staff                       | Lead (acting head) | In-Charge              | Focal                  | Nurse operator                          | Hospital admin         | Clinician                  | Other hospital | Superadmin | Anon |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------ | ---------------------- | ---------------------- | --------------------------------------- | ---------------------- | -------------------------- | -------------- | ---------- | ---- |
+| `lab_stock_items`                                                                                             | read                            | read               | 0                      | 0                      | own (the item of her device's lot)      | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_stock_lots`                                                                                              | read                            | read               | 0                      | 0                      | own (lots in use on her ward's devices) | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_lots_in_use`                                                                                             | read                            | read               | 0                      | 0                      | own (her ward's devices)                | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_stock_lot_events`, `lab_stock_transactions`, `lab_deliveries`, `lab_stock_counts`, `lab_lot_acceptances` | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_equipment_logs`                                                                                          | read                            | read               | 0                      | 0                      | own (her ward's devices)                | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_breakdowns`                                                                                              | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_qc_runs`, `lab_qc_status`                                                                                | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_control_checks`                                                                                          | read                            | read               | 0                      | 0                      | own (her ward's device checks)          | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_nonconformities`, `lab_nc_events`                                                                        | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_lookback_items` (PHI)                                                                                    | read (patients they may access) | read (same)        | 0                      | 0                      | 0                                       | **0**                  | 0                          | 0              | 0          | 0    |
+| `lab_eqa_schemes`, `lab_eqa_rounds`, `lab_alt_assessments`                                                    | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_competencies`                                                                                            | read                            | read               | 0                      | 0                      | own row                                 | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_register_prints`                                                                                         | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `lab_hmis_reports` (table)                                                                                    | read                            | read               | 0                      | 0                      | 0                                       | 0                      | 0                          | 0              | 0          | 0    |
+| `private.lab_hmis_aggregates()`                                                                               | 1 report                        | 1 report           | 1 report, no `sources` | 1 report, no `sources` | 0                                       | 1 report, no `sources` | 0                          | 0              | 0          | —    |
+| `hmis_designations`                                                                                           | read (2)                        | read (2)           | own (1)                | own (1)                | 0                                       | read (2)               | 0                          | 0              | 0          | 0    |
+| `diagnostic_reports.qc_held`                                                                                  | as today                        | as today           | —                      | —                      | —                                       | 0                      | read (may open the result) | 0              | 0          | 0    |
+
+Also proved: staff of hospital B asserting hospital A's id read nothing in any table; a CONSULTANT who is the
+substantive head of the Laboratory (no lab cadre) reads the quality records and no look-back item (no access basis
+to the patient); any `authenticated` client INSERT fails and UPDATE or DELETE touches no row, in all 23 tables.
+Indicator drill-down functions are Step 10 (none exists yet).
+
+### Append-only proofs
+
+- `lab_stock_lot_events`, `lab_stock_transactions`, `lab_deliveries`, `lab_stock_counts`, `lab_lot_acceptances`,
+  `lab_lots_in_use`, `lab_equipment_logs`, `lab_qc_runs`, `lab_control_checks`, `lab_nc_events`,
+  `lab_register_prints`: UPDATE and DELETE raise `append-only` for the owner **and as `service_role`** (which
+  bypasses RLS and keeps its grants: only the trigger stops it).
+- Once-only, also as `service_role`: a breakdown is closed once and nothing else changes; a look-back item is decided
+  once; a competency is revoked once; a nonconformity keeps what was opened and is frozen once closed; a signed HMIS
+  report changes only to record its export, once, and no report is ever deleted. None of these deletes.
+- Lots: a lot starts `received` (or moved in as `before_medsync`); its state changes only along §5.1 and only with a
+  matching `lab_stock_lot_events` row in the **same transaction** (an event from an earlier transaction is refused);
+  received → in use is refused; a lot is never deleted and its item and number never change; `lab_lots_in_use`
+  refuses a lot that is not accepted (LU-2).
+- Signers: a `kit_qc_rule` signs with the lead alone; a `qc_plan` with the lead alone is refused (`lsc_signed_by_two`).
+
+### `poct_lots` count check
+
+In the migration (0112 refuses to finish otherwise) and in the test: `count(poct_lots) = count(lab_stock_lots WHERE
+accepted_basis = 'before_medsync' AND id IN (SELECT id FROM poct_lots))`, every `diagnostic_reports.lot_id` resolves
+in `lab_stock_lots`, and the foreign key now targets `lab_stock_lots`. The test writes a lot with the copy trigger
+off (as before 0112), runs 0112 twice: 3 = 3 lots, 3 events, 3 lots-in-use rows; the old lot kept its id, number,
+use-by and device; two meters on one strip lot are one item with two lots. The reverse plan is in the 0112 header.
+
+### Admin aggregates only (RLS level)
+
+The hospital admin, the In-Charge and the focal person read no row of `lab_hmis_reports` directly; through
+`private.lab_hmis_aggregates()` they get the report with its cells and **without** `sources` (the record ids). A
+clinician, a nurse, another hospital and a superadmin get nothing. The admin reads no look-back item and no
+diagnostic report.
+
+### Differences from the proposal (for Step 3 onward)
+
+- **`poct_lots` copy trigger.** Phase 2's bedside screens still write `poct_lots`; until Step 4 moves them onto the
+  ledger, `poct_lots_into_ledger` copies each new lot (same id) so the repointed foreign key always resolves. Step 4
+  drops the trigger with the readers' move.
+- **Lot uniqueness.** `UNIQUE (item_id, lot)` exempts the moved `before_medsync` rows: Phase 2 kept lots per device,
+  so two meters on one strip lot arrive as two rows that must keep their ids.
+- **Lot transitions** add `in_acceptance → quarantined` (the proposal's own Determine example, §5.1). `lib/lab/stock.ts`
+  does not list it yet.
+- **`lab_register_prints.register`** is `general`, `hiv`, `tb`, `mental_health` or `sexual_reproductive_health`
+  (the restricted classes) in place of the proposal's placeholder `class`.
+- Columns the proposal left implicit: `id` on `lab_stock_lot_events` and `lab_nc_events`; `lab_qc_runs."values"` is a
+  reserved word (quoted in SQL; Drizzle quotes it); `lab_nonconformities.owner` is nullable (an automatic
+  nonconformity at a lab with no lead still opens); `lab_hmis_reports.mapping_config_id` may be empty until the report
+  is signed; `lab_register_prints.config_id` is empty while the canvas defaults are used (OA-3).
+- **Specimen types:** the catalogue's sputum tests already name `sputum` and no stool or swab test exists, so no
+  catalogue row changes.
+- **Signed-config payloads** (`PAYLOADS`, `KIND_WORDS`, the sign-off page) for the eight kinds are not added here:
+  each lands with the step that first writes it.
+- **Bedside nurse scope** reads devices on a ward of her affiliation's department, or on no ward
+  (`private.bedside_device_ids()`).
+
+### Checks
+
+- `npx tsc --noEmit`: clean (0 errors).
+- `npm run lint`: 0 errors (2 warnings, both in `scripts/embed-bench.mjs`, there before this step).
+- `vitest run tests/emr-db tests/lab tests/design` on the PGlite lane: 93 files, 1281 passed, 3 expected failures
+  (the Step 0 baseline `it.fails`, still in place), 0 failed. The count includes the engine tests the parallel Step 3
+  work added. Baseline before this step: 82 files, 1090 passed, 3 expected failures.
+- New tests: `tests/emr-db/lab-phase3-data.test.ts` (13), `tests/lab/feature.test.ts` Phase 3 flags and Appendix A
+  word for word (3), `tests/lab/access.test.ts` (LA-1 now names eleven permissions; two Phase 3 cases).
+
+**Next:** Step 3, the engines (pure, no UI).
+
+## STOP 3: Engines (13 Oct 2026)
+
+Pure engines for §6.1–6.12, no UI and no I/O: input in, output out; no `@/db`, no `server-only`, no clock (every
+function takes `now`/`at` and the time zone). Hospital-local days reuse `localDateKey` and `endOfLocalDay` from
+`supabase/functions/_shared/slots.ts` (`DEFAULT_TIME_ZONE`), through five small day helpers in `lib/lab/stock.ts`.
+Reused: `computeFlag` (`lib/lab/flags.ts`) for the look-back sort, `releasedTurnaround` (`lib/lab/turnaround.ts`)
+for the turnaround indicators. Nothing committed.
+
+**Files.** `lib/lab/{stock,acceptance,lots-in-use,equipment,qc-kits,qc-rules,qc,lookback,eqa,nonconformity,
+bedside-quality,register,hmis105,indicators}.ts` (none was I/O only, so none was skipped);
+`data/lab/hmis105-2019-09.json` (134 rows from research Part A §1, every row `verified: false`, `hasPositive: null`,
+every eHMIS id null); tests in `tests/lab/phase-3/` (11 files, `_fixtures.ts`, and `fixtures/count105-month.ts`,
+`fixtures/count105-expected.json`, `fixtures/count105-expected.md`). Every number in a test is a named fixture;
+Westgard rule definitions are the only structure in code.
+
+**Tests.** 175 new tests, all green (`stock` 13, `acceptance` 31 incl. lots in use, `qc-rules` 28, `qc` 14,
+`lookback` 11 incl. nonconformities, `qc-kits` 10, `equipment` 6, `eqa-bedside` 11, `register` 6, `hmis105` 25,
+`indicators` 20); the three Step 0 baseline `it.fails` are unchanged. Every list and count is shown with two hospitals.
+The count105 fixture caught two engine bugs before this report (a positive column ignored its row's stain-method
+filter; an empty expired quantity came out as `-0`); both fixed.
+
+### Choices the proposal left open (engine level; each in a comment where it lives)
+
+- `hmis_mapping` needs, beyond §3.1's list: `visits` (encounter type → LV01/LV02), `hivTests`, `kits` (algorithm kit
+  name → 10.3 row), `kitItems` (stock item → 10.3 row, for IQC), `purposes` (→ 10.3 column) and `excluded` (menu
+  tests the lead does not report); `reasons` takes a `none` key for orders placed before the snapshot carried a
+  reason. For the Zod payload at Step 9.
+- The EQA look-back runs "to scoring", so the engine takes a `scoredOn` date; `lab_eqa_rounds` has no such column
+  (add one, or take the time the scores were entered).
+- An amended result counts in the month of its first release, with the current version's answers (HM-3 a, g).
+- 10.3: an inconclusive outcome counts once, on the kit of the last step performed; Total is every patient kit test,
+  purpose recorded or not (IQC and EQA are their own columns).
+- QH-5 offers any in-service analyser whose latest run was accepted (`passed`, `warning`, `provisional_target`), not
+  held.
+- `per_run` QC frequency reads as the hospital-local day (analyser runs are not modelled); QQ-3's minimum span counts
+  distinct hospital-local days.
+- ST-4 averages the whole months before the current one; the history must reach the window's start.
+- LB-2 with two failed levels takes the larger estimate (it only sorts).
+- EQ-6 "Reading not recorded": the day is split into `readingsPerDay` equal windows; an ended window with no reading
+  is missing.
+- Indicators count stock-out days only for days that have ended.
+- The form file's SHA-256 is left to the caller (Step 9).
+
+### Rule coverage (rule → number of tests → one test name)
+
+| Rule  | n   | Test                                                                                                                               |
+| ----- | --- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| ST-1  | 1   | `stock.test.ts`: ST-1 an item carries kind, tests per unit, linked tests, tracer code and levels                                   |
+| ST-2  | 1   | `stock.test.ts`: ST-2 lot states move only along GATE A §5.1, and expired is the clock's verdict                                   |
+| ST-3  | 1   | `stock.test.ts`: ST-3 on hand is the sum of the ledger, per item, lot and hospital                                                 |
+| ST-4  | 3   | `stock.test.ts`: ST-4 uses the issues of the last whole months, net of returns                                                     |
+| ST-5  | 1   | `stock.test.ts`: ST-5 quantity to reach maximum is max × use − on hand, never negative; below minimum flagged                      |
+| ST-6  | 2   | `stock.test.ts`: ST-6 nextLotToUse returns the selectable lot with the earliest use-by                                             |
+| ST-7  | 1   | `stock.test.ts`: ST-7 counts days at 0 at the end of the hospital-local day, across a month boundary                               |
+| ST-8  | 1   | `stock.test.ts`: ST-8 expiry alerts at the window, and expired lots cannot be issued or selected                                   |
+| ST-9  | 1   | `stock.test.ts`: ST-9 expected versus issued lists a difference beyond the tolerance, and informs only                             |
+| ST-10 | 1   | `stock.test.ts`: ST-10 the count lists items due; a discrepancy needs a reason and adjusts the ledger                              |
+| LA-1  | 1   | `acceptance.test.ts`: LA-1 each method decides from its own evidence                                                               |
+| LA-2  | 1   | `acceptance.test.ts`: LA-2 the plan states its triggers                                                                            |
+| LA-3  | 17  | `acceptance.test.ts`: LA-3 { absolute: 0.5, combine: 'larger' }: current 4, candidate 4.5 → within                                 |
+| LA-4  | 7   | `acceptance.test.ts`: LA-4 received → not_accepted (bench lots in use, analyser and bedside share this check)                      |
+| LA-5  | 1   | `acceptance.test.ts`: LA-5 comparison samples are shown as Sample n with their level, recorded by result id                        |
+| LA-6  | 1   | `acceptance.test.ts`: LA-6 go-live lots are accepted (before MedSync) only with the lead's statement                               |
+| LU-1  | 1   | `acceptance.test.ts`: LU-1 the lots in use per analyser and component: reagent, calibrator, control                                |
+| LU-2  | 1   | `acceptance.test.ts`: LU-2 changing a lot in use needs the lot accepted or in use, not expired                                     |
+| LU-3  | 1   | `acceptance.test.ts`: LU-3 a release snapshots the lots at the result time; downtime without a time is 'lot not recorded'          |
+| EQ-1  | 1   | `equipment.test.ts`: EQ-1 the register's linked components and kits decide what back in service needs                              |
+| EQ-2  | 1   | `equipment.test.ts`: EQ-2 marking down reports a hub problem for tests whose only in-service machine this is                       |
+| EQ-3  | 1   | `equipment.test.ts`: EQ-3 back in service needs a repair and an accepted run after it for every linked component                   |
+| EQ-4  | 1   | `equipment.test.ts`: EQ-4 maintenance tasks are overdue by days or count; only 'required before use' blocks                        |
+| EQ-5  | 1   | `equipment.test.ts`: EQ-5 calibration items fall due from their schedule                                                           |
+| EQ-6  | 1   | `equipment.test.ts`: EQ-6 an out-of-range reading opens a nonconformity and suggests quarantine; missing readings are listed       |
+| KQ-1  | 1   | `qc-kits.test.ts`: KQ-1 a rule per kit: triggers, controls, expected answers, required before use or informs                       |
+| KQ-2  | 5   | `qc-kits.test.ts`: KQ-2 nothing done: every trigger is due                                                                         |
+| KQ-3  | 2   | `qc-kits.test.ts`: KQ-3 a failed control quarantines the lot at once and opens a nonconformity                                     |
+| KQ-4  | 1   | `qc-kits.test.ts`: KQ-4 a pass on a new lot whose acceptance plan is qc_pass accepts the lot                                       |
+| KQ-5  | 1   | `qc-kits.test.ts`: KQ-5 stain QC passes only when every signed criterion is ticked                                                 |
+| KQ-6  | 1   | `hmis105.test.ts`: KQ-6 HIV rapid-test QC events are counted in 10.3 as IQC, by kit                                                |
+| QQ-1  | 1   | `qc.test.ts`: QQ-1 a control lot level has the target and SD of the plan version in force                                          |
+| QQ-2  | 1   | `qc.test.ts`: QQ-2 a plan needs levels, reject rules, targets and an n for per-sample frequency                                    |
+| QQ-3  | 2   | `qc.test.ts`: QQ-3 the lab's target needs the signed minimum runs over the signed minimum days, accepted runs only                 |
+| QR-1  | 1   | `qc-rules.test.ts`: QR-1 breaks report their scope and the points that break them (run ids)                                        |
+| QR-2  | 1   | `qc-rules.test.ts`: QR-2 a computer evaluation applies every configured rule; 1-2s is never a gate                                 |
+| QR-3  | 1   | `qc-rules.test.ts`: QR-3 history resets on a control lot change and on a new plan version                                          |
+| QR-4  | 25  | `qc-rules.test.ts`: QR-4 1-2s alone: [] then [2.3,0.4] → 1-2s/point                                                                |
+| QH-1  | 4   | `qc.test.ts`: QH-1 no plan, then not run, then passed, warning, failed, provisional                                                |
+| QH-2  | 2   | `qc.test.ts`: QH-2 with the hold on, a failed component is held and the others release                                             |
+| QH-3  | 1   | `qc.test.ts`: QH-3 not run in the window holds only when the plan says; otherwise 'QC not run today' is recorded                   |
+| QH-4  | 1   | `qc.test.ts`: QH-4 override: a holder with a reason releases with the signed line and joins the look-back                          |
+| QH-5  | 1   | `qc.test.ts`: QH-5 'Run on another analyser' lists in-service analysers with an accepted run, this hospital only                   |
+| QH-6  | 1   | `qc.test.ts`: QH-6 the status at release is snapshotted per component                                                              |
+| LB-1  | 1   | `lookback.test.ts`: LB-1 lists results released from the last accepted run to the rejected run on that analyser, plus overrides    |
+| LB-2  | 2   | `lookback.test.ts`: LB-2 the bias is the failed level's mean z × SD, labelled estimate (GATE A §5.3 worked example)                |
+| LB-3  | 1   | `lookback.test.ts`: LB-3 one decision per result, with actor and time, set once                                                    |
+| LB-4  | 1   | `lookback.test.ts`: LB-4 'n of m reviewed'; complete only when every result is decided                                             |
+| EA-1  | 1   | `eqa-bedside.test.ts`: EA-1 schemes enrol tests per hospital                                                                       |
+| EA-2  | 1   | `eqa-bedside.test.ts`: EA-2 a tester with no patient release for the scheme's tests in the window is warned about                  |
+| EA-3  | 1   | `eqa-bedside.test.ts`: EA-3 scores are the provider's; MedSync only reads them                                                     |
+| EA-4  | 2   | `eqa-bedside.test.ts`: EA-4 an unacceptable result opens a nonconformity with a look-back from receipt to scoring                  |
+| EA-5  | 1   | `eqa-bedside.test.ts`: EA-5 coverage: a scheme, or an alternative assessment within the lead's period, else counted                |
+| EA-6  | 1   | `hmis105.test.ts`: EA-6 HIV EQA panel tests are counted in 10.3 under EQA, by kit                                                  |
+| NC-1  | 1   | `lookback.test.ts`: NC-1 automatic sources are opened by MedSync with the lead as owner; only a QC reject halts                    |
+| NC-2  | 1   | `lookback.test.ts`: NC-2 numbers and actions as events                                                                             |
+| NC-3  | 1   | `lookback.test.ts`: NC-3 resumption needs a passing run after the reject, the look-back finished and the lead                      |
+| NC-4  | 1   | `lookback.test.ts`: NC-4 closing needs cause, look-back decided, actions done or cancelled with reason, effectiveness met, lead    |
+| NC-5  | 1   | `lookback.test.ts`: NC-5 overdue actions are listed; nothing auto-closes                                                           |
+| BQ-1  | 2   | `eqa-bedside.test.ts`: BQ-1 triggers: each day, new strip lot, new control vial, after a drop or error                             |
+| BQ-2  | 1   | `eqa-bedside.test.ts`: BQ-2 a failed check blocks the device until a check passes; selection is refused                            |
+| BQ-3  | 1   | `eqa-bedside.test.ts`: BQ-3 not done today informs, and blocks only when the rule says required before use                         |
+| BQ-4  | 1   | `eqa-bedside.test.ts`: BQ-4 competency per test: valid to from the signed validity; lapsed and revoked refused; grace at switch-on |
+| BQ-5  | 1   | `eqa-bedside.test.ts`: BQ-5 the result snapshots the device check status and the operator's competency                             |
+| DR-1  | 2   | `register.test.ts`: DR-1 the day's received, released and rejected lines in lab-number order, hospital-local                       |
+| DR-2  | 1   | `register.test.ts`: DR-2 columns come from the hospital's configuration                                                            |
+| DR-3  | 1   | `register.test.ts`: DR-3 restricted classes never print on the general register; their own register needs access                   |
+| DR-4  | 1   | `register.test.ts`: DR-4 each print writes a print event with the pages printed                                                    |
+| DR-5  | 1   | `register.test.ts`: DR-5 a later amendment appears on the register of the day it was made, marked Amended                          |
+| HM-1  | 1   | `hmis105.test.ts`: HM-1 the form version is data: the research transcription, every row unverified, eHMIS ids null                 |
+| HM-2  | 1   | `hmis105.test.ts`: HM-2 the mapping cannot be signed while the form is unverified, a row is unknown or a menu test is unmapped     |
+| HM-3  | 11  | `hmis105.test.ts`: HM-3 count105 on the fixture month equals the reviewed expected output (count105-expected.md)                   |
+| HM-4  | 1   | `hmis105.test.ts`: HM-4 10.1 visits are patient × hospital-local day × OPD/IPD by specimen column; SC01 counts specimens           |
+| HM-5  | 1   | `hmis105.test.ts`: HM-5 10.3 HIV tests by kit × purpose; inconclusive on the last kit; no purpose listed, never guessed            |
+| HM-6  | 1   | `hmis105.test.ts`: HM-6 10.4 volume is a manual cell until referral tracking                                                       |
+| HM-7  | 1   | `hmis105.test.ts`: HM-7 10.5 by the availability reason; orders from before the reason count under Others                          |
+| HM-8  | 1   | `hmis105.test.ts`: HM-8 10.6 AMR is entered by hand                                                                                |
+| HM-9  | 1   | `hmis105.test.ts`: HM-9 Section 6 tracer stock: consumed, days out of stock, on hand at month end, expired                         |
+| HM-10 | 1   | `hmis105.test.ts`: HM-10 draft → checked (lead) → signed (In-Charge, fresh second factor) → exported                               |
+| HM-11 | 1   | `hmis105.test.ts`: HM-11 changed since signing: the cells, old and new, and the records that caused them                           |
+| HM-12 | 1   | `hmis105.test.ts`: HM-12 the CSV follows the form's order; blanks absent, zeros present; cells without eHMIS ids listed            |
+| HM-13 | 1   | `hmis105.test.ts`: HM-13 a reminder from the 1st to the 7th while the previous month is unsigned                                   |
+| QI-1  | 17  | `indicators.test.ts`: QI-1 every indicator is defined with an id, name, unit and WG-LEPS code where one applies                    |
+| QI-2  | 1   | `indicators.test.ts`: QI-2 a zero denominator or no source rows is no_data, never 0 %                                              |
+| QI-3  | 1   | `indicators.test.ts`: QI-3 computed at read time with the as-of time                                                               |
+| QI-4  | 1   | `indicators.test.ts`: QI-4 drill-down records go to lab roles only; hospital admin gets aggregates                                 |
+
+### count105 fixture review (`fixtures/count105-expected.md` walks every cell)
+
+Month September 2026, Africa/Kampala; hospital A, with hospital B rows mixed in.
+
+| Rule                                                                | Fixture rows that prove it                                                                                                                            | Expected                                                                           |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| (a) result time in the month, hospital-local; downtime by form time | fbc-2 (30 SEP 23:30 Kampala, 20:30Z) in; fbc-3 (1 OCT 00:30 Kampala, 30 SEP in UTC) out; fbc-4 entered 9 OCT, form 29 SEP, in; fbc-18 preliminary out | HE02 = 3 (fbc-1, fbc-2, fbc-4)                                                     |
+| (b) chemistry per analyte                                           | ue-5 (Na, K, Cl, HCO3, urea, creatinine, eGFR); creat-6                                                                                               | RP04 +1, RP03 +1, RP01 +1, RP05 +2 (two sources), CX07 +2; eGFR nowhere            |
+| (c) QC and EQA not in 10.2                                          | potassium EQA round eqa-chem; malaria kit control check (hmisIqc false); Determine control (hmisIqc true)                                             | RP03 = 2 and PS02 = 4 unchanged; Determine IQC = 1                                 |
+| (d) rejected specimens in 10.7 only                                 | sp-6 FBC `clotted`; sp-5 urine `insufficient`; sp-9 `wrong_container` (unmapped)                                                                      | RS14 Blood = 1, RS01 Urine = 1, HE02 unchanged; `rejection:wrong_container` listed |
+| (e) referred-out in 10.5, never 10.2                                | ord-1 viral load `equipment_down`; ord-2 with no reason; ord-3 October                                                                                | 10.5 Equipment break down = 1, Others = 1; IG02 blank                              |
+| (f) outside results never counted                                   | hba1c-9 `performer: external`                                                                                                                         | CX07 sources hold only ue-5's chloride and bicarbonate                             |
+| (g) an amended result counts once, as its current version           | ue-7 (v2 corrected in October); rpr-8 (v1 non-reactive, v2 reactive); fbc-20 (v2 entered in error)                                                    | RP03 counts ue-7 once; SR01 done 1, positive 1; fbc-20 not counted                 |
+| (h) bedside counted in its row, share stored                        | rdt-10, rdt-11 bench; rdt-12, rdt-13 bedside                                                                                                          | PS02 done 4 (bedside 2), positive 2 (bedside 1)                                    |
+| (i) blank off the menu, 0 on the menu with none done                | HE06 mapped to a test off the menu; CX02 not mapped; ESR and the ZN smear on the menu, none done                                                      | HE06 blank, CX02 absent, HE04 = 0, MB02 = 0 / 0                                    |
+
+Also proven on the same month: 10.1 visits (LV01 Blood 5 from P1 twice on 10 SEP counted once, P1 again on 11 SEP,
+P5 at 23:30 on 30 SEP) against specimens (SC01 Blood 6); 10.3 by kit × purpose with one "Purpose not recorded";
+Section 6 (SS07 consumed 15, on hand 82, expired 3, with a 1 OCT 00:30 issue left in October; SS11 3 days out of
+stock); manual cells (VS02, Repeat testers) and a manual value for a computed cell ignored; hospital B counts only
+its own rows; the revision diff (a late downtime FBC and a second correction of rpr-8) names the cells, old and new,
+and the record ids.
+
+### Checks
+
+- `npx vitest run tests/lab/phase-3`: 12 files, 175 passed, 3 expected fail (the Step 0 baseline).
+- `npx tsc --noEmit`: clean (whole repository, at the time of the run).
+- `npx eslint lib/lab tests/lab/phase-3`: clean. Prettier run over every file this step wrote.
+
+**Next:** Step 4, stock, lots and acceptance behind `labStock`.

@@ -1,0 +1,3728 @@
+{
+  "version": "2019-09-print",
+  "source": "https://www.malariaconsortium.org/gallery-file/06081045-69-hmis105healthunitoutpatientmonthlyreport.pdf",
+  "transcription": "docs/lab/phase-3/LAB-PHASE-3-RESEARCH.md Part A §1 (13 Oct 2026)",
+  "verified": false,
+  "note": "Research transcription by text extraction, not checked against the printed form or the eHMIS dataset (OA-1). eHMIS data-element and category-option ids not obtained (OA-2). Which 10.2 rows have a positive column is unknown (hasPositive null). 10.5 rows are free text on the form (the test type). 10.6 antibiotic list not extracted.",
+  "sections": [
+    {
+      "id": "10.1",
+      "title": "Lab visits and specimens",
+      "columns": [
+        "Blood",
+        "Stool/Rectal swab",
+        "Urine",
+        "Sputum",
+        "CSF",
+        "Pus Swab",
+        "Genital Swab",
+        "Skin Snip",
+        "Others"
+      ]
+    },
+    {
+      "id": "10.2",
+      "title": "Laboratory routine tests (10.2.1 Number of Routine Tests Done in Facility Laboratory)",
+      "columns": [
+        "Number Done",
+        "Number Positive"
+      ]
+    },
+    {
+      "id": "10.3",
+      "title": "Summary of HIV tests by purpose",
+      "columns": [
+        "HCT",
+        "eMTCT",
+        "Clinical Diagnosis",
+        "SMC",
+        "Test for Verification",
+        "Recency Testing",
+        "IQC",
+        "EQA",
+        "Total",
+        "Inconclusive Results",
+        "Repeat Testers",
+        "DNA Confirmed Tests"
+      ]
+    },
+    {
+      "id": "10.4",
+      "title": "Referral testing (10.4.1 Volume of Sample Referred)",
+      "columns": [
+        "No. of Specimen Referred",
+        "Average Turn Around Time (Days)",
+        "No. of Pending Results/Feedback"
+      ]
+    },
+    {
+      "id": "10.5",
+      "title": "Routine tests not conducted at facility and referred (rows: Routine Test Type, specify)",
+      "columns": [
+        "Equipment break down",
+        "Reagent stock out",
+        "Supplies stock out",
+        "Power outage",
+        "No testing expertise",
+        "Lack of required equipment",
+        "Confirmatory testing",
+        "For QA re-testing",
+        "Others"
+      ]
+    },
+    {
+      "id": "10.6",
+      "title": "AMR surveillance (10.6.1 National Priority AMR Organisms; antibiotic list not extracted)",
+      "columns": []
+    },
+    {
+      "id": "10.7",
+      "title": "Laboratory specimen rejection",
+      "columns": [
+        "Blood",
+        "Stool/Rectal Swab",
+        "Urine",
+        "Sputum",
+        "Pus Swab",
+        "Genital Swab",
+        "Skin snip",
+        "Others"
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Essential Medicines and Health Supplies, Table 6.1 (lab tracer items)",
+      "columns": [
+        "Quantity consumed",
+        "Days out of stock",
+        "Stock on hand",
+        "Quantity expired"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "code": "LV01",
+      "label": "Outpatient (OPD)",
+      "section": "10.1",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "CSF",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin Snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LV02",
+      "label": "Inpatient (IPD)",
+      "section": "10.1",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "CSF",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin Snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SC01",
+      "label": "Collected (IN)",
+      "section": "10.1",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "CSF",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin Snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SC02",
+      "label": "Received (OUT)",
+      "section": "10.1",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "CSF",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin Snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE01",
+      "label": "Hb (Non automated)",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE02",
+      "label": "CBC",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE03",
+      "label": "Film Comment",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE04",
+      "label": "ESR",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE05",
+      "label": "Bleeding time",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE06",
+      "label": "Prothrombin time",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE07",
+      "label": "Clotting time",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE08",
+      "label": "Sickle Cell",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "HE09",
+      "label": "Others",
+      "section": "10.2",
+      "group": "HAEMATOLOGY (BLOOD)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "BT01",
+      "label": "AHG (Comb's Test)",
+      "section": "10.2",
+      "group": "BLOOD TRANSFUSION",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "BT02",
+      "label": "ABO Grouping",
+      "section": "10.2",
+      "group": "BLOOD TRANSFUSION",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "BT03",
+      "label": "Rhesus Grouping",
+      "section": "10.2",
+      "group": "BLOOD TRANSFUSION",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "BT04",
+      "label": "Cross Matching",
+      "section": "10.2",
+      "group": "BLOOD TRANSFUSION",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR01",
+      "label": "VDRL/RPR",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR02",
+      "label": "TPHA",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR03",
+      "label": "Shigella Dysentery",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR04",
+      "label": "Hepatitis B SAgS",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR05",
+      "label": "Brucella",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR06",
+      "label": "Pregnancy Test (HCG)",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR07",
+      "label": "CRAG",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR08",
+      "label": "Rheumatoid factor",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR09",
+      "label": "Hep B Core Ag",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR10",
+      "label": "Hep C",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SR11",
+      "label": "Hep A",
+      "section": "10.2",
+      "group": "SEROLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB01",
+      "label": "Auramine (FM) for AFBs",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB02",
+      "label": "ZN for AFBs",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB03",
+      "label": "Leishman Stain",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB04",
+      "label": "Gram",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB05",
+      "label": "India Ink",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB06",
+      "label": "Urine Microscopy",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB07",
+      "label": "Wet Preps",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MB08",
+      "label": "Others",
+      "section": "10.2",
+      "group": "MICROBIOLOGY (CSF, URINE, STOOL, BLOOD, SPUTUM, SWABS)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "IG01",
+      "label": "CD4 test",
+      "section": "10.2",
+      "group": "IMMUNOLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "IG02",
+      "label": "Viral Load Test",
+      "section": "10.2",
+      "group": "IMMUNOLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "IG03",
+      "label": "Hep B Viral Load",
+      "section": "10.2",
+      "group": "IMMUNOLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "IG04",
+      "label": "TB LAM",
+      "section": "10.2",
+      "group": "IMMUNOLOGY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "ML01",
+      "label": "TB Genexpert (For Genexpert sites only)",
+      "section": "10.2",
+      "group": "MOLECULAR",
+      "hasPositive": null,
+      "sub": [
+        "MTB+",
+        "RR"
+      ],
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "MTB+",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "RR",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "ML02",
+      "label": "Latent TB Infection test",
+      "section": "10.2",
+      "group": "MOLECULAR",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "ML03",
+      "label": "TB Lamp Test",
+      "section": "10.2",
+      "group": "MOLECULAR",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS01",
+      "label": "Malaria Microscopy",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS02",
+      "label": "Malaria RDTs",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS03",
+      "label": "Trypanosoma",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS04",
+      "label": "Microfilaria",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS05",
+      "label": "Leishmania",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS06",
+      "label": "Trichinella",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "PS07",
+      "label": "Borrellia",
+      "section": "10.2",
+      "group": "PARASITOLOGY (Blood)",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS01",
+      "label": "Entamoeba",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS02",
+      "label": "Giardia Lumblia",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS03",
+      "label": "Cryptosporidium",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS04",
+      "label": "Isospora",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS05",
+      "label": "Cyclospora",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS06",
+      "label": "Strongyloides",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS07",
+      "label": "Shistosoma",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS08",
+      "label": "Taenia",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS09",
+      "label": "Askaris",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS10",
+      "label": "Hookworm",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS11",
+      "label": "Trichuris",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS12",
+      "label": "Other parasites",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "MS13",
+      "label": "Total Tests Done for Stool Microscopy",
+      "section": "10.2",
+      "group": "STOOL MICROSCOPY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); MS13 as the number done (MS01-MS12 as positives by organism) is an inference"
+    },
+    {
+      "code": "RP01",
+      "label": "Urea",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Renal Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "RP02",
+      "label": "Calcium",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Renal Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "RP03",
+      "label": "Potassium",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Renal Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "RP04",
+      "label": "Sodium",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Renal Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "RP05",
+      "label": "Creatinine",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Renal Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LP01",
+      "label": "ALT",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Liver Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LP02",
+      "label": "AST",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Liver Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LP03",
+      "label": "Albumin",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Liver Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LP04",
+      "label": "Total Protein",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Liver Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LC01",
+      "label": "Triglycerides",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Lipid/Thyroid Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LC02",
+      "label": "Cholesterol",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Lipid/Thyroid Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LC03",
+      "label": "Free T3",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Lipid/Thyroid Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LC04",
+      "label": "Free T4",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Lipid/Thyroid Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "LC05",
+      "label": "TSH",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Lipid/Thyroid Profile",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX01",
+      "label": "Alkaline Phosphate",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX02",
+      "label": "Amylase",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX03",
+      "label": "Glucose",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX04",
+      "label": "Total Bilirubin",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX05",
+      "label": "Lipase",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX06",
+      "label": "AFP",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CX07",
+      "label": "Others",
+      "section": "10.2",
+      "group": "CLINICAL CHEMISTRY: Other",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CS01",
+      "label": "Blood",
+      "section": "10.2",
+      "group": "CULTURE & SENSITIVITY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CS02",
+      "label": "Urine",
+      "section": "10.2",
+      "group": "CULTURE & SENSITIVITY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CS03",
+      "label": "Stool",
+      "section": "10.2",
+      "group": "CULTURE & SENSITIVITY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CS04",
+      "label": "Genital Swabs",
+      "section": "10.2",
+      "group": "CULTURE & SENSITIVITY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "CS05",
+      "label": "Sputum",
+      "section": "10.2",
+      "group": "CULTURE & SENSITIVITY",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Number Done",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Number Positive",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": null,
+      "label": "Determine",
+      "section": "10.3",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "HCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "eMTCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Clinical Diagnosis",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "SMC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Test for Verification",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Recency Testing",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "IQC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "EQA",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Total",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Inconclusive Results",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Repeat Testers",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "DNA Confirmed Tests",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": null,
+      "label": "Statpak",
+      "section": "10.3",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "HCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "eMTCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Clinical Diagnosis",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "SMC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Test for Verification",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Recency Testing",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "IQC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "EQA",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Total",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Inconclusive Results",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Repeat Testers",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "DNA Confirmed Tests",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": null,
+      "label": "SD Bioline",
+      "section": "10.3",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "HCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "eMTCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Clinical Diagnosis",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "SMC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Test for Verification",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Recency Testing",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "IQC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "EQA",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Total",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Inconclusive Results",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Repeat Testers",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "DNA Confirmed Tests",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": null,
+      "label": "HIV Syphilis DUO",
+      "section": "10.3",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "HCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "eMTCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Clinical Diagnosis",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "SMC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Test for Verification",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Recency Testing",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "IQC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "EQA",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Total",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Inconclusive Results",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Repeat Testers",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "DNA Confirmed Tests",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": null,
+      "label": "Oraquick (Self Testing)",
+      "section": "10.3",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "HCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "eMTCT",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Clinical Diagnosis",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "SMC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Test for Verification",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Recency Testing",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "IQC",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "EQA",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Total",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Inconclusive Results",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Repeat Testers",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "DNA Confirmed Tests",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS01",
+      "label": "EID",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS02",
+      "label": "Viral Load for HIV",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS03",
+      "label": "CD4",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS04",
+      "label": "Sickle Cell Disease Confirmation",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS05",
+      "label": "Histology",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS06",
+      "label": "Polio/AFP",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS07",
+      "label": "SARS/SARI",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS08",
+      "label": "TB GeneXpert",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS09",
+      "label": "DST for MDR TB",
+      "section": "10.4",
+      "group": "Virology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS10",
+      "label": "Typhoid",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS11",
+      "label": "Cholera",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS12",
+      "label": "Dysentery",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS13",
+      "label": "Rota Virus",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS14",
+      "label": "Meningitis",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS15",
+      "label": "Neonatal tetanus",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS16",
+      "label": "Plague",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS17",
+      "label": "Isolates",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); VS18 absent from the extracted text"
+    },
+    {
+      "code": "VS19",
+      "label": "VHF",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS20",
+      "label": "Animal bites (suspected rabies)",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS21",
+      "label": "Suspected outbreak samples",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS22",
+      "label": "Hep B core Ag",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS23",
+      "label": "Hep B Viral Load",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS24",
+      "label": "Hep C Viral Load",
+      "section": "10.4",
+      "group": "Microbiology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS25",
+      "label": "Hemo parasites",
+      "section": "10.4",
+      "group": "Parasitology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS26",
+      "label": "Intestinal parasites",
+      "section": "10.4",
+      "group": "Parasitology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "VS27",
+      "label": "Tissue parasites",
+      "section": "10.4",
+      "group": "Parasitology",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "No. of Specimen Referred",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Average Turn Around Time (Days)",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "No. of Pending Results/Feedback",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "RS01",
+      "label": "Inadequate specimen volume",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": null,
+      "label": "Hemolyzed specimen",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); RS number not read"
+    },
+    {
+      "code": null,
+      "label": "Specimen without lab request form",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); RS number not read"
+    },
+    {
+      "code": null,
+      "label": "Wrong/Unclear specimen label",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); RS number not read"
+    },
+    {
+      "code": null,
+      "label": "Too old specimen",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); RS number not read"
+    },
+    {
+      "code": null,
+      "label": "Specimen type unacceptable for required test",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); RS number not read"
+    },
+    {
+      "code": "RS14",
+      "label": "Other reasons",
+      "section": "10.7",
+      "group": null,
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Blood",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stool/Rectal Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Urine",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Sputum",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Pus Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Genital Swab",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Skin snip",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Others",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction); RS02-RS13 only partly read"
+    },
+    {
+      "code": "SS07",
+      "label": "Determine HIV 1&2",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SS08",
+      "label": "Stat-pak",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SS09",
+      "label": "SD Bioline tie-breaker",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SS10",
+      "label": "CD4 reagent",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SS11",
+      "label": "Malaria RDTs",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SS12",
+      "label": "GeneXpert cartridges",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    },
+    {
+      "code": "SS26",
+      "label": "Blood 450 ml",
+      "section": "6",
+      "group": "Lab tracer items",
+      "hasPositive": null,
+      "cells": [
+        {
+          "column": "Quantity consumed",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Days out of stock",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Stock on hand",
+          "dataElement": null,
+          "categoryOption": null
+        },
+        {
+          "column": "Quantity expired",
+          "dataElement": null,
+          "categoryOption": null
+        }
+      ],
+      "verified": false,
+      "note": "unverified (research, text extraction)"
+    }
+  ]
+}
