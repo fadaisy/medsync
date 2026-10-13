@@ -5,7 +5,10 @@
  * the concept catalogue: the server has already turned codes into words.
  */
 
+import type { HIV_PURPOSES } from "@/lib/lab/hiv-purpose";
+
 import { LAB2 } from "@/content/lab-phase-2";
+import { LAB3_HIV_PURPOSE } from "@/content/lab-phase-3";
 
 /* ─── Identity (two identifiers, age and sex in words) ─────────────── */
 
@@ -70,6 +73,8 @@ export interface MenuTest {
   today?: { state: string; words: string | null; orderable: boolean } | null;
   /** Lab Phase 2 (§5.1, labBedside): the same result on a ward device here, and the bedside form. */
   bedside?: { words: string; href: string | null } | null;
+  /** D-LAB3-21 (labHmis): an HIV rapid test asks why it is done. */
+  needsPurpose?: boolean;
 }
 
 /** A diagnosis on this encounter, offered as the order's reason. */
@@ -118,6 +123,9 @@ export interface OrderLineDraft {
   priority: Priority;
   reasonIds: string[];
   reasonText: string;
+  /** D-LAB3-21: the HIV testing purpose code; empty = not chosen. */
+  purpose: string;
+  needsPurpose: boolean;
 }
 export interface OrderDraft {
   lines: OrderLineDraft[];
@@ -126,10 +134,17 @@ export const EMPTY_DRAFT: OrderDraft = { lines: [] };
 
 export type DraftAction =
   /** Adds the test (reason pre-filled with the primary diagnosis), or removes it if present. */
-  | { type: "toggle"; testId: string; clientKey: string; defaultReasonIds: string[] }
+  | {
+      type: "toggle";
+      testId: string;
+      clientKey: string;
+      defaultReasonIds: string[];
+      needsPurpose?: boolean;
+    }
   | { type: "priority"; testId: string; priority: Priority }
   | { type: "reason"; testId: string; reasonId: string }
   | { type: "reasonText"; testId: string; text: string }
+  | { type: "purpose"; testId: string; purpose: string }
   | { type: "clear" };
 
 export function draftReducer(state: OrderDraft, action: DraftAction): OrderDraft {
@@ -149,6 +164,8 @@ export function draftReducer(state: OrderDraft, action: DraftAction): OrderDraft
             priority: "routine",
             reasonIds: [...action.defaultReasonIds],
             reasonText: "",
+            purpose: "",
+            needsPurpose: !!action.needsPurpose,
           },
         ],
       };
@@ -163,6 +180,8 @@ export function draftReducer(state: OrderDraft, action: DraftAction): OrderDraft
       }));
     case "reasonText":
       return edit(action.testId, (l) => ({ ...l, reasonText: action.text }));
+    case "purpose":
+      return edit(action.testId, (l) => ({ ...l, purpose: action.purpose }));
     case "clear":
       return EMPTY_DRAFT;
   }
@@ -175,7 +194,8 @@ export const defaultReasonIds = (reasons: readonly ReasonOption[]): string[] =>
 export const REASON_REQUIRED = "Add a reason: a diagnosis or a short text.";
 
 export function lineIssue(line: OrderLineDraft): string | null {
-  return line.reasonIds.length === 0 && line.reasonText.trim() === "" ? REASON_REQUIRED : null;
+  if (line.reasonIds.length === 0 && line.reasonText.trim() === "") return REASON_REQUIRED;
+  return line.needsPurpose && !line.purpose ? LAB3_HIV_PURPOSE.required : null;
 }
 
 export const draftReady = (d: OrderDraft): boolean =>
@@ -189,6 +209,7 @@ export function toOrderLines(d: OrderDraft) {
     priority: l.priority,
     ...(l.reasonIds.length ? { reasonConditionIds: l.reasonIds } : {}),
     ...(l.reasonText.trim() ? { reasonText: l.reasonText.trim() } : {}),
+    ...(l.purpose ? { testPurpose: l.purpose as (typeof HIV_PURPOSES)[number] } : {}),
   }));
 }
 

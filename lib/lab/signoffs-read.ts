@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ConfigKind, SchemePayload } from "./signed-config";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
@@ -30,6 +30,8 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   kit_qc_rule: "Kit or stain QC rule",
   device_qc_rule: "Bedside device control rule",
   competency_validity: "Bedside competency validity",
+  hmis_mapping: "HMIS 105 mapping",
+  register_config: "Daily register columns",
 };
 
 const author = alias(users, "author");
@@ -47,7 +49,14 @@ export async function loadConfigsWaitingForCso() {
     .leftJoin(hospitals, eq(hospitals.id, labSignedConfigs.hospitalId))
     .leftJoin(author, eq(author.id, labSignedConfigs.authoredBy))
     .leftJoin(lead, eq(lead.id, labSignedConfigs.leadSignedBy))
-    .where(and(eq(labSignedConfigs.status, "draft"), isNotNull(labSignedConfigs.leadSignedBy)))
+    // The HMIS mapping's second signature is the HMIS focal person's, never the CSO's (E-LAB3-12).
+    .where(
+      and(
+        eq(labSignedConfigs.status, "draft"),
+        isNotNull(labSignedConfigs.leadSignedBy),
+        ne(labSignedConfigs.kind, "hmis_mapping"),
+      ),
+    )
     .orderBy(desc(labSignedConfigs.leadSignedAt))
     .limit(200);
   return rows.map(({ c, hospital, author, lead }) => {
@@ -115,6 +124,10 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return `${key} · ${(p.levels as string[]).join(", ")}${p.requiredBeforeUse ? " · required before use" : ""}`;
     case "competency_validity":
       return `${key} · valid ${p.validDays} days · grace ${p.graceDays} days`;
+    case "hmis_mapping":
+      return `${key} · ${(p.rows as unknown[]).length} rows mapped`;
+    case "register_config":
+      return `${key} · ${(p.columns as unknown[]).length} columns`;
   }
 }
 
@@ -232,5 +245,9 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
         `Valid for ${p.validDays} days; grace period at switch-on ${p.graceDays} days`,
         `Source: ${p.source}`,
       ];
+    case "hmis_mapping":
+      return [summary(kind, p), `Form hash: ${p.formHash}`];
+    case "register_config":
+      return (p.columns as { label: string }[]).map((c, i) => `Column ${i + 1}: ${c.label}`);
   }
 }

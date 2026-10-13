@@ -13,6 +13,10 @@ import { inForceAt } from "@/lib/lab/ranges";
 const decimal = z.string().refine(isDecimal, "a decimal");
 const days = z.number().int().min(0).nullable();
 const source = z.string().trim().min(3).max(500);
+const testCode = z.string().regex(/^test\.[a-z0-9_]{2,60}$/);
+const conceptId = z.string().regex(/^obs\.[a-z0-9_]{2,80}$/);
+/** A form row, column, code or label as written (HMIS 105 keys are the form's own words). */
+const hmisKey = z.string().trim().min(1).max(120);
 
 /** Pregnancy rows carry their gestation span in days (no trimester boundary is written in code, Law 3). */
 export const CONTEXTS = ["any", "not_pregnant", "pregnant"] as const;
@@ -221,6 +225,49 @@ export const PAYLOADS = {
     validDays: z.number().int().min(1).max(3650),
     graceDays: z.number().int().min(0).max(365),
     source,
+  }),
+  /**
+   * HM-2 (GATE A §3.1, §8.2): key = the form version (`2019-09-print`). Signed by the lead and the HMIS focal
+   * person. Beyond §3.1's list the count needs `visits`, `hivTests`, `kits`, `kitItems`, `purposes`, `excluded`
+   * and a `none` reason (orders placed before the snapshot carried one): STOP 3. `formHash` pins the form file.
+   */
+  hmis_mapping: z.object({
+    formHash: z.string().regex(/^[0-9a-f]{64}$/),
+    orgUnitCode: z.string().trim().min(1).max(40).nullable(),
+    rows: z.array(
+      z.object({
+        code: hmisKey,
+        sources: z
+          .array(
+            z.object({
+              testCode,
+              conceptId: conceptId.optional(),
+              where: z.object({ conceptId, answers: z.array(hmisKey).min(1) }).optional(),
+            }),
+          )
+          .min(1),
+        positive: z
+          .array(z.object({ column: hmisKey, conceptId, answers: z.array(hmisKey).min(1) }))
+          .optional(),
+      }),
+    ),
+    visits: z.record(hmisKey, hmisKey),
+    specimenColumns: z.record(hmisKey, hmisKey),
+    rejection: z.record(hmisKey, hmisKey),
+    reasons: z.record(hmisKey, hmisKey),
+    hivTests: z.array(testCode),
+    kits: z.record(hmisKey, hmisKey),
+    kitItems: z.record(z.uuid(), hmisKey),
+    purposes: z.record(hmisKey, hmisKey),
+    tracers: z.record(z.uuid(), hmisKey),
+    excluded: z.array(testCode),
+    visitsDefinition: z.string().trim().min(3).max(500),
+  }),
+  /** DR-2 (GATE A §3.1, §10): key = `general`, `hiv` or a restricted class. Lead alone. */
+  register_config: z.object({
+    columns: z
+      .array(z.object({ key: z.string().regex(/^[a-z][a-zA-Z0-9]{1,30}$/), label: hmisKey }))
+      .min(1, "Keep at least one column."),
   }),
 } as const;
 /** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */

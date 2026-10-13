@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
+import { fill, LAB3_HMIS } from "@/content/lab-phase-3";
 import { db } from "@/db";
+import { labHmisReports } from "@/db/schema";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { loadEquipment } from "@/lib/lab/equipment-read";
-import { labEquipmentLiveFor } from "@/lib/lab/feature";
+import { labEquipmentLiveFor, labHmisLiveFor } from "@/lib/lab/feature";
+import { hmisReminder } from "@/lib/lab/hmis105";
 import { heldReports, loadKits, loadNcs, loadQcPlans } from "@/lib/lab/qc-read";
 import { analyteName } from "@/lib/lab/qc-store";
 import { loadStock } from "@/lib/lab/stock-read";
+import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { RecordList } from "../_components/record-list";
 import { dateWords, timeWords } from "../_lib/days";
+import { dueWords, monthWords } from "../hmis/_lib/month";
 import { QcChip } from "./_components/qc-chip";
 import { QUALITY } from "./_lib/copy";
 import { requireQualityScope } from "./_lib/scope";
@@ -51,7 +57,8 @@ export default async function QualityTodayPage() {
   const now = new Date();
   const h = scope.hospitalId;
   const equipmentOn = labEquipmentLiveFor(h);
-  const [plans, held, stock, kits, ncs, equipment] = await db.transaction(async (t) => {
+  const hmisOn = labHmisLiveFor(h);
+  const [plans, held, stock, kits, ncs, equipment, signed] = await db.transaction(async (t) => {
     const tx = t as never;
     return Promise.all([
       loadQcPlans(tx, h, now),
@@ -60,8 +67,27 @@ export default async function QualityTodayPage() {
       loadKits(tx, h, scope.userId, now),
       loadNcs(tx, h, now),
       equipmentOn ? loadEquipment(tx, h, now) : Promise.resolve(null),
+      hmisOn
+        ? t
+            .select({ month: labHmisReports.month })
+            .from(labHmisReports)
+            .where(
+              and(
+                eq(labHmisReports.hospitalId, h),
+                inArray(labHmisReports.state, ["signed", "exported"]),
+              ),
+            )
+        : Promise.resolve([]),
     ]);
   });
+  // HM-13: from the 1st to the 7th while the previous month's HMIS 105 is unsigned.
+  const due = hmisOn
+    ? hmisReminder(
+        now,
+        DEFAULT_TIME_ZONE,
+        signed.map((r) => r.month.slice(0, 7)),
+      )
+    : null;
   const ids = await identitiesFor(
     scope,
     held.map((r) => r.patientUserId),
@@ -119,6 +145,13 @@ export default async function QualityTodayPage() {
   ];
 
   const needs: ReactNode[] = [
+    ...(due
+      ? [
+          <Link key="hmis" href={`/lab/hmis?month=${due}`} className={link}>
+            {fill(LAB3_HMIS.reminder, { month: monthWords(due), date: dueWords(due) })}
+          </Link>,
+        ]
+      : []),
     ...down.map((e) => (
       <Link key={e.id} href="/lab/equipment" className={link}>
         {`${e.model} is down${e.breakdown ? ` since ${at(e.breakdown.since)}` : ""}`}

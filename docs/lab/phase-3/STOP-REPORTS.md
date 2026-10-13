@@ -987,3 +987,138 @@ failures are outside Lab Phase 3; the Phase 3 baseline has none left). Screensho
 Step 11 harness pass.
 
 **Next:** Step 9, registers and HMIS 105 behind `labHmis`.
+
+## STOP 9: Daily registers and HMIS 105, behind `labHmis` (13 Oct 2026)
+
+No migration change (0117's `hmis_designations`, `lab_register_prints`, `lab_hmis_reports` with its freeze trigger
+and `private.lab_hmis_aggregates()`, `encounter_orders.test_purpose` and the specimen types, all as written).
+**Code.** `lib/lab/hmis-store.ts` (`inHouseMenu`, `mappingVersions`, `mappingForCount`, `monthSources` — one read
+of the month's source rows — `countMonth`, `generateHmis`, `prepareRevision`, `manualKeys`, `saveManualCells`,
+`checkHmis`, `signHmis`, `exportHmis`, `changedSinceSigning`, `saveMapping`, `mappingBlocks`, `signMapping`,
+`setDesignation`, `endDesignation`, `loadHmisMonth`, `recordsFor`), `lib/lab/register-store.ts`
+(`REGISTER_DEFAULTS`, `registerConfigFor`, `loadRegisterDay`, `withIdentities`, `classAccessFor`, `recordPrint`),
+`lib/lab/hmis-form.ts` (`hmisForm()`: the form file and its SHA-256), `lib/lab/hmis-scope.ts` (`hmisDeskScope`),
+`lib/lab/hmis-actions.ts` (the house contract), `lib/lab/hiv-purpose.ts`. Signed kinds `hmis_mapping` (key = the
+form version; the payload carries `formHash`, `orgUnitCode`, `rows`, `visits`, `specimenColumns`, `rejection`,
+`reasons` with `none`, `hivTests`, `kits`, `kitItems`, `purposes`, `tracers`, `excluded`, `visitsDefinition`) and
+`register_config` (lead-only) in `PAYLOADS`, `KIND_WORDS` and the sign-off readers. `signConfig` gained the
+`focal` slot: the HMIS mapping's second signature is the HMIS focal person's (designation checked), never the
+CSO's; the CSO console no longer lists `hmis_mapping`.
+
+**The order (D-LAB3-21, P17).** The order sheet asks "Purpose of this HIV test" on HIV rapid-test lines when
+`labHmis` is on; `placeOrders` refuses a clinician's own HIV rapid order without it and a purpose on any other
+test, and writes `encounter_orders.test_purpose` (the order is already restricted). The availability snapshot now
+carries the hub's `reason` (P17), so 10.5 counts by reason; orders from before count under the mapping's `none`.
+
+**Screens.** `/lab/register` (artboard 12; Reports group): section, day, register (general, and HIV and the other
+classes only for staff holding `lab.result.release`), A4 landscape print CSS, black on white, 12 px, 1 px rules,
+two identifiers (patient and hospital number), "Rejected: {reason}", "entered {date}" and "Amended", the
+footer lines; **Print** writes `lab_register_prints` first, then opens the print dialog; the lead's **Register
+columns** dialog (tick, rename, reorder, save, sign alone with a fresh factor). `/lab/hmis` (artboard 11): month,
+status chip, the amber "Changed since signing" block with every changed cell (old → new, records added and
+removed) and **Prepare revision**, the eight section tabs, the table (grouped rows; a dash only where the verified
+form has no positive column, "positive column not verified" meanwhile; "incl. n bedside" in the sky tint; every
+number a link with an accessible name to `/lab/hmis/records`, which lists the records with two identifiers and hides
+restricted ones from staff without `lab.result.release`), How the numbers are counted, Still entered by hand (the
+hand-count dialog), Send (due date, Count the month, Check, Print form, Download CSV), Not mapped (Law 8), earlier
+revisions (readable). `/lab/hmis/mapping`: the mapping editor (every 10.2 row in a centred dialog: sources by test
+or component, "only when", positive answers per column; 10.1/10.7 columns, visits, rejections, 10.5 reasons, 10.3
+tests, kits, kit items and purposes, tracer items, org unit code, "not reported") with what stops the signature
+in words. `/lab/hmis/print`: the form, A4 landscape. `/hmis` (new, AAL2, in `proxy.ts`): the HMIS desk for the
+In-Charge (sign the checked month, fresh factor), the focal person (co-sign the mapping) and the hospital admin
+(designate and end designations); reports read through `private.lab_hmis_aggregates()` only, numbers without
+records (Law 10). HM-13: the due reminder on Quality today (and on the desk) from the 1st to the 7th.
+
+**HM-11.** "Changed since signing" is computed on every view of the month. The repository has a cron pattern
+(`app/api/cron/*`, `vercel.json`), so a nightly job was added too: `/api/cron/hmis-changes` (01:00, CRON_SECRET)
+recounts every signed month and logs the number of changed cells per hospital (aggregates only).
+
+### Scenarios (`tests/emr-db/lab-hmis.test.ts`, PGlite lane, 9 tests)
+
+| #         | Result | What the test proves                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-LAB3-21 | pass   | An HIV rapid order without a purpose is refused with `labHmis` on; with `hct` it is written, the order restricted                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| S40       | pass   | Lead signature refused on the committed form ("not yet verified against eHMIS", OA-1); on a verified copy refused while `test.urinalysis_dipstick` is on the menu and in no row; put explicitly into CX07 (Others) the lead signs; the focal person is refused until designated, then co-signs (`cso_signed_by` = focal), version in force                                                                                                                                                                                                                                                      |
+| S41       | pass   | September counted from database rows: (a) FBC at 30 SEP 23:30 Kampala in, 1 OCT 00:30 out; (b) U&E per analyte (RP03, RP04); (g) the October correction counts once; (d) a clotted FBC only in RS14 × Blood; (f) the outside HbA1c not counted (CX07 = 0 on the menu); (i) ESR 0, INR blank; (h) PS02 2 with "incl. 1 bedside", positive 1; (e) 10.5 Equipment break down 1, Others 1 (no reason recorded); (c) the HIV kit IQC check and the HIV EQA sample in 10.3 (Determine IQC 1, EQA 1, HCT 1, Total 1), the potassium EQA sample nowhere; 10.1 visits; Section 6 consumed 10, on hand 90 |
+| S42       | pass   | A computed cell refused as a hand cell, a 10.4 cell saved; signing before the check refused; the lead as signer refused (not In-Charge); a stale second factor refused (`reauth`); the In-Charge signs; an UPDATE of the signed cells is refused by the trigger ("frozen"); counting again refused ("Prepare a revision")                                                                                                                                                                                                                                                                       |
+| S43       | pass   | Two malaria RDTs on downtime forms dated 29 SEP, entered 9 OCT: Changed since signing names PS02 Number Done 2 → 4 (both records added) and Number Positive 1 → 2, cause downtime; revision 2 prepared (hand cell carried), checked, signed; revision 1 still reads 2; no change left after revision 2                                                                                                                                                                                                                                                                                          |
+| S44       | pass   | CSV of revision 2: with the committed form every valued cell is a `# null,null,value,period,null,cell` comment (ids never invented), zeros present (HE04 0), blanks absent (HE06), the data part the header alone; with a FIXTURE form carrying ids every non-blank cell is a row in form order, zeros included; the export is recorded once (`exported`)                                                                                                                                                                                                                                       |
+| S38       | pass   | The general register for the HIV test's day is empty (restricted classes never print there) in the default columns; the HIV register is refused for a viewer without `lab.result.release` and shows purpose and "{kit}: non reactive" for one with it; a rejected FBC prints "Rejected: clotted"; an HIV print by a viewer refused; a general print writes `lab_register_prints` (40 rows → 3 pages, defaults: no config id)                                                                                                                                                                    |
+| S39       | pass   | The two back-entered RDTs sit on the 29 SEP register, each marked "entered 2026-10-09" (shown "entered 09 OCT 2026")                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| S45       | owner  | The one-month parallel run with the paper tally: template in `docs/lab/phase-3/parallel-run.md` (OA-10)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+
+**Timing.** `generateHmis` (the one read of the month's sources plus `count105`) for the fixture month:
+**12.8 ms** server-side (PGlite, in process; budget p95 < 5 s, asserted in S41).
+
+### The CSV with null ids (S44, revision 2 of the fixture month)
+
+```
+# HMIS 105 laboratory, 2026-09, revision 2, signed.
+# Organisation unit code: null (not set in the signed mapping).
+# eHMIS data-element ids: null for 20 cells (not yet supplied, owner action OA-2). These cells are not rows of this file; nothing is invented:
+# null,null,5,202609,null,LV01|Blood
+# null,null,5,202609,null,SC01|Blood
+# null,null,1,202609,null,HE02|Number Done
+# null,null,0,202609,null,HE04|Number Done
+# null,null,4,202609,null,PS02|Number Done
+# null,null,2,202609,null,PS02|Number Positive
+# null,null,1,202609,null,RP03|Number Done
+# null,null,1,202609,null,RP04|Number Done
+# null,null,0,202609,null,CX07|Number Done
+# null,null,1,202609,null,Determine|HCT
+# null,null,1,202609,null,Determine|IQC
+# null,null,1,202609,null,Determine|EQA
+# null,null,1,202609,null,Determine|Total
+# null,null,0,202609,null,Determine|Inconclusive Results
+# null,null,3,202609,null,VS02|Average Turn Around Time (Days)
+# null,null,1,202609,null,RS14|Blood
+# null,null,10,202609,null,SS07|Quantity consumed
+# null,null,0,202609,null,SS07|Days out of stock
+# null,null,90,202609,null,SS07|Stock on hand
+# null,null,0,202609,null,SS07|Quantity expired
+dataElement,categoryOption,value,period,orgUnit
+```
+
+### Differences from the prompt (and why)
+
+- **The mapping payload** carries the extra keys the engine needs (STOP 3) and `formHash`, the SHA-256 of
+  `data/lab/hmis105-2019-09.json`, read at request time (`outputFileTracingIncludes` names the file for `/lab/**`,
+  `/hmis` and the cron route); a mapping made for another file is refused at save and blocked at signing. The
+  counting rules are not copied into the payload: they are the copy (`LAB3.hmisCountingRules`, CSO-signed with the
+  rest) and the engine; the mapping pins the form hash they apply to.
+- **Signing the mapping** needs the form verified (OA-1). Until the owner verifies the rows nothing can be signed;
+  S40 signs on a verified copy of the same file to prove the rest of the rule.
+- **A month counted with an unsigned mapping** can be counted, given hand cells and checked (so the lab can work
+  before OA-1), but not signed: the report must be counted again once the mapping is signed (`lhr_mapping`).
+- **Counting again** (Count the month) is allowed on a draft or a checked report (a checked one returns to draft);
+  a signed month only gets a revision.
+- **Hand cells** are every cell of 10.4 and 10.6, 10.3's repeat testers and DNA-confirmed, and 10.5's confirmatory
+  and QA re-testing columns, as the form file has them. The file has no 10.6 rows (the antibiotic list was not
+  transcribed, OA-1) and 10.5's rows are free text, so 10.6 has nothing to enter yet and 10.5 shows the tests
+  counted there; neither appears in the CSV until the verified form gives them rows and ids.
+- **The CSV** keeps the engine's five columns; cells without eHMIS ids are listed as comment lines with `null` ids
+  and the cell name, so nothing is invented and the file says why it is not importable.
+- **D-LAB1-12 for the report**: the person who checked does not also sign when another In-Charge is designated.
+- **"Users with HIV access"** = holders of `lab.result.release` (GATE A §4), for the HIV register and every class.
+- **Register lines**: one per specimen and test; a later amendment is its own line on its day, marked Amended; a
+  pending specimen prints with "—" released. Rows per A4 page for the print event is a fixed estimate (18).
+- **The register's `sections[]`** in GATE A's `register_config` was not built: the register is per section already.
+- **Designations** are set on the HMIS desk by the hospital admin (no admin-console page was added).
+- **10.1 SC02** stays 0 (no referral-in until Phase 4); every specimen is "collected here".
+
+### Names Step 10 must know
+
+`loadHmisMonth`, `recordsFor`, `monthSources`, `countMonth`, `inHouseMenu`, `changedSinceSigning`, `StoredCell`,
+`joinCells` (hmis-store); `hmisForm` (hmis-form); `hmisDeskScope` (hmis-scope); `HmisTable`
+(`components/lab/hmis-table.tsx`, `drill` null for aggregates); `classAccessFor`, `loadRegisterDay` (register-store);
+`app/lab/hmis/_lib/month.ts` (`dueMonth`, `monthOptions`, `monthWords`, `dueWords`); the nav's **Reports** group
+(`group: "reports"`, ids `register`, `hmis`; Lab reports joins it); `LAB3_HMIS`, `LAB3_REGISTER`, `LAB3_HMIS_DESK`,
+`LAB3_HIV_PURPOSE` in `content/lab-phase-3.ts`; the drill-down pattern for lab roles (`/lab/hmis/records`).
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings); the full suite on the PGlite lane (`vitest
+run`): **464 files passed, 23 skipped; 10,362 passed, 4 expected failures, 248 skipped**, 0 failed (the expected failures are outside Lab Phase 3). Red scarcity now covers `app/lab/hmis`, `app/lab/register`, `app/hmis` and
+`components/lab/hmis-table.tsx`. Screenshots against artboards 11 and 12 are in the Step 11 harness pass.
+
+**Next:** Step 10, lab reports and quality indicators behind `labReports`.

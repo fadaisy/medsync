@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
       "./data/emr/clinical-fact-concepts.v1.6.json",
       "./docs/lab/catalogue-research/lab-catalogue-research.v1.json",
     ],
+    // Lab Phase 3 Step 9: the HMIS 105 form file is read and hashed at request time (lib/lab/hmis-form.ts).
+    "/lab/**": ["./data/lab/hmis105-2019-09.json"],
+    "/hmis/**": ["./data/lab/hmis105-2019-09.json"],
+    "/hmis": ["./data/lab/hmis105-2019-09.json"],
+    "/api/cron/hmis-changes": ["./data/lab/hmis105-2019-09.json"],
   },
   // Landing v4 route audit: one route family. The old /onboarding/* doors
   // became /signup/*; keep the old links (and search results) working.

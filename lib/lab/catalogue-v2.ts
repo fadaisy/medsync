@@ -251,7 +251,8 @@ export async function saveConfigDraft(
  */
 export async function signConfig(
   tx: EmrTx,
-  signer: { userId: string; hospitalId: string; as: "lead" | "cso" },
+  /** The second slot is the CSO's, or the HMIS focal person's for `hmis_mapping` (E-LAB3-12). */
+  signer: { userId: string; hospitalId: string; as: "lead" | "cso" | "focal" },
   input: { configId: string; exceptionNote: string | null },
   now: Date,
 ): Promise<{ kind: ConfigKind; key: string }> {
@@ -298,11 +299,19 @@ export async function signConfig(
     }
   } else {
     if (leadOnly) throw new EmrWriteError("conflict", "The laboratory lead signs this alone.");
+    if ((c.kind === "hmis_mapping") !== (signer.as === "focal"))
+      throw new EmrWriteError(
+        "forbidden",
+        c.kind === "hmis_mapping"
+          ? "The HMIS focal person co-signs the HMIS mapping."
+          : "The CSO countersigns this.",
+      );
     if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The laboratory lead signs first.");
+    const second = signer.as === "focal" ? "the HMIS focal person" : "CSO";
     if (c.leadSignedBy === signer.userId && !note && !c.exceptionNote)
       throw new EmrWriteError(
         "forbidden",
-        "You signed as the lead: a different person signs as CSO, or record why no one else can.",
+        `You signed as the lead: a different person signs as ${second}, or record why no one else can.`,
       );
   }
   await tx

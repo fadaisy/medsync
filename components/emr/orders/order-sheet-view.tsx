@@ -12,6 +12,7 @@ import { CheckIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LAB3_HIV_PURPOSE } from "@/content/lab-phase-3";
 import { cn } from "@/lib/utils";
 import { RestrictedMark } from "../chips";
 import { StatusWord } from "../status-word";
@@ -23,6 +24,7 @@ import {
   menuSections,
   menuWords,
   PRIORITIES,
+  REASON_REQUIRED,
   specimenWords,
 } from "./model";
 
@@ -38,6 +40,7 @@ export interface OrderSheetHandlers {
   onPriority?: (testId: string, p: Priority) => void;
   onReason?: (testId: string, reasonId: string) => void;
   onReasonText?: (testId: string, text: string) => void;
+  onPurpose?: (testId: string, purpose: string) => void;
   onQuery?: (q: string) => void;
   onPlace?: () => void;
 }
@@ -247,6 +250,7 @@ function OrderLine({
   onPriority,
   onReason,
   onReasonText,
+  onPurpose,
 }: {
   line: OrderLineDraft;
   test: MenuTest;
@@ -349,9 +353,35 @@ function OrderLine({
             placeholder={reasons.length ? "Or a short reason" : "A short reason"}
             className="min-h-11 sm:min-h-9"
           />
-          {issue ? <StatusWord tone="caution">{issue}</StatusWord> : null}
+          {issue === REASON_REQUIRED ? <StatusWord tone="caution">{issue}</StatusWord> : null}
         </div>
       </Row>
+
+      {line.needsPurpose ? (
+        <Row label="Purpose" required>
+          <div className="flex flex-col gap-2">
+            <label htmlFor={`purpose-${line.testId}`} className="sr-only">
+              {LAB3_HIV_PURPOSE.label}
+            </label>
+            <select
+              id={`purpose-${line.testId}`}
+              value={line.purpose}
+              onChange={(e) => onPurpose?.(line.testId, e.target.value)}
+              className="border-input bg-card text-body-s focus-visible:shadow-focus min-h-11 w-full rounded-sm border px-2 outline-none sm:min-h-9"
+            >
+              <option value="">{LAB3_HIV_PURPOSE.label}</option>
+              {Object.entries(LAB3_HIV_PURPOSE.words).map(([v, w]) => (
+                <option key={v} value={v}>
+                  {w}
+                </option>
+              ))}
+            </select>
+            {line.purpose ? null : (
+              <StatusWord tone="caution">{LAB3_HIV_PURPOSE.required}</StatusWord>
+            )}
+          </div>
+        </Row>
+      ) : null}
 
       <Row label="Fasting">
         <span className="text-body-s">

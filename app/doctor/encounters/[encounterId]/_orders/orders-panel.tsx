@@ -208,11 +208,13 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
                 testId,
                 clientKey: crypto.randomUUID(),
                 defaultReasonIds: defaultReasonIds(load.reasons),
+                needsPurpose: load.menu.find((t) => t.id === testId)?.needsPurpose,
               })
             }
             onPriority={(testId, priority) => dispatch({ type: "priority", testId, priority })}
             onReason={(testId, reasonId) => dispatch({ type: "reason", testId, reasonId })}
             onReasonText={(testId, text) => dispatch({ type: "reasonText", testId, text })}
+            onPurpose={(testId, purpose) => dispatch({ type: "purpose", testId, purpose })}
             onPlace={place}
           />
         ) : null}

@@ -6,6 +6,7 @@ import { ORDER_FREQUENCIES, ORDER_PRIORITIES } from "@/lib/emr/orders";
 import * as orders from "@/lib/emr/write/orders";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import * as specimens from "@/lib/emr/write/specimens";
+import { HIV_PURPOSES } from "@/lib/lab/hiv-purpose";
 
 /**
  * Orders and specimens (PROMPT §8). Each action: Zod → requireEmrActor(surface) → EMR_V1 for the
@@ -25,6 +26,7 @@ const OrderLine = z.object({
   frequency: z.enum(ORDER_FREQUENCIES).optional(),
   reasonConditionIds: z.array(uuid).max(10).optional(),
   reasonText: z.string().trim().max(500).optional(),
+  testPurpose: z.enum(HIV_PURPOSES).optional(),
 });
 export type OrderLineInput = z.infer<typeof OrderLine>;
 

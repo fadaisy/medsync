@@ -11,13 +11,11 @@ import type { LabelData } from "@/components/emr/orders/specimen-label";
 import type { ResultEntryData } from "@/components/emr/results/model";
 import type { EmrAccessBasis } from "@/lib/emr/access";
 import type { EmrActor } from "@/lib/emr/actor";
-import type { EmrDb } from "@/lib/emr/db";
-import type { EmrTx } from "@/lib/emr/db";
+import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { FactConcept } from "@/lib/facts/types";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { formatters } from "@/components/emr/format";
-import { LAB2 } from "@/content/lab-phase-2";
 import {
   ageSexWords,
   containerWords,
@@ -25,6 +23,7 @@ import {
   paymentWords,
   PRIORITY_WORD,
 } from "@/components/emr/orders/model";
+import { LAB2 } from "@/content/lab-phase-2";
 import {
   conditions,
   devices,
@@ -56,9 +55,11 @@ import {
   labBedsideLiveFor,
   labCollectionCheckLiveFor,
   labHighRiskLiveFor,
+  labHmisLiveFor,
   labOneMenuLiveFor,
   labPaymentLiveFor,
 } from "@/lib/lab/feature";
+import { needsHivPurpose } from "@/lib/lab/hiv-purpose";
 import { currentPayment } from "@/lib/lab/one-menu";
 import { menuToday } from "@/lib/lab/one-menu-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -171,7 +172,12 @@ const AVAILABILITY: readonly string[] = ["available", "intermittent", "unavailab
 type TestRow = typeof testCatalogue.$inferSelect;
 
 /** The facility's test menu from its catalogue rows and capability statuses. */
-function buildTestMenu(tests: TestRow[], capRows: { id: string; status: string }[]): MenuTest[] {
+function buildTestMenu(
+  tests: TestRow[],
+  capRows: { id: string; status: string }[],
+  hospitalId: string,
+): MenuTest[] {
+  const hmis = labHmisLiveFor(hospitalId);
   // A test menu entry keeps the "local" row when a hospital overrides a default by code.
   const byCode = new Map<string, TestRow>();
   for (const t of tests) if (!byCode.has(t.code) || t.hospitalId !== null) byCode.set(t.code, t);
@@ -192,6 +198,7 @@ function buildTestMenu(tests: TestRow[], capRows: { id: string; status: string }
       ? caps.get(t.capabilityId)
       : "unknown") as Availability,
     restricted: t.components.some((c) => sensitivityFor(c as FactConcept, null) === "restricted"),
+    needsPurpose: hmis && needsHivPurpose(t.code), // D-LAB3-21
   }));
 }
 
@@ -216,7 +223,7 @@ export async function loadTestMenu(
     .select({ id: facilityCapabilities.capabilityId, status: facilityCapabilities.status })
     .from(facilityCapabilities)
     .where(eq(facilityCapabilities.hospitalId, hospitalId));
-  return withToday(buildTestMenu(tests, caps), tx, hospitalId);
+  return withToday(buildTestMenu(tests, caps, hospitalId), tx, hospitalId);
 }
 
 /**
@@ -264,8 +271,12 @@ async function withBedside(
   return menu.map((t) => {
     const alt =
       t.kind === "lab" &&
-      alts.find((a) => a.test.id !== t.id && a.test.components.some((c) => t.components.includes(c)));
-    return alt ? { ...t, bedside: { words: LAB2.bedsideAlternative(alt.test.display, alt.kind), href } } : t;
+      alts.find(
+        (a) => a.test.id !== t.id && a.test.components.some((c) => t.components.includes(c)),
+      );
+    return alt
+      ? { ...t, bedside: { words: LAB2.bedsideAlternative(alt.test.display, alt.kind), href } }
+      : t;
   });
 }
 
@@ -335,7 +346,7 @@ export async function loadEncounterOrders(
 
   const menuDb = opts.database ?? ((await import("@/db")).db as unknown as EmrDb);
   const menu = await withBedside(
-    await withToday(buildTestMenu(rec.tests, rec.caps), menuDb, actor.hospitalId),
+    await withToday(buildTestMenu(rec.tests, rec.caps, actor.hospitalId), menuDb, actor.hospitalId),
     menuDb,
     actor.hospitalId,
     actor.surface === "doctor" || actor.surface === "nurse"

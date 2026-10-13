@@ -15,6 +15,7 @@ import {
   labDowntimeLiveFor,
   labEqaLiveFor,
   labEquipmentLiveFor,
+  labHmisLiveFor,
   labOneMenuLiveFor,
   labPoctQualityLiveFor,
   labQcLiveFor,
@@ -75,6 +76,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     nonconformities: null,
     eqa: null,
     bedside_quality: null,
+    register: null,
+    hmis: null,
     downtime: formsWaiting,
   };
   const words = {
@@ -98,6 +101,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     nonconformities: "",
     eqa: "",
     bedside_quality: "",
+    register: "",
+    hmis: "",
     downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
@@ -114,6 +119,7 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     qc: emr && labQcLiveFor(scope.hospitalId),
     eqa: emr && labEqaLiveFor(scope.hospitalId),
     poctQuality: emr && labPoctQualityLiveFor(scope.hospitalId),
+    hmis: emr && labHmisLiveFor(scope.hospitalId),
   }).map((i) => ({
     id: i.id,
     label: i.label,
