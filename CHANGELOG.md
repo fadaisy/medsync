@@ -5,6 +5,46 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Lab Phase 3: registers, reports and quality — 2026-10-13
+
+Built dark on `feat/lab-quality-registers`, behind eight per-hospital flags that stay off in production until the CSO
+signs the copy (`LAB3_COPY_STATUS`). Migrations 0112–0118 are GATED and owner-applied. No clinical or operational
+number ships: QC plans and targets, acceptance criteria, kit and device rules, competency validity, stock levels,
+temperature ranges and the HMIS mapping are entered and signed in the product by each hospital's laboratory lead (with
+the CSO or the HMIS focal person where the kind needs two signatures).
+
+- An append-only stock ledger with lot states, first expiry first out and months of stock from issues
+  (`LAB_STOCK`; [ADR 0300](docs/adr/0300-lab-stock-ledger-lot-states-fefo.md)); lot acceptance before patient use,
+  grandfathering at switch-on and the bedside lots moved into the ledger keeping their ids
+  ([ADR 0301](docs/adr/0301-lab-lot-acceptance-and-grandfathering.md)); lots in use snapshotted on every released
+  result ([ADR 0302](docs/adr/0302-lab-lots-in-use-and-result-snapshots.md)).
+- Equipment on the `devices` record with maintenance, calibration and temperature logs; marking a machine down writes
+  the services hub's own availability, and back in service needs a repair and QC after it (`LAB_EQUIPMENT`;
+  [ADR 0303](docs/adr/0303-lab-equipment-on-devices-breakdowns-through-the-hub.md)).
+- Quantitative QC with signed plans, provisional-to-lab targets, the Westgard rule library and a Levey-Jennings chart
+  (`LAB_QC`; [ADR 0304](docs/adr/0304-lab-qc-plans-targets-rules-cached-status.md)); release held on failed QC with
+  partial release, the override and the look-back (`LAB_QC_HOLD`;
+  [ADR 0305](docs/adr/0305-lab-qc-hold-partial-release-override-lookback.md)); nonconformities as a generic engine
+  ([ADR 0306](docs/adr/0306-lab-nonconformities-generic-engine.md)); kit and stain QC.
+- External quality assessment: schemes, rounds, the provider's scores as reported, coverage and alternative
+  assessments (`LAB_EQA`; [ADR 0307](docs/adr/0307-lab-eqa-records-coverage-alternative-assessments.md)).
+- Bedside device control checks that block a failed meter, and per-test operator competency with a grace period at
+  switch-on, in the nurse workspace (`LAB_POCT_QUALITY`;
+  [ADR 0308](docs/adr/0308-lab-bedside-device-checks-and-competency.md)).
+- The daily register printed from records, restricted classes on their own registers
+  ([ADR 0309](docs/adr/0309-lab-daily-register-and-restricted-class-registers.md)); HMIS 105 section 10 and Section 6
+  counted from records, checked by the lead, signed by the designated In-Charge, frozen, revised when data change,
+  printed and exported as CSV (`LAB_HMIS`; [ADR 0310](docs/adr/0310-lab-hmis-105-form-mapping-counting-signing.md)).
+  The form rows are a research transcription marked unverified, so nothing is signable until the owner verifies them.
+- Lab reports and quality indicators with drill-down for lab roles, "No data" never shown as 0, and numbers only for
+  the hospital admin (`LAB_REPORTS`; [ADR 0311](docs/adr/0311-lab-quality-indicators-no-data-aggregates-only.md)).
+
+### Fixed — Lab Phase 3: the QC page held two database connections — 2026-10-13
+
+- `/lab/quality/qc` read the draft list through the global client inside its own transaction, taking a second pool
+  connection per request; under load the pool could starve. It now reads through the transaction (found by the
+  screenshot harness, whose pool has one connection).
+
 ### Added — Lab Phase 2: one menu, one record — 2026-10-12
 
 Built dark on `feat/lab-one-menu`, behind eight per-hospital flags that stay off in production until the CSO signs the

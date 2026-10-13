@@ -18,6 +18,7 @@ import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { missingReadings, tasksDue } from "./equipment";
 import { EQUIPMENT_KINDS } from "./equipment-store";
 import { menuToday } from "./one-menu-read";
+import { analyteName } from "./qc-store";
 import { dayOf } from "./stock";
 
 /**
@@ -122,6 +123,7 @@ export async function loadEquipment(tx: EmrTx, hospitalId: string, now: Date) {
             repairAt: repair?.doneAt ?? null,
             qc: d.linkedConcepts.map((c) => ({
               concept: c,
+              name: analyteName(c),
               passed:
                 !!repair &&
                 runs.some(

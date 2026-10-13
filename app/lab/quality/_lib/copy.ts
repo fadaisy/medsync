@@ -110,7 +110,7 @@ export const QUALITY = {
       per_n_samples: "Every n patient samples",
     } as Record<string, string>,
     lab: (runs: number | undefined, from: string, to: string) =>
-      `This lab's own, from ${runs ?? "?"} runs between ${from} and ${to}`,
+      runs ? `This lab's own, from ${runs} runs between ${from} and ${to}` : "This lab's own",
     maker: "Maker's range, provisional",
     setTarget: (label: string) => `Set this lab's target for ${label}`,
     targetReady: (runs: number, days: number) =>

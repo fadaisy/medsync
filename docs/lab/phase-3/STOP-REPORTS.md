@@ -1241,3 +1241,22 @@ failures are outside Lab Phase 3; one more file runs than at STOP 10 because the
 
 **Next:** Step 11's documentation half: the timed trials, the screenshot harness pass, the user guide pages, the
 hazard log, the ADRs and the final report (STOP 11 final).
+
+## STOP 11 (final): Visual verification and documentation (13 Oct 2026)
+
+The final report is **`docs/lab/phase-3/FINAL-REPORT.md`**: the §13 numbers, the §11 timings, the Definition of
+Done item by item, the gap list and the owner actions in order. Also written at this stop: ADRs 0300–0311
+(Accepted), `docs/NUMBERS.md` (migrations 0112–0118 used and unapplied; 0119, 0150–0159 and ADRs 0312–0319
+released), the CHANGELOG entry, `user-guide.md` (six roles, draft wording) and the completed `hazard-log.md` (30 of 30
+with the proving test, draft for the CSO).
+
+**Harness.** A local harness (`~/Desktop/lab3-harness`, outside the repo) replayed every migration including
+0112–0118 into PGlite, seeded fixtures through the app's own store functions, and ran a production build with the
+Phase 3 flags on. 23 views at 1440 and 390 px against artboards 1–13 are in `shots/`; axe ran on 44 page states with
+**0 serious or critical**. It found five defects, fixed in this commit: the EQA page crashed once a round was scored
+(a server page calling a client module's function; new guard `tests/design/client-call-from-server.test.ts`), the QC
+page took a second pool connection inside its transaction, an invalid `<dl>` on the QC run page (axe serious), the run
+form's default lot per level, and concept ids in the back-in-service checklist. Minor `empty-table-header` findings
+remain. No remote database was touched; the MFA bypass lives in the harness copy only.
+
+**Not done here:** the timed human trials (no lab users), the parallel month (S45), and every signature (owner).

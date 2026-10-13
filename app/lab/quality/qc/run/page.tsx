@@ -201,81 +201,84 @@ export default async function QcRunPage({
             {Q.plan.title}
           </h2>
           {plan ? (
-            <dl className="flex flex-col gap-2">
-              {(
-                [
-                  [Q.plan.levels, plan.levels.map((l) => l.label).join(" · ")],
+            <>
+              <dl className="flex flex-col gap-2">
+                {(
                   [
-                    Q.plan.frequency,
-                    Q.plan.frequencies[plan.frequency.kind]!.replace(
-                      "n ",
-                      `${plan.frequency.n ?? "n"} `,
-                    ),
-                  ],
-                  [Q.plan.rejectOn, plan.rejectRules.join(", ")],
-                  [Q.plan.warnOn, plan.warnRules.join(", ") || "—"],
-                  [Q.plan.holdNotRun, plan.holdWhenNotRun ? "Yes" : "No"],
-                  [Q.plan.onFailure, Q.plan.onFailureWords],
-                ] as const
-              ).map(([k, v]) => (
-                <div key={k}>
-                  <dt className="text-caption text-muted-foreground">{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-              <div>
-                <dt className="text-caption text-muted-foreground">{Q.plan.target}</dt>
-                {s.targets.map((t) => (
-                  <dd key={`${t.level}-${t.controlLotId}`} className="flex flex-col gap-1 pb-2">
-                    <span className="font-mono tabular-nums">{`${plan.levels.find((l) => l.level === t.level)?.label ?? t.level}: ${t.mean} ± ${t.sd} · ${t.lot}`}</span>
-                    <span className="text-caption text-muted-foreground">
-                      {t.source === "lab"
-                        ? Q.plan.lab(
-                            t.runs,
-                            t.from ? dateWords(new Date(t.from)) : "?",
-                            t.to ? dateWords(new Date(t.to)) : "?",
-                          )
-                        : Q.plan.maker}
-                    </span>
-                    {t.source === "maker_provisional" && lead ? (
-                      !t.progress ? (
-                        <span className="text-caption">{Q.plan.noPolicy}</span>
-                      ) : t.progress.kind === "ready" ? (
-                        <>
-                          <span className="text-caption">
-                            {Q.plan.targetReady(t.progress.runs, s.policy!.minDaysForTarget)}
-                          </span>
-                          <SetTarget
-                            deviceId={s.device.id}
-                            conceptId={sp.concept!}
-                            level={t.level}
-                            controlLotId={t.controlLotId}
-                            label={
-                              plan.levels.find((l) => l.level === t.level)?.label ??
-                              `level ${t.level}`
-                            }
-                          />
-                        </>
-                      ) : (
-                        <span className="text-caption">
-                          {Q.plan.targetNotYet(
-                            t.progress.runs,
-                            t.progress.days,
-                            s.policy!.minRunsForTarget,
-                            s.policy!.minDaysForTarget,
-                          )}
-                        </span>
-                      )
-                    ) : null}
-                  </dd>
+                    [Q.plan.levels, plan.levels.map((l) => l.label).join(" · ")],
+                    [
+                      Q.plan.frequency,
+                      Q.plan.frequencies[plan.frequency.kind]!.replace(
+                        "n ",
+                        `${plan.frequency.n ?? "n"} `,
+                      ),
+                    ],
+                    [Q.plan.rejectOn, plan.rejectRules.join(", ")],
+                    [Q.plan.warnOn, plan.warnRules.join(", ") || "—"],
+                    [Q.plan.holdNotRun, plan.holdWhenNotRun ? "Yes" : "No"],
+                    [Q.plan.onFailure, Q.plan.onFailureWords],
+                  ] as const
+                ).map(([k, v]) => (
+                  <div key={k}>
+                    <dt className="text-caption text-muted-foreground">{k}</dt>
+                    <dd>{v}</dd>
+                  </div>
                 ))}
-              </div>
+                <div>
+                  <dt className="text-caption text-muted-foreground">{Q.plan.target}</dt>
+                  {s.targets.map((t) => (
+                    <dd key={`${t.level}-${t.controlLotId}`} className="flex flex-col gap-1 pb-2">
+                      <span className="font-mono tabular-nums">{`${plan.levels.find((l) => l.level === t.level)?.label ?? t.level}: ${t.mean} ± ${t.sd} · ${t.lot}`}</span>
+                      <span className="text-caption text-muted-foreground">
+                        {t.source === "lab"
+                          ? Q.plan.lab(
+                              t.runs,
+                              t.from ? dateWords(new Date(t.from)) : "?",
+                              t.to ? dateWords(new Date(t.to)) : "?",
+                            )
+                          : Q.plan.maker}
+                      </span>
+                      {t.source === "maker_provisional" && lead ? (
+                        !t.progress ? (
+                          <span className="text-caption">{Q.plan.noPolicy}</span>
+                        ) : t.progress.kind === "ready" ? (
+                          <>
+                            <span className="text-caption">
+                              {Q.plan.targetReady(t.progress.runs, s.policy!.minDaysForTarget)}
+                            </span>
+                            <SetTarget
+                              deviceId={s.device.id}
+                              conceptId={sp.concept!}
+                              level={t.level}
+                              controlLotId={t.controlLotId}
+                              label={
+                                plan.levels.find((l) => l.level === t.level)?.label ??
+                                `level ${t.level}`
+                              }
+                            />
+                          </>
+                        ) : (
+                          <span className="text-caption">
+                            {Q.plan.targetNotYet(
+                              t.progress.runs,
+                              t.progress.days,
+                              s.policy!.minRunsForTarget,
+                              s.policy!.minDaysForTarget,
+                            )}
+                          </span>
+                        )
+                      ) : null}
+                    </dd>
+                  ))}
+                </div>
+              </dl>
+              {/* Outside the <dl>: a definition list holds only dt/dd groups (axe definition-list). */}
               {s.signedOn ? (
                 <p className="text-caption text-muted-foreground">
                   {Q.plan.signedBy(dateWords(s.signedOn))}
                 </p>
               ) : null}
-            </dl>
+            </>
           ) : null}
           {plan?.targets.some((t) => t.source === "maker_provisional") ? (
             <p className="text-caption text-muted-foreground">

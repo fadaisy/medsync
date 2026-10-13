@@ -9,14 +9,13 @@ import {
   AltDialog,
   CoverageDialog,
   EqaSettingsDialog,
-  outcomeChip,
   ResultsDialog,
   RoundDialog,
   RoundPanel,
   SchemeDialog,
   ScoresDialog,
 } from "../_components/eqa-forms";
-import { QcChip } from "../_components/qc-chip";
+import { outcomeChip, QcChip } from "../_components/qc-chip";
 import { QUALITY } from "../_lib/copy";
 import { requireQualityScope } from "../_lib/scope";
 import { RecordList } from "../../_components/record-list";

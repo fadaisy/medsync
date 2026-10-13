@@ -52,13 +52,6 @@ const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/K
 const textarea =
   "border-input bg-card text-body-s focus-visible:shadow-focus min-h-20 w-full rounded-sm border p-2 outline-none";
 
-export const outcomeChip = (o: RoundView["outcome"]) =>
-  o === null ? null : o === "acceptable" ? (
-    <QcChip tone="passed">{E.outcome.acceptable}</QcChip>
-  ) : (
-    <QcChip tone={o === "unacceptable" ? "dark" : "amber"}>{E.outcome[o]}</QcChip>
-  );
-
 /* ─── EA-1: a scheme and its enrolment ─────────────────────────────────── */
 
 export function SchemeDialog({

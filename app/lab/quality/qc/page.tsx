@@ -48,7 +48,8 @@ export default async function QualityControlPage({
     return Promise.all([
       loadQcPlans(tx, h, now),
       loadKits(tx, h, scope.userId, now),
-      db
+      // `t`, not `db`: a second pool connection inside the transaction can starve the pool.
+      t
         .select({
           id: labSignedConfigs.id,
           authoredBy: labSignedConfigs.authoredBy,

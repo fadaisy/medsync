@@ -472,7 +472,7 @@ export function EquipmentPanel({
               <Check done={!!b.repairAt}>{P.repairRecorded}</Check>
               {b.qc.map((q) => (
                 <Check key={q.concept} done={q.passed}>
-                  {P.qcPassed(q.concept)}
+                  {P.qcPassed(q.name)}
                 </Check>
               ))}
             </ul>

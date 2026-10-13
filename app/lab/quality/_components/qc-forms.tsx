@@ -477,7 +477,14 @@ export function RunForm({
   const { pending, message, act } = useAct();
   const [lines_, setLines] = useState(
     Object.fromEntries(
-      plan.levels.map((l) => [l.level, { lotId: lotsByLevel[l.level]?.[0]?.id ?? "", value: "" }]),
+      plan.levels.map((l) => {
+        // The lot the plan has a target for comes first; otherwise the first lot of the material.
+        const lots = lotsByLevel[l.level] ?? [];
+        const planned = plan.targets.find(
+          (t) => t.level === l.level && lots.some((x) => x.id === t.controlLotId),
+        );
+        return [l.level, { lotId: planned?.controlLotId ?? lots[0]?.id ?? "", value: "" }];
+      }),
     ),
   );
   const [step, setStep] = useState("");
