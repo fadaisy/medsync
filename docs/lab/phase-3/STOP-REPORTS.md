@@ -284,3 +284,37 @@ Section 6 (no stock). That gap is the case for this slice.
 
 Migrations **0112–0119** (and spare **0150–0159**) and ADRs **0300–0319** are free on every local and remote branch;
 claimed for this slice in `docs/NUMBERS.md`.
+
+## STOP 1: GATE A (13 Oct 2026)
+
+The proposal is `docs/lab/phase-3/gate-a-proposal.md`; the hazard log is `docs/lab/phase-3/hazard-log.md` (draft,
+all 30 hazards with cause, effect, control, proving test and residual risk). The owner told the session to pass every
+gate on Claude's recommendations, so every D-LAB3 and E-LAB3 decision is recorded as accepted and the build goes on.
+Nothing clinical is signed by that: QC plans and targets, rules, acceptance criteria, kit and stain rules, device
+rules, competency validity, stock levels, temperature ranges, the HMIS mapping and every string a clinician reads stay
+drafts until they are signed in the product, and the eight flags stay off in production until the CSO signs the copy
+(`LAB3_COPY_STATUS`).
+
+**The main simplifications** (19 differences from the prompt, each with its reason, in §1 of the proposal):
+
+- every signed thing is a new kind in Phase 2's `lab_signed_configs` (eight kinds), with lead-only kinds where the
+  prompt has the laboratory lead sign alone, lead + CSO for QC plans and the QC policy, and lead + HMIS focal person
+  for the mapping (E-LAB3-12);
+- the machine record is the existing `devices` table, widened (the hub has none), with status written through the
+  hub's own `report_problem` / `resolve_problem` (E-LAB3-09);
+- one append-only log for maintenance, calibration, temperature and repairs; one row per QC run; one table for kit,
+  stain and device control checks; control materials and strip lots are ordinary stock lots;
+- the HMIS form version is a committed data file, every row marked unverified until OA-1;
+- 23 new tables against about 50 in the prompt; six migrations, 0112–0117.
+
+**New decisions this gate added** (accepted as recommended): E-LAB3-08 partial release (held components stay
+preliminary inside a final report, released later by a completion version), E-LAB3-09 the machine record,
+E-LAB3-10 seven new specimen types for the HMIS columns, E-LAB3-11 `hmis_designations` for the In-Charge and the
+focal person, E-LAB3-12 the signer slots per kind.
+
+**Open before signing (not before building):** OA-1 and OA-2 (the real HMIS 105 and eHMIS ids) block signing the
+mapping and the CSV; OA-9 names the In-Charge and the focal person; OA-10 is the parallel month. Three orderable
+tests need the lead's mapping choice before the mapping can be signed: `test.urinalysis_dipstick`,
+`test.syphilis`, `test.islet_autoantibodies`.
+
+**Next:** Step 2, the data layer (0112–0117, the triggers, the `poct_lots` move, flags, permissions, RLS probes).
