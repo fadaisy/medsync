@@ -1,8 +1,10 @@
 import type { WorklistPayload } from "./_components/worklist-screen";
 import type { LabTechScope } from "@/lib/lab-tech/scope";
+import Link from "next/link";
 import { FlaskConicalIcon } from "lucide-react";
 
 import { LAB } from "@/content/lab";
+import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { labResultsLive } from "@/lib/encounter/feature";
@@ -10,10 +12,14 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
 import { labBenchLiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE, labWorklistFor, requestNow } from "@/lib/lab/page-data";
+import { analyteName, repeatTasks } from "@/lib/lab/qc-store";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
+import { RepeatDone } from "./_components/repeat-done";
 import { ResultRowActions } from "./_components/result-row-actions";
 import { WorklistScreen } from "./_components/worklist-screen";
+import { dateWords, timeWords } from "./_lib/days";
+import { ncLiveFor } from "./quality/_lib/scope";
 
 export const dynamic = "force-dynamic";
 
@@ -50,10 +56,14 @@ async function SectionWorklist({
 }) {
   const sp = await searchParams;
   const data = await labWorklistFor(scope.hospitalId);
+  // LB-3 (Lab Phase 3): look-back results to repeat now that QC has passed; none while QC and EQA are off.
+  const repeats = ncLiveFor(scope.hospitalId)
+    ? await db.transaction((t) => repeatTasks(t as never, scope.hospitalId))
+    : [];
   // LW-11: both identifiers on every row, revealed once per page load (one batched audit insert).
   const ids = await identitiesFor(
     scope,
-    data.inputs.map((i) => i.patientUserId),
+    [...data.inputs.map((i) => i.patientUserId), ...repeats.map((r) => r.patientUserId)],
     "lab_worklist",
   );
   const payload: WorklistPayload = {
@@ -86,7 +96,67 @@ async function SectionWorklist({
       sort: one(sp.sort),
     },
   };
-  return <WorklistScreen payload={payload} />;
+  return repeats.length ? (
+    <>
+      <RepeatTasks tasks={repeats} ids={ids} />
+      <WorklistScreen payload={payload} />
+    </>
+  ) : (
+    <WorklistScreen payload={payload} />
+  );
+}
+
+/** LB-3: "Repeat when QC passes" decisions whose QC now passes, each with two identifiers (Law 12). */
+function RepeatTasks({
+  tasks,
+  ids,
+}: {
+  tasks: Awaited<ReturnType<typeof repeatTasks>>;
+  ids: Awaited<ReturnType<typeof identitiesFor>>;
+}) {
+  return (
+    <section
+      aria-labelledby="repeats"
+      className="border-border bg-card text-body-s mx-4 mt-4 flex flex-col gap-2 rounded-lg border p-4 sm:mx-6"
+    >
+      <h2 id="repeats" className="text-heading-s font-medium">
+        Repeat when QC passes ({tasks.length})
+      </h2>
+      <ul className="flex flex-col gap-3">
+        {tasks.map((t) => {
+          const who = ids.get(t.patientUserId);
+          const label = `${who?.name ?? "Name withheld"}, ${analyteName(t.conceptId ?? "")}`;
+          return (
+            <li key={t.id} className="flex flex-wrap items-start justify-between gap-3">
+              <span className="flex flex-col">
+                <span>{who?.name ?? "Name withheld"}</span>
+                <span className="text-caption text-muted-foreground font-mono">
+                  {who?.mrn ?? "MRN not found"}
+                </span>
+              </span>
+              <span className="flex flex-col">
+                <span>
+                  {analyteName(t.conceptId ?? "")} {t.value} · {t.number}
+                </span>
+                <span className="text-caption text-muted-foreground">
+                  Released {dateWords(t.releasedAt)} {timeWords(t.releasedAt)}
+                </span>
+              </span>
+              {t.orderId ? (
+                <Link
+                  href={`/lab/results/${t.orderId}`}
+                  className="font-medium text-teal-700 underline-offset-4 hover:underline"
+                >
+                  Open the result<span className="sr-only">: {label}</span>
+                </Link>
+              ) : null}
+              <RepeatDone itemId={t.id} label={label} />
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
 }
 
 /**

@@ -560,6 +560,62 @@ export async function decideLookbackItem(
   return item.id;
 }
 
+/**
+ * LB-3 "Repeat when QC passes": a repeat decision is a task on the worklist once the analyte's QC on that analyser is
+ * not failed (an EQA nonconformity has no analyser: at once), until someone records the repeat as done (a `note`
+ * event on the nonconformity, append-only and audited) or the result has a later version (it was amended). No
+ * task table: the task is derived from the decision, the cached QC status and the events.
+ */
+export async function repeatTasks(tx: EmrTx, hospitalId: string, itemId: string | null = null) {
+  const raw = (await tx.execute(sql`
+    SELECT i.id, i.nc_id AS "ncId", i.patient_user_id AS "patientUserId", i.value::text AS value,
+           i.released_at AS "releasedAt", d.order_id AS "orderId", n.subject_concept_id AS "conceptId",
+           n.number
+      FROM lab_lookback_items i
+      JOIN lab_nonconformities n ON n.id = i.nc_id
+      JOIN diagnostic_reports d ON d.id = i.report_id
+      LEFT JOIN lab_qc_status q ON q.hospital_id = i.hospital_id AND q.device_id = n.subject_device_id
+                               AND q.concept_id = n.subject_concept_id
+     WHERE i.hospital_id = ${hospitalId} AND i.decision = 'repeat'
+       AND (${itemId}::uuid IS NULL OR i.id = ${itemId}::uuid)
+       AND (n.subject_device_id IS NULL OR q.status IS DISTINCT FROM 'failed')
+       AND NOT EXISTS (SELECT 1 FROM lab_nc_events e WHERE e.nc_id = i.nc_id AND e.kind = 'note'
+                          AND e.payload ->> 'repeatDone' = i.id::text)
+       AND NOT EXISTS (SELECT 1 FROM diagnostic_reports v WHERE v.logical_id = d.logical_id
+                          AND v.version > d.version AND v.status IN ('amended','corrected'))
+     ORDER BY i.released_at`)) as unknown;
+  const rows = (Array.isArray(raw) ? raw : ((raw as { rows?: unknown[] }).rows ?? [])) as {
+    id: string;
+    ncId: string;
+    patientUserId: string;
+    value: string;
+    releasedAt: string | Date;
+    orderId: string | null;
+    conceptId: string | null;
+    number: string;
+  }[];
+  return rows.map((r) => ({ ...r, releasedAt: new Date(r.releasedAt) }));
+}
+
+/** LB-3: the repeat is done (the result stands, or was amended on its page); recorded once, on the NC. */
+export async function repeatDone(tx: EmrTx, a: Actor, input: { itemId: string }, now: Date) {
+  const [task] = await repeatTasks(tx, a.hospitalId, input.itemId);
+  if (!task)
+    throw new EmrWriteError(
+      "conflict",
+      "There is no repeat to record: QC has not passed yet, or the repeat is already recorded.",
+    );
+  await tx.insert(labNcEvents).values({
+    ncId: task.ncId,
+    hospitalId: a.hospitalId,
+    kind: "note",
+    payload: { repeatDone: task.id },
+    actor: a.userId,
+    at: now,
+  });
+  return task.id;
+}
+
 /* ─── This lab's target (QQ-3) ─────────────────────────────────────────── */
 
 /**

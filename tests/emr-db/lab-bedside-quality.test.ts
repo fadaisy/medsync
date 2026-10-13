@@ -273,6 +273,28 @@ describe.skipIf(!laneOn)("Lab Phase 3 bedside quality (Step 8)", () => {
 
   let graceCheck: string;
 
+  it("S50 (bedside): with all eight Phase 3 flags off, the bedside result is Phase 2's: no check, no assessment asked", async () => {
+    const keys = [
+      "LAB_STOCK",
+      "LAB_EQUIPMENT",
+      "LAB_QC",
+      "LAB_QC_HOLD",
+      "LAB_EQA",
+      "LAB_POCT_QUALITY",
+      "LAB_HMIS",
+      "LAB_REPORTS",
+    ];
+    const saved = keys.map((k) => [k, process.env[k]] as const);
+    for (const k of keys) process.env[k] = "";
+    try {
+      // The nurse has no assessment and the strip lot was never checked: Phase 2 records the result.
+      const r = await record(nurse.a);
+      expect(await context(r.id)).toBeUndefined();
+    } finally {
+      for (const [k, v] of saved) process.env[k] = v;
+    }
+  });
+
   it("S36 (switch-on), BQ-4: with no assessment the operator is refused; the grace period lets existing operators record", async () => {
     await expect(record(nurse.a)).rejects.toThrow(
       /You have no assessment for .*Ask the laboratory for an assessment/,

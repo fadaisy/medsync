@@ -19,6 +19,7 @@ import {
   planKey,
   recordKitQc,
   recordQcRun,
+  repeatDone,
   setLabTarget,
 } from "./qc-store";
 import { PAYLOADS } from "./signed-config";
@@ -205,6 +206,13 @@ export async function decideLookbackItemAction(raw: unknown): Promise<ActionResu
     .safeParse(raw);
   if (!p.success) return bad(p.error);
   return run("staff", (tx, a, now) => decideLookbackItem(tx, a, p.data, now), ncLive);
+}
+
+/** LB-3: the repeat of a look-back result is done; its worklist task closes. */
+export async function repeatDoneAction(raw: unknown): Promise<ActionResult> {
+  const p = z.object({ itemId: uuid }).safeParse(raw);
+  if (!p.success) return bad(p.error);
+  return run("staff", (tx, a, now) => repeatDone(tx, a, p.data, now), ncLive);
 }
 
 export async function openNonconformityAction(raw: unknown): Promise<ActionResult> {

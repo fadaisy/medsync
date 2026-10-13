@@ -457,20 +457,6 @@ describe.skipIf(!laneOn)("Lab Phase 3 data layer (0112–0117)", () => {
     }
   });
 
-  it("append-only tables refuse UPDATE and DELETE for the owner and the service role", async () => {
-    for (const t of APPEND_ONLY) {
-      await expect(pg.query(`UPDATE public.${t} SET hospital_id = hospital_id`), t).rejects.toThrow(
-        /append-only/,
-      );
-      await expect(pg.query(`DELETE FROM public.${t}`), t).rejects.toThrow(/append-only/);
-      await expect(
-        asService(`UPDATE public.${t} SET hospital_id = hospital_id`),
-        t,
-      ).rejects.toThrow(/append-only/);
-      await expect(asService(`DELETE FROM public.${t}`), t).rejects.toThrow(/append-only/);
-    }
-  });
-
   it("once-only records: a breakdown closes once, a look-back item is decided once, a competency is revoked once", async () => {
     await expect(
       asService(`UPDATE lab_breakdowns SET cause = 'rewritten' WHERE id = $1`, [id.breakdown]),
@@ -547,6 +533,67 @@ describe.skipIf(!laneOn)("Lab Phase 3 data layer (0112–0117)", () => {
       asService(`DELETE FROM lab_hmis_reports WHERE id = $1`, [id.hmis]),
     ).rejects.toThrow(/never deleted/);
   });
+
+  /**
+   * S52: every append-only table of Phase 3 refuses UPDATE and DELETE, for the owner and for the service role (which
+   * bypasses RLS and keeps its grants: only the triggers stop it). The once-only tables are here with an update
+   * their trigger always refuses (after the once-only tests above have used their one change).
+   */
+  const S52: readonly (readonly [string, string, RegExp, RegExp])[] = [
+    ...APPEND_ONLY.map(
+      (t) =>
+        [
+          t,
+          `UPDATE public.${t} SET hospital_id = hospital_id`,
+          /append-only/,
+          /append-only/,
+        ] as const,
+    ),
+    [
+      "lab_stock_lots",
+      `UPDATE lab_stock_lots SET lot = lot || '-x'`,
+      /never change/,
+      /never deleted/,
+    ],
+    [
+      "lab_breakdowns",
+      `UPDATE lab_breakdowns SET cause = 'rewritten'`,
+      /closed, once/,
+      /closed, once/,
+    ],
+    [
+      "lab_lookback_items",
+      `UPDATE lab_lookback_items SET value = value + 1`,
+      /decided once/,
+      /decided once/,
+    ],
+    [
+      "lab_competencies",
+      `UPDATE lab_competencies SET valid_to = valid_to + 1`,
+      /revoked, once/,
+      /revoked, once/,
+    ],
+    [
+      "lab_nonconformities",
+      `UPDATE lab_nonconformities SET title = 'rewritten'`,
+      /frozen|kept/,
+      /frozen|kept/,
+    ],
+    ["lab_hmis_reports", `UPDATE lab_hmis_reports SET cells = '{}'`, /frozen/, /never deleted/],
+  ];
+  it.each(S52)(
+    "S52: %s refuses UPDATE and DELETE as the owner and as the service role",
+    async (t, update, u1, d1) => {
+      expect(
+        Number((await one<{ n: number }>(`SELECT count(*)::int AS n FROM public.${t}`)).n),
+        t,
+      ).toBeGreaterThan(0);
+      await expect(pg.query(update)).rejects.toThrow(u1);
+      await expect(pg.query(`DELETE FROM public.${t}`)).rejects.toThrow(d1);
+      await expect(asService(update)).rejects.toThrow(u1);
+      await expect(asService(`DELETE FROM public.${t}`)).rejects.toThrow(d1);
+    },
+  );
 
   it("admin aggregates only (Law 10): the admin, In-Charge and focal person get the cells, never the record ids", async () => {
     const agg = (a: Actor) => probe(pg, a, `SELECT * FROM private.lab_hmis_aggregates()`);

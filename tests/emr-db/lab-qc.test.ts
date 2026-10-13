@@ -28,6 +28,8 @@ import {
   qcRowsFor,
   recordKitQc,
   recordQcRun,
+  repeatDone,
+  repeatTasks,
   setLabTarget,
 } from "@/lib/lab/qc-store";
 import { grandfatherLots, receiveDelivery, saveItem } from "@/lib/lab/stock-store";
@@ -221,6 +223,26 @@ describe.skipIf(!laneOn)("Lab Phase 3 quality control and the hold (Step 6)", ()
         ...(qcOverride ? { qcOverride } : {}),
       }),
     );
+  /** S50: run `fn` with all eight Phase 3 flags off (Law 13), then put them back. */
+  const phase3Off = async <T>(fn: () => Promise<T>): Promise<T> => {
+    const keys = [
+      "LAB_STOCK",
+      "LAB_EQUIPMENT",
+      "LAB_QC",
+      "LAB_QC_HOLD",
+      "LAB_EQA",
+      "LAB_POCT_QUALITY",
+      "LAB_HMIS",
+      "LAB_REPORTS",
+    ];
+    const saved = keys.map((k) => [k, process.env[k]] as const);
+    for (const k of keys) process.env[k] = "";
+    try {
+      return await fn();
+    } finally {
+      for (const [k, v] of saved) process.env[k] = v;
+    }
+  };
   const obs = async (reportId: string) =>
     (
       await pg.query<{
@@ -708,7 +730,8 @@ describe.skipIf(!laneOn)("Lab Phase 3 quality control and the hold (Step 6)", ()
         decideLookbackItem(
           t,
           lead(),
-          { itemId: i.id, decision: i.sort === "unchanged" ? "stands" : "repeat" },
+          // Repeat each (LB-3's worklist tasks read these once QC passes).
+          { itemId: i.id, decision: "repeat" },
           new Date(),
         ),
       );
@@ -748,6 +771,45 @@ describe.skipIf(!laneOn)("Lab Phase 3 quality control and the hold (Step 6)", ()
         )
       ).qc_held,
     ).toBeNull();
+  });
+
+  it("LB-3: a 'repeat' decision is a worklist task once QC is not failed; Repeat done closes it, once", async () => {
+    const tasks = await tx((t) => repeatTasks(t, h));
+    const decided = await pg.query<{ id: string }>(
+      `SELECT id FROM lab_lookback_items WHERE nc_id = $1 AND decision = 'repeat'`,
+      [ncId],
+    );
+    expect(decided.rows.length).toBeGreaterThan(0);
+    expect(tasks.map((t) => t.id).sort()).toEqual(decided.rows.map((r) => r.id).sort());
+    expect(tasks[0]).toMatchObject({ conceptId: K, ncId });
+    expect(tasks[0]!.orderId).toBeTruthy();
+    // While the analyte's QC is failed, no task shows (the cached status decides).
+    const status = await one<{ status: string }>(
+      `SELECT status FROM lab_qc_status WHERE device_id = $1 AND concept_id = $2`,
+      [a1, K],
+    );
+    await pg.query(
+      `UPDATE lab_qc_status SET status = 'failed' WHERE device_id = $1 AND concept_id = $2`,
+      [a1, K],
+    );
+    expect(await tx((t) => repeatTasks(t, h))).toEqual([]);
+    await expect(
+      tx((t) => repeatDone(t, lead(), { itemId: tasks[0]!.id }, new Date())),
+    ).rejects.toThrow(/QC has not passed yet/);
+    await pg.query(
+      `UPDATE lab_qc_status SET status = $3 WHERE device_id = $1 AND concept_id = $2`,
+      [a1, K, status.status],
+    );
+    await tx((t) => repeatDone(t, actor.tech!, { itemId: tasks[0]!.id }, new Date()));
+    expect((await tx((t) => repeatTasks(t, h))).map((t) => t.id)).not.toContain(tasks[0]!.id);
+    expect(
+      await one(`SELECT kind, actor FROM lab_nc_events WHERE payload ->> 'repeatDone' = $1`, [
+        tasks[0]!.id,
+      ]),
+    ).toEqual({ kind: "note", actor: actor.tech!.userId });
+    await expect(
+      tx((t) => repeatDone(t, actor.tech!, { itemId: tasks[0]!.id }, new Date())),
+    ).rejects.toThrow(/already recorded/);
   });
 
   it("S24: a new control lot runs on the maker's range, provisional; after the signed minimum, Set this lab's target makes a new plan version", async () => {
@@ -1053,5 +1115,33 @@ describe.skipIf(!laneOn)("Lab Phase 3 quality control and the hold (Step 6)", ()
     } finally {
       process.env.LAB_QC_HOLD = "1";
     }
+  });
+
+  it("S50 (release): with all eight Phase 3 flags off, release is Phase 2's: a failed QC holds nothing, no QC snapshot", async () => {
+    // Creatinine's QC on this analyser is failed (S28); with the flags off the gate is never entered.
+    expect(
+      (
+        await one<{ status: string }>(
+          `SELECT status FROM lab_qc_status WHERE device_id = $1 AND concept_id = $2`,
+          [a1, CREAT],
+        )
+      ).status,
+    ).toBe("failed");
+    await phase3Off(async () => {
+      const r = await received();
+      const rel = await release(r, (await prelim(r, "4.1")).id);
+      expect(
+        (
+          await one<{ qc_held: string[] | null }>(
+            `SELECT qc_held FROM diagnostic_reports WHERE id = $1`,
+            [rel.id],
+          )
+        ).qc_held,
+      ).toBeNull();
+      for (const o of await obs(rel.id)) {
+        expect(o.status, o.concept_id).toBe("final");
+        expect(o.qc, o.concept_id).toBeNull();
+      }
+    });
   });
 });

@@ -1,13 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { releaseResults } from "@/lib/emr/actions/results";
-import { inputClass, newKey, Pop } from "../../../_components/pop";
 import { QUALITY } from "../../../quality/_lib/copy";
-import { Field, Said, useAct } from "../../../setup/criticals/_components/setup-forms";
+import { Said, useAct } from "../../../setup/criticals/_components/setup-forms";
+
+/** The dialog's code loads only when the override card shows (§11 added JS). */
+const QcOverride = dynamic(() => import("./qc-override"));
+const newKey = () => `lab3:${crypto.randomUUID()}`;
 
 const H = QUALITY.hold;
 
@@ -33,7 +36,6 @@ export function QcHoldActions({
 }) {
   const { pending, message, act } = useAct();
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState("");
   const release = (qcOverride?: { reason: string }) =>
     act(async () => {
       const r = await releaseResults({
@@ -70,31 +72,13 @@ export function QcHoldActions({
             {H.overrideTitle}
           </h2>
           <p className="text-muted-foreground">{H.overrideLede}</p>
-          <Pop
-            label={H.override(held.join(", "))}
-            title={H.override(held.join(", "))}
-            lede={H.overrideLede}
+          <QcOverride
+            held={held}
+            pending={pending}
             open={open}
             setOpen={setOpen}
-            action={
-              <Button
-                type="button"
-                onClick={() => release({ reason })}
-                disabled={pending || reason.trim().length < 3}
-              >
-                {H.override(held.join(", "))}
-              </Button>
-            }
-          >
-            <Field label={H.reason}>
-              <Input
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                maxLength={300}
-                className={inputClass}
-              />
-            </Field>
-          </Pop>
+            release={(reason) => release({ reason })}
+          />
         </section>
       ) : null}
       <Said message={message} />

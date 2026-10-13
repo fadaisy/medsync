@@ -326,6 +326,38 @@ describe.skipIf(!laneOn)("Lab Phase 3 registers and HMIS 105 (Step 9)", () => {
     process.env = env;
   });
 
+  it("S50 (ordering): with all eight Phase 3 flags off, an HIV rapid test is ordered as in Phase 2, with no purpose", async () => {
+    const keys = [
+      "LAB_STOCK",
+      "LAB_EQUIPMENT",
+      "LAB_QC",
+      "LAB_QC_HOLD",
+      "LAB_EQA",
+      "LAB_POCT_QUALITY",
+      "LAB_HMIS",
+      "LAB_REPORTS",
+    ];
+    const saved = keys.map((k) => [k, process.env[k]] as const);
+    for (const k of keys) process.env[k] = "";
+    try {
+      const { p, enc } = await newPatient();
+      const order = await as(actor.doctor!, p, (ctx) =>
+        placeOrders(ctx, {
+          patientUserId: p,
+          encounterId: enc,
+          orders: [
+            { clientKey: key(), testId: HIV, priority: "routine", reasonText: "Fixture check" },
+          ],
+        }),
+      );
+      expect(
+        await one(`SELECT test_purpose FROM encounter_orders WHERE id = $1`, [order.id]),
+      ).toEqual({ test_purpose: null });
+    } finally {
+      for (const [k, v] of saved) process.env[k] = v;
+    }
+  });
+
   it("D-LAB3-21: an HIV rapid test is not ordered without its purpose while labHmis is on", async () => {
     const { p, enc } = await newPatient();
     await expect(

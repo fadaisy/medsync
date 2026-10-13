@@ -1188,3 +1188,56 @@ run`): **465 files passed, 23 skipped; 10,366 passed, 4 expected failures, 248 s
 now covers `app/lab/reports`, `components/lab/lab-report-view.tsx` and the admin section (no red, no green).
 
 **Next:** Step 11 (code): S50–S53, the LB-3 repeat task, reduced motion, client JS.
+
+## STOP 11 (code): Hardening (13 Oct 2026)
+
+The code half of Step 11. The timed trials, the screenshot harness pass (artboards 1–13), the user guide, the
+completed hazard log, the ADRs and the final report are the documentation half, still to do. No migration change.
+
+### Scenarios
+
+| #    | Result | Where                                                                              | What the test proves                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---- | ------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S50  | pass   | `tests/lab/phase-3/flags-off.test.ts`, `lab-qc`, `lab-bedside-quality`, `lab-hmis` | All eight flags off: each `lab*LiveFor` is false and the lab nav (built as the layout builds it) equals the nav without Phase 3, while a hospital in a flag's list gets every Phase 3 item; the nurse's Bedside tests area sits behind `poct_quality`. **Release**: a U&E on an analyser whose creatinine QC is failed releases whole (no `qc_held`, no QC snapshot). **Bedside**: a nurse with no assessment on a never-checked strip lot records the result (no `bedsideQuality` context). **Ordering**: an HIV rapid test is ordered with no purpose                                                   |
+| S51  | pass   | `tests/design/red-reserved.test.ts`                                                | Split into a red test and a **green** test over every Phase 3 tree and file (Steps 4–11, now with `app/lab/reports`, the report view, the admin section and the repeat button); a coverage test that every Phase 3 route is scanned; and §10: any movement (transition or animation, colour fades aside) in a Phase 3 file stops under reduced motion                                                                                                                                                                                                                                                     |
+| S52  | pass   | `tests/emr-db/lab-phase3-data.test.ts` (`it.each`, 17 tables)                      | The eleven append-only tables and the six once-only ones (`lab_stock_lots`, `lab_breakdowns`, `lab_lookback_items`, `lab_competencies`, `lab_nonconformities`, `lab_hmis_reports`) each refuse UPDATE and DELETE as the owner **and** as `service_role`, with their trigger's own words; each has rows when tried                                                                                                                                                                                                                                                                                         |
+| S53  | pass   | `tests/emr-db/lab-signing.test.ts` (`it.each`, 8 kinds + HMIS + control)           | For `qc_plan`, `qc_policy`, `hmis_mapping`, `kit_qc_rule`, `acceptance_plan`, `device_qc_rule`, `competency_validity`, `register_config`: the author is refused as lead without a note and **with** one while another lead (a section head) exists; the other lead passes the person check; for the three two-signature kinds the lead is refused the CSO or focal slot even with a note while another superadmin or focal person exists. The In-Charge who checked the HMIS 105 is refused while another is designated; the other signs. A hospital with one lead still signs with the written exception |
+| LB-3 | pass   | `tests/emr-db/lab-qc.test.ts`                                                      | A "Repeat when QC passes" decision is a worklist task once the analyte's QC is not failed (none while failed; "Repeat done" refused then); **Repeat done** records a `note` event on the nonconformity and the task leaves; a second time is refused                                                                                                                                                                                                                                                                                                                                                      |
+
+### Code
+
+- **S53** `signConfig` (`lib/lab/catalogue-v2.ts`) decides who may sign before what is signed, and refuses the
+  written exception when `anotherSigner` finds someone else for the slot (an open head of the Laboratory or a
+  section; another superadmin; another focal person designated today). The HMIS 105's rule (Step 9) already did this.
+- **LB-3** `repeatTasks` and `repeatDone` (`lib/lab/qc-store.ts`), `repeatDoneAction` (`lib/lab/qc-actions.ts`, house
+  contract, `labQc` or `labEqa`), and a "Repeat when QC passes" list above the section worklist (`app/lab/page.tsx`,
+  two identifiers in the worklist's one audited reveal, Open the result, Repeat done). No task table: the task is the
+  decision, the cached QC status and the events; it also closes when the result is amended.
+- **Added client JS** (`next build`, first-load JS gzipped per route, this branch against `origin/main` 18888d72):
+  `/lab` 406.6 kB (+5.8), `/lab/results/[orderId]` 354.9 kB (+16.8), `/lab/reports` 241.0 kB (the shared floor: no
+  client code); `/nurse` 430.7 kB (+0.2), `/nurse/patients/[patientId]` 482.4 kB (+5.7), its bedside form 450.0 kB
+  (+5.5), `/nurse/bedside/devices` 447.3 kB (new). Nothing above 40 kB: the result page measured **+41.6 kB** first,
+  so the override dialog (the only dialog on it) now loads with `next/dynamic` when its card shows
+  (`qc-override.tsx`).
+- **Reduced motion**: Phase 3 adds no movement of its own; its dialogs are `EditorDialog`, which already stops under
+  `motion-reduce`. S51 now fails any Phase 3 file that adds movement without it.
+- **Build**: `next build` passes; `data/lab/hmis105-2019-09.json` is in the `.nft.json` trace of `/lab/hmis`,
+  `/lab/hmis/print`, `/hmis` and `/api/cron/hmis-changes` (the routes that read it at request time).
+
+### Differences from the prompt (and why)
+
+- **QH-5 re-pinning** is not built (documented gap, as STOP 6).
+- **S50 bedside** proves a hospital that never had `labPoctQuality`; a device blocked while the flag was on stays
+  blocked after it is switched off (the safer reading of Law 6; STOP 8).
+- **S53's exception** stays where no second person exists (D-LAB1-12's "written exception"); the CSO slot counts
+  any other superadmin, since the CSO is a superadmin at AAL2.
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings); the full suite on the PGlite lane (`vitest
+run`): **468 files passed, 22 skipped; 10,459 passed, 4 expected failures, 190 skipped**, 0 failed (the expected
+failures are outside Lab Phase 3; one more file runs than at STOP 10 because the fresh build is present);
+`rm -rf .next && next build` passes.
+
+**Next:** Step 11's documentation half: the timed trials, the screenshot harness pass, the user guide pages, the
+hazard log, the ADRs and the final report (STOP 11 final).
