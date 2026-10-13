@@ -47,6 +47,17 @@ describe("lab navigation", () => {
     expect(LAB_NAV.find((i) => i.id === "setup_criticals")?.group).toBe("setup");
   });
 
+  it("Lab Phase 3 §5: Stock and lots under Quality, only with labStock", () => {
+    const all = new Set<LabPermission>(LAB_PERMISSIONS);
+    expect(navFor(all).map((i) => i.id)).not.toContain("stock");
+    const on = navFor(all, { criticals: false, stock: true });
+    expect(on.find((i) => i.id === "stock")).toMatchObject({
+      href: "/lab/stock",
+      group: "quality",
+    });
+    expect(navFor(new Set<LabPermission>(), { criticals: false, stock: true })).toEqual([]);
+  });
+
   it("NV-2: only what the viewer may see", () => {
     expect(navFor(new Set<LabPermission>(LAB_PERMISSIONS))).toHaveLength(3);
     expect(navFor(new Set<LabPermission>())).toEqual([]);

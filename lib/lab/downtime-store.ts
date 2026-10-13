@@ -319,6 +319,7 @@ export async function enterDowntimeForm(ctx: WriteCtx, input: DowntimeFormInput)
     status: "final",
     values: input.values,
     clientKey: `${input.clientKey}:report`,
+    resultedAt: input.resultedAt,
   });
 
   await tx.insert(downtimeEntries).values({

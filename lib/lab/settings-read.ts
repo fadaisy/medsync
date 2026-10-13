@@ -8,9 +8,10 @@ import {
   cadres,
   devices,
   hospitalWards,
+  labLotsInUse,
   labSettings,
   labSignedConfigs,
-  poctLots,
+  labStockLots,
   poctOperators,
   staffAffiliations,
   testCatalogue,
@@ -26,6 +27,15 @@ import { PAYLOADS } from "./signed-config";
  */
 
 type Kind = "elevation" | "hiv_algorithm";
+/** The bedside device kinds (0110); the rest of `devices` is lab equipment (0113). */
+export const BEDSIDE_KINDS = [
+  "glucometer",
+  "ketone_meter",
+  "hba1c_analyser",
+  "bp_monitor",
+  "rdt_kit",
+  "dipstick",
+] as const;
 export interface ConfigSlot<K extends Kind> {
   signed: { payload: Payload<K>; inForceFrom: Date | null } | null;
   awaitingCso: { id: string; payload: Payload<K> } | null;
@@ -102,13 +112,15 @@ export async function loadBedsideRegister(tx: EmrTx, hospitalId: string) {
         state: devices.state,
       })
       .from(devices)
-      .where(eq(devices.hospitalId, hospitalId))
+      // Bedside kinds only: lab equipment shares the table since Lab Phase 3 (0113).
+      .where(and(eq(devices.hospitalId, hospitalId), inArray(devices.kind, [...BEDSIDE_KINDS])))
       .orderBy(asc(devices.model)),
     tx
-      .select({ deviceId: poctLots.deviceId, lot: poctLots.lot, useBy: poctLots.useBy })
-      .from(poctLots)
-      .where(eq(poctLots.hospitalId, hospitalId))
-      .orderBy(desc(poctLots.useBy)),
+      .select({ deviceId: labLotsInUse.deviceId, lot: labStockLots.lot, useBy: labStockLots.useBy })
+      .from(labLotsInUse)
+      .innerJoin(labStockLots, eq(labStockLots.id, labLotsInUse.lotId))
+      .where(eq(labLotsInUse.hospitalId, hospitalId))
+      .orderBy(desc(labStockLots.useBy)),
     tx
       .select({ id: hospitalWards.id, name: hospitalWards.name })
       .from(hospitalWards)

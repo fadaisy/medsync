@@ -12,7 +12,7 @@ import { ADULT, config, FIXTURE_SCHEME, refBand, T0 } from "./_fixtures";
 describe("PC: bedside", () => {
   const ok = {
     device: { state: "in_use", wardId: "w1", testCode: "test.capillary_glucose" },
-    lot: { deviceMatches: true, useBy: "2026-12-31" },
+    lot: { deviceMatches: true, state: "in_use" as const, useBy: "2026-12-31" },
     operatorGranted: true,
     wardId: "w1",
     testCode: "test.capillary_glucose",
@@ -29,11 +29,17 @@ describe("PC: bedside", () => {
     );
   });
   it("PC-3 (S47) a lot past its use-by date is refused", () => {
-    expect(bedsideErrors({ ...ok, lot: { deviceMatches: true, useBy: "2026-10-11" } })).toContain(
-      "lot_expired",
-    );
     expect(
-      bedsideErrors({ ...ok, lot: { deviceMatches: true, useBy: "2026-10-12" } }),
+      bedsideErrors({
+        ...ok,
+        lot: { deviceMatches: true, state: "in_use" as const, useBy: "2026-10-11" },
+      }),
+    ).toContain("lot_expired");
+    expect(
+      bedsideErrors({
+        ...ok,
+        lot: { deviceMatches: true, state: "in_use" as const, useBy: "2026-10-12" },
+      }),
     ).not.toContain("lot_expired");
   });
   it("PC-4 (S53) not in the future; older than the window needs a reason", () => {

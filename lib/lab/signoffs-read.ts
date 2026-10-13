@@ -24,6 +24,7 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   ncd_mapping: "NCD field mapping",
   ref: "Reference entry",
   addendum: "Concept addendum",
+  acceptance_plan: "Lot acceptance plan",
 };
 
 const author = alias(users, "author");
@@ -97,6 +98,8 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return `${p.concept} in ${p.unit}`;
     case "ref":
       return key;
+    case "acceptance_plan":
+      return String(p.method).replace("_", " ");
   }
 }
 
@@ -171,5 +174,7 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
       ];
     case "addendum":
       return [`Data file hash: ${p.hash}`];
+    case "acceptance_plan":
+      return [`Method: ${summary(kind, p)}`, `Source: ${p.source}`];
   }
 }

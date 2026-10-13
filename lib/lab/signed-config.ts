@@ -106,7 +106,38 @@ export const PAYLOADS = {
   }),
   ref: z.object({ constants: z.record(z.string(), decimal), source }),
   addendum: z.object({ hash: z.string().regex(/^[0-9a-f]{64}$/) }),
+  /** Lab Phase 3 LA-1, LA-2 (GATE A §3.1): key = the stock item id. Every number is the lead's, with its source. */
+  acceptance_plan: z
+    .object({
+      method: z.enum(["qc_pass", "lot_comparison", "certificate", "none"]),
+      triggers: z.array(z.enum(["new_lot", "new_shipment", "new_formulation"])),
+      comparison: z
+        .object({
+          samples: z.number().int().min(1).max(40),
+          spread: z.string().trim().min(3).max(300),
+          criterion: z
+            .object({
+              absolute: z.number().positive().optional(),
+              percent: z.number().positive().optional(),
+              combine: z.enum(["larger", "both"]),
+            })
+            .refine((c) => c.absolute !== undefined || c.percent !== undefined, "a criterion"),
+          qcAlso: z.boolean(),
+        })
+        .optional(),
+      certificateAllowed: z.boolean(),
+      source,
+    })
+    .refine((p) => p.method !== "lot_comparison" || !!p.comparison, "the comparison"),
 } as const;
+/** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */
+export const LEAD_ONLY_KINDS: readonly string[] = [
+  "kit_qc_rule",
+  "acceptance_plan",
+  "device_qc_rule",
+  "competency_validity",
+  "register_config",
+];
 export type ConfigKind = keyof typeof PAYLOADS;
 export type Payload<K extends ConfigKind> = z.infer<(typeof PAYLOADS)[K]>;
 

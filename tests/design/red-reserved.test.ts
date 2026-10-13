@@ -713,3 +713,40 @@ describe("red is reserved — Lab Phase 2 surfaces", () => {
     expect(block).not.toMatch(/critical|destructive|red-|rose-/);
   });
 });
+
+// ─── Lab Phase 3 (Law 11): no red and no green on the quality surfaces ──────────────────────
+
+describe("red is reserved — Lab Phase 3 surfaces", () => {
+  const PHASE3 = tree("app/lab/stock", "app/lab/_lib").concat(
+    (
+      [
+        "content/lab-phase-3.ts",
+        "app/nurse/patients/[patientId]/bedside/_components/bedside-form.tsx",
+      ] as const
+    ).map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),
+  );
+
+  it("adds no red and no green: warnings are amber with a word, passed and in stock are neutral with a check", () => {
+    expect(PHASE3.length).toBeGreaterThan(5);
+    for (const [path, src] of PHASE3) {
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+      expect(src, path).not.toMatch(
+        /\b(?:text|bg|border|ring|fill|stroke)-(?:red|rose|green|emerald|lime)-\d/,
+      );
+      expect(src, path).not.toMatch(
+        /status-critical|status-stable|tone="critical"|destructive|success/,
+      );
+      expect(src, path).not.toMatch(/border-l-\d|border-l-(?:grape|plum|teal|amber)/);
+    }
+  });
+
+  it("In stock and Use first are neutral words with a check, never amber", () => {
+    const page = stripComments(readFileSync(resolve(ROOT, "app/lab/stock/page.tsx"), "utf8"));
+    expect(page).toMatch(/<StatusWord icon glyph=\{CheckIcon\}>\s*\{C\.status\.inStock\}/);
+    const forms = stripComments(
+      readFileSync(resolve(ROOT, "app/lab/stock/_components/stock-forms.tsx"), "utf8"),
+    );
+    expect(forms).toMatch(/<StatusWord icon glyph=\{CheckIcon\}>\s*\{P\.useFirst\}/);
+  });
+});

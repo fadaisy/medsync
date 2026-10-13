@@ -1,12 +1,22 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import type { EmrTx } from "@/lib/emr/db";
 import type { WriteCtx } from "@/lib/emr/write/context";
 import type { ResultValueInput } from "@/lib/emr/write/results";
 import type { MarkInput } from "@/lib/lab/criticals/marks";
+import type { LotRefusal, LotState } from "@/lib/lab/stock";
 import { and, eq, isNull } from "drizzle-orm";
 
-import { devices, poctLots, poctOperators, testCatalogue } from "@/db/schema";
+import {
+  devices,
+  labLotsInUse,
+  labStockItems,
+  labStockLotEvents,
+  labStockLots,
+  poctOperators,
+  testCatalogue,
+} from "@/db/schema";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { placeOrders } from "@/lib/emr/write/orders";
 import { enterResults } from "@/lib/emr/write/results";
@@ -14,6 +24,8 @@ import { collectSpecimen } from "@/lib/emr/write/specimens";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { alertAfterRelease } from "@/lib/lab/criticals/store";
 import { bedsideErrors, glucoseConcept } from "./bedside";
+import { labStockLiveFor } from "./feature";
+import { refusalWords } from "./stock-store";
 
 /**
  * Bedside tests on the database (Lab Phase 2 §6.13; PC-1..PC-10; D-LAB2-09..-13; ADR 0259). A bedside result
@@ -29,7 +41,6 @@ const ERR: Record<string, string> = {
   device_other_ward: "This device is registered to another ward.",
   device_other_test: "This device is registered for another test.",
   lot_not_for_device: "Choose a current lot for this device.",
-  lot_expired: "This lot is past its use-by date. A result from an expired lot cannot be saved.",
   not_an_operator: "Only people the laboratory lead has granted bedside testing can record it.",
   measured_in_future: "The time measured cannot be in the future.",
   late_needs_reason: "Say why this is recorded more than a day later.",
@@ -73,12 +84,21 @@ export async function recordBedsideResult(ctx: WriteCtx, input: BedsideInput) {
     .select()
     .from(devices)
     .where(and(eq(devices.id, input.deviceId), eq(devices.hospitalId, actor.hospitalId)));
-  const [lot] = await tx.select().from(poctLots).where(eq(poctLots.id, input.lotId));
+  // Lab Phase 3 Step 4: the lot is a stock lot that has been set in use on this device (LU-1).
+  const [lot] = await tx
+    .select({ lot: labStockLots.lot, state: labStockLots.state, useBy: labStockLots.useBy })
+    .from(labStockLots)
+    .innerJoin(
+      labLotsInUse,
+      and(eq(labLotsInUse.lotId, labStockLots.id), eq(labLotsInUse.deviceId, input.deviceId)),
+    )
+    .where(and(eq(labStockLots.id, input.lotId), eq(labStockLots.hospitalId, actor.hospitalId)))
+    .limit(1);
   const errors = bedsideErrors({
     device: device
       ? { state: device.state, wardId: device.wardId, testCode: device.testCode }
       : null,
-    lot: lot ? { deviceMatches: lot.deviceId === input.deviceId, useBy: lot.useBy } : null,
+    lot: lot ? { deviceMatches: true, state: lot.state as LotState, useBy: lot.useBy } : null,
     operatorGranted: await isOperator(tx, actor.hospitalId, actor.userId),
     wardId: input.wardId,
     testCode: input.testCode,
@@ -86,7 +106,15 @@ export async function recordBedsideResult(ctx: WriteCtx, input: BedsideInput) {
     now,
     lateReason: input.lateReason ?? null,
   });
-  if (errors.length) throw new EmrWriteError("invalid", ERR[errors[0]!] ?? errors[0]!);
+  const first = errors[0];
+  if (first)
+    throw new EmrWriteError(
+      "invalid",
+      ERR[first] ??
+        (first.startsWith("lot_") && lot
+          ? refusalWords(first.slice(4) as LotRefusal, lot.lot)
+          : first),
+    );
   const [test] = await tx
     .select({ id: testCatalogue.id })
     .from(testCatalogue)
@@ -213,26 +241,87 @@ export async function setDeviceState(
     .where(eq(devices.id, d.id));
 }
 
+/**
+ * Phase 2's "add a lot" for a bedside device, writing the stock ledger (Lab Phase 3 Step 4): with stock off the
+ * lot is recorded as before (in use at once, the lead's own entry, basis "before MedSync") under the device
+ * test's item; with stock on, lots arrive through a delivery and acceptance and are set in use from Stock.
+ */
 export async function addLot(
   tx: EmrTx,
   actor: Actor,
   input: { deviceId: string; lot: string; useBy: string },
 ) {
+  if (labStockLiveFor(actor.hospitalId))
+    throw new EmrWriteError(
+      "config",
+      "Stock is on here: receive the lot in Stock and lots, then set it in use on this device.",
+    );
   const [d] = await tx
-    .select({ id: devices.id })
+    .select({
+      id: devices.id,
+      kind: devices.kind,
+      model: devices.model,
+      testCode: devices.testCode,
+    })
     .from(devices)
     .where(and(eq(devices.id, input.deviceId), eq(devices.hospitalId, actor.hospitalId)));
   if (!d) throw new EmrWriteError("not_found", "That device was not found.");
+  // The same item 0112's move gives this device's test (md5 of the key, as uuid).
+  const kind = d.kind === "rdt_kit" ? "kit" : "strip";
+  const h = createHash("md5")
+    .update(`poct-item:${actor.hospitalId}:${d.testCode ?? d.kind}:${kind}`)
+    .digest("hex");
+  const itemId = `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  const [t] = d.testCode
+    ? await tx
+        .select({ display: testCatalogue.display })
+        .from(testCatalogue)
+        .where(and(eq(testCatalogue.code, d.testCode), isNull(testCatalogue.hospitalId)))
+    : [];
+  await tx
+    .insert(labStockItems)
+    .values({
+      id: itemId,
+      hospitalId: actor.hospitalId,
+      name: `${t?.display ?? d.testCode ?? d.model} ${kind}s (from Phase 2)`,
+      kind,
+      unitOfIssue: "pack",
+      testCodes: d.testCode ? [d.testCode] : [],
+      createdBy: actor.userId,
+    })
+    .onConflictDoNothing();
+  const now = new Date();
   const [l] = await tx
-    .insert(poctLots)
+    .insert(labStockLots)
     .values({
       hospitalId: actor.hospitalId,
-      deviceId: d.id,
+      itemId,
       lot: input.lot.trim(),
       useBy: input.useBy,
-      addedBy: actor.userId,
+      receivedAt: now,
+      state: "in_use",
+      acceptedBasis: "before_medsync",
+      statement:
+        "Added as a bedside lot by the laboratory lead while stock and acceptance were off.",
     })
-    .returning({ id: poctLots.id });
+    .returning({ id: labStockLots.id });
+  await tx.insert(labStockLotEvents).values({
+    lotId: l!.id,
+    hospitalId: actor.hospitalId,
+    toState: "in_use",
+    reason: "Added as a bedside lot",
+    refKind: "bedside_lot",
+    actor: actor.userId,
+    at: now,
+  });
+  await tx.insert(labLotsInUse).values({
+    hospitalId: actor.hospitalId,
+    deviceId: d.id,
+    kind,
+    lotId: l!.id,
+    fromAt: now,
+    setBy: actor.userId,
+  });
   return l!.id;
 }
 
@@ -245,14 +334,12 @@ export async function setOperator(
 ) {
   if (input.granted) {
     if (await isOperator(tx, actor.hospitalId, input.userId)) return;
-    await tx
-      .insert(poctOperators)
-      .values({
-        hospitalId: actor.hospitalId,
-        userId: input.userId,
-        grantedBy: actor.userId,
-        grantedAt: now,
-      });
+    await tx.insert(poctOperators).values({
+      hospitalId: actor.hospitalId,
+      userId: input.userId,
+      grantedBy: actor.userId,
+      grantedAt: now,
+    });
     return;
   }
   await tx

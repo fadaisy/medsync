@@ -138,10 +138,12 @@ export default async function LabSettingsPage() {
                       <td className="py-2 pr-4">{d.ward ?? C.bedside.hospitalWide}</td>
                       <td className="py-2 pr-4">
                         {d.lot
-                          ? C.bedside.lotUseBy(
-                              d.lot.lot,
-                              date.format(new Date(`${d.lot.useBy}T12:00:00Z`)),
-                            )
+                          ? d.lot.useBy
+                            ? C.bedside.lotUseBy(
+                                d.lot.lot,
+                                date.format(new Date(`${d.lot.useBy}T12:00:00Z`)),
+                              )
+                            : d.lot.lot
                           : C.bedside.noLot}
                       </td>
                       <td className="py-2 pr-4">

@@ -11,12 +11,14 @@ import {
   GaugeIcon,
   ListChecksIcon,
   ListIcon,
+  PackageIcon,
   RulerIcon,
   SendIcon,
   SettingsIcon,
   SirenIcon,
   SlidersHorizontalIcon,
   TestTubesIcon,
+  WrenchIcon,
 } from "lucide-react";
 
 import {
@@ -45,6 +47,8 @@ const ICON = {
   setup_settings: SlidersHorizontalIcon,
   to_refer: SendIcon,
   setup_menu: ListChecksIcon,
+  stock: PackageIcon,
+  equipment: WrenchIcon,
 } as const;
 
 export interface LabNavEntry {

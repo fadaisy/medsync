@@ -605,3 +605,89 @@ and the record ids.
 - `npx eslint lib/lab tests/lab/phase-3`: clean. Prettier run over every file this step wrote.
 
 **Next:** Step 4, stock, lots and acceptance behind `labStock`.
+
+## STOP 4: Stock, lots and acceptance, behind `labStock` (13 Oct 2026)
+
+Built on the Step 2 tables and the Step 3 engines; no new migration. 0112 (unapplied, unshipped) was edited: the
+`poct_lots_into_ledger` copy trigger is gone (dropped if present), because the bedside code now reads and writes
+the ledger itself; the one-time move, the foreign-key repoint and the count check are unchanged.
+
+**Code.** `lib/lab/stock-store.ts` (receive, issue, adjust / write off / return, count, quarantine and release,
+accept and reject a lot, lots in use, switch-on, the lots-at-release snapshot), `lib/lab/stock-read.ts` (one read
+per page: on hand, use, levels, FEFO, days out, expiry, count due, expected versus issued, plans),
+`lib/lab/stock-actions.ts` (the house contract), `lib/lab/nc-store.ts` (the automatic nonconformity and the
+lead's in-app notice, shared with Step 5). Signed config kind `acceptance_plan` (Zod payload, words, lead-only
+signing: `LEAD_ONLY_KINDS` in `signed-config.ts`, `signConfig` puts a lead-only kind in force on the lead's
+signature). Screens `/lab/stock` (artboard 5: filters with counts, level bar with the minimum mark and the number,
+item panel in a centred `EditorDialog`, lot actions, plan editor), `/lab/stock/receive` (artboard 6: delivery,
+lines with on-arrival checks, lots waiting with the comparison by "Sample n · level" and the plan card),
+`/lab/stock/order` (print). Nav: a **Quality** group, "Stock and lots" behind `labStock` and `lab.view`.
+
+**Bedside moved onto the ledger.** `recordBedsideResult` reads `lab_stock_lots` through `lab_lots_in_use` (the lot
+must have been set in use on that device) and refuses with `lotRefusal` at the time measured, hospital-local
+(`bedsideErrors` gained the lot state and the zone); the nurse form (`_lib/load.ts`, `usableLots`) offers only
+selectable lots, FEFO first; the lab settings register and the result reader name the ledger lot. Phase 2's
+"add a lot" writes the ledger with stock off (in use at once, basis "before MedSync", the lead's own entry) and is
+refused with stock on (lots arrive by delivery and acceptance and are set in use from Stock). With all flags off
+the bedside behaves as Phase 2 except the UTC-day defect (c) is fixed.
+
+**Release snapshot (LU-3, Law 4).** `prepareFixedUnits` (`lib/lab/units.ts`), where Phase 1/2 write
+`lab_result_snapshots`, now also writes `lots` when `labStock` is on: per component, the lots in use on the device
+at the result time (bedside device, or the pinned analyser profile's `device_id`), with their numbers, or
+`"not_recorded"`. A downtime result is read at the form's result time (`enterResults` takes `resultedAt`).
+
+### Scenarios (`tests/emr-db/lab-stock.test.ts`, PGlite lane, 12 tests)
+
+| #   | Result | What the test proves                                                                                                                                      |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1  | pass   | 10 lines, one with 2 crushed packs: 98 enter stock (8 on that line), the line keeps received 10 / accepted 8 / rejected 2                                 |
+| S2  | pass   | New creatinine lot in acceptance; set in use refused; within on 5 samples but no QC refused; with an accepted run accepted, then in use                   |
+| S3  | pass   | One sample outside: Accept refused; Reject records the reason, the lot is rejected, NC-YYYY-001 opens (`lot_rejected`)                                    |
+| S4  | pass   | A bedside release snapshots `{strip, control}` lot ids and numbers; a new strip lot set in use later leaves it unchanged                                  |
+| S5  | pass   | FEFO: the later lot needs a reason (recorded as `fefo_reason`); the earlier one issues without; panel marks it Use first                                  |
+| S6  | pass   | Use-by 13 OCT: issue at 23:00 Kampala passes, at 01:30 (22:30 UTC, same date) refused; bench in-use refused; bedside expired and quarantined lots refused |
+| S7  | pass   | 30 issued over 3 whole months: use 10, on hand 70, 7 months, to maximum 0; 1 month of history: Not enough history                                         |
+| S8  | pass   | A count of 9 against 12 without a reason refused; with one, a `count` row of −3 and on hand 9; count no longer due                                        |
+| S9  | pass   | Strips issued 40 against the released bedside tests this month at a fixture tolerance: listed as possible wastage; nothing blocked                        |
+| S10 | pass   | Switch-on without a statement refused; with it, accepted / before MedSync / the statement, opening receipt on the ledger                                  |
+| —   | pass   | Law 8: an item with no plan: line "no_plan", lot waits, Accept says "no signed acceptance plan"                                                           |
+| —   | pass   | The move: with stock off "add a lot" writes the ledger and a bedside result points at it; with stock on it is refused                                     |
+
+Baseline test (c) flipped from `it.fails` to `it` and passes. **S1 timing:** `receiveDelivery` with 10 lines took
+**26 ms** server-side (PGlite, in process; budget p95 < 800 ms, asserted in the test). The human timed trial
+(median ≤ 4 min) is Step 11's.
+
+### Migration check
+
+0112 replayed in the lane (all migrations, then 0112 twice in `lab-phase3-data`): `poct_lots` 3 = moved 3, 3 events,
+3 lots-in-use rows; every report's lot resolves; the foreign key targets `lab_stock_lots`; **no**
+`poct_lots_into_ledger` trigger exists after the run.
+
+### Differences from the prompt (and why)
+
+- **recordLotComparison** is not its own write: the comparison is evaluated live on the screen (the pure engine)
+  and stored once, with the decision, on `lab_lot_acceptances.pairs` by Accept or Reject (append-only; no draft
+  state to manage). Pairs carry `sample-n` references, not result ids: picking result ids needs a result search
+  the slice does not have (LA-5's "never patient identity" holds either way).
+- **setItemLevels** is part of `saveStockItemAction` (lead); **adjustStock** and **writeOff** are one
+  `recordMovementAction` (kind adjustment, write_off or return).
+- **Stock permission**: receiving, issuing, counting, quarantine, acceptance and lots in use accept
+  `lab.stock.manage` **or** `lab.manage`: map 2.0.0 is unsigned, so no cadre holds `lab.stock.manage` yet.
+- **Certificate** is a reference text (`certificate_path`), not an upload (no storage path in the lab yet).
+- **QC on the new lot** is evidenced by accepted `lab_qc_runs` or passing `lab_control_checks` the user ticks; Step 6
+  writes those rows.
+- **A new shipment of an accepted lot** only informs ("controls") when the plan lists `new_shipment`; the lot is not
+  sent back to acceptance (§5.1 has no such move).
+- **Operational defaults**: look-back 3 months and a weekly count are D-LAB3-09's accepted operational values,
+  used until the lead sets them; the expiry window and the ST-9 tolerance have none ("not set" shows).
+- **Lots-in-use place** for a release is the device; bench-only (section) lots join when results carry a section.
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings in `scripts/embed-bench.mjs`);
+`vitest run tests/emr-db tests/lab tests/design tests/emr` on the PGlite lane: **133 files, 4383 passed, 2 expected
+failures** (baseline (a) and (b)), 0 failed. Red scarcity: a Lab Phase 3 block asserts no red and no green on
+`/lab/stock`, the shared date helper, the Phase 3 copy and the bedside form. Screenshots against artboards 5 and 6
+are in the Step 11 harness pass.
+
+**Next:** Step 5, equipment and temperature behind `labEquipment`.

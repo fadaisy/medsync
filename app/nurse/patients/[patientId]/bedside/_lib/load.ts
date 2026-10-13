@@ -2,16 +2,19 @@ import "server-only";
 
 import type { EntryComponent } from "@/components/emr/results/model";
 import type { EmrTx } from "@/lib/emr/db";
-import { and, desc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import type { LotState } from "@/lib/lab/stock";
+import { and, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { admissions } from "@/db/schema/admissions";
 import { devices, testCatalogue } from "@/db/schema/emr";
 import { hospitalWards } from "@/db/schema/hospital-wards";
-import { poctLots } from "@/db/schema/lab-catalogue";
+import { labLotsInUse, labStockLots } from "@/db/schema/lab-quality";
 import { entryComponents } from "@/lib/emr/read/results";
 import { componentsFor } from "@/lib/lab/catalogue-v2";
+import { lotRefusal } from "@/lib/lab/stock";
 import { currentMeasures } from "@/lib/lab/units";
+import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 
 export interface BedsideTest {
   code: string;
@@ -19,10 +22,30 @@ export interface BedsideTest {
   /** Glucose asks when the patient last ate (PC-7); the answer picks the concept on the server. */
   glucose: boolean;
   components: EntryComponent[];
-  devices: { id: string; label: string; lots: { id: string; lot: string; useBy: string }[] }[];
+  devices: {
+    id: string;
+    label: string;
+    lots: { id: string; lot: string; useBy: string | null }[];
+  }[];
 }
 
 const OPEN_ADMISSION = ["awaiting_bed", "bed_allocated", "arrived"];
+
+/**
+ * LA-4, ST-6, ST-8 (Lab Phase 3 Step 4): only lots selectable for patients today (accepted or in use, not past
+ * the use-by day, hospital-local), the one that expires first offered first (FEFO; no use-by goes last).
+ */
+function usableLots<L extends { state: string; useBy: string | null }>(
+  lots: L[],
+  now = new Date(),
+) {
+  return lots
+    .filter(
+      (l) =>
+        lotRefusal({ state: l.state as LotState, useBy: l.useBy }, now, DEFAULT_TIME_ZONE) === null,
+    )
+    .sort((a, b) => (a.useBy ?? "9999").localeCompare(b.useBy ?? "9999"));
+}
 
 /**
  * The bedside form's data (Lab Phase 2 §5.7): the patient's ward from the open admission here, and the
@@ -64,20 +87,22 @@ export async function loadBedsideForm(hospitalId: string, patientUserId: string)
 
   const [lots, tests] = await Promise.all([
     tx
-      .select({
-        id: poctLots.id,
-        deviceId: poctLots.deviceId,
-        lot: poctLots.lot,
-        useBy: poctLots.useBy,
+      .selectDistinct({
+        id: labStockLots.id,
+        deviceId: labLotsInUse.deviceId,
+        lot: labStockLots.lot,
+        state: labStockLots.state,
+        useBy: labStockLots.useBy,
       })
-      .from(poctLots)
+      .from(labLotsInUse)
+      .innerJoin(labStockLots, eq(labStockLots.id, labLotsInUse.lotId))
       .where(
         inArray(
-          poctLots.deviceId,
+          labLotsInUse.deviceId,
           devs.map((d) => d.id),
         ),
       )
-      .orderBy(desc(poctLots.useBy)),
+      .then(usableLots),
     tx
       .select({
         id: testCatalogue.id,

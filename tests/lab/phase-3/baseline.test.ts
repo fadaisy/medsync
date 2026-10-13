@@ -7,7 +7,7 @@ import { bedsideErrors } from "@/lib/lab/bedside";
 /**
  * Lab Phase 3, Step 0 (docs/lab/phase-3/PROMPT-LAB-PHASE-3.md §9): failing tests that reproduce the three
  * defects named in the baseline. Each is `it.fails`: green while the defect is present, red once fixed, so the
- * step that fixes it flips it to a plain `it` ((a) Step 6 S18, (b) Step 8 S33, (c) Step 4 S6).
+ * step that fixes it flips it to a plain `it` ((a) Step 6 S18, (b) Step 8 S33, (c) Step 4 S6: flipped).
  * Every lot, date and device here is a FIXTURE.
  */
 const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -17,7 +17,7 @@ const ok = (o: Partial<Parameters<typeof bedsideErrors>[0]> = {}) => {
   const measuredAt = o.measuredAt ?? new Date("2026-10-13T08:00:00Z");
   return {
     device: { state: "in_use", wardId: null, testCode: "test.capillary_glucose" },
-    lot: { deviceMatches: true, useBy: "2099-12-31" },
+    lot: { deviceMatches: true, state: "in_use" as const, useBy: "2099-12-31" },
     operatorGranted: true,
     wardId: null,
     testCode: "test.capillary_glucose",
@@ -49,17 +49,17 @@ describe("Lab Phase 3 baseline — defects reproduced at Step 0", () => {
     expect(bedsideErrors(withFailedCheck) as string[]).toContain("device_check_failed");
   });
 
-  // (c) The bedside form lists every lot of the device, expired ones included (load.ts orders by use-by
-  // descending with no filter), and the server compares the UTC date of measurement with the use-by date.
-  // In Kampala (UTC+3) a reading at 01:30 on 14 OCT is 22:30 UTC on 13 OCT, so a lot whose use-by is
-  // 13 OCT is accepted for three hours after the hospital's day ended.
-  it.fails("(c) an expired lot cannot be selected or saved at the bedside", () => {
+  // (c) Was: the bedside form listed every lot of the device, expired ones included, and the server compared
+  // the UTC date of measurement with the use-by date, so in Kampala (UTC+3) a reading at 01:30 on 14 OCT
+  // (22:30 UTC on 13 OCT) passed with a lot whose use-by is 13 OCT. Fixed at Step 4 (S6): the hospital-local
+  // day decides, and the form offers only selectable lots, FEFO first.
+  it("(c) an expired lot cannot be selected or saved at the bedside", () => {
     const afterMidnightKampala = new Date("2026-10-13T22:30:00Z");
     expect(
       bedsideErrors(
         ok({
           measuredAt: afterMidnightKampala,
-          lot: { deviceMatches: true, useBy: "2026-10-13" },
+          lot: { deviceMatches: true, state: "in_use", useBy: "2026-10-13" },
         }),
       ),
     ).toContain("lot_expired");

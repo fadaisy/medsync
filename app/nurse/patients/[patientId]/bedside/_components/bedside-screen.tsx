@@ -13,6 +13,7 @@ import { isOperator } from "@/lib/lab/bedside-store";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { settingsOf } from "@/lib/lab/criticals/store";
 import { labBedsideLiveFor } from "@/lib/lab/feature";
+import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 import { BEDSIDE as C } from "../_lib/copy";
 import { loadBedsideForm } from "../_lib/load";
 import { BedsideForm } from "./bedside-form";
@@ -82,7 +83,7 @@ export async function BedsideScreen({
           wardId={ward?.id ?? null}
           identity={{ name: chart.payload.safetyBar.name, mrn: chart.payload.safetyBar.mrn }}
           operator={scope.fullName ?? scope.userEmail}
-          today={now.toISOString().slice(0, 10)}
+          today={localDateKey(now, DEFAULT_TIME_ZONE)}
           nowMs={now.getTime()}
           tests={tests}
           critical={critical ? { secondCheck } : null}

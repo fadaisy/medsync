@@ -91,4 +91,18 @@ export const LAB3 = {
   registerHiv: "HIV tests are on their own register and are not printed here.",
   /** all */
   noData: "No data",
+  // ── Added in Step 4 (not in Appendix A; draft, for the CSO with the rest) ──
+  /** lab, nurse */
+  lotExpired: "Lot {lot} is past its use-by date. It cannot be used for patients.",
+  /** lab, nurse */
+  lotRejected: "Lot {lot} was rejected. It cannot be used for patients.",
+  /** lab, nurse */
+  lotFinished: "Lot {lot} is finished. Choose another lot.",
+  /** lab */
+  noAcceptancePlan:
+    "{Item} has no signed acceptance plan. The laboratory lead sets one before a new lot can be accepted.",
 } as const;
+
+/** Fill a `{name}` template (the copy keeps its placeholders so the CSO reads them as written). */
+export const fill = (t: string, v: Record<string, string | number>) =>
+  t.replace(/\{([^}]+)\}/g, (m, k: string) => (k in v ? String(v[k]) : m));

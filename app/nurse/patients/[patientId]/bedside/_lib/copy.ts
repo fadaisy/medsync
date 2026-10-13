@@ -19,7 +19,6 @@ export const BEDSIDE = {
   lot: "Strip or kit lot",
   choose: "Choose",
   lotUseBy: (date: string) => `use by ${date}`,
-  expired: "expired",
   result: "Result",
   above: "Above the meter's range",
   below: "Below the meter's range",

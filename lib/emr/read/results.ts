@@ -23,7 +23,7 @@ import { LAB2 } from "@/content/lab-phase-2";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { devices, diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
-import { poctLots } from "@/db/schema/lab-catalogue";
+import { labStockLots } from "@/db/schema/lab-quality";
 import { downtimeEntries, labResultSnapshots } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
@@ -617,12 +617,12 @@ export async function loadResultsToReview(
             .select({
               id: r.id,
               device: devices.model,
-              lot: poctLots.lot,
+              lot: labStockLots.lot,
               operator: users.fullName,
             })
             .from(r)
             .innerJoin(devices, eq(devices.id, r.deviceId))
-            .innerJoin(poctLots, eq(poctLots.id, r.lotId))
+            .innerJoin(labStockLots, eq(labStockLots.id, r.lotId))
             .leftJoin(users, eq(users.id, r.enteredByUserId))
             .where(
               inArray(

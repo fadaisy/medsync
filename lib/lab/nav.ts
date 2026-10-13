@@ -24,7 +24,9 @@ export type LabNavId =
   | "setup_drafts"
   | "setup_settings"
   | "to_refer"
-  | "setup_menu";
+  | "setup_menu"
+  | "stock"
+  | "equipment";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -40,6 +42,9 @@ export interface LabNavFlags {
   oneMenu?: boolean;
   /** Lab Phase 2 (§5.14): any flag with a lab setting (catalogue v2, payment, high-risk, bedside). */
   settings?: boolean;
+  /** Lab Phase 3 (§5): labStock, labEquipment. */
+  stock?: boolean;
+  equipment?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -161,6 +166,16 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     group: "setup",
     visibleFor: (p, f) => !!(f.settings ?? f.catalogueV2) && p.has("lab.manage"),
+  },
+  // Lab Phase 3 (§5): the Quality group, each item behind its flag.
+  {
+    id: "stock",
+    label: "Stock and lots",
+    href: "/lab/stock",
+    order: 5.3,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.stock && p.has("lab.view"),
   },
 ];
 

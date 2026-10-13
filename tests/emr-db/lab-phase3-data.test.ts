@@ -210,7 +210,7 @@ describe.skipIf(!laneOn)("Lab Phase 3 data layer (0112–0117)", () => {
       [id.analyser, chem],
     );
 
-    // Bedside lots the Phase 2 way: each lands in the ledger with its own id (0112 trigger).
+    // Bedside lots written the Phase 2 way, then moved into the ledger with their own ids (0112's move).
     id.lot1 = await ins(
       `INSERT INTO poct_lots (hospital_id, device_id, lot, use_by, added_by) VALUES ($1, $2, 'FX-STRIP', current_date + 30, $3)`,
       [hA, id.meter, u.lead],
@@ -219,6 +219,8 @@ describe.skipIf(!laneOn)("Lab Phase 3 data layer (0112–0117)", () => {
       `INSERT INTO poct_lots (hospital_id, device_id, lot, use_by, added_by) VALUES ($1, $2, 'FX-STRIP', current_date + 30, $3)`,
       [hA, id.otherMeter, u.lead],
     );
+    for (const l of [id.lot1, id.lot2])
+      await pg.query(`SELECT private.poct_lot_into_ledger($1)`, [l]);
 
     // Signed configuration drafts the rows below point at.
     const config = (kind: string, key: string) =>
@@ -646,8 +648,7 @@ describe.skipIf(!laneOn)("Lab Phase 3 data layer (0112–0117)", () => {
   });
 
   it("poct_lots → lab_stock_lots (§7): same ids, every report's lot resolves, the backfill is re-runnable", async () => {
-    // A lot written before the move (the copy trigger off, as it was before 0112), then 0112 run again.
-    await pg.exec(`ALTER TABLE poct_lots DISABLE TRIGGER poct_lots_into_ledger`);
+    // A lot written before the move, then 0112 run again.
     id.lot3 = await ins(
       `INSERT INTO poct_lots (hospital_id, device_id, lot, use_by, added_by) VALUES ($1, $2, 'FX-OLD', current_date - 1, $3)`,
       [hA, id.meter, u.lead],
@@ -692,10 +693,10 @@ describe.skipIf(!laneOn)("Lab Phase 3 data layer (0112–0117)", () => {
          AND NOT EXISTS (SELECT 1 FROM lab_stock_lots s WHERE s.id = r.lot_id)`,
     );
     expect(orphans.n).toBe(0);
-    // The copy trigger is back after the re-run.
-    const on = await one<{ tgenabled: string }>(
-      `SELECT tgenabled FROM pg_trigger WHERE tgname = 'poct_lots_into_ledger'`,
+    // No copy trigger: the bedside code writes the ledger itself (Step 4).
+    const trig = await one<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_trigger WHERE tgname = 'poct_lots_into_ledger'`,
     );
-    expect(on.tgenabled).toBe("O");
+    expect(trig.n).toBe(0);
   });
 });

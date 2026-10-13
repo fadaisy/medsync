@@ -13,14 +13,19 @@
 --   2. every poct_lots row copied with the SAME id, state `in_use`, basis `before_medsync` and the lead-facing
 --      statement below, plus one lot event (none → in_use, actor MedSync) and one lots-in-use row (its device);
 --   3. diagnostic_reports.lot_id re-pointed from poct_lots to lab_stock_lots (ids unchanged: no report touched);
---   4. poct_lots kept, append-only as before; until Step 4 moves the bedside code onto the ledger, a lot the
---      Phase 2 screens still add there is copied the same way by trigger (poct_lots_into_ledger);
+--   4. poct_lots kept, append-only and unread: the bedside code reads and writes the ledger (Lab Phase 3 Step 4),
+--      so no copy trigger is needed (an earlier draft of this file had one; it is dropped if present);
 --   5. the count check at the end refuses the migration unless every poct_lots row is in the ledger.
--- Reverse (no data lost either way; every id still exists in poct_lots):
+-- Reverse (no data lost; every moved id still exists in poct_lots). Bedside lots added after the switch live only
+-- in the ledger, so copy those back first:
+--   INSERT INTO public.poct_lots (id, hospital_id, device_id, lot, use_by, added_by, added_at)
+--   SELECT DISTINCT ON (s.id) s.id, s.hospital_id, u.device_id, s.lot, coalesce(s.use_by, current_date), u.set_by, s.received_at
+--     FROM public.lab_stock_lots s JOIN public.lab_lots_in_use u ON u.lot_id = s.id
+--    WHERE s.id IN (SELECT lot_id FROM public.diagnostic_reports) AND s.id NOT IN (SELECT id FROM public.poct_lots);
 --   ALTER TABLE public.diagnostic_reports DROP CONSTRAINT diagnostic_reports_lot_id_fkey;
 --   ALTER TABLE public.diagnostic_reports ADD CONSTRAINT diagnostic_reports_lot_id_fkey
 --     FOREIGN KEY (lot_id) REFERENCES public.poct_lots(id) ON DELETE RESTRICT;
---   DROP TRIGGER poct_lots_into_ledger ON public.poct_lots;   -- and point the bedside readers back at poct_lots.
+--   -- and point the bedside readers back at poct_lots.
 
 -- ─── Who reads the lab's quality records (used by 0112–0117 policies) ────
 -- Lab staff of the reader's hospital (the lab cadres, approved or active), or the head (substantive or acting)
@@ -341,16 +346,9 @@ BEGIN
   END IF;
 END;
 $$;
-CREATE OR REPLACE FUNCTION private.poct_lots_into_ledger() RETURNS trigger
-LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
-BEGIN
-  PERFORM private.poct_lot_into_ledger(NEW.id);
-  RETURN NULL;
-END;
-$$;
+-- The bedside code writes the ledger itself (Step 4): no copy trigger.
 DROP TRIGGER IF EXISTS poct_lots_into_ledger ON public.poct_lots;
-CREATE TRIGGER poct_lots_into_ledger AFTER INSERT ON public.poct_lots
-  FOR EACH ROW EXECUTE FUNCTION private.poct_lots_into_ledger();
+DROP FUNCTION IF EXISTS private.poct_lots_into_ledger();
 
 SELECT private.poct_lot_into_ledger(id) FROM (SELECT id FROM public.poct_lots ORDER BY added_at, id) moved;
 

@@ -170,6 +170,8 @@ interface VersionSpec {
   criticalRefs: readonly CriticalRef[];
   /** Lab Phase 2 (PC-1, PC-8): a bedside result's registered device and current lot. */
   bedside?: { deviceId: string; lotId: string } | null;
+  /** Lab Phase 3 (LU-3): a back-entered result's time on the form (lots in use are read at it). */
+  resultedAt?: Date | null;
 }
 
 function valueColumns(
@@ -304,6 +306,10 @@ async function writeReportVersion(
           v2: v2?.active
             ? { ...v2, status, method: spec.bedside ? ("bedside" as const) : ("lab" as const) }
             : null,
+          lotsAt: {
+            deviceId: spec.bedside?.deviceId ?? v2?.profile?.deviceId ?? null,
+            resultAt: spec.resultedAt ?? now,
+          },
         })
       : null;
   const values = fixed?.values ?? spec.values;
@@ -496,6 +502,8 @@ export interface EnterResultsInput {
   clientKey: string;
   /** Lab Phase 2 (labBedside): recorded at the bedside on a registered device and lot (PC-*). */
   bedside?: { deviceId: string; lotId: string };
+  /** Lab Phase 3 (LU-3): the downtime form's result time. */
+  resultedAt?: Date;
 }
 
 export type ReportResult = WriteResult & { critical?: boolean };
@@ -574,6 +582,7 @@ export async function enterResults(
     clientKey: input.clientKey,
     criticalRefs,
     bedside: input.bedside ?? null,
+    resultedAt: input.resultedAt ?? null,
   });
   await stampActivity(ctx, order.encounterId);
   return { id: r.id, critical: r.critical, warnings: r.critical ? [CRITICAL_WARNING] : [] };

@@ -14,7 +14,7 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { labCatalogueV2LiveFor } from "./feature";
 import { rowsFor } from "./profiles";
-import { configSignErrors, PAYLOADS } from "./signed-config";
+import { configSignErrors, LEAD_ONLY_KINDS, PAYLOADS } from "./signed-config";
 
 /**
  * Catalogue v2 on the database (Lab Phase 2 Step 4; ADRs 0251–0253). The signed configuration store, the
@@ -103,6 +103,7 @@ export async function pinnedProfile(tx: EmrTx, orderId: string): Promise<Profile
         mappings: r.mappings as Profile["mappings"],
         openChecks: r.open_checks as Profile["openChecks"],
         verifiedConcepts: (r.verified_concepts as string[]) ?? [],
+        deviceId: (r.device_id as string | null) ?? null,
       }
     : null;
 }
@@ -275,6 +276,7 @@ export async function signConfig(
     );
   const note = input.exceptionNote?.trim() || null;
   if (note && note.length < 10) throw invalid("Say in a sentence why no second person can sign.");
+  const leadOnly = LEAD_ONLY_KINDS.includes(c.kind);
   if (signer.as === "lead") {
     if (c.leadSignedBy)
       throw new EmrWriteError("conflict", "The laboratory lead has already signed.");
@@ -283,22 +285,26 @@ export async function signConfig(
         "forbidden",
         "You wrote this draft: another lead signs it, or record why no one else can.",
       );
-    await tx
-      .update(labSignedConfigs)
-      .set({
-        leadSignedBy: signer.userId,
-        leadSignedAt: now,
-        ...(note ? { exceptionNote: note } : {}),
-      })
-      .where(eq(labSignedConfigs.id, c.id));
-    return { kind: c.kind as ConfigKind, key: c.key };
+    if (!leadOnly) {
+      await tx
+        .update(labSignedConfigs)
+        .set({
+          leadSignedBy: signer.userId,
+          leadSignedAt: now,
+          ...(note ? { exceptionNote: note } : {}),
+        })
+        .where(eq(labSignedConfigs.id, c.id));
+      return { kind: c.kind as ConfigKind, key: c.key };
+    }
+  } else {
+    if (leadOnly) throw new EmrWriteError("conflict", "The laboratory lead signs this alone.");
+    if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The laboratory lead signs first.");
+    if (c.leadSignedBy === signer.userId && !note && !c.exceptionNote)
+      throw new EmrWriteError(
+        "forbidden",
+        "You signed as the lead: a different person signs as CSO, or record why no one else can.",
+      );
   }
-  if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The laboratory lead signs first.");
-  if (c.leadSignedBy === signer.userId && !note && !c.exceptionNote)
-    throw new EmrWriteError(
-      "forbidden",
-      "You signed as the lead: a different person signs as CSO, or record why no one else can.",
-    );
   await tx
     .update(labSignedConfigs)
     .set({ status: "superseded", supersededAt: now })
@@ -315,8 +321,9 @@ export async function signConfig(
     .update(labSignedConfigs)
     .set({
       status: "signed",
-      csoSignedBy: signer.userId,
-      csoSignedAt: now,
+      ...(signer.as === "lead"
+        ? { leadSignedBy: signer.userId, leadSignedAt: now }
+        : { csoSignedBy: signer.userId, csoSignedAt: now }),
       inForceFrom: now,
       ...(note ? { exceptionNote: note } : {}),
     })
