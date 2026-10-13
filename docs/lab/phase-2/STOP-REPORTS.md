@@ -488,3 +488,17 @@ should confirm them before they return.
 - **Checks**: typecheck, lint, the full suite (445 files, 10,113 tests, 0 failed with the PGlite lane on) and the
   production build all pass.
 - **Documents**: ADRs 0251–0259, `hazard-log.md`, `user-guide.md`, `import-report.md`, `FINAL-REPORT.md`.
+
+## STOP 10, follow-up (13 Oct 2026)
+
+- **Built**:
+  - the bedside critical mark (PC-9);
+  - bedside from the doctor's patient page;
+  - "Also at the bedside" on the order line;
+  - "Open procedure" on a high-risk worklist row;
+  - the click-to-receive fix ("Procedure followed" was dropped).
+- **Timing**: `scripts/lab/bench-timing.js`, for the scan and live-worklist timings on a real deployment.
+- **CSO decisions**:
+  - NF-8: the pack keeps its own reader for now.
+  - The four reversed unit factors: added back inverted to the house direction, checked by
+    `bedside-feed-display.test.ts`.

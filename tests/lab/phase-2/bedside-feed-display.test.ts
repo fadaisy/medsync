@@ -3,6 +3,7 @@ import type { FeedResult } from "@/lib/ncd/lab-feed";
 import { describe, expect, it } from "vitest";
 
 import { bedsideErrors, deriveHivOutcome, glucoseConcept, promptCritical } from "@/lib/lab/bedside";
+import { OTHER_UNITS } from "@/lib/lab/catalogue-v2";
 import { formatLine } from "@/lib/lab/display";
 import { resolveInterpretation } from "@/lib/lab/interpretation";
 import { latestForField, outsideCanonical } from "@/lib/ncd/lab-feed";
@@ -229,5 +230,14 @@ describe("DP: one result line", () => {
         previous: { value: "4.8", unitDisplay: "mmol/L", method: "bedside", on: "1 OCT 2026" },
       }).previous,
     ).toBe("previous result not comparable");
+  });
+
+  it("the four factors the research file wrote the other way round convert as the CSO checked them (13 Oct 2026)", () => {
+    const to = (c: string, v: number, unit: string, canonical: string) =>
+      outsideCanonical(v, unit, canonical, OTHER_UNITS[c] ?? []);
+    expect(to("obs.uacr", 100, "mg/g", "mg/mmol")).toBeCloseTo(11.3, 6);
+    expect(to("obs.chol_ldl_direct", 100, "mg/dL", "mmol/L")).toBeCloseTo(2.586, 6);
+    expect(to("obs.d_dimer", 500, "ug/L{FEU}", "mg/L{FEU}")).toBeCloseTo(0.5, 9);
+    expect(to("obs.d_dimer_ddu", 500, "ug/L{DDU}", "mg/L{DDU}")).toBeCloseTo(0.5, 9);
   });
 });

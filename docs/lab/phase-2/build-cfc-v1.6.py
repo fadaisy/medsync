@@ -81,9 +81,11 @@ testsAdd=[newtest('test.coag_screen','Coagulation screen (PT, INR, APTT)','venou
 otherUnits={}
 # The research writes most factors as canonical x factor = other; these four run the other way, so they are left
 # out (an outside result in these units is refused, never mis-converted) until the CSO checks them.
-AMBIGUOUS={('obs.uacr','mg/g'),('obs.chol_ldl_direct','mg/dL'),('obs.d_dimer','ug/L{FEU}'),('obs.d_dimer_ddu','ug/L{DDU}')}
+# The house rule is canonical x factor = other unit. These four were written the other way round in the research
+# file (other x factor = canonical); the CSO chose on 13 Oct 2026 to keep them, inverted (decision artifact HxcV7qKXZg2XswqJa2iMqd).
+REVERSED={('obs.uacr','mg/g'),('obs.chol_ldl_direct','mg/dL'),('obs.d_dimer','ug/L{FEU}'),('obs.d_dimer_ddu','ug/L{DDU}')}
 for c in R['concepts']:
-  ok=[{'unit':o['unit'],'multiplyBy':o['multiplyBy']} for o in (c.get('otherUnits') or []) if isinstance(o,dict) and o.get('multiplyBy') and (c['id'],o['unit']) not in AMBIGUOUS]
+  ok=[{'unit':o['unit'],'multiplyBy':1/o['multiplyBy'] if (c['id'],o['unit']) in REVERSED else o['multiplyBy']} for o in (c.get('otherUnits') or []) if isinstance(o,dict) and o.get('multiplyBy')]
   if ok: otherUnits[c['id']]=ok
 out={
  'catalogue':'MS-EMR-CFC','version':'1.6.0','extends':'1.5.0','status':'draft','signedBy':None,'signedAt':None,

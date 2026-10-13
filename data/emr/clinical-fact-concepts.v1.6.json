@@ -1687,6 +1687,30 @@
     "unit": "uIU/mL",
     "multiplyBy": 1
    }
+  ],
+  "obs.d_dimer": [
+   {
+    "unit": "ug/L{FEU}",
+    "multiplyBy": 1000.0
+   }
+  ],
+  "obs.uacr": [
+   {
+    "unit": "mg/g",
+    "multiplyBy": 8.849557522123893
+   }
+  ],
+  "obs.d_dimer_ddu": [
+   {
+    "unit": "ug/L{DDU}",
+    "multiplyBy": 1000.0
+   }
+  ],
+  "obs.chol_ldl_direct": [
+   {
+    "unit": "mg/dL",
+    "multiplyBy": 38.669760247486465
+   }
   ]
  },
  "testsAdd": [

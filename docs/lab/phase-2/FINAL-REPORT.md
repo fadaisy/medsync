@@ -85,19 +85,24 @@ Migrations 0107–0111 are written and **not applied**. ADRs 0251–0259 are wri
 - A high-risk worklist row opens the procedure, and Receive waits for "Procedure followed". This also fixed a defect:
   the click-to-receive action dropped "Procedure followed", so a high-risk specimen could only be received by scan.
 
+**Decided by the CSO on 13 Oct 2026** (decision page https://claude.ai/artifact/HxcV7qKXZg2XswqJa2iMqd):
+
+- **NF-8**: the diabetes pack keeps its own reader and its signed windows for now, to be revisited at the pack's
+  go-live review. No code change.
+- **The four reversed unit factors** are added back the house way round (canonical × factor = other unit): UACR
+  mg/g × 1/0.113, direct LDL mg/dL × 1/0.02586, D-dimer µg/L FEU and DDU × 1000. They live in the v1.6 data file
+  only (no SQL), so no migration changed. The addendum is still unsigned, so its hash is taken when it is signed.
+
 **Still open:**
 
-1. **NF-8, the diabetes pack's reader**: a CSO decision, asked on the decision page.
-2. **Four unit factors** written the opposite way round (UACR mg/g, direct LDL mg/dL, D-dimer µg/L FEU and DDU): a
-   CSO decision, asked on the same page. Until then, outside results in those units are refused.
-3. **Not measured**: scan to received p95 and live-worklist p95. `scripts/lab/bench-timing.js` measures both in a
+1. **Not measured**: scan to received p95 and live-worklist p95. `scripts/lab/bench-timing.js` measures both in a
    real browser once the migrations are applied. S25 (search speed) and S54 (the timed bedside trial) need real
    users. There is no NCD visit screenshot.
-4. **The DH-615 research-use blocklist** comes from the research file and may be incomplete. The laboratory lead
+2. **The DH-615 research-use blocklist** comes from the research file and may be incomplete. The laboratory lead
    confirms it on the analyser.
-5. **Wording**: copy outside Appendix A (set-up screens, cashier, bedside register, the bedside critical-mark lines)
+3. **Wording**: copy outside Appendix A (set-up screens, cashier, bedside register, the bedside critical-mark lines)
    needs a CSO wording pass.
-6. **Not fixed here**: the pre-existing axe contrast issue on the nurse sidebar.
+4. **Not fixed here**: the pre-existing axe contrast issue on the nurse sidebar.
 
 ## Owner actions, in order
 
