@@ -67,7 +67,8 @@ export function SidebarNavItem({
             ? HUE[hue].navActive
             : "bg-sidebar-accent text-sidebar-accent-foreground"
           : "text-sidebar-foreground hover:bg-ink-100 hover:text-foreground",
-        dimmed && !active && "opacity-70",
+        // "Soon" items: the muted text colour, never opacity, which takes the text under 4.5:1 (axe).
+        dimmed && !active && "text-muted-foreground",
       )}
     >
       {domain ? (
