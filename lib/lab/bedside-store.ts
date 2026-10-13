@@ -3,6 +3,7 @@ import "server-only";
 import type { EmrTx } from "@/lib/emr/db";
 import type { WriteCtx } from "@/lib/emr/write/context";
 import type { ResultValueInput } from "@/lib/emr/write/results";
+import type { MarkInput } from "@/lib/lab/criticals/marks";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { devices, poctLots, poctOperators, testCatalogue } from "@/db/schema";
@@ -10,6 +11,8 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { placeOrders } from "@/lib/emr/write/orders";
 import { enterResults } from "@/lib/emr/write/results";
 import { collectSpecimen } from "@/lib/emr/write/specimens";
+import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { alertAfterRelease } from "@/lib/lab/criticals/store";
 import { bedsideErrors, glucoseConcept } from "./bedside";
 
 /**
@@ -58,6 +61,9 @@ export interface BedsideInput {
   /** PC-7: glucose only. */
   fasting?: boolean;
   values: ResultValueInput[];
+  /** PC-9: critical marks, checked as the lab's are ("Repeated" is a second reading). */
+  marks?: MarkInput[];
+  note?: string | null;
   clientKey: string;
 }
 
@@ -120,7 +126,7 @@ export async function recordBedsideResult(ctx: WriteCtx, input: BedsideInput) {
       ? { ...v, conceptId: glucoseConcept(input.fasting) }
       : v,
   );
-  return enterResults(ctx, {
+  const r = await enterResults(ctx, {
     patientUserId: input.patientUserId,
     orderId: order.id,
     status: "final",
@@ -128,6 +134,26 @@ export async function recordBedsideResult(ctx: WriteCtx, input: BedsideInput) {
     clientKey: input.clientKey,
     bedside: { deviceId: input.deviceId, lotId: input.lotId },
   });
+  // PC-9: Phase 1's marks and alert, in the same transaction, wherever critical alerts are on.
+  if (!(await criticalsLive(actor.hospitalId))) {
+    if (input.marks?.length)
+      throw new EmrWriteError("config", "Critical alerts are not switched on here.");
+    return { ...r, alert: null };
+  }
+  const alert = await alertAfterRelease(ctx, {
+    patientUserId: input.patientUserId,
+    orderId: order.id,
+    reportId: r.id,
+    // A fasting glucose was saved as fasting glucose: the mark follows the saved concept.
+    marks: (input.marks ?? []).map((m) =>
+      m.conceptId === "obs.glucose" && input.fasting !== undefined
+        ? { ...m, conceptId: glucoseConcept(input.fasting) }
+        : m,
+    ),
+    note: input.note ?? null,
+    clientKey: input.clientKey,
+  });
+  return { ...r, alert };
 }
 
 /* ─── The register (§5.14; PC-10, D-LAB2-11, -12) ──────────────────── */

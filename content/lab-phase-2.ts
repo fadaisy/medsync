@@ -22,6 +22,13 @@ export const LAB2 = {
   },
   bedsideAlternative: (test: string, deviceKind: string) =>
     `Also at the bedside. ${test} can be measured on the ward ${deviceKind}.`,
+  deviceKinds: {
+    glucometer: "glucometer",
+    ketone_meter: "ketone meter",
+    hba1c_analyser: "HbA1c analyser",
+    rdt_kit: "rapid test kit",
+    dipstick: "dipstick",
+  } as Record<string, string>,
   payment: {
     orderingLine:
       "Payment is taken at the cashier before the sample is drawn. An Immediate order is never held for payment.",

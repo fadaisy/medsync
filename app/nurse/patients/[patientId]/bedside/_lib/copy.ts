@@ -34,6 +34,18 @@ export const BEDSIDE = {
   save: "Save result",
   saving: "Saving…",
   saved: "Saved. The result is in the patient's record and the doctor's results.",
+  // PC-9: the check before a critical mark, as the lab's, with "Repeated" meaning a second reading.
+  mark: "Mark this result critical",
+  repeated: "Repeated: a second reading",
+  repeatValue: "Second reading",
+  checked: "Checked, not repeated",
+  couldNotCheck: "Could not repeat",
+  why: "Why",
+  sayWhy: "Say why",
+  identityChecked: "The patient's identity, the device and the strip were checked.",
+  note: "Note to the doctor (optional)",
+  workingAlone: "No second person checked: why?",
+  alerted: "Saved and marked critical. The doctor is being alerted.",
   issues: {
     test: "Choose the test.",
     fasting: "Say when the patient last ate.",
@@ -41,5 +53,9 @@ export const BEDSIDE = {
     lot: "Choose the lot.",
     value: "Enter the result.",
     reason: "Say why this is recorded more than a day later.",
+    check: "Choose the check for the critical mark.",
+    repeat: "Type the second reading.",
+    why: "Say why it could not be repeated.",
+    alone: "Say why no second person checked.",
   },
 } as const;

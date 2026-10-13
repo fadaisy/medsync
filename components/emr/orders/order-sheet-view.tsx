@@ -7,6 +7,7 @@ import type {
   ReasonOption,
 } from "./model";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { CheckIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -274,6 +275,17 @@ function OrderLine({
           Remove {test.display}
         </Button>
       </div>
+      {test.bedside ? (
+        <p className="text-body-s text-muted-foreground">
+          {test.bedside.href ? (
+            <Link href={test.bedside.href} className="underline underline-offset-2">
+              {test.bedside.words}
+            </Link>
+          ) : (
+            test.bedside.words
+          )}
+        </p>
+      ) : null}
       {test.components.length > 1 ? (
         <p className="text-body-s text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
           <span>Includes</span>

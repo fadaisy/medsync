@@ -637,6 +637,30 @@ function releaseRefusal(errors: readonly string[]): string {
   return "The critical mark could not be recorded. Check the marked results.";
 }
 
+/**
+ * After a release: the signed limits' verdict on each value (FL-4, when units and ranges are live here),
+ * then the marks and the alert. Shared by the lab's release and a bedside result (PC-9), so both run
+ * the same checks; a bedside mark is told apart by its report's device.
+ */
+export async function alertAfterRelease(
+  ctx: WriteCtx,
+  input: Omit<ReleaseAlertInput, "evaluations"> & { orderId: string },
+) {
+  const evaluations = (await unitsRangesLive(ctx.actor.hospitalId))
+    ? await evaluateReport(ctx.tx, {
+        hospitalId: ctx.actor.hospitalId,
+        reportId: input.reportId,
+        patientUserId: input.patientUserId,
+        collectedAt: await collectedAtFor(ctx.tx, input.orderId, ctx.now),
+      })
+    : undefined;
+  return createAlertOnRelease(ctx, {
+    ...input,
+    clientKey: `${input.clientKey}:alert`,
+    ...(evaluations ? { evaluations } : {}),
+  });
+}
+
 /* ─── The clinician's side (CA-5–CA-9, CA-12) ─────────────────────────── */
 
 async function isRecipient(tx: EmrTx, alertId: string, userId: string): Promise<boolean> {
@@ -1251,23 +1275,13 @@ export async function releaseWithCriticalMark(ctx: WriteCtx, input: ReleaseWithM
         ...(input.conclusionText ? { conclusionText: input.conclusionText } : {}),
         clientKey: input.clientKey,
       });
-  // Step 6: the signed limits' verdict on each value (FL-4), when units and ranges are live here.
-  const evaluations = (await unitsRangesLive(ctx.actor.hospitalId))
-    ? await evaluateReport(ctx.tx, {
-        hospitalId: ctx.actor.hospitalId,
-        reportId: r.id,
-        patientUserId: input.patientUserId,
-        collectedAt: await collectedAtFor(ctx.tx, input.orderId, ctx.now),
-      })
-    : undefined;
-  const alert = await createAlertOnRelease(ctx, {
+  const alert = await alertAfterRelease(ctx, {
     patientUserId: input.patientUserId,
-    reportId: r.id,
     orderId: input.orderId,
+    reportId: r.id,
     marks: input.marks,
     note: input.note,
-    clientKey: `${input.clientKey}:alert`,
-    ...(evaluations ? { evaluations } : {}),
+    clientKey: input.clientKey,
   });
   return { ...r, alert };
 }

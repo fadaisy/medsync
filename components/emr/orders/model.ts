@@ -68,6 +68,8 @@ export interface MenuTest {
   restricted: boolean;
   /** Lab Phase 2 (labOneMenu, §5.1): what this test is here today, from the hub. */
   today?: { state: string; words: string | null; orderable: boolean } | null;
+  /** Lab Phase 2 (§5.1, labBedside): the same result on a ward device here, and the bedside form. */
+  bedside?: { words: string; href: string | null } | null;
 }
 
 /** A diagnosis on this encounter, offered as the order's reason. */

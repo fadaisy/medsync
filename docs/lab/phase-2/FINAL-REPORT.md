@@ -76,30 +76,28 @@ Migrations 0107–0111 are written and **not applied**. ADRs 0251–0259 are wri
 
 ## Gaps (honest list)
 
-1. **PC-9 not built.** A bedside HI reading shows "Consider marking this result critical", but there is no mark to
-   press. The lab's own critical mark (Phase 1) is unaffected.
-2. **NF-8 not done.** The diabetes pack keeps its own reader, because its look-back windows are signed pack data.
-   Moving it to the feed needs a CSO decision.
-3. **Not built**:
-   - the "Also at the bedside" line when ordering;
-   - the bedside entry from the doctor's patient page (nurses have it).
-4. **The worklist's "Open procedure" row action is not switched.** The server still refuses a high-risk receipt
-   without "Procedure followed", by scan or by click.
-5. **Not measured**:
-   - S25 (search speed);
-   - scan p95;
-   - realtime p95;
-   - S54 (the timed bedside trial, which needs real users).
+**Closed on 13 Oct 2026** (follow-up commit):
 
-   There is no NCD visit screenshot.
+- PC-9: a bedside result can be marked critical. It goes through Phase 1's checks and alert, by the same code path
+  as the lab's release (`alertAfterRelease`).
+- The bedside form opens from the doctor's patient page as well as the nurse's.
+- "Also at the bedside" shows on the order line, linking to the bedside form.
+- A high-risk worklist row opens the procedure, and Receive waits for "Procedure followed". This also fixed a defect:
+  the click-to-receive action dropped "Procedure followed", so a high-risk specimen could only be received by scan.
 
-6. **Four unit factors** in the research file run the opposite way (UACR mg/g, direct LDL mg/dL, D-dimer µg/L FEU and
-   DDU). They are left out of the addendum, so such outside results are refused rather than mis-converted. The CSO
-   should check them.
-7. **The DH-615 research-use blocklist** comes from the research file and may be incomplete. The laboratory lead
-   confirms it on the analyser at profile verification.
-8. **Copy outside Appendix A** (labels on set-up screens, cashier, bedside register) needs a CSO wording pass.
-9. **Not fixed here**: the pre-existing axe contrast issue on the nurse sidebar.
+**Still open:**
+
+1. **NF-8, the diabetes pack's reader**: a CSO decision, asked on the decision page.
+2. **Four unit factors** written the opposite way round (UACR mg/g, direct LDL mg/dL, D-dimer µg/L FEU and DDU): a
+   CSO decision, asked on the same page. Until then, outside results in those units are refused.
+3. **Not measured**: scan to received p95 and live-worklist p95. `scripts/lab/bench-timing.js` measures both in a
+   real browser once the migrations are applied. S25 (search speed) and S54 (the timed bedside trial) need real
+   users. There is no NCD visit screenshot.
+4. **The DH-615 research-use blocklist** comes from the research file and may be incomplete. The laboratory lead
+   confirms it on the analyser.
+5. **Wording**: copy outside Appendix A (set-up screens, cashier, bedside register, the bedside critical-mark lines)
+   needs a CSO wording pass.
+6. **Not fixed here**: the pre-existing axe contrast issue on the nurse sidebar.
 
 ## Owner actions, in order
 

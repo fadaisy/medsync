@@ -181,6 +181,7 @@ export interface LabWorklistData {
   restricted: Set<string>;
   /** Lab Phase 2 §5.5 (labHighRiskWarning): orders whose encounter carries the high-risk warning. */
   highRisk: Set<string>;
+  procedure: string | null;
   /** Lab Phase 2 CX-1 (labBench): order id → its clinical question, decrypted; absent when none. */
   questions: Map<string, string>;
 }
@@ -249,7 +250,21 @@ export async function loadLabWorklist(
       const c = sources.orders.get(i.orderId)?.reasonCiphertext;
       if (c) questions.set(i.orderId, decrypt(c));
     }
-  return { inputs, sections, restricted, highRisk, questions };
+  // §5.5: the hospital's procedure, shown with "Open procedure" on a high-risk row.
+  const [settings] = highRisk.size
+    ? await database
+        .select({ procedure: labSettings.highRiskProcedure })
+        .from(labSettings)
+        .where(eq(labSettings.hospitalId, hospitalId))
+    : [];
+  return {
+    inputs,
+    sections,
+    restricted,
+    highRisk,
+    questions,
+    procedure: settings?.procedure ?? null,
+  };
 }
 
 /* ─── Result entry: the clinical question and this specimen (§5.6) ── */

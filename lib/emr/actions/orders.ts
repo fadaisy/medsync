@@ -86,6 +86,8 @@ const HighRisk = z.object({
 });
 
 const SpecimenAct = z.object({ ...base, specimenId: uuid, clientKey });
+// SR-3: a high-risk specimen is received only with "Procedure followed" ticked, by click as by scan.
+const ReceiveSpecimen = SpecimenAct.extend({ procedureFollowed: z.boolean().optional() });
 const RejectSpecimen = SpecimenAct.extend({ reasonCode: z.enum(specimens.REJECTION_REASONS) });
 
 export async function placeOrders(raw: unknown) {
@@ -101,7 +103,7 @@ export async function collectSpecimen(raw: unknown) {
 }
 
 export async function receiveSpecimen(raw: unknown) {
-  return runEmrWrite(SpecimenAct, raw, specimens.receiveSpecimen);
+  return runEmrWrite(ReceiveSpecimen, raw, specimens.receiveSpecimen);
 }
 
 export async function rejectSpecimen(raw: unknown) {

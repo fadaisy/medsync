@@ -17,6 +17,7 @@ import type { FactConcept } from "@/lib/facts/types";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { formatters } from "@/components/emr/format";
+import { LAB2 } from "@/content/lab-phase-2";
 import {
   ageSexWords,
   containerWords,
@@ -26,6 +27,7 @@ import {
 } from "@/components/emr/orders/model";
 import {
   conditions,
+  devices,
   diagnosisTerms,
   facilityCapabilities,
   specimens,
@@ -51,6 +53,7 @@ import { decrypt } from "@/lib/encryption";
 import { conceptDef, sensitivityFor } from "@/lib/facts/project/shared";
 import { highRiskFor, paymentModeAt } from "@/lib/lab/collection-store";
 import {
+  labBedsideLiveFor,
   labCollectionCheckLiveFor,
   labHighRiskLiveFor,
   labOneMenuLiveFor,
@@ -236,6 +239,36 @@ async function withToday(
   });
 }
 
+/**
+ * Lab Phase 2 (§5.1, labBedside): a lab test whose result a device in use here also measures says so,
+ * with a link to the bedside form for the surfaces that have one.
+ * ponytail: any device in use at the hospital; the form itself narrows to the patient's ward.
+ */
+async function withBedside(
+  menu: MenuTest[],
+  tx: Pick<EmrDb, "select">,
+  hospitalId: string,
+  href: string | null,
+): Promise<MenuTest[]> {
+  if (!labBedsideLiveFor(hospitalId)) return menu;
+  const rows = await tx
+    .select({ kind: devices.kind, code: devices.testCode })
+    .from(devices)
+    .where(and(eq(devices.hospitalId, hospitalId), eq(devices.state, "in_use")));
+  if (rows.length === 0) return menu;
+  const byCode = new Map(menu.map((t) => [t.code, t]));
+  const alts = rows.flatMap((r) => {
+    const t = r.code ? byCode.get(r.code) : undefined;
+    return t ? [{ test: t, kind: LAB2.deviceKinds[r.kind] ?? r.kind }] : [];
+  });
+  return menu.map((t) => {
+    const alt =
+      t.kind === "lab" &&
+      alts.find((a) => a.test.id !== t.id && a.test.components.some((c) => t.components.includes(c)));
+    return alt ? { ...t, bedside: { words: LAB2.bedsideAlternative(alt.test.display, alt.kind), href } } : t;
+  });
+}
+
 export async function loadEncounterOrders(
   actor: EmrActor,
   encounterId: string,
@@ -300,10 +333,14 @@ export async function loadEncounterOrders(
     opts.database,
   );
 
-  const menu = await withToday(
-    buildTestMenu(rec.tests, rec.caps),
-    opts.database ?? ((await import("@/db")).db as unknown as EmrDb),
+  const menuDb = opts.database ?? ((await import("@/db")).db as unknown as EmrDb);
+  const menu = await withBedside(
+    await withToday(buildTestMenu(rec.tests, rec.caps), menuDb, actor.hospitalId),
+    menuDb,
     actor.hospitalId,
+    actor.surface === "doctor" || actor.surface === "nurse"
+      ? `/${actor.surface}/patients/${patientUserId}/bedside`
+      : null,
   );
 
   // Current versions only: not superseded, not withdrawn, not refuted.

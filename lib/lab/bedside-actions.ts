@@ -8,6 +8,7 @@ import { asClinicalWriter } from "@/lib/emr/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import { METER_RANGE } from "./bedside";
+import { deliverAfterCommit } from "./criticals/store";
 import {
   addLot,
   recordBedsideResult,
@@ -39,15 +40,42 @@ const Record_ = z.object({
   lateReason: z.string().trim().min(3).max(200).optional(),
   fasting: z.boolean().optional(),
   values: z.array(Value).min(1).max(20),
+  marks: z
+    .array(
+      z.object({
+        conceptId: z.string().min(3).max(80),
+        check: z.discriminatedUnion("kind", [
+          z.object({ kind: z.literal("repeated"), repeatValue: z.string().trim().min(1).max(20) }),
+          z.object({ kind: z.literal("checked_not_repeated") }),
+          z.object({
+            kind: z.literal("could_not_check"),
+            reason: z.enum(["not_enough_sample", "analyser_down", "no_reagent", "other"]),
+            text: z.string().trim().max(200).nullable().optional(),
+          }),
+        ]),
+        sampleChecked: z.boolean(),
+        soloReason: z.string().trim().max(200).nullable().optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
+  note: z.string().trim().max(280).nullable().optional(),
   clientKey: z.string().min(8).max(120),
 });
 
 export async function recordBedsideResultAction(raw: unknown) {
-  return runEmrWrite(Record_, raw, async (ctx, input) => {
+  const r = await runEmrWrite(Record_, raw, async (ctx, input) => {
     if (!labBedsideLiveFor(ctx.actor.hospitalId))
       throw new EmrWriteError("config", "Bedside tests are not switched on here.");
     return recordBedsideResult(ctx, input);
   });
+  // PC-9 (CA-3): the alert's messages go after the commit and never undo it.
+  if (!r.ok || !r.data) return r;
+  const { alert, ...report } = r.data;
+  if (alert?.jobs.length)
+    await deliverAfterCommit((await import("@/db")).db as never, alert.jobs).catch(() => undefined);
+  // Delivery jobs hold staff numbers and never leave the server (§12).
+  return { ...r, data: { ...report, alertId: alert?.alertId ?? null } };
 }
 
 async function asLead<T>(

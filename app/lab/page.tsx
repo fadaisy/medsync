@@ -66,6 +66,7 @@ async function SectionWorklist({
     identities: Object.fromEntries(ids),
     restricted: [...data.restricted],
     highRisk: [...data.highRisk],
+    procedure: data.procedure,
     // Lab Phase 2 §5.5: with LAB_BENCH off the payload, and so the screen, is Phase 1's.
     ...(labBenchLiveFor(scope.hospitalId)
       ? { bench: { questions: Object.fromEntries(data.questions) } }

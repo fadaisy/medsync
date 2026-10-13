@@ -113,6 +113,8 @@ export const LAB = {
     undo: "Undo",
     undone: "Receipt undone. The specimen is back in To receive.",
     procedureFollowed: "Procedure followed",
+    openProcedure: "Open procedure",
+    noProcedure: "No procedure is recorded in Lab settings. Follow the laboratory's high-risk procedure.",
     receive: "Receive",
     receiveAnyway: "Receive anyway",
     reason: "Reason for receiving it",
