@@ -93,6 +93,12 @@ Migrations 0107–0111 are written and **not applied**. ADRs 0251–0259 are wri
   mg/g × 1/0.113, direct LDL mg/dL × 1/0.02586, D-dimer µg/L FEU and DDU × 1000. They live in the v1.6 data file
   only (no SQL), so no migration changed. The addendum is still unsigned, so its hash is taken when it is signed.
 
+**Wording outside Appendix A**: the CSO reviewed all 807 lines, in 15 screens, and marked every screen "Reads
+well" with no changes on 13 Oct 2026 (review page https://claude.ai/artifact/1MhjgdMdKonfVXBmMHVMNE).
+
+**Nurse sidebar contrast**: the "soon" items now use the muted text colour instead of opacity (4.74:1 light,
+5.73:1 dark; `fix/nurse-sidebar-contrast`).
+
 **Still open:**
 
 1. **Not measured**: scan to received p95 and live-worklist p95. `scripts/lab/bench-timing.js` measures both in a
@@ -100,9 +106,6 @@ Migrations 0107–0111 are written and **not applied**. ADRs 0251–0259 are wri
    users. There is no NCD visit screenshot.
 2. **The DH-615 research-use blocklist** comes from the research file and may be incomplete. The laboratory lead
    confirms it on the analyser.
-3. **Wording**: copy outside Appendix A (set-up screens, cashier, bedside register, the bedside critical-mark lines)
-   needs a CSO wording pass.
-4. **Not fixed here**: the pre-existing axe contrast issue on the nurse sidebar.
 
 ## Owner actions, in order
 
