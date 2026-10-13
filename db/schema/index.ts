@@ -137,3 +137,4 @@ export * from "./pharmacy";
 // ─── Lab Phase 1, the safety floor (migrations 0102–0105 — GATED, ADRs 0239–0250)
 export * from "./lab-safety";
 export * from "./lab-catalogue";
+export * from "./lab-quality";

@@ -54,6 +54,8 @@ export const analyserProfiles = pgTable("analyser_profiles", {
   activatedBy: uuid("activated_by"),
   activatedAt: timestamp("activated_at", tz),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  /** 0113 (E-LAB3-09): the analyser this profile runs on. */
+  deviceId: uuid("device_id"),
 });
 
 export const researchImports = pgTable(

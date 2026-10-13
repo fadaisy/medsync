@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import MAP from "@/data/lab/permission-map.v1.json";
+import V2 from "@/data/lab/permission-map.v2.json";
 import {
   can,
   LAB_MAP_CADRES,
@@ -16,7 +17,7 @@ const perms = (cadreCode: string | null, headOf = noHead) =>
   [...labAccess({ cadreCode, headOf }).permissions].sort();
 
 describe("lab access", () => {
-  it("LA-1: six permissions, by name", () => {
+  it("LA-1: eleven permissions, by name (Phase 3 §4 adds five)", () => {
     expect(LAB_PERMISSIONS).toEqual([
       "lab.view",
       "lab.collect",
@@ -24,6 +25,11 @@ describe("lab access", () => {
       "lab.result.enter",
       "lab.result.release",
       "lab.manage",
+      "lab.qc.override",
+      "lab.stock.manage",
+      "lab.eqa.manage",
+      "lab.hmis.check",
+      "poct.assess",
     ]);
   });
 
@@ -71,6 +77,28 @@ describe("lab access", () => {
     expect(inCharge.manages).toEqual(["s1"]);
     expect(can(inCharge, "lab.manage")).toBe(true);
     expect(can(labAccess({ cadreCode: "LAB_TECH", headOf: noHead }), "lab.manage")).toBe(false);
+  });
+
+  it("Phase 3 §4: headship (substantive or acting) carries override, EQA and HMIS check with lab.manage", () => {
+    const lead = labAccess({ cadreCode: null, headOf: { laboratory: true, sectionIds: [] } });
+    for (const p of ["lab.manage", "lab.qc.override", "lab.eqa.manage", "lab.hmis.check"] as const)
+      expect(can(lead, p), p).toBe(true);
+    const bench = labAccess({ cadreCode: "LAB_TECHNOLOGIST", headOf: noHead });
+    for (const p of ["lab.qc.override", "lab.eqa.manage", "lab.hmis.check"] as const)
+      expect(can(bench, p), p).toBe(false);
+  });
+
+  it("Phase 3 §4: lab.stock.manage and poct.assess wait for the CSO to sign map 2.0.0", () => {
+    expect(V2.status).toBe("draft");
+    expect(mapProblems({ ...V2, status: "signed" })).toEqual([]);
+    const signed = labAccess(
+      { cadreCode: "LAB_TECH", headOf: noHead },
+      { ...V2, status: "signed" },
+    );
+    expect(can(signed, "lab.stock.manage") && can(signed, "poct.assess")).toBe(true);
+    expect(can(labAccess({ cadreCode: "LAB_TECH", headOf: noHead }), "lab.stock.manage")).toBe(
+      false,
+    );
   });
 
   it("LA-5: a cadre can never carry lab.manage, even if a map said so", () => {

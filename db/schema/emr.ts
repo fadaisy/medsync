@@ -179,11 +179,17 @@ export const devices = pgTable(
     verifiedBy: uuid("verified_by"),
     verifiedAt: timestamp("verified_at", tz),
     verificationNote: text("verification_note"),
+    /* 0113: the machine record (Lab Phase 3 E-LAB3-09); state also `down` and `blocked`. */
+    sectionId: uuid("section_id"),
+    details: jsonb("details").notNull().default({}),
+    linkedConcepts: text("linked_concepts").array().notNull().default([]),
+    linkedTests: text("linked_tests").array().notNull().default([]),
+    schedules: jsonb("schedules").notNull().default({}),
   },
   (t) => [
     check(
       "devices_kind_check",
-      sql`${t.kind} IN ('glucometer','ketone_meter','hba1c_analyser','bp_monitor','rdt_kit','dipstick')`,
+      sql`${t.kind} IN ('glucometer','ketone_meter','hba1c_analyser','bp_monitor','rdt_kit','dipstick','analyser','centrifuge','fridge','freezer','incubator','water_bath','microscope','pipette','thermometer','timer','safety_cabinet','other')`,
     ),
     check(
       "devices_calibration_check",
@@ -548,7 +554,7 @@ export const specimens = pgTable(
   (t) => [
     check(
       "specimens_specimen_type_check",
-      sql`${t.specimenType} IN ('venous_plasma','venous_serum','venous_whole_blood','capillary_whole_blood','arterial_blood','urine_spot','urine_first_morning','urine_24h','interstitial_fluid','unknown')`,
+      sql`${t.specimenType} IN ('venous_plasma','venous_serum','venous_whole_blood','capillary_whole_blood','arterial_blood','urine_spot','urine_first_morning','urine_24h','interstitial_fluid','unknown','sputum','stool','csf','pus_swab','genital_swab','skin_snip','other')`,
     ),
     check(
       "specimens_container_check",
@@ -640,7 +646,10 @@ export const diagnosticReports = pgTable(
     uncatalogued: boolean("uncatalogued").notNull().default(false),
     /** 0110: a bedside report carries its device and lot (P11). */
     deviceId: uuid("device_id"),
+    /** 0112: a lab_stock_lots id (Phase 2's poct_lots ids, moved keeping their ids). */
     lotId: uuid("lot_id"),
+    /** 0114 (E-LAB3-08): components held for QC, still preliminary inside a final report. */
+    qcHeld: text("qc_held").array(),
   },
   (t) => [
     ...factEnvelopeExtras("diagnostic_reports", t),
