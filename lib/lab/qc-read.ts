@@ -6,7 +6,7 @@ import type { RuleBreak, RunDecision } from "./qc-rules";
 import type { RunValue } from "./qc-store";
 import type { Payload, SignedConfig } from "./signed-config";
 import type { EmrTx } from "@/lib/emr/db";
-import { and, asc, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, lt, sql } from "drizzle-orm";
 
 import {
   devices,
@@ -215,7 +215,7 @@ export async function loadQcSeries(
           and(eq(labQcRuns.deviceId, input.deviceId), eq(labQcRuns.conceptId, input.conceptId)),
         )
     : [];
-  const targets = (plan?.targets ?? []).map((t) => {
+  const targets = (config?.payload.targets ?? []).map((t) => {
     const points = allRuns.flatMap((r) =>
       (r.values as RunValue[])
         .filter((v) => v.level === t.level && v.lotId === t.controlLotId)
@@ -234,6 +234,7 @@ export async function loadQcSeries(
     version: config?.version ?? null,
     signedOn: config?.inForceFrom ?? null,
     plan,
+    payload: config?.payload ?? null,
     draft: draft ? { id: draft.id, payload: draft.payload } : null,
     policy,
     targets,
@@ -562,10 +563,26 @@ export async function loadNc(tx: EmrTx, hospitalId: string, ncId: string) {
       ? tx.select().from(labQcRuns).where(eq(labQcRuns.id, nc.n.sourceRef))
       : [],
   ]);
+  const r = run[0];
+  // LB-1: the window opens at the last accepted run before the rejected one.
+  const [from] = r
+    ? await tx
+        .select({ at: labQcRuns.runAt })
+        .from(labQcRuns)
+        .where(
+          and(
+            eq(labQcRuns.deviceId, r.deviceId),
+            eq(labQcRuns.conceptId, r.conceptId),
+            inArray(labQcRuns.decision, ["accepted", "warning"]),
+            lt(labQcRuns.runAt, r.runAt),
+          ),
+        )
+        .orderBy(desc(labQcRuns.runAt))
+        .limit(1)
+    : [];
   const folded = foldNc(
     events.map((x) => ({ kind: x.e.kind, ...(x.e.payload as object) }) as never),
   );
-  const r = run[0];
   const bias = r
     ? biasEstimate(
         r.breaks as RuleBreak[],
@@ -581,7 +598,15 @@ export async function loadNc(tx: EmrTx, hospitalId: string, ncId: string) {
     overrides: events
       .filter((x) => x.e.kind === "note" && (x.e.payload as { override?: unknown }).override)
       .map((x) => ({ at: x.e.at, by: x.actor ?? "Staff" })),
-    run: r ? { id: r.id, at: r.runAt, rules: breakRules(r.breaks), firstStep: r.firstStep } : null,
+    run: r
+      ? {
+          id: r.id,
+          at: r.runAt,
+          from: from?.at ?? null,
+          rules: breakRules(r.breaks),
+          firstStep: r.firstStep,
+        }
+      : null,
     bias,
     unit: items[0]?.unit ?? null,
     lookBack: items

@@ -5,7 +5,7 @@ import type { LookBackDecision } from "./lookback";
 import type { QcPlan } from "./qc";
 import type { KitQcRule, KitTrigger, ObservedControl } from "./qc-kits";
 import type { RunDecision } from "./qc-rules";
-import type { SignedConfig } from "./signed-config";
+import type { Payload, SignedConfig } from "./signed-config";
 import type { LotState } from "./stock";
 import type { EmrTx } from "@/lib/emr/db";
 import { and, asc, desc, eq, gt, inArray, isNull, lte, or, sql } from "drizzle-orm";
@@ -65,7 +65,7 @@ export interface RunValue {
   sd: number;
 }
 
-export const toPlan = (c: SignedConfig<"qc_plan">): QcPlan => ({
+export const toPlan = (c: SignedConfig<"qc_plan">): QcPlan & Payload<"qc_plan"> => ({
   ...c.payload,
   version: c.version,
 });

@@ -64,6 +64,19 @@ describe("lab navigation", () => {
     );
   });
 
+  it("Lab Phase 3 §5: Quality today, Quality control and Nonconformities under Quality, only with labQc", () => {
+    const all = new Set<LabPermission>(LAB_PERMISSIONS);
+    const ids = ["quality", "qc", "nonconformities"];
+    expect(navFor(all).map((i) => i.id)).not.toContain("qc");
+    const on = navFor(all, { criticals: false, qc: true });
+    expect(on.filter((i) => ids.includes(i.id)).map((i) => [i.href, i.group])).toEqual([
+      ["/lab/quality", "quality"],
+      ["/lab/quality/qc", "quality"],
+      ["/lab/quality/nonconformities", "quality"],
+    ]);
+    expect(navFor(new Set<LabPermission>(), { criticals: false, qc: true })).toEqual([]);
+  });
+
   it("NV-2: only what the viewer may see", () => {
     expect(navFor(new Set<LabPermission>(LAB_PERMISSIONS))).toHaveLength(3);
     expect(navFor(new Set<LabPermission>())).toEqual([]);

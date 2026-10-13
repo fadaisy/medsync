@@ -3,14 +3,16 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BiohazardIcon } from "lucide-react";
+import { BiohazardIcon, TriangleAlertIcon } from "lucide-react";
 
 import { paymentWords } from "@/components/emr/orders/model";
 import { CriticalComm } from "@/components/emr/results/critical-comm";
 import { ResultEntry } from "@/components/emr/results/result-entry";
+import { StatusWord } from "@/components/emr/status-word";
 import { LAB } from "@/content/lab";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
 import { LAB2 } from "@/content/lab-phase-2";
+import { fill, LAB3 } from "@/content/lab-phase-3";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
@@ -19,16 +21,20 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
 import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
 import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
-import { labBenchLiveFor, labHighRiskLiveFor } from "@/lib/lab/feature";
+import { labBenchLiveFor, labHighRiskLiveFor, labQcLiveFor } from "@/lib/lab/feature";
 import { flaggingActiveFor } from "@/lib/lab/limits";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
+import { holdFor } from "@/lib/lab/qc-read";
+import { analyteName } from "@/lib/lab/qc-store";
 import { highRiskForOrder, loadBenchContext, loadRejectableSpecimen } from "@/lib/lab/read";
 import { fixedForOrder } from "@/lib/lab/units-read";
 import { FlaggingNotice } from "../../_components/flagging-notice";
 import { RejectSpecimen } from "../../_components/reject-specimen";
 import { AlertCell, Caution } from "../../criticals/_components/alert-bits";
+import { QUALITY } from "../../quality/_lib/copy";
 import { ClinicalQuestion } from "./_components/clinical-question";
 import { LabResultEntry } from "./_components/lab-result-entry";
+import { QcHoldActions } from "./_components/qc-hold";
 
 const REASONS = Object.entries(REJECTION_REASON_TEXT).map(([value, words]) => ({
   value,
@@ -73,7 +79,7 @@ export default async function LabResultEntryPage({
           await criticalsLive(scope.hospitalId),
         )
       : null;
-  const data = fixed
+  const withFixed = fixed
     ? {
         ...loaded,
         components: loaded.components.map((c) =>
@@ -82,6 +88,38 @@ export default async function LabResultEntryPage({
       }
     : loaded;
   const workspace = scope.workspaceLive;
+  // Lab Phase 3 (§5.3, labQc): the QC column, the hold block and the override, read from the cached rows.
+  const qcHeld = new Set(withFixed.report?.released ? (withFixed.report.qcHeld ?? []) : []);
+  const qc =
+    workspace && withFixed.mode === "direct" && labQcLiveFor(scope.hospitalId)
+      ? await db.transaction((t) =>
+          holdFor(
+            t as never,
+            scope.hospitalId,
+            {
+              orderId,
+              concepts: withFixed.components
+                .filter((c) => c.valueType === "quantity")
+                .map((c) => c.conceptId),
+              priority: withFixed.priority,
+            },
+            requestNow(),
+          ),
+        )
+      : null;
+  // Before release every blocked component is held; after it, only those the report still holds.
+  const blocked = (qc?.components ?? []).filter(
+    (c) => c.blocked && (!withFixed.report?.released || qcHeld.has(c.conceptId)),
+  );
+  const data = qc
+    ? {
+        ...withFixed,
+        components: withFixed.components.map((c) => {
+          const s = qc.components.find((x) => x.conceptId === c.conceptId);
+          return s ? { ...c, qc: qcEntryWord(s, qcHeld.has(c.conceptId)) } : c;
+        }),
+      }
+    : withFixed;
   // Lab Phase 1 (§5.2): the mark panel on a result not yet released, and the alert's status after.
   const criticals = workspace && data.mode === "direct" && (await criticalsLive(scope.hospitalId));
   const now = requestNow();
@@ -155,6 +193,71 @@ export default async function LabResultEntryPage({
         </section>
       ))}
       {highRisk ? <HighRiskBlock {...highRisk} /> : null}
+      {qc && blocked.length ? (
+        <div
+          role="alert"
+          className="bg-status-caution-bg border-status-caution-fg dark:text-status-caution-fg text-body-s flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-amber-800"
+        >
+          <TriangleAlertIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <div className="flex flex-col gap-1">
+            {blocked.map((c) => {
+              const [head, rest] = fill(LAB3.holdBlock, {
+                Analyte: c.analyte,
+                analyser: qc.device.model,
+                time: c.failedAt ? fmt.format(c.failedAt) : "—",
+                rules: c.rules.join(", ") || "not run",
+              })
+                .split("**")
+                .filter(Boolean);
+              return (
+                <p key={c.conceptId}>
+                  <span className="font-medium">{head}</span>
+                  {rest}
+                </p>
+              );
+            })}
+            {qc.others.length ? (
+              <p>{QUALITY.hold.elsewhere(qc.others.map((o) => o.model).join(", "))}</p>
+            ) : null}
+            {!data.report?.released ? (
+              <p>
+                {`Releasing now sends the others. The doctor sees: ${blocked
+                  .map((c) => fill(LAB3.toFollow, { Analyte: c.analyte }))
+                  .join(" ")}`}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      {qc
+        ? qc.components
+            .filter((c) => c.status === "not_run_in_window" && !c.blocked)
+            .map((c) => (
+              <p key={c.conceptId} className="text-body-s">
+                <StatusWord tone="caution">
+                  {fill(LAB3.qcNotRun, {
+                    analyte: c.analyte.toLowerCase(),
+                    analyser: qc.device.model,
+                  })}
+                </StatusWord>
+              </p>
+            ))
+        : null}
+      {qc && data.report && (blocked.length || qcHeld.size) ? (
+        <QcHoldActions
+          patientUserId={data.patientUserId}
+          reportId={data.report.id}
+          held={blocked.map((c) => c.analyte.toLowerCase())}
+          canOverride={scope.access.permissions.has("lab.qc.override")}
+          completion={
+            data.report.released
+              ? [...qcHeld]
+                  .filter((c) => !blocked.some((b) => b.conceptId === c))
+                  .map((c) => analyteName(c).toLowerCase())
+              : []
+          }
+        />
+      ) : null}
       <BesideResults
         aside={
           bench ? (
@@ -211,6 +314,20 @@ export default async function LabResultEntryPage({
       ) : null}
     </div>
   );
+}
+
+/** §5.3's QC column: Held (amber) and the other statuses, each a word. */
+function qcEntryWord(
+  c: { status: string; blocked: boolean },
+  heldInReport: boolean,
+): { word: string; tone: "passed" | "amber" | "none" } {
+  if (heldInReport || c.blocked) return { word: "Held", tone: "amber" };
+  if (c.status === "passed" || c.status === "provisional_target")
+    return { word: "Passed", tone: "passed" };
+  if (c.status === "warning") return { word: "Warning 1-2s", tone: "amber" };
+  if (c.status === "failed") return { word: "QC failed", tone: "amber" };
+  if (c.status === "no_plan") return { word: "No QC plan", tone: "amber" };
+  return { word: "QC not run today", tone: "none" };
 }
 
 /** Amber, bordered, an icon and the words (never red: a warning to take care, not an emergency). */

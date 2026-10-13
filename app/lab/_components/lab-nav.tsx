@@ -3,8 +3,10 @@
 import type { WorkspaceNavEntry } from "@/components/medsync/workspace-nav";
 import type { LabNavId } from "@/lib/lab/nav";
 import {
+  ActivityIcon,
   BanIcon,
   CheckCheckIcon,
+  ClipboardListIcon,
   CpuIcon,
   FileClockIcon,
   FileSearchIcon,
@@ -15,6 +17,7 @@ import {
   RulerIcon,
   SendIcon,
   SettingsIcon,
+  ShieldCheckIcon,
   SirenIcon,
   SlidersHorizontalIcon,
   TestTubesIcon,
@@ -49,6 +52,9 @@ const ICON = {
   setup_menu: ListChecksIcon,
   stock: PackageIcon,
   equipment: WrenchIcon,
+  quality: ShieldCheckIcon,
+  qc: ActivityIcon,
+  nonconformities: ClipboardListIcon,
 } as const;
 
 export interface LabNavEntry {

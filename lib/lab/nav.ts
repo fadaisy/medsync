@@ -26,7 +26,10 @@ export type LabNavId =
   | "to_refer"
   | "setup_menu"
   | "stock"
-  | "equipment";
+  | "equipment"
+  | "quality"
+  | "qc"
+  | "nonconformities";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -45,6 +48,8 @@ export interface LabNavFlags {
   /** Lab Phase 3 (§5): labStock, labEquipment. */
   stock?: boolean;
   equipment?: boolean;
+  /** Lab Phase 3 (§5.1–§5.4, §5.9): labQc. */
+  qc?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -168,6 +173,33 @@ export const LAB_NAV: readonly LabNavItem[] = [
     visibleFor: (p, f) => !!(f.settings ?? f.catalogueV2) && p.has("lab.manage"),
   },
   // Lab Phase 3 (§5): the Quality group, each item behind its flag.
+  {
+    id: "quality",
+    label: "Quality today",
+    href: "/lab/quality",
+    order: 5.1,
+    exact: true,
+    group: "quality",
+    visibleFor: (p, f) => !!f.qc && p.has("lab.view"),
+  },
+  {
+    id: "qc",
+    label: "Quality control",
+    href: "/lab/quality/qc",
+    order: 5.2,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.qc && p.has("lab.view"),
+  },
+  {
+    id: "nonconformities",
+    label: "Nonconformities",
+    href: "/lab/quality/nonconformities",
+    order: 5.6,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.qc && p.has("lab.view"),
+  },
   {
     id: "stock",
     label: "Stock and lots",
