@@ -717,10 +717,11 @@ describe("red is reserved — Lab Phase 2 surfaces", () => {
 // ─── Lab Phase 3 (Law 11): no red and no green on the quality surfaces ──────────────────────
 
 describe("red is reserved — Lab Phase 3 surfaces", () => {
-  const PHASE3 = tree("app/lab/stock", "app/lab/_lib").concat(
+  const PHASE3 = tree("app/lab/stock", "app/lab/equipment", "app/lab/_lib").concat(
     (
       [
         "content/lab-phase-3.ts",
+        "app/lab/_components/pop.tsx",
         "app/nurse/patients/[patientId]/bedside/_components/bedside-form.tsx",
       ] as const
     ).map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),

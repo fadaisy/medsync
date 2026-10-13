@@ -691,3 +691,60 @@ failures** (baseline (a) and (b)), 0 failed. Red scarcity: a Lab Phase 3 block a
 are in the Step 11 harness pass.
 
 **Next:** Step 5, equipment and temperature behind `labEquipment`.
+
+## STOP 5: Equipment and temperature, behind `labEquipment` (13 Oct 2026)
+
+No new migration (0113 as written at Step 2). **Code.** `lib/lab/equipment-store.ts` (register, schedule,
+mark down, repair and other logs, back in service, temperature), `lib/lab/equipment-read.ts` (one read per page:
+state, open breakdown, what doctors see now through Phase 2's `menuToday`, tasks due, latest temperature against its
+range, readings not recorded today, lots stored there), `lib/lab/equipment-actions.ts` (the house contract; the hub
+is called through `callEdge("ha-services-hub", …)` with the user's session). Screen `/lab/equipment` (artboard 7:
+the machine list with status, maintenance, calibration and temperature; the panel in a centred `EditorDialog` with
+the down block, "What doctors see now", specimens moved, the back-in-service checklist whose button opens only when
+both are met; the maintenance checklist, the temperature form with the Quarantine suggestion; the register and the
+schedule editors for the lead). Nav: "Equipment" under Quality, behind `labEquipment` and `lab.view`. The bedside
+register on Lab settings now lists bedside kinds only (lab equipment shares `devices`).
+
+**Through the hub's own action (Law 2).** Mark down: the tests whose only in-service machine this is
+(`testsLosingService` over `devices.linked_tests`) are mapped to their hub offering (`lab_test_services`) and each is
+reported with `report_problem` (subject `test`, state `unavailable`, reason `equipment_down`); the problem ids are
+written on the breakdown (written once), the device goes `down`. If anything after the first hub call fails, the
+reported problems are resolved again (no hub "down" without a lab breakdown). Back in service: `backInServiceErrors`
+(a repair after the breakdown, an accepted or warning QC run after the repair for every linked component), then
+`resolve_problem` for each problem, the breakdown closed once with the repair, the time, who and the downtime minutes.
+
+### Scenarios (`tests/emr-db/lab-equipment.test.ts`, PGlite lane, 5 tests)
+
+The hub is injected: the fake records each call and writes what `ha-services-hub` writes (`availability_events`),
+queued until the lab's transaction ends, as the edge function commits on its own connection.
+
+| #   | Result | What the test proves                                                                                                                                                                                                                                                                                                      |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S11 | pass   | Exactly one `report_problem` call with the FBC offering, `unavailable`, `equipment_down`; `menuToday` turns FBC from in house to `down_referred` ("Analyser down since …") in the same request; 1 received specimen counted to To refer; the panel's "What doctors see now" says the same                                 |
+| S12 | pass   | Refused with no repair; with a repair, refused while one component has only a run before the repair and the other a rejected run; refused while one is still missing; with both after the repair: one `resolve_problem`, FBC back to in house, downtime ≥ 119 min, closed by the lead, device in service                  |
+| S13 | pass   | A calibration done 40 days ago on a fixture 30-day schedule: overdue, `blocks: false`; the daily task done today: not overdue; the analyser stays in service                                                                                                                                                              |
+| S14 | pass   | 5 °C in a fixture 2–8 °C range: logged, nothing opened; 11.5 °C: logged out of range, nonconformity `temperature` owned by the lead with the Appendix A sentence, a `notified` event to the lead, the stored lot listed as a suggestion and left `accepted`; a day with no reading lists the ended window as not recorded |
+| —   | pass   | A hub refusal leaves nothing: no breakdown, the machine still in service                                                                                                                                                                                                                                                  |
+
+### Differences from the prompt (and why)
+
+- **recordRepair, recordMaintenance, recordCalibration** are one `recordEquipmentLogAction` (kind repair,
+  maintenance, calibration, error or drop) on the one append-only log (GATE A P3).
+- **Kit and stain QC after a repair** (EQ-3, "where linked"): `devices` has no linked kit items, so back in service
+  checks the linked quantitative components only; the engine already takes kit checks when a link exists.
+- **Registering equipment** records the lead as its verifier (0110's `devices_verified` needs a verification for a
+  device in service): "Registered in service by the laboratory lead."
+- **Who records**: the register, schedules, down and back need `lab.manage` (the hub's head check applies too);
+  repairs, maintenance, calibration and temperature readings need `lab.result.release` or `lab.manage`.
+- **Certificates and records attached** (EQ-5) are a reference text on the log (`file_path`), not an upload.
+- **No temperature range set**: the reading is logged with "in range" unknown and nothing opens (the list says
+  "Not monitored" until the lead sets the range).
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings); `vitest run tests/emr-db tests/lab tests/design
+tests/emr` on the PGlite lane: **134 files, 4388 passed, 2 expected failures** (baseline (a), (b)), 0 failed. Red
+scarcity covers `/lab/equipment` and the shared pop-up (no red, no green). Screenshots against artboard 7 are in the
+Step 11 harness pass.
+
+**Next:** Step 6, quality control, the hold, the look-back and nonconformities.

@@ -177,6 +177,15 @@ export const LAB_NAV: readonly LabNavItem[] = [
     group: "quality",
     visibleFor: (p, f) => !!f.stock && p.has("lab.view"),
   },
+  {
+    id: "equipment",
+    label: "Equipment",
+    href: "/lab/equipment",
+    order: 5.4,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.equipment && p.has("lab.view"),
+  },
 ];
 
 /** §5.15: with catalogue v2 on, Reference ranges becomes Ranges and cut-offs. */

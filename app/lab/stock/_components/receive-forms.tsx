@@ -12,8 +12,8 @@ import { acceptanceOutcome, evaluateLotComparison } from "@/lib/lab/acceptance";
 import { acceptLotAction, receiveDeliveryAction, rejectLotAction } from "@/lib/lab/stock-actions";
 import { cn } from "@/lib/utils";
 import { RECEIVE as C, STOCK } from "../_lib/copy";
+import { inputClass, newKey, num, selectClass } from "../../_components/pop";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
-import { inputClass, newKey, num, selectClass } from "./stock-forms";
 
 /* ─── The delivery (§5.6) ──────────────────────────────────────────── */
 
