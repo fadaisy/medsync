@@ -10,6 +10,7 @@ import {
   CheckSquareIcon,
   ClipboardPenIcon,
   ClipboardPlusIcon,
+  FingerprintIcon,
   GraduationCapIcon,
   HeartPulseIcon,
   LayoutDashboardIcon,
@@ -38,6 +39,7 @@ const ICONS: Record<NurseIconKey, LucideIcon> = {
   handover: ScrollTextIcon,
   assignment_board: ClipboardPenIcon,
   beds: BedDoubleIcon,
+  bedside: FingerprintIcon,
   supervisees: GraduationCapIcon,
   cosign_queue: ListChecksIcon,
 };

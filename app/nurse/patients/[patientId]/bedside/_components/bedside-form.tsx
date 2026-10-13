@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
 import { LAB2 } from "@/content/lab-phase-2";
+import { LAB3 } from "@/content/lab-phase-3";
 import { LATE_ENTRY_MS, METER_RANGE, promptCritical } from "@/lib/lab/bedside";
 import { recordBedsideResultAction } from "@/lib/lab/bedside-actions";
 import { BEDSIDE as C } from "../_lib/copy";
@@ -293,6 +294,8 @@ export function BedsideForm({
         {expired && lot?.useBy ? (
           <CautionNotice lead={LAB2.bedside.expiredLot(lot.lot, dayWords(lot.useBy))} />
         ) : null}
+        {device?.notice ? <CautionNotice lead={device.notice} /> : null}
+        {lot?.needsCheck ? <CautionNotice lead={LAB3.stripLotNeedsCheck} /> : null}
 
         {test ? (
           <fieldset className="flex flex-col gap-3">

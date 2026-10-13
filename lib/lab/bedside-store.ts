@@ -24,7 +24,8 @@ import { collectSpecimen } from "@/lib/emr/write/specimens";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { alertAfterRelease } from "@/lib/lab/criticals/store";
 import { bedsideErrors, glucoseConcept } from "./bedside";
-import { labStockLiveFor } from "./feature";
+import { bedsideGate } from "./bedside-quality-store";
+import { labPoctQualityLiveFor, labStockLiveFor } from "./feature";
 import { refusalWords } from "./stock-store";
 
 /**
@@ -106,6 +107,25 @@ export async function recordBedsideResult(ctx: WriteCtx, input: BedsideInput) {
     now,
     lateReason: input.lateReason ?? null,
   });
+  // Lab Phase 3 Step 8 (BQ-2..BQ-5): with labPoctQuality on (or a device a failed check has stopped), the device
+  // check and the operator's competency at the time measured; the result records both.
+  const gate =
+    device?.testCode &&
+    (errors[0] === "device_blocked" ||
+      (errors.length === 0 && labPoctQualityLiveFor(actor.hospitalId)))
+      ? await bedsideGate(
+          tx,
+          actor,
+          {
+            deviceId: device.id,
+            deviceModel: device.model,
+            deviceState: device.state,
+            testCode: input.testCode,
+            stripLotId: input.lotId,
+          },
+          input.measuredAt,
+        )
+      : null;
   const first = errors[0];
   if (first)
     throw new EmrWriteError(
@@ -149,11 +169,14 @@ export async function recordBedsideResult(ctx: WriteCtx, input: BedsideInput) {
     clientKey: `${input.clientKey}:collect`,
   });
   // PC-7, CC-3: a glucose measured fasting is the fasting-glucose result.
-  const values = input.values.map((v) =>
-    v.conceptId === "obs.glucose" && input.fasting !== undefined
-      ? { ...v, conceptId: glucoseConcept(input.fasting) }
-      : v,
-  );
+  const values = input.values.map((v) => {
+    const c =
+      v.conceptId === "obs.glucose" && input.fasting !== undefined
+        ? { ...v, conceptId: glucoseConcept(input.fasting) }
+        : v;
+    // BQ-5: the device-check status and the operator's competency at measurement, on the record.
+    return gate ? { ...c, extraContext: { ...c.extraContext, bedsideQuality: gate.snapshot } } : c;
+  });
   const r = await enterResults(ctx, {
     patientUserId: input.patientUserId,
     orderId: order.id,

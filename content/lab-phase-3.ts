@@ -101,6 +101,59 @@ export const LAB3 = {
   /** lab */
   noAcceptancePlan:
     "{Item} has no signed acceptance plan. The laboratory lead sets one before a new lot can be accepted.",
+  // ── Added in Step 8 (not in Appendix A; draft, for the CSO with the rest) ──
+  /** nurse */
+  deviceCheckRequired:
+    "A control check is needed before the next patient result on this device. Save the check first.",
+  /** nurse */
+  competencyNone: "You have no assessment for {test}. Ask the laboratory for an assessment.",
+  /** nurse */
+  stripLotNeedsCheck: "New strip lot: run the control check before the next patient result.",
+} as const;
+
+/**
+ * Step 8's nurse labels for the device checks page (§5.10, artboard 10). Draft with the rest; the canvas's own
+ * sentences (`rangesLine`, `caution`) are kept word for word.
+ */
+export const LAB3_BEDSIDE = {
+  place: "Bedside tests",
+  title: "Device checks",
+  lede: "Run each meter's controls before patient tests: each day it is used, with each new strip lot or control vial, and after a drop or an error message.",
+  notOperator:
+    "Bedside testing is granted by the laboratory lead. Ask them to add you to the people who may record bedside tests.",
+  noDevice: "No bedside device is in use here.",
+  status: {
+    blocked: "Failed · stopped",
+    noRule: "No device rule",
+    due: "Due today",
+    done: "Checked",
+  },
+  noLot: "No strip lot is in use on this device. The laboratory sets one in use.",
+  noRuleLine:
+    "The laboratory has not signed a control rule for this test yet, so no check can be scored.",
+  rangesLine:
+    "The accepted ranges are printed on the strip vial and entered once per strip lot by the laboratory. Due each day the meter is used, with each new strip lot or control vial, and after a drop or an error message.",
+  caution:
+    'A failed check stops the meter. It cannot be chosen for patient tests until a check passes. Until today\'s check is saved, the bedside form says "Control check not done today".',
+  stripLot: "Strip lot",
+  controlLot: "Control vial",
+  columns: ["Control", "Reading", "Accepted range for this strip lot", "Result"],
+  inRange: "In range",
+  outOfRange: "Out of range",
+  noRanges: "The laboratory has not entered the accepted ranges for this strip lot yet.",
+  save: "Save check",
+  saved: "Saved.",
+  incident: "Record a drop or error message",
+  incidentLede: "A control check is then needed before the next patient result on this meter.",
+  incidentKind: "What happened",
+  kinds: { error: "An error message on the meter", drop: "The meter was dropped" },
+  note: "Note (optional)",
+  incidentSaved: "Recorded. Run the control check before the next patient result.",
+  whoMay: "Who may record {test} here",
+  you: "You",
+  assessed: "Assessed",
+  validTo: "valid to",
+  grace: "grace period at switch-on",
 } as const;
 
 /** Fill a `{name}` template (the copy keeps its placeholders so the CSO reads them as written). */

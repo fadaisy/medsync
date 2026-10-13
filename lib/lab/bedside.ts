@@ -15,6 +15,7 @@ import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 
 export type BedsideError =
   | "device_not_registered"
+  | "device_blocked"
   | "device_not_in_use"
   | "device_other_ward"
   | "device_other_test"
@@ -47,7 +48,9 @@ export function bedsideErrors(i: {
   const e: BedsideError[] = [];
   if (!i.device) e.push("device_not_registered");
   else {
-    if (i.device.state !== "in_use") e.push("device_not_in_use"); // PC-10
+    // BQ-2 (Lab Phase 3 Step 8): a failed control check stops the device until a check passes.
+    if (i.device.state === "blocked") e.push("device_blocked");
+    else if (i.device.state !== "in_use") e.push("device_not_in_use"); // PC-10
     if (i.device.wardId && i.device.wardId !== i.wardId) e.push("device_other_ward");
     if (i.device.testCode && i.device.testCode !== i.testCode) e.push("device_other_test");
   }

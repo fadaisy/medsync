@@ -11,6 +11,7 @@ import {
   CpuIcon,
   FileClockIcon,
   FileSearchIcon,
+  FingerprintIcon,
   GaugeIcon,
   ListChecksIcon,
   ListIcon,
@@ -57,6 +58,7 @@ const ICON = {
   qc: ActivityIcon,
   nonconformities: ClipboardListIcon,
   eqa: AwardIcon,
+  bedside_quality: FingerprintIcon,
 } as const;
 
 export interface LabNavEntry {

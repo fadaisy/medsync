@@ -722,6 +722,7 @@ describe("red is reserved — Lab Phase 3 surfaces", () => {
     "app/lab/equipment",
     "app/lab/quality",
     "app/lab/_lib",
+    "app/nurse/bedside",
   ).concat(
     (
       [
@@ -729,6 +730,7 @@ describe("red is reserved — Lab Phase 3 surfaces", () => {
         "app/lab/_components/pop.tsx",
         "app/lab/results/[orderId]/_components/qc-hold.tsx",
         "app/nurse/patients/[patientId]/bedside/_components/bedside-form.tsx",
+        "app/nurse/patients/[patientId]/bedside/_components/bedside-screen.tsx",
       ] as const
     ).map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),
   );

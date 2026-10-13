@@ -204,6 +204,24 @@ export const PAYLOADS = {
     hmisIqc: z.boolean(),
     source,
   }),
+  /** BQ-1 (GATE A §3.1, P9): key = the bedside test code. The ranges come from each strip lot, never from here. */
+  device_qc_rule: z.object({
+    triggers: z
+      .array(z.enum(["each_day_of_use", "new_strip_lot", "new_control_vial", "after_incident"]))
+      .min(1, "Tick when a check is due."),
+    levels: z.array(z.string().trim().min(1).max(40)).min(1, "Name the control levels."),
+    requiredBeforeUse: z.boolean(),
+    source,
+  }),
+  /** BQ-4, D-LAB3-16 (GATE A §3.1): key = the bedside test code. Validity and grace are the lead's. */
+  competency_validity: z.object({
+    methods: z
+      .array(z.enum(["training", "observed_test", "known_value_sample"]))
+      .min(1, "Tick the assessment methods."),
+    validDays: z.number().int().min(1).max(3650),
+    graceDays: z.number().int().min(0).max(365),
+    source,
+  }),
 } as const;
 /** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */
 export const LEAD_ONLY_KINDS: readonly string[] = [

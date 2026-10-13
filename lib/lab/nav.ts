@@ -30,7 +30,8 @@ export type LabNavId =
   | "quality"
   | "qc"
   | "nonconformities"
-  | "eqa";
+  | "eqa"
+  | "bedside_quality";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -53,6 +54,8 @@ export interface LabNavFlags {
   qc?: boolean;
   /** Lab Phase 3 (§5.8): labEqa. */
   eqa?: boolean;
+  /** Lab Phase 3 (§5.10): labPoctQuality, the lab's set-up for bedside quality. */
+  poctQuality?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -211,6 +214,15 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     group: "quality",
     visibleFor: (p, f) => !!f.eqa && p.has("lab.view"),
+  },
+  {
+    id: "bedside_quality",
+    label: "Bedside quality",
+    href: "/lab/quality/bedside",
+    order: 5.55,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.poctQuality && p.has("lab.view"),
   },
   {
     id: "stock",

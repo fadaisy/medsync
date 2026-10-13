@@ -135,7 +135,9 @@ export type BedsideQualityError =
 /**
  * BQ-2..BQ-5: what the bedside form refuses, what it shows, and what the result records. A blocked device and a
  * competency that is not valid refuse (Law 6). A check not done today shows "Control check not done today" and
- * refuses only when the rule says "required before use" (D-LAB3-15).
+ * refuses only when the rule says "required before use" (D-LAB3-15). The event triggers (a new strip lot, a new
+ * control vial, a drop or an error message) always need the check before the next patient result (S35): the
+ * strip lot's ranges, the vial or the meter changed, so yesterday's pass says nothing about them.
  */
 export function bedsideQuality(input: {
   deviceState: string;
@@ -153,13 +155,16 @@ export function bedsideQuality(input: {
   const errors: BedsideQualityError[] = [];
   const blocked = input.deviceState === "blocked";
   const notDone = input.due.length > 0;
+  const event = input.due.some((t) => t !== "each_day_of_use");
   if (blocked) errors.push("device_blocked");
-  else if (notDone && input.rule?.requiredBeforeUse) errors.push("control_check_required");
+  else if (event || (notDone && input.rule?.requiredBeforeUse))
+    errors.push("control_check_required");
   if (input.competency !== "valid" && input.competency !== "grace")
     errors.push("competency_not_valid");
   return {
     errors,
-    notice: !blocked && notDone ? "control_check_not_done_today" : null,
+    notice:
+      !blocked && input.due.includes("each_day_of_use") ? "control_check_not_done_today" : null,
     snapshot: {
       deviceCheck: blocked ? "blocked" : !input.rule ? "no_rule" : notDone ? "not_done" : "passed",
       competency: input.competency,

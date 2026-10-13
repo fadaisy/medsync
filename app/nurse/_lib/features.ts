@@ -27,6 +27,7 @@ export type NurseIconKey =
   | "handover"
   | "assignment_board"
   | "beds"
+  | "bedside"
   | "supervisees"
   | "cosign_queue";
 
@@ -44,6 +45,7 @@ export type NurseFeatureSlug =
   | "handover"
   | "assignments"
   | "beds"
+  | "bedside/devices"
   | "supervisees"
   | "cosign-queue";
 
@@ -55,7 +57,7 @@ export interface NurseFeatureArea {
   placeholder: boolean;
   visibleTo?: "all" | "registered+" | "in_charge";
   /** Shown only when this feature flag is on for the nurse's hospital. */
-  flag?: "ward_builder";
+  flag?: "ward_builder" | "poct_quality";
 }
 
 export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
@@ -155,6 +157,15 @@ export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
     placeholder: false,
     visibleTo: "all",
     flag: "ward_builder",
+  },
+  {
+    slug: "bedside/devices",
+    label: "Bedside tests",
+    hint: "Device control checks and who may record each test",
+    iconKey: "bedside",
+    placeholder: false,
+    visibleTo: "all",
+    flag: "poct_quality",
   },
   {
     slug: "assignments",

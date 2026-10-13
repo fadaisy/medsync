@@ -316,11 +316,16 @@ export function reviewValues(
             : { asTyped: true }
           : {}),
       };
-      return overridden
-        ? {
-            ...value,
-            labNote: [LAB3.overrideLine, value.labNote].filter(Boolean).join(" "),
-          }
+      // Lab Phase 3 Step 8 (BQ-3, D-LAB3-15): a bedside result measured before the day's control check says so.
+      const notChecked =
+        (v.context as { bedsideQuality?: { deviceCheck?: string } } | null)?.bedsideQuality
+          ?.deviceCheck === "not_done";
+      const lines = [
+        overridden ? LAB3.overrideLine : null,
+        notChecked ? LAB3.deviceCheckNotDone : null,
+      ].filter(Boolean);
+      return lines.length
+        ? { ...value, labNote: [...lines, value.labNote].filter(Boolean).join(" ") }
         : value;
     });
 }

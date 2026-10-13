@@ -3,11 +3,12 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { bedsideErrors } from "@/lib/lab/bedside";
+import { evaluateDeviceCheck } from "@/lib/lab/bedside-quality";
 
 /**
  * Lab Phase 3, Step 0 (docs/lab/phase-3/PROMPT-LAB-PHASE-3.md §9): failing tests that reproduce the three
  * defects named in the baseline. Each is `it.fails`: green while the defect is present, red once fixed, so the
- * step that fixes it flips it to a plain `it` ((a) Step 6 S18: flipped, (b) Step 8 S33, (c) Step 4 S6: flipped).
+ * step that fixes it flips it to a plain `it` ((a) Step 6 S18, (b) Step 8 S33, (c) Step 4 S6: all flipped).
  * Every lot, date and device here is a FIXTURE.
  */
 const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -39,12 +40,21 @@ describe("Lab Phase 3 baseline — defects reproduced at Step 0", () => {
     expect(results).toMatch(/held for quality control|qc_held/);
   });
 
-  // (b) A bedside device has no control check, so a device whose check failed is still "in use" and its
-  // result is saved. The check below passes the failed check in; the engine has no input for it and returns
-  // no error.
-  it.fails("(b) a bedside result from a device whose last control check failed is refused", () => {
-    const withFailedCheck = { ...ok(), deviceCheck: { last: "failed" } };
-    expect(bedsideErrors(withFailedCheck) as string[]).toContain("device_check_failed");
+  // (b) Was: a bedside device had no control check, so a device whose check failed stayed "in use" and its
+  // result was saved. Fixed at Step 8 (S33): a failed check sets the device `blocked` (BQ-2), and every bedside
+  // result refuses a blocked device on the server (bedsideErrors and the bedside quality gate;
+  // tests/emr-db/lab-bedside-quality.test.ts proves it on the database).
+  it("(b) a bedside result from a device whose last control check failed is refused", () => {
+    const failed = evaluateDeviceCheck({
+      rule: { triggers: ["each_day_of_use"], levels: ["FX-L1"], requiredBeforeUse: false },
+      lotRanges: { "FX-L1": { low: 1, high: 2 } },
+      observed: { "FX-L1": 3 },
+    });
+    expect(failed).toMatchObject({ outcome: "fail", deviceState: "blocked" });
+    const withFailedCheck = ok({
+      device: { state: "blocked", wardId: null, testCode: "test.capillary_glucose" },
+    });
+    expect(bedsideErrors(withFailedCheck)).toContain("device_blocked");
   });
 
   // (c) Was: the bedside form listed every lot of the device, expired ones included, and the server compared

@@ -909,3 +909,81 @@ failed. Red scarcity already covers `app/lab/quality` (the EQA page and its form
 against artboard 8 are in the Step 11 harness pass.
 
 **Next:** Step 8, bedside quality behind `labPoctQuality`.
+
+## STOP 8: Bedside quality, behind `labPoctQuality` (13 Oct 2026)
+
+No migration change (0116's `lab_competencies`, 0114's `lab_control_checks` with subject `device`, 0113's device
+state `blocked`, 0112's `lab_stock_lots.insert_ranges`, all as written). **Code.** `lib/lab/bedside-quality-store.ts`
+(`deviceStatus`, `bedsideGate`, `recordDeviceCheck`, `recordDeviceError`, `setStripLotRanges`, `recordCompetency`,
+`grandfatherOperators`, `loadDeviceChecks`, `loadBedsideQuality`), `lib/lab/bedside-quality-actions.ts` (the house
+contract). Signed kinds `device_qc_rule` (key = test code: triggers, levels, required before use, source) and
+`competency_validity` (key = test code: methods, valid days, grace days, source) in `PAYLOADS` and `KIND_WORDS`,
+lead-only (E-LAB3-12), signed with `signConfig` behind `secondFactorFresh()`. The engine `bedsideQuality` now refuses
+the event triggers (below); `bedsideErrors` gained `device_blocked`.
+
+**Where it runs.** `recordBedsideResult` calls `bedsideGate` at the time measured (labPoctQuality on, or whenever the
+device is `blocked`): a blocked device is refused with Appendix A `deviceBlocked`; a competency that is not valid or
+in grace with `competencyLapsed` (or the new `competencyNone`); a check the rule or an event requires with the new
+`deviceCheckRequired`. Each observation's context records `bedsideQuality: {deviceCheck, competency, checkId}`
+(BQ-5), and the doctor's review adds "Control check not done today." (Appendix A `deviceCheckNotDone`) when the
+day's check was not done. The bedside form never offers a blocked device (it lists it with the `deviceBlocked`
+line), shows `deviceCheckNotDone` on a device whose daily check is due and the new `stripLotNeedsCheck` on an
+unchecked strip lot. `recordDeviceCheck` (operator: a live grant and a valid or grace competency for the device's
+test) scores the readings against the **strip lot's** `insert_ranges` (a level with no range refuses: "the
+laboratory has not entered the accepted ranges"), writes the `lab_control_checks` row (each control with its
+expected range, reading, pass and the control vial in use), and sets the device `blocked` on a fail and back to
+`in_use` on a pass.
+
+**Screens.** Nurse workspace: "Bedside tests" → `/nurse/bedside/devices` (artboard 10): per device the status, the
+`deviceBlocked` line (`role="alert"`), the control rows (Control · Reading · Accepted range for this strip lot,
+read-only · Result), strip lot and control vial, **Save check**, "Record a drop or error message", the canvas's two
+sentences, and "Who may record {test} here" with her own assessment (lapsed amber with `competencyLapsed`). Lab:
+"Bedside quality" under Quality → `/lab/quality/bedside`: per test the device rule and the competency validity
+(draft, sign), **Switch on** for existing operators, strip lots with their ranges ("Ranges not entered" amber,
+**Enter ranges**), and every operator × test with assessed, valid to (lapsed amber) and **Record an assessment**.
+All forms are centred `EditorDialog`s; red scarcity now also covers `app/nurse/bedside` and the bedside screen.
+
+### Scenarios (`tests/emr-db/lab-bedside-quality.test.ts`, PGlite lane, 7 tests)
+
+| #               | Result | What the test proves                                                                                                                                                                                                                                                  |
+| --------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S36 (switch-on) | pass   | No assessment: result and check refused ("You have no assessment for …"); switch-on adds one grandfathered row (no assessor, valid to today + the fixture grace period); a second switch-on adds none                                                                 |
+| S35             | pass   | A strip lot never checked on this meter: the result is refused in inform mode ("A control check is needed before the next patient result …")                                                                                                                          |
+| S33             | pass   | A check within the strip lot's ranges passes (the row stores the lot's ranges, the readings and the lot); the result saves; a fail sets the meter `blocked`; the result is refused with "Fixture meter FX-1 failed its control check at HH:MM. …"; a pass unblocks it |
+| S35 (continued) | pass   | The second strip lot: result refused; its check refused until the lab enters its ranges; ranges set once (a second entry refused); check passes; result saves; a recorded drop requires a check again                                                                 |
+| S37             | pass   | The result's context: `{deviceCheck: "passed", competency: "grace", checkId}`                                                                                                                                                                                         |
+| S34             | pass   | Meter 2 checked yesterday: due `each_day_of_use` only; the result saves with `deviceCheck: "not_done"`; the doctor's review says "Control check not done today."; with the rule signed "required before use" the next result is refused until today's check           |
+| S36 (lapsed)    | pass   | A nurse assessed longer ago than the fixture validity: result and check refused ("Your assessment for … lapsed on DD MMM YYYY. Ask the laboratory for reassessment."); reassessed today: the result saves with `competency: "valid"`                                  |
+
+Baseline (b) flipped from `it.fails` to `it` and passes: a failed check gives `deviceState: "blocked"` and
+`bedsideErrors` refuses a blocked device. No `it.fails` remains in the Phase 3 baseline. Engine test added: the event
+triggers refuse in inform mode (`eqa-bedside.test.ts`).
+
+### Differences from the prompt (and why)
+
+- **The event triggers block** (S35 "requires a check before the next patient result"): a new strip lot, a new
+  control vial, and a drop or error message need a passing check before the next result even in inform mode; only
+  the daily trigger informs (D-LAB3-15) unless the rule says "required before use".
+- **Refusal order**: a stopped device, then who may record, then the check.
+- **The snapshot** is in each observation's `context` (`bedsideQuality`), written once with the observation, not on
+  `lab_result_snapshots` (a bedside result has no snapshot row when units and ranges are off). `checkId` names the
+  last passing check.
+- **The control vial** is the newest `control` lot in use on the device (`lab_lots_in_use`), recorded on each
+  control of the check (`controlLotId`); no new column.
+- **Strip-lot ranges** take `lab.stock.manage` or `lab.manage`, and are entered once (checks were scored against
+  them). **Assessments** take `poct.assess` or `lab.manage` (permission map 2.0.0 is unsigned, as Step 4 did for
+  stock). Revocation is not built (no action in §8).
+- **Book reassessment** has no booking store: the nurse's lapsed line says to ask the laboratory, and the lab page
+  lists lapsed operators (amber) with **Record an assessment**. The nurse page shows her own assessment only (RLS:
+  an operator reads her own row).
+- **New copy** (draft, with the rest): `deviceCheckRequired`, `competencyNone`, `stripLotNeedsCheck` and the nurse
+  labels `LAB3_BEDSIDE` in `content/lab-phase-3.ts`.
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings); the full suite on the PGlite lane (`vitest
+run`): **463 files passed, 23 skipped; 10,352 passed, 4 expected failures, 248 skipped**, 0 failed (the expected
+failures are outside Lab Phase 3; the Phase 3 baseline has none left). Screenshots against artboard 10 are in the
+Step 11 harness pass.
+
+**Next:** Step 9, registers and HMIS 105 behind `labHmis`.

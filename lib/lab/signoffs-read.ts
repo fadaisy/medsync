@@ -28,6 +28,8 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   qc_plan: "QC plan",
   qc_policy: "QC policy",
   kit_qc_rule: "Kit or stain QC rule",
+  device_qc_rule: "Bedside device control rule",
+  competency_validity: "Bedside competency validity",
 };
 
 const author = alias(users, "author");
@@ -109,6 +111,10 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return `${p.minRunsForTarget} runs over ${p.minDaysForTarget} days`;
     case "kit_qc_rule":
       return `${(p.controls as unknown[]).length} controls${p.requiredBeforeUse ? " · required before use" : ""}`;
+    case "device_qc_rule":
+      return `${key} · ${(p.levels as string[]).join(", ")}${p.requiredBeforeUse ? " · required before use" : ""}`;
+    case "competency_validity":
+      return `${key} · valid ${p.validDays} days · grace ${p.graceDays} days`;
   }
 }
 
@@ -213,5 +219,18 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
       return [summary(kind, p), ...(p.sources as string[]).map((s) => `Source: ${s}`)];
     case "kit_qc_rule":
       return [summary(kind, p), `Source: ${p.source}`];
+    case "device_qc_rule":
+      return [
+        `Due: ${(p.triggers as string[]).map((t) => t.replaceAll("_", " ")).join(", ")}`,
+        `Levels: ${(p.levels as string[]).join(", ")}`,
+        `Required before use: ${p.requiredBeforeUse ? "yes" : "no"}`,
+        `Source: ${p.source}`,
+      ];
+    case "competency_validity":
+      return [
+        `Methods: ${(p.methods as string[]).map((m) => m.replaceAll("_", " ")).join(", ")}`,
+        `Valid for ${p.validDays} days; grace period at switch-on ${p.graceDays} days`,
+        `Source: ${p.source}`,
+      ];
   }
 }

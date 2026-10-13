@@ -209,6 +209,24 @@ describe("bedside quality (§6.9)", () => {
     ).toEqual(["control_check_required"]);
   });
 
+  it("BQ-3 a new strip lot, control vial, drop or error needs the check before the next result (S35)", () => {
+    for (const due of [["new_strip_lot"], ["new_control_vial"], ["after_incident"]] as const)
+      expect(
+        bedsideQuality({ deviceState: "in_use", rule, due: [...due], competency: "valid" }),
+      ).toMatchObject({ errors: ["control_check_required"], notice: null });
+    expect(
+      bedsideQuality({
+        deviceState: "in_use",
+        rule,
+        due: ["each_day_of_use", "new_strip_lot"],
+        competency: "valid",
+      }),
+    ).toMatchObject({
+      errors: ["control_check_required"],
+      notice: "control_check_not_done_today",
+    });
+  });
+
   it("BQ-4 competency per test: valid to from the signed validity; lapsed and revoked refused; grace at switch-on", () => {
     const row = (o: Partial<Competency>): Competency => ({
       hospitalId: H1,

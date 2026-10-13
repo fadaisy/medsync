@@ -3,15 +3,18 @@ import "server-only";
 import type { EntryComponent } from "@/components/emr/results/model";
 import type { EmrTx } from "@/lib/emr/db";
 import type { LotState } from "@/lib/lab/stock";
-import { and, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 
+import { LAB3 } from "@/content/lab-phase-3";
 import { db } from "@/db";
 import { admissions } from "@/db/schema/admissions";
 import { devices, testCatalogue } from "@/db/schema/emr";
 import { hospitalWards } from "@/db/schema/hospital-wards";
 import { labLotsInUse, labStockLots } from "@/db/schema/lab-quality";
 import { entryComponents } from "@/lib/emr/read/results";
+import { deviceStatus } from "@/lib/lab/bedside-quality-store";
 import { componentsFor } from "@/lib/lab/catalogue-v2";
+import { labPoctQualityLiveFor } from "@/lib/lab/feature";
 import { lotRefusal } from "@/lib/lab/stock";
 import { currentMeasures } from "@/lib/lab/units";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -25,7 +28,10 @@ export interface BedsideTest {
   devices: {
     id: string;
     label: string;
-    lots: { id: string; lot: string; useBy: string | null }[];
+    /** BQ-3 (Lab Phase 3 Step 8): "Control check not done today", when the day's check is due. */
+    notice: string | null;
+    /** BQ-1: a strip lot with no passing check on this device needs one before the next result. */
+    lots: { id: string; lot: string; useBy: string | null; needsCheck: boolean }[];
   }[];
 }
 
@@ -52,7 +58,7 @@ function usableLots<L extends { state: string; useBy: string | null }>(
  * tests that have a device in use on that ward or hospital-wide (a device not verified yet is never
  * listed, D-LAB2-11), each with its devices, their lots and the components to enter.
  */
-export async function loadBedsideForm(hospitalId: string, patientUserId: string) {
+export async function loadBedsideForm(hospitalId: string, patientUserId: string, userId: string) {
   const tx = db as unknown as EmrTx;
   const [ward] = await tx
     .select({ id: hospitalWards.id, name: hospitalWards.name })
@@ -83,7 +89,32 @@ export async function loadBedsideForm(hospitalId: string, patientUserId: string)
       ),
     )
     .orderBy(devices.model);
-  if (devs.length === 0) return { ward: ward ?? null, tests: [] as BedsideTest[] };
+  // BQ-2 (Lab Phase 3 Step 8): a device a failed check has stopped is never offered; the form says why.
+  const blocked = await tx
+    .select({
+      id: devices.id,
+      model: devices.model,
+      failedAt: sql<string | null>`(SELECT max(c.at)::text FROM lab_control_checks c
+        WHERE c.device_id = ${devices.id} AND c.outcome = 'fail')`,
+    })
+    .from(devices)
+    .where(
+      and(
+        eq(devices.hospitalId, hospitalId),
+        eq(devices.state, "blocked"),
+        isNotNull(devices.testCode),
+        ward ? or(isNull(devices.wardId), eq(devices.wardId, ward.id)) : isNull(devices.wardId),
+      ),
+    );
+  if (devs.length === 0) return { ward: ward ?? null, tests: [] as BedsideTest[], blocked };
+  const quality = labPoctQualityLiveFor(hospitalId)
+    ? await deviceStatus(
+        tx,
+        hospitalId,
+        { userId, devices: devs.map((d) => ({ id: d.id, testCode: d.testCode })) },
+        new Date(),
+      )
+    : null;
 
   const [lots, tests] = await Promise.all([
     tx
@@ -140,14 +171,24 @@ export async function loadBedsideForm(hospitalId: string, patientUserId: string)
       }),
       devices: devs
         .filter((d) => d.testCode === t.code)
-        .map((d) => ({
-          id: d.id,
-          label: d.serial ? `${d.model} · ${d.serial}` : d.model,
-          lots: lots
-            .filter((l) => l.deviceId === d.id)
-            .map((l) => ({ id: l.id, lot: l.lot, useBy: l.useBy })),
-        })),
+        .map((d) => {
+          const q = quality?.get(d.id);
+          return {
+            id: d.id,
+            label: d.serial ? `${d.model} · ${d.serial}` : d.model,
+            notice: q?.due.includes("each_day_of_use") ? LAB3.deviceCheckNotDone : null,
+            lots: lots
+              .filter((l) => l.deviceId === d.id)
+              .map((l) => ({
+                id: l.id,
+                lot: l.lot,
+                useBy: l.useBy,
+                needsCheck:
+                  !!q?.rule?.triggers.includes("new_strip_lot") && !q.checkedLots.has(l.id),
+              })),
+          };
+        }),
     });
   }
-  return { ward: ward ?? null, tests: out };
+  return { ward: ward ?? null, tests: out, blocked };
 }
