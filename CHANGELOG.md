@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Pharmacy: the national list as the catalogue — 2026-10-13
+
+- EMHSLU 2023 (802 medicines, 1,919 health supplies) committed as data and loadable by the owner
+  (`scripts/pharmacy/load-national-list.ts`); migration 0136 (GATED) adds kind, section, unit, specialist band,
+  source page and a check flag to the rows, and a guard on links (ADR 0282).
+- `/admin/pharmacy-catalogue`: the CSO links prescribing-list medicines to the list, once and nationally, and
+  records checks of the 26 flagged rows. `/pharmacy/stock/national-list`: pharmacy staff search the whole list. Its wording is signed (13 Oct 2026).
+
 ### Changed — Pharmacy Phase 1: the CSO signs alone for now — 2026-10-13
 
 - Going live no longer needs a pharmacist's co-signature on the clinical packs and hazard log; the CSO signs alone,

@@ -76,6 +76,7 @@ const TABLES: [string, boolean][] = [
   ["pharmacy_payment_statuses", true],
   ["pharmacy_notice_acknowledgements", true],
   ["pharmacy_stock_answers", true],
+  ["pharmacy_national_list_row_checks", true],
 ];
 
 /** Tables a prescriber who may prescribe for the patient reads (PA2-5); everything else is pharmacy-only. */
@@ -83,6 +84,7 @@ const NATIONAL = new Set([
   "pharmacy_national_list_editions",
   "pharmacy_national_list_rows",
   "pharmacy_medicine_links",
+  "pharmacy_national_list_row_checks",
 ]);
 
 const PRESCRIBER_READS = new Set([
@@ -212,6 +214,11 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
       `INSERT INTO public.pharmacy_medicine_links (medicine_id, row_id, edition_id, linked_by)
        VALUES ('fixture_tablet_a', $1, $2, $3)`,
       [f.nlRow, f.edition, pharmacist],
+    );
+    await pg.query(
+      `INSERT INTO public.pharmacy_national_list_row_checks (row_id, checked_by, note)
+       VALUES ($1, $2, 'Fixture check against the printed list')`,
+      [f.nlRow, pharmacist],
     );
     f.batch = await batch("FX-001", "2099-12-31");
     f.received = await move(f.batch, "received", 50, { source_kind: "delivery" });
@@ -587,7 +594,12 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
   it.each(TABLES.filter(([, ao]) => ao).map(([t]) => t))(
     "%s: UPDATE and DELETE are refused for the owner and for the service role",
     async (t) => {
-      const col = t === "pharmacy_count_lines" ? "counted_quantity" : "hospital_id";
+      const col =
+        t === "pharmacy_count_lines"
+          ? "counted_quantity"
+          : t === "pharmacy_national_list_row_checks"
+            ? "note"
+            : "hospital_id";
       for (const sql of [`UPDATE public.${t} SET ${col} = ${col}`, `DELETE FROM public.${t}`]) {
         const asOwner = await pg
           .transaction(async (tx) => {

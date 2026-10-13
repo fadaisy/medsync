@@ -1,4 +1,5 @@
 import { PHARMACY_PHASE1_COPY, PHARMACY_SIGNED_COPY } from "@/content/pharmacy";
+import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -34,3 +35,15 @@ export const pharmacyPatientListLiveFor = (hospitalId: string) =>
   live(process.env.PHARMACY_PATIENT_LIST, hospitalId, "pharmacy_patient_list");
 export const pharmacyDowntimeLiveFor = (hospitalId: string) =>
   live(process.env.PHARMACY_DOWNTIME, hospitalId, "pharmacy_downtime");
+
+/**
+ * The national list from Stock (ADR 0282): where dispensing is live, and in production only once both
+ * the Phase 1 wording and the page's own (NATIONAL_LIST_COPY) are signed.
+ */
+export const pharmacyNationalListLiveFor = (hospitalId: string) =>
+  workspaceLiveFor(
+    process.env.PHARMACY_DISPENSING,
+    hospitalId,
+    [...PHARMACY_PHASE1_COPY, NATIONAL_LIST_COPY],
+    "pharmacy_national_list",
+  ) && pharmacyWorkspaceLiveFor(hospitalId);
