@@ -21,11 +21,11 @@ import { countResult } from "@/lib/pharmacy/stock/ledger";
  * - CD-8 `attestationsFor`: changed since printing → the caution, and paper first.
  */
 
-/** Appendix B, gate-a-content B-08 and B-47 to B-51, B-53, exactly as written. All draft. */
+/** Appendix B, gate-a-content B-08 and B-47 to B-51, B-53, exactly as written. Signed 13 Oct 2026. */
 export const CONTROLLED_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   noClass: "Controlled drug",
   changedSincePrinting: "Changed since printing. The paper the patient carries is out of date.",
   notice:
@@ -43,9 +43,9 @@ export const CONTROLLED_COPY = {
 
 /** What Record supply waits for, in screen order (CD-2, CD-3). Draft staff copy, not in Appendix B. */
 export const READY_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   permission: "Only a holder of the controlled drugs permission can supply this.",
   acceptance: "A pharmacist has not accepted every line.",
   witness: "The witness has not confirmed who they are.",

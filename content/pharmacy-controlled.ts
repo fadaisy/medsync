@@ -2,14 +2,16 @@
  * Controlled drugs (Pharmacy Phase 1, 5.9; gate-a-wireframes.md §9). The interface words of the
  * controlled supply screen, the Controlled drugs page and the register slip page. The signed rows
  * (B-08, B-47 to B-53) live in `lib/pharmacy/controlled.ts` (CONTROLLED_COPY, READY_COPY) and
- * `lib/pharmacy/print/register.ts` (REGISTER_COPY) and are quoted from there. All draft.
+ * `lib/pharmacy/print/register.ts` (REGISTER_COPY) and are quoted from there. Signed 13 Oct 2026.
  *
  * Law 9: nothing here says or implies that MedSync's record replaces the signed prescription or the
  * hospital's controlled drugs register.
  */
 
 export const CONTROLLED_UI = {
-  status: "draft",
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   title: "Controlled supply",
   prescribed: (cadre: string) => `Prescribed by ${cadre}`,
   section: {

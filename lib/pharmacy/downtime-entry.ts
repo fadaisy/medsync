@@ -74,9 +74,9 @@ const notSuppliedKey = (hospitalId: string, sheet: number, row: number) =>
 
 /** Draft staff copy (not in Appendix B). */
 export const ENTRY_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   notPrinted: (n: number) => `${pharmacySheetLabel(n)} was not printed at this point.`,
   rowEntered: (row: number, n: number) =>
     `Row ${row} of ${pharmacySheetLabel(n)} is already entered.`,

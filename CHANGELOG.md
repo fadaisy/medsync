@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - Going live no longer needs a pharmacist's co-signature on the clinical packs and hazard log; the CSO signs alone,
   recorded as an exception, and the hazard log needs the CSO's signature (ADR 0281). The check stays, switched off
   by `PHARMACIST_COSIGN.required`, to be reimplemented later.
+- The Phase 1 wording (1,134 strings) is signed by the CSO; the four Phase 1 flags can now be switched on in
+  production. Patient surfaces still wait for a message name and approved templates.
 
 ### Added — Pharmacy Phase 1: dispensing with stock at the window — 2026-10-12
 

@@ -405,8 +405,8 @@ describe("DT-11 drills", () => {
 });
 
 describe("Appendix B copy", () => {
-  it("B-73 B-76 B-78 as written, draft; the sheet footer keeps the register", () => {
-    expect(DOWNTIME_COPY.status).toBe("draft");
+  it("B-73 B-76 B-78 as written, signed; the sheet footer keeps the register", () => {
+    expect(DOWNTIME_COPY.status).toBe("signed");
     expect(DOWNTIME_COPY.sheetFooter).toMatch(
       /Controlled drugs also go in the register as usual\.$/,
     );

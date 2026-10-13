@@ -389,6 +389,6 @@ describe("CD-7 CD-8 Law 9: the paper still rules", () => {
       expect(t).not.toMatch(/\bis the (controlled drugs )?register\b/i);
     }
     expect(CONTROLLED_COPY.notice).toMatch(/^MedSync's record does not replace the paper\./);
-    expect(CONTROLLED_COPY.status).toBe("draft");
+    expect(CONTROLLED_COPY.status).toBe("signed");
   });
 });

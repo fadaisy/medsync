@@ -105,8 +105,8 @@ do not exist yet: nothing is applied or live.
    13, 17, 26 and 28 stay provisional.
 3. **Sign the clinical packs and the hazard log as the CSO.** By the owner's decision of 13 Oct 2026 a pharmacist's
    co-signature is not required for now (`PHARMACIST_COSIGN.required` is false); it is to be reimplemented later.
-4. **Sign the Phase 1 wording:** 1,134 draft strings in 116 blocks, through the sign-off portal
-   (https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4). The flags stay off in production until then.
+4. **Phase 1 wording: signed** by the CSO on 13 Oct 2026 (1,134 strings in 116 blocks, through
+   https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4). Still open: a message name per hospital.
 5. **The national medicines list (EMHSLU)** as CSV, for the import dry run.
 6. **Owner SQL A–D:** returned on 13 Oct 2026. Production has no prescriptions yet, so the lane counts are deferred
    until it does, and are checked before any point goes live.

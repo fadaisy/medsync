@@ -19,13 +19,13 @@ import { localDate } from "@/lib/pharmacy/stock/ledger";
  * - D-PH1-16 "Identified another way": a route from the signed list; "other" needs a note.
  * - SU-5 The collector: the patient, a representative (name and relationship), or, only where individual
  *   inpatient supply is on (D-PH1-02), a member of this hospital's staff.
- * Words: Appendix B (B-38, B-39), draft.
+ * Words: Appendix B (B-38, B-39), signed 13 Oct 2026.
  */
 
 export const IDENTITY_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   rule: "Two identifiers are needed before the hand-over can be recorded. Ask the person to say them; do not read them out.",
   mismatch: "This does not match. Check you have the right patient.",
 } as const;

@@ -21,13 +21,13 @@ import { printTime } from "@/lib/pharmacy/print/label";
  * - RQ-8 `seen` is never shown to the pharmacy as an answer.
  * - RQ-10 No escalation: nothing here reads a clock, so an unanswered query reads the same tomorrow.
  * - RQ-11 A not-supplied notice is of the same family and needs no answer.
- * Words: Appendix B (B-22, B-23, B-24, B-27) and gate-a-proposal §6, all draft.
+ * Words: Appendix B (B-22, B-23, B-24, B-27) and gate-a-proposal §6, signed 13 Oct 2026.
  */
 
 export const QUERY_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   sent: "Query sent {time} · not answered",
   notTold: "The prescriber has NOT been told. Call them and log the call.",
   nobody: "Nobody can be told in MedSync. Call the ward or clinic.",

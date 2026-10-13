@@ -46,9 +46,9 @@ import { identifiedAnotherWay, IDENTITY_COPY, validateCollector } from "./identi
  */
 
 export const HANDOVER_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   batchShort: "Batch {number} now holds {n}. Choose again.",
   alreadySupplied: "{Medicine} was already supplied at {point}, {time}.",
   changed: "{Medicine} was changed by the prescriber at {time}. Review it again.",

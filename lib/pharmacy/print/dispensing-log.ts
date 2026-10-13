@@ -15,9 +15,9 @@ import { printTime } from "@/lib/pharmacy/print/label";
  */
 
 export const LOG_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   notConfirmed: "Columns not yet confirmed against this hospital's dispensing log.",
   downtime: "Entered after downtime · Supplied {time} · entered {entered} · sheet {number}",
   reversed: "Reversed {time} by {cadre}: {reason}",

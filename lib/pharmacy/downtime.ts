@@ -21,9 +21,9 @@ import { daysBetween, isExpired, localDate } from "@/lib/pharmacy/stock/ledger";
 
 /** Appendix B, gate-a-content B-73, B-74, B-76, B-78 (B-72 is the log's), exactly as written. Draft. */
 export const DOWNTIME_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   noPeriod: "Ask the pharmacy in charge to record this downtime first.",
   transcribed: "Transcribed from a paper prescription by {cadre}",
   notRegistered: "Register this patient at reception first.",
@@ -33,9 +33,9 @@ export const DOWNTIME_COPY = {
 
 /** Draft staff copy for the refusals and look-back reasons Appendix B does not word. */
 export const DOWNTIME_DRAFT_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   sheet_not_to_enter: "This sheet is not waiting to be entered.",
   row_entered: "This row is already entered.",
   future: "This time is in the future. Check the sheet.",

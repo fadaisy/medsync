@@ -219,13 +219,15 @@ export const PHARMACY = {
 } as const;
 
 /**
- * Pharmacy Phase 1 wording (docs/pharmacy/phase-1/gate-a-content.md, Part 1): 109 strings, all draft.
- * The Phase 1 flags stay off in production while this is draft (RD-4); the strings themselves land
- * with the screens that show them (Steps 4 to 9) and are signed as a set.
+ * Pharmacy Phase 1 wording (docs/pharmacy/phase-1/gate-a-content.md, Part 1, as built in Steps 4 to 9):
+ * signed by the CSO alone on 13 Oct 2026 (ADR 0281) through the sign-off portal
+ * (https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4): 1,134 strings in 116 blocks, each exactly as
+ * written in content/pharmacy-*.ts and the lib/pharmacy copy objects. Any change to one of them returns
+ * this set to `draft`, and the Phase 1 flags off in production (RD-4), until it is signed again.
  */
 export const PHARMACY_PHASE1_COPY_STATUS: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
 };
 export const PHARMACY_PHASE1_COPY: readonly SignedCopy[] = [PHARMACY_PHASE1_COPY_STATUS];

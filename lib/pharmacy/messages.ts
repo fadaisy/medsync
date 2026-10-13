@@ -26,13 +26,14 @@ import { FORMULARY_DRUGS } from "@/lib/prescribing/reference/general-formulary";
  *   medicine name and synonym, the NCD condition terms, restricted-class words, and the product, clinic,
  *   department, point and fixture patient names passed in; plus MedSync numbers and digits beside a unit.
  * - W1 No point phone, no owed or buying-outside message (B-67, B-68 both carry {phone}).
- * Strings: gate-a-content Part 1 (B-61 to B-69, X-19, X-20), all `draft`; RD-4 keeps them off in production.
+ * Strings: gate-a-content Part 1 (B-61 to B-69, X-19, X-20), signed 13 Oct 2026; RD-4 still needs the
+ * message name and approved templates in production.
  */
 
 export const PATIENT_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   groupHead: "From {hospital} pharmacy, {date}.",
   given: "{n} {units} given today",
   pharmacistLine: "From the pharmacist: {line}",
@@ -51,9 +52,9 @@ export const PATIENT_COPY = {
 } as const satisfies SignedCopy & Record<string, unknown>;
 
 export const MESSAGE_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   inAppNotAvailable:
     "One of your medicines was not available at the hospital today. Open MedSync to see what to do.",
   smsOwed:

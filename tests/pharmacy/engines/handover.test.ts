@@ -781,8 +781,8 @@ describe("SU-6 SU-10 SU-12 and the hand-over as a whole", () => {
     expect(codes(checkHandover(plan({ lines: [] }), facts()))).toEqual(["lines"]);
   });
 
-  it("5.6: the refusal words are the drafted copy", () => {
-    expect(HANDOVER_COPY.status).toBe("draft");
+  it("5.6: the refusal words are the signed copy", () => {
+    expect(HANDOVER_COPY.status).toBe("signed");
     expect(HANDOVER_COPY.batchShort).toBe("Batch {number} now holds {n}. Choose again.");
   });
 });

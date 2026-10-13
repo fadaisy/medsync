@@ -1,8 +1,8 @@
 /**
  * Stock at the dispensing point (Pharmacy Phase 1, 5.8, 5.3.1; gate-a-content.md Part 1 and §2.7,
  * gate-a-wireframes.md §1 and §8). Every visible string on /pharmacy/stock and the acting-point
- * chooser. All `draft` under PHARMACY_PHASE1_COPY_STATUS: the flag stays off in production until the
- * Phase 1 wording is signed (RD-4). Reason lists are Appendix D's drafted codes (§2.7); unsigned, a
+ * chooser. Signed by the CSO on 13 Oct 2026 under PHARMACY_PHASE1_COPY_STATUS
+ * (RD-4). Reason lists are Appendix D's drafted codes (§2.7); unsigned, a
  * point cannot go live (RD-1), and set-up may use them.
  */
 

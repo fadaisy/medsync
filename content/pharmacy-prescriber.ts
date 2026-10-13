@@ -2,14 +2,14 @@ import type { SignedCopy } from "@/content/signed-copy";
 
 /**
  * The prescriber's side of a pharmacy query (Pharmacy Phase 1, 5.4, 5.14; gate-a-content.md Part 1
- * B-25, B-26, X-4, X-5 and the 4.2 wireframe). Every string is draft: the screens that show them are
- * behind `pharmacyDispensingLiveFor`, which stays off in production while the Phase 1 wording is
+ * B-25, B-26, X-4, X-5 and the 4.2 wireframe). Signed by the CSO on 13 Oct 2026; the screens that show
+ * them are behind `pharmacyDispensingLiveFor`, off in production whenever the Phase 1 wording is
  * unsigned (RD-4). B-22..B-27 that the pharmacy also uses live in lib/pharmacy/review/queries.ts.
  */
 export const PRESCRIBER_PHARMACY_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   /** X-4 */
   chip: "Pharmacy query · waiting {n} min",
   /** X-5 */

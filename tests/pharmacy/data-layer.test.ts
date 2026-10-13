@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { PHARMACY_PHASE1_COPY_STATUS } from "@/content/pharmacy";
 import {
   dispensingMap,
   mapV2Problems,
@@ -93,7 +94,21 @@ describe("the four Phase 1 flags (Law 15, RD-4)", () => {
     vi.stubEnv("PHARMACY_WORKSPACE", "1");
     vi.stubEnv(name, "1");
     vi.stubEnv("VERCEL_ENV", "production");
-    expect(live(H)).toBe(false);
+    const was = { ...PHARMACY_PHASE1_COPY_STATUS };
+    Object.assign(PHARMACY_PHASE1_COPY_STATUS, { status: "draft", signedBy: null, signedOn: null });
+    try {
+      expect(live(H)).toBe(false);
+    } finally {
+      Object.assign(PHARMACY_PHASE1_COPY_STATUS, was);
+    }
+  });
+
+  it.each(flags)("%s can be switched on in production now the wording is signed", (name, live) => {
+    expect(PHARMACY_PHASE1_COPY_STATUS).toMatchObject({ status: "signed", signedOn: "2026-10-13" });
+    vi.stubEnv("PHARMACY_WORKSPACE", "1");
+    vi.stubEnv(name, "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(live(H)).toBe(true);
   });
 });
 

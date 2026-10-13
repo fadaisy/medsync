@@ -18,9 +18,9 @@ import type { RxCourse, RxFrequency } from "@/lib/prescribing/reference/formular
  */
 
 export const LABEL_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   /** B-15 (CSO + PR). */
   pharmacistLine: "From the pharmacist: {line}",
 } as const satisfies SignedCopy & Record<string, unknown>;

@@ -18,9 +18,9 @@ import { directionsAsWritten, printDay, printTime } from "@/lib/pharmacy/print/l
 
 /** gate-a-content Part 1, B-31 to B-37 (CSO + PR; legal Q5 for B-31, B-32), exactly as written. */
 export const SLIP_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   title: "Medicine not supplied: to fill at another pharmacy",
   body: "This medicine was not available at the hospital pharmacy today. Give this to the pharmacy together with your signed prescription.",
   noQuantity: "Quantity: as on the prescription",

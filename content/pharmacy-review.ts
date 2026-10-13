@@ -2,8 +2,8 @@
  * Review, queries and outcomes (Pharmacy Phase 1, 5.2 to 5.5, 5.7; gate-a-content.md Part 1 and §2.6,
  * §2.8, §2.11; gate-a-wireframes.md §2 to §5 and §7). Every visible string on the review queue, the
  * review screen, Open lines and the slip page. Appendix B rows are quoted exactly as written (B-xx,
- * N-x, X-x); the rest are interface words. All `draft` under PHARMACY_PHASE1_COPY_STATUS: the flag stays
- * off in production until the Phase 1 wording is signed (RD-4). The reason and code lists are
+ * N-x, X-x); the rest are interface words. Signed by the CSO on 13 Oct 2026 under
+ * PHARMACY_PHASE1_COPY_STATUS (RD-4). The reason and code lists are
  * Appendix D's drafted codes: unsigned, a point cannot go live (RD-1).
  *
  * "Pharmacist first" is the name of a review lane (5.2), not a title for a person: a pharmacy

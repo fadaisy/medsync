@@ -9,9 +9,9 @@ import { printDay, printTime } from "@/lib/pharmacy/print/label";
  */
 
 export const REGISTER_COPY = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
   heading: "Copy for the controlled drugs register. This is not the register.",
 } as const satisfies SignedCopy & Record<string, unknown>;
 

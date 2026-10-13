@@ -1,8 +1,8 @@
 /**
  * Going live at a dispensing point, and the pharmacy's downtime set-up (Pharmacy Phase 1, 5.12, 5.13;
  * gate-a-wireframes.md §12, §13; gate-a-content.md B-73, B-78). Every visible string on the hub's
- * Pharmacy going-live pages and on /pharmacy/downtime. All draft staff copy under the Phase 1 copy
- * status: B-78 (the sheet footer) is quoted from lib/pharmacy/downtime.ts, not repeated here.
+ * Pharmacy going-live pages and on /pharmacy/downtime. Staff copy, signed under the Phase 1 copy
+ * status (13 Oct 2026): B-78 (the sheet footer) is quoted from lib/pharmacy/downtime.ts, not repeated here.
  */
 
 /**

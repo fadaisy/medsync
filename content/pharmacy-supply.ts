@@ -2,8 +2,8 @@
  * Hand-over and supply (Pharmacy Phase 1, 5.3.1, 5.6, 5.7, 5.7.1; gate-a-content.md Part 1 and §2.7,
  * §2.10, §2.13, §2.15; gate-a-wireframes.md §3.4, §6, §7.2 to §7.4, §14). Every visible string on the
  * hand-over, the label page, Supplied today, the look-back tab and the reverse and correct dialogs.
- * Appendix B rows are quoted exactly as written (B-xx, X-x); the rest are interface words. All `draft`
- * under PHARMACY_PHASE1_COPY_STATUS (RD-4). The reason and route lists are Appendix D's drafted codes:
+ * Appendix B rows are quoted exactly as written (B-xx, X-x); the rest are interface words. Signed
+ * under PHARMACY_PHASE1_COPY_STATUS on 13 Oct 2026 (RD-4). The reason and route lists are Appendix D's drafted codes:
  * unsigned, a point cannot go live (RD-1), and outside production they act, labelled draft.
  */
 

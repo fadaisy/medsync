@@ -1003,3 +1003,9 @@ Commits `d7457597`, `3920e97b`, `68459bf8` and `74127538`.
 - **Phase 1 wording:** the sign-off portal is at https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4, with 1,134
   strings in 116 blocks plus the message name per hospital. Signatures are written into the code when the owner
   says they are done.
+- **Phase 1 wording signed (13 Oct 2026):** the CSO signed all 116 blocks (1,134 strings) as written, with no
+  change asked, at 07:26 UTC. Each signed text was compared with the code before applying: 1,134 of 1,134 equal.
+  `PHARMACY_PHASE1_COPY_STATUS` and every copy object now carry `signed` (Fadhul (CSO), 2026-10-13). In production
+  the four flags can now be switched on per hospital. Patient surfaces still need a signed message name and
+  approved templates (RD-4), and no point dispenses until the go-live switch's six conditions are met. No message
+  name was signed in the portal, and the hazard log is not yet signed.

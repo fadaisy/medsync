@@ -607,11 +607,10 @@ describe.skipIf(!laneOn)("the patient's medicine list and messages (Step 9, S90â
   });
 
   it("S96: in production the list is refused while patient copy is draft or no message name is signed", async () => {
+    // The patient copy is signed (13 Oct 2026); templates and the message name are not.
     const prod = await list.patientSurfaces(lane.db, f.h!, true);
     expect(prod.allowed).toBe(false);
-    expect(prod.missing).toEqual(
-      expect.arrayContaining(["patient_copy", "templates", "message_name"]),
-    );
+    expect(prod.missing).toEqual(["templates", "message_name"]);
     await pg.query(
       `INSERT INTO public.pharmacy_signed_sets (hospital_id, kind, version, content, sha256, status, authored_by)
        VALUES ($1, 'message_name', 1, $2::jsonb, repeat('c', 64), 'draft', $3)`,
@@ -739,7 +738,7 @@ describe.skipIf(!laneOn)("the patient's medicine list and messages (Step 9, S90â
       outcome: "failed",
       reason: "send_failed",
     });
-    // Production, with the patient wording still draft: not sent.
+    // Production, with no signed message name: not sent.
     const sixth = await medicine();
     const ev6 = await notSupplied(sixth.line, "owed");
     expect(await sendNotice(ev6, sender, true)).toMatchObject({
