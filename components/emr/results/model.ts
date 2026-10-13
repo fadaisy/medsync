@@ -2,6 +2,7 @@ import type { PatientIdentity } from "../orders/model";
 
 import { compareDecimal, entryCheck, parseResultInput } from "@/lib/lab/catalogue";
 import { computeFlag } from "@/lib/lab/flags";
+import { categoryFor, directionOf } from "@/lib/lab/interpretation";
 import { acceptedUnits, mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
 
 /**
@@ -47,6 +48,8 @@ export interface EntryComponent {
   bounds: readonly SignedBound[];
   /** Lab Phase 1 (LAB_UNITS_RANGES): the catalogue's fixed unit and the resolved range (§5.1). */
   fixed?: FixedComponent;
+  /** Lab Phase 2 (AP-6): kept for the lab only; never shown to clinicians. */
+  labOnly?: boolean;
 }
 
 export type RangeStateWord =
@@ -74,7 +77,30 @@ export interface FixedComponent {
     | { low: string | null; high: string | null }
     | { none: "no_signed_limits" | "no_limit_for_test" | "no_limit_for_age" };
   /** A released value: what its snapshot holds (Law 8), shown as it was released. */
-  released?: { flagFinal: "low" | "high" | "normal" | null; reason: string | null };
+  released?: {
+    flagFinal: "low" | "high" | "normal" | null;
+    reason: string | null;
+    category?: string | null;
+  };
+  /** Lab Phase 2 (§5.6, DS-3): what flags this value here, before it is typed. */
+  basis?:
+    | { kind: "reference"; fallback: string | null; notes: string[] }
+    | {
+        kind: "scheme";
+        label: string;
+        rowSource: string;
+        categories: { code: string; label: string; abnormal: boolean }[];
+        /** The row's bounds with the signed elevation already added (DS-6). */
+        bounds: {
+          category: string;
+          from: string | null;
+          fromInclusive: boolean;
+          to: string | null;
+          toInclusive: boolean;
+        }[];
+        adjustment: string | null;
+        notes: string[];
+      };
 }
 
 export interface EntryLine {
@@ -234,11 +260,33 @@ export function autoCritical(c: EntryComponent, l: EntryLine | undefined): "low"
 }
 
 /** FL-1: the flag the signed band (or, with no signed range, the typed one) gives this value. */
+/** Lab Phase 2 (DS-8): the scheme's category for the typed value (the bounds already carry the elevation). */
+export function schemeCategory(c: EntryComponent, l: EntryLine) {
+  const b = c.fixed?.basis;
+  if (b?.kind !== "scheme") return null;
+  const parsed = parseResultInput(l.value, c.fixed!.decimals);
+  if (!parsed.ok) return null;
+  const cat = categoryFor({ categories: b.categories }, b.bounds, parsed.value, false, null);
+  return cat
+    ? {
+        ...cat,
+        direction: cat.abnormal
+          ? directionOf({ categories: b.categories }, b.bounds, cat.code)
+          : null,
+      }
+    : null;
+}
+
 export function fixedFlag(c: EntryComponent, l: EntryLine): "low" | "high" | "normal" | null {
   const f = c.fixed;
   if (!f) return null;
   const parsed = parseResultInput(l.value, f.decimals);
   if (!parsed.ok) return null;
+  // CD-01: on a scheme basis the category drives the flag, as the write does.
+  if (f.basis?.kind === "scheme") {
+    const cat = schemeCategory(c, l);
+    return cat ? (cat.abnormal ? cat.direction : "normal") : null;
+  }
   const band =
     f.range.state === "signed"
       ? { low: f.range.low, high: f.range.high }
@@ -381,6 +429,8 @@ export interface ResultEntryData {
    *  the server decides it from the cadre, so the screen states it rather than asking. */
   mode: "direct" | "transcribed";
   components: EntryComponent[];
+  /** Lab Phase 2 (§5.6): the analyser profile the specimen was pinned to at receipt. */
+  profile?: { model: string; labOnly: number } | null;
   /** The current report version, when one exists. */
   report: {
     id: string;
@@ -416,6 +466,9 @@ export interface ReviewValue {
   labNote?: string | null;
   /** Lab Phase 1 (UN-8): entered before fixed units; the unit and range are as typed. */
   asTyped?: boolean;
+  /** Lab Phase 2 (§5.8): what flagged it (a scheme, with its source), and the notes beside it. */
+  basis?: string | null;
+  notes?: string[];
 }
 
 export interface ReviewItem {
@@ -432,6 +485,8 @@ export interface ReviewItem {
   encounterId: string | null;
   /** Lab Phase 1 DT-7: "Entered after downtime · Resulted 13:40 · entered 14:52 · paper form DT-00031". */
   downtimeTag?: string;
+  /** Lab Phase 2 (§5.8): measured at the bedside, with its device, lot and operator. */
+  bedside?: { device: string; lot: string; operator: string; glucose: boolean };
 }
 
 export const reviewWords = (i: Pick<ReviewItem, "state">): string =>

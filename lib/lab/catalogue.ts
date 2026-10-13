@@ -19,6 +19,9 @@ export interface Measure {
   loincCode: string | null;
   entryCheckLow: string | null;
   entryCheckHigh: string | null;
+  /** Lab Phase 2 (ME-1): the method in force and, for creatinine, IDMS traceability. */
+  methodCode?: string | null;
+  idmsTraceable?: boolean | null;
 }
 
 // ─── Exact decimals (UN-3) ───────────────────────────────────────────────
@@ -43,6 +46,18 @@ export function compareDecimal(a: string, b: string): -1 | 0 | 1 {
 }
 
 export const isDecimal = (s: string) => DECIMAL.test(s);
+
+/** Exact sum of two decimal strings, at the larger scale: "11.0" + "0.8" → "11.8". */
+export function addDecimal(a: string, b: string): string {
+  const x = scaled(a);
+  const y = scaled(b);
+  const s = Math.max(x.scale, y.scale);
+  const n = x.n * 10n ** BigInt(s - x.scale) + y.n * 10n ** BigInt(s - y.scale);
+  const neg = n < 0n;
+  const digits = (neg ? -n : n).toString().padStart(s + 1, "0");
+  const out = s ? `${digits.slice(0, -s)}.${digits.slice(-s)}` : digits;
+  return neg ? `-${out}` : out;
+}
 
 // ─── UN-1: a numeric component needs its unit ────────────────────────────
 
@@ -106,6 +121,8 @@ const DEFINING = [
   "loincCode",
   "entryCheckLow",
   "entryCheckHigh",
+  "methodCode",
+  "idmsTraceable",
 ] as const;
 
 export type MeasureDraft = Pick<Measure, (typeof DEFINING)[number]>;
@@ -115,7 +132,8 @@ export function measureChange(
   current: Measure | null,
   draft: MeasureDraft,
 ): { kind: "same" } | { kind: "new_version"; version: number } {
-  if (current && DEFINING.every((k) => current[k] === draft[k])) return { kind: "same" };
+  if (current && DEFINING.every((k) => (current[k] ?? null) === (draft[k] ?? null)))
+    return { kind: "same" };
   return { kind: "new_version", version: (current?.version ?? 0) + 1 };
 }
 

@@ -1,0 +1,175 @@
+import "server-only";
+
+import type { ConfigKind, SchemePayload } from "./signed-config";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+
+import { db } from "@/db";
+import { hospitals } from "@/db/schema/hospitals";
+import { labSignedConfigs } from "@/db/schema/lab-catalogue";
+import { users } from "@/db/schema/users";
+import { PAYLOADS } from "./signed-config";
+
+/**
+ * Lab catalogue v2 configuration the laboratory lead has signed, waiting for the CSO (Lab Phase 2, ADR 0252;
+ * D-LAB1-11 carried over). Every hospital and the global rows (REF, the addendum). Read-only: the
+ * countersignature goes through signConfigAsCsoAction.
+ */
+
+export const KIND_WORDS: Record<ConfigKind, string> = {
+  scheme: "Decision cut-offs",
+  flag_basis: "Flag basis",
+  elevation: "Elevation",
+  hiv_algorithm: "HIV testing algorithm",
+  ncd_mapping: "NCD field mapping",
+  ref: "Reference entry",
+  addendum: "Concept addendum",
+};
+
+const author = alias(users, "author");
+const lead = alias(users, "lead");
+
+export async function loadConfigsWaitingForCso() {
+  const rows = await db
+    .select({
+      c: labSignedConfigs,
+      hospital: hospitals.name,
+      author: author.fullName,
+      lead: lead.fullName,
+    })
+    .from(labSignedConfigs)
+    .leftJoin(hospitals, eq(hospitals.id, labSignedConfigs.hospitalId))
+    .leftJoin(author, eq(author.id, labSignedConfigs.authoredBy))
+    .leftJoin(lead, eq(lead.id, labSignedConfigs.leadSignedBy))
+    .where(and(eq(labSignedConfigs.status, "draft"), isNotNull(labSignedConfigs.leadSignedBy)))
+    .orderBy(desc(labSignedConfigs.leadSignedAt))
+    .limit(200);
+  return rows.map(({ c, hospital, author, lead }) => {
+    const kind = c.kind as ConfigKind;
+    const parsed = PAYLOADS[kind]?.safeParse(c.payload);
+    const payload = parsed?.success ? (parsed.data as Record<string, unknown>) : null;
+    return {
+      id: c.id,
+      hospitalId: c.hospitalId,
+      hospital: c.hospitalId ? (hospital ?? "Hospital") : "All hospitals",
+      what: KIND_WORDS[kind] ?? c.kind,
+      key: typeof payload?.concept === "string" ? payload.concept : c.key,
+      version: c.version,
+      authoredBy: author ?? "Staff",
+      leadSignedBy: c.leadSignedBy!,
+      leadName: lead ?? "Staff",
+      leadSignedAt: c.leadSignedAt,
+      exceptionNote: c.exceptionNote,
+      summary: payload ? summary(kind, payload, c.key) : "Does not read as its kind",
+      lines: payload ? lines(kind, payload) : ["This payload does not read as its kind."],
+    };
+  });
+}
+
+/** One bound in words: "below 8.0", "from 8.0 to below 11.0", "11.0 or above". */
+export function boundWords(b: {
+  from: string | null;
+  fromInclusive: boolean;
+  to: string | null;
+  toInclusive: boolean;
+}): string {
+  if (b.from === null && b.to === null) return "any value";
+  if (b.from === null) return b.toInclusive ? `${b.to} or below` : `below ${b.to}`;
+  if (b.to === null) return b.fromInclusive ? `${b.from} or above` : `above ${b.from}`;
+  return `${b.fromInclusive ? "from" : "above"} ${b.from} to ${b.toInclusive ? "" : "below "}${b.to}`;
+}
+
+function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string {
+  switch (kind) {
+    case "scheme": {
+      const s = p as SchemePayload;
+      return `${s.label} · ${s.rows.length} ${s.rows.length === 1 ? "row" : "rows"}`;
+    }
+    case "flag_basis":
+      return p.basis === "scheme" ? "Decision cut-offs" : "Reference interval";
+    case "elevation":
+      return `${p.metres} m · ${p.source}`;
+    case "hiv_algorithm":
+      return (p.assays as { kit: string }[]).map((a) => a.kit).join(", ");
+    case "addendum":
+      return `hash ${String(p.hash).slice(0, 12)}`;
+    case "ncd_mapping":
+      return `${p.concept} in ${p.unit}`;
+    case "ref":
+      return key;
+  }
+}
+
+const age = (from: number | null, to: number | null) =>
+  from === null && to === null ? "any age" : `age ${from ?? 0} to ${to ?? "…"} days`;
+
+/** The payload as readable lines for the View dialog: no raw JSON. */
+function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
+  switch (kind) {
+    case "scheme": {
+      const s = p as SchemePayload;
+      const cat = new Map(s.categories.map((c) => [c.code, c.label]));
+      return [
+        `Label: ${s.label}`,
+        `Concept: ${s.concept}`,
+        `Unit: ${s.unit}`,
+        `Source: ${s.source}`,
+        `Categories: ${s.categories.map((c) => `${c.label}${c.abnormal ? " (abnormal)" : ""}`).join(", ")}`,
+        ...s.rows.flatMap((r, i) => [
+          `Row ${i + 1}: ${r.sex === "any" ? "any sex" : r.sex}, ${age(r.ageFromDays, r.ageToDays)}, ${r.context.replace("_", " ")}${
+            r.gestationFromDays != null || r.gestationToDays != null
+              ? `, gestation ${r.gestationFromDays ?? 0} to ${r.gestationToDays ?? "…"} days`
+              : ""
+          }, ${r.methods.join(" and ")} · source: ${r.source}`,
+          ...r.bounds.map(
+            (b) => `  ${cat.get(b.category) ?? b.category}: ${boundWords(b)} ${s.unit}`,
+          ),
+        ]),
+        ...(s.elevation
+          ? [
+              `Elevation adjustment (${s.elevation.unit}) · source: ${s.elevation.source}`,
+              ...s.elevation.table.map(
+                (t) => `  ${t.fromM} m to ${t.toM} m: add ${t.amount} ${s.elevation!.unit}`,
+              ),
+            ]
+          : []),
+      ];
+    }
+    case "flag_basis":
+      return [`Flag against: ${summary(kind, p)}`];
+    case "elevation":
+      return [`Metres above sea level: ${p.metres}`, `Source: ${p.source}`];
+    case "hiv_algorithm": {
+      const h = p as {
+        assays: { step: number; kit: string }[];
+        rules: { t1: string; t2: string | null; t3: string | null; outcome: string }[];
+        retestDays: number;
+        circular: string;
+      };
+      const w = (v: string) => v.replace("_", "-");
+      return [
+        ...h.assays.map((a) => `Test ${a.step}: ${a.kit}`),
+        ...h.rules.map(
+          (r) =>
+            `Test 1 ${w(r.t1)}${r.t2 ? `, test 2 ${w(r.t2)}` : ""}${r.t3 ? `, test 3 ${w(r.t3)}` : ""}: ${r.outcome.replace("_", ", ")}`,
+        ),
+        `Retest after ${h.retestDays} days`,
+        `Circular: ${h.circular}`,
+      ];
+    }
+    case "ncd_mapping":
+      return [
+        `Concept: ${p.concept}`,
+        `Unit: ${p.unit}`,
+        `Methods: ${(p.methods as string[]).join(" and ")}`,
+        `Window: ${p.windowDays} days`,
+      ];
+    case "ref":
+      return [
+        ...Object.entries(p.constants as Record<string, string>).map(([k, v]) => `${k}: ${v}`),
+        `Source: ${p.source}`,
+      ];
+    case "addendum":
+      return [`Data file hash: ${p.hash}`];
+  }
+}

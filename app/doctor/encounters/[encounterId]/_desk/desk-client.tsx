@@ -124,7 +124,7 @@ import {
   saveNoteDraft,
   signNote,
 } from "@/lib/emr/actions/notes";
-import { placeOrders } from "@/lib/emr/actions/orders";
+import { placeOrders, setHighRisk } from "@/lib/emr/actions/orders";
 import { placePlan, syncPlanCharts } from "@/lib/emr/actions/plan";
 import {
   activeThisVisit,
@@ -136,6 +136,7 @@ import {
 } from "@/lib/emr/actions/relations";
 import { clockWarning, correctedNow, initialClock, observe } from "@/lib/emr/sync/clock";
 import { attachToWindow, createWriteQueue } from "@/lib/emr/sync/queue";
+import { ruleFlagsHighRisk } from "@/lib/lab/one-menu";
 import { deskFindingIndex, deskTermIndex, deskTermSearch } from "./actions";
 
 /**
@@ -194,6 +195,28 @@ export function DeskClient({
   const fmt = useMemo(() => formatters(p.timeZone), [p.timeZone]);
   const patientUserId = p.encounter.patientUserId;
   const encounterId = p.encounter.id;
+  // Lab Phase 2 HR-1a: a fired fever-with-bleeding rule raises the lab's high-risk specimen warning
+  // once (the action adds nothing when one is already on). Only the rule id leaves the desk.
+  const raised = useRef(new Set<string>());
+  const onRuleIds = useCallback(
+    (ids: string[]) => {
+      const ruleId = ruleFlagsHighRisk(ids);
+      if (!ruleId || raised.current.has(ruleId)) return;
+      raised.current.add(ruleId);
+      void setHighRisk({
+        surface,
+        patientUserId,
+        encounterId,
+        kind: "flag",
+        source: "rule",
+        ruleId,
+        clientKey: `hr-rule:${encounterId}:${ruleId}`,
+      }).then((r) => {
+        if (!r.ok) raised.current.delete(ruleId);
+      });
+    },
+    [patientUserId, encounterId],
+  );
 
   const [content, setContent] = useState<NoteContent>(() => p.draft?.content ?? { sections: {} });
   const contentRef = useRef(content);
@@ -1296,6 +1319,7 @@ export function DeskClient({
       {v2 ? (
         <ClerkingDesk
           p={p}
+          onRuleIds={p.clerking?.labHighRisk ? onRuleIds : undefined}
           cat={cat}
           catalogueFailed={catalogueFailed || examFailed}
           ecat={ecat}

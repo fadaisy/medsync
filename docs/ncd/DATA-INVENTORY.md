@@ -498,6 +498,8 @@ An input to the data protection impact assessment, not the assessment. *Identify
 | hba1c_percent | numeric(4, 1) | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
 | hba1c_mmol_mol | integer | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
 | hba1c_result_date | date | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
+| lab_refs | jsonb | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
+| outside_results | jsonb | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
 | hypoglycaemia | text | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
 | medicines | text[] | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator |
 | medicines_other_ciphertext | text | yes | yes | triage nurse, clinician, registry officer, registry lead |

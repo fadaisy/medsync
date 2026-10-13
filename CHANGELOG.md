@@ -32,6 +32,29 @@ answers); a registered pharmacist co-signs before any production point goes live
   conditions and two people ([ADR 0271](docs/adr/0271-downtime-one-shared-module.md),
   [ADR 0272](docs/adr/0272-going-live-per-point.md)).
 
+### Added — Lab Phase 2: one menu, one record — 2026-10-12
+
+Built dark on `feat/lab-one-menu`, behind eight per-hospital flags that stay off in production until the CSO signs the
+copy. Migrations 0107–0111 are GATED and owner-applied. No clinical number ships: researched values import as
+unsigned drafts, and each hospital's laboratory lead and the CSO sign them.
+
+- Catalogue v2: the CFC v1.6 addendum (33 tests, inactive until signed), decision schemes, flag basis, elevation and
+  pregnancy context in one generic two-signature store, the interpretation snapshotted at release
+  ([ADR 0251](docs/adr/0251-lab-catalogue-v2.md), [ADR 0252](docs/adr/0252-decision-schemes-and-signed-configuration.md)).
+- Research import as drafts with verification blockers, plus analyser profiles hiding lab-only and research-use rows
+  ([ADR 0253](docs/adr/0253-research-import.md)). eGFR uses race-free CKD-EPI 2021 for adults on IDMS-traceable
+  creatinine only ([ADR 0254](docs/adr/0254-methods-and-egfr.md)).
+- One menu: three ordering surfaces read the hub's availability, and a snapshot is kept on each order line
+  ([ADR 0255](docs/adr/0255-one-menu.md)).
+- Payment state with a cashier list that masks restricted tests. Emergencies are never held, and the database
+  enforces it ([ADR 0256](docs/adr/0256-payment-and-never-held.md)).
+- Labels at placement, the label check inside collection, scan to receive with undo, and a live worklist with a
+  polling fallback ([ADR 0257](docs/adr/0257-labels-scan-and-live-bench.md)).
+- The clinical question and a revealed working diagnosis (each reveal logged). The high-risk warning is amber, on
+  every surface, and only clinicians clear it ([ADR 0258](docs/adr/0258-clinical-question-and-high-risk.md)).
+- Bedside tests (registered devices, lots, operators), the NCD visit filled from released results by reference, and
+  the HIV algorithm as signed configuration ([ADR 0259](docs/adr/0259-bedside-ncd-feed-hiv-algorithm.md)).
+
 ### Fixed — The lab and NCD registry sidebars showed on phones — 2026-10-11
 
 - `SIDEBAR_CLASS` lived in a "use client" module; the lab shell and the NCD registry layout built a string from it on

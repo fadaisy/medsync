@@ -1,8 +1,15 @@
-import type { EmrDb } from "@/lib/emr/db";
+import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
-import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, PillIcon, ShieldAlertIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  DropletIcon,
+  HeartPulseIcon,
+  PhoneIcon,
+  PillIcon,
+  ShieldAlertIcon,
+} from "lucide-react";
 
 import { EmrChart } from "@/components/emr/chart/emr-chart";
 import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
@@ -13,6 +20,8 @@ import { emrV1Live, emrV1LiveFor } from "@/lib/emr/feature";
 import { loadChart } from "@/lib/emr/read/chart";
 import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
+import { isOperator } from "@/lib/lab/bedside-store";
+import { labBedsideLiveFor } from "@/lib/lab/feature";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
 import { requireNurseScope } from "@/lib/nurse/scope";
 import { NurseMonitoring } from "./_components/nurse-monitoring";
@@ -67,10 +76,26 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
     const orders = chart.openEncounterId ? (
       <NurseOrders encounterId={chart.openEncounterId} />
     ) : null;
+    // Lab Phase 2 (§5.7): the bedside test, for a nurse the laboratory lead has granted it.
+    const bedside =
+      chart.openEncounterId &&
+      chart.payload.safetyBar.actionsAllowed &&
+      labBedsideLiveFor(scope.hospitalId) &&
+      (await isOperator(db as unknown as EmrTx, scope.hospitalId, scope.userId));
     // The open visit's monitoring charts and the fluid balance entry (ADR 0189).
     return (
       <>
         <EmrChart chart={chart} surface="nurse" orders={orders} />
+        {bedside ? (
+          <div className="mx-auto w-full max-w-[1200px] px-4 pb-4 md:px-8">
+            <Link href={`/nurse/patients/${chart.patientUserId}/bedside`}>
+              <Button type="button" variant="secondary" className="tap">
+                <DropletIcon className="size-3.5" aria-hidden />
+                Bedside test
+              </Button>
+            </Link>
+          </div>
+        ) : null}
         {chart.openEncounterId ? (
           <NurseMonitoring
             patientUserId={chart.patientUserId}

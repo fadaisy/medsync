@@ -76,8 +76,8 @@ function project(concept: Id, drop?: string): Projection {
 }
 
 describe("round-trip: every catalogue concept projects, validates and is interpretable", () => {
-  it("covers the whole catalogue (145 v1 + 59 v1.1 + 86 v1.2 + 165 v1.3 + 10 v1.5)", () => {
-    expect(ALL).toHaveLength(465);
+  it("covers the whole catalogue (145 v1 + 59 v1.1 + 86 v1.2 + 165 v1.3 + 10 v1.5 + 60 v1.6)", () => {
+    expect(ALL).toHaveLength(525);
   });
 
   it.each(ALL)("%s", (concept) => {

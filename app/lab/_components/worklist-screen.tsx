@@ -12,22 +12,27 @@ import type {
   WorklistInput,
   WorklistRow,
 } from "@/lib/lab/worklist";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
+import { BiohazardIcon } from "lucide-react";
 
 import { RestrictedMark } from "@/components/emr/chips";
 import { PRIORITY_WORD } from "@/components/emr/orders/model";
 import { StatusWord } from "@/components/emr/status-word";
+import { LabLive } from "@/components/lab/lab-live";
 import { PageHeader } from "@/components/medsync/page-header";
 import { TabList } from "@/components/medsync/tab-list";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { LAB } from "@/content/lab";
+import { LAB2 } from "@/content/lab-phase-2";
 import { receiveSpecimen } from "@/lib/emr/actions/orders";
 import { serverNowAt } from "@/lib/lab/turnaround";
 import { computeWorklist, LAB_STAGES, SORT_KEYS } from "@/lib/lab/worklist";
 import { cn } from "@/lib/utils";
+import { FindSpecimen, ScanReceive } from "./bench-bar";
 import { TurnaroundCell } from "./turnaround-cell";
 
 /**
@@ -51,6 +56,12 @@ export interface WorklistPayload {
   inputs: Wire<WorklistInput>[];
   identities: Record<string, PatientIdentity>;
   restricted: string[];
+  /** Lab Phase 2 §5.5: orders whose encounter carries the high-risk warning. */
+  highRisk: string[];
+  /** The hospital's high-risk procedure (a link or a document title), for "Open procedure". */
+  procedure?: string | null;
+  /** Lab Phase 2 (labBench): the scan field, Find, the live line and each order's clinical question. */
+  bench?: { questions: Record<string, string> };
   sections: { id: string; name: string }[];
   viewer: { hospitalId: string; permissions: LabPermission[]; sectionIds: string[] };
   serverNowIso: string;
@@ -171,6 +182,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
   );
   const rows = sort.key !== "default" && sort.dir === "desc" ? [...w.rows].reverse() : w.rows;
   const restricted = useMemo(() => new Set(payload.restricted), [payload.restricted]);
+  const highRisk = useMemo(() => new Set(payload.highRisk), [payload.highRisk]);
   const sectionName = sectionLabel(
     w.sectionTabs.find((t) => t.key === w.section) ?? { key: "all", name: null },
   );
@@ -192,6 +204,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
 
   const tableId = useId();
   const firstAction = rows.find((r) => r.action)?.orderId;
+  const question = (r: WorklistRow) => payload.bench?.questions[r.orderId];
   const identity = (r: WorklistRow) =>
     payload.identities[r.patientUserId] ?? { name: "Name withheld", mrn: "", ageSex: "" };
 
@@ -206,17 +219,20 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
       header: W.columns.test,
       sortable: true,
       cell: (r) => (
-        <span className="inline-flex flex-wrap items-center gap-x-2">
-          <Link
-            id={`t-${r.orderId}`}
-            href={`/lab/results/${r.orderId}`}
-            prefetch={false}
-            className="text-foreground focus-visible:shadow-focus rounded-sm underline-offset-4 outline-none hover:underline"
-          >
-            {r.test}
-          </Link>
-          {restricted.has(r.orderId) ? <RestrictedMark /> : null}
-        </span>
+        <WithQuestion question={question(r)}>
+          <span className="inline-flex flex-wrap items-center gap-x-2">
+            <Link
+              id={`t-${r.orderId}`}
+              href={`/lab/results/${r.orderId}`}
+              prefetch={false}
+              className="text-foreground focus-visible:shadow-focus rounded-sm underline-offset-4 outline-none hover:underline"
+            >
+              {r.test}
+            </Link>
+            {restricted.has(r.orderId) ? <RestrictedMark /> : null}
+            {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
+          </span>
+        </WithQuestion>
       ),
     },
     {
@@ -247,7 +263,14 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
       header: <span className="sr-only">{W.columns.action}</span>,
       headerClassName: "w-px",
       className: "text-right",
-      cell: (r) => <RowAction row={r} primary={r.orderId === firstAction} onDone={refresh} />,
+      cell: (r) => (
+        <RowAction
+          row={r}
+          primary={r.orderId === firstAction}
+          onDone={refresh}
+          highRisk={highRisk.has(r.orderId) ? (payload.procedure ?? null) : undefined}
+        />
+      ),
     },
   ];
 
@@ -278,6 +301,7 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
         title={W.title}
         right={
           <>
+            {payload.bench ? <LabLive hospitalId={payload.viewer.hospitalId} /> : null}
             <span className="text-body-s text-muted-foreground">
               {W.updated} <span className="font-mono tabular-nums">{updated}</span>
             </span>
@@ -296,6 +320,12 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
       <span role="status" aria-live="polite" className="sr-only">
         {announce}
       </span>
+      {payload.bench ? (
+        <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+          <ScanReceive />
+          <FindSpecimen />
+        </div>
+      ) : null}
 
       {w.noSectionAssigned ? (
         <p className="text-body-s text-muted-foreground">{W.noSectionAssigned}</p>
@@ -382,13 +412,21 @@ export function WorklistScreen({ payload }: { payload: WorklistPayload }) {
                   <span className="text-muted-foreground">{r.from?.name ?? W.notRecorded}</span>
                   <PriorityWord priority={r.priority} />
                   {restricted.has(r.orderId) ? <RestrictedMark /> : null}
+                  {highRisk.has(r.orderId) ? <HighRiskTag /> : null}
                 </p>
+                {question(r) ? <QuestionLine text={question(r)!} /> : null}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2">
                     <StatusWord tone="neutral">{LAB.stage[r.stage]}</StatusWord>
                     <TurnaroundCell clock={r.clock} className="min-w-0" />
                   </span>
-                  <RowAction row={r} primary={r.orderId === firstAction} onDone={refresh} mobile />
+                  <RowAction
+                    row={r}
+                    primary={r.orderId === firstAction}
+                    onDone={refresh}
+                    highRisk={highRisk.has(r.orderId) ? (payload.procedure ?? null) : undefined}
+                    mobile
+                  />
                 </div>
               </li>
             ))
@@ -414,6 +452,34 @@ function PatientCell({ id, identity }: { id: string; identity: PatientIdentity }
   );
 }
 
+/** CX-1: the order's clinical question under the test; the cell is unchanged when there is none. */
+function WithQuestion({ question, children }: { question?: string; children: ReactNode }) {
+  if (!question) return children;
+  return (
+    <span className="flex flex-col gap-0.5">
+      {children}
+      <QuestionLine text={question} />
+    </span>
+  );
+}
+
+function QuestionLine({ text }: { text: string }) {
+  return (
+    <span className="text-caption text-muted-foreground max-w-prose">
+      {LAB.bench.question}: {text}
+    </span>
+  );
+}
+
+/** Amber with its icon and the words (§5.5): take care, never an emergency colour. */
+function HighRiskTag() {
+  return (
+    <StatusWord tone="caution" glyph={BiohazardIcon}>
+      {LAB2.highRisk.tag}
+    </StatusWord>
+  );
+}
+
 function PriorityWord({ priority }: { priority: string | null }) {
   const p = priority ?? "routine";
   return (
@@ -428,15 +494,20 @@ function RowAction({
   row,
   primary,
   onDone,
+  highRisk,
   mobile = false,
 }: {
   row: WorklistRow;
   primary: boolean;
   onDone: () => void;
+  /** §5.5, SR-3: set on a high-risk row (the hospital's procedure, or null when none is recorded). */
+  highRisk?: string | null;
   mobile?: boolean;
 }) {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [followed, setFollowed] = useState(false);
   const id = useId();
   if (!row.action) return null;
   const labelledBy = `${id} ${mobile ? "pm" : "p"}-${row.orderId} ${mobile ? "tm" : "t"}-${row.orderId}`;
@@ -444,8 +515,10 @@ function RowAction({
   const size = "min-h-11 sm:min-h-0";
   if (row.action === "receive" && row.specimenId) {
     const specimenId = row.specimenId;
-    return (
-      <span className="inline-flex flex-col items-end gap-1">
+    const B = LAB.bench;
+    // §5.5: a high-risk row's action is "Open procedure" until the receiver ticks "Procedure followed".
+    if (highRisk !== undefined && !open)
+      return (
         <Button
           id={id}
           type="button"
@@ -453,13 +526,48 @@ function RowAction({
           size="md"
           className={size}
           aria-labelledby={labelledBy}
-          disabled={pending}
+          onClick={() => setOpen(true)}
+        >
+          {B.openProcedure}
+        </Button>
+      );
+    return (
+      <span className="inline-flex flex-col items-end gap-1">
+        {highRisk !== undefined ? (
+          <span className="bg-status-caution-bg border-status-caution-fg dark:text-status-caution-fg text-body-s flex max-w-xs flex-col gap-1.5 rounded-md border-2 px-3 py-2 text-left text-amber-800">
+            {highRisk && /^https?:\/\//.test(highRisk) ? (
+              <a href={highRisk} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+                {highRisk}
+              </a>
+            ) : (
+              <span>{highRisk ?? B.noProcedure}</span>
+            )}
+            <label className="text-foreground inline-flex min-h-11 items-center gap-2 sm:min-h-0">
+              <input
+                type="checkbox"
+                checked={followed}
+                onChange={(e) => setFollowed(e.target.checked)}
+                className="size-4 accent-teal-700"
+              />
+              {B.procedureFollowed}
+            </label>
+          </span>
+        ) : null}
+        <Button
+          id={id}
+          type="button"
+          variant={variant}
+          size="md"
+          className={size}
+          aria-labelledby={labelledBy}
+          disabled={pending || (highRisk !== undefined && !followed)}
           onClick={() =>
             start(async () => {
               const r = await receiveSpecimen({
                 surface: "lab",
                 patientUserId: row.patientUserId,
                 specimenId,
+                ...(highRisk !== undefined ? { procedureFollowed: true } : {}),
                 clientKey: crypto.randomUUID(),
               });
               if (!r.ok) return setError(r.error);

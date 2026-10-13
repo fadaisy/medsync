@@ -193,7 +193,9 @@ export function deriveOrderStatus(order: OrderInput, records: OrderRecords = {})
   const specimen = latestBy((records.specimens ?? []).filter((s) => s.orderId === order.id));
   if (specimen) {
     const ev = latestBy((records.specimenEvents ?? []).filter((e) => e.specimenId === specimen.id));
-    if (!ev) return done(order.id, { state: "collected", specimenId: specimen.id }, anomalies);
+    // Lab Phase 2 SR-5: an undone receipt returns the specimen to "To receive".
+    if (!ev || ev.kind === "receipt_undone")
+      return done(order.id, { state: "collected", specimenId: specimen.id }, anomalies);
     if (ev.kind === "received")
       return done(order.id, { state: "in_progress", specimenId: specimen.id }, anomalies);
     const rejection = {

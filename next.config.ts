@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
     },
   },
   images: { formats: ["image/avif", "image/webp"] },
+  // Lab Phase 2: the drafts page hashes these files at request time (the addendum and the research import are
+  // signed by their SHA-256). Their paths are built from constants, which file tracing cannot follow, so name them.
+  outputFileTracingIncludes: {
+    "/lab/setup/**": [
+      "./data/emr/clinical-fact-concepts.v1.6.json",
+      "./docs/lab/catalogue-research/lab-catalogue-research.v1.json",
+    ],
+  },
   // Landing v4 route audit: one route family. The old /onboarding/* doors
   // became /signup/*; keep the old links (and search results) working.
   async redirects() {

@@ -14,9 +14,11 @@ import { EmrDialog } from "@/components/emr/emr-dialog";
 import { CollectView } from "@/components/emr/orders/collect-view";
 import { EncounterOrdersView } from "@/components/emr/orders/encounter-orders-view";
 import { EMPTY_COLLECT, toCollectInput } from "@/components/emr/orders/model";
+import { useCollectLab } from "@/components/emr/orders/use-collect-lab";
 import { collectSpecimen } from "@/lib/emr/actions/orders";
 
-/** The nurse's label route for a specimen of this visit. */
+/** The nurse's label route for a specimen of this visit, or (Lab Phase 2) an order's label before
+ *  collection. */
 export const nurseLabelHref = (patientUserId: string, encounterId: string, specimenId: string) =>
   `/nurse/patients/${patientUserId}/label/${encounterId}/${specimenId}`;
 
@@ -50,6 +52,17 @@ export function NurseOrdersPanel({
   const [collect, setCollect] = useState<CollectDraft>(EMPTY_COLLECT);
   const [labelHref, setLabelHref] = useState<string | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const lab = useCollectLab({
+    surface: "nurse",
+    patientUserId,
+    target,
+    draft: collect,
+    setDraft: setCollect,
+    setTarget,
+    setMessage,
+    start,
+  });
 
   const close = () => {
     setTarget(null);
@@ -91,6 +104,7 @@ export function NurseOrdersPanel({
           setCollect(EMPTY_COLLECT);
           setLabelHref(null);
           setMessage(null);
+          lab.reset();
           setTarget(t);
         }}
       />
@@ -118,6 +132,8 @@ export function NurseOrdersPanel({
             onSpecimen={(specimenType) => setCollect((d) => ({ ...d, specimenType }))}
             onContainer={(container) => setCollect((d) => ({ ...d, container }))}
             onSave={save}
+            printHref={nurseLabelHref(patientUserId, encounterId, target.orderId)}
+            {...lab.props}
           />
         ) : null}
       </EmrDialog>

@@ -54,6 +54,9 @@ export interface ClerkingDeskData {
    *  the sign dialog can count what signing commits without shipping the fact catalogue. */
   chartable: string[];
   outbreakMode: boolean;
+  /** Lab Phase 2 HR-1a (labHighRiskWarning): a fired fever-with-bleeding rule raises the lab's
+   *  high-risk specimen warning for this encounter. */
+  labHighRisk?: boolean;
   canSeeRestricted: boolean;
   signoff: Signoff;
   /** The signed wording of the conversion flags (a v1 draft continued in the new format). */

@@ -9,10 +9,13 @@ import type {
 } from "./model";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LockIcon } from "lucide-react";
+import { Fragment } from "react";
+import { EyeOffIcon, LockIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pill } from "@/components/ui/pill";
+import { LAB2 } from "@/content/lab-phase-2";
 import { unitWords } from "@/lib/emr/unit-words";
 import { cn } from "@/lib/utils";
 import { ChoiceChips } from "../orders/choice-chips";
@@ -29,6 +32,7 @@ import {
   MODE_WORDS,
   needsEntryConfirm,
   NO_UNIT,
+  schemeCategory,
   unitOptions,
 } from "./model";
 
@@ -118,6 +122,7 @@ export function ResultEntryView({
           {data.priority && data.priority !== "routine" ? (
             <span>{PRIORITY_WORD[data.priority] ?? data.priority}</span>
           ) : null}
+          {data.profile ? <Pill tone="neutral">Analyser: {data.profile.model}</Pill> : null}
         </p>
         <p className="text-body-s flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-muted-foreground">Entry</span>
@@ -141,31 +146,44 @@ export function ResultEntryView({
             <span>Analyte</span>
             <span>Value</span>
             <span>Unit</span>
-            <span>Laboratory range</span>
+            <span>
+              {quantities.some((c) => c.fixed?.basis) ? "Flagged against" : "Laboratory range"}
+            </span>
             <span>Lab flag</span>
           </div>
-          {quantities.map((c) =>
-            c.fixed ? (
-              <FixedQuantityRow
-                key={c.conceptId}
-                c={c}
-                f={c.fixed}
-                line={state.lines[c.conceptId] ?? emptyLine(c)}
-                locked={locked}
-                onLine={on.onLine}
-                action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
-              />
-            ) : (
-              <QuantityRow
-                key={c.conceptId}
-                c={c}
-                line={state.lines[c.conceptId] ?? emptyLine(c)}
-                locked={locked}
-                onLine={on.onLine}
-                action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
-              />
-            ),
+          {[...quantities.filter((c) => !c.labOnly), ...quantities.filter((c) => c.labOnly)].map(
+            (c, i, all) =>
+              c.fixed ? (
+                <Fragment key={c.conceptId}>
+                  {c.labOnly && !all[i - 1]?.labOnly ? (
+                    <p className="text-caption text-muted-foreground flex items-center gap-1 pt-3">
+                      <EyeOffIcon aria-hidden className="size-3.5" />
+                      {LAB2.profile.labOnly(all.filter((x) => x.labOnly).length)}
+                    </p>
+                  ) : null}
+                  <FixedQuantityRow
+                    c={c}
+                    f={c.fixed}
+                    line={state.lines[c.conceptId] ?? emptyLine(c)}
+                    locked={locked}
+                    onLine={on.onLine}
+                    action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
+                  />
+                </Fragment>
+              ) : (
+                <QuantityRow
+                  key={c.conceptId}
+                  c={c}
+                  line={state.lines[c.conceptId] ?? emptyLine(c)}
+                  locked={locked}
+                  onLine={on.onLine}
+                  action={rowAction?.(c, state.lines[c.conceptId] ?? emptyLine(c))}
+                />
+              ),
           )}
+          {data.profile ? (
+            <p className="text-caption text-muted-foreground pt-2">{LAB2.profile.researchUse}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -541,6 +559,11 @@ function FixedQuantityRow({
   const final = f.released ? f.released.flagFinal : (line.flagChange?.flag ?? computed);
   const confirm = needsEntryConfirm(c, line);
   const critical = autoCritical(c, line);
+  const category = f.released
+    ? f.released.category
+      ? { label: f.released.category, abnormal: f.released.flagFinal !== "normal", direction: null }
+      : null
+    : schemeCategory(c, line);
   if (!f.unitUcum)
     return (
       <div className="flex flex-col gap-1 border-b py-3">
@@ -579,7 +602,14 @@ function FixedQuantityRow({
           <LockIcon aria-hidden className="size-3.5 shrink-0" />
           {f.unitDisplay}
         </span>
-        {f.range.state === "signed" || f.range.state === "unsigned" ? (
+        {f.basis?.kind === "scheme" ? (
+          <span className="text-body-s col-span-2 flex flex-col sm:col-span-1">
+            <span>{f.basis.label}</span>
+            <span className="text-caption text-muted-foreground">
+              {[f.basis.rowSource, f.basis.adjustment].filter(Boolean).join(" · ")}
+            </span>
+          </span>
+        ) : f.range.state === "signed" || f.range.state === "unsigned" ? (
           <span className="text-body-s col-span-2 flex flex-col sm:col-span-1">
             <span className="font-mono tabular-nums">
               {f.range.low ?? "…"}–{f.range.high ?? "…"}
@@ -625,7 +655,12 @@ function FixedQuantityRow({
               No critical limit for this age
             </span>
           ) : null}
-          {final ? (
+          {category ? (
+            <StatusWord tone={category.abnormal ? "caution" : "neutral"}>
+              {category.direction ? `${category.direction === "low" ? "↓" : "↑"} ` : ""}
+              {category.label}
+            </StatusWord>
+          ) : final ? (
             <StatusWord tone={final === "normal" ? "neutral" : "caution"}>
               {FLAG_WORDS[final]}
             </StatusWord>

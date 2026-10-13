@@ -12,24 +12,30 @@ import type { ResultEntryData } from "@/components/emr/results/model";
 import type { EmrAccessBasis } from "@/lib/emr/access";
 import type { EmrActor } from "@/lib/emr/actor";
 import type { EmrDb } from "@/lib/emr/db";
+import type { EmrTx } from "@/lib/emr/db";
 import type { FactConcept } from "@/lib/facts/types";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { formatters } from "@/components/emr/format";
+import { LAB2 } from "@/content/lab-phase-2";
 import {
   ageSexWords,
   containerWords,
   labelTestWords,
+  paymentWords,
   PRIORITY_WORD,
 } from "@/components/emr/orders/model";
 import {
   conditions,
+  devices,
   diagnosisTerms,
   facilityCapabilities,
   specimens,
   testCatalogue,
 } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { labLabels, labPaymentEvents } from "@/db/schema/lab-catalogue";
+import { labSettings } from "@/db/schema/lab-safety";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
@@ -45,6 +51,16 @@ import {
 import { loadOrderRecords } from "@/lib/emr/write/orders";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef, sensitivityFor } from "@/lib/facts/project/shared";
+import { highRiskFor, paymentModeAt } from "@/lib/lab/collection-store";
+import {
+  labBedsideLiveFor,
+  labCollectionCheckLiveFor,
+  labHighRiskLiveFor,
+  labOneMenuLiveFor,
+  labPaymentLiveFor,
+} from "@/lib/lab/feature";
+import { currentPayment } from "@/lib/lab/one-menu";
+import { menuToday } from "@/lib/lab/one-menu-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { entryComponents } from "./results";
 
@@ -71,6 +87,13 @@ export interface EncounterOrdersLoad {
   /** Transcription screens for the orders that can take a paper or imaging report now. */
   transcribe: Record<string, ResultEntryData>;
   collectorName: string | null;
+  /** Lab Phase 2 (labHighRisk, HR-1/HR-2): the encounter's high-risk warning, when the flag is on. */
+  highRisk?: {
+    on: boolean;
+    reason: string | null;
+    manual: boolean;
+    procedure?: string | null;
+  } | null;
 }
 
 async function identityHead(
@@ -193,7 +216,57 @@ export async function loadTestMenu(
     .select({ id: facilityCapabilities.capabilityId, status: facilityCapabilities.status })
     .from(facilityCapabilities)
     .where(eq(facilityCapabilities.hospitalId, hospitalId));
-  return buildTestMenu(tests, caps);
+  return withToday(buildTestMenu(tests, caps), tx, hospitalId);
+}
+
+/**
+ * Lab Phase 2 (labOneMenu): each lab test's state today from the hub; a test with no service link is hidden
+ * from doctors (OM-1) and set up by the lab (§5.10). Every ordering surface's menu passes through here.
+ */
+async function withToday(
+  menu: MenuTest[],
+  tx: Pick<EmrDb, "select">,
+  hospitalId: string,
+): Promise<MenuTest[]> {
+  if (!labOneMenuLiveFor(hospitalId)) return menu;
+  const today = await menuToday(tx, hospitalId);
+  return menu.flatMap((t) => {
+    if (t.kind !== "lab") return [t];
+    const d = today(t.code);
+    return d.state === "not_linked"
+      ? []
+      : [{ ...t, today: { state: d.state, words: d.words, orderable: d.orderable } }];
+  });
+}
+
+/**
+ * Lab Phase 2 (§5.1, labBedside): a lab test whose result a device in use here also measures says so,
+ * with a link to the bedside form for the surfaces that have one.
+ * ponytail: any device in use at the hospital; the form itself narrows to the patient's ward.
+ */
+async function withBedside(
+  menu: MenuTest[],
+  tx: Pick<EmrDb, "select">,
+  hospitalId: string,
+  href: string | null,
+): Promise<MenuTest[]> {
+  if (!labBedsideLiveFor(hospitalId)) return menu;
+  const rows = await tx
+    .select({ kind: devices.kind, code: devices.testCode })
+    .from(devices)
+    .where(and(eq(devices.hospitalId, hospitalId), eq(devices.state, "in_use")));
+  if (rows.length === 0) return menu;
+  const byCode = new Map(menu.map((t) => [t.code, t]));
+  const alts = rows.flatMap((r) => {
+    const t = r.code ? byCode.get(r.code) : undefined;
+    return t ? [{ test: t, kind: LAB2.deviceKinds[r.kind] ?? r.kind }] : [];
+  });
+  return menu.map((t) => {
+    const alt =
+      t.kind === "lab" &&
+      alts.find((a) => a.test.id !== t.id && a.test.components.some((c) => t.components.includes(c)));
+    return alt ? { ...t, bedside: { words: LAB2.bedsideAlternative(alt.test.display, alt.kind), href } } : t;
+  });
 }
 
 export async function loadEncounterOrders(
@@ -260,7 +333,15 @@ export async function loadEncounterOrders(
     opts.database,
   );
 
-  const menu = buildTestMenu(rec.tests, rec.caps);
+  const menuDb = opts.database ?? ((await import("@/db")).db as unknown as EmrDb);
+  const menu = await withBedside(
+    await withToday(buildTestMenu(rec.tests, rec.caps), menuDb, actor.hospitalId),
+    menuDb,
+    actor.hospitalId,
+    actor.surface === "doctor" || actor.surface === "nurse"
+      ? `/${actor.surface}/patients/${patientUserId}/bedside`
+      : null,
+  );
 
   // Current versions only: not superseded, not withdrawn, not refuted.
   const superseded = new Set(rec.dx.map((d) => d.supersedesId).filter(Boolean));
@@ -290,6 +371,16 @@ export async function loadEncounterOrders(
     : [];
   const names = new Map(nameRows.map((r) => [r.id, r.name]));
 
+  // Lab Phase 2 (§5.2): labels, payment and the high-risk warning for the collector.
+  const labIds = rec.orderRows.filter((o) => o.kind === "lab").map((o) => o.id);
+  const checkOn = labCollectionCheckLiveFor(actor.hospitalId);
+  const payOn = labPaymentLiveFor(actor.hospitalId);
+  const riskOn = labHighRiskLiveFor(actor.hospitalId);
+  const lab = await labCollectionFacts(conn, actor.hospitalId, encounterId, labIds, {
+    checkOn,
+    payOn,
+    riskOn,
+  });
   const orders: EncounterOrderRow[] = [];
   const transcribe: Record<string, ResultEntryData> = {};
   for (const o of rec.orderRows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())) {
@@ -326,6 +417,23 @@ export async function loadEncounterOrders(
               container: test?.container ?? null,
               needsFasting: needsFastingChip(o, test),
               rejection,
+              ...(checkOn || payOn || riskOn
+                ? {
+                    lab: {
+                      checkOn,
+                      labelNo: lab.labels.get(o.id) ?? null,
+                      payment: payOn
+                        ? {
+                            state: lab.payments.get(o.id)?.state ?? "not_required",
+                            mode: lab.mode,
+                            receipt: lab.payments.get(o.id)?.receipt ?? null,
+                          }
+                        : null,
+                      highRisk: lab.highRisk,
+                      procedure: lab.procedure,
+                    },
+                  }
+                : {}),
             }
           : null,
       specimenId: newestSpecimen,
@@ -352,6 +460,14 @@ export async function loadEncounterOrders(
     encounterId,
     patientUserId,
     identity: head.identity,
+    highRisk: riskOn
+      ? {
+          on: !!lab.highRisk,
+          reason: lab.highRisk?.reason ?? null,
+          manual: lab.highRisk?.manual ?? false,
+          procedure: lab.procedure,
+        }
+      : null,
     timeZone: DEFAULT_TIME_ZONE,
     menu,
     reasons,
@@ -362,7 +478,11 @@ export async function loadEncounterOrders(
 }
 
 /** The label for one specimen of this encounter (two identifiers, test, container, time). A
- *  restricted test's name is printed only when `include` holds the specimen id. */
+ *  restricted test's name is printed only when `include` holds the specimen id.
+ *
+ *  Lab Phase 2 (§5.4, ID-1): with the label check on, the id may be an ORDER of this encounter not
+ *  yet collected: its live label (issued at placement) prints before collection. With the high-risk
+ *  warning on, a flagged encounter's label carries the HIGH-RISK SPECIMEN box (HR-3). */
 export async function loadSpecimenLabel(
   actor: EmrActor,
   encounterId: string,
@@ -371,18 +491,24 @@ export async function loadSpecimenLabel(
 ): Promise<{ data: LabelData; restricted: { id: string; label: string } | null } | null> {
   const head = await identityHead(actor, encounterId, opts.database);
   if (!head) return null;
+  const checkOn = labCollectionCheckLiveFor(actor.hospitalId);
+  const riskOn = labHighRiskLiveFor(actor.hospitalId);
+  const order = {
+    orderId: encounterOrders.id,
+    test: encounterOrders.text,
+    sensitivity: encounterOrders.sensitivity,
+    requisitionNo: encounterOrders.requisitionNo,
+    priority: encounterOrders.priority,
+  };
   const row = await asClinicalReader(
     { userId: actor.userId, hospitalId: actor.hospitalId },
     async (tx) => {
       const [r] = await tx
         .select({
+          ...order,
           container: specimens.container,
           collectedAt: specimens.collectedAt,
           labelNo: specimens.labelNo,
-          test: encounterOrders.text,
-          sensitivity: encounterOrders.sensitivity,
-          requisitionNo: encounterOrders.requisitionNo,
-          priority: encounterOrders.priority,
         })
         .from(specimens)
         .innerJoin(encounterOrders, eq(encounterOrders.id, specimens.orderId))
@@ -394,11 +520,45 @@ export async function loadSpecimenLabel(
           ),
         )
         .limit(1);
-      return r ?? null;
+      if (r) return r;
+      if (!checkOn) return null;
+      const [o] = await tx
+        .select({ ...order, container: testCatalogue.container })
+        .from(encounterOrders)
+        .leftJoin(testCatalogue, eq(testCatalogue.id, encounterOrders.testId))
+        .where(
+          and(
+            eq(encounterOrders.id, specimenId),
+            eq(encounterOrders.encounterId, encounterId),
+            eq(encounterOrders.kind, "lab"),
+          ),
+        )
+        .limit(1);
+      return o ? { ...o, collectedAt: null, labelNo: null } : null;
     },
     opts.database,
   );
   if (!row) return null;
+  // Labels and the high-risk events are read as the collection list reads them (labCollectionFacts).
+  const conn = opts.database ?? ((await import("@/db")).db as unknown as EmrDb);
+  const lab =
+    checkOn || riskOn
+      ? await conn.transaction(async (tx) => {
+          const [l] =
+            checkOn && !row.labelNo
+              ? await tx
+                  .select({ labelNo: labLabels.labelNo })
+                  .from(labLabels)
+                  .where(and(eq(labLabels.orderId, row.orderId), isNull(labLabels.voidedAt)))
+                  .limit(1)
+              : [];
+          const risk = riskOn ? (await highRiskFor(tx, [encounterId])).has(encounterId) : false;
+          return { labelNo: l?.labelNo ?? null, highRisk: risk };
+        })
+      : { labelNo: null, highRisk: false };
+  const labelNo = row.labelNo ?? lab.labelNo;
+  // An order is printable before collection only through its live label.
+  if (!row.collectedAt && !labelNo) return null;
   await logRead(actor, head.patientUserId, head.basis, "emr_specimen_label", opts.database);
   const f = formatters(DEFAULT_TIME_ZONE);
   const restricted = row.sensitivity === "restricted";
@@ -408,11 +568,139 @@ export async function loadSpecimenLabel(
       dob: head.dob ? f.date(`${head.dob}T12:00:00Z`) : null,
       test: labelTestWords(row.test, restricted, !!opts.include?.has(specimenId)),
       container: containerWords(row.container),
-      collectedAt: f.dateTime(row.collectedAt.toISOString()),
+      collectedAt: row.collectedAt
+        ? f.dateTime(row.collectedAt.toISOString())
+        : "Not yet collected",
       requisitionNo: row.requisitionNo,
       priority: row.priority ? (PRIORITY_WORD[row.priority] ?? row.priority) : null,
-      labelNo: row.labelNo,
+      labelNo,
+      highRisk: lab.highRisk,
     },
     restricted: restricted ? { id: specimenId, label: row.test } : null,
   };
+}
+
+/** Lab Phase 2 (§5.2, ID-*, PY-*, HR-*): what the collector needs per lab order, read once per encounter. */
+async function labCollectionFacts(
+  conn: EmrDb,
+  hospitalId: string,
+  encounterId: string,
+  orderIds: string[],
+  on: { checkOn: boolean; payOn: boolean; riskOn: boolean },
+) {
+  const none = {
+    labels: new Map<string, string>(),
+    payments: new Map<string, { state: string; receipt: string | null }>(),
+    mode: "off",
+    highRisk: null as { manual: boolean; reason: string | null } | null,
+    procedure: null as string | null,
+  };
+  if (!orderIds.length || !(on.checkOn || on.payOn || on.riskOn)) return none;
+  return conn.transaction(async (tx) => {
+    const labels = on.checkOn
+      ? new Map(
+          (
+            await tx
+              .select({ orderId: labLabels.orderId, labelNo: labLabels.labelNo })
+              .from(labLabels)
+              .where(and(inArray(labLabels.orderId, orderIds), isNull(labLabels.voidedAt)))
+          ).map((l) => [l.orderId, l.labelNo]),
+        )
+      : none.labels;
+    const payments = on.payOn ? await paymentsWithReceipt(tx, orderIds) : none.payments;
+    const mode = on.payOn ? await paymentModeAt(tx, hospitalId) : "off";
+    const risk = on.riskOn ? (await highRiskFor(tx, [encounterId])).get(encounterId) : undefined;
+    const [s] = on.riskOn
+      ? await tx
+          .select({ p: labSettings.highRiskProcedure })
+          .from(labSettings)
+          .where(eq(labSettings.hospitalId, hospitalId))
+      : [];
+    return {
+      labels,
+      payments,
+      mode,
+      highRisk: risk ? { manual: risk.source === "manual", reason: risk.reason } : null,
+      procedure: s?.p ?? null,
+    };
+  });
+}
+
+/** PY-*: each order's payment state now, and the receipt when it is paid (the "Paid · R-…" chip). */
+async function paymentsWithReceipt(
+  tx: Pick<EmrTx, "select">,
+  orderIds: string[],
+): Promise<Map<string, { state: string; receipt: string | null }>> {
+  const rows = orderIds.length
+    ? await tx
+        .select({
+          orderId: labPaymentEvents.orderId,
+          state: labPaymentEvents.state,
+          receiptNo: labPaymentEvents.receiptNo,
+          recordedAt: labPaymentEvents.recordedAt,
+        })
+        .from(labPaymentEvents)
+        .where(inArray(labPaymentEvents.orderId, orderIds))
+    : [];
+  return new Map(
+    orderIds.map((id) => {
+      const mine = rows
+        .filter((r) => r.orderId === id)
+        .sort((a, b) => b.recordedAt.getTime() - a.recordedAt.getTime());
+      const state = currentPayment(mine);
+      return [id, { state, receipt: state === "paid" ? (mine[0]?.receiptNo ?? null) : null }];
+    }),
+  );
+}
+
+/**
+ * Lab Phase 2 (§5.4): what the request form adds, per flag: each test's clinical question (the order's
+ * reason text), its payment state in words, the label check line, and the encounter's high-risk warning.
+ * The caller has already passed the chart's access rule for this encounter.
+ */
+export async function loadLabRequestFacts(
+  hospitalId: string,
+  encounterId: string,
+  orderIds: string[],
+  opts: { database?: EmrDb } = {},
+): Promise<{
+  questions: Record<string, string>;
+  payments: Record<string, string> | null;
+  checkOn: boolean;
+  highRisk: { manual: boolean } | null;
+}> {
+  const checkOn = labCollectionCheckLiveFor(hospitalId);
+  const payOn = labPaymentLiveFor(hospitalId);
+  const riskOn = labHighRiskLiveFor(hospitalId);
+  const conn = opts.database ?? ((await import("@/db")).db as unknown as EmrDb);
+  return conn.transaction(async (tx) => {
+    const reasons = orderIds.length
+      ? await tx
+          .select({ id: encounterOrders.id, text: encounterOrders.reasonTextCiphertext })
+          .from(encounterOrders)
+          .where(
+            and(
+              inArray(encounterOrders.id, orderIds),
+              eq(encounterOrders.encounterId, encounterId),
+            ),
+          )
+      : [];
+    const pay = payOn && orderIds.length ? await paymentsWithReceipt(tx, orderIds) : null;
+    const risk = riskOn ? (await highRiskFor(tx, [encounterId])).get(encounterId) : undefined;
+    return {
+      questions: Object.fromEntries(
+        reasons.flatMap((r) => (r.text ? [[r.id, decrypt(r.text)] as const] : [])),
+      ),
+      payments: pay
+        ? Object.fromEntries(
+            [...pay].map(([id, p]) => [
+              id,
+              paymentWords(p.state, p.receipt) ?? "Payment not required",
+            ]),
+          )
+        : null,
+      checkOn,
+      highRisk: risk ? { manual: risk.source === "manual" } : null,
+    };
+  });
 }

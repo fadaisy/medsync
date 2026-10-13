@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Measure } from "./catalogue";
 import type { Flag } from "./flags";
+import type { Interpretation, PregnancyContext } from "./interpretation";
+import type { Profile } from "./profiles";
 import type { RangeVersion, Sex } from "./ranges";
 import type { EmrTx } from "@/lib/emr/db";
 import type { WriteCtx } from "@/lib/emr/write/context";
@@ -12,6 +14,7 @@ import { CRITICALS_COPY } from "@/content/lab-criticals";
 import {
   labComponentMeasures,
   labResultSnapshots,
+  labSettings,
   referenceRangeBands,
   referenceRangeVersions,
 } from "@/db/schema/lab-safety";
@@ -19,8 +22,12 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { entryCheck, parseResultInput } from "./catalogue";
+import { loadConfigs, pregnancyAt } from "./catalogue-v2";
+import { egfrFor } from "./egfr";
 import { changeFlag, computeFlag } from "./flags";
+import { resolveInterpretation } from "./interpretation";
 import { ageDaysAt, resolveRange } from "./ranges";
+import { inForce } from "./signed-config";
 
 /**
  * Fixed units, signed ranges and snapshots on the result write (Lab Phase 1 Step 5, §6.1–§6.3; ADRs
@@ -52,6 +59,8 @@ export const toMeasure = (m: MeasureRow): Measure => ({
   loincCode: m.loincCode,
   entryCheckLow: m.entryCheckLow,
   entryCheckHigh: m.entryCheckHigh,
+  methodCode: m.methodCode,
+  idmsTraceable: m.idmsTraceable,
 });
 
 /** The current version of each component's measurement at this hospital (UN-4: the newest). */
@@ -111,6 +120,8 @@ export async function rangeVersions(
         ageToDays: b.ageToDays,
         low: b.low,
         high: b.high,
+        methodCode: b.methodCode,
+        rejected: b.rejectedReason !== null,
       })),
   }));
 }
@@ -137,6 +148,9 @@ interface Pending {
   flagFinal: Flag | null;
   reason: string | null;
   confirmedEntryCheck: boolean;
+  /** Lab Phase 2: what flagged it, kept on the snapshot (DS-9). */
+  interpretation: (Interpretation & Record<string, unknown>) | Record<string, unknown> | null;
+  labOnly: boolean;
 }
 
 export interface FixedUnits {
@@ -164,6 +178,14 @@ export async function prepareFixedUnits(
     testId: string | null;
     values: readonly ResultValueInput[];
     collectedAt: Date;
+    /** Lab Phase 2: the v2 catalogue's components, pinned profile and lab-only rows, and the status. */
+    v2?: {
+      components: string[];
+      profile: Profile | null;
+      labOnly: Set<string>;
+      status: string;
+      method?: "lab" | "bedside";
+    } | null;
   },
 ): Promise<FixedUnits | null> {
   const { tx, actor, now } = ctx;
@@ -174,11 +196,22 @@ export async function prepareFixedUnits(
   const pending = new Map<string, Pending>();
   const values: ResultValueInput[] = [];
 
-  for (const v of spec.values) {
+  // Lab Phase 2 (labCatalogueV2 with the signed addendum): what flags each value, the profile and method in
+  // force, lab-only rows, and the calculated eGFR (DS-*, AP-6, ME-1, EG-*). Absent: Phase 1 exactly.
+  const v2 = spec.v2 ?? null;
+  const configs = v2 ? await loadConfigs(tx, actor.hospitalId) : [];
+  const schemeBasis = (c: string) =>
+    inForce(configs, "flag_basis", c, spec.collectedAt)?.payload.basis === "scheme";
+  const pregnancy: PregnancyContext = spec.values.some((v) => schemeBasis(v.conceptId))
+    ? await pregnancyAt(tx, spec.patientUserId, spec.collectedAt)
+    : { state: "not_recorded" };
+
+  const process = (v: ResultValueInput, extra: Record<string, unknown> | null = null) => {
     const def = conceptDef(v.conceptId);
-    if (!def || def.valueType !== "quantity") {
+    // PC-6: a meter's HI or LO is an answer, not a number: no unit check, no range, no flag.
+    if (!def || def.valueType !== "quantity" || (v.code && !v.value)) {
       values.push(v);
-      continue;
+      return;
     }
     const m = measures.get(v.conceptId);
     if (!m || m.resultType !== "number" || !m.unitUcum || !m.unitDisplay)
@@ -199,7 +232,7 @@ export async function prepareFixedUnits(
     const resolved = resolveRange(
       {
         measure: {
-          testId: spec.testId,
+          testId: spec.testId!,
           conceptId: v.conceptId,
           resultType: "number",
           unitUcum: m.unitUcum,
@@ -208,6 +241,7 @@ export async function prepareFixedUnits(
         sex,
         ageDaysAtCollection: ageDays,
         at: spec.collectedAt,
+        methodCode: m.methodCode, // ME-2
       },
       versions,
     );
@@ -231,10 +265,27 @@ export async function prepareFixedUnits(
     } else {
       state = resolved.reason === "not_numeric" ? "no_signed_range" : resolved.reason;
     }
-    const computed = computeFlag(
-      parsed.value,
-      low === null && high === null ? null : { low, high },
-    );
+    const interpretation = v2
+      ? resolveInterpretation({
+          conceptId: v.conceptId,
+          unitUcum: m.unitUcum,
+          value: parsed.value,
+          sex,
+          ageDaysAtCollection: ageDays,
+          pregnancy,
+          method: v2.method ?? "lab", // Law 7: a scheme applies to bedside only if it names it
+          at: spec.collectedAt,
+          reference: resolved,
+          configs,
+        })
+      : null;
+    // CD-01: on a scheme basis the category drives the flag (its direction, or in range); otherwise Phase 1.
+    const computed =
+      interpretation?.basis === "scheme"
+        ? interpretation.category?.abnormal
+          ? interpretation.category.direction
+          : "normal"
+        : computeFlag(parsed.value, low === null && high === null ? null : { low, high });
     let final = computed;
     let reason: string | null = null;
     if (v.flagChange) {
@@ -264,6 +315,8 @@ export async function prepareFixedUnits(
       flagFinal: final,
       reason,
       confirmedEntryCheck: check === "outside",
+      interpretation: interpretation ? { ...interpretation, ...extra } : null,
+      labOnly: v2?.labOnly.has(v.conceptId) ?? false,
     });
     values.push({
       ...v,
@@ -281,6 +334,53 @@ export async function prepareFixedUnits(
             },
       labInterpretation: final ? FLAG_TO_LAB[final] : undefined,
     });
+  };
+  for (const v of spec.values) process(v);
+
+  // EG-1..EG-4: eGFR is calculated from the creatinine in this version, never typed; an amended creatinine
+  // is a new version, so the eGFR is recalculated with it. When a condition fails, the creatinine's
+  // snapshot says which (EG-2).
+  const creat = pending.get("obs.creatinine");
+  if (
+    v2 &&
+    creat &&
+    v2.components.includes("obs.egfr") &&
+    !spec.values.some((v) => v.conceptId === "obs.egfr")
+  ) {
+    const [settings] = await tx
+      .select({ reportEgfr: labSettings.reportEgfr })
+      .from(labSettings)
+      .where(eq(labSettings.hospitalId, actor.hospitalId));
+    const e = egfrFor({
+      creatinine: creat.valueText,
+      unitUcum: creat.measure.unitUcum!,
+      // Calculated with the creatinine it comes from and released with it: a preliminary creatinine
+      // carries a preliminary eGFR, and release carries both forward unchanged (EG-1, EG-4).
+      released: true,
+      ageYears: ageDays === null ? null : Math.floor(ageDays / 365.25),
+      sex,
+      idmsTraceable: creat.measure.idmsTraceable,
+      reportEgfr: settings?.reportEgfr ?? false,
+      configs,
+      at: spec.collectedAt,
+    });
+    const egfrMeasure = measures.get("obs.egfr");
+    if (e.ok && egfrMeasure?.unitUcum)
+      process(
+        { conceptId: "obs.egfr", value: e.value },
+        {
+          calculatedFrom: {
+            creatinine: creat.valueText,
+            unit: creat.measure.unitUcum,
+            refVersion: e.refVersion,
+          },
+        },
+      );
+    else
+      creat.interpretation = {
+        ...(creat.interpretation ?? {}),
+        egfr: e.ok ? "no_unit_for_egfr" : e.reason,
+      } as Pending["interpretation"];
   }
 
   const entered = new Set(pending.keys());
@@ -328,6 +428,10 @@ export async function prepareFixedUnits(
             flagChangedBy: p.reason ? actor.userId : null,
             entryCheckConfirmedBy: p.confirmedEntryCheck ? actor.userId : null,
             createdAt: now,
+            interpretation: p.interpretation,
+            profileId: spec.v2?.profile?.id ?? null,
+            methodCode: p.measure.methodCode,
+            labOnly: p.labOnly,
           });
           continue;
         }

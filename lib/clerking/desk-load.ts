@@ -20,6 +20,7 @@ import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
 import { loadFactSnapshot } from "@/lib/facts/loader";
+import { labHighRiskLiveFor } from "@/lib/lab/feature";
 import { PACK_RESULT_CONCEPTS } from "@/lib/ncd/pack/from-clerking";
 import { RESULT_CONCEPTS } from "./exam/context";
 import { EXAM_CATALOGUE, EXAM_SIGNOFF } from "./exam/load";
@@ -398,6 +399,7 @@ export async function clerkingData(i: {
     },
     chartable: CHARTABLE,
     outbreakMode,
+    labHighRisk: labHighRiskLiveFor(i.scope.hospitalId),
     canSeeRestricted: true, // the treating clinician, with an access basis (the desk's gate)
     dx: {
       catalogueUrl: `/api/clerking/dx-catalogue?v=${DX_SIGNOFF.catalogueSha256.slice(0, 16)}`,

@@ -136,5 +136,6 @@ export * from "./ncd-registry";
 export * from "./pharmacy";
 // ─── Lab Phase 1, the safety floor (migrations 0102–0105 — GATED, ADRs 0239–0250)
 export * from "./lab-safety";
-// ─── Pharmacy Phase 1: dispensing with stock (migrations 0122–0130 — GATED, ADRs 0260–0279)
+export * from "./lab-catalogue";
+// ─── Pharmacy Phase 1: dispensing with stock (migrations 0122–0135 — GATED, ADRs 0260–0279)
 export * from "./pharmacy-dispensing";

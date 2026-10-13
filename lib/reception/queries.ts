@@ -6,6 +6,7 @@ import { and, asc, count, desc, eq, gte, ilike, inArray, lt, sql } from "drizzle
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
+import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
@@ -16,6 +17,7 @@ import { appointments, encounters, queueEntries } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { computeAgeYears } from "@/lib/age";
 import { signedAvatarUrl } from "@/lib/avatars";
+import { asClinicalWriter } from "@/lib/emr/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { decrypt } from "@/lib/encryption";
 import { declaredLast, presenceAt, presenceOf, ts } from "@/lib/intake/queries";
@@ -1518,4 +1520,80 @@ export async function findPatientsByPhone(args: {
     patientUserIds: hits.map((h) => h.patientUserId),
   });
   return audited ? hits : [];
+}
+
+/* ─── Lab payments (Lab Phase 2 §5.3, PY-5) ─────────────────────── */
+
+export interface LabAwaitingPaymentRow {
+  encounterId: string;
+  patientName: string | null;
+  patientCode: string | null;
+  orderedAtIso: string;
+  orderIds: string[];
+  /** Unrestricted test names only; restricted ones are a count (PY-5, enforced in SQL). */
+  tests: string[];
+  restrictedCount: number;
+}
+
+/**
+ * Lab orders awaiting payment at the caller's hospital. `lab_awaiting_payment` (0109) answers only a
+ * RECEPTION caller (auth.uid(), set by asClinicalWriter), never lists an emergency and never names a
+ * restricted test. The names go through the same audited, fail-closed reveal as the board.
+ */
+export async function fetchLabAwaitingPayment(args: {
+  hospitalId: string;
+  receptionUserId: string;
+}): Promise<LabAwaitingPaymentRow[]> {
+  const raw = (await asClinicalWriter(
+    { userId: args.receptionUserId, hospitalId: args.hospitalId },
+    (tx) => tx.execute(sql`SELECT * FROM public.lab_awaiting_payment(${args.hospitalId})`),
+  )) as unknown as { rows?: Record<string, unknown>[] } | Record<string, unknown>[];
+  const rows = Array.isArray(raw) ? raw : (raw.rows ?? []);
+  if (!rows.length) return [];
+  const patientIds = [...new Set(rows.map((r) => String(r.patient_user_id)))];
+  const profiles = await db
+    .select({
+      id: patientProfiles.id,
+      patientCode: patientProfiles.patientCode,
+      first: patientProfiles.firstNameEncrypted,
+      surname: patientProfiles.surnameEncrypted,
+    })
+    .from(patientProfiles)
+    .where(inArray(patientProfiles.id, patientIds));
+  const audited = await auditNameReveals({
+    hospitalId: args.hospitalId,
+    receptionUserId: args.receptionUserId,
+    surface: "reception_lab_payments",
+    patientUserIds: patientIds,
+  });
+  const byId = new Map(profiles.map((p) => [p.id, p]));
+  return rows
+    .map((r) => {
+      const p = byId.get(String(r.patient_user_id));
+      return {
+        encounterId: String(r.encounter_id),
+        patientName: audited && p ? decryptName(p.first, p.surname) : null,
+        patientCode: p?.patientCode ?? null,
+        orderedAtIso: new Date(r.ordered_at as string | Date).toISOString(),
+        orderIds: (r.order_ids as string[]) ?? [],
+        tests: (r.tests as string[] | null) ?? [],
+        restrictedCount: Number(r.restricted_count ?? 0),
+      };
+    })
+    .sort((a, b) => a.orderedAtIso.localeCompare(b.orderedAtIso));
+}
+
+/** The hospital's active staff, by name: who can approve a waiver (§5.3). */
+export async function fetchHospitalStaffNames(hospitalId: string) {
+  const rows = await db
+    .selectDistinct({ id: users.id, name: users.fullName })
+    .from(staffAffiliations)
+    .innerJoin(users, eq(users.id, staffAffiliations.userId))
+    .where(
+      and(
+        eq(staffAffiliations.hospitalId, hospitalId),
+        inArray(staffAffiliations.state, ["active", "approved"]),
+      ),
+    );
+  return rows.sort((a, b) => a.name.localeCompare(b.name));
 }

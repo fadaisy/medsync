@@ -1,5 +1,7 @@
 import type { PatientIdentity } from "./model";
 
+import { LAB2 } from "@/content/lab-phase-2";
+
 /**
  * The specimen label (gate-a E.8): two identifiers, age and sex, the test, the container and the
  * collection time, the requisition and priority. Print CSS only, sized for a small label roll;
@@ -11,11 +13,13 @@ export interface LabelData {
   dob: string | null;
   test: string;
   container: string | null;
-  /** "12 Mar 2026 10:44" in the hospital's zone. */
+  /** "12 Mar 2026 10:44" in the hospital's zone; "Not yet collected" for an order's label (Lab Phase 2). */
   collectedAt: string;
   requisitionNo: string | null;
   priority: string | null;
   labelNo: string | null;
+  /** Lab Phase 2 (HR-3): the encounter carries the high-risk warning: the black HIGH-RISK box. */
+  highRisk?: boolean;
 }
 
 export const LABEL_CSS = `@media print {
@@ -41,6 +45,12 @@ export function SpecimenLabel({ data }: { data: LabelData }) {
       data-label-root
       className="text-caption flex w-[240px] flex-col gap-0.5 rounded-sm border border-gray-300 bg-white p-2 font-mono leading-tight text-black tabular-nums"
     >
+      {data.highRisk ? (
+        <p className="text-body-s border-2 border-black px-1 text-center font-bold tracking-wide">
+          {LAB2.highRisk.labelBox}
+        </p>
+      ) : null}
+      {data.labelNo ? <p className="text-body-l font-bold tracking-wider">{data.labelNo}</p> : null}
       <p className="flex flex-wrap justify-between gap-x-2 font-medium">
         <span>{labelName(data.identity.name)}</span>
         <span>{data.identity.mrn}</span>
@@ -58,7 +68,6 @@ export function SpecimenLabel({ data }: { data: LabelData }) {
       <p className="flex flex-wrap gap-x-2">
         {data.requisitionNo ? <span>Req {data.requisitionNo}</span> : null}
         {data.priority ? <span>{data.priority}</span> : null}
-        {data.labelNo ? <span>Label {data.labelNo}</span> : null}
       </p>
     </div>
   );

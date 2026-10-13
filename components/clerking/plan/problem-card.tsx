@@ -248,7 +248,9 @@ function TestRow({
     );
   } else if (!t.testId) {
     state = (
-      <span className="text-caption text-muted-foreground">Not on this hospital&apos;s menu</span>
+      <span className="text-caption text-muted-foreground">
+        {t.today ?? "Not on this hospital\u2019s menu"}
+      </span>
     );
   } else {
     state = (
@@ -266,6 +268,7 @@ function TestRow({
           }
           onFrequency={(frequency) => onPending({ ...pending, frequency })}
         />
+        {t.today ? <span className="text-caption text-muted-foreground">{t.today}</span> : null}
         <Button size="sm" className="self-start" disabled={!canWrite} onClick={add}>
           <PlusIcon aria-hidden />
           Add

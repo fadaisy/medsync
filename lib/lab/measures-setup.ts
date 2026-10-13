@@ -17,6 +17,7 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { toCanonical } from "@/lib/units";
 import { measureChange, measureDraftErrors } from "./catalogue";
+import { componentsFor } from "./catalogue-v2";
 import { rangeSignErrors } from "./ranges";
 import { toMeasure } from "./units";
 
@@ -70,7 +71,18 @@ export async function saveMeasure(
   now: Date,
 ): Promise<{ kind: "same" } | { kind: "new_version"; version: number; id: string }> {
   const [test] = (await labTests(tx, actor.hospitalId)).filter((t) => t.id === input.testId);
-  if (!test || !(test.components ?? []).includes(input.conceptId))
+  // Lab Phase 2: with the v2 catalogue active, the v2 components can be set up too.
+  const components = test
+    ? (
+        await componentsFor(
+          tx,
+          actor.hospitalId,
+          { code: test.code, components: test.components ?? [] },
+          null,
+        )
+      ).components
+    : [];
+  if (!test || !components.includes(input.conceptId))
     throw invalid("That component is not part of a lab test here.");
   const d = input.draft;
   const [units, loinc] = await Promise.all([
@@ -129,6 +141,8 @@ export async function saveMeasure(
       loincCode: d.loincCode,
       entryCheckLow: d.entryCheckLow,
       entryCheckHigh: d.entryCheckHigh,
+      methodCode: d.methodCode ?? null,
+      idmsTraceable: d.idmsTraceable ?? null,
       authoredBy: actor.userId,
       createdAt: now,
     })
@@ -287,11 +301,21 @@ export async function signRangeVersion(
     .where(eq(referenceRangeBands.versionId, v.id));
   const errors = m
     ? rangeSignErrors(
-        { unitUcum: v.unitUcum, bands: bands.map((b) => ({ ...b, sex: b.sex as Sex | "any" })) },
+        {
+          unitUcum: v.unitUcum,
+          bands: bands.map((b) => ({
+            ...b,
+            sex: b.sex as Sex | "any",
+            rejected: b.rejectedReason !== null,
+          })),
+        },
         toMeasure(m),
       )
     : ["unit_mismatch"];
   if (errors.length) throw invalid(bandWords(errors));
+  // RI-5: a researched band whose check is not recorded cannot be sent for sign-off.
+  if (bands.some((b) => b.rejectedReason === null && b.verification && !b.checkedBy))
+    throw invalid("Record the check on every band marked for checking before signing.");
   if (signer.as === "lead") {
     if (v.leadSignedBy)
       throw new EmrWriteError("conflict", "The laboratory lead has already signed.");
