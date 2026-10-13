@@ -748,3 +748,98 @@ scarcity covers `/lab/equipment` and the shared pop-up (no red, no green). Scree
 Step 11 harness pass.
 
 **Next:** Step 6, quality control, the hold, the look-back and nonconformities.
+
+## STOP 6: Quality control, the hold, the look-back and nonconformities, behind `labQc`, then `labQcHold` (13 Oct 2026)
+
+No new migration (0114 as written at Step 2; nothing in it needed changing). **Code.** `lib/lab/qc-store.ts`
+(`qcRowsFor`, `recordQcRun`, `setLabTarget`, `recordKitQc`, the look-back fill and `joinLookBackOnOverride`,
+`decideLookbackItem`, `openNonconformity`, `ncAction`, `authoriseResumption`, `closeNonconformity`),
+`lib/lab/qc-read.ts` (`loadQcPlans`, `loadQcSeries`, `holdFor`, `otherAnalysersFor`, `heldReports`, `loadKits`,
+`loadNcs`, `loadNc`), `lib/lab/qc-actions.ts` (the house contract; signing and closing with a fresh second factor).
+Signed kinds `qc_plan`, `qc_policy` (lead + CSO, countersigned in the existing sign-off console) and `kit_qc_rule`
+(lead alone) in `PAYLOADS` and `KIND_WORDS`. `nc-store.ts` gained `nextNcNumber` and the subject concept.
+
+**The hold (QH-1..QH-6, E-LAB3-08).** `writeReportVersion` (`lib/emr/write/results.ts`) calls `qcGate` for every
+`final` lab version made on an analyser (the pinned profile's `device_id`), so `releaseResults`, `enterResults`
+final, `releaseWithCriticalMark` and downtime are all covered. One query (`qcRowsFor`: plan in force joined to the
+cached `lab_qc_status` row and its run) reads every component; `qcStatusFor` and `qcReleasePlan` decide. Held
+components are written `preliminary` inside the `final` report and listed in `qc_held`; `releaseResults` on such a
+report writes a completion version (`final` after `final`, held components only, no correction alert); an amendment
+refuses a held value. The override (`qcOverride: { reason }` on the release action) needs `lab.qc.override`, marks
+the observation `qcOverride`, snapshots `{status, runId, override: {by, reason}}`, joins the open QC
+nonconformity's look-back and records a `note` event (audited by trigger). Every gated component's status is
+snapshotted on `lab_result_snapshots.qc` (QH-6). The doctor's review shows "{Analyte} to follow: held for quality
+control." for a held value and "Released while QC had failed. …" for an override. Bedside results are not gated
+here (device checks are Step 8).
+
+**Screens.** `/lab/quality` (artboard 1), `/lab/quality/qc` with Analysers and Kits and stains tabs (artboards 2
+and 4), `/lab/quality/qc/run` (artboard 2: the Levey-Jennings chart, this run, the plan card), `/lab/quality/
+nonconformities` and `/[id]` (artboards 3 and 9: actions, the look-back panel, resumption, closure), and the result
+entry page (artboard 3: the QC word per component, the amber hold block with `role="alert"`, "QC not run today",
+"Run on another analyser" for Immediate orders, the override card for holders only, the completion release). Nav:
+Quality today, Quality control, Nonconformities behind `labQc` and `lab.view`. Red scarcity covers
+`app/lab/quality` and the hold actions (no red, no green).
+
+### Scenarios (`tests/emr-db/lab-qc.test.ts`, PGlite lane, 13 tests)
+
+| #        | Result | What the test proves                                                                                                                                                                                                                                                |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S15      | pass   | A two-level run with L1 +2.3, L2 +0.4: decision warning, breaks `[1-2s warning]`, status warning, not held; timed                                                                                                                                                   |
+| S16      | pass   | The next L1 +2.1: 2-2s across runs; refused when the screen expected "warning" and without a first step; recorded rejected, status failed and held, NC `qc_reject` halted, owned by the lead                                                                        |
+| S17      | pass   | +2.1 then −2.2 on L1 across runs: no R-4s (two warnings); +2.1 / −2.2 within one run: R-4s, within_run, rejected                                                                                                                                                    |
+| S18      | pass   | Release of a U&E: potassium preliminary in the final report, `qc_held = [obs.potassium]`, sodium and creatinine final; the doctor sees "Potassium to follow: held for quality control."; completion and amendment refused while held; `enterResults` final held too |
+| S19      | pass   | An Immediate order offers analyser 2 (passed today); a routine order offers none                                                                                                                                                                                    |
+| S20      | pass   | A technologist's override refused (`forbidden`); no reason refused; the lead's completion version releases potassium with the signed line, snapshot `override`, look-back item and `note` event, audit rows                                                         |
+| S21      | pass   | Bias estimate 0.22 (mean z 2.2 × fixture SD 0.1), labelled estimate; 5.1 `flag_might_change` listed before 4.2 `unchanged`; Amend refused before the Phase 1 amendment, then linked to it; decided once                                                             |
+| S22, S23 | pass   | Close refused while halted; resumption refused with no passing run, then with the look-back undecided; a passing run keeps the hold until the lead resumes; close refused without a cause or effectiveness; closed by the lead; frozen                              |
+| S24      | pass   | Maker's targets: status provisional_target; no policy refused; 19 runs over 19 days refused; at 20 over 20 a new plan version 2 (draft, level 1 `lab`, 20 runs; level 2 unchanged); version 1 stays in force                                                        |
+| S25      | pass   | A Determine lot in acceptance is due "new lot" and blocks; both controls as expected accept it; a failed control quarantines the other lot and opens `kit_qc_fail` (not halting); `hmis_iqc` recorded                                                               |
+| S26      | pass   | Giemsa due each day of use; a partial checklist fails; the full signed checklist passes (subject `stain`, the ticked criteria stored); then not due                                                                                                                 |
+| S27      | pass   | Syphilis RDT `new_operator`: due for a second technologist (blocks, required before use) and not for the first; their own pass clears it                                                                                                                            |
+| S28      | pass   | `labQc` on, `labQcHold` off: a rejected creatinine run opens the NC, release is not held, the snapshot records `failed` with the run id, the hold view says not blocked                                                                                             |
+
+Baseline (a) flipped from `it.fails` to `it` and passes; (b) stays for Step 8.
+
+**Timings (PGlite, in process).** `recordQcRun` with rule evaluation, history and the status write: **6 ms**
+(budget p95 < 300 ms, asserted). `qcStatusFor` at release: **one query for all three components, 1.6 ms**; the
+engine over the cached rows **0.056 ms** (budget < 2 ms, asserted). The human timed trial is Step 11's.
+
+**Rule test table:** STOP 3's table stands (QR-1..QR-4 in `tests/lab/phase-3/qc-rules.test.ts`, 28 tests; QH-_,
+QQ-_, LB-_, NC-_, KQ-\* as listed there); S15–S28 add the database proofs above. Screenshots against artboards 1–4
+and 9 are in the Step 11 harness pass.
+
+### Differences from the prompt (and why)
+
+- **`decideQcRun` is part of `recordQcRun`** (GATE A P5): the screen previews the decision with the pure engine; the
+  server evaluates again and refuses a different answer (`expect`), so the person confirms what the chart decided.
+- **`signQcPlan` / `signKitQcRule`** are one `signQcConfigAction` (lead, fresh factor); the CSO countersigns QC
+  plans and the policy in the existing sign-off console (`loadConfigsWaitingForCso`).
+- **`overrideQcHold`** is the release action itself (`qcOverride` on `releaseResults`), checked in the one release
+  path, so no second write path can skip the hold.
+- **QH-5 "Run on another analyser"** names the analysers that passed today in the hold block; moving the specimen
+  to that analyser's profile is not built (no re-pinning action exists).
+- **LB-3 "Repeat when QC passes"** is recorded as the decision; no worklist task is created (no task store on the
+  lab worklist). **Amend** is the Phase 1 path (the result page's Amend, whose action sends CA-10 correction
+  alerts); the look-back records it once the amended version exists.
+- **Look-back window time** for a downtime result is its entry time, not the paper form's result time
+  (`ponytail:` comment); critical limits for `critical_nearby` are every signed age band for the component.
+- **`per_n_samples`** counts as in window (samples since the run are not counted yet), as STOP 3's engine note.
+- **Closing a halted nonconformity** first needs resumption (§5.4's state diagram: halted → open → closed).
+- **The QC column** is a word with its icon under each analyte's name (the entry grid keeps its five columns).
+
+### Names Step 7+ must know
+
+`qcRowsFor`, `recordQcRun`, `openQcNc`, `joinLookBackOnOverride`, `passingRunAfterReject` (qc-store);
+`holdFor`, `blocks`, `loadKits`, `loadNc` (qc-read); `qcGate` and `VersionSpec.qcOverride` (results.ts);
+`FixedUnits.snapshot(rows, reportId, qc?)`; `ReviewValue.labNote` carries the to-follow and override lines;
+`ResultEntryData.report.qcHeld`; `EntryComponent.qc`; `app/lab/quality/_lib/{copy,status,scope}.ts`,
+`_components/{qc-chip,qc-forms,nc-forms,lj-chart}.tsx`. EQA's unacceptable result (EA-4) opens through
+`openAutomaticNc` and can fill `lab_lookback_items` like `fillLookBack` (no bias unless the provider gives one).
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings in `scripts/embed-bench.mjs`); the full suite on the
+PGlite lane (`vitest run`): **461 files passed, 23 skipped; 10,339 passed, 5 expected failures, 248 skipped**, 0
+failed. With all Phase 3 flags off the gate is never entered (`labQcLiveFor` false) and Phase 2's tests are green.
+
+**Next:** Step 7, external quality assessment behind `labEqa`.
