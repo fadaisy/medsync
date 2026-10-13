@@ -27,6 +27,21 @@ export async function labLeadOf(tx: EmrTx, hospitalId: string): Promise<string |
   return h?.userId ?? null;
 }
 
+/** NC-2: the next `NC-{year}-{n}` here (hospital-local year). */
+export async function nextNcNumber(tx: EmrTx, hospitalId: string, now: Date) {
+  const year = Number(dayOf(now, DEFAULT_TIME_ZONE).slice(0, 4));
+  const [{ n }] = (await tx
+    .select({ n: count() })
+    .from(labNonconformities)
+    .where(
+      and(
+        eq(labNonconformities.hospitalId, hospitalId),
+        like(labNonconformities.number, `NC-${year}-%`),
+      ),
+    )) as [{ n: number }];
+  return ncNumber(year, Number(n) + 1);
+}
+
 /**
  * NC-1, NC-2: a nonconformity MedSync opens by itself (owner the lead, opened by MedSync), numbered
  * NC-{year}-{n} per hospital, with the lead notified in the app (a `notified` event). A lab with no lead
@@ -39,6 +54,8 @@ export async function openAutomaticNc(
     source: NcSource;
     sourceRef: string | null;
     deviceId: string | null;
+    /** The component a QC reject holds (lab_nonconformities.subject_concept_id). */
+    conceptId?: string | null;
     title: string;
     whatHappened: string;
   },
@@ -46,17 +63,7 @@ export async function openAutomaticNc(
 ): Promise<{ id: string; number: string }> {
   const lead = await labLeadOf(tx, hospitalId);
   const o = openAutomatic(input.source, lead ?? "");
-  const year = Number(dayOf(now, DEFAULT_TIME_ZONE).slice(0, 4));
-  const [{ n }] = (await tx
-    .select({ n: count() })
-    .from(labNonconformities)
-    .where(
-      and(
-        eq(labNonconformities.hospitalId, hospitalId),
-        like(labNonconformities.number, `NC-${year}-%`),
-      ),
-    )) as [{ n: number }];
-  const number = ncNumber(year, Number(n) + 1);
+  const number = await nextNcNumber(tx, hospitalId, now);
   const [nc] = await tx
     .insert(labNonconformities)
     .values({
@@ -65,6 +72,7 @@ export async function openAutomaticNc(
       source: o.source,
       sourceRef: input.sourceRef,
       subjectDeviceId: input.deviceId,
+      subjectConceptId: input.conceptId ?? null,
       title: input.title,
       whatHappened: input.whatHappened,
       testingHalted: o.testingHalted,

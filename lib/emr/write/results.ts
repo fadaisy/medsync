@@ -9,6 +9,7 @@ import type { DateOfBirth } from "@/lib/facts/project/shared";
 import type { FactConcept } from "@/lib/facts/types";
 import { and, eq, inArray } from "drizzle-orm";
 
+import { fill, LAB3 } from "@/content/lab-phase-3";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import {
   criticalResultCommunications,
@@ -33,9 +34,13 @@ import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/sh
 import { METER_RANGE, withHivOutcome } from "@/lib/lab/bedside";
 import { componentsFor, loadConfigs } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { labQcHoldLiveFor, labQcLiveFor } from "@/lib/lab/feature";
+import { qcReleasePlan, qcStatusFor } from "@/lib/lab/qc";
+import { analyteName, joinLookBackOnOverride, qcRowsFor } from "@/lib/lab/qc-store";
 import { inForce } from "@/lib/lab/signed-config";
 import { prepareFixedUnits } from "@/lib/lab/units";
 import { mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
+import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { EmrWriteError, stampActivity } from "./context";
 import {
   isHospitalStaff,
@@ -172,6 +177,95 @@ interface VersionSpec {
   bedside?: { deviceId: string; lotId: string } | null;
   /** Lab Phase 3 (LU-3): a back-entered result's time on the form (lots in use are read at it). */
   resultedAt?: Date | null;
+  /** Lab Phase 3 (QH-4): release past a QC hold, by a holder of lab.qc.override, with the reason. */
+  qcOverride?: { reason: string } | null;
+}
+
+/** Lab Phase 3: what the QC gate decided for one release. */
+interface QcGate {
+  deviceId: string;
+  /** "{Analyte} to follow: held for quality control": preliminary inside the final report (E-LAB3-08). */
+  held: Set<string>;
+  /** Released past the hold (QH-4): the signed line to the doctor, and the look-back. */
+  overridden: Set<string>;
+  /** QH-6: the status at release, per component (Law 4). */
+  snapshot: Map<string, Record<string, unknown>>;
+}
+
+/**
+ * Lab Phase 3 (Law 5; QH-1..QH-6, E-LAB3-08): the QC gate on a lab release made on an analyser. Every release
+ * (releaseResults, enterResults final, releaseWithCriticalMark, downtime) passes here. One query reads each
+ * component's plan and cached status row; the pure engine decides. With labQcHold on, a failed or held
+ * component (or one not run in the window, where its plan says hold) is held for quality control: it stays
+ * preliminary inside the final report and is listed in qc_held, released later by a completion version. With
+ * labQcHold off nothing is held and the status is recorded. Bedside devices are Step 8's (device checks).
+ */
+async function qcGate(
+  ctx: WriteCtx,
+  spec: VersionSpec,
+  deviceId: string | null,
+  concepts: readonly string[],
+): Promise<QcGate | null> {
+  const { tx, actor, now } = ctx;
+  if (spec.status !== "final" || spec.order.kind !== "lab" || spec.bedside || !deviceId)
+    return null;
+  if (!labQcLiveFor(actor.hospitalId)) return null;
+  // A completion version (final after final) gates only the components still held.
+  const completing = spec.prior?.status === "final";
+  const list = completing
+    ? (spec.prior?.qcHeld ?? [])
+    : [...new Set(concepts)].filter((c) => c && c !== UNCATALOGUED);
+  const components = (await qcRowsFor(tx, actor.hospitalId, deviceId, list, now)).map((r) => {
+    const s = qcStatusFor({
+      plan: r.plan,
+      latestRun: r.latestRun,
+      at: now,
+      timeZone: DEFAULT_TIME_ZONE,
+    });
+    return {
+      conceptId: r.conceptId,
+      status: s.status,
+      runId: s.runId,
+      held: r.held,
+      holdWhenNotRun: r.plan?.holdWhenNotRun ?? false,
+    };
+  });
+  const o = spec.qcOverride;
+  const plan = qcReleasePlan({
+    holdOn: labQcHoldLiveFor(actor.hospitalId),
+    components,
+    ...(o
+      ? {
+          override: {
+            by: actor.userId,
+            permitted: !!actor.labPermissions?.includes("lab.qc.override"),
+            reason: o.reason,
+          },
+        }
+      : {}),
+  });
+  if (!plan.ok)
+    throw plan.error === "override_not_permitted"
+      ? new EmrWriteError("forbidden", "Only a holder of the QC override releases past a QC hold.")
+      : invalid("Say why the result is released while QC has failed.");
+  if (completing && list.length > 0 && plan.held.length === list.length)
+    throw new EmrWriteError(
+      "conflict",
+      "Still held for quality control: rerun QC after the corrective action, or release it anyway with a reason.",
+    );
+  const snapshot = new Map<string, Record<string, unknown>>(
+    plan.release.map((r) => [r.conceptId, { ...r.qc }]),
+  );
+  for (const c of plan.held) {
+    const x = components.find((y) => y.conceptId === c)!;
+    snapshot.set(c, { status: x.status, runId: x.runId, held: true });
+  }
+  return {
+    deviceId,
+    held: new Set(plan.held),
+    overridden: new Set(plan.release.filter((r) => r.lookBack).map((r) => r.conceptId)),
+    snapshot,
+  };
 }
 
 function valueColumns(
@@ -273,7 +367,7 @@ function labContext(v: ResultValueInput, specimen: SpecimenRow | null): Record<s
 async function writeReportVersion(
   ctx: WriteCtx,
   spec: VersionSpec,
-): Promise<{ id: string; critical: boolean }> {
+): Promise<{ id: string; critical: boolean; toFollow: string[] }> {
   const { tx, actor, now } = ctx;
   const { order, prior, specimen, entry, status } = spec;
   const kind = order.kind;
@@ -324,6 +418,20 @@ async function writeReportVersion(
   // report_id) leaves its superseded version here too, and carrying both forward would collide.
   const superseded = new Set(priorRows.map((o) => o.supersedesId));
   const priorObs = priorRows.filter((o) => !superseded.has(o.id));
+  const gate = await qcGate(ctx, spec, v2?.profile?.deviceId ?? null, [
+    ...values.map((v) => v.conceptId),
+    ...priorObs.map((o) => o.conceptId ?? ""),
+  ]);
+  // Held components stay preliminary; an amendment keeps what is still held (E-LAB3-08).
+  const held =
+    gate?.held ??
+    new Set(status === "amended" || status === "corrected" ? (prior?.qcHeld ?? []) : []);
+  const statusOf = (conceptId: string | null | undefined, s: string) =>
+    s !== "entered_in_error" && held.has(conceptId ?? "") ? "preliminary" : s;
+  const qcContext = (conceptId: string | null | undefined, c: unknown) =>
+    gate?.overridden.has(conceptId ?? "")
+      ? { ...(c as Record<string, unknown>), qcOverride: true }
+      : c;
   const id = randomUUID();
   const trust = resultTrust({
     entryMode: entry.entryMode,
@@ -383,6 +491,7 @@ async function writeReportVersion(
     rows.push({
       ...common,
       ...cols,
+      status: statusOf(cols.conceptId, status),
       id: obsId,
       logicalId: match?.logicalId ?? obsId,
       version: match ? (match.version ?? 1) + 1 : 1,
@@ -391,7 +500,7 @@ async function writeReportVersion(
       fastingState: specimen?.fastingState ?? null,
       method: v.method?.trim() || null,
       pointOfCare: entry.poc || null,
-      context: labContext(v, specimen),
+      context: qcContext(cols.conceptId, labContext(v, specimen)),
       sensitivity: sensitivityFor(
         cols.conceptId as FactConcept,
         restricted ? "restricted" : null,
@@ -413,7 +522,8 @@ async function writeReportVersion(
       version: (o.version ?? 1) + 1,
       supersedesId: o.id,
       // A voided value stays voided, with its reason (note_ciphertext, carried in `rest`).
-      status: o.status === "entered_in_error" ? o.status : status,
+      status: o.status === "entered_in_error" ? o.status : statusOf(o.conceptId, status),
+      context: qcContext(o.conceptId, rest.context),
       sensitivity: inherited ? "restricted" : o.sensitivity,
     });
   }
@@ -422,6 +532,7 @@ async function writeReportVersion(
   const critical = rows.some(
     (r) =>
       r.status !== "entered_in_error" &&
+      !held.has(r.conceptId ?? "") &&
       detectCritical(
         {
           conceptId: r.conceptId ?? null,
@@ -473,6 +584,7 @@ async function writeReportVersion(
     uncatalogued: rows.some((r) => r.conceptId === UNCATALOGUED),
     deviceId: spec.bedside?.deviceId ?? null,
     lotId: spec.bedside?.lotId ?? null,
+    qcHeld: held.size ? [...held] : null,
   });
   if (rows.length) await tx.insert(clinicalObservations).values(rows);
   await fixed?.snapshot(
@@ -483,8 +595,29 @@ async function writeReportVersion(
       valueType: r.valueType,
     })),
     id,
+    gate?.snapshot,
   );
-  return { id, critical };
+  // QH-4: each result released past the hold joins the look-back, with the override recorded.
+  for (const r of rows)
+    if (gate?.overridden.has(r.conceptId ?? ""))
+      await joinLookBackOnOverride(
+        tx,
+        actor,
+        {
+          deviceId: gate.deviceId,
+          conceptId: r.conceptId!,
+          patientUserId: spec.patientUserId,
+          reportId: id,
+          observationId: r.id!,
+          value: r.valueNum ?? null,
+          reason: spec.qcOverride!.reason.trim(),
+        },
+        now,
+      );
+  const toFollow = [...(gate?.held ?? [])].map((c) =>
+    fill(LAB3.toFollow, { Analyte: analyteName(c) }),
+  );
+  return { id, critical, toFollow };
 }
 
 const CRITICAL_WARNING = "A value is critical: record who was told, how, and the read-back.";
@@ -585,7 +718,11 @@ export async function enterResults(
     resultedAt: input.resultedAt ?? null,
   });
   await stampActivity(ctx, order.encounterId);
-  return { id: r.id, critical: r.critical, warnings: r.critical ? [CRITICAL_WARNING] : [] };
+  return {
+    id: r.id,
+    critical: r.critical,
+    warnings: [...(r.critical ? [CRITICAL_WARNING] : []), ...r.toFollow],
+  };
 }
 
 /* ─── releaseResults (lab: preliminary → final) ──────────────────── */
@@ -594,6 +731,8 @@ export interface ReleaseResultsInput {
   patientUserId: string;
   reportId: string;
   clientKey: string;
+  /** Lab Phase 3 (QH-4): release past a QC hold, with the reason (lab.qc.override only). */
+  qcOverride?: { reason: string };
 }
 
 export async function releaseResults(
@@ -606,7 +745,8 @@ export async function releaseResults(
   const replay = await replayed(ctx.tx, diagnosticReports, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const prior = await currentReport(ctx, input.patientUserId, input.reportId);
-  if (prior.status !== "preliminary")
+  // Lab Phase 3 (E-LAB3-08): a final report with components held for QC takes a completion version.
+  if (prior.status !== "preliminary" && !(prior.status === "final" && prior.qcHeld?.length))
     throw new EmrWriteError("conflict", "Only a preliminary result can be released.");
   const order = await loadOrder(ctx, input.patientUserId, prior.orderId!);
   const r = await writeReportVersion(ctx, {
@@ -627,9 +767,14 @@ export async function releaseResults(
     verifiedByUserId: ctx.actor.userId,
     clientKey: input.clientKey,
     criticalRefs,
+    qcOverride: input.qcOverride ?? null,
   });
   await stampActivity(ctx, order.encounterId);
-  return { id: r.id, critical: r.critical, warnings: r.critical ? [CRITICAL_WARNING] : [] };
+  return {
+    id: r.id,
+    critical: r.critical,
+    warnings: [...(r.critical ? [CRITICAL_WARNING] : []), ...r.toFollow],
+  };
 }
 
 /* ─── amendResults ───────────────────────────────────────────────── */
@@ -670,6 +815,12 @@ export async function amendResults(
   if (!input.reasonText.trim()) throw invalid("An amendment needs a reason.");
   if (input.values.length === 0 && !input.conclusionCode && !input.conclusionText)
     throw invalid("Nothing to amend.");
+  // Lab Phase 3 (Law 5): a value held for QC is released from the hold, never by an amendment.
+  if (input.values.some((v) => prior.qcHeld?.includes(v.conceptId)))
+    throw new EmrWriteError(
+      "conflict",
+      "This value is held for quality control: release it from the hold, not by an amendment.",
+    );
   const order = await loadOrder(ctx, input.patientUserId, prior.orderId!);
   const r = await writeReportVersion(ctx, {
     patientUserId: input.patientUserId,

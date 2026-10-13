@@ -25,6 +25,9 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   ref: "Reference entry",
   addendum: "Concept addendum",
   acceptance_plan: "Lot acceptance plan",
+  qc_plan: "QC plan",
+  qc_policy: "QC policy",
+  kit_qc_rule: "Kit or stain QC rule",
 };
 
 const author = alias(users, "author");
@@ -100,6 +103,12 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return key;
     case "acceptance_plan":
       return String(p.method).replace("_", " ");
+    case "qc_plan":
+      return `${key} · ${(p.levels as unknown[]).length} levels · reject ${(p.rejectRules as string[]).join(", ")}`;
+    case "qc_policy":
+      return `${p.minRunsForTarget} runs over ${p.minDaysForTarget} days`;
+    case "kit_qc_rule":
+      return `${(p.controls as unknown[]).length} controls${p.requiredBeforeUse ? " · required before use" : ""}`;
   }
 }
 
@@ -176,5 +185,33 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
       return [`Data file hash: ${p.hash}`];
     case "acceptance_plan":
       return [`Method: ${summary(kind, p)}`, `Source: ${p.source}`];
+    case "qc_plan": {
+      const q = p as {
+        unit: string;
+        levels: { level: number; label: string }[];
+        frequency: { kind: string; n?: number };
+        rejectRules: string[];
+        warnRules: string[];
+        holdWhenNotRun: boolean;
+        targets: { level: number; mean: number; sd: number; source: string }[];
+        source: string;
+      };
+      return [
+        ...q.levels.map((l) => `Level ${l.level}: ${l.label}`),
+        `Frequency: ${q.frequency.kind.replaceAll("_", " ")}${q.frequency.n ? ` (${q.frequency.n})` : ""}`,
+        `Reject on: ${q.rejectRules.join(", ")}`,
+        `Warn on: ${q.warnRules.join(", ") || "none"}`,
+        `Hold release when QC is not run: ${q.holdWhenNotRun ? "yes" : "no"}`,
+        ...q.targets.map(
+          (t) =>
+            `Target level ${t.level}: ${t.mean} ± ${t.sd} ${q.unit} (${t.source === "lab" ? "this lab's own" : "maker's range, provisional"})`,
+        ),
+        `Source: ${q.source}`,
+      ];
+    }
+    case "qc_policy":
+      return [summary(kind, p), ...(p.sources as string[]).map((s) => `Source: ${s}`)];
+    case "kit_qc_rule":
+      return [summary(kind, p), `Source: ${p.source}`];
   }
 }

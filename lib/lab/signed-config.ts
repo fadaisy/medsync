@@ -7,6 +7,7 @@
 import { z } from "zod";
 
 import { compareDecimal, isDecimal } from "@/lib/lab/catalogue";
+import { RULE_IDS } from "@/lib/lab/qc-rules";
 import { inForceAt } from "@/lib/lab/ranges";
 
 const decimal = z.string().refine(isDecimal, "a decimal");
@@ -129,6 +130,80 @@ export const PAYLOADS = {
       source,
     })
     .refine((p) => p.method !== "lot_comparison" || !!p.comparison, "the comparison"),
+  /** Lab Phase 3 QQ-2 (GATE A §3.1): key `{deviceId}:{conceptId}`. Targets and SDs are the maker's or the lab's. */
+  qc_plan: z.object({
+    unit: z.string().trim().min(1).max(40),
+    levels: z
+      .array(
+        z.object({
+          level: z.number().int().min(1).max(6),
+          label: z.string().trim().min(1).max(60),
+          controlItemId: z.uuid(),
+        }),
+      )
+      .min(1),
+    frequency: z.object({
+      kind: z.enum(["each_day_before_patients", "per_run", "per_n_samples"]),
+      n: z.number().int().positive().optional(),
+    }),
+    rejectRules: z.array(z.enum(RULE_IDS)).min(1),
+    warnRules: z.array(z.enum(RULE_IDS)),
+    tenXAcrossLevels: z.boolean(),
+    holdWhenNotRun: z.boolean(),
+    targets: z.array(
+      z.object({
+        level: z.number().int().min(1).max(6),
+        controlLotId: z.uuid(),
+        mean: z.number().finite(),
+        sd: z.number().positive(),
+        source: z.enum(["maker_provisional", "lab"]),
+        runs: z.number().int().positive().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      }),
+    ),
+    source,
+  }),
+  /** QQ-3, D-LAB3-04: key `hospital`. The minimum runs and days before the lab's own target. */
+  qc_policy: z.object({
+    minRunsForTarget: z.number().int().min(2).max(500),
+    minDaysForTarget: z.number().int().min(1).max(365),
+    sources: z.array(source).min(1),
+  }),
+  /** KQ-1, KQ-5 (GATE A §3.1): key = the kit or stain stock item id. Signed by the lead alone. */
+  kit_qc_rule: z.object({
+    triggers: z
+      .array(
+        z
+          .object({
+            kind: z.enum([
+              "each_day_of_use",
+              "new_lot",
+              "new_shipment",
+              "new_operator",
+              "schedule",
+              "after_maintenance",
+            ]),
+            weekday: z.number().int().min(1).max(7).optional(),
+          })
+          .refine((t) => t.kind !== "schedule" || t.weekday !== undefined, "a weekday"),
+      )
+      .min(1),
+    controls: z
+      .array(
+        z.object({
+          name: z.string().trim().min(1).max(80),
+          expected: z.union([
+            z.object({ code: z.string().trim().min(1).max(60) }),
+            z.object({ passCriteria: z.array(z.string().trim().min(2).max(200)).min(1) }),
+          ]),
+        }),
+      )
+      .min(1),
+    requiredBeforeUse: z.boolean(),
+    hmisIqc: z.boolean(),
+    source,
+  }),
 } as const;
 /** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */
 export const LEAD_ONLY_KINDS: readonly string[] = [

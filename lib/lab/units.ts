@@ -166,6 +166,8 @@ export interface FixedUnits {
       valueType?: string | null;
     }[],
     reportId: string,
+    /** Lab Phase 3 (QH-6, Law 4): the QC status at release, per component. */
+    qc?: ReadonlyMap<string, unknown>,
   ) => Promise<void>;
 }
 
@@ -390,7 +392,7 @@ export async function prepareFixedUnits(
   const entered = new Set(pending.keys());
   return {
     values,
-    snapshot: async (rows, reportId) => {
+    snapshot: async (rows, reportId, qc) => {
       const out: (typeof labResultSnapshots.$inferInsert)[] = [];
       // Law 4, LU-3: the lots in use at the result time, with the stock ledger on.
       const lots =
@@ -448,12 +450,21 @@ export async function prepareFixedUnits(
             methodCode: p.measure.methodCode,
             labOnly: p.labOnly,
             lots: lots?.get(r.conceptId!) ?? null,
+            qc: qc?.get(r.conceptId!) ?? null,
           });
           continue;
         }
-        // A value carried into the new version keeps the snapshot it was entered with (Law 8).
+        // A value carried into the new version keeps the snapshot it was entered with (Law 8); a release
+        // records its QC status (QH-6).
         const before = prior.find((s) => s.observationId === r.supersedesId);
-        if (before) out.push({ ...before, observationId: r.id, reportId, createdAt: now });
+        if (before)
+          out.push({
+            ...before,
+            observationId: r.id,
+            reportId,
+            createdAt: now,
+            qc: qc?.get(r.conceptId!) ?? before.qc,
+          });
       }
       if (out.length) await tx.insert(labResultSnapshots).values(out);
     },

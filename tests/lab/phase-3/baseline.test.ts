@@ -7,7 +7,7 @@ import { bedsideErrors } from "@/lib/lab/bedside";
 /**
  * Lab Phase 3, Step 0 (docs/lab/phase-3/PROMPT-LAB-PHASE-3.md §9): failing tests that reproduce the three
  * defects named in the baseline. Each is `it.fails`: green while the defect is present, red once fixed, so the
- * step that fixes it flips it to a plain `it` ((a) Step 6 S18, (b) Step 8 S33, (c) Step 4 S6: flipped).
+ * step that fixes it flips it to a plain `it` ((a) Step 6 S18: flipped, (b) Step 8 S33, (c) Step 4 S6: flipped).
  * Every lot, date and device here is a FIXTURE.
  */
 const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -29,17 +29,15 @@ const ok = (o: Partial<Parameters<typeof bedsideErrors>[0]> = {}) => {
 };
 
 describe("Lab Phase 3 baseline — defects reproduced at Step 0", () => {
-  // (a) No QC exists, so nothing can hold a release: the one write every lab release goes through
-  // (`writeReportVersion`, reached by releaseResults, enterResults(final), releaseWithCriticalMark and the
-  // downtime form) never asks for the analyser's QC status. With a rejected run on record, release succeeds.
-  it.fails(
-    "(a) releasing a component whose analyser's latest QC run is rejected is refused on the server",
-    () => {
-      const results = read("lib/emr/write/results.ts");
-      expect(results).toMatch(/qcStatusFor\(/);
-      expect(results).toMatch(/held for quality control|qc_held/);
-    },
-  );
+  // (a) Was: no QC existed, so nothing could hold a release. Fixed at Step 6 (S18): the one write every lab
+  // release goes through (`writeReportVersion`, reached by releaseResults, enterResults(final),
+  // releaseWithCriticalMark and the downtime form) reads each component's QC status and holds a failed one
+  // (tests/emr-db/lab-qc.test.ts proves it on the database).
+  it("(a) releasing a component whose analyser's latest QC run is rejected is refused on the server", () => {
+    const results = read("lib/emr/write/results.ts");
+    expect(results).toMatch(/qcStatusFor\(/);
+    expect(results).toMatch(/held for quality control|qc_held/);
+  });
 
   // (b) A bedside device has no control check, so a device whose check failed is still "in use" and its
   // result is saved. The check below passes the failed check in; the engine has no input for it and returns

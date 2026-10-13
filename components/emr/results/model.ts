@@ -50,6 +50,8 @@ export interface EntryComponent {
   fixed?: FixedComponent;
   /** Lab Phase 2 (AP-6): kept for the lab only; never shown to clinicians. */
   labOnly?: boolean;
+  /** Lab Phase 3 (§5.3): the QC column, a word and its tone (passed: neutral with a check; amber; none). */
+  qc?: { word: string; tone: "passed" | "amber" | "none" };
 }
 
 export type RangeStateWord =
@@ -440,6 +442,8 @@ export interface ResultEntryData {
     lines: Record<string, EntryLine>;
     uncatalogued: UncataloguedLine[];
     conclusionCode: ConclusionCode | null;
+    /** Lab Phase 3 (E-LAB3-08): components still held for quality control in this released report. */
+    qcHeld?: string[];
   } | null;
   /** Where the lab records a critical-result call (a released critical result only). */
   communicate: CommTarget | null;
