@@ -16,6 +16,8 @@ export interface ProblemTest {
   specimen: string | null;
   /** The test_catalogue uuid an order names; null when the test is not on the menu. */
   testId: string | null;
+  /** Lab Phase 2 (§5.1): what the lab can do today, in words; with a null testId, why it cannot be added. */
+  today?: string | null;
 }
 
 export interface ProblemCard {
@@ -37,6 +39,7 @@ export interface TestIndex {
   names: Readonly<Record<string, string>>;
   uuids: Readonly<Record<string, string>>;
   specimens?: Readonly<Record<string, string>>;
+  today?: Readonly<Record<string, { words: string | null; orderable: boolean; linked: boolean }>>;
 }
 
 export const SPECIMEN_WORD: Record<string, string> = {
@@ -76,7 +79,10 @@ function card(row: BoardRow, marker: string, tests: TestIndex): ProblemCard {
       key,
       display: tests.names[key] ?? testWords(key),
       specimen: tests.specimens?.[key] ? (SPECIMEN_WORD[tests.specimens[key]!] ?? null) : null,
-      testId: tests.uuids[key] ?? null,
+      // OM-1, OM-4: a test not linked to a service, or not offered here, cannot be added.
+      testId:
+        tests.today?.[key] && !tests.today[key]!.orderable ? null : (tests.uuids[key] ?? null),
+      today: tests.today?.[key]?.words ?? null,
     })),
     classes: link?.classes ?? [],
     supportive: link?.supportive ?? [],

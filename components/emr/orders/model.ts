@@ -5,6 +5,8 @@
  * the concept catalogue: the server has already turned codes into words.
  */
 
+import { LAB2 } from "@/content/lab-phase-2";
+
 /* ─── Identity (two identifiers, age and sex in words) ─────────────── */
 
 export interface PatientIdentity {
@@ -64,6 +66,10 @@ export interface MenuTest {
   favouriteRank: number | null;
   availability: Availability;
   restricted: boolean;
+  /** Lab Phase 2 (labOneMenu, §5.1): what this test is here today, from the hub. */
+  today?: { state: string; words: string | null; orderable: boolean } | null;
+  /** Lab Phase 2 (§5.1, labBedside): the same result on a ward device here, and the bedside form. */
+  bedside?: { words: string; href: string | null } | null;
 }
 
 /** A diagnosis on this encounter, offered as the order's reason. */
@@ -93,6 +99,11 @@ export function menuSections(
 }
 
 /** Availability informs, never blocks (HARMONISATION §9): words for the caution chip, or null. */
+/** §5.1: the hub's words win when one menu is on; otherwise the capability words. */
+export function menuWords(t: Pick<MenuTest, "availability" | "today">): string | null {
+  return t.today ? t.today.words : availabilityWords(t.availability);
+}
+
 export function availabilityWords(a: Availability): string | null {
   if (a === "intermittent") return "Intermittent — check with the laboratory";
   if (a === "unavailable") return "Not available here — it can still be ordered";
@@ -226,6 +237,14 @@ export interface CollectTarget {
   needsFasting: boolean;
   /** "Rejected: haemolysed — recollect" after a laboratory rejection. */
   rejection: string | null;
+  /** Lab Phase 2 (§5.2): the label check, payment and the high-risk warning, when their flags are on. */
+  lab?: {
+    checkOn: boolean;
+    labelNo: string | null;
+    payment: { state: string; mode: string; receipt?: string | null } | null;
+    highRisk: { manual: boolean; reason: string | null } | null;
+    procedure: string | null;
+  };
 }
 
 /** The values the specimens CHECKs take (0071; lib/emr/write/specimens.ts), offered only when the
@@ -251,6 +270,13 @@ export const CONTAINER_OPTIONS: readonly { value: string; label: string }[] = [
 
 export interface CollectDraft {
   identifiersConfirmed: boolean;
+  /** Lab Phase 2: the label as scanned or typed, how, and what the check said (ID-1). */
+  labelNo?: string;
+  labelMethod?: "scan" | "typed";
+  labelOutcome?: string | null;
+  wristband?: boolean;
+  /** PY-3: why an order awaiting payment is collected now (inform mode). */
+  paymentReason?: string;
   /** Chosen at the bedside only when the test menu names none. */
   specimenType: string | null;
   container: string | null;
@@ -282,7 +308,24 @@ export function collectIssues(t: CollectTarget, d: CollectDraft): string[] {
   }
   if (!(t.specimenType ?? d.specimenType)) out.push("Choose the specimen.");
   if (!(t.container ?? d.container)) out.push("Choose the container.");
+  // Lab Phase 2: ID-2 (a matching label), PY-3 (payment as the mode allows).
+  if (t.lab?.checkOn && d.labelOutcome !== "match") out.push("Scan or type the label on the tube.");
+  if (t.lab?.payment?.state === "awaiting") {
+    if (t.lab.payment.mode === "hold")
+      out.push("Payment not recorded. The cashier must record it before this sample is collected.");
+    else if ((d.paymentReason?.trim().length ?? 0) < 3)
+      out.push("Payment not recorded. Give a reason to collect now.");
+  }
   return out;
+}
+
+/** §5.2 payment chip words (LAB2.payment.chips); null when payment is not taken for this order. */
+export function paymentWords(state: string, receipt?: string | null): string | null {
+  const c = LAB2.payment.chips;
+  if (state === "paid") return receipt ? c.paid(receipt) : c.paid("").split(" · ")[0]!;
+  if (state === "insured" || state === "waived" || state === "emergency" || state === "awaiting")
+    return c[state];
+  return null;
 }
 
 /** `datetime-local` in the hospital's zone → an instant. Kampala has no DST, so a fixed offset
@@ -306,6 +349,16 @@ export function toCollectInput(t: CollectTarget, d: CollectDraft, clientKey: str
       ? { fastingHours: Number(d.fastingHours) }
       : {}),
     ...(at ? { collectedAt: at } : {}),
+    ...(t.lab?.checkOn && d.labelNo
+      ? {
+          labelNo: d.labelNo,
+          labelMethod: d.labelMethod ?? "typed",
+          wristbandChecked: !!d.wristband,
+        }
+      : {}),
+    ...(t.lab?.payment?.state === "awaiting" && d.paymentReason?.trim()
+      ? { paymentReason: d.paymentReason.trim() }
+      : {}),
     clientKey,
   };
 }

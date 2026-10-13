@@ -225,6 +225,9 @@ export const ncdVisit = pgTable("ncd_visit", {
   hba1cPercent: num("hba1c_percent", 4, 1),
   hba1cMmolMol: integer("hba1c_mmol_mol"),
   hba1cResultDate: date("hba1c_result_date"),
+  /** 0111: references to the lab results the feed showed (NF-4), and outside results (NF-7). */
+  labRefs: jsonb("lab_refs").notNull().default({}),
+  outsideResults: jsonb("outside_results").notNull().default([]),
   hypoglycaemia: text("hypoglycaemia"),
   medicines: text("medicines").array().notNull(),
   medicinesOtherCiphertext: text("medicines_other_ciphertext"),

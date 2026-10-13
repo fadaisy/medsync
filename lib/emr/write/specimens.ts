@@ -2,16 +2,33 @@ import "server-only";
 
 import type { WriteCtx } from "./context";
 import type { WriteResult } from "./orders";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { specimenEvents, specimens } from "@/db/schema/emr";
+import { patientProfiles } from "@/db/schema/patient-profiles";
+import { encounters } from "@/db/schema/scheduling";
 import { needsFastingChip } from "@/lib/emr/orders";
+import { identitiesFor } from "@/lib/emr/read/results";
+import { catalogueV2Active, profileInUse } from "@/lib/lab/catalogue-v2";
+import {
+  guardCollection,
+  highRiskFor,
+  recordLabelCheck,
+  setHighRisk,
+  voidAndReissue,
+} from "@/lib/lab/collection-store";
+import {
+  labCollectionCheckLiveFor,
+  labHighRiskLiveFor,
+  labPaymentLiveFor,
+} from "@/lib/lab/feature";
 import { EmrWriteError, stampActivity } from "./context";
 import {
   COLLECTING_CADRES,
   LAB_CADRES,
   loadOrder,
   loadTest,
+  ORDERING_CADRES,
   orderStatus,
   replayed,
   requireCadre,
@@ -68,6 +85,11 @@ export interface CollectSpecimenInput {
   specimenType?: string;
   container?: string;
   labelNo?: string;
+  /** Lab Phase 2 (ID-2): how the label was read, and the wristband check (ID-6). */
+  labelMethod?: "scan" | "typed";
+  wristbandChecked?: boolean;
+  /** Lab Phase 2 (PY-3): why an order awaiting payment is collected now (inform mode). */
+  paymentReason?: string;
   clientKey: string;
 }
 
@@ -106,6 +128,26 @@ export async function collectSpecimen(
   const collectedAt = input.collectedAt ?? ctx.now;
   if (collectedAt.getTime() > ctx.now.getTime())
     throw new EmrWriteError("invalid", "The collection time cannot be in the future.");
+  // Lab Phase 2: the label must match (ID-2) and payment must allow it (PY-3), in this transaction.
+  const guard = await guardCollection(
+    ctx.tx,
+    ctx.actor,
+    {
+      order: { id: order.id, patientUserId: input.patientUserId },
+      check: input.labelNo
+        ? {
+            labelNo: input.labelNo,
+            method: input.labelMethod ?? "typed",
+            wristband: input.wristbandChecked ?? false,
+          }
+        : null,
+      paymentReason: input.paymentReason ?? null,
+      // A bedside test has no printed label and is never held for payment (PC-1).
+      checkOn: labCollectionCheckLiveFor(ctx.actor.hospitalId) && order.intentSource !== "bedside",
+      paymentOn: labPaymentLiveFor(ctx.actor.hospitalId) && order.intentSource !== "bedside",
+    },
+    ctx.now,
+  );
 
   const [s] = await ctx.tx
     .insert(specimens)
@@ -121,7 +163,9 @@ export async function collectSpecimen(
       fastingState: input.fastingState ?? null,
       fastingHours: input.fastingHours === undefined ? null : String(input.fastingHours),
       identifiersConfirmed: true,
-      labelNo: input.labelNo ?? null,
+      labelNo: guard.labelNo ?? input.labelNo ?? null,
+      paymentState: guard.paymentState ?? null,
+      paymentReason: guard.paymentReason ?? null,
       recordedAt: ctx.now,
       clientKey: input.clientKey,
     })
@@ -143,6 +187,12 @@ export interface SpecimenActInput {
   patientUserId: string;
   specimenId: string;
   clientKey: string;
+  /** Lab Phase 2 (SR-1): how it was received. */
+  via?: "scan" | "click";
+  /** SR-3: the receiver ticked Procedure followed for a high-risk specimen. */
+  procedureFollowed?: boolean;
+  /** SR-2: "Receive anyway" with a reason. */
+  receiveReason?: string;
 }
 
 export async function receiveSpecimen(
@@ -160,6 +210,21 @@ export async function receiveSpecimen(
   );
   if (status.state !== "collected" || status.specimenId !== specimen.id)
     throw statusConflict(status, order, "receive this specimen");
+  // SR-3, HR-3: a high-risk specimen is received only after Procedure followed, by scan or by click.
+  if (
+    labHighRiskLiveFor(ctx.actor.hospitalId) &&
+    !input.procedureFollowed &&
+    (await highRiskFor(ctx.tx, [order.encounterId])).has(order.encounterId)
+  )
+    throw new EmrWriteError(
+      "conflict",
+      "High-risk specimen: follow the hospital's procedure, then tick Procedure followed to receive it.",
+    );
+  // AP-5: the analyser profile in use is pinned at receipt; a later change never alters this specimen.
+  const profileId =
+    order.testId && (await catalogueV2Active(ctx.tx, ctx.actor.hospitalId))
+      ? await profileInUse(ctx.tx, ctx.actor.hospitalId, order.testId)
+      : null;
   const [e] = await ctx.tx
     .insert(specimenEvents)
     .values({
@@ -167,6 +232,10 @@ export async function receiveSpecimen(
       hospitalId: ctx.actor.hospitalId,
       patientUserId: input.patientUserId,
       kind: "received",
+      profileId,
+      receivedVia: input.via ?? null,
+      procedureFollowedAt: input.procedureFollowed ? ctx.now : null,
+      receiveReason: input.receiveReason?.trim() || null,
       actorUserId: ctx.actor.userId,
       actorCadre: ctx.actor.cadreCode,
       recordedAt: ctx.now,
@@ -212,5 +281,165 @@ export async function rejectSpecimen(
     .returning({ id: specimenEvents.id });
   await withdrawPreliminary(ctx, input.patientUserId, order, specimen.id, input.reasonCode);
   await stampActivity(ctx, order.encounterId);
+  return { id: e!.id };
+}
+
+/* ─── Lab Phase 2: labels and the high-risk warning (ID-*, HR-*) ───────── */
+
+export interface CheckLabelInput {
+  patientUserId: string;
+  orderId: string;
+  labelNo: string;
+  method: "scan" | "typed";
+  wristbandChecked: boolean;
+  clientKey: string;
+}
+
+/** ID-1, ID-3: every scan or typed number is recorded; a mismatch names the other patient (two identifiers). */
+export async function checkSpecimenLabel(
+  ctx: WriteCtx,
+  input: CheckLabelInput,
+): Promise<
+  WriteResult & {
+    outcome: string;
+    otherPatientUserId: string | null;
+    otherIdentity: { name: string; mrn: string } | null;
+  }
+> {
+  requireCadre(ctx, COLLECTING_CADRES, "check a label");
+  const order = await loadOrder(ctx, input.patientUserId, input.orderId);
+  const r = await recordLabelCheck(
+    ctx.tx,
+    ctx.actor,
+    {
+      order: { id: order.id, patientUserId: input.patientUserId },
+      typed: input.labelNo,
+      method: input.method,
+      wristband: input.wristbandChecked,
+      clientKey: input.clientKey,
+    },
+    ctx.now,
+  );
+  const other = r.outcome === "other_patient" ? r.otherPatientUserId : null;
+  // The collector must see whose tube this is (LAB2.label.mismatch): two identifiers, the reveal audited.
+  // Fail closed (as identitiesFor does): if the audited reveal cannot run, the MRN alone identifies the tube.
+  const who = other
+    ? await identitiesFor(ctx.actor, [other], "lab_label_check")
+        .then((m) => m.get(other))
+        .catch(async () => {
+          const [p] = await ctx.tx
+            .select({ mrn: patientProfiles.patientCode })
+            .from(patientProfiles)
+            .where(eq(patientProfiles.id, other));
+          return p ? { name: "Name withheld", mrn: p.mrn } : undefined;
+        })
+    : undefined;
+  return {
+    id: order.id,
+    outcome: r.outcome,
+    otherPatientUserId: other,
+    otherIdentity: who ? { name: who.name, mrn: who.mrn } : null,
+  };
+}
+
+/** ID-5: "Void and print new". */
+export async function voidAndReprintLabel(
+  ctx: WriteCtx,
+  input: { patientUserId: string; orderId: string; reason: string; clientKey: string },
+): Promise<WriteResult & { labelNo: string }> {
+  requireCadre(ctx, COLLECTING_CADRES, "print a new label");
+  const order = await loadOrder(ctx, input.patientUserId, input.orderId);
+  const labelNo = await voidAndReissue(
+    ctx.tx,
+    ctx.actor,
+    { id: order.id, patientUserId: input.patientUserId },
+    input.reason.trim(),
+    ctx.now,
+  );
+  return { id: order.id, labelNo };
+}
+
+/**
+ * HR-1, HR-2, D-LAB2-06: a clinician flags "Suspected high-risk infection" with a reason, or the clerking
+ * desk's fever-with-bleeding rule flags it once; only a clinician clears it, with a reason. The lab cannot.
+ */
+export async function setSpecimenHighRisk(
+  ctx: WriteCtx,
+  input: {
+    patientUserId: string;
+    encounterId: string;
+    kind: "flag" | "clear";
+    source: "rule" | "manual";
+    ruleId?: string;
+    reason?: string;
+    clientKey: string;
+  },
+): Promise<WriteResult & { changed: boolean }> {
+  requireCadre(
+    ctx,
+    ORDERING_CADRES,
+    input.kind === "clear" ? "clear the high-risk warning" : "flag a high-risk specimen",
+  );
+  if (input.source === "manual" && (input.reason?.trim().length ?? 0) < 3)
+    throw new EmrWriteError("invalid", "Say why.");
+  const [enc] = await ctx.tx
+    .select({
+      id: encounters.id,
+      patientUserId: encounters.patientUserId,
+      hospitalId: encounters.hospitalId,
+    })
+    .from(encounters)
+    .where(eq(encounters.id, input.encounterId));
+  if (!enc || enc.patientUserId !== input.patientUserId || enc.hospitalId !== ctx.actor.hospitalId)
+    throw new EmrWriteError("not_found", "Visit not found for this patient here.");
+  const changed = await setHighRisk(
+    ctx.tx,
+    ctx.actor,
+    {
+      encounterId: enc.id,
+      patientUserId: input.patientUserId,
+      kind: input.kind,
+      source: input.source,
+      ruleId: input.ruleId ?? null,
+      reason: input.reason ?? null,
+    },
+    ctx.now,
+  );
+  return { id: enc.id, changed };
+}
+
+/** SR-5: undo a receipt within the window: a reversal event; the specimen is "To receive" again. */
+export async function undoReceipt(
+  ctx: WriteCtx,
+  input: { patientUserId: string; specimenId: string; clientKey: string },
+  windowMs: number,
+): Promise<WriteResult> {
+  requireCadre(ctx, LAB_CADRES, "undo a receipt");
+  requireLabPermission(ctx, "lab.receive", "undo a receipt");
+  const { specimen } = await specimenWithOrder(ctx, input.patientUserId, input.specimenId);
+  const [last] = await ctx.tx
+    .select()
+    .from(specimenEvents)
+    .where(eq(specimenEvents.specimenId, specimen.id))
+    .orderBy(desc(specimenEvents.recordedAt))
+    .limit(1);
+  if (!last || last.kind !== "received")
+    throw new EmrWriteError("conflict", "Only the last receipt can be undone.");
+  if (ctx.now.getTime() - last.recordedAt.getTime() > windowMs)
+    throw new EmrWriteError("conflict", "Too late to undo: reject or amend instead.");
+  const [e] = await ctx.tx
+    .insert(specimenEvents)
+    .values({
+      specimenId: specimen.id,
+      hospitalId: ctx.actor.hospitalId,
+      patientUserId: input.patientUserId,
+      kind: "receipt_undone",
+      reversalOf: last.id,
+      actorUserId: ctx.actor.userId,
+      actorCadre: ctx.actor.cadreCode,
+      recordedAt: ctx.now,
+      clientKey: input.clientKey,
+    })
+    .returning({ id: specimenEvents.id });
   return { id: e!.id };
 }

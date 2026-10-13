@@ -11,7 +11,7 @@ import type {
 } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { ReportInput } from "@/lib/emr/orders";
-import { and, eq, getTableName, inArray } from "drizzle-orm";
+import { and, eq, getTableName, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { provenanceFor } from "@/components/emr/provenance";
 import {
@@ -45,6 +45,7 @@ import { loadOrderRecords } from "@/lib/emr/write/orders";
 import { decrypt } from "@/lib/encryption";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { RULES } from "@/lib/facts/refinements";
+import { labBedsideLiveFor } from "@/lib/lab/feature";
 import { deathsFor } from "@/lib/workspace/queries";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 
@@ -279,6 +280,19 @@ export async function loadChartFor(
         .from(diagnosticReports)
         .where(eq(diagnosticReports.patientUserId, patientUserId));
       const reportIds = reports.map((r) => r.id);
+      // Lab Phase 2 (§5.8): which reports were measured at the bedside (the column comes with 0110).
+      const bedside =
+        reportIds.length && labBedsideLiveFor(actor.hospitalId)
+          ? await tx
+              .select({ id: diagnosticReports.id })
+              .from(diagnosticReports)
+              .where(
+                and(
+                  inArray(diagnosticReports.id, reportIds),
+                  isNotNull(diagnosticReports.deviceId),
+                ),
+              )
+          : [];
       const [acks, values] = reportIds.length
         ? await Promise.all([
             tx
@@ -296,7 +310,14 @@ export async function loadChartFor(
                 context: clinicalObservations.context,
               })
               .from(clinicalObservations)
-              .where(inArray(clinicalObservations.reportId, reportIds)),
+              .where(
+                and(
+                  inArray(clinicalObservations.reportId, reportIds),
+                  // Lab Phase 2 (AP-6): a lab-only parameter never reaches the chart or a print.
+                  sql`NOT EXISTS (SELECT 1 FROM lab_result_snapshots s
+                        WHERE s.observation_id = ${clinicalObservations.id} AND s.lab_only)`,
+                ),
+              ),
           ])
         : [[], []];
       const testIds = [
@@ -344,6 +365,7 @@ export async function loadChartFor(
         orderRows,
         orderRecords,
         reports,
+        bedside,
         acks,
         values,
         tests,
@@ -434,6 +456,7 @@ export async function loadChartFor(
   const chains = new Map<string, (typeof rec.reports)[number][]>();
   for (const r of rec.reports) chains.set(r.logicalId, [...(chains.get(r.logicalId) ?? []), r]);
   const results: ChartResultInput[] = [];
+  const bedsideIds = new Set(rec.bedside.map((b) => b.id));
   for (const chain of chains.values()) {
     const cur = currentVersion(chain)!;
     const values = rec.values.filter((v) => v.reportId === cur.id);
@@ -447,6 +470,7 @@ export async function loadChartFor(
       ack: ackState(chain as ReportInput[], rec.acks),
       critical: cur.critical || values.some((v) => detectCritical(v).isCritical),
       sensitivity: cur.sensitivity,
+      ...(bedsideIds.has(cur.id) ? { bedside: true } : {}),
     });
   }
 

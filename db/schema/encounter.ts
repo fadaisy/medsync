@@ -241,6 +241,8 @@ export const encounterOrders = pgTable(
     /** Triage recommendation code or resus event id. */
     sourceIntentId: text("source_intent_id"),
     requisitionNo: text("requisition_no"),
+    /** 0109 (OM-6): what ordering showed for this test here, kept on the line. */
+    availabilitySnapshot: jsonb("availability_snapshot"),
     sensitivity: text("sensitivity").notNull().default("standard"),
     clientKey: text("client_key"),
     effectiveAt: timestamp("effective_at", { withTimezone: true }),
@@ -269,7 +271,7 @@ export const encounterOrders = pgTable(
     ),
     check(
       "enc_order_intent_check",
-      sql`${t.intentSource} IS NULL OR ${t.intentSource} IN ('clinician','triage_recommendation','resus_handover','downtime_form')`,
+      sql`${t.intentSource} IS NULL OR ${t.intentSource} IN ('clinician','triage_recommendation','resus_handover','downtime_form','bedside')`,
     ),
     check("enc_order_sensitivity_check", sql`${t.sensitivity} IN ('standard','restricted')`),
     check(

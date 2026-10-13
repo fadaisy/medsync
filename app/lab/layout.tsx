@@ -9,7 +9,14 @@ import { loadLabWorklist as loadLegacyWorklist } from "@/lib/lab-tech/worklist";
 import { countOpenCriticals } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { countFormsWaiting } from "@/lib/lab/downtime-read";
-import { labCriticalsLiveFor, labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import {
+  labCatalogueV2LiveFor,
+  labCriticalsLiveFor,
+  labDowntimeLiveFor,
+  labOneMenuLiveFor,
+  labSettingsLiveFor,
+  labUnitsRangesLiveFor,
+} from "@/lib/lab/feature";
 import { navFor } from "@/lib/lab/nav";
 import { labWorklistFor, rejectedFor, releasedTodayFor } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
@@ -51,6 +58,11 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_ranges: null,
     setup_limits: null,
     setup_criticals: null,
+    setup_profiles: null,
+    setup_drafts: null,
+    setup_settings: null,
+    to_refer: null,
+    setup_menu: null,
     downtime: formsWaiting,
   };
   const words = {
@@ -62,6 +74,11 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_ranges: "",
     setup_limits: "",
     setup_criticals: "",
+    setup_profiles: "",
+    setup_drafts: "",
+    setup_settings: "",
+    to_refer: "",
+    setup_menu: "",
     downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
@@ -70,6 +87,9 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     criticalsSetup: emr && labCriticalsLiveFor(scope.hospitalId),
     unitsRanges: emr && labUnitsRangesLiveFor(scope.hospitalId),
     downtime,
+    catalogueV2: emr && labCatalogueV2LiveFor(scope.hospitalId),
+    oneMenu: emr && labOneMenuLiveFor(scope.hospitalId),
+    settings: emr && labSettingsLiveFor(scope.hospitalId),
   }).map((i) => ({
     id: i.id,
     label: i.label,

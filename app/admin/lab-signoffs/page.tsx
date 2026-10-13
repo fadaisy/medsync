@@ -17,6 +17,8 @@ import {
 import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
 import { conceptDef } from "@/lib/facts/project/shared";
+import { loadConfigsWaitingForCso } from "@/lib/lab/signoffs-read";
+import { ConfigView } from "./_components/config-view";
 import { CsoSign } from "./_components/cso-sign";
 import { ReverseSwitch } from "./_components/reverse-switch";
 
@@ -92,6 +94,8 @@ export default async function LabSignoffsPage() {
         .from(testCatalogue)
         .where(inArray(testCatalogue.id, [...new Set(limitRows.map((l) => l.testId))]))
     : [];
+  // Lab catalogue v2 configuration the laboratory lead has signed (Lab Phase 2, ADR 0252).
+  const configs = await loadConfigsWaitingForCso();
   // Hospitals switched to one result path (CO-5: a superadmin reverses with a second).
   const switched = await db
     .select()
@@ -286,6 +290,55 @@ export default async function LabSignoffsPage() {
           />
         </section>
       ))}
+      {configs.length ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-heading-s">Lab catalogue v2: waiting for the CSO</h2>
+          <div className="border-border overflow-auto rounded-lg border">
+            <table className="text-body-s w-full border-collapse text-left">
+              <thead>
+                <tr className="text-caption text-muted-foreground bg-muted">
+                  {["What", "Key", "Hospital", "Version", "Lead signed", "Summary", "Actions"].map(
+                    (h) => (
+                      <th key={h} scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
+                        {h}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {configs.map((c) => (
+                  <tr key={c.id} className="border-border border-t align-top">
+                    <td className="px-3 py-2">{c.what}</td>
+                    <td className="px-3 py-2 font-mono">{c.key}</td>
+                    <td className="px-3 py-2">{c.hospital}</td>
+                    <td className="px-3 py-2 font-mono tabular-nums">{c.version}</td>
+                    <td className="px-3 py-2">
+                      {c.leadName}
+                      {c.leadSignedAt ? `, ${fmt.format(c.leadSignedAt)}` : ""}
+                      {c.exceptionNote ? ` (exception: ${c.exceptionNote})` : ""}
+                    </td>
+                    <td className="px-3 py-2">{c.summary}</td>
+                    <td className="flex flex-col items-start gap-2 px-3 py-2">
+                      <ConfigView
+                        title={`${c.what}: ${c.key}, version ${c.version}`}
+                        description={`${c.hospital} · drafted by ${c.authoredBy}; signed by the laboratory lead ${c.leadName}.`}
+                        lines={c.lines}
+                      />
+                      <CsoSign
+                        kind="config"
+                        hospitalId={c.hospitalId}
+                        versionId={c.id}
+                        sameAsLead={c.leadSignedBy === state.user!.id}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
       {switched.length ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-heading-s">One result path</h2>

@@ -1,17 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, ShieldAlertIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  DropletIcon,
+  HeartPulseIcon,
+  PhoneIcon,
+  ShieldAlertIcon,
+} from "lucide-react";
 
 import { EmrChart } from "@/components/emr/chart/emr-chart";
+import { Button } from "@/components/ui/button";
 import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { loadChart } from "@/lib/emr/read/chart";
+import { db } from "@/db";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
+import type { EmrTx } from "@/lib/emr/db";
+import { isOperator } from "@/lib/lab/bedside-store";
 import { openAlertsForPatient } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { labBedsideLiveFor } from "@/lib/lab/feature";
 import { ChartCriticals } from "../../_components/critical-alerts";
 
 export const metadata: Metadata = { title: "Patient · Doctor · MedSync" };
@@ -47,10 +58,26 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
     const open = (await criticalsLive(scope.hospitalId))
       ? await openAlertsForPatient(scope.hospitalId, patientId)
       : [];
+    // Lab Phase 2 (§5.7): the bedside test, for a doctor the laboratory lead has granted it.
+    const bedside =
+      chart.openEncounterId &&
+      chart.payload.safetyBar.actionsAllowed &&
+      labBedsideLiveFor(scope.hospitalId) &&
+      (await isOperator(db as unknown as EmrTx, scope.hospitalId, scope.userId));
     return (
       <>
         <ChartCriticals alerts={open} />
         <EmrChart chart={chart} surface="doctor" />
+        {bedside ? (
+          <div className="mx-auto w-full max-w-[1200px] px-4 pb-4 md:px-8">
+            <Link href={`/doctor/patients/${chart.patientUserId}/bedside`}>
+              <Button type="button" variant="secondary" className="tap">
+                <DropletIcon className="size-3.5" aria-hidden />
+                Bedside test
+              </Button>
+            </Link>
+          </div>
+        ) : null}
       </>
     );
   }

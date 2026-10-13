@@ -3,11 +3,16 @@ import { notFound } from "next/navigation";
 import { SmartphoneIcon } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { LAB2 } from "@/content/lab-phase-2";
+import { ncdLabFeedLiveFor } from "@/lib/lab/feature";
+import { labFeedFor, visitOutsideResults } from "@/lib/ncd/lab-feed-read";
+import { can } from "@/lib/ncdreg/context";
 import { REVIEW_LABELS } from "@/lib/ncdreg/read/derive";
 import { visitView } from "@/lib/ncdreg/read/views";
 import { requireNcdScope } from "@/lib/ncdreg/scope";
-import { ConditionTags, fmtDate, Num, Page, StageLabel } from "../../_components/kit";
+import { ConditionTags, fmtDate, fmtDateTime, Num, Page, StageLabel } from "../../_components/kit";
 import { ClinicianPart } from "./_components/clinician-part";
+import { FromTheLab } from "./_components/from-the-lab";
 import { NursePart } from "./_components/nurse-part";
 import { Trajectory } from "./_components/trajectory";
 
@@ -31,6 +36,15 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
   const glucose = regs.some((r) => r.module.visit_fields.some((f) => f.code === "glucose"));
   const hba1c = regs.some((r) => r.module.visit_fields.some((f) => f.code === "hba1c"));
   const id = pv.identity;
+  // Lab Phase 2 §5.9: with ncdLabFeed off, nothing below reads the lab and the page is as before.
+  const live = ncdLabFeedLiveFor(ctx.facilityId);
+  const [feed, outside] = live
+    ? await Promise.all([
+        labFeedFor(ctx.facilityId, visit.personId, new Date()),
+        visitOutsideResults(ctx.facilityId, visit.id),
+      ])
+    : [null, []];
+  const labA1c = feed?.fields.hba1c?.kind === "filled" ? feed.fields.hba1c.result : null;
   return (
     <Page>
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -88,6 +102,16 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
               closed={visit.status === "closed"}
             />
           </section>
+          {feed ? (
+            <FromTheLab
+              feed={feed}
+              outside={outside}
+              visitId={visit.id}
+              today={ctx.today}
+              timeZone={ctx.timeZone}
+              canWrite={can(ctx, "clinician_visit_write") && visit.status !== "closed"}
+            />
+          ) : null}
           <section aria-labelledby="rev-h" className="border-border rounded-xl border p-4">
             <h2 id="rev-h" className="text-heading-s mb-2">
               Review items
@@ -150,6 +174,18 @@ export default async function VisitPage({ params }: { params: Promise<{ visitId:
               bp: visit.visitBp != null,
               glucose: visit.glucose != null,
             }}
+            labFeed={live}
+            labHba1c={
+              labA1c
+                ? {
+                    value: `${labA1c.value} ${labA1c.unit}`,
+                    source: LAB2.ncd.filled(
+                      labA1c.method === "lab" ? "Lab" : "Bedside",
+                      fmtDateTime(labA1c.releasedAt, ctx.timeZone),
+                    ),
+                  }
+                : null
+            }
           />
         </section>
       </div>

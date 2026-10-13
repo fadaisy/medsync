@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
-import { LockIcon, MinusIcon } from "lucide-react";
+import { BedIcon, LockIcon, MinusIcon } from "lucide-react";
 
+import { tagClass } from "@/components/medsync/tag";
+import { LAB2 } from "@/content/lab-phase-2";
 import { cn } from "@/lib/utils";
 
 /**
@@ -107,6 +109,16 @@ export function RestrictedMark({ className }: { className?: string }) {
     >
       <LockIcon aria-hidden className="size-3" />
       Restricted
+    </span>
+  );
+}
+
+/** Lab Phase 2 (§5.8): a result measured at the bedside. Sky tint, an icon and the word, never colour alone. */
+export function BedsideTag({ className }: { className?: string }) {
+  return (
+    <span className={cn(tagClass("sky"), className)}>
+      <BedIcon aria-hidden className="size-3 shrink-0" />
+      {LAB2.bedside.tag}
     </span>
   );
 }

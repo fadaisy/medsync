@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveMeasureAction } from "@/lib/lab/measures-actions";
+import { METHOD_WORDS } from "../_lib/methods";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =
@@ -20,6 +21,7 @@ export function MeasureForm({
   title,
   current,
   units,
+  methodRegister,
 }: {
   testId: string;
   conceptId: string;
@@ -32,8 +34,12 @@ export function MeasureForm({
     entryCheckLow: string | null;
     entryCheckHigh: string | null;
     version: number | null;
+    methodCode: string | null;
+    idmsTraceable: boolean | null;
   };
   units: { code: string; display: string; words: string }[];
+  /** Lab catalogue v2 is on here: the method register shows. */
+  methodRegister: boolean;
 }) {
   const { pending, message, act } = useAct();
   const [resultType, setResultType] = useState(current.resultType);
@@ -44,7 +50,10 @@ export function MeasureForm({
   const [loinc, setLoinc] = useState(current.loincCode ?? "");
   const [low, setLow] = useState(current.entryCheckLow ?? "");
   const [high, setHigh] = useState(current.entryCheckHigh ?? "");
+  const [method, setMethod] = useState(current.methodCode ?? "");
+  const [idms, setIdms] = useState(current.idmsTraceable ?? false);
   const number = resultType === "number";
+  const creatinine = conceptId === "obs.creatinine";
   const save = () =>
     act(
       () =>
@@ -57,6 +66,9 @@ export function MeasureForm({
           loincCode: loinc.trim() || null,
           entryCheckLow: number && low.trim() ? low.trim() : null,
           entryCheckHigh: number && high.trim() ? high.trim() : null,
+          // With the register off the stored method rides through unchanged.
+          methodCode: methodRegister ? method || null : current.methodCode,
+          idmsTraceable: methodRegister ? (creatinine ? idms : null) : current.idmsTraceable,
         }),
       current.version
         ? `Saved as version ${current.version + 1}. Results already entered keep version ${current.version}.`
@@ -120,6 +132,40 @@ export function MeasureForm({
           className="min-h-11 w-40 font-mono sm:min-h-9"
         />
       </Field>
+      {methodRegister ? (
+        <div className="flex flex-col gap-2">
+          <Field label="Method">
+            <select
+              name="methodCode"
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              className={`${selectClass} w-fit`}
+            >
+              <option value="">None</option>
+              {Object.entries(METHOD_WORDS).map(([code, words]) => (
+                <option key={code} value={code}>
+                  {words}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <p className="text-body-s text-muted-foreground">
+            A method change is a new version: results keep the method they were entered with.
+          </p>
+          {creatinine ? (
+            <label className="text-body-s flex min-h-11 items-center gap-2 sm:min-h-9">
+              <input
+                type="checkbox"
+                name="idmsTraceable"
+                checked={idms}
+                onChange={(e) => setIdms(e.target.checked)}
+                className="size-4 accent-teal-600"
+              />
+              Traceable to IDMS
+            </label>
+          ) : null}
+        </div>
+      ) : null}
       {number ? (
         <fieldset className="flex flex-col gap-2">
           <legend className="text-body-s text-muted-foreground">

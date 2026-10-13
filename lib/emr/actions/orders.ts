@@ -52,10 +52,42 @@ const CollectSpecimen = z.object({
   specimenType: z.enum(specimens.SPECIMEN_TYPES).optional(),
   container: z.enum(specimens.CONTAINERS).optional(),
   labelNo: z.string().trim().max(60).optional(),
+  labelMethod: z.enum(["scan", "typed"]).optional(),
+  wristbandChecked: z.boolean().optional(),
+  paymentReason: z.string().trim().min(3).max(200).optional(),
+  clientKey,
+});
+
+const CheckLabel = z.object({
+  ...base,
+  orderId: uuid,
+  labelNo: z.string().trim().min(1, "Scan or type the label.").max(60),
+  method: z.enum(["scan", "typed"]),
+  wristbandChecked: z.boolean(),
+  clientKey,
+});
+const VoidLabel = z.object({
+  ...base,
+  orderId: uuid,
+  reason: z.string().trim().min(3).max(200),
+  clientKey,
+});
+const HighRisk = z.object({
+  ...base,
+  encounterId: uuid,
+  kind: z.enum(["flag", "clear"]),
+  source: z.enum(["rule", "manual"]),
+  ruleId: z
+    .string()
+    .regex(/^FLAG-[A-Z0-9-]{3,56}$/)
+    .optional(),
+  reason: z.string().trim().min(3).max(300).optional(),
   clientKey,
 });
 
 const SpecimenAct = z.object({ ...base, specimenId: uuid, clientKey });
+// SR-3: a high-risk specimen is received only with "Procedure followed" ticked, by click as by scan.
+const ReceiveSpecimen = SpecimenAct.extend({ procedureFollowed: z.boolean().optional() });
 const RejectSpecimen = SpecimenAct.extend({ reasonCode: z.enum(specimens.REJECTION_REASONS) });
 
 export async function placeOrders(raw: unknown) {
@@ -71,9 +103,22 @@ export async function collectSpecimen(raw: unknown) {
 }
 
 export async function receiveSpecimen(raw: unknown) {
-  return runEmrWrite(SpecimenAct, raw, specimens.receiveSpecimen);
+  return runEmrWrite(ReceiveSpecimen, raw, specimens.receiveSpecimen);
 }
 
 export async function rejectSpecimen(raw: unknown) {
   return runEmrWrite(RejectSpecimen, raw, specimens.rejectSpecimen);
+}
+
+/* Lab Phase 2 (§8 "Collection"): the label check, void and reprint, the high-risk flag. */
+export async function checkLabel(raw: unknown) {
+  return runEmrWrite(CheckLabel, raw, specimens.checkSpecimenLabel);
+}
+
+export async function voidAndReprintLabel(raw: unknown) {
+  return runEmrWrite(VoidLabel, raw, specimens.voidAndReprintLabel);
+}
+
+export async function setHighRisk(raw: unknown) {
+  return runEmrWrite(HighRisk, raw, specimens.setSpecimenHighRisk);
 }

@@ -83,6 +83,8 @@ export interface ChartResultInput {
   /** detectCritical over its values: signed entries only, so false until one is signed. */
   critical: boolean;
   sensitivity: Sensitivity;
+  /** Lab Phase 2 (§5.8): measured at the bedside. */
+  bedside?: boolean;
 }
 export type ChartNoteInput = Pick<
   ClinicalNote,
@@ -196,6 +198,8 @@ export interface TimelineItem extends Item {
   detail: string;
   /** Entered in error: shown struck through, the reason in `detail`. */
   struck?: boolean;
+  /** Lab Phase 2 (§5.8): a bedside result carries its tag. */
+  bedside?: boolean;
 }
 /** A voided fact, kept visible in its section's history (Law 4): struck, with its reason. */
 export interface EnteredInErrorItem extends Item {
@@ -833,6 +837,7 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
       at: iso(r.issuedAt),
       title: r.display,
       detail: r.ack.kind === "acknowledged" ? "Acknowledged" : humanise(r.ack.kind),
+      ...(r.bedside ? { bedside: true } : {}),
     })),
     ...orders.map((o) => {
       const item = orderItem(o);

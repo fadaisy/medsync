@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { testsWithoutUnit } from "@/lib/lab/criticals/readiness";
-import { labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { labCatalogueV2LiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { loadMeasuresSetup } from "@/lib/lab/measures-setup";
 import { MeasureForm } from "./_components/measure-form";
 
@@ -80,8 +80,11 @@ export default async function CatalogueSetupPage({
             entryCheckLow: editing.measure?.entryCheckLow ?? null,
             entryCheckHigh: editing.measure?.entryCheckHigh ?? null,
             version: editing.measure?.version ?? null,
+            methodCode: editing.measure?.methodCode ?? null,
+            idmsTraceable: editing.measure?.idmsTraceable ?? null,
           }}
           units={s.units.map((u) => ({ code: u.code, display: u.display, words: u.words }))}
+          methodRegister={labCatalogueV2LiveFor(scope.hospitalId)}
         />
       ) : null}
       <div className="border-border bg-card overflow-auto rounded-lg border">

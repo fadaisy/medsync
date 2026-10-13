@@ -22,6 +22,8 @@ import { loadMonitoring } from "@/lib/emr/read/monitoring";
 import { loadPlanFacts } from "@/lib/emr/write/plan";
 import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/prescriptions";
 import { decrypt } from "@/lib/encryption";
+import { labOneMenuLiveFor } from "@/lib/lab/feature";
+import { menuToday } from "@/lib/lab/one-menu-read";
 import { drugById } from "@/lib/prescribing/formulary";
 import { willRead } from "@/lib/prescribing/plan-rx";
 
@@ -135,6 +137,21 @@ export async function loadPlanPayload(
         encounterId: input.encounterId,
       });
       const wards = await admittingWards(tx, actor.hospitalId);
+      // Lab Phase 2 (labOneMenu, §5.1): the Plan basket reads the same availability as the order sheet.
+      const today = labOneMenuLiveFor(actor.hospitalId)
+        ? await menuToday(tx, actor.hospitalId, input.now)
+        : null;
+      const labToday = today
+        ? Object.fromEntries(
+            Object.keys(TEST_UUIDS).map((code) => {
+              const d = today(code);
+              return [
+                code,
+                { words: d.words, orderable: d.orderable, linked: d.state !== "not_linked" },
+              ];
+            }),
+          )
+        : undefined;
       const ctx = { tx, actor, now: input.now } as Parameters<typeof prescribeRequirement>[0];
       const cosign = {
         routine: await prescribeRequirement(ctx, false),
@@ -161,6 +178,7 @@ export async function loadPlanPayload(
         wards: wards.map((w) => ({ id: w.id, name: w.name, counts: countsWords(w.counts) })),
         cosign,
         reasons,
+        labToday,
       };
     },
     input.database,
@@ -232,6 +250,7 @@ export async function loadPlanPayload(
 
   return {
     prescribing: emrPrescribingLive(actor.hospitalId),
+    labToday: owner.labToday,
     record: {
       orders: reader.orders.map((o) => ({
         id: o.id,

@@ -70,6 +70,7 @@ export function derivePlan(i: {
     names: i.dx?.tests ?? {},
     uuids: i.dx?.testIds ?? {},
     specimens: i.dx?.specimens,
+    today: payload.labToday,
   });
   const record = payload.record;
   const news2 = news2Now(i.news2);

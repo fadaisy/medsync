@@ -13,14 +13,17 @@ import type {
   UncataloguedLine,
 } from "@/components/emr/results/model";
 import type { EmrActor } from "@/lib/emr/actor";
-import type { EmrDb } from "@/lib/emr/db";
+import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { ReportStatus } from "@/lib/emr/results";
+import type { Interpretation } from "@/lib/lab/interpretation";
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { ageSexWords } from "@/components/emr/orders/model";
+import { LAB2 } from "@/content/lab-phase-2";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
-import { diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
+import { devices, diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
+import { poctLots } from "@/db/schema/lab-catalogue";
 import { downtimeEntries, labResultSnapshots } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
@@ -39,7 +42,14 @@ import { ORDERING_CADRES } from "@/lib/emr/write/orders";
 import { UNCATALOGUED } from "@/lib/emr/write/results";
 import { decrypt } from "@/lib/encryption";
 import { conceptDef } from "@/lib/facts/project/shared";
-import { labDowntimeLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
+import { ABNORMAL_ANSWERS, componentsFor } from "@/lib/lab/catalogue-v2";
+import {
+  labBedsideLiveFor,
+  labCatalogueV2LiveFor,
+  labDowntimeLiveFor,
+  labUnitsRangesLiveFor,
+} from "@/lib/lab/feature";
+import { ANALYSER_MODELS } from "@/lib/lab/profiles";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 
 /**
@@ -233,48 +243,96 @@ export function linesFromValues(values: readonly ObsRow[]): {
 export function reviewValues(
   values: readonly ObsRow[],
   /** Lab Phase 1, with LAB_UNITS_RANGES on: each value's snapshot (lib/lab/units.ts). */
-  snapshots?: ReadonlyMap<string, { flagChangeReason: string | null }>,
+  snapshots?: ReadonlyMap<
+    string,
+    { flagChangeReason: string | null; interpretation?: unknown; labOnly?: boolean }
+  >,
+  /** Lab Phase 2 (CC-10): mark a coded answer the signed set calls abnormal. Never a critical flag. */
+  abnormalAnswers = false,
 ): ReviewValue[] {
-  return values.map((v): ReviewValue => {
-    const uncatalogued = v.conceptId === UNCATALOGUED;
-    const i = interpretResult(v, { uncatalogued });
-    if (uncatalogued) {
-      const t = asTyped(v);
+  // Lab Phase 2 (AP-6, DP-2): a lab-only parameter never reaches a clinician's list.
+  return values
+    .filter((v) => !snapshots?.get(v.id)?.labOnly)
+    .map((v): ReviewValue => {
+      const uncatalogued = v.conceptId === UNCATALOGUED;
+      const i = interpretResult(v, { uncatalogued });
+      if (uncatalogued) {
+        const t = asTyped(v);
+        return {
+          key: v.id,
+          display: t.name,
+          valueText: t.value,
+          unit: t.unit,
+          flagText: i.flag.text,
+          critical: false,
+          uncatalogued: true,
+        };
+      }
+      const def = v.conceptId ? conceptDef(v.conceptId) : undefined;
       return {
         key: v.id,
-        display: t.name,
-        valueText: t.value,
-        unit: t.unit,
-        flagText: i.flag.text,
-        critical: false,
-        uncatalogued: true,
+        display: def?.display ?? v.conceptId ?? "Result",
+        valueText:
+          v.valueNum !== null
+            ? `${v.valueComparator ?? ""}${v.valueNum}`
+            : v.valueCode
+              ? humanise(v.valueCode)
+              : "",
+        unit: v.valueNum !== null ? v.valueUnit : null,
+        flagText:
+          abnormalAnswers &&
+          v.valueCode &&
+          v.conceptId &&
+          ABNORMAL_ANSWERS[v.conceptId]?.includes(v.valueCode)
+            ? "Abnormal"
+            : i.flag.text,
+        critical: i.critical.isCritical,
+        uncatalogued: false,
+        ...(snapshots && v.valueNum !== null
+          ? snapshots.has(v.id)
+            ? {
+                labNote: snapshots.get(v.id)!.flagChangeReason
+                  ? `Flag changed by the lab: ${snapshots.get(v.id)!.flagChangeReason}`
+                  : null,
+                ...interpretationWords(v.conceptId, snapshots.get(v.id)!.interpretation),
+              }
+            : { asTyped: true }
+          : {}),
       };
-    }
-    const def = v.conceptId ? conceptDef(v.conceptId) : undefined;
-    return {
-      key: v.id,
-      display: def?.display ?? v.conceptId ?? "Result",
-      valueText:
-        v.valueNum !== null
-          ? `${v.valueComparator ?? ""}${v.valueNum}`
-          : v.valueCode
-            ? humanise(v.valueCode)
-            : "",
-      unit: v.valueNum !== null ? v.valueUnit : null,
-      flagText: i.flag.text,
-      critical: i.critical.isCritical,
-      uncatalogued: false,
-      ...(snapshots && v.valueNum !== null
-        ? snapshots.has(v.id)
-          ? {
-              labNote: snapshots.get(v.id)!.flagChangeReason
-                ? `Flag changed by the lab: ${snapshots.get(v.id)!.flagChangeReason}`
-                : null,
-            }
-          : { asTyped: true }
-        : {}),
-    };
-  });
+    });
+}
+
+/**
+ * Lab Phase 2 (§5.8, DP-1, EG-5, LD-05): a scheme's category in words beside the value, the line saying what
+ * flagged it, the notes (pregnancy not recorded, altitude not adjusted, the fallback), the eGFR caveat, and
+ * why no eGFR was reported. Only what the snapshot holds: a later set-up change never alters it (DS-9).
+ */
+function interpretationWords(
+  conceptId: string | null,
+  raw: unknown,
+): Partial<Pick<ReviewValue, "flagText" | "basis" | "notes">> {
+  const t = raw as (Interpretation & { egfr?: string }) | null | undefined;
+  if (!t && conceptId !== "obs.egfr") return {};
+  const notes: string[] = [];
+  if (t?.notes?.includes("pregnancy_not_recorded")) notes.push(LAB2.basis.pregnancyNotRecorded);
+  if (t?.notes?.includes("altitude_not_adjusted")) notes.push(LAB2.basis.altitudeNotAdjusted);
+  if (t?.fallback) notes.push(LAB2.basis.fallback(t.fallback.replaceAll("_", " ")));
+  if (conceptId === "obs.egfr") notes.push(LAB2.egfr.caveat);
+  if (t?.egfr) notes.push(LAB2.egfr.notReported(t.egfr.replaceAll("_", " ")));
+  const c = t?.basis === "scheme" ? t.category : null;
+  const band = t?.reference
+    ? `${t.reference.low ?? ""} – ${t.reference.high ?? ""}`.trim()
+    : "none";
+  return {
+    ...(c
+      ? {
+          flagText: `${c.direction === "low" ? "↓ " : c.direction === "high" ? "↑ " : ""}${c.label}`,
+        }
+      : {}),
+    basis:
+      c && t?.scheme ? `Flagged against ${t.scheme.label} (${t.scheme.source}). ${band}` : null,
+    notes,
+  };
 }
 
 const RELEASED = ["final", "amended", "corrected"];
@@ -351,7 +409,24 @@ export async function loadResultEntry(
     requisitionNo: order.requisitionNo,
     priority: order.priority,
     mode: opts.mode,
-    components: entryComponents(test ?? null),
+    ...(await (async () => {
+      // Lab Phase 2: the v2 components, or the pinned profile's rows (AP-5, AP-6); else Phase 1's.
+      const v2 = test
+        ? await componentsFor(conn as unknown as EmrTx, actor.hospitalId, test, order.id)
+        : null;
+      const list = entryComponents(
+        test && v2 ? { ...test, components: v2.components } : (test ?? null),
+      );
+      return {
+        components: list.map((c) => (v2?.labOnly.has(c.conceptId) ? { ...c, labOnly: true } : c)),
+        profile: v2?.profile
+          ? {
+              model: ANALYSER_MODELS[v2.profile.model]?.display ?? v2.profile.model,
+              labOnly: v2.labOnly.size,
+            }
+          : null,
+      };
+    })()),
     report: current
       ? {
           id: current.id,
@@ -504,6 +579,8 @@ export async function loadResultsToReview(
               .select({
                 id: labResultSnapshots.observationId,
                 flagChangeReason: labResultSnapshots.flagChangeReason,
+                interpretation: labResultSnapshots.interpretation,
+                labOnly: labResultSnapshots.labOnly,
               })
               .from(labResultSnapshots)
               .where(
@@ -532,6 +609,30 @@ export async function loadResultsToReview(
         ).map((d) => [d.reportId, d]),
       )
     : null;
+  // Lab Phase 2 (§5.8): bedside reports carry their device, lot and operator (the columns come with 0110).
+  const bedside = labBedsideLiveFor(actor.hospitalId)
+    ? new Map(
+        (
+          await conn
+            .select({
+              id: r.id,
+              device: devices.model,
+              lot: poctLots.lot,
+              operator: users.fullName,
+            })
+            .from(r)
+            .innerJoin(devices, eq(devices.id, r.deviceId))
+            .innerJoin(poctLots, eq(poctLots.id, r.lotId))
+            .leftJoin(users, eq(users.id, r.enteredByUserId))
+            .where(
+              inArray(
+                r.id,
+                rows.map((x) => x.id),
+              ),
+            )
+        ).map((b) => [b.id, b]),
+      )
+    : null;
   const hhmm = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -549,9 +650,23 @@ export async function loadResultsToReview(
     const vals = reviewValues(
       values.filter((v) => v.reportId === x.id),
       snapshots ?? undefined,
+      labCatalogueV2LiveFor(actor.hospitalId),
     );
     const critical = x.critical || vals.some((v) => v.critical);
+    const bs = shown ? bedside?.get(x.id) : undefined;
     items.push({
+      ...(bs
+        ? {
+            bedside: {
+              device: bs.device,
+              lot: bs.lot,
+              operator: bs.operator ?? "Name withheld",
+              glucose: values.some(
+                (v) => v.reportId === x.id && !!v.conceptId?.startsWith("obs.glucose"),
+              ),
+            },
+          }
+        : {}),
       ...(form
         ? {
             downtimeTag: `Entered after downtime · Resulted ${hhmm.format(form.resultedAt)} · entered ${hhmm.format(form.enteredAt)} · paper form DT-${String(form.formNumber).padStart(5, "0")}`,

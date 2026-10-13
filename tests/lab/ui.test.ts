@@ -13,6 +13,13 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/lab",
 }));
 vi.mock("@/lib/emr/actions/orders", () => ({ receiveSpecimen: async () => ({ ok: true }) }));
+// Lab Phase 2 bench: the live line opens a Supabase channel and the actions are server-only.
+vi.mock("@/components/lab/lab-live", () => ({ LabLive: () => null }));
+vi.mock("@/lib/lab/bench-actions", () => ({
+  receiveByLabelAction: async () => ({ ok: true }),
+  undoReceiveAction: async () => ({ ok: true }),
+  findSpecimenAction: async () => ({ ok: true, data: [] }),
+}));
 
 const { WorklistScreen } = await import("@/app/lab/_components/worklist-screen");
 const { TurnaroundCell, ReleasedTurnaroundCell } =
@@ -83,6 +90,7 @@ const payload = (o: Partial<WorklistPayload> = {}): WorklistPayload => {
       ]),
     ),
     restricted: [],
+    highRisk: [],
     sections: [{ id: CHEM, name: "Clinical chemistry" }],
     viewer: { hospitalId: "h1", permissions: [...LAB_PERMISSIONS], sectionIds: [CHEM] },
     serverNowIso: NOW,
@@ -105,6 +113,25 @@ describe("the worklist screen", () => {
     expect(html).toMatch(/aria-label="No section, 2"/);
     expect(html).toContain("3 of 5 specimens, in Clinical chemistry.");
     expect(html).toContain("The clock starts when the lab receives the specimen.");
+  });
+
+  it("§5.5: a flagged row carries the amber High-risk specimen tag in words; others none", () => {
+    const p = payload({ initial: { section: "all", stage: null, dept: null, sort: null } });
+    expect(render(p)).not.toContain("High-risk specimen");
+    const html = render({ ...p, highRisk: [p.inputs[0]!.orderId] });
+    expect(html).toMatch(/data-tone="caution"[^>]*>(<svg[\s\S]*?<\/svg>)?High-risk specimen/);
+  });
+
+  it("§5.5 labBench: the scan field and Find appear, and each row carries its clinical question", () => {
+    const p = payload({ initial: { section: "all", stage: null, dept: null, sort: null } });
+    const off = render(p);
+    expect(off).not.toContain("Scan a label to receive");
+    expect(off).not.toContain("Clinical question");
+    const html = render({ ...p, bench: { questions: { [p.inputs[0]!.orderId]: "Query DKA" } } });
+    expect(html).toMatch(/<label for="[^"]+-scan"[^>]*>Scan a label to receive<\/label>/);
+    expect(html).toContain("Find a specimen");
+    expect(html).toContain("Clinical question: Query DKA");
+    expect(html).toMatch(/role="alert"/);
   });
 
   it("shows the Late chip in words, targets from data, and 'no target set' without colour (§5.4)", () => {

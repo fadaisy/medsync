@@ -12,7 +12,8 @@ export type ReceptionIconKey =
   | "intake"
   | "book"
   | "find"
-  | "flow";
+  | "flow"
+  | "labPayments";
 
 export type ReceptionFeatureSlug =
   | ""
@@ -21,7 +22,8 @@ export type ReceptionFeatureSlug =
   | "intake"
   | "book"
   | "find"
-  | "flow";
+  | "flow"
+  | "lab-payments";
 
 export interface ReceptionFeatureArea {
   slug: ReceptionFeatureSlug;
@@ -79,6 +81,14 @@ export const RECEPTION_FEATURE_AREAS: ReadonlyArray<ReceptionFeatureArea> = [
     label: "Flow",
     hint: "Operational status board — who's where today",
     iconKey: "flow",
+    placeholder: false,
+  },
+  {
+    // Lab Phase 2 §5.3: shown only where labPayment is on (the shell filters it).
+    slug: "lab-payments",
+    label: "Lab payments",
+    hint: "Lab orders awaiting payment — record paid, insured or waived",
+    iconKey: "labPayments",
     placeholder: false,
   },
 ];

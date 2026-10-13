@@ -7,6 +7,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { signConfigAsCsoAction } from "@/lib/lab/catalogue-v2-actions";
 import { signResponseAsCsoAction } from "@/lib/lab/criticals/setup-actions";
 import { signLimitsAsCsoAction, signRangeAsCsoAction } from "@/lib/lab/measures-actions";
 
@@ -17,10 +18,11 @@ export function CsoSign({
   sameAsLead,
   kind = "response",
 }: {
-  hospitalId: string;
+  /** null only for a global catalogue v2 entry (REF, the addendum). */
+  hospitalId: string | null;
   versionId: string;
   sameAsLead: boolean;
-  kind?: "response" | "range" | "limits";
+  kind?: "response" | "range" | "limits" | "config";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -31,21 +33,29 @@ export function CsoSign({
     start(async () => {
       const input = { hospitalId, versionId, exceptionNote: note.trim() || null };
       const r =
-        kind === "range"
-          ? await signRangeAsCsoAction(input)
-          : kind === "limits"
-            ? await signLimitsAsCsoAction(input)
-            : await signResponseAsCsoAction(input);
+        kind === "config"
+          ? await signConfigAsCsoAction({
+              configId: versionId,
+              hospitalId,
+              exceptionNote: input.exceptionNote,
+            })
+          : kind === "range"
+            ? await signRangeAsCsoAction(input)
+            : kind === "limits"
+              ? await signLimitsAsCsoAction(input)
+              : await signResponseAsCsoAction(input);
       if (needsFreshFactor(r)) return setFresh(true);
       if (!r.ok) return setSaid({ ok: false, text: r.error });
       setSaid({
         ok: true,
         text:
-          kind === "range"
-            ? "Signed. This range is now in force."
-            : kind === "limits"
-              ? "Signed. MedSync now flags against these limits."
-              : "Signed. These response times are now in force.",
+          kind === "config"
+            ? "Signed. This configuration is now in force."
+            : kind === "range"
+              ? "Signed. This range is now in force."
+              : kind === "limits"
+                ? "Signed. MedSync now flags against these limits."
+                : "Signed. These response times are now in force.",
       });
       router.refresh();
     });

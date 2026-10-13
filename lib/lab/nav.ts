@@ -19,7 +19,12 @@ export type LabNavId =
   | "rejected"
   | "setup_catalogue"
   | "setup_ranges"
-  | "setup_criticals";
+  | "setup_criticals"
+  | "setup_profiles"
+  | "setup_drafts"
+  | "setup_settings"
+  | "to_refer"
+  | "setup_menu";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -29,6 +34,12 @@ export interface LabNavFlags {
   criticalsSetup?: boolean;
   unitsRanges?: boolean;
   downtime?: boolean;
+  /** Lab Phase 2 (§5.15): labCatalogueV2. */
+  catalogueV2?: boolean;
+  /** Lab Phase 2 (§5.15): labOneMenu. */
+  oneMenu?: boolean;
+  /** Lab Phase 2 (§5.14): any flag with a lab setting (catalogue v2, payment, high-risk, bedside). */
+  settings?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -106,11 +117,62 @@ export const LAB_NAV: readonly LabNavItem[] = [
     group: "setup",
     visibleFor: (p, f) => (f.criticalsSetup ?? f.criticals) && p.has("lab.manage"),
   },
+  // Lab Phase 2 (§5.15): To refer and the test menu (labOneMenu); set-up for catalogue v2.
+  {
+    id: "to_refer",
+    label: "To refer",
+    href: "/lab/refer",
+    order: 2.5,
+    exact: false,
+    visibleFor: (p, f) => !!f.oneMenu && p.has("lab.view"),
+  },
+  {
+    id: "setup_menu",
+    label: "Test menu",
+    href: "/lab/setup/menu",
+    order: 7.5,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.oneMenu && p.has("lab.manage"),
+  },
+  {
+    id: "setup_profiles",
+    label: "Analyser profiles",
+    href: "/lab/setup/profiles",
+    order: 8.5,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.catalogueV2 && p.has("lab.manage"),
+  },
+  {
+    id: "setup_drafts",
+    label: "Research drafts",
+    href: "/lab/setup/drafts",
+    order: 10.5,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.catalogueV2 && p.has("lab.manage"),
+  },
+  {
+    id: "setup_settings",
+    label: "Lab settings",
+    href: "/lab/setup/settings",
+    order: 11,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!(f.settings ?? f.catalogueV2) && p.has("lab.manage"),
+  },
 ];
+
+/** §5.15: with catalogue v2 on, Reference ranges becomes Ranges and cut-offs. */
+const V2_LABELS: Partial<Record<LabNavId, string>> = { setup_ranges: "Ranges and cut-offs" };
 
 export function navFor(
   permissions: ReadonlySet<LabPermission>,
   flags: LabNavFlags = { criticals: false },
 ): LabNavItem[] {
-  return navItemsFor(LAB_NAV, permissions, flags);
+  const items = navItemsFor(LAB_NAV, permissions, flags);
+  return flags.catalogueV2
+    ? items.map((i) => ({ ...i, label: V2_LABELS[i.id] ?? i.label }))
+    : items;
 }

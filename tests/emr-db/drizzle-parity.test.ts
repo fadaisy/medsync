@@ -176,8 +176,8 @@ describe.skipIf(!laneOn)("0072, 0085 and 0086 seeds on the 0071 registries", () 
     const before = await counts(lane);
     // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, seeded uncoded: D-SI-26), of which 0086
     // codes the 177 the CSO signed and leaves the 10 held terms "As typed, not coded"; plus 0092's 8
-    // (CFC v1.5, uncoded); plus 0095's 12 (REF-DX-TERMS v1.2, coded).
-    expect(before).toMatchObject({ test_catalogue: 35 + 9, diagnosis_terms: 85 + 187 + 8 + 12 });
+    // (CFC v1.5, uncoded); plus 0095's 12 (REF-DX-TERMS v1.2, coded). Tests: 0108 adds 4 (CFC v1.6, inactive).
+    expect(before).toMatchObject({ test_catalogue: 35 + 9 + 4, diagnosis_terms: 85 + 187 + 8 + 12 });
     const coding = async () =>
       (
         await lane.pg.query<{ id: string; icd11_code: string | null; verified_on: string | null }>(

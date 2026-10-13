@@ -7,6 +7,7 @@ import type {
   ReasonOption,
 } from "./model";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { CheckIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,11 +17,11 @@ import { RestrictedMark } from "../chips";
 import { StatusWord } from "../status-word";
 import { ChoiceChips, PRESS } from "./choice-chips";
 import {
-  availabilityWords,
   containerWords,
   draftReady,
   lineIssue,
   menuSections,
+  menuWords,
   PRIORITIES,
   specimenWords,
 } from "./model";
@@ -187,6 +188,19 @@ function TestToggle({
   compact?: boolean;
 }) {
   const panel = test.components.length > 1;
+  // OM-4, S20: a test the hub does not offer here has no Add; it says so instead.
+  if (test.today && !test.today.orderable)
+    return (
+      <span
+        className={cn(
+          "text-body-s inline-flex min-h-11 items-center gap-2 border border-dashed text-left sm:min-h-8",
+          compact ? "rounded-full px-3" : "w-full rounded-md px-3 py-1.5",
+        )}
+      >
+        <span className="text-muted-foreground">{test.display}</span>
+        <span className="text-caption text-muted-foreground">{test.today.words}</span>
+      </span>
+    );
   return (
     <button
       type="button"
@@ -208,6 +222,18 @@ function TestToggle({
           Panel of {test.components.length}
         </span>
       ) : null}
+      {!compact && test.today?.words ? (
+        <span
+          className={cn(
+            "text-caption",
+            test.today.state === "in_house"
+              ? "text-muted-foreground"
+              : "dark:text-status-caution-fg text-amber-800",
+          )}
+        >
+          {test.today.words}
+        </span>
+      ) : null}
       {test.restricted ? <RestrictedMark /> : null}
     </button>
   );
@@ -227,7 +253,7 @@ function OrderLine({
   reasons: readonly ReasonOption[];
 } & OrderSheetHandlers) {
   const issue = lineIssue(line);
-  const where = availabilityWords(test.availability);
+  const where = menuWords(test);
   const specimen = [specimenWords(test.specimenType), containerWords(test.container)].filter(
     Boolean,
   );
@@ -249,6 +275,17 @@ function OrderLine({
           Remove {test.display}
         </Button>
       </div>
+      {test.bedside ? (
+        <p className="text-body-s text-muted-foreground">
+          {test.bedside.href ? (
+            <Link href={test.bedside.href} className="underline underline-offset-2">
+              {test.bedside.words}
+            </Link>
+          ) : (
+            test.bedside.words
+          )}
+        </p>
+      ) : null}
       {test.components.length > 1 ? (
         <p className="text-body-s text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
           <span>Includes</span>

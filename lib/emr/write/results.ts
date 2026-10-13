@@ -30,7 +30,10 @@ import {
 } from "@/lib/emr/results";
 import { encrypt } from "@/lib/encryption";
 import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/shared";
+import { METER_RANGE, withHivOutcome } from "@/lib/lab/bedside";
+import { componentsFor, loadConfigs } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { inForce } from "@/lib/lab/signed-config";
 import { prepareFixedUnits } from "@/lib/lab/units";
 import { mismatchPrompt, parseComparator, toCanonical } from "@/lib/units";
 import { EmrWriteError, stampActivity } from "./context";
@@ -85,6 +88,8 @@ export interface ResultValueInput {
   entryCheckConfirmed?: boolean;
   /** Lab Phase 1 (FL-3): the computed flag changed by the lab, with the reason. */
   flagChange?: { flag: "low" | "high" | "normal"; reason: string };
+  /** Lab Phase 2: kept with the value (AL-3 kit and lot per assay; AL-4 the algorithm version). */
+  extraContext?: Record<string, unknown>;
   /** Set by lib/lab/units.ts only: a fixed catalogue unit, never converted (UN-4, D-LAB1-26). */
   noConversion?: boolean;
 }
@@ -163,6 +168,8 @@ interface VersionSpec {
   reasonText?: string;
   clientKey: string | null;
   criticalRefs: readonly CriticalRef[];
+  /** Lab Phase 2 (PC-1, PC-8): a bedside result's registered device and current lot. */
+  bedside?: { deviceId: string; lotId: string } | null;
 }
 
 function valueColumns(
@@ -203,6 +210,10 @@ function valueColumns(
     return { conceptId: v.conceptId, valueType: def.valueType, valueCode: code };
   }
   if (def.valueType !== "quantity") throw invalid(`${def.display} cannot be entered as a result.`);
+  // Lab Phase 2 (PC-6): a meter's HI or LO is an answer, never a number; it is stored as a code so no
+  // engine ever reads it as a value.
+  if (v.code && (METER_RANGE as readonly string[]).includes(v.code))
+    return { conceptId: v.conceptId, valueType: "coded", valueCode: v.code };
   const parsed = parseComparator(v.value ?? "");
   if ("error" in parsed)
     throw invalid(`${def.display}: enter a number (a comparator such as < is allowed).`);
@@ -253,6 +264,7 @@ function labContext(v: ResultValueInput, specimen: SpecimenRow | null): Record<s
   if (v.labInterpretation) c.labInterpretation = v.labInterpretation;
   if (specimen && specimen.container !== "unknown") c.container = specimen.container;
   if (specimen?.fastingHours != null) c.fastingHours = Number(specimen.fastingHours);
+  if (v.extraContext) Object.assign(c, v.extraContext);
   return c;
 }
 
@@ -266,17 +278,32 @@ async function writeReportVersion(
   if (kind !== "lab" && kind !== "imaging" && kind !== "ecg")
     throw invalid("Only laboratory, imaging and ECG orders carry a report.");
 
+  // Lab Phase 2 (labCatalogueV2 and the signed addendum): the v2 components, or the rows of the analyser
+  // profile pinned at receipt (AP-5). Otherwise the test's own list, exactly as before (S18).
+  const v2 =
+    kind === "lab" && spec.test
+      ? await componentsFor(tx, actor.hospitalId, spec.test, order.id)
+      : null;
+  const test = v2 && spec.test ? { ...spec.test, components: v2.components } : spec.test;
+  // AL-2..AL-4: with v2 on, the HIV outcome is derived from the kit results by the signed algorithm version.
+  if (v2?.active && test?.components.includes("obs.hiv_algorithm_outcome")) {
+    const algo = inForce(await loadConfigs(tx, actor.hospitalId), "hiv_algorithm", "serial", now);
+    spec = { ...spec, values: withHivOutcome(spec.values, algo) };
+  }
+
   // Lab Phase 1 Step 5: fixed units, signed ranges and snapshots for a laboratory's own entry.
   const fixed =
     kind === "lab" &&
-    entry.source === "lab" &&
-    entry.entryMode === "direct" &&
+    ((entry.source === "lab" && entry.entryMode === "direct") || !!spec.bedside) &&
     (await unitsRangesLive(actor.hospitalId))
       ? await prepareFixedUnits(ctx, {
           patientUserId: spec.patientUserId,
           testId: order.testId,
           values: spec.values,
           collectedAt: specimen?.collectedAt ?? prior?.effectiveAt ?? now,
+          v2: v2?.active
+            ? { ...v2, status, method: spec.bedside ? ("bedside" as const) : ("lab" as const) }
+            : null,
         })
       : null;
   const values = fixed?.values ?? spec.values;
@@ -327,7 +354,7 @@ async function writeReportVersion(
   const used = new Set<string>();
   const seen = new Set<string>();
   for (const v of values) {
-    const cols = valueColumns(v, spec.test);
+    const cols = valueColumns(v, test);
     if (cols.conceptId !== UNCATALOGUED) {
       if (seen.has(v.conceptId)) throw invalid(`${v.conceptId} is entered twice.`);
       seen.add(v.conceptId);
@@ -438,6 +465,8 @@ async function writeReportVersion(
       : (prior?.conclusionCiphertext ?? null),
     critical,
     uncatalogued: rows.some((r) => r.conceptId === UNCATALOGUED),
+    deviceId: spec.bedside?.deviceId ?? null,
+    lotId: spec.bedside?.lotId ?? null,
   });
   if (rows.length) await tx.insert(clinicalObservations).values(rows);
   await fixed?.snapshot(
@@ -465,6 +494,8 @@ export interface EnterResultsInput {
   conclusionText?: string;
   performerLabName?: string;
   clientKey: string;
+  /** Lab Phase 2 (labBedside): recorded at the bedside on a registered device and lot (PC-*). */
+  bedside?: { deviceId: string; lotId: string };
 }
 
 export type ReportResult = WriteResult & { critical?: boolean };
@@ -479,14 +510,17 @@ export async function enterResults(
   criticalRefs: readonly CriticalRef[] = CRITICAL_REFS,
 ): Promise<ReportResult> {
   requireLabPermission(ctx, "lab.result.enter", "enter results");
-  const entry = entryFor(ctx);
+  // A bedside result is entered directly by its operator, whatever their cadre (PC-1).
+  const entry: Entry = input.bedside
+    ? { entryMode: "direct", source: "poc_staff", poc: true }
+    : entryFor(ctx);
   const replay = await replayed(ctx.tx, diagnosticReports, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const order = await loadOrder(ctx, input.patientUserId, input.orderId);
   const test = await loadTest(ctx.tx, order.testId);
   // ponytail: "point of care" = a bedside test (capillary_direct container); a POC flag on the
   // test menu replaces this when the hub's offerings carry one.
-  if (entry.poc && test?.container !== "capillary_direct")
+  if (entry.poc && !input.bedside && test?.container !== "capillary_direct")
     throw new EmrWriteError("forbidden", "Nurses enter point-of-care (bedside) results only.");
 
   const status = await orderStatus(ctx.tx, order);
@@ -539,6 +573,7 @@ export async function enterResults(
     performerLabName: input.performerLabName,
     clientKey: input.clientKey,
     criticalRefs,
+    bedside: input.bedside ?? null,
   });
   await stampActivity(ctx, order.encounterId);
   return { id: r.id, critical: r.critical, warnings: r.critical ? [CRITICAL_WARNING] : [] };
