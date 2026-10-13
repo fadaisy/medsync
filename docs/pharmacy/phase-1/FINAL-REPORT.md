@@ -109,8 +109,7 @@ do not exist yet: nothing is applied or live.
    https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4). Still open: a message name per hospital.
 5. **The national medicines list (EMHSLU 2023): received** and committed as data (ADR 0282). After migration 0136,
    load it with `scripts/pharmacy/load-national-list.ts`, then confirm links and check the 26 flagged rows at
-   `/admin/pharmacy-catalogue`. Sign the Stock search page's wording (`NATIONAL_LIST_COPY`) before it shows in
-   production.
+   `/admin/pharmacy-catalogue`. The Stock search page's wording was signed on 13 Oct 2026.
 6. **Owner SQL A–D:** returned on 13 Oct 2026. Production has no prescriptions yet, so the lane counts are deferred
    until it does, and are checked before any point goes live.
 7. **Optional:** run the race test against the dev database (`MEDSYNC_ALLOW_RLS_DB_WRITES=1`, a dev `DATABASE_URL`).

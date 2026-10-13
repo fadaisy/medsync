@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PHARMACY_PHASE1_COPY_STATUS } from "@/content/pharmacy";
+import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
 import {
   dispensingMap,
   mapV2Problems,
@@ -13,6 +14,7 @@ import {
 import {
   pharmacyDispensingLiveFor,
   pharmacyDowntimeLiveFor,
+  pharmacyNationalListLiveFor,
   pharmacyPatientListLiveFor,
   pharmacyStockAnswerLiveFor,
 } from "@/lib/pharmacy/feature";
@@ -109,6 +111,27 @@ describe("the four Phase 1 flags (Law 15, RD-4)", () => {
     vi.stubEnv(name, "1");
     vi.stubEnv("VERCEL_ENV", "production");
     expect(live(H)).toBe(true);
+  });
+});
+
+describe("the national list page's gate (ADR 0282)", () => {
+  const H = "11111111-1111-4111-8111-111111111111";
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("follows PHARMACY_DISPENSING, and in production needs its own wording signed", () => {
+    vi.stubEnv("PHARMACY_WORKSPACE", "1");
+    expect(pharmacyNationalListLiveFor(H)).toBe(false);
+    vi.stubEnv("PHARMACY_DISPENSING", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(NATIONAL_LIST_COPY).toMatchObject({ status: "signed", signedOn: "2026-10-13" });
+    expect(pharmacyNationalListLiveFor(H)).toBe(true);
+    const was = { ...NATIONAL_LIST_COPY };
+    Object.assign(NATIONAL_LIST_COPY, { status: "draft", signedBy: null, signedOn: null });
+    try {
+      expect(pharmacyNationalListLiveFor(H)).toBe(false);
+    } finally {
+      Object.assign(NATIONAL_LIST_COPY, was);
+    }
   });
 });
 

@@ -1016,3 +1016,5 @@ Commits `d7457597`, `3920e97b`, `68459bf8` and `74127538`.
   "the CSO confirms links once, nationally" and "load the uncertain rows as printed, flagged". ADR 0282 and
   migration 0136 add the loader, the CSO's console (`/admin/pharmacy-catalogue`) and the Stock search
   (`/pharmacy/stock/national-list`).
+- **National list page wording signed (13 Oct 2026):** the CSO signed its 24 strings as written. They match the
+  code, and `NATIONAL_LIST_COPY` is `signed`, so the page can show in production wherever dispensing is live.

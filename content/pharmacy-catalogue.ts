@@ -2,13 +2,15 @@ import type { SignedCopy } from "@/content/signed-copy";
 
 /**
  * The national list, searched from Stock (ADR 0282). Every visible string on /pharmacy/stock/national-list.
- * Draft: in production the page stays off until the CSO signs this set (CS-5). The VEN words are
- * STOCK.ven, signed with the Phase 1 wording.
+ * Signed by the CSO on 13 Oct 2026 through the sign-off portal
+ * (https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4), each string exactly as written here. Any change
+ * returns it to `draft`, and the page off in production (CS-5), until it is signed again. The VEN words
+ * are STOCK.ven, signed with the Phase 1 wording.
  */
 export const NATIONAL_LIST_COPY: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
 };
 
 export const NATIONAL_LIST = {
