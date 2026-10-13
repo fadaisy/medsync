@@ -986,3 +986,20 @@ Commits `d7457597`, `3920e97b`, `68459bf8` and `74127538`.
 - **Tests:** S84–S96 pass.
 
 **Final numbers and what remains: [FINAL-REPORT.md](FINAL-REPORT.md).**
+
+---
+
+### Owner's answers after STOP 9 (13 Oct 2026)
+
+- **Owner SQL A–D:** run on production on 13 Oct 2026. `public.prescriptions` holds **0 rows** (no first or last
+  `created_at`), and SQL D returned 0 patients and 0 phones without a blind index. A to C therefore have nothing to
+  count. Q7's lane counts are **deferred**: the lane-reasons pack is to be re-checked against real prescriptions
+  once the first hospital prescribes in production, before any point goes live. D-PH1-04 stands as approved.
+- **The pharmacist's co-signature (RD-1, owner's STOP 1 condition): replaced for now.** Until MedSync has a
+  pharmacist reviewer, the CSO (a superadmin) signs the clinical packs, the hazard log and the patient wording
+  alone, and each signed set records that as its exception in words (0122). The check stays in the code and is
+  switched off (`PHARMACIST_COSIGN.required`, `content/pharmacy-golive.ts`). It is to be reimplemented later. The
+  hazard log now needs the CSO's own signature (`HAZARD_LOG_SIGNATURE.csoSignedBy`) for condition 1 to be met.
+- **Phase 1 wording:** the sign-off portal is at https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4, with 1,134
+  strings in 116 blocks plus the message name per hospital. Signatures are written into the code when the owner
+  says they are done.

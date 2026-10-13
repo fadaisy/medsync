@@ -5,7 +5,7 @@ import type { ReadinessFacts, SignedSetKind } from "@/lib/pharmacy/readiness";
 import type { PharmacyPoint } from "@/lib/pharmacy/write";
 import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lte, ne, or } from "drizzle-orm";
 
-import { HAZARD_LOG_SIGNATURE } from "@/content/pharmacy-golive";
+import { HAZARD_LOG_SIGNATURE, PHARMACIST_COSIGN } from "@/content/pharmacy-golive";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { downtimeDrills } from "@/db/schema/lab-safety";
@@ -224,7 +224,9 @@ export async function goLiveFactsFor(
     })),
     supplyWithoutPharmacistOn: settings?.supplyWithoutPharmacist ?? false,
     usesPaymentStatus: settings?.paymentStatusRequired ?? false,
+    hazardLogSigned: HAZARD_LOG_SIGNATURE.csoSignedBy !== null,
     hazardLogPharmacistCoSigned: HAZARD_LOG_SIGNATURE.pharmacistCoSignedBy !== null,
+    pharmacistCoSignRequired: PHARMACIST_COSIGN.required,
     stockedMedicineIds: [...new Set(products.map((p) => p.medicineId))],
     controlledDecisionIds:
       controlled && typeof controlled === "object" ? Object.keys(controlled) : [],

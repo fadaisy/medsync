@@ -18,7 +18,9 @@ const ready = (): ReadinessFacts => ({
   signedSets: GO_LIVE_SETS.map((kind) => ({ kind, pharmacistCoSigned: true })),
   supplyWithoutPharmacistOn: false,
   usesPaymentStatus: false,
+  hazardLogSigned: true,
   hazardLogPharmacistCoSigned: true,
+  pharmacistCoSignRequired: true,
   stockedMedicineIds: ["fx-a", "fx-b"],
   controlledDecisionIds: ["fx-a", "fx-b"],
   legalAnswers: [1, 2, 3, 4, 5, 6].map((question) => ({
@@ -86,6 +88,11 @@ describe("RD-1: six conditions", () => {
     [
       "1: the hazard log without a pharmacist's co-signature",
       (f) => ({ ...f, hazardLogPharmacistCoSigned: false }),
+      1,
+    ],
+    [
+      "1: the hazard log not signed",
+      (f) => ({ ...f, hazardLogSigned: false, pharmacistCoSignRequired: false }),
       1,
     ],
     [
@@ -294,5 +301,18 @@ describe("CK-1, CK-2: the check state", () => {
 
   it("no point live: nothing recorded", () => {
     expect(pharmacyChecksState("h1", [{ id: "p1", live: false }]).dispensingRecorded).toBe(false);
+  });
+});
+
+describe("RD-1: the CSO signs alone while no pharmacist co-signs (owner, 13 Oct 2026)", () => {
+  it("meets condition 1 without any pharmacist co-signature", () => {
+    const f = ready();
+    const r = pharmacyReadiness({
+      ...f,
+      pharmacistCoSignRequired: false,
+      hazardLogPharmacistCoSigned: false,
+      signedSets: f.signedSets.map((s) => ({ ...s, pharmacistCoSigned: false })),
+    });
+    expect(r.conditions.find((c) => c.id === 1)?.met).toBe(true);
   });
 });

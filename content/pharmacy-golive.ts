@@ -6,11 +6,25 @@
  */
 
 /**
- * The hazard log is a document (docs/pharmacy/phase-1/hazard-log.md), not a database record. A
- * registered pharmacist's co-signature on it is recorded here when it is made, as signed copy is.
- * Until then RD-1 condition 1 is unmet at every point (the owner's condition, STOP 1).
+ * The owner's decision of 13 Oct 2026, replacing the STOP 1 condition for now: until MedSync has a
+ * pharmacist reviewer, the CSO (a superadmin) signs the clinical packs, the hazard log and the patient
+ * wording alone, and each signed set records that as its exception in words (0122).
+ * ponytail: the pharmacist's co-signature is switched off, not removed; set `required: true` when it
+ * is reimplemented.
  */
-export const HAZARD_LOG_SIGNATURE: { pharmacistCoSignedBy: string | null; on: string | null } = {
+export const PHARMACIST_COSIGN = { required: false, decidedOn: "2026-10-13" } as const;
+
+/**
+ * The hazard log is a document (docs/pharmacy/phase-1/hazard-log.md), not a database record. Its
+ * signatures are recorded here when they are made, as signed copy is. Until the CSO signs it, RD-1
+ * condition 1 is unmet at every point.
+ */
+export const HAZARD_LOG_SIGNATURE: {
+  csoSignedBy: string | null;
+  pharmacistCoSignedBy: string | null;
+  on: string | null;
+} = {
+  csoSignedBy: null,
   pharmacistCoSignedBy: null,
   on: null,
 };
@@ -39,7 +53,9 @@ export const GOLIVE = {
     lead: "This is not the hospital's first live point, so switching on also needs a note on how the first point's pilot went, written by someone other than the admin who asks.",
   },
   conditionHelp: {
-    1: "The signed sets are signed by the CSO and the pharmacist reviewer; the hazard log is co-signed by a registered pharmacist.",
+    1: PHARMACIST_COSIGN.required
+      ? "The signed sets are signed by the CSO and the pharmacist reviewer; the hazard log is co-signed by a registered pharmacist."
+      : "The signed sets and the hazard log are signed by the CSO.",
     3: "The pharmacy sets up the products and records an opening count on its Stock page.",
     4: "The pharmacy records a drill in Downtime entry.",
     6: "Name the in-charge as the head of this point (or of Pharmacy) in the Pharmacy panel.",

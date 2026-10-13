@@ -103,11 +103,13 @@ do not exist yet: nothing is applied or live.
 1. **Apply migrations 0122 → 0135 in order** (`npm run db:migrate`). Nothing reads them while the flags are off.
 2. **Legal questions 1–6:** interim written answers. No production point can go live without them; D-PH1-03, 05,
    13, 17, 26 and 28 stay provisional.
-3. **A registered pharmacist** co-signs the clinical packs and the hazard log before any production go-live.
-4. **Sign the Phase 1 wording:** about 140 draft strings in `content/pharmacy-*.ts`. The flags stay off in production
-   until then.
+3. **Sign the clinical packs and the hazard log as the CSO.** By the owner's decision of 13 Oct 2026 a pharmacist's
+   co-signature is not required for now (`PHARMACIST_COSIGN.required` is false); it is to be reimplemented later.
+4. **Sign the Phase 1 wording:** 1,134 draft strings in 116 blocks, through the sign-off portal
+   (https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4). The flags stay off in production until then.
 5. **The national medicines list (EMHSLU)** as CSV, for the import dry run.
-6. **The results of owner SQL A–D** from STOP 0. Query B's counts go into the lane-reasons pack.
+6. **Owner SQL A–D:** returned on 13 Oct 2026. Production has no prescriptions yet, so the lane counts are deferred
+   until it does, and are checked before any point goes live.
 7. **Optional:** run the race test against the dev database (`MEDSYNC_ALLOW_RLS_DB_WRITES=1`, a dev `DATABASE_URL`).
 8. **Push and merge** when ready. Three merges are planned: Steps 0–6, 7–8, then 9 (ADR 0277). Each leaves
    production unchanged while the flags are off.

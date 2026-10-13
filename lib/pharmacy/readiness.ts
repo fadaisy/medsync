@@ -6,8 +6,9 @@
  *   1. signed content in force: the permission map v2; every `pharmacy_signed_sets` kind RD-1 names (the
  *      lane rule, every reason and code list in Appendix D, the substitution rule, the label fields and
  *      wording, counselling points, staff-facing copy, the witness list); a controlled-class decision for
- *      every medicine the point stocks; and, by the owner's choice (12 Oct 2026), a registered pharmacist's
- *      co-signature on every clinical pack and on the hazard log. Applied everywhere, not only in
+ *      every medicine the point stocks; the hazard log signed; and, when `pharmacistCoSignRequired` (off
+ *      by the owner's decision of 13 Oct 2026), a registered pharmacist's co-signature on every clinical
+ *      pack and on the hazard log. Applied everywhere, not only in
  *      production: the test hospital goes live by fixture, never through this switch (Law 8, stricter path);
  *   2. an interim answer to legal questions 1 to 6, each with a document reference, who gave it and when;
  *   3. every active product at the point has an opening count (and there is at least one);
@@ -101,7 +102,10 @@ export interface ReadinessFacts {
   /** Only when D-PH1-05 / payment status are on for the hospital do their lists become required. */
   supplyWithoutPharmacistOn: boolean;
   usesPaymentStatus: boolean;
+  hazardLogSigned: boolean;
   hazardLogPharmacistCoSigned: boolean;
+  /** PHARMACIST_COSIGN.required: off while the CSO signs alone (13 Oct 2026). */
+  pharmacistCoSignRequired: boolean;
   stockedMedicineIds: readonly string[];
   /** Medicines with a decision in the signed controlled-classes set. */
   controlledDecisionIds: readonly string[];
@@ -165,10 +169,12 @@ export function pharmacyReadiness(f: ReadinessFacts): Readiness {
   for (const k of required) {
     const s = inForce.get(k);
     if (!s) missing1.push(`Not signed: ${k}`);
-    else if (CLINICAL_SETS.has(k) && !s.pharmacistCoSigned)
+    else if (f.pharmacistCoSignRequired && CLINICAL_SETS.has(k) && !s.pharmacistCoSigned)
       missing1.push(`No pharmacist co-signature: ${k}`);
   }
-  if (!f.hazardLogPharmacistCoSigned) missing1.push("No pharmacist co-signature: the hazard log");
+  if (!f.hazardLogSigned) missing1.push("Not signed: the hazard log");
+  else if (f.pharmacistCoSignRequired && !f.hazardLogPharmacistCoSigned)
+    missing1.push("No pharmacist co-signature: the hazard log");
   const decided = new Set(f.controlledDecisionIds);
   const undecided = f.stockedMedicineIds.filter((m) => !decided.has(m));
   if (undecided.length)
@@ -178,7 +184,9 @@ export function pharmacyReadiness(f: ReadinessFacts): Readiness {
     "The content is signed",
     missing1,
     [`${required.filter((k) => inForce.has(k)).length} of ${required.length} sets signed`],
-    "Sign the missing sets, with a pharmacist's co-signature on the clinical ones.",
+    f.pharmacistCoSignRequired
+      ? "Sign the missing sets, with a pharmacist's co-signature on the clinical ones."
+      : "Sign the missing sets.",
   );
 
   // 2. Legal Q1 to Q6.

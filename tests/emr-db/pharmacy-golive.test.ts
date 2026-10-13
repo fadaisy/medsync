@@ -29,8 +29,13 @@ import { authUser, bootLane, hospital, laneOn, staff } from "./_pglite";
 vi.mock("@/db", () => ({ db: undefined }));
 vi.mock("@/content/pharmacy-golive", async (orig) => ({
   ...(await orig<typeof GoLiveCopy>()),
-  // FIXTURE: no pharmacist has co-signed the hazard log; real hospitals stay not ready.
-  HAZARD_LOG_SIGNATURE: { pharmacistCoSignedBy: "fixture", on: "2026-10-01" },
+  // FIXTURE: the hazard log signed and co-signed, on the stricter co-signature path.
+  HAZARD_LOG_SIGNATURE: {
+    csoSignedBy: "fixture",
+    pharmacistCoSignedBy: "fixture",
+    on: "2026-10-01",
+  },
+  PHARMACIST_COSIGN: { required: true, decidedOn: "2026-10-13" },
 }));
 // S83: the pages read their scope first; with the flags off they answer not found before any data.
 vi.mock("@/lib/pharmacy/actor", () => ({
