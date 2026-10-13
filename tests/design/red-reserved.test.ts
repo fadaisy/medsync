@@ -726,12 +726,15 @@ describe("red is reserved — Lab Phase 3 surfaces", () => {
     "app/lab/hmis",
     "app/lab/register",
     "app/hmis",
+    "app/lab/reports",
   ).concat(
     (
       [
         "content/lab-phase-3.ts",
         "app/lab/_components/pop.tsx",
         "components/lab/hmis-table.tsx",
+        "components/lab/lab-report-view.tsx",
+        "app/hospital-admin/reports/_components/lab-aggregates.tsx",
         "app/lab/results/[orderId]/_components/qc-hold.tsx",
         "app/nurse/patients/[patientId]/bedside/_components/bedside-form.tsx",
         "app/nurse/patients/[patientId]/bedside/_components/bedside-screen.tsx",

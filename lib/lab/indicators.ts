@@ -90,12 +90,14 @@ export interface IndicatorInput {
   breakdowns: readonly { hospitalId: string; deviceId: string; since: Date; backAt: Date | null }[];
 }
 
-const NO_DATA = { kind: "no_data" } as const;
-const pct = (numerator: number, denominator: number): IndicatorValue =>
+export const NO_DATA = { kind: "no_data" } as const;
+/** QI-2: a zero denominator is `no_data`, never 0 %. */
+export const pct = (numerator: number, denominator: number): IndicatorValue =>
   denominator === 0
     ? NO_DATA
     : { kind: "value", value: (numerator / denominator) * 100, numerator, denominator };
-const count = (numerator: number, sourceRows: number): IndicatorValue =>
+/** QI-2: no source rows is `no_data`, never 0. */
+export const count = (numerator: number, sourceRows: number): IndicatorValue =>
   sourceRows === 0 ? NO_DATA : { kind: "value", value: numerator, numerator, denominator: null };
 
 /** Nearest-rank percentile of a non-empty list. */

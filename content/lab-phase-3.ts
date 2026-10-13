@@ -337,3 +337,61 @@ export const LAB3_HMIS_DESK = {
   saved: "Designated.",
   months: "Months",
 } as const;
+
+/**
+ * Step 10's labels for the lab reports page and the admin aggregates (§5.13, artboard 13). The tile names are the
+ * canvas's; draft with the rest. Words for the period and units are stated beside every number (Law 7).
+ */
+export const LAB3_REPORTS = {
+  title: "Lab reports",
+  place: "Reports",
+  lede: "Quality indicators counted from the records for the period you choose. Every number opens the records behind it.",
+  adminTitle: "Laboratory",
+  adminLede:
+    "The laboratory's quality indicators for this window. You see the numbers; the records behind them stay with the laboratory.",
+  tiles: {
+    workload: "Tests released",
+    late_pct: "Reports later than the lab's stated time",
+    reject_pct: "Specimens rejected",
+    crit_ack_in_time: "Criticals acknowledged in the signed time",
+    qc_reject_pct: "QC runs rejected",
+    misid_caught: "Wrong label caught at collection",
+    corrected_pct: "Reports corrected after release",
+    downtime_h: "Equipment down",
+  },
+  bedside: "incl. {n} bedside",
+  ofBasis: "{n} of {d}",
+  checksBasis: "of {d} label checks",
+  hoursBasis: "hours, {n} machines",
+  median: "median {time} to acknowledge",
+  turnaround: "Turnaround, 90 % of reports within",
+  turnaroundMark: "Black mark: the lab's stated turnaround.",
+  turnaroundScale: "From receipt to release. Scale 0 to {max} {unit}.",
+  turnaroundMixed: "Stated times differ by test: {times}.",
+  turnaroundNone: "No stated time",
+  rejections: "Rejected specimens by reason",
+  rejectionColumns: ["Reason", "Count", "Most from"],
+  footnote:
+    'Every number opens the records behind it. "No data" means nothing was recorded, and is never shown as 0.',
+  adminFootnote: '"No data" means nothing was recorded, and is never shown as 0.',
+  asOf: "As of {time}",
+  csv: "Download CSV",
+  filters: {
+    month: "Month",
+    from: "From",
+    to: "To",
+    ward: "Ward or clinic",
+    section: "Section",
+    priority: "Priority",
+    all: "All",
+    show: "Show",
+  },
+  notByWard: "QC runs and equipment are not counted by ward or priority.",
+  records: "Records counted",
+  counted: "Counted",
+  noWard: "Not recorded",
+  noSection: "No section",
+  restrictedHidden:
+    "{n} restricted records are not listed: only staff who release results see them.",
+  open: "{label}, {value}, open the records",
+} as const;

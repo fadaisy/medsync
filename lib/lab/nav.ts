@@ -33,7 +33,8 @@ export type LabNavId =
   | "eqa"
   | "bedside_quality"
   | "register"
-  | "hmis";
+  | "hmis"
+  | "reports";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -60,6 +61,8 @@ export interface LabNavFlags {
   poctQuality?: boolean;
   /** Lab Phase 3 (§5.11, §5.12): labHmis, the Reports group. */
   hmis?: boolean;
+  /** Lab Phase 3 (§5.13): labReports, Lab reports in the Reports group. */
+  reports?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -246,7 +249,7 @@ export const LAB_NAV: readonly LabNavItem[] = [
     group: "quality",
     visibleFor: (p, f) => !!f.equipment && p.has("lab.view"),
   },
-  // Lab Phase 3 (§5.11, §5.12): the Reports group, behind labHmis.
+  // Lab Phase 3 (§5.11–§5.13): the Reports group, behind labHmis and labReports.
   {
     id: "register",
     label: "Daily register",
@@ -264,6 +267,15 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     group: "reports",
     visibleFor: (p, f) => !!f.hmis && p.has("lab.view"),
+  },
+  {
+    id: "reports",
+    label: "Lab reports",
+    href: "/lab/reports",
+    order: 6.3,
+    exact: false,
+    group: "reports",
+    visibleFor: (p, f) => !!f.reports && p.has("lab.view"),
   },
 ];
 

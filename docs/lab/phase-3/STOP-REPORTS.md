@@ -1122,3 +1122,69 @@ run`): **464 files passed, 23 skipped; 10,362 passed, 4 expected failures, 248 s
 `components/lab/hmis-table.tsx`. Screenshots against artboards 11 and 12 are in the Step 11 harness pass.
 
 **Next:** Step 10, lab reports and quality indicators behind `labReports`.
+
+## STOP 10: Lab reports and quality indicators, behind `labReports` (13 Oct 2026)
+
+**Migration (new, unapplied).** `0118_lab_indicators.sql`: one SQL definition of what each indicator counts,
+`private.lab_indicator_source(hospital, from, to)` (never granted), read two ways through SECURITY DEFINER functions
+granted to `medsync_clinical_reader`: `private.lab_indicator_rows(from, to)` returns the source rows with record and
+patient ids to **lab readers only** (`private.lab_reader()`), and `private.lab_indicator_counts(from, to, now,
+targets)` returns **numbers only** (no id, no patient, no event time) to the lab, the In-Charge, the HMIS focal person
+and the hospital admin (Law 10, QI-4). No table, so Drizzle parity is unchanged. Computed at read time for any month
+or range, closed months included (QI-3; no cache, P13).
+
+**Definitions (the rows).** Released = the first `final` version of each in-house lab report whose release time is
+in the period; a downtime result keeps the paper's times (released when resulted on paper, turnaround from the
+paper's collection, DT-7); corrected = a later `amended`/`corrected` version exists. Specimens = received or rejected
+in the period (as 10.7). Wrong label caught = a Phase 2 label check whose outcome is not `match`. Criticals = Phase 1
+alerts sent in the period with a signed time; in time = acknowledged at or before `due_at`; median minutes to
+acknowledge. QC runs by `run_at`. Equipment = the 0113 lab kinds; downtime hours clipped to the period and to now.
+Ward or clinic = the encounter's department; section = the hub offering's section (D5, D6); priority = the order's.
+The lab's stated turnaround = the hub's `stated_tat` when it is one figure (`parseStatedTat`), else none (no default).
+
+**Code.** `lib/lab/report-store.ts` (`reportRows`, `statedTargets`, `departmentNames`, `filtered`, `DRILL`,
+`drillRows`, `reportFromRows` over the engine `computeIndicators`, `reportFromCounts` from the counts function,
+`reportCsv`, `monthPeriod`, `dayPeriod`); the engine now exports `pct`, `count`, `NO_DATA`. Screens:
+`/lab/reports` (artboard 13: month or From/To range, ward or clinic, section, priority, the eight tiles with their
+basis, "incl. n bedside" in the sky tint, turnaround p90 per section as SVG bars from tokens with the stated
+turnaround as a black mark, "Scale 0 to {n} h|min" and units, rejections by reason with the ward most affected,
+Download CSV, "As of {date time}"), `/lab/reports/records` (every number's records: two identifiers through the
+audited reveal, restricted rows only for `lab.result.release`, a Counted column), and a **Laboratory** section on
+`/hospital-admin/reports` (the same tiles over the admin's window, no links). Nav: "Lab reports" in the Reports group,
+behind `labReports` and `lab.view`. Copy `LAB3_REPORTS` (draft, with the rest). Shared view
+`components/lab/lab-report-view.tsx`; no client JavaScript added (server components, a `data:` CSV link).
+
+### Scenarios (`tests/emr-db/lab-reports.test.ts`, PGlite lane, 4 tests)
+
+| #   | Result | What the test proves                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S46 | pass   | September by hand: released 8 (1 bedside; August and hospital B not counted), late 3 of 6 with a stated time = 50 %, rejected 4 of 10 = 40 %, criticals 1 of 3 in time (median 10 min), QC 2 of 4 rejected, wrong label 2, corrected 1 of 8 = 12.5 %, downtime 42 h (analyser 6, fridge 36 still down); clotted 3 most from the OPD clinic (2). Filters: the clinic (2 released, criticals and labels "No data", corrected a true 0 of 2), section 2 (3, analyser 6 h), urgent (1). An empty month: every tile "No data", machines 0 h. CSV: 13 lines, `no_data` in words, no patient id |
+| S47 | pass   | The downtime RDT is placed on 29 SEP 10:30 with receipt 09:00 (the paper's times), not its 9 OCT entry; p90 over 30, 45, 60, 60, 90, 120, 180 = 180 (nearest rank); section 1 (30, 60, 90, 180) p90 180 with stated 30 and 120 (no single mark); section 2 (45, 60, 120) p90 120, stated 60                                                                                                                                                                                                                                                                                              |
+| S48 | pass   | The late tile drills to r2, r4 and the downtime RDT, each with its patient, for the technologist; the hospital admin's `lab_indicator_counts` equals the lab's tiles, turnaround and rejections exactly, carries no patient id, and `lab_indicator_rows` returns nothing; as the admin, `SELECT count(*)` on `diagnostic_reports`, `specimens`, `specimen_events`, `critical_alerts`, `lab_identity_checks`, `encounter_orders` is 0 (RLS) and `lab_indicator_source` is "permission denied"; a clinician gets no rows and no numbers                                                    |
+| S49 | pass   | The criticals tile equals a hand SQL count over `critical_alerts` for the month: 3 with a signed time, 1 acknowledged in time, median minutes from the alerts                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+**Timing.** The reports page's data for one month (the rows read as the clinical reader plus the engine): **8.5–9.5
+ms** over five runs (PGlite, in process, fixture month; budget p95 < 2 s TTFB, asserted in S46). QI-3 holds without
+a month cache.
+
+### Differences from the prompt (and why)
+
+- **The five other indicators** (`tat_p50` is in the rows; `no_iqc`, `no_eqa`, `eqa_unacc`, `stockout_days`) are not
+  tiles on §5.13: they stay where their facts live (the EQA coverage chip, stock's days out of stock). The engine
+  computes all fourteen (STOP 3's tests).
+- **The admin's window** is the admin page's own (7, 28 or 90 days), with no ward, section or priority filter; the
+  lab page has the filters. The In-Charge and focal person may call the counts function (RLS), but no desk view was
+  added for them.
+- **QC runs and equipment** have no ward or priority: those filters leave them whole, and the page says so.
+- **The stated-turnaround mark** is drawn only when a section's tests share one stated time; otherwise the times are
+  listed in words ("Stated times differ by test").
+- **CSV** is a `data:` link built on the server (aggregates only), so no route or client code was added.
+- **Screenshots** against artboard 13 are in the Step 11 harness pass, as earlier steps.
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings); the full suite on the PGlite lane (`vitest
+run`): **465 files passed, 23 skipped; 10,366 passed, 4 expected failures, 248 skipped**, 0 failed. Red scarcity
+now covers `app/lab/reports`, `components/lab/lab-report-view.tsx` and the admin section (no red, no green).
+
+**Next:** Step 11 (code): S50–S53, the LB-3 repeat task, reduced motion, client JS.

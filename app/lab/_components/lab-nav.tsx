@@ -7,6 +7,7 @@ import {
   AwardIcon,
   BanIcon,
   BookOpenIcon,
+  ChartColumnIcon,
   CheckCheckIcon,
   ClipboardListIcon,
   CpuIcon,
@@ -63,6 +64,7 @@ const ICON = {
   bedside_quality: FingerprintIcon,
   register: BookOpenIcon,
   hmis: FileSpreadsheetIcon,
+  reports: ChartColumnIcon,
 } as const;
 
 export interface LabNavEntry {
