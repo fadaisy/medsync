@@ -196,6 +196,9 @@ export interface QualitySettings {
   lookBackMonths?: number | null;
   countEveryDays?: number | null;
   tolerancePct?: number | null;
+  /** EA-2's tester window and EA-5's alternative-assessment period (Step 7; operational). */
+  eqaTesterWindowDays?: number | null;
+  altPeriodDays?: number | null;
 }
 
 export async function setQualitySettings(tx: EmrTx, a: Actor, input: QualitySettings, now: Date) {

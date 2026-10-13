@@ -29,7 +29,8 @@ export type LabNavId =
   | "equipment"
   | "quality"
   | "qc"
-  | "nonconformities";
+  | "nonconformities"
+  | "eqa";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -50,6 +51,8 @@ export interface LabNavFlags {
   equipment?: boolean;
   /** Lab Phase 3 (§5.1–§5.4, §5.9): labQc. */
   qc?: boolean;
+  /** Lab Phase 3 (§5.8): labEqa. */
+  eqa?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -198,7 +201,16 @@ export const LAB_NAV: readonly LabNavItem[] = [
     order: 5.6,
     exact: false,
     group: "quality",
-    visibleFor: (p, f) => !!f.qc && p.has("lab.view"),
+    visibleFor: (p, f) => (!!f.qc || !!f.eqa) && p.has("lab.view"),
+  },
+  {
+    id: "eqa",
+    label: "External quality",
+    href: "/lab/quality/eqa",
+    order: 5.5,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.eqa && p.has("lab.view"),
   },
   {
     id: "stock",

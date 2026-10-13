@@ -843,3 +843,69 @@ PGlite lane (`vitest run`): **461 files passed, 23 skipped; 10,339 passed, 5 exp
 failed. With all Phase 3 flags off the gate is never entered (`labQcLiveFor` false) and Phase 2's tests are green.
 
 **Next:** Step 7, external quality assessment behind `labEqa`.
+
+## STOP 7: External quality assessment, behind `labEqa` (13 Oct 2026)
+
+**Migration edit (unapplied, unshipped).** 0115 gains `lab_eqa_rounds.scored_on date` (the provider's report date;
+the EA-4 look-back runs receipt → scoring) with `scored_on >= received_on`; Drizzle `labEqaRounds.scoredOn` beside
+it (parity green). Nothing else changed in the data layer.
+
+**Code.** `lib/lab/eqa-store.ts` (`saveScheme`, `recordRound`, `recordEqaResults`, `recordEqaScores`,
+`recordAltAssessment`, `eqaSettings`, `releasesBy`, `eqaRoundsFor`, `toRound`), `lib/lab/eqa-read.ts` (`loadEqa`,
+`inHouseTests`), `lib/lab/eqa-actions.ts` (the house contract). Screen `/lab/quality/eqa` (artboard 8): the coverage
+chip ("{n} of {m} tests have no EQA", Appendix A `noEqa`) opening the list; the schemes table (Scheme (provider) ·
+Covers · Rounds · Next · Last round); rounds with the round panel in a centred `EditorDialog` (Sample · Analyte ·
+Ours · Target · Score as given, "n of m acceptable", tested by with Appendix A `eqaTester` and the EA-2 warning, the
+nonconformity link, the report reference); our results, the provider's scores, alternative assessments and the
+operational settings as `EditorDialog` forms. Nav: "External quality" under Quality, behind `labEqa` and
+`lab.view`. Nonconformities (list, page, look-back decisions, actions, resumption, closure) open with `labQc` **or**
+`labEqa` (`ncLiveFor`), since an EQA nonconformity must be workable with QC off.
+
+**Rules on the server.** Scores are entered once, only after our results and the submitted date, exactly as the
+provider reports them (`score`, `scoreKind`, `scoreValue`, `limit`, `target`; MedSync never re-scores, EA-3).
+Unacceptable → `openAutomaticNc` (source `eqa_unacceptable`, owner the lead, not halting) and look-back items for each
+unacceptable analyte: every in-house released numeric result of that component (any analyser, first release of each
+value) from the start of the receipt day to the end of the scoring day, hospital-local (`eqaLookBack`); sorted by
+the provider's bias only when its report gives one, otherwise all "unchanged" (no estimate). The tester check
+(EA-2) reads patient releases (`diagnostic_reports`, in-house, final/amended/corrected, `recorded_by_user_id`) of
+the scheme's tests in the window before receipt, and only warns.
+
+### Scenarios (`tests/emr-db/lab-eqa.test.ts`, PGlite lane, 4 tests)
+
+| #   | Result | What the test proves                                                                                                                                                                                                                                                                                                                        |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S29 | pass   | Scores before results refused; tested by the tech (a U&E released 20 days before receipt) and tech2 (none): only tech2 warned, saved anyway; scored from the report (SDI / % with the provider's limits, stored as given), `scored_on`, report reference; a second scoring refused; the page shows the same warning and "2 of 2 acceptable" |
+| S30 | pass   | Potassium unacceptable, sodium acceptable: outcome `mixed`, NC `eqa_unacceptable` owned by the lead, opened by MedSync, not halted; look-back = the potassium released 20 days ago (inside receipt 25 days ago → scoring today), not the one 40 days ago, never sodium; sort `unchanged` (no bias given); `nc_id` on the round              |
+| S31 | pass   | In-house U&E, FBC, ESR, HIV rapid: U&E covered by a scheme, hospital B's FBC scheme ignored; an ESR split-sample assessment does not count while the period is unset (shown on the page), counts once the lead sets it; an FBC assessment older than the period does not                                                                    |
+| S32 | pass   | An HIV panel (two samples on fixture kit A, one on kit B) submitted this month: `count105` over `eqaRoundsFor` gives kit A EQA 2, kit B EQA 1, Total 0 and the purpose column 0; no `diagnostic_reports` row was written (hazard 23)                                                                                                        |
+
+### Differences from the prompt (and why)
+
+- **`enrol`** is part of `saveScheme`: `covers` is the enrolment (GATE A P8).
+- **The provider's report** is a **reference text** (`report_path`: a scan's file name, folder or the provider's
+  reference), as certificates (Step 4) and equipment records (Step 5) were: the lab has no storage bucket and adding
+  one needs a storage migration and policies.
+- **EA-2 window**: the prompt's 30 days is used, labelled operational, until the lead sets `eqaTesterWindowDays`.
+  **EA-5 period** has no default: until the lead sets `altPeriodDays` no alternative assessment covers a test, and the
+  page says so (Law 8).
+- **Who records**: schemes, scores, alternative assessments and the settings need `lab.eqa.manage` (with
+  `lab.manage`); receiving a panel and our results also take `lab.result.release`.
+- **Look-back window** is calendar days (receipt day start → scoring day end), hospital-local; a downtime result is
+  placed by its entry time (as Step 6).
+
+### For Step 9 (HMIS 10.3)
+
+HIV EQA panel tests live in `lab_eqa_rounds.samples[]` with `kit` (the signed algorithm's kit name, the same names
+`hmis_mapping.kits` maps to 10.3 rows); the round's month is `submitted_on`; read them with `eqaRoundsFor(tx,
+hospitalId)` and pass to `count105({ eqaRounds })`. The purpose is implicit (an EQA round is the EQA column). IQC
+events are `lab_control_checks` rows with `hmis_iqc = true` and the kit's `item_id` (`kitItems`). Patient HIV tests
+are released `diagnostic_reports` with the algorithm version on the outcome's context and `encounter_orders.test_purpose`.
+
+### Checks
+
+`tsc --noEmit` clean; `npm run lint` 0 errors (the 2 old warnings in `scripts/embed-bench.mjs`); the full suite on
+the PGlite lane (`vitest run`): **462 files passed, 23 skipped; 10,343 passed, 5 expected failures, 248 skipped**, 0
+failed. Red scarcity already covers `app/lab/quality` (the EQA page and its forms: no red, no green). Screenshots
+against artboard 8 are in the Step 11 harness pass.
+
+**Next:** Step 8, bedside quality behind `labPoctQuality`.

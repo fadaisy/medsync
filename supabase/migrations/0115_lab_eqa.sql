@@ -23,12 +23,14 @@ CREATE TABLE IF NOT EXISTS public.lab_eqa_rounds (
   received_on date NOT NULL,
   due_on date,
   submitted_on date,
+  scored_on date,                             -- the provider's report date: the look-back runs receipt → scoring (EA-4)
   tested_by uuid[] NOT NULL DEFAULT '{}',
   samples jsonb NOT NULL DEFAULT '[]',        -- [{sampleId, conceptId, ours, target?, score?, scoreKind?, limit?}]
   report_path text CHECK (report_path IS NULL OR char_length(report_path) BETWEEN 3 AND 300),
   outcome text CHECK (outcome IS NULL OR outcome IN ('acceptable','unacceptable','mixed')),
   nc_id uuid REFERENCES public.lab_nonconformities(id) ON DELETE RESTRICT,
-  UNIQUE (scheme_id, label)
+  UNIQUE (scheme_id, label),
+  CONSTRAINT ler_scored CHECK (scored_on IS NULL OR scored_on >= received_on)
 );
 
 CREATE TABLE IF NOT EXISTS public.lab_alt_assessments (

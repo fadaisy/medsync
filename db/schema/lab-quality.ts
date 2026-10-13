@@ -294,6 +294,7 @@ export const labEqaRounds = pgTable("lab_eqa_rounds", {
   receivedOn: date("received_on").notNull(),
   dueOn: date("due_on"),
   submittedOn: date("submitted_on"),
+  scoredOn: date("scored_on"),
   testedBy: uuid("tested_by").array().notNull().default([]),
   samples: jsonb("samples").notNull().default([]),
   reportPath: text("report_path"),

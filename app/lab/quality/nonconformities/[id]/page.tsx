@@ -18,7 +18,7 @@ import {
 } from "../../_components/nc-forms";
 import { QcChip } from "../../_components/qc-chip";
 import { QUALITY } from "../../_lib/copy";
-import { requireQualityScope } from "../../_lib/scope";
+import { ncLiveFor, requireQualityScope } from "../../_lib/scope";
 import { RecordList } from "../../../_components/record-list";
 import { dateWords, dayWords, timeWords } from "../../../_lib/days";
 
@@ -39,7 +39,7 @@ const link = "font-medium text-teal-700 underline-offset-4 hover:underline";
  */
 export default async function NonconformityPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { scope, lead, staff } = await requireQualityScope();
+  const { scope, lead, staff } = await requireQualityScope(ncLiveFor);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const v = await db.transaction((t) => loadNc(t as never, scope.hospitalId, id));
   if (!v) notFound();

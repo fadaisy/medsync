@@ -11,7 +11,7 @@ import { loadNcs } from "@/lib/lab/qc-read";
 import { OpenNcDialog } from "../_components/nc-forms";
 import { QcChip } from "../_components/qc-chip";
 import { QUALITY } from "../_lib/copy";
-import { requireQualityScope } from "../_lib/scope";
+import { ncLiveFor, requireQualityScope } from "../_lib/scope";
 import { RecordList } from "../../_components/record-list";
 import { dateWords } from "../../_lib/days";
 
@@ -22,7 +22,7 @@ const N = QUALITY.nc;
 
 /** The nonconformity register (Lab Phase 3 §5.9, NC-1..NC-5; labQc). Overdue actions are amber; none closes by itself. */
 export default async function NonconformitiesPage() {
-  const { scope, staff } = await requireQualityScope();
+  const { scope, staff } = await requireQualityScope(ncLiveFor);
   const now = new Date();
   const [rows, machines] = await Promise.all([
     db.transaction((t) => loadNcs(t as never, scope.hospitalId, now)),

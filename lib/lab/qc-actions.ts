@@ -9,7 +9,7 @@ import { requireEmrActor } from "@/lib/emr/actor";
 import { asClinicalWriter } from "@/lib/emr/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { saveConfigDraft, signConfig } from "./catalogue-v2";
-import { labQcLiveFor } from "./feature";
+import { labEqaLiveFor, labQcLiveFor } from "./feature";
 import {
   authoriseResumption,
   closeNonconformity,
@@ -49,13 +49,17 @@ const REAUTH: ActionResult = {
   error: "reauth: enter your authenticator code to sign.",
 };
 
+/** Nonconformities and their look-back come from QC or EQA (Step 7): either flag opens them. */
+const ncLive = (h: string) => labQcLiveFor(h) || labEqaLiveFor(h);
+
 async function run(
   need: "staff" | "lead",
   fn: (tx: EmrTx, a: A, now: Date) => Promise<string | void>,
+  live: (hospitalId: string) => boolean = labQcLiveFor,
 ): Promise<ActionResult> {
   try {
     const actor = await requireEmrActor("lab");
-    if (!labQcLiveFor(actor.hospitalId))
+    if (!live(actor.hospitalId))
       throw new EmrWriteError("config", "Quality control is not switched on here.");
     const p = new Set(actor.labPermissions ?? []);
     if (
@@ -200,7 +204,7 @@ export async function decideLookbackItemAction(raw: unknown): Promise<ActionResu
     .object({ itemId: uuid, decision: z.enum(["stands", "repeat", "amend"]) })
     .safeParse(raw);
   if (!p.success) return bad(p.error);
-  return run("staff", (tx, a, now) => decideLookbackItem(tx, a, p.data, now));
+  return run("staff", (tx, a, now) => decideLookbackItem(tx, a, p.data, now), ncLive);
 }
 
 export async function openNonconformityAction(raw: unknown): Promise<ActionResult> {
@@ -214,7 +218,7 @@ export async function openNonconformityAction(raw: unknown): Promise<ActionResul
     })
     .safeParse(raw);
   if (!p.success) return bad(p.error);
-  return run("staff", (tx, a, now) => openNonconformity(tx, a, p.data, now));
+  return run("staff", (tx, a, now) => openNonconformity(tx, a, p.data, now), ncLive);
 }
 
 export async function addNcActionAction(raw: unknown): Promise<ActionResult> {
@@ -228,7 +232,7 @@ export async function addNcActionAction(raw: unknown): Promise<ActionResult> {
     .safeParse(raw);
   if (!p.success) return bad(p.error);
   const { ncId, ...add } = p.data;
-  return run("staff", (tx, a, now) => ncAction(tx, a, { ncId, add }, now));
+  return run("staff", (tx, a, now) => ncAction(tx, a, { ncId, add }, now), ncLive);
 }
 
 export async function updateNcActionAction(raw: unknown): Promise<ActionResult> {
@@ -242,13 +246,13 @@ export async function updateNcActionAction(raw: unknown): Promise<ActionResult> 
     .safeParse(raw);
   if (!p.success) return bad(p.error);
   const { ncId, ...update } = p.data;
-  return run("staff", (tx, a, now) => ncAction(tx, a, { ncId, update }, now));
+  return run("staff", (tx, a, now) => ncAction(tx, a, { ncId, update }, now), ncLive);
 }
 
 export async function authoriseResumptionAction(raw: unknown): Promise<ActionResult> {
   const p = z.object({ ncId: uuid }).safeParse(raw);
   if (!p.success) return bad(p.error);
-  return run("lead", (tx, a, now) => authoriseResumption(tx, a, p.data, now));
+  return run("lead", (tx, a, now) => authoriseResumption(tx, a, p.data, now), ncLive);
 }
 
 /** NC-4: the lead's signature closes it (fresh second factor). */
@@ -263,5 +267,5 @@ export async function closeNonconformityAction(raw: unknown): Promise<ActionResu
     .safeParse(raw);
   if (!p.success) return bad(p.error);
   if (!(await secondFactorFresh())) return REAUTH;
-  return run("lead", (tx, a, now) => closeNonconformity(tx, a, p.data, now));
+  return run("lead", (tx, a, now) => closeNonconformity(tx, a, p.data, now), ncLive);
 }
