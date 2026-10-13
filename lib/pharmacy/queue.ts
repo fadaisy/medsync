@@ -127,7 +127,9 @@ export function rowState(lines: readonly Pick<QueueLine, "state" | "cosign">[]):
 }
 
 /** PQ-1: the placement, or encounter + prescriber + the one transaction time a placement shares. */
-export function placementKey(line: QueueLine): { key: string; groupedByTime: boolean } {
+export function placementKey(
+  line: Pick<QueueLine, "placementId" | "encounterId" | "prescriberUserId" | "createdAt">,
+): { key: string; groupedByTime: boolean } {
   if (line.placementId) return { key: line.placementId, groupedByTime: false };
   return {
     key: `t:${line.encounterId ?? "none"}:${line.prescriberUserId}:${line.createdAt.toISOString()}`,
@@ -233,4 +235,70 @@ export function defaultLane(serves: string | null | undefined): Lane | "all" {
   if (serves === "window") return "window";
   if (serves === "wards" || serves === "emergency") return "ward";
   return "all";
+}
+
+/* ─── Pharmacy Phase 1: the review queue (5.2) ───────────────────────── */
+
+export type ReviewLane = "pharmacist_first" | "standard";
+export type ReviewStage = "awaiting_cosign" | "to_review" | "queried" | "ready";
+
+/** What the filters read of a row; the read (lib/pharmacy/review/read.ts) builds the rest. */
+export interface ReviewQueueRow {
+  key: string;
+  lane: ReviewLane;
+  stage: ReviewStage;
+  origin: "window" | "ward";
+  reasons: readonly string[];
+  writtenAt: string;
+  earlier: boolean;
+}
+
+export interface ReviewQueueFilters {
+  lane: ReviewLane | "all";
+  stage: ReviewStage | "all";
+  /** The selected point's `serves`, or null for all dispensing points. */
+  serves: string | null;
+}
+
+/** 5.1: a prescription belongs by default to the points whose `serves` matches where it was written. */
+export const servesRow = (serves: string | null, origin: "window" | "ward") =>
+  serves === null ||
+  serves === "all" ||
+  (serves === "window" ? origin === "window" : origin === "ward");
+
+/**
+ * 5.2: lane counts ignore the lane filter and add up to All; stage counts are within the lane and the
+ * point. Pharmacist first: an overridden stop first, then oldest first; Standard and All, oldest first
+ * (with overridden stops still leading in All). Rows written before today sit under the divider.
+ */
+export function computeReviewQueue<R extends ReviewQueueRow>(
+  rows: readonly R[],
+  f: ReviewQueueFilters,
+) {
+  const atPoint = rows.filter((r) => servesRow(f.serves, r.origin));
+  const laneCounts = { pharmacist_first: 0, standard: 0, all: atPoint.length };
+  for (const r of atPoint) laneCounts[r.lane] += 1;
+  const inLane = f.lane === "all" ? atPoint : atPoint.filter((r) => r.lane === f.lane);
+  const stageCounts = {
+    awaiting_cosign: 0,
+    to_review: 0,
+    queried: 0,
+    ready: 0,
+    all: inLane.length,
+  };
+  for (const r of inLane) stageCounts[r.stage] += 1;
+  const shown = f.stage === "all" ? inLane : inLane.filter((r) => r.stage === f.stage);
+  const stop = (r: R) => (f.lane !== "standard" && r.reasons.includes("overridden_stop") ? 0 : 1);
+  const ordered = [...shown].sort(
+    (a, b) =>
+      stop(a) - stop(b) || a.writtenAt.localeCompare(b.writtenAt) || a.key.localeCompare(b.key),
+  );
+  return {
+    today: ordered.filter((r) => !r.earlier),
+    earlier: ordered.filter((r) => r.earlier),
+    shown: ordered.length,
+    laneCounts,
+    stageCounts,
+    total: atPoint.length,
+  };
 }

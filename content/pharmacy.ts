@@ -60,6 +60,10 @@ export const PHARMACY = {
     emergency: "Emergency doses",
     queueCount: (n: number) => `${n} written today`,
     dosesCount: (n: number) => `${n} in the last 7 days`,
+    /** Pharmacy Phase 1 (5.1): the review queue at the acting point, open lines, today's hand-overs. */
+    waitingCount: (n: number) => `${n} waiting at this point`,
+    openCount: (n: number) => `${n} open`,
+    suppliedCount: (n: number) => `${n} supplied today at this point`,
   },
   lane: { window: "For the window", ward: "On the wards", open: "Visit open", all: "All" },
   laneInFooter: {
@@ -213,3 +217,17 @@ export const PHARMACY = {
     body: "You do not have access to the pharmacy workspace. Ask your hospital admin.",
   },
 } as const;
+
+/**
+ * Pharmacy Phase 1 wording (docs/pharmacy/phase-1/gate-a-content.md, Part 1, as built in Steps 4 to 9):
+ * signed by the CSO alone on 13 Oct 2026 (ADR 0281) through the sign-off portal
+ * (https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4): 1,134 strings in 116 blocks, each exactly as
+ * written in content/pharmacy-*.ts and the lib/pharmacy copy objects. Any change to one of them returns
+ * this set to `draft`, and the Phase 1 flags off in production (RD-4), until it is signed again.
+ */
+export const PHARMACY_PHASE1_COPY_STATUS: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
+};
+export const PHARMACY_PHASE1_COPY: readonly SignedCopy[] = [PHARMACY_PHASE1_COPY_STATUS];

@@ -10,6 +10,7 @@ import { standing } from "@/lib/clerking/plan/record";
 import { BAND_WORD, patientBand } from "@/lib/prescribing/formulary";
 import { EDIT_FIELD_WORD } from "@/lib/prescribing/plan-rx";
 import { Caution, inputClass, Seg, Tag } from "./parts";
+import { PharmacyChips } from "./pharmacy";
 
 /**
  * Medicines on the Plan (ADR 0184 §1.3): the allergy line, the fact chips the prescribing checks
@@ -220,6 +221,7 @@ export function MedicinesSection({
                 <span className="text-body-s text-foreground flex flex-wrap items-center gap-2">
                   {r.display}
                   {r.awaitingCosign ? <Tag>Awaiting co-sign</Tag> : null}
+                  <PharmacyChips view={v.payload.pharmacy} lineId={r.id} />
                 </span>
                 {r.answered.map((a) => (
                   <span key={a} className="text-caption text-muted-foreground">

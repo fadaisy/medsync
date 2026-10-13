@@ -343,6 +343,7 @@ describe("red is reserved — the pharmacy workspace", () => {
     (
       [
         "content/pharmacy.ts",
+        "content/pharmacy-stock.ts",
         "components/medsync/caution-notice.tsx",
         "components/medsync/workspace-nav.tsx",
         "components/medsync/workspace-shell.tsx",

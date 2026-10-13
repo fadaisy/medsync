@@ -73,6 +73,9 @@ export function CriticalLive({
     const supabase = createClient();
     const channel = supabase.channel(`user:${userId}`, { config: { private: true } });
     channel.on("broadcast", { event: "critical" }, refresh);
+    // Pharmacy Phase 1 (D-PH1-47): a query or notice for this user, on the same private topic (one
+    // channel per topic per client, so it rides here). `{kind, ref, at}`, no PHI; the page re-reads.
+    channel.on("broadcast", { event: "pharmacy" }, refresh);
     void supabase.realtime
       .setAuth()
       .catch(() => undefined)

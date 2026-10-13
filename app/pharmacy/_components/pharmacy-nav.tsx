@@ -2,7 +2,15 @@
 
 import type { WorkspaceNavEntry } from "@/components/medsync/workspace-nav";
 import type { PharmacyNavId } from "@/lib/pharmacy/nav";
-import { ActivityIcon, ListIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  ArchiveIcon,
+  CheckCheckIcon,
+  ClockIcon,
+  FileDownIcon,
+  ListIcon,
+  LockKeyholeIcon,
+} from "lucide-react";
 
 import {
   WorkspaceCrumb,
@@ -12,17 +20,26 @@ import {
 import { PHARMACY } from "@/content/pharmacy";
 
 /**
- * The pharmacy's two sidebar items and its narrow-screen link row (§5.2), drawn by the shared
+ * The pharmacy's sidebar items and its narrow-screen link row (§5.2), drawn by the shared
  * workspace nav. A prescription lights Queue (canvas 0.2).
  */
-const ICON = { queue: ListIcon, emergency: ActivityIcon } as const;
+const ICON = {
+  queue: ListIcon,
+  open: ClockIcon,
+  supplied: CheckCheckIcon,
+  stock: ArchiveIcon,
+  controlled: LockKeyholeIcon,
+  downtime: FileDownIcon,
+  emergency: ActivityIcon,
+} as const;
 
 export interface PharmacyNavEntry {
   id: PharmacyNavId;
   label: string;
   href: string;
   exact: boolean;
-  count: number;
+  /** null: nothing to count (Stock, Controlled drugs). */
+  count: number | null;
   countLabel: string;
 }
 

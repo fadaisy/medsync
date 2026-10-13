@@ -4,10 +4,11 @@ import type { TimelineDrugEvent } from "@/lib/pharmacy/emergency-doses";
 import type { ViewLineInput } from "@/lib/pharmacy/prescription-view";
 import { describe, expect, it } from "vitest";
 
+import { dispensingMap, PHARMACY_MAP_V2, pharmacyAccess } from "@/lib/pharmacy/access";
 import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state";
 import { answeredChecks, CHECK_TITLE } from "@/lib/pharmacy/checks";
 import { computeDoses, NO_CART, toDoseRow } from "@/lib/pharmacy/emergency-doses";
-import { PHARMACY_NAV, pharmacyNavFor } from "@/lib/pharmacy/nav";
+import { PHARMACY_NAV, pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { DRUGS, offersRegimens } from "@/lib/prescribing/formulary";
 
@@ -314,22 +315,81 @@ describe("ED: emergency doses from the resus timeline", () => {
 });
 
 describe("NV-P1: navigation", () => {
-  it("two items, nothing else, both behind pharmacy.view", () => {
-    expect(PHARMACY_NAV.map((i) => i.label)).toEqual(["Queue", "Emergency doses"]);
-    expect(pharmacyNavFor(new Set(["pharmacy.view"]))).toHaveLength(2);
+  it("with the Phase 1 flags off: two items, nothing else, both behind pharmacy.view", () => {
+    expect(pharmacyNavFor(new Set(["pharmacy.view"])).map((i) => i.label)).toEqual([
+      "Queue",
+      "Emergency doses",
+    ]);
     expect(pharmacyNavFor(new Set())).toHaveLength(0);
+  });
+
+  it("Phase 1 (5.1): the full order, each item behind its flag", () => {
+    expect(PHARMACY_NAV.map((i) => i.label)).toEqual([
+      "Queue",
+      "Open lines",
+      "Supplied today",
+      "Stock",
+      "Controlled drugs",
+      "Downtime entry",
+      "Emergency doses",
+    ]);
+    const view = new Set(["pharmacy.view"] as const);
+    expect(pharmacyNavFor(view, { dispensing: true, downtime: false })).toHaveLength(6);
+    // Downtime entry needs pharmacy.dispense as well as its flag.
+    expect(pharmacyNavFor(view, { dispensing: false, downtime: true })).toHaveLength(2);
+    expect(
+      pharmacyNavFor(new Set(["pharmacy.view", "pharmacy.dispense"] as const), {
+        dispensing: false,
+        downtime: true,
+      }),
+    ).toHaveLength(3);
+  });
+
+  it("the layout's permissions: Phase 0's with both flags off, the dispensing map with a Phase 1 flag on", () => {
+    const phase0 = pharmacyAccess("PHARMACIST").permissions;
+    const off = { dispensing: false, downtime: false };
+    expect(pharmacyNavPermissions(phase0, "PHARMACIST", off, PHARMACY_MAP_V2)).toBe(phase0);
+    const labels = (flags: typeof off, map = PHARMACY_MAP_V2) =>
+      pharmacyNavFor(pharmacyNavPermissions(phase0, "PHARMACIST", flags, map), flags).map(
+        (i) => i.label,
+      );
+    expect(labels(off)).toEqual(["Queue", "Emergency doses"]);
+    // The harness's defect: v2 grants pharmacy.dispense, so Downtime entry shows (map v1 hid it).
+    expect(labels({ dispensing: true, downtime: true })).toContain("Downtime entry");
+    expect(labels({ dispensing: false, downtime: true })).toEqual([
+      "Queue",
+      "Downtime entry",
+      "Emergency doses",
+    ]);
+    // Production keeps map v1 (D-PH1-03): no pharmacy.dispense, no Downtime entry.
+    expect(labels({ dispensing: true, downtime: true }, dispensingMap("production"))).not.toContain(
+      "Downtime entry",
+    );
   });
 });
 
 describe("Law 2: no clinical write from the pharmacy's code", () => {
-  it("the only write in lib/pharmacy is the view log into audit_log", () => {
-    const dir = resolve(process.cwd(), "lib/pharmacy");
+  // Phase 0 asserted the view log was the only write. Phase 1 records its own events (ADR 0260), so
+  // the invariant is now the law itself: the pharmacy writes only its own tables and the audit log,
+  // never a prescription or any other clinical record.
+  it("lib/pharmacy writes only pharmacy tables, downtime and paper records, and the audit log", () => {
+    const files = (
+      readdirSync(resolve(process.cwd(), "lib/pharmacy"), { recursive: true }) as string[]
+    ).filter((f) => f.endsWith(".ts"));
     const writes: string[] = [];
-    for (const f of readdirSync(dir)) {
+    for (const f of files) {
       const src = read(`lib/pharmacy/${f}`);
       for (const m of src.matchAll(/\.(insert|update|delete)\(([a-zA-Z]+)\)/g))
         writes.push(`${f}: ${m[1]} ${m[2]}`);
     }
-    expect(writes).toEqual(["read.ts: insert auditLog"]);
+    // ML-1, ML-6 (Step 9): the patient's own medicine list, written only by patient-list.ts, in the
+    // supply's transaction. It is the patient's tracker, not a clinical record.
+    const foreign = writes.filter(
+      (w) =>
+        !/ (pharmacy[A-Z]\w*|paper\w*|downtime\w*|auditLog)$/.test(w) &&
+        !/^patient-list\.ts: (insert|update) selfMedications$/.test(w),
+    );
+    expect(foreign).toEqual([]);
+    expect(writes.some((w) => / (prescriptions|prescriptionCancellations)$/.test(w))).toBe(false);
   });
 });

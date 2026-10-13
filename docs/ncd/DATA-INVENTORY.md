@@ -445,6 +445,7 @@ An input to the data protection impact assessment, not the assessment. *Identify
 | purpose | text | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |
 | language | text | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |
 | body | text | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |
+| workspace | text | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |
 | status | text | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |
 | version | integer | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |
 | created_by | uuid | no | no | triage nurse, clinician, registry officer, registry lead, head of department, administrator, auditor, clinical safety officer |

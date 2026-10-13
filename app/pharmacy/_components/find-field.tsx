@@ -12,6 +12,7 @@ import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { SheetBody, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PHARMACY } from "@/content/pharmacy";
+import { REVIEW } from "@/content/pharmacy-review";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { findByPatientNumber } from "../actions";
 
@@ -38,6 +39,7 @@ export function FindField() {
   const [found, setFound] = useState<{
     rows: FoundRow[];
     identities: Record<string, PatientIdentity>;
+    slip?: string;
   } | null>(null);
 
   const submit = (e: React.FormEvent) => {
@@ -74,8 +76,25 @@ export function FindField() {
       <EditorDialog width="medium" open={open} onOpenChange={setOpen}>
         <div className="flex min-h-0 flex-1 flex-col">
           <SheetHeader>
-            <SheetTitle>{who ? `${who.name} · ${who.mrn}` : F.title}</SheetTitle>
-            <SheetDescription>{found?.rows.length ? F.lede : F.none}</SheetDescription>
+            <SheetTitle>
+              {found?.slip ? REVIEW.slip.found : who ? `${who.name} · ${who.mrn}` : F.title}
+            </SheetTitle>
+            <SheetDescription>
+              {found?.slip ? (
+                <Link
+                  href={`/pharmacy/slip/${found.slip}`}
+                  prefetch={false}
+                  onClick={() => setOpen(false)}
+                  className="font-medium text-teal-700 underline-offset-4 hover:underline"
+                >
+                  {REVIEW.slip.open}
+                </Link>
+              ) : found?.rows.length ? (
+                F.lede
+              ) : (
+                F.none
+              )}
+            </SheetDescription>
           </SheetHeader>
           <SheetBody>
             {found?.rows.length ? (

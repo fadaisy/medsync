@@ -77,6 +77,7 @@ import {
   useScrolledPast,
 } from "./phone-shell";
 import { planDraftOf, withPlan } from "./plan/model";
+import { PharmacyCount } from "./plan/pharmacy";
 import { PlanStatusPill, PlanStep } from "./plan/plan-step";
 import { ClerkingRail, useBpScheme } from "./rail";
 import { impressionDraftOf, summaryDraftOf, withImpression, withSummary } from "./si-model";
@@ -1142,7 +1143,12 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
                   {cur.id === "summary" && si ? (
                     <SummaryStatusPill si={si} time={fmt.time} />
                   ) : null}
-                  {cur.id === "plan" && derived?.plan ? <PlanStatusPill v={derived.plan} /> : null}
+                  {cur.id === "plan" && derived?.plan ? (
+                    <>
+                      <PlanStatusPill v={derived.plan} />
+                      <PharmacyCount view={derived.plan.payload.pharmacy} />
+                    </>
+                  ) : null}
                   {/* One step label on the phone: the step bar's (§3 rule 3). */}
                   <span className="text-caption text-muted-foreground font-mono whitespace-nowrap tabular-nums max-sm:hidden">
                     {`Step ${at + 1} of ${SECTIONS.length}`}

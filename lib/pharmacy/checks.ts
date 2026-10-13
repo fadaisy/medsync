@@ -1,4 +1,4 @@
-import { CHECK_REASONS, OVERRIDE_REASONS } from "@/lib/prescribing/plan-rx";
+import { CHECK_REASONS, OVERRIDE_REASONS, STOCK_REASONS } from "@/lib/prescribing/plan-rx";
 
 /**
  * What the prescriber was warned about and answered, from stored data only (Law 6, PQ-8, RV-5).
@@ -37,7 +37,11 @@ export const CHECK_TITLE: Readonly<Record<string, string>> = {
   weight_missing: "Weight",
 };
 
-const ANSWER_WORDS: Readonly<Record<string, string>> = { ...CHECK_REASONS, ...OVERRIDE_REASONS };
+const ANSWER_WORDS: Readonly<Record<string, string>> = {
+  ...CHECK_REASONS,
+  ...OVERRIDE_REASONS,
+  ...STOCK_REASONS,
+};
 
 export type CheckLevel = "stop" | "check";
 

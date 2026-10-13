@@ -1,0 +1,340 @@
+/**
+ * Going live at a dispensing point, and the pharmacy's downtime set-up (Pharmacy Phase 1, 5.12, 5.13;
+ * gate-a-wireframes.md §12, §13; gate-a-content.md B-73, B-78). Every visible string on the hub's
+ * Pharmacy going-live pages and on /pharmacy/downtime. Staff copy, signed under the Phase 1 copy
+ * status (13 Oct 2026): B-78 (the sheet footer) is quoted from lib/pharmacy/downtime.ts, not repeated here.
+ */
+
+/**
+ * The owner's decision of 13 Oct 2026, replacing the STOP 1 condition for now: until MedSync has a
+ * pharmacist reviewer, the CSO (a superadmin) signs the clinical packs, the hazard log and the patient
+ * wording alone, and each signed set records that as its exception in words (0122).
+ * ponytail: the pharmacist's co-signature is switched off, not removed; set `required: true` when it
+ * is reimplemented.
+ */
+export const PHARMACIST_COSIGN = { required: false, decidedOn: "2026-10-13" } as const;
+
+/**
+ * The hazard log is a document (docs/pharmacy/phase-1/hazard-log.md), not a database record. Its
+ * signatures are recorded here when they are made, as signed copy is. Until the CSO signs it, RD-1
+ * condition 1 is unmet at every point.
+ */
+export const HAZARD_LOG_SIGNATURE: {
+  csoSignedBy: string | null;
+  pharmacistCoSignedBy: string | null;
+  on: string | null;
+} = {
+  csoSignedBy: null,
+  pharmacistCoSignedBy: null,
+  on: null,
+};
+
+export const GOLIVE = {
+  place: "Departments & services · Pharmacy",
+  settingsTitle: "Pharmacy settings",
+  settingsLead:
+    "The hospital's own pharmacy switches, and each dispensing point's going-live page. Nothing here shows a patient.",
+  title: (point: string) => `Going live · ${point}`,
+  lead: "Six conditions, each with what shows it. Switching on needs all six and a second hospital admin. Nothing on this page names a patient.",
+  back: "Back to Pharmacy settings",
+  backToHub: "Back to Departments & services",
+  pointsHeading: "Dispensing points",
+  open: "Going live",
+  state: {
+    live: (since: string) => `Live since ${since}`,
+    off: (when: string) => `Switched off ${when}. Read-only, with its open lines.`,
+    notLive: "Not live",
+  },
+  met: "Met",
+  notYet: "Not yet",
+  pilotTitle: "A note on how the first point's pilot went",
+  laterPoint: {
+    heading: "For a second or later point",
+    lead: "This is not the hospital's first live point, so switching on also needs a note on how the first point's pilot went, written by someone other than the admin who asks.",
+  },
+  conditionHelp: {
+    1: PHARMACIST_COSIGN.required
+      ? "The signed sets are signed by the CSO and the pharmacist reviewer; the hazard log is co-signed by a registered pharmacist."
+      : "The signed sets and the hazard log are signed by the CSO.",
+    3: "The pharmacy sets up the products and records an opening count on its Stock page.",
+    4: "The pharmacy records a drill in Downtime entry.",
+    6: "Name the in-charge as the head of this point (or of Pharmacy) in the Pharmacy panel.",
+  } as Partial<Record<1 | 2 | 3 | 4 | 5 | 6, string>>,
+  openPanel: "Open the Pharmacy panel",
+  request: {
+    on: "Switch on dispensing",
+    onClosed: "Opens when every condition is met.",
+    approveOn: "Approve and switch on",
+    off: "Switch off",
+    approveOff: "Approve and switch off",
+    withdraw: "Withdraw the request",
+    waiting: (what: "on" | "off", when: string) =>
+      `A hospital admin asked to switch ${what} at ${when}. Waiting for a second approver.`,
+    mine: "You made this request. A second hospital admin approves it.",
+    reason: "Why is the point switched off?",
+    reasonHint:
+      "At least a sentence. The point returns to read-only; its open lines stay workable.",
+    requested: "Requested. A second hospital admin approves it.",
+    switchedOn: "Switched on. The point is live.",
+    switchedOff: "Switched off. The point is read-only.",
+    withdrawn: "Request withdrawn.",
+  },
+  pointSettings: {
+    heading: "This point",
+    phone: "Pharmacy phone for this point",
+    phoneHint: 'Used by "Call the pharmacy", the slip and messages.',
+    labelMode: "Labels",
+    printed: "Printed",
+    byHand: "Written by hand on the envelope",
+    freshness: "Count freshness, in days (blank for none)",
+    save: "Save",
+    saved: "Saved.",
+  },
+  legal: {
+    action: "Record an answer",
+    title: "Record a legal answer",
+    question: "Question",
+    answer: "The answer, as given",
+    sourceRef: "Document reference",
+    givenBy: "Given by (name and role)",
+    givenOn: "Date given",
+    interim: "Interim answer",
+    save: "Record the answer",
+    saved: "Answer recorded.",
+  },
+  briefing: {
+    action: "Record a briefing",
+    title: "Record a briefing",
+    audience: "Who was briefed",
+    pharmacy: "Pharmacy staff",
+    prescribers: "Prescribers",
+    heldOn: "Held on",
+    notes: "Notes (optional)",
+    save: "Record the briefing",
+    saved: "Briefing recorded.",
+  },
+  pilot: {
+    action: "Record the pilot note",
+    title: "How the first point's pilot went",
+    note: "What went well, what did not, and what changed",
+    hint: "Written by someone other than the admin who asks to switch this point on.",
+    save: "Record the note",
+    saved: "Note recorded.",
+  },
+  hospital: {
+    heading: "This hospital",
+    inpatient: "Individual inpatient supply",
+    payment: "Payment status required before hand-over",
+    lookahead: "Expiry look-ahead, in days (blank for the default)",
+    sms: "Live SMS to patients",
+    smsBlocked:
+      "Live SMS stays off until the patient wording, the message templates and the message name are signed.",
+    save: "Save",
+    saved: "Saved.",
+    without: {
+      heading: "Supply without a pharmacist",
+      lead: "One hospital admin asks; a different one approves. Refused until legal question 1 has an answer on record.",
+      off: "Off",
+      on: "On",
+      requested: "Asked for. Waiting for a second hospital admin.",
+      request: "Ask to switch it on",
+      approve: "Approve and switch on",
+      turnOff: "Switch it off",
+      done: "Saved.",
+    },
+  },
+  cancel: "Cancel",
+  failed: "Could not save. Try again.",
+  flagOff: "Pharmacy dispensing is not switched on at this hospital.",
+} as const;
+
+export const DOWNTIME_PAGE = {
+  title: "Downtime entry",
+  toEnter: (n: number) => `${n} ${n === 1 ? "sheet" : "sheets"} to enter`,
+  noPoint: "Choose the dispensing point you are working at.",
+  entryLater: "Enter each sheet's rows: choose Enter beside the sheet.",
+  enter: "Enter",
+  sheetsHeading: "Sheets at this point",
+  noSheets: "No sheets printed at this point yet.",
+  stale:
+    "Printed more than 7 days ago and not named in a downtime. Name it in a downtime record, or void it.",
+  staleHeading: "Sheets not yet named",
+  periodsHeading: "Recorded downtimes",
+  noPeriods: "No downtime recorded.",
+  drillsHeading: "Drills at this point",
+  noDrills: "No drill recorded at this point.",
+  columns: {
+    sheet: "Sheet",
+    state: "State",
+    printed: "Printed",
+    note: "Note",
+    from: "From",
+    to: "To",
+    reason: "Reason",
+    held: "Held on",
+    who: "Who took part",
+    what: "What was done",
+  },
+  reasons: { network: "Network", power: "Power", system: "The system", other: "Other" } as Record<
+    string,
+    string
+  >,
+  print: {
+    action: "Print blank sheets",
+    title: "Print blank sheets",
+    count: "How many sheets",
+    hint: "Each sheet gets its own number, reserved now. Print on A4.",
+    save: "Reserve and print",
+  },
+  period: {
+    action: "Record a downtime",
+    title: "Record a downtime",
+    starts: "Started",
+    ends: "Ended",
+    reason: "Reason",
+    note: "Note (optional)",
+    sheets: "Sheets used in this downtime",
+    noSheets: "No unused sheets at this point.",
+    save: "Record the downtime",
+  },
+  void: {
+    action: "Void a sheet number",
+    title: "Void a sheet number",
+    sheet: "Sheet",
+    reason: "Why is it voided?",
+    save: "Void the sheet",
+  },
+  drill: {
+    action: "Record a drill",
+    title: "Record a drill",
+    hint: "A drill writes no patient record and moves no stock.",
+    heldOn: "Held on",
+    participants: "Who took part",
+    what: "What was done",
+    problems: "Problems found (optional)",
+    save: "Record the drill",
+  },
+  cancel: "Cancel",
+  failed: "Could not save. Try again.",
+  flagOff: "Downtime entry is not switched on at this hospital.",
+  sheet: {
+    heading: "Downtime dispensing sheet",
+    toPrint: (n: number) =>
+      `${n} ${n === 1 ? "sheet" : "sheets"} to print, one number on each. Print on A4.`,
+    printButton: "Print",
+    date: "Date",
+    started: "Downtime started",
+    supplies: "Supplies",
+    notSupplied: "Not supplied",
+    entry: "Entry into MedSync",
+    enteredBy: "Entered by",
+    signature: "Signature",
+    dateTime: "Date and time",
+    supplyColumns: [
+      "#",
+      "Time",
+      "Patient name and number",
+      "Medicine, form, strength",
+      "Qty",
+      "Batch",
+      "Prescription",
+      "Two identifiers checked",
+      "Reviewing pharmacist's initials",
+      "Supplied by",
+    ],
+    notSuppliedColumns: ["#", "Time", "Patient", "Medicine", "Why", "Owed or to buy outside"],
+    none: "No unused sheets in this run. Print a new run from Downtime entry.",
+  },
+} as const;
+
+/** Downtime entry, row by row (5.12, wireframe §12.2). Draft staff copy; B-73/B-74 come from the engine. */
+export const DOWNTIME_ENTRY = {
+  title: (label: string) => `Enter sheet ${label}`,
+  back: "Back to downtime entry",
+  notToEnter: "This sheet is not waiting to be entered. A completed sheet takes no more rows.",
+  section: "Part of the sheet",
+  sections: { supply: "Supplies", not_supplied: "Not supplied" },
+  row: "Row",
+  patient: "Patient's MedSync number",
+  find: "Find",
+  foundAs: (name: string, mrn: string) => `${name} · ${mrn}`,
+  prescription: "Prescription",
+  paper: "A paper prescription",
+  paperLine: (medicine: string, prescriber: string, day: string) =>
+    `Paper: ${medicine} · ${prescriber} · ${day}`,
+  prescriberName: "Prescriber's name, as written",
+  prescriberCadre: "Prescriber's cadre, as written",
+  writtenOn: "Date on the paper",
+  paperLines: "Each medicine, as written",
+  medicineAsWritten: "Medicine",
+  directionsAsWritten: "Directions, typed as on the paper",
+  quantityAsWritten: "Quantity, as written (optional)",
+  addLine: "Add a line",
+  thisRow: "This row",
+  product: "Product",
+  batch: "Batch",
+  quantity: "Quantity",
+  time: "Time supplied, from the sheet",
+  date: "Date on the sheet",
+  suppliedBy: "Supplied by",
+  identity: "Identity tick on the sheet",
+  identities: { checked: "Checked", not_checked: "Not checked", not_recorded: "Not recorded" },
+  initials: "Pharmacist's initials (if any)",
+  controlledHeading: "Controlled drug",
+  witness: "Witness's name, as written on the sheet",
+  register: "The register entry was made",
+  outcome: "Owed or to buy outside",
+  outcomes: { owed: "Owed", buying_outside: "Buying outside" },
+  why: "Why",
+  save: "Save row",
+  saveNext: "Save and next row",
+  complete: "Sheet complete",
+  completeConfirm: "Close this sheet? It takes no more rows.",
+  savedAs: (supplied: string, entered: string) =>
+    `Saved as: supplied ${supplied}, entered ${entered}.`,
+  entered: "Rows entered",
+  noRows: "No rows entered yet.",
+  columns: {
+    part: "Part",
+    row: "Row",
+    patient: "Patient",
+    medicine: "Medicine",
+    detail: "What",
+    supplied: "Supplied",
+    entered: "Entered",
+  },
+  transcribed: "Transcribed",
+  failed: "Could not save. Try again.",
+} as const;
+
+/** The Daily Dispensing Log page (5.12, DL-1, wireframe §12.3). Draft staff copy. */
+export const LOG_PAGE = {
+  link: "Print the dispensing log",
+  heading: "Daily dispensing log",
+  print: "Print",
+  rows: (n: number) => `${n} ${n === 1 ? "supply" : "supplies"}`,
+  empty: "No supplies on this day.",
+  note: "Note",
+  confirm: "Confirm the columns",
+  confirmTitle: "Confirm the columns against this hospital's dispensing log",
+  confirmHint:
+    "Put the columns in the order of the hospital's HMIS 016 book, with its headings. A column MedSync cannot fill prints blank.",
+  columnHeading: "Heading",
+  fact: "What goes in it",
+  blank: "Left blank",
+  facts: {
+    time: "Time",
+    patient_name: "Patient's name",
+    medsync_number: "MedSync number",
+    medicine: "Medicine, form, strength",
+    quantity: "Quantity",
+    batch: "Batch",
+    expiry: "Expiry",
+    prescription: "Prescription",
+    supplied_by: "Supplied by",
+  } as Record<string, string>,
+  addColumn: "Add a column",
+  remove: "Remove",
+  save: "Confirm the columns",
+  cancel: "Cancel",
+} as const;

@@ -8,6 +8,7 @@
  */
 import type { FluidKind } from "./fluids";
 import type { ChartKind } from "./rules";
+import type { WardChip } from "@/lib/pharmacy/ward-chip";
 
 /** Where a point came from: the clerking (or triage) set draws as an ink dot, nursing entries teal. */
 export type Origin = "clerking" | "nursing";
@@ -212,6 +213,8 @@ export interface MarRow {
   cells: MarCell[];
   /** Said when the row has no schedule to draw ("As needed", "From the next drug round"). */
   note: string | null;
+  /** Pharmacy Phase 1 (D-PH1-33): the read-only review chip, behind `pharmacyDispensing`; else absent. */
+  pharmacy?: WardChip;
 }
 
 export interface MarBody {

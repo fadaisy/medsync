@@ -17,7 +17,11 @@ export async function countFormsWaiting(
     .select({ n: sql<number>`count(*)::int` })
     .from(downtimeFormNumbers)
     .where(
-      and(eq(downtimeFormNumbers.hospitalId, hospitalId), eq(downtimeFormNumbers.state, "unused")),
+      and(
+        eq(downtimeFormNumbers.hospitalId, hospitalId),
+        eq(downtimeFormNumbers.workspace, "lab"),
+        eq(downtimeFormNumbers.state, "unused"),
+      ),
     );
   return r?.n ?? 0;
 }
