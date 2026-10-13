@@ -1,4 +1,5 @@
 import type { DialogBatch, DialogProduct } from "./_components/stock-dialogs";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArchiveIcon, CalendarClockIcon, ClipboardCheckIcon } from "lucide-react";
 
@@ -6,11 +7,12 @@ import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
 import { StatCard } from "@/components/medsync/stat-card";
 import { PHARMACY } from "@/content/pharmacy";
+import { NATIONAL_LIST } from "@/content/pharmacy-catalogue";
 import { expiryText, STOCK } from "@/content/pharmacy-stock";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
-import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyDispensingLiveFor, pharmacyNationalListLiveFor } from "@/lib/pharmacy/feature";
 import { getStockPage } from "@/lib/pharmacy/stock/read";
 import { DRUGS } from "@/lib/prescribing/formulary";
 import {
@@ -74,6 +76,14 @@ export default async function StockPage() {
   const medicines = DRUGS.map((d) => ({ id: d.id, name: d.generic })).sort((a, b) =>
     a.name.localeCompare(b.name),
   );
+  const nationalList = pharmacyNationalListLiveFor(actor.hospitalId) ? (
+    <Link
+      href="/pharmacy/stock/national-list"
+      className="text-body-s text-primary inline-flex min-h-11 items-center underline-offset-4 hover:underline"
+    >
+      {NATIONAL_LIST.open}
+    </Link>
+  ) : null;
   const F = STOCK.figures;
   const fig = data.figures;
 
@@ -86,6 +96,7 @@ export default async function StockPage() {
         right={
           canStock ? (
             <>
+              {nationalList}
               <ReceiveDialog products={products} />
               <CountDialog
                 label={STOCK.actions.fullCount}
@@ -96,7 +107,9 @@ export default async function StockPage() {
               <TransferDialog batches={batches} points={data.points} />
               <AddProductDialog medicines={medicines} />
             </>
-          ) : null
+          ) : (
+            nationalList
+          )
         }
       />
 

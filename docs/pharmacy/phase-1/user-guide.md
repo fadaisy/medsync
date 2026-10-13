@@ -360,3 +360,23 @@ legal question 1 on record, and two admins. One admin presses **Ask to switch it
 **Approve and switch on**. Without the legal answer it is refused. It never covers a controlled drug, every use goes on
 the look-back list, and nothing limits how often it is used, so watch that list. **Switch it off** whenever a
 pharmacist is back on the rota.
+
+## 6. The national medicines list
+
+**Pharmacy staff.** On **Stock**, open **National list**. It shows the Essential Medicines and Health Supplies List
+for Uganda as printed: every medicine and health supply, with its level of care, its class (Vital, Essential or
+Necessary) and whether it sits under a specialist band. Search by name or class, show only medicines or only
+supplies, or tick **Vital only**. A medicine already on MedSync's prescribing list says **On the prescribing list**.
+A row marked **Check against the printed list** was hard to read in the source, so trust the paper over it. The list
+is for reference only: you cannot prescribe, supply or stock from it.
+
+**The CSO (superadmin).** Under **Admin → Medicines list**:
+
+- **Links to confirm.** Link each prescribing-list medicine to its row in the national list. Where several rows
+  share the name (tablet and injection, for example), choose the one that matches how it is prescribed.
+  **Review the single matches** links every medicine that has exactly one row, after you have read the list.
+- **Rows to check against the printed list.** Open the PDF at the page shown and record what you checked. A
+  flagged medicine row can be linked only after that.
+- **Linked.** Unlink a medicine if it was linked to the wrong row.
+
+Once a medicine is linked, Stock shows its class and counts it in "out, of which vital".

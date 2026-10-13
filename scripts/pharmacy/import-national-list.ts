@@ -2,8 +2,9 @@
 /**
  * The national list import, dry run only (Pharmacy Phase 1, CT-3; STOP 2). Reads an edition's CSV and
  * prints how many rows it read, how many have exactly one proposed prescribing-list medicine, how many
- * are ambiguous or unmatched, and every line it could not read. Writes nothing: the edition is loaded,
- * and each link confirmed by a person, from the Stock page (Step 4).
+ * are ambiguous or unmatched, and every line it could not read. Writes nothing: the edition is loaded
+ * with scripts/pharmacy/load-national-list.ts and each link confirmed by the CSO at
+ * /admin/pharmacy-catalogue (ADR 0282).
  *
  *   npx tsx scripts/pharmacy/import-national-list.ts path/to/edition.csv
  *

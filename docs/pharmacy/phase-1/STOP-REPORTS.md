@@ -1009,3 +1009,10 @@ Commits `d7457597`, `3920e97b`, `68459bf8` and `74127538`.
   the four flags can now be switched on per hospital. Patient surfaces still need a signed message name and
   approved templates (RD-4), and no point dispenses until the go-live switch's six conditions are met. No message
   name was signed in the portal, and the hazard log is not yet signed.
+- **The national list (13 Oct 2026):** the owner supplied EMHSLU 2023 as a PDF. It was converted to
+  `data/pharmacy/national-list/emhslu-2023.csv`: 802 medicines and 1,919 supplies, with 26 rows flagged, each
+  logged with its page. The dry run read all 802 medicine rows: 265 propose one of 124 prescribing-list medicines,
+  0 are ambiguous and 537 are unmatched. Step 4 had built only the dry run. The owner chose "catalogue first",
+  "the CSO confirms links once, nationally" and "load the uncertain rows as printed, flagged". ADR 0282 and
+  migration 0136 add the loader, the CSO's console (`/admin/pharmacy-catalogue`) and the Stock search
+  (`/pharmacy/stock/national-list`).

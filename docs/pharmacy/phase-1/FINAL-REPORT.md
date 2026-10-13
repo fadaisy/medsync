@@ -100,14 +100,17 @@ do not exist yet: nothing is applied or live.
 
 ## For the owner
 
-1. **Apply migrations 0122 → 0135 in order** (`npm run db:migrate`). Nothing reads them while the flags are off.
+1. **Apply migrations 0122 → 0136 in order** (`npm run db:migrate`). Nothing reads them while the flags are off.
 2. **Legal questions 1–6:** interim written answers. No production point can go live without them; D-PH1-03, 05,
    13, 17, 26 and 28 stay provisional.
 3. **Sign the clinical packs and the hazard log as the CSO.** By the owner's decision of 13 Oct 2026 a pharmacist's
    co-signature is not required for now (`PHARMACIST_COSIGN.required` is false); it is to be reimplemented later.
 4. **Phase 1 wording: signed** by the CSO on 13 Oct 2026 (1,134 strings in 116 blocks, through
    https://claude.ai/artifact/TqufiL5JPsi4ERGhk32yM4). Still open: a message name per hospital.
-5. **The national medicines list (EMHSLU)** as CSV, for the import dry run.
+5. **The national medicines list (EMHSLU 2023): received** and committed as data (ADR 0282). After migration 0136,
+   load it with `scripts/pharmacy/load-national-list.ts`, then confirm links and check the 26 flagged rows at
+   `/admin/pharmacy-catalogue`. Sign the Stock search page's wording (`NATIONAL_LIST_COPY`) before it shows in
+   production.
 6. **Owner SQL A–D:** returned on 13 Oct 2026. Production has no prescriptions yet, so the lane counts are deferred
    until it does, and are checked before any point goes live.
 7. **Optional:** run the race test against the dev database (`MEDSYNC_ALLOW_RLS_DB_WRITES=1`, a dev `DATABASE_URL`).

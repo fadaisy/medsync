@@ -105,6 +105,22 @@ export const pharmacyNationalListRows = pgTable("pharmacy_national_list_rows", {
   venClass: text("ven_class"),
   therapeuticClass: text("therapeutic_class"),
   sourceLine: integer("source_line"),
+  // 0136: what the edition prints beside the six import columns, as printed.
+  kind: text("kind").$type<"medicine" | "supply">().notNull().default("medicine"),
+  listSection: text("list_section"),
+  unit: text("unit"),
+  specialist: boolean("specialist").notNull().default(false),
+  sourcePage: integer("source_page"),
+  checkNote: text("check_note"),
+});
+
+/** 0136: a person checked a flagged row against the source. Append-only, one per row. */
+export const pharmacyNationalListRowChecks = pgTable("pharmacy_national_list_row_checks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  rowId: uuid("row_id").notNull(),
+  checkedBy: uuid("checked_by").notNull(),
+  checkedAt: timestamp("checked_at", tz).notNull().defaultNow(),
+  note: text("note").notNull(),
 });
 
 export const pharmacyMedicineLinks = pgTable("pharmacy_medicine_links", {
