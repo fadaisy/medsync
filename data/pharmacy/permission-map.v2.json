@@ -1,0 +1,39 @@
+{
+  "map": "medsync.pharmacy-permission-map",
+  "version": "2.0.0",
+  "status": "signed",
+  "signedBy": "Fadhul (CSO)",
+  "signedOn": "2026-10-12",
+  "provisional": "D-PH1-03 is provisional until an interim answer to legal question 1 is on record. Until then this map acts only outside production; production keeps v1.0.0 (lib/pharmacy/access.ts, pharmacyDispensingAccess).",
+  "basis": "Pharmacy Phase 1 GATE A, signed by the CSO 12 Oct 2026 (docs/pharmacy/phase-1/gate-a-proposal.md §14; D-PH1-03, D-PH1-05, D-PH1-27); supersedes v1.0.0 once legal question 1 is answered",
+  "notes": [
+    "Cadre codes are the Pharmacy Board cadres seeded in 0009. A cadre not listed here, pharmacy interns included, holds no pharmacy permission until Fadhul adds a row (roadmap D-PH-10).",
+    "PHARMACY_TECH holds pharmacy.dispense only for: standard-lane prescriptions; pharmacist-first lines a pharmacist has accepted; and, only where the D-PH1-05 hospital setting is on, a pharmacist-first prescription with a reason from the signed list, which then goes on the look-back list. Never a controlled line. The scope is enforced by the supply engine, not by this map.",
+    "Any holder of pharmacy.dispense at the hospital may witness a controlled action (D-PH1-27, CD-2), never as the actor, authenticated with their own second factor (D-PH1-42). A pharmacy technician may therefore witness but holds no pharmacy.controlled.",
+    "pharmacy.manage is never granted by cadre. It comes only from a hub assignment: a department_heads row (substantive or acting, effective-dated) on the Pharmacy department (Head of Pharmacy) or on a dispensing point's unit (that point's in-charge), and lasts while the assignment does. A pharmacy technician receives it only if the answer to legal question 1 allows a technician in charge.",
+    "A pharmacy technician is never shown, recorded or printed as a pharmacist. The technician's registering body (the Pharmacy Board of Uganda) was confirmed by the CSO on 2026-10-11; legal question 1 asks for the written source.",
+    "Outside this map: doctors and clinical officers answer queries with the prescribing permission they already hold; nurses and midwives read the review state of inpatient lines and may be the named collector where D-PH1-02 is on; the hospital admin holds the go-live page and pharmacy settings, with no PHI; a superadmin has no pharmacy access without break-glass."
+  ],
+  "permissions": [
+    "pharmacy.view",
+    "pharmacy.review",
+    "pharmacy.dispense",
+    "pharmacy.stock",
+    "pharmacy.controlled",
+    "pharmacy.manage"
+  ],
+  "cadres": {
+    "PHARMACIST": [
+      "pharmacy.view",
+      "pharmacy.review",
+      "pharmacy.dispense",
+      "pharmacy.stock",
+      "pharmacy.controlled"
+    ],
+    "PHARMACY_TECH": [
+      "pharmacy.view",
+      "pharmacy.dispense",
+      "pharmacy.stock"
+    ]
+  }
+}

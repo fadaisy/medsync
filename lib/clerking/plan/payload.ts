@@ -5,6 +5,7 @@
  */
 import type { PlanRecord } from "./record";
 import type { MonitoringPayload } from "@/lib/emr/charts/payload";
+import type { PrescriberPharmacyView } from "@/lib/pharmacy/review/prescriber-read";
 import type { WeightFact } from "@/lib/prescribing/formulary";
 import type { CultureState } from "@/lib/prescribing/plan-checks";
 
@@ -34,4 +35,8 @@ export interface PlanPayload {
   /** A U&E or creatinine ordered at this visit. */
   kidneyTestOrdered: boolean;
   monitoring: MonitoringPayload | null;
+  /** Pharmacy Phase 1 (5.4): queries and notices from the pharmacy; absent with the flag off. */
+  pharmacy?: PrescriberPharmacyView | null;
+  /** Pharmacy Phase 1 (5.10): where the dialog asks for the stock line; absent with the flag off (S88). */
+  stockAnswer?: { surface: "doctor" | "clinician"; patientUserId: string; encounterId: string };
 }

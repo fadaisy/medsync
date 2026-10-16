@@ -7,7 +7,7 @@
 import { z } from "zod";
 
 import { ORDER_FREQUENCIES, ORDER_PRIORITIES } from "@/lib/emr/orders";
-import { PlanRxSchema } from "@/lib/prescribing/plan-rx";
+import { PlanRxReplaces, PlanRxSchema } from "@/lib/prescribing/plan-rx";
 
 const id = z.string().max(80);
 const uuid = z.uuid();
@@ -39,6 +39,8 @@ export const PlanBasketRxSchema = PlanRxSchema.extend({
   display: text(400),
   drugName: text(160),
   problemLogicalId: uuid.nullable(),
+  /** Pharmacy Phase 1 (5.4, H4): this line changes a placed one; placed together, atomically. */
+  replaces: PlanRxReplaces.optional(),
 });
 export type PlanBasketRx = z.infer<typeof PlanBasketRxSchema>;
 

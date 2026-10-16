@@ -24,6 +24,8 @@ import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/pr
 import { decrypt } from "@/lib/encryption";
 import { labOneMenuLiveFor } from "@/lib/lab/feature";
 import { menuToday } from "@/lib/lab/one-menu-read";
+import { pharmacyDispensingLiveFor, pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
+import { loadPrescriberPharmacy } from "@/lib/pharmacy/review/prescriber-read";
 import { drugById } from "@/lib/prescribing/formulary";
 import { willRead } from "@/lib/prescribing/plan-rx";
 
@@ -237,6 +239,21 @@ export async function loadPlanPayload(
     input.database,
   );
 
+  // Pharmacy Phase 1 (5.4): only behind the flag, and only on the doctor's surface (Section 8). A
+  // failed read leaves the plan as it was (Law 10): the queries show at the next render.
+  const pharmacy =
+    actor.surface === "doctor" && pharmacyDispensingLiveFor(actor.hospitalId)
+      ? await loadPrescriberPharmacy(actor, {
+          patientUserId: input.patientUserId,
+          encounterId: input.encounterId,
+          now: input.now,
+          database: input.database,
+        }).catch((e: unknown) => {
+          console.warn("pharmacy.prescriber_read_failed", e instanceof Error ? e.name : "error");
+          return null;
+        })
+      : null;
+
   const status = new Map(input.orders.map((o) => [o.id, o]));
   const reasonOf = new Map(
     owner.reasons.map((r) => [r.id, safeDecrypt(r.reasonCiphertext) ?? r.reasonCode ?? undefined]),
@@ -291,5 +308,16 @@ export async function loadPlanPayload(
       : "none",
     kidneyTestOrdered: reader.orders.some((o) => o.testId && KIDNEY.has(o.testId)),
     monitoring: reader.monitoring,
+    ...(pharmacy ? { pharmacy } : {}),
+    ...((actor.surface === "doctor" || actor.surface === "clinician") &&
+    pharmacyStockAnswerLiveFor(actor.hospitalId)
+      ? {
+          stockAnswer: {
+            surface: actor.surface,
+            patientUserId: input.patientUserId,
+            encounterId: input.encounterId,
+          },
+        }
+      : {}),
   };
 }

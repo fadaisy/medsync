@@ -45,6 +45,49 @@ the CSO or the HMIS focal person where the kind needs two signatures).
   connection per request; under load the pool could starve. It now reads through the transaction (found by the
   screenshot harness, whose pool has one connection).
 
+### Added — Pharmacy: the national list as the catalogue — 2026-10-13
+
+- EMHSLU 2023 (802 medicines, 1,919 health supplies) committed as data and loadable by the owner
+  (`scripts/pharmacy/load-national-list.ts`); migration 0136 (GATED) adds kind, section, unit, specialist band,
+  source page and a check flag to the rows, and a guard on links (ADR 0282).
+- `/admin/pharmacy-catalogue`: the CSO links prescribing-list medicines to the list, once and nationally, and
+  records checks of the 26 flagged rows. `/pharmacy/stock/national-list`: pharmacy staff search the whole list. Its wording is signed (13 Oct 2026).
+
+### Changed — Pharmacy Phase 1: the CSO signs alone for now — 2026-10-13
+
+- Going live no longer needs a pharmacist's co-signature on the clinical packs and hazard log; the CSO signs alone,
+  recorded as an exception, and the hazard log needs the CSO's signature (ADR 0281). The check stays, switched off
+  by `PHARMACIST_COSIGN.required`, to be reimplemented later.
+- The Phase 1 wording (1,134 strings) is signed by the CSO; the four Phase 1 flags can now be switched on in
+  production. Patient surfaces still wait for a message name and approved templates.
+
+### Added — Pharmacy Phase 1: dispensing with stock at the window — 2026-10-12
+
+Built dark on `feat/pharmacy-dispensing`, behind four per-hospital flags (`PHARMACY_DISPENSING`,
+`PHARMACY_STOCK_ANSWER`, `PHARMACY_PATIENT_LIST`, `PHARMACY_DOWNTIME`) that stay off in production while the Phase 1
+wording is draft, and live only per dispensing point through a two-person switch. Migrations 0122–0135 are GATED
+and owner-applied. GATE A was signed by the CSO on 12 Oct 2026 (seven decisions provisional until the legal
+answers); a registered pharmacist co-signs before any production point goes live.
+
+- Review lanes from signed reasons, every line ending in a recorded outcome, queries to the prescriber with
+  never-throwing delivery and the prescriber's keep, change or stop
+  ([ADR 0260](docs/adr/0260-pharmacy-records-beside-the-prescription.md) to
+  [ADR 0263](docs/adr/0263-queries-to-the-prescriber.md)).
+- An append-only stock ledger per batch and point, with the guard and "a supply and its movement together" enforced
+  by the database ([ADR 0264](docs/adr/0264-the-stock-ledger.md), [ADR 0265](docs/adr/0265-one-action-two-records.md)).
+- Hand-over with two identifiers compared on the server and never shown, labels one per batch with the directions
+  as written, reversal and correction ([ADR 0266](docs/adr/0266-identity-at-hand-over.md),
+  [ADR 0267](docs/adr/0267-substitution-and-no-conversion.md)).
+- Controlled drugs with a witness who proves who they are, a count committed before the figure is shown, and a
+  register slip that says it is not the register ([ADR 0268](docs/adr/0268-controlled-drugs-witnessed-record.md),
+  [ADR 0279](docs/adr/0279-second-person-attestation.md)).
+- The prescriber's stock line in words with no quantity, the nurse's review chip, the patient's medicine list from
+  supplies, and messages that name no medicine ([ADR 0269](docs/adr/0269-the-availability-seams-real-answer.md),
+  [ADR 0270](docs/adr/0270-patient-list-refill-and-messages.md)).
+- Downtime sheets entered with their true times, the daily dispensing log, and going live per point with six
+  conditions and two people ([ADR 0271](docs/adr/0271-downtime-one-shared-module.md),
+  [ADR 0272](docs/adr/0272-going-live-per-point.md)).
+
 ### Added — Lab Phase 2: one menu, one record — 2026-10-12
 
 Built dark on `feat/lab-one-menu`, behind eight per-hospital flags that stay off in production until the CSO signs the

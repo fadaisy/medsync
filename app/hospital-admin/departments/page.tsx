@@ -1,5 +1,6 @@
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { loadDispensingServes } from "@/lib/pharmacy/dispensing-points";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import {
   loadClinics,
   loadDepartmentCounts,
@@ -78,6 +79,7 @@ export default async function DepartmentsPage() {
     <DepartmentsView
       departments={departments}
       points={points}
+      goLive={pharmacyDispensingLiveFor(h)}
       heads={heads}
       counts={{
         staff: obj(counts.staff),

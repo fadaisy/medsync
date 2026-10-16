@@ -11,7 +11,7 @@ import { SidebarGroupLabel, SidebarWorkspace } from "@/components/medsync/sideba
  * sidebar with the facility mark and the registered items, a 48 px top bar that says where you are
  * and who you are (the approved cadre, and the section or dispensing point), and the main slot.
  * Below the sidebar breakpoint the items become a row of links under the top bar; nothing slides
- * in from an edge (ADR 0161). On paper only the main slot prints (the lab's downtime forms).
+ * in from an edge (ADR 0161). Below sm the `point` control moves to its own row under the top bar. On paper only the main slot prints (the lab's downtime forms).
  */
 export function WorkspaceShell({
   hospitalName,
@@ -24,6 +24,7 @@ export function WorkspaceShell({
   phoneNav,
   crumb,
   who,
+  point,
   userName,
   children,
 }: {
@@ -37,6 +38,8 @@ export function WorkspaceShell({
   phoneNav: ReactNode;
   crumb: ReactNode;
   who: string;
+  /** A control beside `who`: the pharmacy's acting-point chooser (D-PH1-45). */
+  point?: ReactNode;
   userName: string;
   children: ReactNode;
 }) {
@@ -70,7 +73,7 @@ export function WorkspaceShell({
           <div className="flex min-w-0 items-center gap-2.5">
             <Link
               href={homeHref}
-              className="font-display text-foreground text-body-m font-semibold lg:hidden"
+              className="font-display text-foreground text-body-m shrink-0 font-semibold lg:hidden"
             >
               MedSync
             </Link>
@@ -80,6 +83,7 @@ export function WorkspaceShell({
             <span className="text-body-s text-ink-600 truncate" title={who}>
               {who}
             </span>
+            {point ? <span className="hidden min-w-0 sm:flex">{point}</span> : null}
             <Link
               href="/accounts"
               className="text-muted-foreground hover:text-foreground decoration-border shrink-0 text-[12px] underline-offset-4 transition-colors hover:underline"
@@ -94,6 +98,12 @@ export function WorkspaceShell({
             </Link>
           </div>
         </header>
+        {/* Below sm the point chooser takes its own row, so the top bar is not cramped (5.14). */}
+        {point ? (
+          <div className="border-border flex items-center border-b px-4 py-1 sm:hidden print:hidden">
+            {point}
+          </div>
+        ) : null}
         {phoneNav}
         <main className="min-w-0 flex-1">{children}</main>
       </div>

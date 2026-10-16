@@ -4,6 +4,7 @@ import type { AllergyItems } from "./medicines";
 import type { PlanView } from "./model";
 import type { PrescribeTarget } from "./problem-card";
 import type { PlanBasketRx } from "@/lib/clerking/plan/draft";
+import type { StockLine } from "@/lib/prescribing/pharmacy";
 import type { PlanCheck, PlanCheckContext } from "@/lib/prescribing/plan-checks";
 import type { AnswerId, FluidPurpose, PlanRx } from "@/lib/prescribing/plan-rx";
 import type {
@@ -13,13 +14,14 @@ import type {
   RxCourse,
   RxFrequency,
 } from "@/lib/prescribing/reference/formulary-types";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { LayoutGridIcon, SearchIcon } from "lucide-react";
 
 import { EmrDialog } from "@/components/emr/emr-dialog";
 import { Button } from "@/components/ui/button";
 import { basketOf } from "@/lib/clerking/plan/draft";
 import { standing } from "@/lib/clerking/plan/record";
+import { stockLines } from "@/lib/emr/actions/pharmacy-stock";
 import {
   BAND_WORD,
   classById,
@@ -33,7 +35,12 @@ import {
   resolveRegimens,
   searchDrugs,
 } from "@/lib/prescribing/formulary";
-import { PHARMACY_WORD, pharmacyAvailability } from "@/lib/prescribing/pharmacy";
+import {
+  PHARMACY_WORD,
+  pharmacyAvailability,
+  STOCK_LINE_COPY,
+  stockLineWords,
+} from "@/lib/prescribing/pharmacy";
 import {
   needingAnswer,
   OUTCOME_WORD,
@@ -53,6 +60,7 @@ import {
   PURPOSE_WORD,
   regimenEdits,
   ROUTE_WORD,
+  STOCK_REASONS,
   willRead,
 } from "@/lib/prescribing/plan-rx";
 import {
@@ -80,6 +88,16 @@ const OVER_INFUSION = [240, 360, 480, 720, 1440] as const;
 const PURPOSES: FluidPurpose[] = ["bolus", "maintenance", "replacement"];
 
 const newKey = () => `plan-rx-${crypto.randomUUID()}`;
+const notLinkedLine: StockLine = {
+  state: "not_linked",
+  level: "not_checked",
+  pointId: null,
+  point: null,
+  lastCountAt: null,
+  lastReceiptAt: null,
+  since: null,
+  elsewhere: [],
+};
 const intermittent = (m: string | null) => !!m && /intermittent infusion/i.test(m);
 
 interface FluidState {
@@ -301,6 +319,30 @@ export function PlanPrescribeDialog({
   const otherId = useId();
   const fluidsFirst = !!target.fluids && !target.drugId;
 
+  // Pharmacy Phase 1 (5.10): the stock line per medicine, asked once each; absent with the flag off.
+  const stockAt = v.payload.stockAnswer;
+  const [lines, setLines] = useState<Record<string, StockLine>>({});
+  const asked = s.drugId && stockAt && !lines[s.drugId] ? s.drugId : null;
+  const surface = stockAt?.surface;
+  const patientUserId = stockAt?.patientUserId;
+  const encounterId = stockAt?.encounterId;
+  useEffect(() => {
+    if (!asked || !surface) return;
+    let live = true;
+    void stockLines({ surface, patientUserId, encounterId, medicineIds: [asked] })
+      .then(
+        (r) => (r.ok ? (r.data?.lines ?? null) : null),
+        () => null,
+      )
+      .then((got) => {
+        // Law 10: no answer reads as the baseline ("not linked"); the server answers again on placing.
+        if (live) setLines((x) => ({ ...x, ...(got ?? { [asked]: notLinkedLine }) }));
+      });
+    return () => {
+      live = false;
+    };
+  }, [asked, surface, patientUserId, encounterId]);
+
   const set = (patch: Partial<State>) => setS((x) => ({ ...x, ...patch }));
   const setFluid = (patch: Partial<FluidState>) =>
     setS((x) => ({ ...x, fluid: { ...x.fluid, ...patch } }));
@@ -406,7 +448,17 @@ export function PlanPrescribeDialog({
     ],
     cosign: drug?.flags.controlled ? v.payload.cosign.controlled : v.payload.cosign.routine,
     pharmacy: pharmacyAvailability(drug?.id ?? ""),
+    stock: drug ? (lines[drug.id] ?? null) : null,
   };
+  const stockLine = drug && stockAt ? (lines[drug.id] ?? null) : null;
+  // D-PH1-22: "Pick something else" answers nothing; it goes back to choosing.
+  const pickElse = () =>
+    setS((x) => ({
+      ...initial({ ...target, drugId: undefined }),
+      conditionId: x.conditionId,
+      start: x.start,
+      note: x.note,
+    }));
   const checks: PlanCheck[] = drug && rx ? planChecks(drug, rx, ctx) : [];
   const verdict = rx ? verifyAnswers(checks, rx) : null;
   const firing = checks.filter(
@@ -574,9 +626,11 @@ export function PlanPrescribeDialog({
                             )}
                           >
                             <span>{d.generic}</span>
-                            <span className="text-caption text-muted-foreground">
-                              {PHARMACY_WORD[pharmacyAvailability(d.id).status]}
-                            </span>
+                            {stockAt ? null : (
+                              <span className="text-caption text-muted-foreground">
+                                {PHARMACY_WORD[pharmacyAvailability(d.id).status]}
+                              </span>
+                            )}
                           </button>
                         </li>
                       ))}
@@ -990,9 +1044,21 @@ export function PlanPrescribeDialog({
             </p>
           </Field>
           <Field label="Pharmacy">
-            <p className="border-border text-body-s text-muted-foreground rounded-md border border-dashed px-3 py-2">
-              Pharmacy not linked yet
-            </p>
+            {stockAt && drug ? (
+              <>
+                <p
+                  className="text-body-s text-foreground bg-muted rounded-md px-3 py-2"
+                  aria-live="polite"
+                >
+                  {stockLine ? stockLineWords(stockLine) : "Asking the pharmacy…"}
+                </p>
+                <p className="text-caption text-muted-foreground">{STOCK_LINE_COPY.footer}</p>
+              </>
+            ) : (
+              <p className="border-border text-body-s text-muted-foreground rounded-md border border-dashed px-3 py-2">
+                Pharmacy not linked yet
+              </p>
+            )}
           </Field>
           <Field label="Checks">
             {firing.length ? (
@@ -1006,6 +1072,7 @@ export function PlanPrescribeDialog({
                       setS((x) => ({ ...x, answers: { ...x.answers, [c.code]: a } }))
                     }
                     needsAnswer={needingAnswer([c]).length > 0}
+                    onPickElse={c.code === "stock" ? pickElse : undefined}
                   />
                 ))}
               </ul>
@@ -1080,14 +1147,18 @@ function CheckItem({
   answer,
   onAnswer,
   needsAnswer,
+  onPickElse,
 }: {
   c: PlanCheck;
   answer: { answer: AnswerId; text?: string } | undefined;
   onAnswer: (a: { answer: AnswerId; text?: string }) => void;
   needsAnswer: boolean;
+  /** A stock Check's second choice (D-PH1-22). */
+  onPickElse?: () => void;
 }) {
   const tid = useId();
-  const chips = c.outcome === "stop" ? OVERRIDE_REASONS : CHECK_REASONS;
+  const chips =
+    c.code === "stock" ? STOCK_REASONS : c.outcome === "stop" ? OVERRIDE_REASONS : CHECK_REASONS;
   const word = OUTCOME_WORD[c.outcome];
   return (
     <li className="flex flex-col gap-1.5">
@@ -1113,6 +1184,11 @@ function CheckItem({
                 {label}
               </Toggle>
             ))}
+            {onPickElse ? (
+              <Button size="sm" variant="ghost" onClick={onPickElse}>
+                {STOCK_LINE_COPY.pickElse}
+              </Button>
+            ) : null}
           </div>
           {answer?.answer === "other" ? (
             <>

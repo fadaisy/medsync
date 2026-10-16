@@ -46,7 +46,7 @@ export async function readinessFor(tx: EmrTx, hospitalId: string, now: Date) {
     tx
       .select({ n: sql<number>`count(*)::int` })
       .from(downtimeDrills)
-      .where(eq(downtimeDrills.hospitalId, hospitalId)),
+      .where(and(eq(downtimeDrills.hospitalId, hospitalId), eq(downtimeDrills.workspace, "lab"))),
     tx
       .select({ n: sql<number>`count(*)::int` })
       .from(labBriefings)

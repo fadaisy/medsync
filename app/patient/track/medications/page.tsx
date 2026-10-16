@@ -1,4 +1,5 @@
 import type { MedicationRow } from "@/lib/patient/self-tracking";
+import type { PatientMedicineList } from "@/lib/pharmacy/patient-list";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -9,15 +10,19 @@ import { Pill } from "@/components/ui/data-table";
 import { rowTint } from "@/lib/patient/doses";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { listMedicationsForDay, SCHEDULE_PATTERN_LABEL } from "@/lib/patient/self-tracking";
+import { PATIENT_COPY } from "@/lib/pharmacy/messages";
+import { getPatientMedicineList, patientListLive } from "@/lib/pharmacy/patient-list";
 import { cn } from "@/lib/utils";
 import { PatientPageHeader } from "../../_components/page-header";
 import { TintedRow } from "../../_components/tinted-row";
 import { AddMedicationSheet, MedActions } from "./_components/med-actions";
+import { PharmacyReport } from "./_components/pharmacy-report";
 
 export const metadata: Metadata = { title: "Medications · MedSync" };
 export const dynamic = "force-dynamic";
 
 const PAGE_PATH = "/patient/track/medications";
+const EMPTY_LIST: PatientMedicineList = { groups: [], notGiven: [], coveredMedicationIds: [] };
 const ADD_HREF = `${PAGE_PATH}?add=1`;
 
 interface PageProps {
@@ -30,8 +35,19 @@ export default async function PatientMedicationsPage({ searchParams }: PageProps
   // The day fetcher rather than an active-only one: a medicine stopped earlier
   // today still belongs to today, so it stays on the list until tomorrow with
   // its state on show, instead of disappearing mid-day.
-  const medications = await listMedicationsForDay(scope.userId, new Date());
-  const rows = medications.map((med) => ({ med, times: clockTimes(med.scheduleTimes) }));
+  const [medications, pharmacy] = await Promise.all([
+    listMedicationsForDay(scope.userId, new Date()),
+    // Pharmacy Phase 1 (5.11): only at hospitals where the list is live; otherwise empty, and the page
+    // is exactly as before.
+    process.env.PHARMACY_PATIENT_LIST?.trim()
+      ? getPatientMedicineList(scope.userId, (hospitalId) => patientListLive(hospitalId))
+      : EMPTY_LIST,
+  ]);
+  const covered = new Set(pharmacy.coveredMedicationIds);
+  const byId = new Map(medications.map((m) => [m.id, m]));
+  const rows = medications
+    .filter((med) => !covered.has(med.id))
+    .map((med) => ({ med, times: clockTimes(med.scheduleTimes) }));
 
   const active = rows.filter((r) => r.med.state === "active");
   const stopped = rows.filter((r) => r.med.state !== "active");
@@ -55,6 +71,8 @@ export default async function PatientMedicationsPage({ searchParams }: PageProps
           </Link>
         }
       />
+
+      <PharmacySection list={pharmacy} byId={byId} />
 
       {rows.length === 0 ? (
         <EmptyState />
@@ -140,6 +158,89 @@ export default async function PatientMedicationsPage({ searchParams }: PageProps
 
       <AddMedicationSheet open={params.add === "1"} />
     </div>
+  );
+}
+
+/**
+ * 5.11, artboard 1.11: what the hospital pharmacy gave (a group per hand-over, from the supplies) and what
+ * it did not (from the line events), in the signed patient words. Nothing here when the list is not live.
+ */
+function PharmacySection({
+  list,
+  byId,
+}: {
+  list: PatientMedicineList;
+  byId: Map<string, MedicationRow>;
+}) {
+  if (!list.groups.length && !list.notGiven.length) return null;
+  const count = list.groups.reduce((n, g) => n + g.medicines.length, 0);
+  return (
+    <section aria-labelledby="meds-pharmacy" className="flex flex-col gap-3">
+      <SectionHead id="meds-pharmacy" title={PATIENT_COPY.section} count={count} />
+      {list.groups.map((g) => (
+        <div key={g.handoverId} className="flex flex-col gap-2">
+          <p className="text-muted-foreground text-body-s">{g.head}</p>
+          <ul className="flex flex-col gap-2">
+            {g.medicines.map((m) => {
+              const med = m.medicationId ? byId.get(m.medicationId) : undefined;
+              return (
+                <li
+                  key={m.lineId}
+                  className="bg-card dark:shadow-card flex flex-col gap-1 rounded-xl p-4 shadow-xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-foreground text-body font-medium">{m.medicine}</h3>
+                    {med && med.state === "active" ? (
+                      <MedActions
+                        medicationId={med.id}
+                        name={med.name}
+                        schedulePattern={med.schedulePattern}
+                        times={clockTimes(med.scheduleTimes)}
+                      />
+                    ) : null}
+                  </div>
+                  {/* Law 7: the directions exactly as stored. */}
+                  <p className="text-body-s whitespace-pre-wrap">{m.directions}</p>
+                  {m.pharmacistLine ? <p className="text-body-s">{m.pharmacistLine}</p> : null}
+                  <p className="text-muted-foreground text-body-s">{m.given}</p>
+                  {m.refill ? (
+                    <p className="text-muted-foreground text-body-s">{m.refill}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+      {list.notGiven.length ? (
+        <ul aria-label={PATIENT_COPY.notGivenSection} className="flex flex-col gap-2">
+          {list.notGiven.map((n) => (
+            <li
+              key={n.lineId}
+              className="bg-card dark:shadow-card flex flex-col gap-2 rounded-xl p-4 shadow-xs"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-foreground text-body font-medium">{n.medicine}</h3>
+                <Pill tone="neutral">{n.lead}</Pill>
+              </div>
+              <p className="text-body-s">{n.text}</p>
+              {n.couldNotGet ? (
+                <p className="text-muted-foreground text-body-s">{PATIENT_COPY.saidCouldNotGet}</p>
+              ) : null}
+              {n.canReport ? (
+                <PharmacyReport
+                  lineId={n.lineId}
+                  labels={{
+                    boughtIt: PATIENT_COPY.boughtIt,
+                    couldNotGet: PATIENT_COPY.couldNotGet,
+                  }}
+                />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }
 

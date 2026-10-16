@@ -1,8 +1,10 @@
 import type { Hue } from "@/lib/design/domains";
 import type { MarBody, MarCellState } from "@/lib/emr/charts/payload";
 
+import { StatusWord } from "@/components/emr/status-word";
 import { Tag } from "@/components/medsync/tag";
 import { formatClock } from "@/lib/emr/charts/scale";
+import { wardChipWords } from "@/lib/pharmacy/ward-chip";
 
 /**
  * The medicine administration record (MONITORING-CHARTS.md §2): one row per prescription and a
@@ -48,6 +50,15 @@ export function MarGrid({ body }: { body: MarBody }) {
               >
                 <span className="text-foreground block">{r.label}</span>
                 <span className="text-caption text-muted-foreground block">{r.detail}</span>
+                {r.pharmacy ? (
+                  // D-PH1-33: read-only; it holds no dose. A query is amber with its icon and words.
+                  <StatusWord
+                    tone={r.pharmacy.kind === "queried" ? "caution" : "neutral"}
+                    className="mt-1"
+                  >
+                    {wardChipWords(r.pharmacy)}
+                  </StatusWord>
+                ) : null}
               </th>
               <td className="border-ink-150 border-t px-3 py-2.5">
                 {r.cells.length === 0 && !r.note ? (

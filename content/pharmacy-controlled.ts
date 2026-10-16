@@ -1,0 +1,117 @@
+/**
+ * Controlled drugs (Pharmacy Phase 1, 5.9; gate-a-wireframes.md §9). The interface words of the
+ * controlled supply screen, the Controlled drugs page and the register slip page. The signed rows
+ * (B-08, B-47 to B-53) live in `lib/pharmacy/controlled.ts` (CONTROLLED_COPY, READY_COPY) and
+ * `lib/pharmacy/print/register.ts` (REGISTER_COPY) and are quoted from there. Signed 13 Oct 2026.
+ *
+ * Law 9: nothing here says or implies that MedSync's record replaces the signed prescription or the
+ * hospital's controlled drugs register.
+ */
+
+export const CONTROLLED_UI = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
+  title: "Controlled supply",
+  prescribed: (cadre: string) => `Prescribed by ${cadre}`,
+  section: {
+    witness: "The witness",
+    count: "The count, batch by batch (with the witness present)",
+    paper: "Paper that still applies",
+    agrees: "The witness agrees",
+  },
+  witness: {
+    pick: "Witness",
+    choose: "Choose your name",
+    hint: "Staff allowed to witness. Never the person supplying.",
+    password: "Password",
+    code: "Authenticator code",
+    confirm: "Confirm the witness",
+    done: (cadre: string, time: string) => `Witnessed by ${cadre} · ${time}`,
+    method: "(password + authenticator)",
+    nobody: "Nobody here may witness yet: the witness list is not signed.",
+    first: "The witness confirms who they are first.",
+  },
+  count: {
+    before: "In the cupboard before",
+    check: "Check the count",
+    counted: (n: number) => `You counted ${n}`,
+    record: (n: number) => `MedSync's figure ${n}`,
+    matches: "Matches",
+    continues: (n: number) => `Supply continues from ${n}.`,
+    supplying: "Supplying",
+    after: "In the cupboard after",
+    noBatches: "No batch of this medicine is at this dispensing point.",
+  },
+  printEntry: "Print the register entry",
+  record: "Record supply",
+  waitingFor: "Record supply waits for:",
+  permission: "Only a holder of the controlled drugs permission can supply this.",
+  recordedEntries: "Register slips for this supply",
+
+  page: {
+    title: "Controlled drugs",
+    medicine: "Medicine",
+    choose: "Choose a medicine",
+    show: "Show",
+    from: "From",
+    to: "To",
+    countNow: "Count now",
+    countTitle: (medicine: string) => `Count ${medicine} with a witness`,
+    receive: "Receive",
+    receiveTitle: (medicine: string) => `Receive ${medicine} with a witness`,
+    printEntries: "Print entries",
+    balance: (n: number, unit: string) => `Balance now: ${n} ${unit}`.trim(),
+    differences: "Open differences",
+    difference: (batch: string, counted: number, recorded: number) =>
+      `${batch} · counted ${counted}, record ${recorded}`,
+    people: (supplier: string, witness: string) => `${supplier} + ${witness}`,
+    close: "Close with a note",
+    closeTitle: "Close this difference",
+    note: "Note",
+    closeSubmit: "Close",
+    backEntered: "Entered after downtime, to confirm against the register",
+    witnessAsWritten: (name: string) => `Witness as written: ${name}`,
+    confirm: "Confirm (witnessed)",
+    confirmTitle: "Confirm this entry against the register",
+    confirmSubmit: "Confirm",
+    columns: {
+      time: "Time",
+      what: "What",
+      in: "In",
+      out: "Out",
+      balance: "Balance",
+      batch: "Batch",
+      by: "By",
+      witness: "Witness",
+    },
+    what: {
+      received: "Received",
+      supplied: "Supplied",
+      reversed: "Reversed",
+      adjusted: "Adjusted",
+      count_correction: "Count correction",
+      transfer_out: "Sent to another point",
+      transfer_in: "Received from another point",
+      count: "Counted (witnessed)",
+    },
+    slip: "Register slip",
+    empty: "Nothing recorded for this medicine between these dates.",
+    noMedicine: "Choose a medicine to see its entries.",
+    noPoint: "Choose the dispensing point you are working at.",
+    product: "Product",
+    batch: "Batch number",
+    expiry: "Expiry (date or month)",
+    quantity: "Quantity",
+    from_: "From",
+    deliveryRef: "Delivery reference (optional)",
+    receiveSubmit: "Receive",
+    countSubmit: "Check the count",
+    readOnly: "Only a holder of the controlled drugs permission can count or receive here.",
+  },
+
+  slipPage: {
+    print: "Print",
+    back: "Back to Controlled drugs",
+  },
+} as const;

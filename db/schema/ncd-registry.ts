@@ -328,6 +328,8 @@ export const ncdSmsTemplate = pgTable("ncd_sms_template", {
   purpose: text("purpose").notNull(),
   language: text("language").notNull(),
   body: text("body").notNull().default(""),
+  /** 0134 (D-PH1-48): 'ncd' or 'pharmacy'; the purpose CHECK pairs each purpose with its workspace. */
+  workspace: text("workspace").notNull().default("ncd"),
   status: text("status").notNull().default("draft"),
   version: integer("version").notNull().default(1),
   createdBy: uuid("created_by"),

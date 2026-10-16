@@ -1,6 +1,7 @@
 "use client";
 
 import type { PlanView } from "./model";
+import type { PharmacyHandlers } from "./pharmacy";
 import type { PlanDraft, PlanOrderLine } from "@/lib/clerking/plan/draft";
 import type { ProblemCard as Card, ProblemTest } from "@/lib/clerking/plan/problems";
 import type { OrderFrequency, OrderPriority } from "@/lib/emr/orders";
@@ -22,6 +23,7 @@ import {
 import { classById, drugsInClass, SUPPORTIVE_ITEMS } from "@/lib/prescribing/formulary";
 import { cn } from "@/lib/utils";
 import { Chevron, DraftLabel, FOCUS, inputClass, PriorityTag, Seg, Tag } from "./parts";
+import { itemsForLine, PharmacyChips, PharmacyItemBlock } from "./pharmacy";
 
 /**
  * One problem from 09 Impression (ADR 0184 §1): tests that would help decide, must not miss,
@@ -297,6 +299,7 @@ export function ProblemCard({
   onPrescribe,
   time,
   defaultOpen,
+  pharmacy,
 }: {
   card: Card;
   v: PlanView;
@@ -306,6 +309,8 @@ export function ProblemCard({
   onPrescribe: (t: PrescribeTarget) => void;
   time: (iso: string) => string;
   defaultOpen: boolean;
+  /** Pharmacy Phase 1 (5.4): the line's queries and notices; absent with the flag off. */
+  pharmacy?: PharmacyHandlers;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [pending, setPending] = useState<
@@ -576,6 +581,22 @@ export function ProblemCard({
                       <li key={r.id} className="text-body-s flex flex-wrap items-center gap-2">
                         <span>{r.display}</span>
                         <Tag>{r.awaitingCosign ? "Awaiting co-sign" : "Prescribed"}</Tag>
+                        {pharmacy && v.payload.pharmacy ? (
+                          <>
+                            <PharmacyChips view={v.payload.pharmacy} lineId={r.id} />
+                            {itemsForLine(v.payload.pharmacy, r.id)
+                              .filter((i) => i.kind === "not_supplied" || i.scope === "line")
+                              .map((i) => (
+                                <PharmacyItemBlock
+                                  key={i.id}
+                                  item={i}
+                                  view={v.payload.pharmacy!}
+                                  canWrite={canWrite}
+                                  handlers={pharmacy}
+                                />
+                              ))}
+                          </>
+                        ) : null}
                       </li>
                     ))}
                     {rxBasket.map((r) => (

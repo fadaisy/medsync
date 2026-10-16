@@ -76,6 +76,12 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
     iconKey: "lab-signoffs",
     superadminOnly: true,
   },
+  {
+    href: "/admin/pharmacy-catalogue",
+    label: "Medicines list",
+    iconKey: "pharmacy-catalogue",
+    superadminOnly: true,
+  },
   { href: "/admin/audit", label: "Audit", iconKey: "audit", superadminOnly: true },
   { href: "/admin/health", label: "Health", iconKey: "health" },
   { href: "/admin/feedback", label: "Tester feedback", iconKey: "feedback", superadminOnly: true },

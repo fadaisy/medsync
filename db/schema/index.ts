@@ -138,3 +138,5 @@ export * from "./pharmacy";
 export * from "./lab-safety";
 export * from "./lab-catalogue";
 export * from "./lab-quality";
+// ─── Pharmacy Phase 1: dispensing with stock (migrations 0122–0135 — GATED, ADRs 0260–0279)
+export * from "./pharmacy-dispensing";

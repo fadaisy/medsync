@@ -14,12 +14,20 @@ import {
   OVERRIDE_CAUTION,
   PHARMACY,
 } from "@/content/pharmacy";
+import { REVIEW } from "@/content/pharmacy-review";
 import { identitiesFor } from "@/lib/emr/read/results";
+import { can } from "@/lib/pharmacy/access";
+import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { getPrescription, logPrescriptionViewed, patientFacts } from "@/lib/pharmacy/read";
+import { getReview, prescribersHere } from "@/lib/pharmacy/review/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PharmacyNotice } from "../../_components/pharmacy-notice";
+import { BringInButton } from "../../_components/review-dialogs";
+import { ReviewScreen } from "../../_components/review-screen";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +36,10 @@ export const dynamic = "force-dynamic";
  * stored text field shown character for character (Law 5); only stored check answers (Law 6).
  * Opening it writes one view-log row (RV-6). Nothing on this page changes anything: the only link
  * goes back to the queue.
+ *
+ * Pharmacy Phase 1 (5.3): with `pharmacyDispensing` on, at a live point, a prescription in scope opens
+ * the review screen instead. An earlier prescription (LO-6) opens here, in the Phase 0 view, with one
+ * action: Bring into the queue (B-11). A point that is not live keeps this view, unchanged.
  */
 const V = PHARMACY.view;
 const time = new Intl.DateTimeFormat("en-GB", {
@@ -50,6 +62,22 @@ export default async function PharmacyPrescriptionPage({
 }) {
   const scope = await requirePharmacyScope();
   const key = decodeURIComponent((await params).key);
+  let bringIn: ReactNode = null;
+  if (pharmacyDispensingLiveFor(scope.hospitalId)) {
+    const actor = await requirePharmacyActor();
+    const review = await getReview(scope.hospitalId, key, actor.pointId);
+    if (!review) notFound();
+    if (review.pointLive && review.scope !== "out")
+      return <ReviewPage scope={scope} actor={actor} data={review} />;
+    if (review.pointLive && review.beforeGoLive && can(actor.access, "pharmacy.dispense"))
+      bringIn = (
+        <CautionNotice tone="neutral" lead={REVIEW.review.beforeGoLive}>
+          <span className="mt-2 block">
+            <BringInButton lineId={review.firstLineId} />
+          </span>
+        </CautionNotice>
+      );
+  }
   const rx = await getPrescription(scope.hospitalId, key);
   if (!rx) notFound();
   const now = new Date();
@@ -89,6 +117,7 @@ export default async function PharmacyPrescriptionPage({
       <IdentityStrip name={who.name} mrn={who.mrn} ageSex={who.ageSex} facts={facts} />
 
       <PharmacyNotice hospitalId={scope.hospitalId} />
+      {bringIn}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="flex min-w-0 flex-col gap-4">
@@ -334,5 +363,59 @@ function Line({ line }: { line: ViewLine }) {
         </CautionNotice>
       ) : null}
     </li>
+  );
+}
+
+/** 5.3 at a live point: the head here, the lines and the query form in the review screen. */
+async function ReviewPage({
+  scope,
+  actor,
+  data,
+}: {
+  scope: Awaited<ReturnType<typeof requirePharmacyScope>>;
+  actor: Awaited<ReturnType<typeof requirePharmacyActor>>;
+  data: NonNullable<Awaited<ReturnType<typeof getReview>>>;
+}) {
+  const now = new Date();
+  const [ids, facts, prescribers] = await Promise.all([
+    identitiesFor(scope, [data.patientUserId], "pharmacy_prescription"),
+    patientFacts(data.patientUserId, now),
+    prescribersHere(scope.hospitalId),
+    logPrescriptionViewed(scope.userId, scope.hospitalId, data.key),
+  ]);
+  const who = ids.get(data.patientUserId) ?? { name: "Name withheld", mrn: "", ageSex: "" };
+  const written = new Date(data.writtenAt);
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6">
+      <PageHeader
+        place={`${scope.hospitalName} · ${PHARMACY.place}`}
+        placeInTopBar
+        title={V.title}
+        subline={
+          <span className="text-body-s text-muted-foreground">
+            {[data.from, data.prescriberCadre, `${dayOf(written)} · ${time.format(written)}`]
+              .filter(Boolean)
+              .join(" · ")}
+          </span>
+        }
+      />
+      <IdentityStrip name={who.name} mrn={who.mrn} ageSex={who.ageSex} facts={facts} />
+      <CautionNotice
+        lead={
+          data.doses.total
+            ? REVIEW.noticeReview(data.doses.signed, data.doses.total)
+            : REVIEW.noticeReviewNoCounts
+        }
+      />
+      <ReviewScreen
+        data={data}
+        canReview={can(actor.access, "pharmacy.review")}
+        canDispense={can(actor.access, "pharmacy.dispense")}
+        canStock={can(actor.access, "pharmacy.stock")}
+        prescribers={prescribers}
+        patientListOn={await patientListLive(scope.hospitalId)}
+        timeZone={DEFAULT_TIME_ZONE}
+      />
+    </div>
   );
 }

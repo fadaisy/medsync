@@ -7,6 +7,7 @@ import type { PlanOrderLine } from "@/lib/clerking/plan/draft";
 import type { ChartFrequency, ObsFrequency, PlanChartItem } from "@/lib/emr/charts/rules";
 import type { EmrTx } from "@/lib/emr/db";
 import type { DemographicFact, ObservationFact, PregnancyFact } from "@/lib/facts/types";
+import type { StockLine } from "@/lib/prescribing/pharmacy";
 import type { CultureState, OtherMedicine, PlanCheckContext } from "@/lib/prescribing/plan-checks";
 import type { PlanRx } from "@/lib/prescribing/plan-rx";
 import type { AdminRoute } from "@/lib/prescribing/reference/emergency-drug-catalog";
@@ -16,6 +17,7 @@ import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { conditions, medicationStatements, specimens } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
 import { monitoringCharts } from "@/db/schema/monitoring";
+import { pharmacyStockAnswers } from "@/db/schema/pharmacy-dispensing";
 import { prescriptions } from "@/db/schema/prescribing";
 import { computeAgeYears } from "@/lib/age";
 import { DX_CATALOGUE, DX_TERM_IDS, TEST_UUIDS } from "@/lib/clerking/impression/load";
@@ -25,6 +27,8 @@ import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { unitWords } from "@/lib/emr/unit-words";
 import { encrypt } from "@/lib/encryption";
 import { loadFactSnapshot } from "@/lib/facts/loader";
+import { pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
+import { stockLinesFor } from "@/lib/pharmacy/stock/availability-read";
 import { drugById, isFluid, regimenById, resolveRegimens } from "@/lib/prescribing/formulary";
 import { pharmacyAvailability } from "@/lib/prescribing/pharmacy";
 import { planChecks, verifyAnswers } from "@/lib/prescribing/plan-checks";
@@ -33,6 +37,7 @@ import { EmrWriteError, stampActivity } from "./context";
 import { loadEncounterDiagnoses } from "./diagnoses";
 import { recordMedicationStatements } from "./facts";
 import { openEncounter, placeOrders, replayed, requireCadre } from "./orders";
+import { answerQuery, chooseAlternative } from "./pharmacy-answers";
 import { prescribeRequirement, PRESCRIBING_CADRES, statementRoute } from "./prescriptions";
 
 /**
@@ -205,6 +210,8 @@ async function prescribeFromPlan(
   },
   facts: PlanFacts,
   earlier: OtherMedicine[],
+  /** Pharmacy Phase 1 (5.10): the answer the prescriber saw, behind `pharmacyStockAnswer`. */
+  stock: StockLine | null = null,
 ): Promise<{ id: string; label: string; drugId: string; classId: string; kind: "drug" | "fluid" }> {
   const { tx, actor, now } = ctx;
   const { rx } = input;
@@ -267,8 +274,15 @@ async function prescribeFromPlan(
     others: earlier,
     cosign: requirement,
     pharmacy: pharmacyAvailability(drug.id, actor.hospitalId),
+    stock,
   });
-  const verdict = verifyAnswers(checks, rx);
+  // Law 10, D-PH1-22: stock never refuses a placement. If the answer turned into a Check after the
+  // dialog (stock ran out meanwhile), the line is placed and the stock answer is stored unanswered.
+  const stockTap = rx.answers.find((a) => a.code === "stock");
+  const verdict = verifyAnswers(
+    stockTap ? checks : checks.filter((c) => !(c.code === "stock" && c.outcome === "check")),
+    rx,
+  );
   if (!verdict.ok) throw new EmrWriteError("invalid", `${drug.generic}: ${verdict.reason}`);
 
   const statement = await recordMedicationStatements(ctx, {
@@ -286,7 +300,9 @@ async function prescribeFromPlan(
     ],
   });
 
-  const answered = rx.answers.filter((a) => checks.some((c) => c.code === a.code));
+  const answered = rx.answers.filter((a) =>
+    checks.some((c) => c.code === a.code && (c.code !== "stock" || c.outcome === "check")),
+  );
   const reason = [verdict.reasonText, rx.witness ? `Witness: ${rx.witness}` : ""]
     .filter(Boolean)
     .join("; ");
@@ -352,7 +368,64 @@ async function prescribeFromPlan(
       actionKind: drug.flags.controlled ? "prescription_controlled" : "prescription_routine",
       actionPayload: { prescriptionId: row!.id, encounterId: input.encounterId },
     });
+  if (stock) await recordStockAnswer(ctx, input.patientUserId, row!.id, stock, stockTap?.answer);
   return { id: row!.id, label, drugId: drug.id, classId: drug.class, kind: rx.kind };
+}
+
+/**
+ * D-PH1-44, AV-8: every stock answer shown is kept with the prescription, in its own savepoint (H8): a
+ * failure is logged and the prescription is placed (Law 10).
+ */
+async function recordStockAnswer(
+  ctx: WriteCtx,
+  patientUserId: string,
+  prescriptionId: string,
+  s: StockLine,
+  answer: string | undefined,
+): Promise<void> {
+  const at = (iso: string | null) => (iso ? new Date(iso) : null);
+  try {
+    await ctx.tx.transaction((sp) =>
+      sp.insert(pharmacyStockAnswers).values({
+        hospitalId: ctx.actor.hospitalId,
+        patientUserId,
+        prescriptionId,
+        state: s.state,
+        pointId: s.pointId,
+        pointName: s.point,
+        lastCountAt: at(s.lastCountAt),
+        lastReceiptAt: at(s.lastReceiptAt),
+        since: at(s.since),
+        level: s.level,
+        answer: s.level === "check" ? (answer ?? null) : null,
+        recordedAt: ctx.now,
+      }),
+    );
+  } catch (e) {
+    console.warn("pharmacy.stock_answer_failed", e instanceof Error ? e.name : "error");
+  }
+}
+
+/** The stock lines for the basket, one read (Section 11); a failed read leaves the baseline (Law 10). */
+async function basketStock(
+  ctx: WriteCtx,
+  encounterId: string,
+  rxs: readonly PlanRx[],
+): Promise<Map<string, StockLine> | null> {
+  if (!rxs.length || !pharmacyStockAnswerLiveFor(ctx.actor.hospitalId)) return null;
+  try {
+    return await ctx.tx.transaction((sp) =>
+      stockLinesFor(sp, {
+        hospitalId: ctx.actor.hospitalId,
+        encounterId,
+        medicineIds: rxs.map((r) => r.drugId),
+        now: ctx.now,
+      }),
+    );
+  } catch (e) {
+    console.warn("pharmacy.stock_read_failed", e instanceof Error ? e.name : "error");
+    return null;
+  }
 }
 
 /* ─── Monitoring charts ──────────────────────────────────────────── */
@@ -547,6 +620,7 @@ export async function placePlan(
         : [];
     }),
   ];
+  const stock = await basketStock(ctx, encounter.id, input.prescriptions);
   const prescriptionIds: string[] = [];
   // One id for every line of this basket: the prescription the patient carries (ADR 0230).
   const placementId = randomUUID();
@@ -562,8 +636,12 @@ export async function placePlan(
       },
       facts,
       others,
+      stock?.get(rx.drugId) ?? null,
     );
     prescriptionIds.push(placed.id);
+    // HZ-PH1-45: a line placed to change one the pharmacy asked about cancels the old line naming it,
+    // in this transaction; if the link is refused, nothing in the basket is placed.
+    if (rx.replaces) await linkReplacement(ctx, input.patientUserId, rx.clientKey, rx.replaces);
     others.push({
       drugId: placed.drugId,
       classId: placed.classId,
@@ -586,4 +664,28 @@ export async function placePlan(
     chartIds,
     warnings,
   };
+}
+
+async function linkReplacement(
+  ctx: WriteCtx,
+  patientUserId: string,
+  clientKey: string,
+  replaces: NonNullable<PlanRx["replaces"]>,
+): Promise<void> {
+  if (replaces.kind === "notice") {
+    await chooseAlternative(ctx, {
+      patientUserId,
+      lineEventId: replaces.ref,
+      replacedByClientKey: clientKey,
+    });
+    return;
+  }
+  await answerQuery(ctx, {
+    patientUserId,
+    queryId: replaces.ref,
+    clientKey: `${clientKey}:answer`,
+    answer: "changed",
+    lineId: replaces.lineId,
+    replacedByClientKey: clientKey,
+  });
 }
