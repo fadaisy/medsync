@@ -8,7 +8,11 @@
  */
 import type { SignedCopy } from "@/content/signed-copy";
 
-export const LAB3_COPY_STATUS: SignedCopy = { status: "draft", signedBy: null, signedOn: null };
+export const LAB3_COPY_STATUS: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-16",
+};
 
 /** Each line's comment is who reads it (Appendix A "Read by"). */
 export const LAB3 = {
