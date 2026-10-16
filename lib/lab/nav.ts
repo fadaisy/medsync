@@ -24,7 +24,17 @@ export type LabNavId =
   | "setup_drafts"
   | "setup_settings"
   | "to_refer"
-  | "setup_menu";
+  | "setup_menu"
+  | "stock"
+  | "equipment"
+  | "quality"
+  | "qc"
+  | "nonconformities"
+  | "eqa"
+  | "bedside_quality"
+  | "register"
+  | "hmis"
+  | "reports";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -40,6 +50,19 @@ export interface LabNavFlags {
   oneMenu?: boolean;
   /** Lab Phase 2 (§5.14): any flag with a lab setting (catalogue v2, payment, high-risk, bedside). */
   settings?: boolean;
+  /** Lab Phase 3 (§5): labStock, labEquipment. */
+  stock?: boolean;
+  equipment?: boolean;
+  /** Lab Phase 3 (§5.1–§5.4, §5.9): labQc. */
+  qc?: boolean;
+  /** Lab Phase 3 (§5.8): labEqa. */
+  eqa?: boolean;
+  /** Lab Phase 3 (§5.10): labPoctQuality, the lab's set-up for bedside quality. */
+  poctQuality?: boolean;
+  /** Lab Phase 3 (§5.11, §5.12): labHmis, the Reports group. */
+  hmis?: boolean;
+  /** Lab Phase 3 (§5.13): labReports, Lab reports in the Reports group. */
+  reports?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -161,6 +184,98 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     group: "setup",
     visibleFor: (p, f) => !!(f.settings ?? f.catalogueV2) && p.has("lab.manage"),
+  },
+  // Lab Phase 3 (§5): the Quality group, each item behind its flag.
+  {
+    id: "quality",
+    label: "Quality today",
+    href: "/lab/quality",
+    order: 5.1,
+    exact: true,
+    group: "quality",
+    visibleFor: (p, f) => !!f.qc && p.has("lab.view"),
+  },
+  {
+    id: "qc",
+    label: "Quality control",
+    href: "/lab/quality/qc",
+    order: 5.2,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.qc && p.has("lab.view"),
+  },
+  {
+    id: "nonconformities",
+    label: "Nonconformities",
+    href: "/lab/quality/nonconformities",
+    order: 5.6,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => (!!f.qc || !!f.eqa) && p.has("lab.view"),
+  },
+  {
+    id: "eqa",
+    label: "External quality",
+    href: "/lab/quality/eqa",
+    order: 5.5,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.eqa && p.has("lab.view"),
+  },
+  {
+    id: "bedside_quality",
+    label: "Bedside quality",
+    href: "/lab/quality/bedside",
+    order: 5.55,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.poctQuality && p.has("lab.view"),
+  },
+  {
+    id: "stock",
+    label: "Stock and lots",
+    href: "/lab/stock",
+    order: 5.3,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.stock && p.has("lab.view"),
+  },
+  {
+    id: "equipment",
+    label: "Equipment",
+    href: "/lab/equipment",
+    order: 5.4,
+    exact: false,
+    group: "quality",
+    visibleFor: (p, f) => !!f.equipment && p.has("lab.view"),
+  },
+  // Lab Phase 3 (§5.11–§5.13): the Reports group, behind labHmis and labReports.
+  {
+    id: "register",
+    label: "Daily register",
+    href: "/lab/register",
+    order: 6.1,
+    exact: false,
+    group: "reports",
+    visibleFor: (p, f) => !!f.hmis && p.has("lab.view"),
+  },
+  {
+    id: "hmis",
+    label: "HMIS 105",
+    href: "/lab/hmis",
+    order: 6.2,
+    exact: false,
+    group: "reports",
+    visibleFor: (p, f) => !!f.hmis && p.has("lab.view"),
+  },
+  {
+    id: "reports",
+    label: "Lab reports",
+    href: "/lab/reports",
+    order: 6.3,
+    exact: false,
+    group: "reports",
+    visibleFor: (p, f) => !!f.reports && p.has("lab.view"),
   },
 ];
 

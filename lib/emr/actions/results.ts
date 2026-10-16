@@ -55,7 +55,13 @@ const EnterResults = z.object({
   clientKey,
 });
 
-const ReleaseResults = z.object({ ...base, reportId: uuid, clientKey });
+const ReleaseResults = z.object({
+  ...base,
+  reportId: uuid,
+  clientKey,
+  // Lab Phase 3 (QH-4): release past a QC hold; the server checks lab.qc.override.
+  qcOverride: z.object({ reason: z.string().trim().min(3, "Say why.").max(300) }).optional(),
+});
 
 const AmendResults = z.object({
   ...base,

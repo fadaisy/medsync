@@ -29,6 +29,8 @@ export interface Profile {
   mappings: Mapping[];
   openChecks: OpenCheck[];
   verifiedConcepts: string[];
+  /** Lab Phase 3 (0113, E-LAB3-09): the analyser this profile runs on, when linked. */
+  deviceId?: string | null;
 }
 
 export interface AnalyserModel {

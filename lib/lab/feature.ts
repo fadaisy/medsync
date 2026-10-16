@@ -1,6 +1,7 @@
 import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
 import { CRITICALS_COPY_STATUS } from "@/content/lab-criticals";
 import { LAB2_COPY_STATUS } from "@/content/lab-phase-2";
+import { LAB3_COPY_STATUS } from "@/content/lab-phase-3";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -67,3 +68,25 @@ export const ncdLabFeedLiveFor = (h: string) =>
 /** §5.14: Lab settings holds catalogue v2, payment, high-risk and bedside settings: open with any of them. */
 export const labSettingsLiveFor = (h: string) =>
   labCatalogueV2LiveFor(h) || labPaymentLiveFor(h) || labHighRiskLiveFor(h) || labBedsideLiveFor(h);
+
+/**
+ * Lab Phase 3 (registers, reports and quality; gate-a-proposal §13): eight per-hospital flags, off by default,
+ * each inside the lab workspace and each off in production while the Phase 3 copy (Appendix A) is a draft.
+ * With all eight off, behaviour is Phase 2's (bedside lots are read from the stock ledger, same ids).
+ */
+const phase3 = (v: string | undefined, tag: string, h: string) =>
+  workspaceLiveFor(v, h, [LAB3_COPY_STATUS], tag) && labWorkspaceLiveFor(h);
+export const labStockLiveFor = (h: string) => phase3(process.env.LAB_STOCK, "lab_stock", h);
+export const labEquipmentLiveFor = (h: string) =>
+  phase3(process.env.LAB_EQUIPMENT, "lab_equipment", h);
+export const labQcLiveFor = (h: string) =>
+  phase3(process.env.LAB_QC, "lab_qc", h) && labStockLiveFor(h) && labUnitsRangesLiveFor(h);
+export const labQcHoldLiveFor = (h: string) =>
+  phase3(process.env.LAB_QC_HOLD, "lab_qc_hold", h) && labQcLiveFor(h);
+export const labEqaLiveFor = (h: string) => phase3(process.env.LAB_EQA, "lab_eqa", h);
+export const labPoctQualityLiveFor = (h: string) =>
+  phase3(process.env.LAB_POCT_QUALITY, "lab_poct_quality", h) &&
+  labBedsideLiveFor(h) &&
+  labStockLiveFor(h);
+export const labHmisLiveFor = (h: string) => phase3(process.env.LAB_HMIS, "lab_hmis", h);
+export const labReportsLiveFor = (h: string) => phase3(process.env.LAB_REPORTS, "lab_reports", h);

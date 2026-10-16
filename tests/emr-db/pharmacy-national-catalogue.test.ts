@@ -193,8 +193,7 @@ describe.skipIf(!laneOn)("the national catalogue (ADR 0282, 0136)", () => {
   it("pharmacy staff search the current edition under RLS; a nurse reads nothing", async () => {
     const asPharmacist = await asClinicalReader(
       { userId: f.pharmacist!, hospitalId: f.h! },
-      (tx) =>
-        searchNationalList(tx, { q: MED_B.generic, kind: "medicine", vital: false }),
+      (tx) => searchNationalList(tx, { q: MED_B.generic, kind: "medicine", vital: false }),
       lane.db,
     );
     expect(asPharmacist!.edition.id).toBe(f.edition);

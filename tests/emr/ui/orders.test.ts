@@ -129,6 +129,21 @@ describe("order entry: reason required, two taps for a favourite", () => {
     expect(m.draftReady(d)).toBe(false);
   });
 
+  it("D-LAB3-21 an HIV rapid test is not ready until its purpose is chosen; the purpose is sent", () => {
+    let d = m.draftReducer(m.EMPTY_DRAFT, {
+      type: "toggle",
+      testId: MENU_BY_CODE.MRDT!.id,
+      clientKey: "key-MRDT-000",
+      defaultReasonIds: m.defaultReasonIds(REASONS),
+      needsPurpose: true,
+    });
+    expect(m.draftReady(d)).toBe(false);
+    expect(text(sheet(d))).toContain("Choose the purpose of this HIV test.");
+    d = m.draftReducer(d, { type: "purpose", testId: d.lines[0]!.testId, purpose: "emtct" });
+    expect(m.draftReady(d)).toBe(true);
+    expect(m.toOrderLines(d)[0]).toMatchObject({ testPurpose: "emtct" });
+  });
+
   it("priority is routine, urgent or immediate; a second tap on a test removes it", () => {
     let d = toggle(m.EMPTY_DRAFT, "FBC");
     d = m.draftReducer(d, { type: "priority", testId: d.lines[0]!.testId, priority: "immediate" });

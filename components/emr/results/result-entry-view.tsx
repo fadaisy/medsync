@@ -10,7 +10,7 @@ import type {
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Fragment } from "react";
-import { EyeOffIcon, LockIcon } from "lucide-react";
+import { CheckIcon, EyeOffIcon, LockIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -358,6 +358,23 @@ export function ResultEntryView({
   );
 }
 
+/** Lab Phase 3 (§5.3): the QC column, a word with its icon; held is amber, never colour alone. */
+function QcWord({ qc }: { qc: EntryComponent["qc"] }) {
+  if (!qc) return null;
+  return (
+    <span className="block pt-1 font-normal">
+      <span className="sr-only">QC: </span>
+      {qc.tone === "amber" ? (
+        <StatusWord tone="caution">{qc.word}</StatusWord>
+      ) : (
+        <StatusWord icon={qc.tone === "passed"} glyph={CheckIcon}>
+          {qc.word}
+        </StatusWord>
+      )}
+    </span>
+  );
+}
+
 function QuantityRow({
   c,
   line,
@@ -380,6 +397,7 @@ function QuantityRow({
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[9rem_7rem_6.5rem_1fr_8rem]">
         <label htmlFor={id} className="text-body-s col-span-2 font-medium sm:col-span-1">
           {c.display}
+          <QcWord qc={c.qc} />
         </label>
         <Input
           id={id}
@@ -585,6 +603,7 @@ function FixedQuantityRow({
         <label htmlFor={id} className="text-body-s col-span-2 font-medium sm:col-span-1">
           {c.display}
           <span className="sr-only">, {f.unitWords ?? f.unitDisplay}</span>
+          <QcWord qc={c.qc} />
         </label>
         <Input
           id={id}

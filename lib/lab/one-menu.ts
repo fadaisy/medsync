@@ -25,6 +25,8 @@ export interface Availability {
   turnaround: string | null;
   referredTo: string | null;
   since: string | null;
+  /** GATE A P17: the hub's reason code when `down_referred` (the test's own problem, else its section's). */
+  reason: string | null;
 }
 
 /** OM-1..OM-4. `offeringCode` is the test's link; `offering` the hub row; `sectionId` its lab section. */
@@ -33,7 +35,7 @@ export function availabilityFor(input: {
   offering: (Offering & { sectionId?: string | null }) | null;
   problems: readonly OpenProblem[] | null;
 }): Availability {
-  const none = { hours: null, turnaround: null, referredTo: null, since: null };
+  const none = { hours: null, turnaround: null, referredTo: null, since: null, reason: null };
   if (!input.offeringCode) return { state: "not_linked", ...none };
   // OM-3, Law 8: a hub that cannot be read is "Not known today", never "available".
   if (input.problems === null) return { state: "unknown", ...none };
@@ -43,11 +45,22 @@ export function availabilityFor(input: {
         (p) => p.subjectKind === "lab_section" && p.subjectRef === input.offering!.sectionId,
       )
     : undefined;
+  // The same problem `orderingAvailability` reads; its reason is not on the hub's return.
+  const own = input.problems.find(
+    (p) =>
+      (p.subjectKind === "test" || p.subjectKind === "imaging") &&
+      p.subjectRef === input.offeringCode,
+  );
   const down =
     a.availability?.state === "unavailable" ||
     a.availability?.state === "unconfirmed" ||
     section?.state === "unavailable";
-  const base = { hours: a.hours, turnaround: a.statedTurnaround, referredTo: a.referredTo };
+  const base = {
+    hours: a.hours,
+    turnaround: a.statedTurnaround,
+    referredTo: a.referredTo,
+    reason: null,
+  };
   if (a.where === "unknown") return { state: "unknown", ...none };
   if (a.where === "not_offered") return { state: "not_offered", ...base, since: null };
   if (a.where === "referred") return { state: "referred", ...base, since: null };
@@ -56,6 +69,7 @@ export function availabilityFor(input: {
       state: "down_referred",
       ...base,
       since: a.availability?.since ?? section?.since ?? null,
+      reason: own?.reason ?? section?.reason ?? null,
     };
   return { state: "in_house", ...base, since: null };
 }

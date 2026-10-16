@@ -714,3 +714,84 @@ describe("red is reserved — Lab Phase 2 surfaces", () => {
     expect(block).not.toMatch(/critical|destructive|red-|rose-/);
   });
 });
+
+// ─── Lab Phase 3 (Law 11): no red and no green on the quality surfaces ──────────────────────
+
+describe("red is reserved — Lab Phase 3 surfaces", () => {
+  const PHASE3 = tree(
+    "app/lab/stock",
+    "app/lab/equipment",
+    "app/lab/quality",
+    "app/lab/_lib",
+    "app/nurse/bedside",
+    "app/lab/hmis",
+    "app/lab/register",
+    "app/hmis",
+    "app/lab/reports",
+  ).concat(
+    (
+      [
+        "content/lab-phase-3.ts",
+        "app/lab/_components/pop.tsx",
+        "components/lab/hmis-table.tsx",
+        "components/lab/lab-report-view.tsx",
+        "app/lab/_components/repeat-done.tsx",
+        "app/hospital-admin/reports/_components/lab-aggregates.tsx",
+        "app/lab/results/[orderId]/_components/qc-hold.tsx",
+        "app/nurse/patients/[patientId]/bedside/_components/bedside-form.tsx",
+        "app/nurse/patients/[patientId]/bedside/_components/bedside-screen.tsx",
+      ] as const
+    ).map((f) => [f, stripComments(readFileSync(resolve(ROOT, f), "utf8"))] as const),
+  );
+
+  it("S51: every Phase 3 route and component is scanned", () => {
+    const scanned = new Set(PHASE3.map(([p]) => p));
+    for (const f of [
+      "app/lab/reports/page.tsx",
+      "app/lab/reports/records/page.tsx",
+      "app/lab/quality/page.tsx",
+      "app/lab/stock/page.tsx",
+      "app/lab/equipment/page.tsx",
+      "app/lab/hmis/page.tsx",
+      "app/lab/register/page.tsx",
+      "app/hmis/page.tsx",
+      "app/nurse/bedside/devices/page.tsx",
+    ])
+      expect(scanned.has(f), f).toBe(true);
+  });
+
+  it("S51: no red — warnings are amber with a word", () => {
+    expect(PHASE3.length).toBeGreaterThan(5);
+    for (const [path, src] of PHASE3) {
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+      expect(src, path).not.toMatch(/\b(?:text|bg|border|ring|fill|stroke)-(?:red|rose)-\d/);
+      expect(src, path).not.toMatch(/status-critical|tone="critical"|destructive/);
+      expect(src, path).not.toMatch(/border-l-\d|border-l-(?:grape|plum|teal|amber)/);
+    }
+  });
+
+  it("S51: no green — passed and in stock are neutral chips with a check", () => {
+    for (const [path, src] of PHASE3) {
+      expect(src, path).not.toMatch(
+        /\b(?:text|bg|border|ring|fill|stroke)-(?:green|emerald|lime|mint)-\d/,
+      );
+      expect(src, path).not.toMatch(/status-stable|success|tone="(?:ok|stable|success)"/);
+    }
+  });
+
+  it("§10: any movement in a Phase 3 file stops under reduced motion (colour fades are not movement)", () => {
+    for (const [path, src] of PHASE3)
+      if (/\b(?:transition(?!-colors)|animate-[a-z])/.test(src))
+        expect(src, path).toMatch(/motion-reduce:|prefers-reduced-motion/);
+  });
+
+  it("In stock and Use first are neutral words with a check, never amber", () => {
+    const page = stripComments(readFileSync(resolve(ROOT, "app/lab/stock/page.tsx"), "utf8"));
+    expect(page).toMatch(/<StatusWord icon glyph=\{CheckIcon\}>\s*\{C\.status\.inStock\}/);
+    const forms = stripComments(
+      readFileSync(resolve(ROOT, "app/lab/stock/_components/stock-forms.tsx"), "utf8"),
+    );
+    expect(forms).toMatch(/<StatusWord icon glyph=\{CheckIcon\}>\s*\{P\.useFirst\}/);
+  });
+});

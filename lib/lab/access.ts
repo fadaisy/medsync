@@ -1,10 +1,11 @@
 import type { PermissionMap } from "@/lib/workspace-access/access";
 
-import MAP from "@/data/lab/permission-map.v1.json";
+import V1 from "@/data/lab/permission-map.v1.json";
+import V2 from "@/data/lab/permission-map.v2.json";
 import { cadrePermissions, mapProblems as problemsOf } from "@/lib/workspace-access/access";
 
 /**
- * Lab access (Lab Phase 0, ADR 0221; LA-1..LA-6). Six permissions, derived on every request from
+ * Lab access (Lab Phase 0, ADR 0221; LA-1..LA-6; Lab Phase 3 §4). Eleven permissions, derived on every request from
  * two facts and never stored: the viewer's approved or active lab-cadre affiliation, read through
  * the signed map in data/lab/permission-map.v1.json, and their open department_heads rows (head of
  * LABORATORY manages the whole lab, head of a lab section manages that section). The `lab_tech`
@@ -19,10 +20,26 @@ export const LAB_PERMISSIONS = [
   "lab.result.enter",
   "lab.result.release",
   "lab.manage",
+  // Lab Phase 3 (gate-a-proposal §4). The HMIS In-Charge and focal person are designations, not permissions
+  // (hmis_designations, lib/lab/hmis-designations.ts).
+  "lab.qc.override",
+  "lab.stock.manage",
+  "lab.eqa.manage",
+  "lab.hmis.check",
+  "poct.assess",
 ] as const;
 export type LabPermission = (typeof LAB_PERMISSIONS)[number];
 
-const PERMISSION_MAP: PermissionMap = MAP;
+/** Headship carries these with lab.manage (substantive or acting head); no cadre ever does (LA-5). */
+const FROM_HEADSHIP = [
+  "lab.manage",
+  "lab.qc.override",
+  "lab.eqa.manage",
+  "lab.hmis.check",
+] as const satisfies readonly LabPermission[];
+
+/** The signed map in force: 2.0.0 (Phase 3's lab.stock.manage and poct.assess) once the CSO signs it, else 1.0.0. */
+const PERMISSION_MAP: PermissionMap = V2.status === "signed" ? V2 : V1;
 export const PERMISSION_MAP_VERSION = PERMISSION_MAP.version;
 
 /** The cadres the signed map names. A cadre not in the map holds no lab permission. */
@@ -42,12 +59,12 @@ export interface LabAccess {
 }
 
 export function labAccess(facts: LabAccessFacts, map: PermissionMap = PERMISSION_MAP): LabAccess {
-  // An unsigned map grants nothing, and lab.manage never comes from a cadre (LA-5).
-  const permissions = cadrePermissions(map, facts.cadreCode, LAB_PERMISSIONS, ["lab.manage"]);
+  // An unsigned map grants nothing, and headship permissions never come from a cadre (LA-5).
+  const permissions = cadrePermissions(map, facts.cadreCode, LAB_PERMISSIONS, FROM_HEADSHIP);
   const manages: LabAccess["manages"] = facts.headOf.laboratory
     ? "lab"
     : [...facts.headOf.sectionIds];
-  if (manages === "lab" || manages.length > 0) permissions.add("lab.manage");
+  if (manages === "lab" || manages.length > 0) for (const p of FROM_HEADSHIP) permissions.add(p);
   return { permissions, manages };
 }
 
@@ -57,5 +74,5 @@ export function can(access: Pick<LabAccess, "permissions">, permission: LabPermi
 
 /** Every problem with a map, for the test that keeps the shipped one honest. */
 export function mapProblems(map: PermissionMap = PERMISSION_MAP): string[] {
-  return problemsOf(map, LAB_PERMISSIONS, ["lab.manage"]);
+  return problemsOf(map, LAB_PERMISSIONS, FROM_HEADSHIP);
 }

@@ -3,20 +3,30 @@
 import type { WorkspaceNavEntry } from "@/components/medsync/workspace-nav";
 import type { LabNavId } from "@/lib/lab/nav";
 import {
+  ActivityIcon,
+  AwardIcon,
   BanIcon,
+  BookOpenIcon,
+  ChartColumnIcon,
   CheckCheckIcon,
+  ClipboardListIcon,
   CpuIcon,
   FileClockIcon,
   FileSearchIcon,
+  FileSpreadsheetIcon,
+  FingerprintIcon,
   GaugeIcon,
   ListChecksIcon,
   ListIcon,
+  PackageIcon,
   RulerIcon,
   SendIcon,
   SettingsIcon,
+  ShieldCheckIcon,
   SirenIcon,
   SlidersHorizontalIcon,
   TestTubesIcon,
+  WrenchIcon,
 } from "lucide-react";
 
 import {
@@ -45,6 +55,16 @@ const ICON = {
   setup_settings: SlidersHorizontalIcon,
   to_refer: SendIcon,
   setup_menu: ListChecksIcon,
+  stock: PackageIcon,
+  equipment: WrenchIcon,
+  quality: ShieldCheckIcon,
+  qc: ActivityIcon,
+  nonconformities: ClipboardListIcon,
+  eqa: AwardIcon,
+  bedside_quality: FingerprintIcon,
+  register: BookOpenIcon,
+  hmis: FileSpreadsheetIcon,
+  reports: ChartColumnIcon,
 } as const;
 
 export interface LabNavEntry {

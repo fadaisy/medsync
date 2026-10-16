@@ -30,6 +30,8 @@ export const labSettings = pgTable("lab_settings", {
   reportEgfr: boolean("report_egfr").notNull().default(false),
   paymentMode: text("payment_mode").notNull().default("off"),
   highRiskProcedure: text("high_risk_procedure"),
+  /* 0112: operational quality settings (alert window, look-back, count frequency, …), never clinical. */
+  quality: jsonb("quality").notNull().default({}),
   updatedBy: uuid("updated_by"),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });
@@ -205,6 +207,9 @@ export const labResultSnapshots = pgTable("lab_result_snapshots", {
   profileId: uuid("profile_id"),
   methodCode: text("method_code"),
   labOnly: boolean("lab_only").notNull().default(false),
+  /* 0112 (Law 4, LU-3): the lots in use and the QC status at release. */
+  lots: jsonb("lots"),
+  qc: jsonb("qc"),
 });
 
 /* ─── 0104 ranges and limits ───────────────────────────────────────── */

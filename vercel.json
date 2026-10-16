@@ -17,6 +17,10 @@
     {
       "path": "/api/cron/sweep-pre-arrivals",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/hmis-changes",
+      "schedule": "0 1 * * *"
     }
   ]
 }

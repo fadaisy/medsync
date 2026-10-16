@@ -8,14 +8,23 @@
  * The HIV outcome is derived from the signed algorithm version's own rule table; nothing is remembered here.
  */
 import type { Payload } from "@/lib/lab/signed-config";
+import type { LotState } from "@/lib/lab/stock";
+
+import { lotRefusal } from "@/lib/lab/stock";
+import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 
 export type BedsideError =
   | "device_not_registered"
+  | "device_blocked"
   | "device_not_in_use"
   | "device_other_ward"
   | "device_other_test"
   | "lot_not_for_device"
   | "lot_expired"
+  | "lot_not_accepted"
+  | "lot_quarantined"
+  | "lot_rejected"
+  | "lot_finished"
   | "not_an_operator"
   | "measured_in_future"
   | "late_needs_reason";
@@ -25,24 +34,33 @@ export const LATE_ENTRY_MS = 24 * 3_600_000;
 
 export function bedsideErrors(i: {
   device: { state: string; wardId: string | null; testCode: string | null } | null;
-  lot: { deviceMatches: boolean; useBy: string } | null;
+  /** The lot, from the stock ledger (Lab Phase 3 Step 4): its state and use-by decide (LA-4, ST-8). */
+  lot: { deviceMatches: boolean; state: LotState; useBy: string | null } | null;
   operatorGranted: boolean;
   wardId: string | null;
   testCode: string;
   measuredAt: Date;
   now: Date;
   lateReason: string | null;
+  /** The hospital's zone: a lot expires at the end of its use-by day there, not in UTC. */
+  timeZone?: string;
 }): BedsideError[] {
   const e: BedsideError[] = [];
   if (!i.device) e.push("device_not_registered");
   else {
-    if (i.device.state !== "in_use") e.push("device_not_in_use"); // PC-10
+    // BQ-2 (Lab Phase 3 Step 8): a failed control check stops the device until a check passes.
+    if (i.device.state === "blocked") e.push("device_blocked");
+    else if (i.device.state !== "in_use") e.push("device_not_in_use"); // PC-10
     if (i.device.wardId && i.device.wardId !== i.wardId) e.push("device_other_ward");
     if (i.device.testCode && i.device.testCode !== i.testCode) e.push("device_other_test");
   }
   if (!i.lot || !i.lot.deviceMatches) e.push("lot_not_for_device");
-  // PC-3: past its use-by date at the time measured (the date itself is still usable).
-  else if (i.measuredAt.toISOString().slice(0, 10) > i.lot.useBy) e.push("lot_expired");
+  else {
+    // PC-3, LA-4: selectable for patients, and not past its use-by day at the time measured, hospital-local.
+    const r = lotRefusal(i.lot, i.measuredAt, i.timeZone ?? DEFAULT_TIME_ZONE);
+    if (r === "not_accepted") e.push("lot_not_accepted");
+    else if (r) e.push(`lot_${r}`);
+  }
   if (!i.operatorGranted) e.push("not_an_operator");
   if (i.measuredAt.getTime() > i.now.getTime()) e.push("measured_in_future");
   else if (i.now.getTime() - i.measuredAt.getTime() > LATE_ENTRY_MS && !i.lateReason?.trim())

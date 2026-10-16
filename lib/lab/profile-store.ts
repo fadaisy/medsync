@@ -28,6 +28,7 @@ const toProfile = (r: typeof analyserProfiles.$inferSelect): Profile => ({
   mappings: r.mappings as Mapping[],
   openChecks: r.openChecks as OpenCheck[],
   verifiedConcepts: r.verifiedConcepts,
+  deviceId: r.deviceId,
 });
 
 async function draft(tx: EmrTx, actor: Actor, id: string) {

@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ConfigKind, SchemePayload } from "./signed-config";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
@@ -24,6 +24,14 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   ncd_mapping: "NCD field mapping",
   ref: "Reference entry",
   addendum: "Concept addendum",
+  acceptance_plan: "Lot acceptance plan",
+  qc_plan: "QC plan",
+  qc_policy: "QC policy",
+  kit_qc_rule: "Kit or stain QC rule",
+  device_qc_rule: "Bedside device control rule",
+  competency_validity: "Bedside competency validity",
+  hmis_mapping: "HMIS 105 mapping",
+  register_config: "Daily register columns",
 };
 
 const author = alias(users, "author");
@@ -41,7 +49,14 @@ export async function loadConfigsWaitingForCso() {
     .leftJoin(hospitals, eq(hospitals.id, labSignedConfigs.hospitalId))
     .leftJoin(author, eq(author.id, labSignedConfigs.authoredBy))
     .leftJoin(lead, eq(lead.id, labSignedConfigs.leadSignedBy))
-    .where(and(eq(labSignedConfigs.status, "draft"), isNotNull(labSignedConfigs.leadSignedBy)))
+    // The HMIS mapping's second signature is the HMIS focal person's, never the CSO's (E-LAB3-12).
+    .where(
+      and(
+        eq(labSignedConfigs.status, "draft"),
+        isNotNull(labSignedConfigs.leadSignedBy),
+        ne(labSignedConfigs.kind, "hmis_mapping"),
+      ),
+    )
     .orderBy(desc(labSignedConfigs.leadSignedAt))
     .limit(200);
   return rows.map(({ c, hospital, author, lead }) => {
@@ -97,6 +112,22 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return `${p.concept} in ${p.unit}`;
     case "ref":
       return key;
+    case "acceptance_plan":
+      return String(p.method).replace("_", " ");
+    case "qc_plan":
+      return `${key} · ${(p.levels as unknown[]).length} levels · reject ${(p.rejectRules as string[]).join(", ")}`;
+    case "qc_policy":
+      return `${p.minRunsForTarget} runs over ${p.minDaysForTarget} days`;
+    case "kit_qc_rule":
+      return `${(p.controls as unknown[]).length} controls${p.requiredBeforeUse ? " · required before use" : ""}`;
+    case "device_qc_rule":
+      return `${key} · ${(p.levels as string[]).join(", ")}${p.requiredBeforeUse ? " · required before use" : ""}`;
+    case "competency_validity":
+      return `${key} · valid ${p.validDays} days · grace ${p.graceDays} days`;
+    case "hmis_mapping":
+      return `${key} · ${(p.rows as unknown[]).length} rows mapped`;
+    case "register_config":
+      return `${key} · ${(p.columns as unknown[]).length} columns`;
   }
 }
 
@@ -171,5 +202,52 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
       ];
     case "addendum":
       return [`Data file hash: ${p.hash}`];
+    case "acceptance_plan":
+      return [`Method: ${summary(kind, p)}`, `Source: ${p.source}`];
+    case "qc_plan": {
+      const q = p as {
+        unit: string;
+        levels: { level: number; label: string }[];
+        frequency: { kind: string; n?: number };
+        rejectRules: string[];
+        warnRules: string[];
+        holdWhenNotRun: boolean;
+        targets: { level: number; mean: number; sd: number; source: string }[];
+        source: string;
+      };
+      return [
+        ...q.levels.map((l) => `Level ${l.level}: ${l.label}`),
+        `Frequency: ${q.frequency.kind.replaceAll("_", " ")}${q.frequency.n ? ` (${q.frequency.n})` : ""}`,
+        `Reject on: ${q.rejectRules.join(", ")}`,
+        `Warn on: ${q.warnRules.join(", ") || "none"}`,
+        `Hold release when QC is not run: ${q.holdWhenNotRun ? "yes" : "no"}`,
+        ...q.targets.map(
+          (t) =>
+            `Target level ${t.level}: ${t.mean} ± ${t.sd} ${q.unit} (${t.source === "lab" ? "this lab's own" : "maker's range, provisional"})`,
+        ),
+        `Source: ${q.source}`,
+      ];
+    }
+    case "qc_policy":
+      return [summary(kind, p), ...(p.sources as string[]).map((s) => `Source: ${s}`)];
+    case "kit_qc_rule":
+      return [summary(kind, p), `Source: ${p.source}`];
+    case "device_qc_rule":
+      return [
+        `Due: ${(p.triggers as string[]).map((t) => t.replaceAll("_", " ")).join(", ")}`,
+        `Levels: ${(p.levels as string[]).join(", ")}`,
+        `Required before use: ${p.requiredBeforeUse ? "yes" : "no"}`,
+        `Source: ${p.source}`,
+      ];
+    case "competency_validity":
+      return [
+        `Methods: ${(p.methods as string[]).map((m) => m.replaceAll("_", " ")).join(", ")}`,
+        `Valid for ${p.validDays} days; grace period at switch-on ${p.graceDays} days`,
+        `Source: ${p.source}`,
+      ];
+    case "hmis_mapping":
+      return [summary(kind, p), `Form hash: ${p.formHash}`];
+    case "register_config":
+      return (p.columns as { label: string }[]).map((c, i) => `Column ${i + 1}: ${c.label}`);
   }
 }

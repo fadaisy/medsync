@@ -20,10 +20,11 @@ import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { ageSexWords } from "@/components/emr/orders/model";
 import { LAB2 } from "@/content/lab-phase-2";
+import { fill, LAB3 } from "@/content/lab-phase-3";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { devices, diagnosticReports, resultAcknowledgements, testCatalogue } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
-import { poctLots } from "@/db/schema/lab-catalogue";
+import { labStockLots } from "@/db/schema/lab-quality";
 import { downtimeEntries, labResultSnapshots } from "@/db/schema/lab-safety";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
@@ -249,6 +250,8 @@ export function reviewValues(
   >,
   /** Lab Phase 2 (CC-10): mark a coded answer the signed set calls abnormal. Never a critical flag. */
   abnormalAnswers = false,
+  /** Lab Phase 3 (QH-2, E-LAB3-08): components of a released report still held for quality control. */
+  held?: ReadonlySet<string>,
 ): ReviewValue[] {
   // Lab Phase 2 (AP-6, DP-2): a lab-only parameter never reaches a clinician's list.
   return values
@@ -269,9 +272,23 @@ export function reviewValues(
         };
       }
       const def = v.conceptId ? conceptDef(v.conceptId) : undefined;
-      return {
+      const display = def?.display ?? v.conceptId ?? "Result";
+      // Lab Phase 3: a held component is "to follow", never a value; one released past the hold says so.
+      if (held?.has(v.conceptId ?? ""))
+        return {
+          key: v.id,
+          display,
+          valueText: "",
+          unit: null,
+          flagText: null,
+          critical: false,
+          uncatalogued: false,
+          labNote: fill(LAB3.toFollow, { Analyte: display }),
+        };
+      const overridden = !!(v.context as { qcOverride?: boolean } | null)?.qcOverride;
+      const value: ReviewValue = {
         key: v.id,
-        display: def?.display ?? v.conceptId ?? "Result",
+        display,
         valueText:
           v.valueNum !== null
             ? `${v.valueComparator ?? ""}${v.valueNum}`
@@ -299,6 +316,17 @@ export function reviewValues(
             : { asTyped: true }
           : {}),
       };
+      // Lab Phase 3 Step 8 (BQ-3, D-LAB3-15): a bedside result measured before the day's control check says so.
+      const notChecked =
+        (v.context as { bedsideQuality?: { deviceCheck?: string } } | null)?.bedsideQuality
+          ?.deviceCheck === "not_done";
+      const lines = [
+        overridden ? LAB3.overrideLine : null,
+        notChecked ? LAB3.deviceCheckNotDone : null,
+      ].filter(Boolean);
+      return lines.length
+        ? { ...value, labNote: [...lines, value.labNote].filter(Boolean).join(" ") }
+        : value;
     });
 }
 
@@ -436,6 +464,7 @@ export async function loadResultEntry(
           lines,
           uncatalogued,
           conclusionCode: current.conclusionCode as ConclusionCode | null,
+          qcHeld: current.qcHeld ?? [],
         }
       : null,
     communicate,
@@ -503,6 +532,7 @@ export async function loadResultsToReview(
       recordedAt: r.recordedAt,
       conclusionCode: r.conclusionCode,
       conclusionCiphertext: r.conclusionCiphertext,
+      qcHeld: r.qcHeld,
       encounterId: o.encounterId,
       text: o.text,
       orderer: o.authoredByUserId,
@@ -617,12 +647,12 @@ export async function loadResultsToReview(
             .select({
               id: r.id,
               device: devices.model,
-              lot: poctLots.lot,
+              lot: labStockLots.lot,
               operator: users.fullName,
             })
             .from(r)
             .innerJoin(devices, eq(devices.id, r.deviceId))
-            .innerJoin(poctLots, eq(poctLots.id, r.lotId))
+            .innerJoin(labStockLots, eq(labStockLots.id, r.lotId))
             .leftJoin(users, eq(users.id, r.enteredByUserId))
             .where(
               inArray(
@@ -651,6 +681,7 @@ export async function loadResultsToReview(
       values.filter((v) => v.reportId === x.id),
       snapshots ?? undefined,
       labCatalogueV2LiveFor(actor.hospitalId),
+      new Set(x.qcHeld ?? []),
     );
     const critical = x.critical || vals.some((v) => v.critical);
     const bs = shown ? bedside?.get(x.id) : undefined;

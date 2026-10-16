@@ -4,8 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { dateWords, timeWords } from "@/app/lab/_lib/days";
 import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
+import { fill, LAB3 } from "@/content/lab-phase-3";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { loadChart } from "@/lib/emr/read/chart";
@@ -13,6 +15,7 @@ import { isOperator } from "@/lib/lab/bedside-store";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { settingsOf } from "@/lib/lab/criticals/store";
 import { labBedsideLiveFor } from "@/lib/lab/feature";
+import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 import { BEDSIDE as C } from "../_lib/copy";
 import { loadBedsideForm } from "../_lib/load";
 import { BedsideForm } from "./bedside-form";
@@ -61,8 +64,8 @@ export async function BedsideScreen({
   if (!chart.openEncounterId || !chart.payload.safetyBar.actionsAllowed)
     return shell(<CautionNotice tone="neutral" lead={C.noVisit} />);
 
-  const [{ ward, tests }, critical] = await Promise.all([
-    loadBedsideForm(scope.hospitalId, patientId),
+  const [{ ward, tests, blocked }, critical] = await Promise.all([
+    loadBedsideForm(scope.hospitalId, patientId, scope.userId),
     criticalsLive(scope.hospitalId),
   ]);
   const secondCheck = critical ? (await settingsOf(tx, scope.hospitalId)).secondCheck : false;
@@ -72,6 +75,17 @@ export async function BedsideScreen({
       <p className="text-body-s text-muted-foreground">
         {ward ? C.ward(ward.name) : C.hospitalWide}
       </p>
+      {blocked.map((d) => (
+        <CautionNotice
+          key={d.id}
+          lead={fill(LAB3.deviceBlocked, {
+            Device: d.model,
+            time: d.failedAt
+              ? `${dateWords(new Date(d.failedAt))} ${timeWords(new Date(d.failedAt))}`
+              : "—",
+          })}
+        />
+      ))}
       {tests.length === 0 ? (
         <CautionNotice tone="neutral" lead={C.noDevice} />
       ) : (
@@ -82,7 +96,7 @@ export async function BedsideScreen({
           wardId={ward?.id ?? null}
           identity={{ name: chart.payload.safetyBar.name, mrn: chart.payload.safetyBar.mrn }}
           operator={scope.fullName ?? scope.userEmail}
-          today={now.toISOString().slice(0, 10)}
+          today={localDateKey(now, DEFAULT_TIME_ZONE)}
           nowMs={now.getTime()}
           tests={tests}
           critical={critical ? { secondCheck } : null}

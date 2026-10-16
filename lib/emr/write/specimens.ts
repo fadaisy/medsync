@@ -43,8 +43,8 @@ import { withdrawPreliminary } from "./results";
  * to "to collect" with the reason visible. Specimens and their events are insert-only.
  */
 
-/** The values the specimens CHECKs accept (0071). The test menu also names `sputum`, which the
- *  table does not yet take: those collections are refused with a clear message, not a DB error. */
+/** The values the specimens CHECKs accept (0071, and 0117's seven for the HMIS 105 columns, E-LAB3-10). A type
+ *  outside the list is refused with a clear message, not a DB error. */
 export const SPECIMEN_TYPES = [
   "venous_plasma",
   "venous_serum",
@@ -56,6 +56,13 @@ export const SPECIMEN_TYPES = [
   "urine_24h",
   "interstitial_fluid",
   "unknown",
+  "sputum",
+  "stool",
+  "csf",
+  "pus_swab",
+  "genital_swab",
+  "skin_snip",
+  "other",
 ] as const;
 export const CONTAINERS = [
   "fluoride_oxalate",

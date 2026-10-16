@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
 import { LAB2 } from "@/content/lab-phase-2";
+import { LAB3 } from "@/content/lab-phase-3";
 import { LATE_ENTRY_MS, METER_RANGE, promptCritical } from "@/lib/lab/bedside";
 import { recordBedsideResultAction } from "@/lib/lab/bedside-actions";
 import { BEDSIDE as C } from "../_lib/copy";
@@ -28,6 +29,8 @@ const day = new Intl.DateTimeFormat("en-GB", {
   timeZone: "UTC",
 });
 const dayWords = (d: string) => day.format(new Date(`${d}T00:00:00Z`));
+/** The hospital-local day of a moment (as the server reads it, Lab Phase 3 S6). */
+const hospitalDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Kampala" });
 /** A datetime-local value for a moment, in the browser's own time. */
 const localAt = (ms: number) => {
   const d = new Date(ms);
@@ -121,10 +124,10 @@ export function BedsideForm({
 
   // PC-3 and PC-4, as the server reads them.
   const measuredMs = earlier ? new Date(earlier).getTime() : null;
-  const measuredDay = measuredMs !== null ? new Date(measuredMs).toISOString().slice(0, 10) : today;
+  const measuredDay = measuredMs !== null ? hospitalDay.format(new Date(measuredMs)) : today;
   const future = measuredMs !== null && measuredMs > now;
   const late = measuredMs !== null && !future && now - measuredMs > LATE_ENTRY_MS;
-  const expired = !!lot && measuredDay > lot.useBy;
+  const expired = !!lot?.useBy && measuredDay > lot.useBy;
 
   const values = (test?.components ?? []).flatMap((c): Value[] => {
     const l = lines[c.conceptId];
@@ -281,16 +284,18 @@ export function BedsideForm({
                 <option value="">{C.choose}</option>
                 {device?.lots.map((l) => (
                   <option key={l.id} value={l.id}>
-                    {`${l.lot} · ${C.lotUseBy(dayWords(l.useBy))}${l.useBy < today ? ` · ${C.expired}` : ""}`}
+                    {l.useBy ? `${l.lot} · ${C.lotUseBy(dayWords(l.useBy))}` : l.lot}
                   </option>
                 ))}
               </select>
             </label>
           </div>
         ) : null}
-        {expired && lot ? (
+        {expired && lot?.useBy ? (
           <CautionNotice lead={LAB2.bedside.expiredLot(lot.lot, dayWords(lot.useBy))} />
         ) : null}
+        {device?.notice ? <CautionNotice lead={device.notice} /> : null}
+        {lot?.needsCheck ? <CautionNotice lead={LAB3.stripLotNeedsCheck} /> : null}
 
         {test ? (
           <fieldset className="flex flex-col gap-3">
@@ -387,7 +392,10 @@ export function BedsideForm({
                     >
                       <option value="">{C.why}</option>
                       {(
-                        Object.entries(CRITICALS_COPY.couldNotCheck) as [CouldNotCheckReason, string][]
+                        Object.entries(CRITICALS_COPY.couldNotCheck) as [
+                          CouldNotCheckReason,
+                          string,
+                        ][]
                       ).map(([value, label]) => (
                         <option key={value} value={value}>
                           {label}

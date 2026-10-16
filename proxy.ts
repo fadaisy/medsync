@@ -54,6 +54,9 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // Pharmacy workspace — same auth + AAL2 + MFA gate. The pharmacy-cadre scope, pharmacy.view and
   // PHARMACY_WORKSPACE resolve in app/pharmacy/layout.tsx (requirePharmacyScope).
   "/pharmacy",
+  // The HMIS desk (Lab Phase 3 Step 9): the In-Charge, the HMIS focal person and the hospital admin. The
+  // designation resolves in lib/lab/hmis-scope.ts (hmisDeskScope).
+  "/hmis",
   // Patient workspace — requires auth. Patients are MFA-optional
   // (per kickoff), so the MFA branches in proxy.ts don't fire for
   // pure patients; a clinician-also-patient still gets MFA.

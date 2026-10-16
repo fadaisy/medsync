@@ -47,6 +47,36 @@ describe("lab navigation", () => {
     expect(LAB_NAV.find((i) => i.id === "setup_criticals")?.group).toBe("setup");
   });
 
+  it("Lab Phase 3 §5: Stock and lots and Equipment under Quality, each only with its flag", () => {
+    const all = new Set<LabPermission>(LAB_PERMISSIONS);
+    expect(navFor(all).map((i) => i.id)).not.toContain("stock");
+    const on = navFor(all, { criticals: false, stock: true });
+    expect(on.find((i) => i.id === "stock")).toMatchObject({
+      href: "/lab/stock",
+      group: "quality",
+    });
+    expect(navFor(new Set<LabPermission>(), { criticals: false, stock: true })).toEqual([]);
+    expect(navFor(all, { criticals: false, equipment: true }).map((i) => i.id)).toContain(
+      "equipment",
+    );
+    expect(navFor(all, { criticals: false, stock: true }).map((i) => i.id)).not.toContain(
+      "equipment",
+    );
+  });
+
+  it("Lab Phase 3 §5: Quality today, Quality control and Nonconformities under Quality, only with labQc", () => {
+    const all = new Set<LabPermission>(LAB_PERMISSIONS);
+    const ids = ["quality", "qc", "nonconformities"];
+    expect(navFor(all).map((i) => i.id)).not.toContain("qc");
+    const on = navFor(all, { criticals: false, qc: true });
+    expect(on.filter((i) => ids.includes(i.id)).map((i) => [i.href, i.group])).toEqual([
+      ["/lab/quality", "quality"],
+      ["/lab/quality/qc", "quality"],
+      ["/lab/quality/nonconformities", "quality"],
+    ]);
+    expect(navFor(new Set<LabPermission>(), { criticals: false, qc: true })).toEqual([]);
+  });
+
   it("NV-2: only what the viewer may see", () => {
     expect(navFor(new Set<LabPermission>(LAB_PERMISSIONS))).toHaveLength(3);
     expect(navFor(new Set<LabPermission>())).toEqual([]);

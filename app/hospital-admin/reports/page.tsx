@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { SegmentedLink } from "../_components/segmented-link";
 import { SentTodayPanel } from "../scheduling/_components/sent-today-panel";
+import { LabAggregates } from "./_components/lab-aggregates";
 import { LineTable, SessionTable } from "./_components/line-tables";
 
 export const metadata: Metadata = {
@@ -228,6 +229,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       </section>
 
       <SentTodayPanel rows={report.sent} range={range} since={since} />
+
+      <LabAggregates scope={scope} from={window.from} to={window.to} />
     </div>
   );
 }

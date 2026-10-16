@@ -24,10 +24,12 @@ import { conceptDef } from "@/lib/facts/project/shared";
 import { entryCheck, parseResultInput } from "./catalogue";
 import { loadConfigs, pregnancyAt } from "./catalogue-v2";
 import { egfrFor } from "./egfr";
+import { labStockLiveFor } from "./feature";
 import { changeFlag, computeFlag } from "./flags";
 import { resolveInterpretation } from "./interpretation";
 import { ageDaysAt, resolveRange } from "./ranges";
 import { inForce } from "./signed-config";
+import { lotsAtRelease } from "./stock-store";
 
 /**
  * Fixed units, signed ranges and snapshots on the result write (Lab Phase 1 Step 5, §6.1–§6.3; ADRs
@@ -164,6 +166,8 @@ export interface FixedUnits {
       valueType?: string | null;
     }[],
     reportId: string,
+    /** Lab Phase 3 (QH-6, Law 4): the QC status at release, per component. */
+    qc?: ReadonlyMap<string, unknown>,
   ) => Promise<void>;
 }
 
@@ -186,6 +190,8 @@ export async function prepareFixedUnits(
       status: string;
       method?: "lab" | "bedside";
     } | null;
+    /** Lab Phase 3 (LU-3, labStock): the device the result was made on, and its result time. */
+    lotsAt?: { deviceId: string | null; resultAt: Date | null };
   },
 ): Promise<FixedUnits | null> {
   const { tx, actor, now } = ctx;
@@ -386,8 +392,19 @@ export async function prepareFixedUnits(
   const entered = new Set(pending.keys());
   return {
     values,
-    snapshot: async (rows, reportId) => {
+    snapshot: async (rows, reportId, qc) => {
       const out: (typeof labResultSnapshots.$inferInsert)[] = [];
+      // Law 4, LU-3: the lots in use at the result time, with the stock ledger on.
+      const lots =
+        spec.lotsAt && labStockLiveFor(actor.hospitalId)
+          ? await lotsAtRelease(
+              tx,
+              actor.hospitalId,
+              spec.lotsAt.deviceId,
+              [...pending.keys()],
+              spec.lotsAt.resultAt,
+            )
+          : null;
       const carried = rows.filter(
         (r) =>
           r.conceptId && !entered.has(r.conceptId) && r.supersedesId && r.valueType === "quantity",
@@ -432,12 +449,22 @@ export async function prepareFixedUnits(
             profileId: spec.v2?.profile?.id ?? null,
             methodCode: p.measure.methodCode,
             labOnly: p.labOnly,
+            lots: lots?.get(r.conceptId!) ?? null,
+            qc: qc?.get(r.conceptId!) ?? null,
           });
           continue;
         }
-        // A value carried into the new version keeps the snapshot it was entered with (Law 8).
+        // A value carried into the new version keeps the snapshot it was entered with (Law 8); a release
+        // records its QC status (QH-6).
         const before = prior.find((s) => s.observationId === r.supersedesId);
-        if (before) out.push({ ...before, observationId: r.id, reportId, createdAt: now });
+        if (before)
+          out.push({
+            ...before,
+            observationId: r.id,
+            reportId,
+            createdAt: now,
+            qc: qc?.get(r.conceptId!) ?? before.qc,
+          });
       }
       if (out.length) await tx.insert(labResultSnapshots).values(out);
     },

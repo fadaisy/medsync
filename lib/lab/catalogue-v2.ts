@@ -14,7 +14,7 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { labCatalogueV2LiveFor } from "./feature";
 import { rowsFor } from "./profiles";
-import { configSignErrors, PAYLOADS } from "./signed-config";
+import { configSignErrors, LEAD_ONLY_KINDS, PAYLOADS } from "./signed-config";
 
 /**
  * Catalogue v2 on the database (Lab Phase 2 Step 4; ADRs 0251–0253). The signed configuration store, the
@@ -103,6 +103,7 @@ export async function pinnedProfile(tx: EmrTx, orderId: string): Promise<Profile
         mappings: r.mappings as Profile["mappings"],
         openChecks: r.open_checks as Profile["openChecks"],
         verifiedConcepts: (r.verified_concepts as string[]) ?? [],
+        deviceId: (r.device_id as string | null) ?? null,
       }
     : null;
 }
@@ -244,13 +245,39 @@ export async function saveConfigDraft(
 }
 
 /**
+ * D-LAB1-12, S53: someone other than the signer who could take the same slot here — another open head of the
+ * Laboratory or a section (lead), another superadmin (CSO), another HMIS focal person designated today (focal). A
+ * written exception covers only a hospital where no such person exists.
+ */
+async function anotherSigner(
+  tx: EmrTx,
+  s: { userId: string; hospitalId: string; as: "lead" | "cso" | "focal" },
+  now: Date,
+): Promise<boolean> {
+  const day = now.toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" });
+  const q =
+    s.as === "lead"
+      ? sql`SELECT 1 FROM department_heads h JOIN hospital_departments d ON d.id = h.department_id
+              LEFT JOIN hospital_departments p ON p.id = d.parent_id
+             WHERE h.hospital_id = ${s.hospitalId} AND h.user_id <> ${s.userId} AND h.ends_at IS NULL
+               AND 'LABORATORY' IN (d.catalogue_code, p.catalogue_code)`
+      : s.as === "cso"
+        ? sql`SELECT 1 FROM user_roles WHERE role = 'superadmin' AND user_id <> ${s.userId}`
+        : sql`SELECT 1 FROM hmis_designations WHERE hospital_id = ${s.hospitalId} AND role = 'focal'
+                AND user_id <> ${s.userId} AND starts_on <= ${day} AND (ends_on IS NULL OR ends_on >= ${day})`;
+  const r = (await tx.execute(sql`${q} LIMIT 1`)) as unknown as unknown[] | { rows: unknown[] };
+  return (Array.isArray(r) ? r : r.rows).length > 0;
+}
+
+/**
  * D-LAB1-11, -12 carried over: the lead signs (not the author, unless an exception is recorded), then the CSO
  * (a different person). The CSO's signature checks the payload once more and supersedes the version in
  * force; released results keep the one they were read against (DS-9).
  */
 export async function signConfig(
   tx: EmrTx,
-  signer: { userId: string; hospitalId: string; as: "lead" | "cso" },
+  /** The second slot is the CSO's, or the HMIS focal person's for `hmis_mapping` (E-LAB3-12). */
+  signer: { userId: string; hospitalId: string; as: "lead" | "cso" | "focal" },
   input: { configId: string; exceptionNote: string | null },
   now: Date,
 ): Promise<{ kind: ConfigKind; key: string }> {
@@ -266,6 +293,49 @@ export async function signConfig(
     .for("update");
   if (!c) throw new EmrWriteError("not_found", "That draft was not found.");
   if (c.status !== "draft") throw new EmrWriteError("conflict", "This is already signed.");
+  const note = input.exceptionNote?.trim() || null;
+  if (note && note.length < 10) throw invalid("Say in a sentence why no second person can sign.");
+  const leadOnly = LEAD_ONLY_KINDS.includes(c.kind);
+  // Who may sign is decided before what is signed (S53).
+  if (signer.as === "lead") {
+    if (c.leadSignedBy)
+      throw new EmrWriteError("conflict", "The laboratory lead has already signed.");
+    if (c.authoredBy === signer.userId) {
+      if (!note)
+        throw new EmrWriteError(
+          "forbidden",
+          "You wrote this draft: another lead signs it, or record why no one else can.",
+        );
+      if (await anotherSigner(tx, signer, now))
+        throw new EmrWriteError(
+          "forbidden",
+          "You wrote this draft and another lead can sign it: they sign it.",
+        );
+    }
+  } else {
+    if (leadOnly) throw new EmrWriteError("conflict", "The laboratory lead signs this alone.");
+    if ((c.kind === "hmis_mapping") !== (signer.as === "focal"))
+      throw new EmrWriteError(
+        "forbidden",
+        c.kind === "hmis_mapping"
+          ? "The HMIS focal person co-signs the HMIS mapping."
+          : "The CSO countersigns this.",
+      );
+    if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The laboratory lead signs first.");
+    const second = signer.as === "focal" ? "the HMIS focal person" : "CSO";
+    if (c.leadSignedBy === signer.userId) {
+      if (!note && !c.exceptionNote)
+        throw new EmrWriteError(
+          "forbidden",
+          `You signed as the lead: a different person signs as ${second}, or record why no one else can.`,
+        );
+      if (await anotherSigner(tx, signer, now))
+        throw new EmrWriteError(
+          "forbidden",
+          `You signed as the lead and another ${signer.as === "focal" ? "HMIS focal person" : "CSO"} can sign: they sign it.`,
+        );
+    }
+  }
   const errors = configSignErrors(c.kind as ConfigKind, c.payload);
   if (errors.length)
     throw invalid(
@@ -273,16 +343,7 @@ export async function signConfig(
         ? "Set every boundary first: each category must start exactly where the one below ends, with one side included."
         : "This draft is incomplete; open it and finish it before signing.",
     );
-  const note = input.exceptionNote?.trim() || null;
-  if (note && note.length < 10) throw invalid("Say in a sentence why no second person can sign.");
-  if (signer.as === "lead") {
-    if (c.leadSignedBy)
-      throw new EmrWriteError("conflict", "The laboratory lead has already signed.");
-    if (c.authoredBy === signer.userId && !note)
-      throw new EmrWriteError(
-        "forbidden",
-        "You wrote this draft: another lead signs it, or record why no one else can.",
-      );
+  if (signer.as === "lead" && !leadOnly) {
     await tx
       .update(labSignedConfigs)
       .set({
@@ -293,12 +354,6 @@ export async function signConfig(
       .where(eq(labSignedConfigs.id, c.id));
     return { kind: c.kind as ConfigKind, key: c.key };
   }
-  if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The laboratory lead signs first.");
-  if (c.leadSignedBy === signer.userId && !note && !c.exceptionNote)
-    throw new EmrWriteError(
-      "forbidden",
-      "You signed as the lead: a different person signs as CSO, or record why no one else can.",
-    );
   await tx
     .update(labSignedConfigs)
     .set({ status: "superseded", supersededAt: now })
@@ -315,8 +370,9 @@ export async function signConfig(
     .update(labSignedConfigs)
     .set({
       status: "signed",
-      csoSignedBy: signer.userId,
-      csoSignedAt: now,
+      ...(signer.as === "lead"
+        ? { leadSignedBy: signer.userId, leadSignedAt: now }
+        : { csoSignedBy: signer.userId, csoSignedAt: now }),
       inForceFrom: now,
       ...(note ? { exceptionNote: note } : {}),
     })

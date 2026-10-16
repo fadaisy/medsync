@@ -5,12 +5,14 @@ import type { EmrSurface } from "@/lib/emr/actor";
 import type { EmrTx } from "@/lib/emr/db";
 import type { OrderFrequency, OrderPriority, OrderRecords, OrderStatus } from "@/lib/emr/orders";
 import type { FactConcept } from "@/lib/facts/types";
+import type { HIV_PURPOSES } from "@/lib/lab/hiv-purpose";
 import type { PaymentMode } from "@/lib/lab/one-menu";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { z } from "zod";
 import { refresh } from "next/cache";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
+import { LAB3_HIV_PURPOSE } from "@/content/lab-phase-3";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import {
   conditions,
@@ -36,9 +38,11 @@ import { issueLabel } from "@/lib/lab/collection-store";
 import {
   labCatalogueV2LiveFor,
   labCollectionCheckLiveFor,
+  labHmisLiveFor,
   labOneMenuLiveFor,
   labPaymentLiveFor,
 } from "@/lib/lab/feature";
+import { needsHivPurpose } from "@/lib/lab/hiv-purpose";
 import { paymentAtPlacement } from "@/lib/lab/one-menu";
 import { menuToday } from "@/lib/lab/one-menu-read";
 import { actionError, EmrWriteError, stampActivity, withPatientWrite } from "./context";
@@ -238,6 +242,8 @@ export interface OrderLine {
   reasonText?: string;
   intentSource?: IntentSource;
   sourceIntentId?: string;
+  /** D-LAB3-21: why an HIV rapid test is done (HMIS 105), restricted with the order. */
+  testPurpose?: (typeof HIV_PURPOSES)[number];
 }
 
 export interface PlaceOrdersInput {
@@ -329,6 +335,21 @@ export async function placeOrders(
         `${test.display}: ${seen.words ?? "not offered here"}. Refer the patient instead.`,
       );
 
+    // D-LAB3-21: only an HIV rapid test takes a purpose; a clinician's own order of one needs it.
+    const takesPurpose = needsHivPurpose(test.code);
+    if (line.testPurpose && !takesPurpose)
+      throw new EmrWriteError("invalid", "Only an HIV rapid test takes a testing purpose.");
+    if (
+      takesPurpose &&
+      !line.testPurpose &&
+      labHmisLiveFor(actor.hospitalId) &&
+      !opts.propose &&
+      !opts.downtime &&
+      !opts.bedside &&
+      (line.intentSource ?? "clinician") === "clinician"
+    )
+      throw new EmrWriteError("invalid", LAB3_HIV_PURPOSE.required);
+
     // Sensitivity at insert (C9): a restricted component (HIV, TB…) or a restricted reason
     // diagnosis restricts the order itself.
     let restricted =
@@ -392,11 +413,13 @@ export async function placeOrders(
         sensitivity: restricted ? "restricted" : "standard",
         clientKey: line.clientKey,
         effectiveAt: now,
+        testPurpose: line.testPurpose ?? null,
         availabilitySnapshot: seen
           ? {
               state: seen.state,
               words: seen.words,
               turnaround: seen.turnaround,
+              reason: seen.reason,
               at: now.toISOString(),
             }
           : null,

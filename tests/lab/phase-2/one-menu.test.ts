@@ -55,12 +55,14 @@ describe("OM: availability from the hub", () => {
       state: "in_house",
       hours: "24 h",
       turnaround: "fixture 2 h",
+      reason: null,
     });
   });
   it("OM-2 (S19) the analyser down: down and referred, with since", () => {
     expect(av({ offeringCode: "2160-0", offering: offering(), problems: [down()] })).toMatchObject({
       state: "down_referred",
       since: "2026-10-12T05:10:00Z",
+      reason: "equipment_down", // GATE A P17: the hub's reason travels on the snapshot
     });
     // An expired report nobody confirmed is still down (AV-2: never silently available).
     expect(

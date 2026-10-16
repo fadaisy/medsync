@@ -7,11 +7,16 @@
 import { z } from "zod";
 
 import { compareDecimal, isDecimal } from "@/lib/lab/catalogue";
+import { RULE_IDS } from "@/lib/lab/qc-rules";
 import { inForceAt } from "@/lib/lab/ranges";
 
 const decimal = z.string().refine(isDecimal, "a decimal");
 const days = z.number().int().min(0).nullable();
 const source = z.string().trim().min(3).max(500);
+const testCode = z.string().regex(/^test\.[a-z0-9_]{2,60}$/);
+const conceptId = z.string().regex(/^obs\.[a-z0-9_]{2,80}$/);
+/** A form row, column, code or label as written (HMIS 105 keys are the form's own words). */
+const hmisKey = z.string().trim().min(1).max(120);
 
 /** Pregnancy rows carry their gestation span in days (no trimester boundary is written in code, Law 3). */
 export const CONTEXTS = ["any", "not_pregnant", "pregnant"] as const;
@@ -106,7 +111,173 @@ export const PAYLOADS = {
   }),
   ref: z.object({ constants: z.record(z.string(), decimal), source }),
   addendum: z.object({ hash: z.string().regex(/^[0-9a-f]{64}$/) }),
+  /** Lab Phase 3 LA-1, LA-2 (GATE A §3.1): key = the stock item id. Every number is the lead's, with its source. */
+  acceptance_plan: z
+    .object({
+      method: z.enum(["qc_pass", "lot_comparison", "certificate", "none"]),
+      triggers: z.array(z.enum(["new_lot", "new_shipment", "new_formulation"])),
+      comparison: z
+        .object({
+          samples: z.number().int().min(1).max(40),
+          spread: z.string().trim().min(3).max(300),
+          criterion: z
+            .object({
+              absolute: z.number().positive().optional(),
+              percent: z.number().positive().optional(),
+              combine: z.enum(["larger", "both"]),
+            })
+            .refine((c) => c.absolute !== undefined || c.percent !== undefined, "a criterion"),
+          qcAlso: z.boolean(),
+        })
+        .optional(),
+      certificateAllowed: z.boolean(),
+      source,
+    })
+    .refine((p) => p.method !== "lot_comparison" || !!p.comparison, "the comparison"),
+  /** Lab Phase 3 QQ-2 (GATE A §3.1): key `{deviceId}:{conceptId}`. Targets and SDs are the maker's or the lab's. */
+  qc_plan: z.object({
+    unit: z.string().trim().min(1).max(40),
+    levels: z
+      .array(
+        z.object({
+          level: z.number().int().min(1).max(6),
+          label: z.string().trim().min(1).max(60),
+          controlItemId: z.uuid(),
+        }),
+      )
+      .min(1),
+    frequency: z.object({
+      kind: z.enum(["each_day_before_patients", "per_run", "per_n_samples"]),
+      n: z.number().int().positive().optional(),
+    }),
+    rejectRules: z.array(z.enum(RULE_IDS)).min(1),
+    warnRules: z.array(z.enum(RULE_IDS)),
+    tenXAcrossLevels: z.boolean(),
+    holdWhenNotRun: z.boolean(),
+    targets: z.array(
+      z.object({
+        level: z.number().int().min(1).max(6),
+        controlLotId: z.uuid(),
+        mean: z.number().finite(),
+        sd: z.number().positive(),
+        source: z.enum(["maker_provisional", "lab"]),
+        runs: z.number().int().positive().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      }),
+    ),
+    source,
+  }),
+  /** QQ-3, D-LAB3-04: key `hospital`. The minimum runs and days before the lab's own target. */
+  qc_policy: z.object({
+    minRunsForTarget: z.number().int().min(2).max(500),
+    minDaysForTarget: z.number().int().min(1).max(365),
+    sources: z.array(source).min(1),
+  }),
+  /** KQ-1, KQ-5 (GATE A §3.1): key = the kit or stain stock item id. Signed by the lead alone. */
+  kit_qc_rule: z.object({
+    triggers: z
+      .array(
+        z
+          .object({
+            kind: z.enum([
+              "each_day_of_use",
+              "new_lot",
+              "new_shipment",
+              "new_operator",
+              "schedule",
+              "after_maintenance",
+            ]),
+            weekday: z.number().int().min(1).max(7).optional(),
+          })
+          .refine((t) => t.kind !== "schedule" || t.weekday !== undefined, "a weekday"),
+      )
+      .min(1),
+    controls: z
+      .array(
+        z.object({
+          name: z.string().trim().min(1).max(80),
+          expected: z.union([
+            z.object({ code: z.string().trim().min(1).max(60) }),
+            z.object({ passCriteria: z.array(z.string().trim().min(2).max(200)).min(1) }),
+          ]),
+        }),
+      )
+      .min(1),
+    requiredBeforeUse: z.boolean(),
+    hmisIqc: z.boolean(),
+    source,
+  }),
+  /** BQ-1 (GATE A §3.1, P9): key = the bedside test code. The ranges come from each strip lot, never from here. */
+  device_qc_rule: z.object({
+    triggers: z
+      .array(z.enum(["each_day_of_use", "new_strip_lot", "new_control_vial", "after_incident"]))
+      .min(1, "Tick when a check is due."),
+    levels: z.array(z.string().trim().min(1).max(40)).min(1, "Name the control levels."),
+    requiredBeforeUse: z.boolean(),
+    source,
+  }),
+  /** BQ-4, D-LAB3-16 (GATE A §3.1): key = the bedside test code. Validity and grace are the lead's. */
+  competency_validity: z.object({
+    methods: z
+      .array(z.enum(["training", "observed_test", "known_value_sample"]))
+      .min(1, "Tick the assessment methods."),
+    validDays: z.number().int().min(1).max(3650),
+    graceDays: z.number().int().min(0).max(365),
+    source,
+  }),
+  /**
+   * HM-2 (GATE A §3.1, §8.2): key = the form version (`2019-09-print`). Signed by the lead and the HMIS focal
+   * person. Beyond §3.1's list the count needs `visits`, `hivTests`, `kits`, `kitItems`, `purposes`, `excluded`
+   * and a `none` reason (orders placed before the snapshot carried one): STOP 3. `formHash` pins the form file.
+   */
+  hmis_mapping: z.object({
+    formHash: z.string().regex(/^[0-9a-f]{64}$/),
+    orgUnitCode: z.string().trim().min(1).max(40).nullable(),
+    rows: z.array(
+      z.object({
+        code: hmisKey,
+        sources: z
+          .array(
+            z.object({
+              testCode,
+              conceptId: conceptId.optional(),
+              where: z.object({ conceptId, answers: z.array(hmisKey).min(1) }).optional(),
+            }),
+          )
+          .min(1),
+        positive: z
+          .array(z.object({ column: hmisKey, conceptId, answers: z.array(hmisKey).min(1) }))
+          .optional(),
+      }),
+    ),
+    visits: z.record(hmisKey, hmisKey),
+    specimenColumns: z.record(hmisKey, hmisKey),
+    rejection: z.record(hmisKey, hmisKey),
+    reasons: z.record(hmisKey, hmisKey),
+    hivTests: z.array(testCode),
+    kits: z.record(hmisKey, hmisKey),
+    kitItems: z.record(z.uuid(), hmisKey),
+    purposes: z.record(hmisKey, hmisKey),
+    tracers: z.record(z.uuid(), hmisKey),
+    excluded: z.array(testCode),
+    visitsDefinition: z.string().trim().min(3).max(500),
+  }),
+  /** DR-2 (GATE A §3.1, §10): key = `general`, `hiv` or a restricted class. Lead alone. */
+  register_config: z.object({
+    columns: z
+      .array(z.object({ key: z.string().regex(/^[a-z][a-zA-Z0-9]{1,30}$/), label: hmisKey }))
+      .min(1, "Keep at least one column."),
+  }),
 } as const;
+/** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */
+export const LEAD_ONLY_KINDS: readonly string[] = [
+  "kit_qc_rule",
+  "acceptance_plan",
+  "device_qc_rule",
+  "competency_validity",
+  "register_config",
+];
 export type ConfigKind = keyof typeof PAYLOADS;
 export type Payload<K extends ConfigKind> = z.infer<(typeof PAYLOADS)[K]>;
 
