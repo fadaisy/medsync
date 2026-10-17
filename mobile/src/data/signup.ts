@@ -1,6 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as LocalAuthentication from "expo-local-authentication";
-
 import { track } from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
 
@@ -72,39 +69,6 @@ export async function verifyPhoneCode(phoneE164: string, code: string): Promise<
     return { ok: true };
   } catch {
     return { ok: false, message: OFFLINE };
-  }
-}
-
-/* ─── "Use fingerprint next time" ────────────────────────────────────── */
-
-const BIO_KEY = "medsync-bio-next-time-v1";
-
-/** Whether this phone can offer a fingerprint at all: hardware and one enrolled. */
-export async function fingerprintAvailable(): Promise<boolean> {
-  try {
-    return (
-      (await LocalAuthentication.hasHardwareAsync()) &&
-      (await LocalAuthentication.isEnrolledAsync())
-    );
-  } catch {
-    return false;
-  }
-}
-
-/** The saved choice. Off unless the patient turned it on (default off). */
-export async function readFingerprintChoice(): Promise<boolean> {
-  try {
-    return (await AsyncStorage.getItem(BIO_KEY)) === "1";
-  } catch {
-    return false;
-  }
-}
-
-export async function saveFingerprintChoice(on: boolean): Promise<void> {
-  try {
-    await AsyncStorage.setItem(BIO_KEY, on ? "1" : "0");
-  } catch {
-    // A locked store forgets a preference, not the sign-in.
   }
 }
 
