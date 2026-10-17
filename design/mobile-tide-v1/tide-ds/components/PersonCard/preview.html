@@ -1,0 +1,23 @@
+<!-- @dsCard group="Content" height=120 subtitle="A person on the care team, with message and call" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:var(--bg);font-family:var(--font-sans);color:var(--ink)}
+.wrap{padding:28px 20px;max-width:350px}
+.card{display:flex;gap:12px;align-items:center;padding:14px 14px 14px 16px;border-radius:22px;background:var(--surface);box-shadow:var(--shadow-card)}
+.av{width:48px;height:48px;border-radius:999px;background:var(--surface-sunken);color:var(--area-team);display:grid;place-items:center;font:600 16px var(--font-sans)}
+.t{flex:1;display:flex;flex-direction:column}
+.t b{font:600 17px/22px var(--font-sans)}
+.t span{font:400 14px var(--font-sans);color:var(--ink-2)}
+.r{width:46px;height:46px;border-radius:999px;border:0;display:grid;place-items:center}
+.msg{background:var(--accent);color:var(--accent-on)}
+.call{background:var(--navy-900);color:#fff}
+.ic{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+</style></head>
+<body><div class="wrap"><div class="card">
+  <span class="av">DR</span>
+  <span class="t"><b>[Clinician name]</b><span>Your clinician</span></span>
+  <button class="r msg" aria-label="Message your care team"><svg class="ic" width="20" height="20" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></button>
+  <button class="r call" aria-label="Call the clinic"><svg class="ic" width="19" height="19" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+</div></div></body></html>

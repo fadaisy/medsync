@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your care</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+
+  <div style="padding: 58px 20px 0; display: flex; align-items: center; gap: 8px">
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font: 500 14px/18px Figtree, sans-serif; color: #a9b2c7">Saturday 17 October</span>
+      <h1 style="margin: 0; font: 500 32px/36px Figtree, sans-serif; letter-spacing: -0.03em">Your care</h1>
+    </div>
+    <a href="DNotif.dc.html" aria-label="Notifications, 1 new" style="width: 44px; height: 44px; border-radius: 999px; background: #151d30; color: #e8ecf3; display: grid; place-items: center; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span style="position: absolute; top: 5px; right: 5px; min-width: 17px; height: 17px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 10px/17px Figtree, sans-serif; text-align: center; box-shadow: 0 0 0 2px #151d30">1</span></a>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+
+  <div data-scroll style="position: absolute; top: 132px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 130px; display: flex; flex-direction: column; gap: 14px">
+
+    <!-- Adherence -->
+    <a href="DMedicines.dc.html" style="background: #24314f; color: #ffffff; border-radius: 26px; padding: 16px; display: flex; gap: 16px; align-items: center">
+      <span style="position: relative; width: 84px; height: 84px; flex: none">
+        <svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="92 percent of doses taken this week"><circle cx="42" cy="42" r="34" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="10"/><circle cx="42" cy="42" r="34" fill="none" stroke="#2dd4bf" stroke-width="10" stroke-linecap="round" stroke-dasharray="196.5 213.6" transform="rotate(-90 42 42)"/></svg>
+        <span style="position: absolute; inset: 0; display: grid; place-items: center; font: 700 20px Figtree, sans-serif">92%</span>
+      </span>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+        <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #5eead4">Medicines this week</span>
+        <span style="font: 600 18px/23px Figtree, sans-serif">23 of 25 doses taken</span>
+        <span style="display: flex; gap: 4px">
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #2dd4bf; box-shadow: none"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">S</span></span>
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #2dd4bf; box-shadow: none"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">M</span></span>
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #2dd4bf; box-shadow: none"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">T</span></span>
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: rgba(45,212,191,.45); box-shadow: none"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">W</span></span>
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #2dd4bf; box-shadow: none"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">T</span></span>
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #2dd4bf; box-shadow: none"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">F</span></span>
+          
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 3px"><span style="width: 18px; height: 18px; border-radius: 6px; background: rgba(255,255,255,.18); box-shadow: 0 0 0 2px #151d30"></span><span style="font: 600 10px Figtree, sans-serif; color: #e8ecf3">S</span></span>
+          
+        </span>
+      </span>
+    </a>
+
+    <!-- Next dose strip -->
+    <a href="DMedicines.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; background: #151d30; color: #e8ecf3; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+      <span style="width: 38px; height: 38px; border-radius: 999px; background: rgba(124,58,237,.18); color: #7c3aed; display: grid; place-items: center"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
+      <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px Figtree, sans-serif">Midday medicine is due</span><span style="font: 400 13px Figtree, sans-serif; color: #a9b2c7">13:00 · 1 refill due in 6 days</span></span>
+      <span style="height: 34px; padding: 0 14px; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 14px/34px Figtree, sans-serif">Open</span>
+    </a>
+
+    <!-- Health trends -->
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px">
+      <span style="font: 600 20px/26px Figtree, sans-serif; letter-spacing: -0.015em">Health trends</span>
+      <a href="DTrends.dc.html" style="font: 600 14px Figtree, sans-serif; color: #5eead4">See all</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      
+        <a href="DTrends.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Blood pressure</span>
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px">
+            <span style="display: flex; align-items: baseline; gap: 4px"><span style="font: 700 22px/26px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">138/86</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">mmHg</span></span>
+            <span aria-label="Down 14 this week" style="width: 30px; height: 30px; border-radius: 999px; background: rgba(45,212,191,.18); color: #5eead4; display: grid; place-items: center; flex: none"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" style="stroke-width: 2.4; transform: rotate(0deg)" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>
+          </span>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #5eead4">Down 14 this week</span>
+        </a>
+      
+        <a href="DTrends.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Sugar · before breakfast</span>
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px">
+            <span style="display: flex; align-items: baseline; gap: 4px"><span style="font: 700 22px/26px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">7.1</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">mmol/L</span></span>
+            <span aria-label="3 of 7 mornings in target" style="width: 30px; height: 30px; border-radius: 999px; background: rgba(45,212,191,.18); color: #5eead4; display: grid; place-items: center; flex: none"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" style="stroke-width: 2.4; transform: rotate(0deg)" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>
+          </span>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #5eead4">3 of 7 mornings in target</span>
+        </a>
+      
+        <a href="DTrends.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Weight</span>
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px">
+            <span style="display: flex; align-items: baseline; gap: 4px"><span style="font: 700 22px/26px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">85.5</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">kg</span></span>
+            <span aria-label="0.9 kg down" style="width: 30px; height: 30px; border-radius: 999px; background: rgba(45,212,191,.18); color: #5eead4; display: grid; place-items: center; flex: none"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" style="stroke-width: 2.4; transform: rotate(0deg)" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>
+          </span>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #5eead4">0.9 kg down</span>
+        </a>
+      
+        <a href="DTrends.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 20px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Pulse</span>
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px">
+            <span style="display: flex; align-items: baseline; gap: 4px"><span style="font: 700 22px/26px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">74</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">bpm</span></span>
+            <span aria-label="Steady" style="width: 30px; height: 30px; border-radius: 999px; background: #222c42; color: #a9b2c7; display: grid; place-items: center; flex: none"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" style="stroke-width: 2.4; transform: rotate(-90deg)" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>
+          </span>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #a9b2c7">Steady</span>
+        </a>
+      
+    </div>
+
+    <!-- Lab results -->
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px">
+      <span style="font: 600 20px/26px Figtree, sans-serif; letter-spacing: -0.015em">Latest lab results</span>
+      <a href="DLabs.dc.html" style="font: 600 14px Figtree, sans-serif; color: #5eead4">All results</a>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 2px">
+        <span style="display: inline-flex; gap: 6px; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(245,158,11,.18); color: #fbbf24; font: 600 12px Figtree, sans-serif"><span style="width: 7px; height: 7px; border-radius: 999px; background: #f59e0b"></span>2 need review</span>
+        <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3">Released by your doctor · Wed 14 Oct</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <a href="DLabs.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">HbA1c · 3-month sugar</span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font: 700 28px/30px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">7.8</span><span style="font: 600 14px Figtree, sans-serif; color: #a9b2c7">%</span></span>
+          <svg width="100%" height="40" viewBox="0 0 132 40" preserveAspectRatio="none" aria-label="HbA1c falling: 9.2, 8.9, 8.6, 7.8. Target below 7.">
+            <line x1="0" y1="22" x2="132" y2="22" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <rect x="4" y="2" width="22" height="38" rx="5" fill="#2c3650"/>
+            <rect x="38" y="5" width="22" height="35" rx="5" fill="#2c3650"/>
+            <rect x="72" y="8" width="22" height="32" rx="5" fill="#2c3650"/>
+            <rect x="106" y="14" width="22" height="26" rx="5" fill="#f59e0b"/>
+          </svg>
+          <span style="display: flex; justify-content: space-between; font: 500 10px Figtree, sans-serif; color: #8f99b3"><span>Jan</span><span>Apr</span><span>Jul</span><span style="color: #e8ecf3; font-weight: 600">Oct</span></span>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #a9b2c7">Coming down. Target is below 7.</span>
+        </a>
+        <a href="DLabs.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">LDL · bad cholesterol</span>
+          <span style="display: flex; align-items: baseline; gap: 4px"><span style="font: 700 28px/30px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">3.1</span><span style="font: 600 12px Figtree, sans-serif; color: #a9b2c7">mmol/L</span></span>
+          <svg width="100%" height="40" viewBox="0 0 132 40" preserveAspectRatio="none" aria-label="LDL 3.1, above the target of below 2.6">
+            <rect x="0" y="16" width="70" height="10" rx="5" fill="#dcfce7"/>
+            <rect x="66" y="16" width="66" height="10" rx="5" fill="#fef3c7"/>
+            <line x1="68" y1="10" x2="68" y2="32" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <circle cx="88" cy="21" r="8" fill="#ffffff" stroke="#f59e0b" stroke-width="3"/>
+          </svg>
+          <span style="display: flex; justify-content: space-between; font: 500 10px Figtree, sans-serif; color: #8f99b3"><span>Low</span><span style="color: #4ade80; font-weight: 600">Target &lt;2.6</span><span>High</span></span>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #a9b2c7">A little high. Your doctor will talk about it Fri.</span>
+        </a>
+      </div>
+      <a href="DLabs.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: #151d30; color: #e8ecf3; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="width: 32px; height: 32px; border-radius: 999px; background: rgba(34,197,94,.16); color: #4ade80; display: grid; place-items: center; flex: none"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="stroke-width: 2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">8 other results are healthy</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Kidneys (eGFR 86), HDL, salts, urea</span></span>
+        <svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </div>
+
+    <!-- Activity and food -->
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px">
+      <span style="font: 600 20px/26px Figtree, sans-serif; letter-spacing: -0.015em">Move and eat</span>
+      <a href="DActivity.dc.html" style="font: 600 14px Figtree, sans-serif; color: #5eead4">Open</a>
+    </div>
+    <a href="DActivity.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 22px; padding: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+      
+        <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <span style="position: relative; width: 64px; height: 64px">
+            <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="#2c3650" stroke-width="8"/><circle cx="32" cy="32" r="26" fill="none" stroke="#2dd4bf" stroke-width="8" stroke-linecap="round" stroke-dasharray="126.5 163.4" transform="rotate(-90 32 32)"/></svg>
+            <span style="position: absolute; inset: 0; display: grid; place-items: center; color: #5eead4"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/></svg></span>
+          </span>
+          <span style="display: flex; flex-direction: column; align-items: center"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">5,420</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">of 7,000 steps</span></span>
+        </span>
+      
+        <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <span style="position: relative; width: 64px; height: 64px">
+            <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="#2c3650" stroke-width="8"/><circle cx="32" cy="32" r="26" fill="none" stroke="#296a89" stroke-width="8" stroke-linecap="round" stroke-dasharray="119.8 163.4" transform="rotate(-90 32 32)"/></svg>
+            <span style="position: absolute; inset: 0; display: grid; place-items: center; color: #296a89"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></span>
+          </span>
+          <span style="display: flex; flex-direction: column; align-items: center"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">22 min</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">of 30 active</span></span>
+        </span>
+      
+        <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <span style="position: relative; width: 64px; height: 64px">
+            <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="#2c3650" stroke-width="8"/><circle cx="32" cy="32" r="26" fill="none" stroke="#1b2540" stroke-width="8" stroke-linecap="round" stroke-dasharray="112.5 163.4" transform="rotate(-90 32 32)"/></svg>
+            <span style="position: absolute; inset: 0; display: grid; place-items: center; color: #e8ecf3"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2 M7 2v20 M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg></span>
+          </span>
+          <span style="display: flex; flex-direction: column; align-items: center"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">1,240</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">of 1,800 kcal</span></span>
+        </span>
+      
+    </a>
+
+    <!-- Care team -->
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px">
+      <span style="font: 600 20px/26px Figtree, sans-serif; letter-spacing: -0.015em">Your care team</span>
+      <a href="DChat.dc.html" style="font: 600 14px Figtree, sans-serif; color: #5eead4">Open chat</a>
+    </div>
+    <a href="DChat.dc.html" style="background: #151d30; color: #e8ecf3; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+      <span style="display: flex; align-items: center; gap: 10px">
+        <span style="display: flex">
+          <span style="width: 36px; height: 36px; border-radius: 999px; background: rgba(99,102,241,.16); color: #a5b4fc; display: grid; place-items: center; font: 700 12px Figtree, sans-serif; box-shadow: 0 0 0 2px #151d30">DR</span>
+          <span style="width: 36px; height: 36px; margin-left: -8px; border-radius: 999px; background: rgba(14,165,233,.16); color: #0369a1; display: grid; place-items: center; font: 700 12px Figtree, sans-serif; box-shadow: 0 0 0 2px #151d30">NS</span>
+          <span style="width: 36px; height: 36px; margin-left: -8px; border-radius: 999px; background: rgba(124,58,237,.18); color: #6d28d9; display: grid; place-items: center; font: 700 12px Figtree, sans-serif; box-shadow: 0 0 0 2px #151d30">PH</span>
+          <span style="width: 36px; height: 36px; margin-left: -8px; border-radius: 999px; background: rgba(45,212,191,.18); color: #5eead4; display: grid; place-items: center; font: 700 12px Figtree, sans-serif; box-shadow: 0 0 0 2px #151d30">DT</span>
+        </span>
+        <span style="flex: 1; font: 500 13px/17px Figtree, sans-serif; color: #a9b2c7">Doctor, nurse, pharmacist and dietitian</span>
+      </span>
+      <span style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 16px; background: #0b1120">
+        <span style="width: 8px; height: 8px; margin-top: 6px; border-radius: 999px; background: #2dd4bf; flex: none"></span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 14px Figtree, sans-serif">Nurse · 09:15</span><span style="font: 400 14px/19px Figtree, sans-serif; color: #a9b2c7">Your morning reading was a little high. How are you feeling today?</span></span>
+      </span>
+      <span style="display: flex; gap: 8px">
+        <span style="flex: 1; height: 42px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 14px Figtree, sans-serif; display: inline-flex; gap: 6px; align-items: center; justify-content: center"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Reply</span>
+        <span style="height: 42px; padding: 0 14px; border-radius: 999px; background: #0b1120; color: #e8ecf3; font: 600 14px Figtree, sans-serif; display: inline-flex; gap: 6px; align-items: center"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg>Voice</span>
+        <span style="height: 42px; padding: 0 14px; border-radius: 999px; background: #0b1120; color: #e8ecf3; font: 600 14px Figtree, sans-serif; display: inline-flex; gap: 6px; align-items: center"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>Video</span>
+      </span>
+    </a>
+    <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Illustrative. No real patients. Targets set by your care team.</span>
+  </div>
+
+  <div data-navwrap style="position: absolute; left: 16px; bottom: 14px">
+    <dc-import name="TideNav" dark="true" current="care" hint-size="358px,92px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function spark(vals, lo, hi) {
+      var w = 130, h = 34, pad = 4, n = vals.length;
+      var pts = vals.map(function (v, i) {
+        var x = pad + i * (w - 2 * pad) / (n - 1);
+        var y = pad + (1 - (v - lo) / (hi - lo)) * (h - 2 * pad);
+        return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+      });
+      var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' ');
+      var area = d + ' L' + pts[n - 1][0] + ' ' + h + ' L' + pts[0][0] + ' ' + h + ' Z';
+      return { d: d, area: area, lx: pts[n - 1][0], ly: pts[n - 1][1] };
+    }
+    var m = [
+      { name: 'Blood pressure', unit: 'mmHg', value: '138/86', dir: 'down', good: true, trend: 'Down 14 this week' },
+      { name: 'Sugar · before breakfast', unit: 'mmol/L', value: '7.1', dir: 'down', good: true, trend: '3 of 7 mornings in target' },
+      { name: 'Weight', unit: 'kg', value: '85.5', dir: 'down', good: true, trend: '0.9 kg down' },
+      { name: 'Pulse', unit: 'bpm', value: '74', dir: 'flat', good: true, trend: 'Steady' }
+    ].map(function (x) {
+      var rot = x.dir === 'down' ? 0 : (x.dir === 'up' ? 180 : -90);
+      return Object.assign(x, { rot: rot, arrowBg: x.dir === 'flat' ? '#222c42' : (x.good ? 'rgba(45,212,191,.18)' : 'rgba(245,158,11,.18)'), arrowFg: x.dir === 'flat' ? '#a9b2c7' : (x.good ? '#5eead4' : '#fbbf24'), trendColor: x.dir === 'flat' ? '#a9b2c7' : (x.good ? '#5eead4' : '#fbbf24') });
+    });
+    var labs = [
+      { name: 'HbA1c', what: 'Your sugar over 3 months', value: '7.8', unit: '%', word: 'Above target', bg: 'rgba(245,158,11,.18)', fg: '#fbbf24', meaning: 'Better than July (8.6%). Your target is below 7%. Keep going with your medicines and walks.' },
+      { name: 'Creatinine', what: 'How your kidneys are working', value: '88', unit: 'µmol/L', word: 'Normal', bg: 'rgba(34,197,94,.16)', fg: '#4ade80', meaning: 'Your kidneys are working well.' },
+      { name: 'LDL cholesterol', what: 'The fat that can block blood vessels', value: '3.1', unit: 'mmol/L', word: 'A little high', bg: 'rgba(245,158,11,.18)', fg: '#fbbf24', meaning: 'Your doctor will talk about this at your visit on Friday.' }
+    ];
+    var C = 2 * Math.PI * 34, c = 2 * Math.PI * 26;
+    var adh = [1, 1, 1, 0.66, 1, 1, 0.5];
+    var letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    var icons = {
+      steps: 'M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z',
+      active: 'M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2',
+      food: 'M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2 M7 2v20 M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'
+    };
+    var rings = [
+      { value: '5,420', label: 'of 7,000 steps', p: 5420 / 7000, color: '#2dd4bf', iconColor: '#5eead4', icon: icons.steps },
+      { value: '22 min', label: 'of 30 active', p: 22 / 30, color: '#296a89', iconColor: '#296a89', icon: icons.active },
+      { value: '1,240', label: 'of 1,800 kcal', p: 1240 / 1800, color: '#e8ecf3', iconColor: '#e8ecf3', icon: icons.food }
+    ].map(function (r) { return Object.assign(r, { dash: (r.p * c).toFixed(1) + ' ' + c.toFixed(1) }); });
+    return {
+      adhDash: (0.92 * C).toFixed(1) + ' ' + C.toFixed(1),
+      adhDays: adh.map(function (v, i) {
+        return { l: letters[i], bg: v === 1 ? '#2dd4bf' : (v > 0.6 ? 'rgba(45,212,191,.45)' : 'rgba(255,255,255,.18)'), ring: i === 6 ? '0 0 0 2px #151d30' : 'none' };
+      }),
+      metrics: m,
+      labs: labs,
+      rings: rings
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+12
+PRD · MedSync Patient App Redesign (Tide v1)
+PRD · MedSync Patient App Redesign (Tide
+v1)
+Oct 17, 2026 ·
+@Usama F adhul
+Summary
+Tide v1 rebuilds the MedSync patient app (Expo) around one calm, near-white design
+language, with 22 screens, a floating pill nav and motion on every screen. It also fills the
+gaps the old app had: getting in, booking, notifications, Help, and a full dark mode.
+What is new compared with the current app:
+A new design system, Tide. Soft grey ground, navy ink, pill controls, a tonal card
+cascade, Figtree and Geist Mono type, and a full light and dark theme.
+A floating pill nav with a raised centre plus that opens quick actions in place.
+Getting in: an animated splash, a sign-in with three methods (phone code, password,
+health card scan), and a 4-step sign-up with a map pin.
+Booking that works end to end: come today (live queue per doctor), ask for a day ,
+payment, and real tear-off tickets.
+Care: a redesigned medicines screen, typeable readings with sugar contexts, trends,
+interpreted lab results, move and eat, and a care team chat.
+Me: a flipping health card, people I care for , privacy , language and text size.
+Safety: a Help · SOS emergency flow reachable from every screen, plus a dangerous-
+reading interrupt.
+Notifications with actions inside each notification.
+The prototype is the design canvas "MedSync Mobile · Phase 1 Look and Feel" (pages "v2 ·
+Tide" and "v2 · Tide dark"). The build prompt is claude/PROMPT-MOBILE-TIDE-V1.md.
+Problem, goals and success metrics
+The current patient app covers monitoring and adherence, but it feels busy and has no
+real path in, out or across. Getting in, booking and safety are thin, and nothing tells the
+patient what is happening next. P atients are often older , on low-end Android phones, with
+intermittent data and mixed literacy .
+Page 1 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+Goals
+1. A patient can get in, see their day and act on it in under 30 seconds.
+2. Logging a reading or a dose takes two taps from anywhere, without leaving the screen
+they are on.
+3. Booking is honest: a saved place in line, never a promised hour , and a ticket that works
+offline.
+4. Help is one tap away on every screen.
+5. One design language across all screens, in light and dark.
+Non-goals for v1: real clinical data on mobile before Gate CG, real Mobile Money charges,
+push delivery , voice input, video calls, USSD , wearables, and the clinician app.
+Success metrics (measured in the pilot; targets proposed, pending F adhul)
+Metric T arget
+Time from app open to Home Sign-up completion (start to done) Reading logged in 2 taps or fewer Dose confirmations per prescribed dose
+(adherence logging)
+Queue tickets used at the desk under 3 s on a mid-range Android
+at least 70%
+at least 90% of logs
+at least 80%
+at least 85% of tickets issued
+Help reachable on every route (automated crawl) 100%
+Screens passing contrast and 44 pt touch checks 100%
+Users and principles
+Primary user: an adult living with diabetes and/or high blood pressure, registered at a
+f acility such as Kawempe Health Centre IV . Often over 45, on a low-end Android phone,
+with intermittent data, reading English or Luganda.
+Secondary users: a f amily member who manages a parent's care ("People I care for"), and
+the care team, who see what the patient logs.
+Product principles
+Page 2 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+Plain words, big targets, one clear action per card.
+Do things in place: sheets over new pages where the task is short.
+Never colour alone; every signal has words.
+W orks offline for what matters at the desk: tickets and the health card.
+Safety laws (each has an automated test where one is possible)
+Law Rule
+Engine-first Gate CG Red Signals No dosing Help Thresholds Queue honesty DPP A 2019 Adults Forced light No screen reads or writes real data without real
+tables, RLS and tests.
+No clinical PHI read and no clinical write on mobile
+until the CSO signs. Clinical screens run on demo
+data with a "Demo data" ribbon.
+Red only for emergency: Help, SOS, the danger
+interrupt and danger states.
+Amber and green only for clinical signals, always
+with words.
+Names, times and " As your clinician prescribed"
+only , until CSO sign-off .
+A round red Help on every screen, including sign-in
+and sheets.
+Clinical thresholds live in data, marked pending
+CSO.
+"W e save your place in line. W e cannot tell you the
+hour .
+"
+V ersioned, hashed consent; SMS consent separate
+and unticked; map pin optional with its own
+consent.
+Sign-up for ages 18 to 120; children are added by a
+guardian.
+Help, SOS and the danger interrupt stay light in
+dark mode.
+Page 3 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+Law Rule
+Access 44 pt targets, 16 pt inputs, 200% text, screen-
+reader labels, reduced motion.
+Design system: Tide
+Tide is MedSync's patient design language, drawn from a calm schedule-app reference: a
+soft near-white ground, navy ink, pill controls and a tonal card cascade. MedSync's clinical
+safety colours are kept unchanged.
+Role Light Dark
+P age #F6F7F9 #0B1120
+Card #FFFFFF #151D30
+Soft field, track #F3F4F7 #1C2539
+Lines and rings #DDE1EA #2C3650
+Ink / ink-2 / ink-3 #1B2540 / #4A557 4 /
+#5F6987
+#E8ECF3 / #A9B2C7 /
+#8F99B3
+#1B2540 #24314F
+Navy surf ace (bands, tickets,
+card)
+Primary button navy , white text light, dark text
+Accent (action) teal #2DD4BF same
+Cascade #1B2540, #2F4A6D ,
+#296A89
+same
+Emergency #DC2626 forced light
+Type: Figtree for UI, Geist Mono for numbers, codes and dates. Inputs at 16 pt or larger .
+Shape: cards 20 to 24 radius, pills 999, sheets 32 at the top. The cascade overlaps by
+32, more than its 28 radius, so corners never peek.
+Floating nav: a 358 × 92 pill with Home, Visits, a raised centre plus, Care and Me. Every
+curve shares one centre: radius-36 ends, a radius-28 active pill with an even 8 pt inset,
+and a cradle that is a true circle around the plus.
+Page 4 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+Theme: System, Light or Dark in settings; System by def ault. Emergency screens ignore
+it and stay light.
+Motion. Every screen f ades and settles in, its sections rise in order , and Home's cascade
+slides up card by card. The nav rises with a bounce, the active tab pops, the plus spins in,
+and pressables shrink slightly with a light haptic. Sheets slide up, tickets pop, rings fill, the
+health card flips in 3D , and SOS pulses. With "reduce motion" on, all of it becomes a simple
+f ade.
+Features
+1. Getting in
+Splash: navy with a soft teal glow .
+"MedSync" rises in letter by letter , followed by a light
+sheen and "Y our care, in sync.
+" Below sit the hospital name, a loading bar with status
+lines, Sign in,
+"Create an account" and Help.
+Sign in: a navy hero with three floating cards from the app, and a white sheet with
+three method tiles.
+Phone code: +256, a 6-box SMS code, a resend timer , and "staff will never ask for
+this code"
+.
+P assword: MedSync number , phone or email; show/hide; forgot password; a
+fingerprint toggle for next time.
+Health card: a camera scan view with corner brackets, a moving scan line and a
+torch, then "Continue as"
+.
+Create account (4 steps): a progress bar , with Continue locked until the step is valid.
+1. About you: names, sex at birth, date of birth (a real date, ages 18 to 120; under 18 is
+pointed to a guardian), and a Ugandan mobile number .
+2. Where you live: district or subcounty search, optional village, and an optional
+Google-Maps-style map to pin home (tap, zoom, use my location).
+3. Y our sign-in: email, and a password of 12 or more characters with a strength bar .
+4. Consent: a versioned data notice (required) and SMS reminders (optional,
+unticked).
+Done screen: the MedSync number , plus what is asked later in the profile.
+2. Home and quick actions
+Home:
+Page 5 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+"Hello" with the bell and Help, and T oday / This week pills.
+Mood f aces that pop and become a week strip.
+"Here is your day" as a stacked cascade (morning medicine, BP reading, care team
+reply , and a teal Now card with "I took it" and undo).
+See a doctor: doctor cards with rating, price or "No fee"
+, and live status ("5 in line,
+you would be #6" or the next open day).
+Centre plus: a f an of three bubbles. Log a reading and I took a medicine open sheets on
+the same screen; T ell my team opens chat.
+Reading sheet: type tiles, typeable numbers with − and +, sugar timing chips, a live
+check line, and a danger card that offers help.
+Medicine sheet: today's doses with I took it, T ook it early , undo,
+"Something not on
+my list"
+, and the "Missed one? Do not take two" line.
+Notifications: filters (All, Care, Visits, Medicines), grouped by day , unread dots,
+actions inside each item (I took it, Open ticket, See results), Mark all read, and delivery
+choice (app, SMS, voice in English or Luganda). Every bell opens it.
+Mood tracker: week, month and year views.
+3. Visits and booking
+This week: an upcoming-visit pill in the header , a calendar of open clinic days and visits
+(Book or Open), and "Y our week ahead"
+.
+Visit detail: a navy band with the date tile bleeding into the edge, who you see, a map
+and actions.
+Book: who it is for (me, my mother , add someone), what it is about, then come today or
+ask for a day .
+Come today:
+clinics open now;
+each doctor's line with "Y ou: #N" (the shortest line shown in teal);
+a live line of people ahead;
+payment when there is a fee (Mobile Money now or pay at the desk);
+"Save my place"
+.
+Ask for a day: a day rail bleeding off the edge, morning or afternoon as "doors open"
+,
+who to see, pay now or later , and a note.
+Tickets (both routes):
+Page 6 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+a real tear-off ticket: the hospital name, a big place number or date, a perforation
+with notches, the details (with Time "Not promised"), a barcode and the code;
+works offline;
+three looks: paid (teal band and P AID stamp), not paid (outlined strip with P ay now)
+and no fee (quiet strip).
+Under the queue ticket: live progress ("SMS when 3 are before you"), a route map
+with boda and taxi times, Give up my place, and Done.
+4. Care
+Care hub: adherence ring, next dose, trend cards with arrows, and a "2 need review"
+lab preview (HbA1c and LDL tiles with small charts, then "8 other results are healthy").
+Also move and eat rings, and the care team.
+Medicines:
+a progress ring ("1 of 3 taken") and a morning, midday and evening timeline;
+a teal Now card with floating pill drawings, I took it and snooze;
+a ✓ burst when taken, with undo;
+a week of dots;
+medicine cards with supply bars, where low supply turns amber and shows " Ask for
+refill"
+.
+Log a reading (full page):
+type tiles, huge typeable numbers with a live check and "Last time"
+;
+a sugar timing grid;
+"How do you feel?" chips, where chest pain shows instant help;
+Save turns into "Save and get help" when the reading is dangerous.
+Health trends: metric tabs, sugar timing chips with their targets, a sugar diary grid,
+insight, and the list.
+Lab results:
+HbA1c beside its history against target;
+lipids and kidney tests as one-line rows with range bars;
+normal salts folded into one row;
+a one-line meaning per panel.
+Move and eat: steps and activity rings, walks, an exercise precaution card with a red
+get-help button, a plate guide with Ugandan foods, and water .
+Page 7 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+Care team chat: opens on a lab results card from the doctor . Also readings, voice
+notes, refill requests and quick replies.
+5. Me
+Health card: shaped like a bank card. T ap it to flip:
+front: the MedSync number , card holder , primary doctor and QR;
+back: an emergency summary and a large QR.
+My health (conditions, allergies, medicines, documents).
+People I care for .
+Privacy: share readings, who opened my records, emergency contact.
+App settings: notifications, English or Luganda, text size A or A+, theme, payments,
+sign out.
+6. Safety
+Help · SOS (from every red Help button):
+1. A big pulsing SOS.
+2. A 3-second countdown with "Cancel, I'm okay"
+.
+3. On call:
+" Ambulance on the way"
+, who has been told (ambulance, care team,
+emergency contact), and a "Show this to the medic" card.
+Optional symptom chips go onto the medic card.
+Not-an-emergency options: care team, emergency contact, nearest hospital.
+Dangerous reading: a critical band,
+"how do you feel"
+, and recheck or get help.
+Screen inventory
+There are 22 screens in 6 groups, plus 2 shared components. Each exists in light ( T* ) and
+dark ( D* ) on the canvas.
+# Screen Group App route New or
+reworked
+1 Splash Getting
+in
+(auth)/splash New
+Page 8 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+# Screen Group App route New or
+reworked
+2 Sign in Getting
+(auth)/sign-in New
+in
+3 Create account Getting
+(auth)/sign-up New
+in
+4 Home Home (tabs)/index Reworked
+5 Centre plus (with sheets) Home add (modal) New
+6 Notifications Home notifications New
+7 Mood tracker Home mood New
+8 This week Visits (tabs)/visits Reworked
+9 Visit detail Visits visits/[id] Reworked
+10 Book Visits book New
+11 Come today and queue
+ticket
+Visits book/today New
+12 Ask for a day Visits book/day New
+13 Care hub Care (tabs)/care New
+14 Medicines Care care/medicines Reworked
+15 Log a reading Care care/reading Reworked
+16 Health trends Care care/trends New
+17 Lab results Care care/labs New
+18 Move and eat Care care/activity New
+19 Care team chat Care care/chat New
+20 Me Me (tabs)/me New
+21 Help · SOS Safety help (forced light) New
+22 Dangerous reading Safety danger (forced
+light)
+Reworked
+– Floating nav Shared component New
+Page 9 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+# Screen Group App route New or
+reworked
+– Mood f ace Shared component New
+Data, privacy and governance
+Until the CSO signs Gate CG, every clinical screen runs on demo data behind the same
+interf aces the real data will use, so switching on is a flag change, not a rebuild.
+Area v1 data Switches on when
+Sign-up, sign-in,
+consent
+Real, via the existing
+onboarding and auth path
+Readings, medicines,
+adherence, mood
+Demo data (fixtures) Lab results Demo data Care team chat Demo data Queue, booking, visits Real only where the
+scheduling and book-or-
+queue engines exist with
+RLS; demo otherwise
+P ayments Simulated ("Demo
+payment")
+Health card QR sign-in Off Home map pin Off Now (production sign-ups stay
+closed until the privacy notice,
+terms and data-protection
+registration are published)
+Gate CG signed + engines with
+RLS
+Gate CG + the lab patient-release
+gate ( visibleToPatient )
+Gate CG + a messaging engine
+Engines exist
+Mobile Money integration and a
+f acility price list
+Signed token design approved
+Its own location consent is in
+place
+Feature flags: mobileClinicalData , mobilePayments , mobileQrSignIn and
+mobileMapPin all start off . A "Demo data" ribbon shows wherever fixtures are used.
+Page 10 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+Consent: versioned and hashed ( consentVersion , consentSha , smsVersion ,
+smsSha ). SMS consent is separate and unticked by def ault. Location for any other
+purpose needs a further separate consent.
+Location model: the UBOS hierarchy down to parish, with free-text village as a f allback
+so no one is blocked.
+ID: National ID is asked later and never blocks.
+Offline: tickets, codes and the health card are cached. Readings and doses go into an
+outbox queue with idempotency keys.
+Clinical rules as data: reading thresholds (BP , sugar by timing, pulse) live in a versioned
+file marked pending CSO.
+Ratings and fees: shown only where the f acility turns them on. Public no-fee services
+always show "No fee"
+.
+Release plan, open questions and risks
+The build runs in eight gates from the prompt, each ending with screenshots and a stop
+for F adhul's go. Clinical screens stay on demo data through all eight; real clinical data waits
+for Gate CG.
+build gates · 8 steps, each ends with a stop
+After Gate 7: a pilot at one f acility with consenting adult patients, measured against the
+success metrics above.
+Open questions (owner: Fadhul)
+1. Is 912 live as Uganda's ambulance short code, or keep 112 only? The Ministry announced
+912 for late 2025 (AllAfrica).
+Page 11 of 12
+PRD · MedSync Patient App Redesign (Tide v1)
+2. Health card QR: a signed, short-lived token (recommended) or the MedSync number
+only?
+3. Clinician ratings: allowed under UMDPC rules on advertising? Def ault off until legal
+review .
+4. Fees: which f acilities and services show prices?
+5. The guardian and minor model for "People I care for"
+.
+6. Conditions on the back of the health card: shown or hidden by def ault?
+Risks
+Risk Mitigation
+Demo data mistaken for real care W rong emergency number Low-end phones stutter on motion P atients without smartphones Ratings seen as advertising A "Demo data" ribbon on every fixture screen;
+clinical flag off
+Numbers in config, marked pending MoH and CSO;
+112 as the f allback
+Performance budget at Gate 7; reduce motion
+respected
+SMS and voice delivery choice; a guardian can
+manage care
+F acility switch, def ault off
+Links: prototype canvas "MedSync Mobile · Phase 1 Look and Feel" (pages v2 · Tide and v2
+· Tide dark); design system "MedSync Tide"
+; build prompt claude/PROMPT-MOBILE-TIDE-
+V1.md .
+Page 12 of 12

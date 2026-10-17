@@ -11,8 +11,19 @@
       ],
       "@shared/*": [
         "../supabase/functions/_shared/*"
+      ],
+      "@clinical-rules/*": [
+        "../packages/clinical-rules/*"
+      ],
+      "@patient/*": [
+        "../lib/patient/*"
       ]
-    }
+    },
+    "resolveJsonModule": true,
+    "types": [
+      "jest",
+      "node"
+    ]
   },
   "include": [
     "**/*.ts",

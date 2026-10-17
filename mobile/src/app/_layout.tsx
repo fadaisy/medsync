@@ -1,6 +1,18 @@
 import { useEffect } from "react";
 import { BricolageGrotesque_600SemiBold, useFonts } from "@expo-google-fonts/bricolage-grotesque";
+import {
+  Figtree_400Regular,
+  Figtree_500Medium,
+  Figtree_600SemiBold,
+  Figtree_700Bold,
+  Figtree_800ExtraBold,
+} from "@expo-google-fonts/figtree";
 import { Geist_400Regular, Geist_500Medium, Geist_600SemiBold } from "@expo-google-fonts/geist";
+import {
+  GeistMono_500Medium,
+  GeistMono_600SemiBold,
+  GeistMono_700Bold,
+} from "@expo-google-fonts/geist-mono";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 
@@ -29,6 +41,14 @@ export default function RootLayout() {
     Geist_400Regular,
     Geist_500Medium,
     Geist_600SemiBold,
+    Figtree_400Regular,
+    Figtree_500Medium,
+    Figtree_600SemiBold,
+    Figtree_700Bold,
+    Figtree_800ExtraBold,
+    GeistMono_500Medium,
+    GeistMono_600SemiBold,
+    GeistMono_700Bold,
   });
 
   useEffect(() => {
@@ -84,6 +104,7 @@ function RootNavigator() {
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="index" />
         <Stack.Screen name="sign-in" />
+        <Stack.Screen name="sign-up" />
       </Stack.Protected>
 
       <Stack.Protected guard={signedIn}>
@@ -93,6 +114,13 @@ function RootNavigator() {
       {/* ADR 0098 Law 5: the Emergency sheet is reachable signed out — the
           pre-auth screens' red disc opens it. Signed in, the tab is E1. */}
       <Stack.Screen name="emergency" />
+      {/* Tide law L6: Help is reachable signed in or out, from every screen. */}
+      <Stack.Screen name="help" options={{ presentation: "fullScreenModal", animation: "fade" }} />
+      {/* The primitive gallery, development builds only. */}
+      <Stack.Protected guard={__DEV__}>
+        <Stack.Screen name="dev/tide" />
+        <Stack.Screen name="dev/screen" />
+      </Stack.Protected>
     </Stack>
   );
 }

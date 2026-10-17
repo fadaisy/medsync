@@ -1,0 +1,826 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-17T10:40:00Z"
+  },
+  "title": "MedSync Mobile \u00b7 Phase 1 Look and Feel",
+  "launch": {
+    "view": "canvas",
+    "page": "v2"
+  },
+  "pages": [
+    {
+      "id": "v2",
+      "name": "v2 \u00b7 Tide"
+    },
+    {
+      "id": "v2d",
+      "name": "v2 \u00b7 Tide dark"
+    },
+    {
+      "id": "v1",
+      "name": "v1 \u00b7 Chroma"
+    }
+  ],
+  "boards": {
+    "THome.dc.html": {
+      "x": 0,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Home \u00b7 your day",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TAdd.dc.html": {
+      "x": 470,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Centre plus \u00b7 reading and medicine sheets",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TWeek.dc.html": {
+      "x": 0,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "This week \u00b7 calendar",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TVisit.dc.html": {
+      "x": 470,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Visit detail",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TReading.dc.html": {
+      "x": 940,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Log a reading (full page)",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TDanger.dc.html": {
+      "x": 470,
+      "y": 6520,
+      "w": 390,
+      "h": 844,
+      "title": "Dangerous reading",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TMedicines.dc.html": {
+      "x": 470,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Medicines today",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TMood.dc.html": {
+      "x": 1410,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Mood tracker",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TCare.dc.html": {
+      "x": 0,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Care \u00b7 hub",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TTrends.dc.html": {
+      "x": 1410,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Health trends",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TActivity.dc.html": {
+      "x": 2350,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Move and eat",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TLabs.dc.html": {
+      "x": 1880,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Lab results",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TChat.dc.html": {
+      "x": 2820,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Care team chat",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TideNav.dc.html": {
+      "x": 0,
+      "y": 7824,
+      "w": 358,
+      "h": 92,
+      "title": "Floating nav (component)",
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TMoodFace.dc.html": {
+      "x": 438,
+      "y": 7824,
+      "w": 48,
+      "h": 48,
+      "title": "Mood face (component)",
+      "page": "v2"
+    },
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 1400,
+      "title": "Foundations \u00b7 Chroma, patient register",
+      "page": "v1"
+    },
+    "Kit.dc.html": {
+      "x": 1360,
+      "y": 0,
+      "w": 1280,
+      "h": 1400,
+      "title": "Component kit",
+      "page": "v1"
+    },
+    "Home.dc.html": {
+      "x": 0,
+      "y": 1820,
+      "w": 390,
+      "h": 844,
+      "title": "Specimen \u00b7 Home",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "Reading.dc.html": {
+      "x": 470,
+      "y": 1820,
+      "w": 390,
+      "h": 844,
+      "title": "Specimen \u00b7 Log a reading",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "Danger.dc.html": {
+      "x": 940,
+      "y": 1820,
+      "w": 390,
+      "h": 844,
+      "title": "Specimen \u00b7 Dangerous reading",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "Medicines.dc.html": {
+      "x": 1410,
+      "y": 1820,
+      "w": 390,
+      "h": 844,
+      "title": "Specimen \u00b7 Medicines today",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "Ticket.dc.html": {
+      "x": 1880,
+      "y": 1820,
+      "w": 390,
+      "h": 844,
+      "title": "Specimen \u00b7 Visit, offline, dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "States.dc.html": {
+      "x": 0,
+      "y": 3084,
+      "w": 1440,
+      "h": 760,
+      "title": "Every screen's six states",
+      "page": "v1"
+    },
+    "HomeDay.dc.html": {
+      "x": 0,
+      "y": 4264,
+      "w": 390,
+      "h": 844,
+      "title": "Inspired \u00b7 Home, your day",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "Week.dc.html": {
+      "x": 470,
+      "y": 4264,
+      "w": 390,
+      "h": 844,
+      "title": "Inspired \u00b7 This week, date rail",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "VisitDetail.dc.html": {
+      "x": 940,
+      "y": 4264,
+      "w": 390,
+      "h": 844,
+      "title": "Inspired \u00b7 Visit detail",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v1"
+    },
+    "TBook.dc.html": {
+      "x": 940,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Book \u00b7 who, why, how",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TBookToday.dc.html": {
+      "x": 1410,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Book \u00b7 come today, queue ticket",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TBookDay.dc.html": {
+      "x": 1880,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Book \u00b7 ask for a day",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TNotif.dc.html": {
+      "x": 940,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Notifications",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TMe.dc.html": {
+      "x": 0,
+      "y": 5216,
+      "w": 390,
+      "h": 844,
+      "title": "Me \u00b7 health card, profile, settings",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TSplash.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Splash",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TSignIn.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Sign in \u00b7 phone code, password, health card",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "TSignUp.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Create account \u00b7 4 steps",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "THelp.dc.html": {
+      "x": 0,
+      "y": 6520,
+      "w": 390,
+      "h": 844,
+      "title": "Help \u00b7 SOS emergency",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "DHome.dc.html": {
+      "x": 0,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Home \u00b7 your day \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DAdd.dc.html": {
+      "x": 470,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Centre plus \u00b7 reading and medicine sheets \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DWeek.dc.html": {
+      "x": 0,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "This week \u00b7 calendar \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DVisit.dc.html": {
+      "x": 470,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Visit detail \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DReading.dc.html": {
+      "x": 940,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Log a reading (full page) \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DDanger.dc.html": {
+      "x": 470,
+      "y": 6520,
+      "w": 390,
+      "h": 844,
+      "title": "Dangerous reading \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DMedicines.dc.html": {
+      "x": 470,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Medicines today \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DMood.dc.html": {
+      "x": 1410,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Mood tracker \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DCare.dc.html": {
+      "x": 0,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Care \u00b7 hub \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DTrends.dc.html": {
+      "x": 1410,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Health trends \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DActivity.dc.html": {
+      "x": 2350,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Move and eat \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DLabs.dc.html": {
+      "x": 1880,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Lab results \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DChat.dc.html": {
+      "x": 2820,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "Care team chat \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DBook.dc.html": {
+      "x": 940,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Book \u00b7 who, why, how \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DBookToday.dc.html": {
+      "x": 1410,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Book \u00b7 come today, queue ticket \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DBookDay.dc.html": {
+      "x": 1880,
+      "y": 2608,
+      "w": 390,
+      "h": 844,
+      "title": "Book \u00b7 ask for a day \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DNotif.dc.html": {
+      "x": 940,
+      "y": 1304,
+      "w": 390,
+      "h": 844,
+      "title": "Notifications \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DMe.dc.html": {
+      "x": 0,
+      "y": 5216,
+      "w": 390,
+      "h": 844,
+      "title": "Me \u00b7 health card, profile, settings \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DSplash.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Splash \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DSignIn.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Sign in \u00b7 phone code, password, health card \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DSignUp.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Create account \u00b7 4 steps \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    },
+    "DHelp.dc.html": {
+      "x": 0,
+      "y": 6520,
+      "w": 390,
+      "h": 844,
+      "title": "Help \u00b7 SOS emergency \u00b7 dark",
+      "radius": 44,
+      "is_interactive": true,
+      "page": "v2d"
+    }
+  },
+  "order": [
+    "TSplash.dc.html",
+    "TSignIn.dc.html",
+    "TSignUp.dc.html",
+    "THome.dc.html",
+    "TAdd.dc.html",
+    "TNotif.dc.html",
+    "TMood.dc.html",
+    "TWeek.dc.html",
+    "TVisit.dc.html",
+    "TBook.dc.html",
+    "TBookToday.dc.html",
+    "TBookDay.dc.html",
+    "TCare.dc.html",
+    "TMedicines.dc.html",
+    "TReading.dc.html",
+    "TTrends.dc.html",
+    "TLabs.dc.html",
+    "TActivity.dc.html",
+    "TChat.dc.html",
+    "TMe.dc.html",
+    "THelp.dc.html",
+    "TDanger.dc.html",
+    "TideNav.dc.html",
+    "TMoodFace.dc.html",
+    "Main.dc.html",
+    "Kit.dc.html",
+    "Home.dc.html",
+    "Reading.dc.html",
+    "Danger.dc.html",
+    "Medicines.dc.html",
+    "Ticket.dc.html",
+    "States.dc.html",
+    "HomeDay.dc.html",
+    "Week.dc.html",
+    "VisitDetail.dc.html",
+    "DHome.dc.html",
+    "DAdd.dc.html",
+    "DWeek.dc.html",
+    "DVisit.dc.html",
+    "DReading.dc.html",
+    "DDanger.dc.html",
+    "DMedicines.dc.html",
+    "DMood.dc.html",
+    "DCare.dc.html",
+    "DTrends.dc.html",
+    "DActivity.dc.html",
+    "DLabs.dc.html",
+    "DChat.dc.html",
+    "DBook.dc.html",
+    "DBookToday.dc.html",
+    "DBookDay.dc.html",
+    "DNotif.dc.html",
+    "DMe.dc.html",
+    "DSplash.dc.html",
+    "DSignIn.dc.html",
+    "DSignUp.dc.html",
+    "DHelp.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "Phase 1 \u00b7 Look and feel",
+      "kind": "title1",
+      "maxW": 2640,
+      "page": "v1"
+    },
+    "t2": {
+      "x": 0,
+      "y": 1520,
+      "text": "The language on real screens",
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "v1"
+    },
+    "t3": {
+      "x": 0,
+      "y": 2784,
+      "text": "States, the same on every screen",
+      "kind": "title1",
+      "maxW": 1440,
+      "page": "v1"
+    },
+    "t4": {
+      "x": 0,
+      "y": 3964,
+      "text": "Inspired by the schedule reference",
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "v1"
+    },
+    "v2title": {
+      "x": 0,
+      "y": -560,
+      "text": "MedSync patient app \u00b7 Phase 1 prototype (Tide)",
+      "kind": "title1",
+      "maxW": 3300,
+      "page": "v2"
+    },
+    "v2r1": {
+      "x": 0,
+      "y": -260,
+      "text": "1 \u00b7 Getting in",
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "v2"
+    },
+    "v2r2": {
+      "x": 0,
+      "y": 1044,
+      "text": "2 \u00b7 Home and quick actions",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "v2"
+    },
+    "v2r3": {
+      "x": 0,
+      "y": 2348,
+      "text": "3 \u00b7 Visits and booking",
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "v2"
+    },
+    "v2r4": {
+      "x": 0,
+      "y": 3652,
+      "text": "4 \u00b7 Care",
+      "kind": "title1",
+      "maxW": 3210,
+      "page": "v2"
+    },
+    "v2r5": {
+      "x": 0,
+      "y": 4956,
+      "text": "5 \u00b7 Me",
+      "kind": "title1",
+      "maxW": 800,
+      "page": "v2"
+    },
+    "v2r6": {
+      "x": 0,
+      "y": 6260,
+      "text": "6 \u00b7 Safety \u00b7 reachable from every screen",
+      "kind": "title1",
+      "maxW": 860,
+      "page": "v2"
+    },
+    "v2comp": {
+      "x": 0,
+      "y": 7564,
+      "text": "Shared components",
+      "kind": "title1",
+      "maxW": 800,
+      "page": "v2"
+    },
+    "v2title_d": {
+      "x": 0,
+      "y": -560,
+      "text": "MedSync patient app \u00b7 Phase 1 prototype \u00b7 dark mode",
+      "kind": "title1",
+      "maxW": 3300,
+      "page": "v2d"
+    },
+    "v2r1_d": {
+      "x": 0,
+      "y": -260,
+      "text": "1 \u00b7 Getting in",
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "v2d"
+    },
+    "v2r2_d": {
+      "x": 0,
+      "y": 1044,
+      "text": "2 \u00b7 Home and quick actions",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "v2d"
+    },
+    "v2r3_d": {
+      "x": 0,
+      "y": 2348,
+      "text": "3 \u00b7 Visits and booking",
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "v2d"
+    },
+    "v2r4_d": {
+      "x": 0,
+      "y": 3652,
+      "text": "4 \u00b7 Care",
+      "kind": "title1",
+      "maxW": 3210,
+      "page": "v2d"
+    },
+    "v2r5_d": {
+      "x": 0,
+      "y": 4956,
+      "text": "5 \u00b7 Me",
+      "kind": "title1",
+      "maxW": 800,
+      "page": "v2d"
+    },
+    "v2r6_d": {
+      "x": 0,
+      "y": 6260,
+      "text": "6 \u00b7 Safety \u00b7 reachable from every screen",
+      "kind": "title1",
+      "maxW": 860,
+      "page": "v2d"
+    },
+    "v2comp_d": {
+      "x": 0,
+      "y": 7564,
+      "text": "Shared components",
+      "kind": "title1",
+      "maxW": 800,
+      "page": "v2d"
+    }
+  },
+  "designSystems": [
+    {
+      "title": "MedSync Chroma",
+      "namespace": "medsync-chroma",
+      "artifact": "https://claude.ai/artifact/H43pExc1ttptFCt9vmdbpk",
+      "version": "1790448589-4034",
+      "copiedAt": "2026-10-17T10:40:00Z"
+    },
+    {
+      "title": "MedSync Tide",
+      "namespace": "medsync-tide",
+      "artifact": "https://claude.ai/artifact/5vvCpkVoYk8G11PtLaSRuk",
+      "version": "1792234963-d3c6",
+      "copiedAt": "2026-10-17T11:10:00Z"
+    }
+  ]
+}

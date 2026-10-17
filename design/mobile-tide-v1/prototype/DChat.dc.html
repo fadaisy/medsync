@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Care team chat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+input::placeholder{color:#5f6987}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif; display: flex; flex-direction: column">
+
+  <!-- header -->
+  <div style="background: #151d30; padding: 50px 14px 12px 6px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 0 #222c42">
+    <div style="display: flex; align-items: center; gap: 6px">
+      <a href="DCare.dc.html" aria-label="Back to Care" style="width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #e8ecf3"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
+      <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 18px/22px Figtree, sans-serif">Your care team</span><span style="display: inline-flex; gap: 6px; align-items: center; font: 500 12px Figtree, sans-serif; color: #a9b2c7"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2dd4bf"></span>Replies within 2 hours · Mon to Sat</span></span>
+      <button type="button" aria-label="Voice call the clinic" style="width: 40px; height: 40px; border-radius: 999px; background: #0b1120; color: #e8ecf3; display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+      <button type="button" aria-label="Video visit" style="width: 40px; height: 40px; border-radius: 999px; background: #0b1120; color: #e8ecf3; display: grid; place-items: center"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg></button>
+      <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 40px; height: 40px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+    </div>
+    <div style="display: flex; gap: 6px; padding-left: 10px; overflow: hidden">
+      <span style="height: 30px; padding: 0 10px 0 4px; border-radius: 999px; background: rgba(99,102,241,.16); display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #c7d2fe; flex: none"><span style="width: 22px; height: 22px; border-radius: 999px; background: #151d30; display: grid; place-items: center; font: 700 9px Figtree, sans-serif">DR</span>Doctor</span>
+      <span style="height: 30px; padding: 0 10px 0 4px; border-radius: 999px; background: rgba(14,165,233,.16); display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #075985; flex: none"><span style="width: 22px; height: 22px; border-radius: 999px; background: #151d30; display: grid; place-items: center; font: 700 9px Figtree, sans-serif">NS</span>Nurse</span>
+      <span style="height: 30px; padding: 0 10px 0 4px; border-radius: 999px; background: rgba(124,58,237,.18); display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #c4b5fd; flex: none"><span style="width: 22px; height: 22px; border-radius: 999px; background: #151d30; display: grid; place-items: center; font: 700 9px Figtree, sans-serif">PH</span>Pharmacist</span>
+      <span style="height: 30px; padding: 0 10px 0 4px; border-radius: 999px; background: rgba(45,212,191,.18); display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #115e59; flex: none"><span style="width: 22px; height: 22px; border-radius: 999px; background: #151d30; display: grid; place-items: center; font: 700 9px Figtree, sans-serif">DT</span>Dietitian</span>
+    </div>
+  </div>
+
+  <!-- thread -->
+  <div data-scroll style="flex: 1; overflow-y: auto; padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 10px">
+    <span style="align-self: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #222c42; font: 600 11px/24px Figtree, sans-serif; color: #a9b2c7">Wed 14 Oct</span>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+      <span style="font: 600 11px Figtree, sans-serif; color: #a5b4fc; padding: 0 6px">Doctor</span>
+      <div style="width: 270px; padding: 12px 14px; border-radius: 20px 20px 20px 6px; background: #151d30; color: #e8ecf3; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 11px Figtree, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #7c3aed"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31 M14 9.3V2 M8.5 2h7 M14 9.3a6.5 6.5 0 1 1-4 0 M5.52 16h12.96"/></svg>Lab results ready</span>
+        <span style="font: 400 14px/20px Figtree, sans-serif; padding-bottom: 4px">Sugar is improving. Cholesterol is a bit high. We will talk on Friday.</span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid #222c42"><span style="font: 600 14px Figtree, sans-serif">HbA1c</span><span style="display: inline-flex; gap: 8px; align-items: center"><span style="font: 700 14px Figtree, sans-serif; font-variant-numeric: tabular-nums">7.8%</span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(245,158,11,.18); color: #fbbf24; font: 600 11px/22px Figtree, sans-serif">Above target</span></span></span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid #222c42"><span style="font: 600 14px Figtree, sans-serif">LDL</span><span style="display: inline-flex; gap: 8px; align-items: center"><span style="font: 700 14px Figtree, sans-serif; font-variant-numeric: tabular-nums">3.1</span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(245,158,11,.18); color: #fbbf24; font: 600 11px/22px Figtree, sans-serif">Above target</span></span></span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid #222c42"><span style="font: 600 14px Figtree, sans-serif">Kidneys</span><span style="display: inline-flex; gap: 8px; align-items: center"><span style="font: 700 14px Figtree, sans-serif; font-variant-numeric: tabular-nums">eGFR 86</span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(34,197,94,.16); color: #4ade80; font: 600 11px/22px Figtree, sans-serif">Normal</span></span></span>
+        <a href="DLabs.dc.html" style="margin-top: 6px; height: 36px; border-radius: 999px; background: rgba(124,58,237,.18); color: #c4b5fd; display: flex; gap: 6px; align-items: center; justify-content: center; font: 600 13px Figtree, sans-serif">See all results<svg class="ic" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      </div>
+      <span style="display: flex; gap: 6px; padding-top: 4px">
+        <span style="height: 32px; padding: 0 12px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1.5px #2dd4bf; color: #5eead4; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">What should I change?</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1.5px #2dd4bf; color: #5eead4; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Okay, Friday</span>
+      </span>
+      <span style="font: 500 11px Figtree, sans-serif; color: #8f99b3; padding: 0 6px">16:20</span>
+    </div>
+    <span style="align-self: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #222c42; font: 600 11px/24px Figtree, sans-serif; color: #a9b2c7">Today</span>
+
+    <sc-for list="{{msgs}}" as="m" hint-placeholder-count="6">
+      <div style="display: flex; flex-direction: column; align-items: {{m.align}}; gap: 3px">
+        <sc-if value="{{m.showWho}}" hint-placeholder-val="{{true}}"><span style="font: 600 11px Figtree, sans-serif; color: {{m.whoColor}}; padding: 0 6px">{{m.who}}</span></sc-if>
+
+        <sc-if value="{{m.isText}}" hint-placeholder-val="{{true}}">
+          <span style="max-width: 270px; padding: 10px 13px; border-radius: {{m.radius}}; background: {{m.bg}}; color: {{m.fg}}; font: 400 15px/21px Figtree, sans-serif; box-shadow: {{m.shadow}}">{{m.text}}</span>
+        </sc-if>
+
+        <sc-if value="{{m.isReading}}" hint-placeholder-val="{{false}}">
+          <span style="width: 230px; padding: 12px 14px; border-radius: 20px 20px 6px 20px; background: #24314f; color: #ffffff; display: flex; flex-direction: column; gap: 6px">
+            <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 11px Figtree, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #5eead4"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Shared reading</span>
+            <span style="font: 700 24px/28px Figtree, sans-serif">138/86 <span style="font: 500 12px Figtree, sans-serif; color: #e8ecf3">mmHg · 07:40</span></span>
+            <span style="height: 24px; padding: 0 9px; border-radius: 999px; background: rgba(245,158,11,.18); color: #fbbf24; font: 600 12px/24px Figtree, sans-serif; width: fit-content">Above your target</span>
+          </span>
+        </sc-if>
+
+        <sc-if value="{{m.isVoice}}" hint-placeholder-val="{{false}}">
+          <span style="width: 220px; height: 52px; padding: 0 12px 0 6px; border-radius: 20px 20px 6px 20px; background: #2dd4bf; color: #1b2540; display: flex; gap: 10px; align-items: center">
+            <span style="width: 40px; height: 40px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></span>
+            <svg width="120" height="26" viewBox="0 0 120 26" aria-hidden="true"><g fill="#e8ecf3"><rect x="0" y="10" width="3" height="6" rx="1.5"/><rect x="6" y="6" width="3" height="14" rx="1.5"/><rect x="12" y="3" width="3" height="20" rx="1.5"/><rect x="18" y="8" width="3" height="10" rx="1.5"/><rect x="24" y="5" width="3" height="16" rx="1.5"/><rect x="30" y="9" width="3" height="8" rx="1.5"/><rect x="36" y="2" width="3" height="22" rx="1.5"/><rect x="42" y="7" width="3" height="12" rx="1.5"/><rect x="48" y="10" width="3" height="6" rx="1.5"/></g><g fill="rgba(27,37,64,.35)"><rect x="54" y="6" width="3" height="14" rx="1.5"/><rect x="60" y="9" width="3" height="8" rx="1.5"/><rect x="66" y="4" width="3" height="18" rx="1.5"/><rect x="72" y="8" width="3" height="10" rx="1.5"/><rect x="78" y="10" width="3" height="6" rx="1.5"/><rect x="84" y="6" width="3" height="14" rx="1.5"/><rect x="90" y="9" width="3" height="8" rx="1.5"/><rect x="96" y="11" width="3" height="4" rx="1.5"/><rect x="102" y="8" width="3" height="10" rx="1.5"/><rect x="108" y="10" width="3" height="6" rx="1.5"/></g></svg>
+            <span style="font: 600 12px Figtree, sans-serif">0:12</span>
+          </span>
+        </sc-if>
+
+        <sc-if value="{{m.hasAction}}" hint-placeholder-val="{{false}}">
+          <a href="DMedicines.dc.html" style="height: 34px; padding: 0 14px; border-radius: 999px; background: #151d30; color: #5eead4; font: 600 13px/34px Figtree, sans-serif; box-shadow: inset 0 0 0 1.5px #2dd4bf">{{m.action}}</a>
+        </sc-if>
+        <span style="font: 500 11px Figtree, sans-serif; color: #8f99b3; padding: 0 6px">{{m.time}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- composer -->
+  <div style="background: #151d30; padding: 10px 12px 30px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -1px 0 #222c42">
+    <div style="display: flex; gap: 6px; overflow: hidden">
+      <sc-for list="{{quick}}" as="q" hint-placeholder-count="3">
+        <button type="button" onClick="{{q.send}}" style="height: 34px; padding: 0 12px; border-radius: 999px; background: #0b1120; color: #e8ecf3; font: 600 13px Figtree, sans-serif; white-space: nowrap; box-shadow: inset 0 0 0 1px #2c3650">{{q.t}}</button>
+      </sc-for>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center">
+      <button type="button" aria-label="Attach a photo or reading" style="width: 44px; height: 44px; border-radius: 999px; background: #0b1120; color: #e8ecf3; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
+      <input type="text" value="{{draft}}" onChange="{{type}}" placeholder="Message your care team" aria-label="Message your care team" style="flex: 1; min-width: 0; height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: #0b1120; font: 400 15px Figtree, sans-serif; color: #e8ecf3; outline: none">
+      <sc-if value="{{hasDraft}}" hint-placeholder-val="{{false}}">
+        <button type="button" onClick="{{send}}" aria-label="Send" style="width: 44px; height: 44px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2.2" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6z"/></svg></button>
+      </sc-if>
+      <sc-if value="{{noDraft}}" hint-placeholder-val="{{true}}">
+        <button type="button" aria-label="Record a voice note" style="width: 44px; height: 44px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg></button>
+      </sc-if>
+    </div>
+    <span style="font: 500 11px Figtree, sans-serif; color: #8f99b3; text-align: center">Not for emergencies. If you feel very unwell, press the red Help button.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { draft: '', sent: [] };
+  }
+  renderVals() {
+    var self = this;
+    var who = {
+      NS: { name: 'Nurse', c: '#0369a1' }, DR: { name: 'Doctor', c: '#a5b4fc' }, PH: { name: 'Pharmacist', c: '#6d28d9' }
+    };
+    function theirs(k, text, time, extra) {
+      return Object.assign({ align: 'flex-start', showWho: true, who: who[k].name, whoColor: who[k].c, isText: true, isReading: false, isVoice: false, hasAction: false, action: '', text: text, time: time,
+        bg: '#151d30', fg: '#e8ecf3', radius: '20px 20px 20px 6px', shadow: '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)' }, extra || {});
+    }
+    function mine(text, time, extra) {
+      return Object.assign({ align: 'flex-end', showWho: false, who: '', whoColor: '', isText: true, isReading: false, isVoice: false, hasAction: false, action: '', text: text, time: time,
+        bg: '#e8ecf3', fg: '#151d30', radius: '20px 20px 6px 20px', shadow: 'none' }, extra || {});
+    }
+    var msgs = [
+      theirs('NS', 'Your morning reading was a little high. How are you feeling today?', '09:15'),
+      mine('', '09:19', { isText: false, isReading: true }),
+      mine('I feel okay. I had a small headache yesterday.', '09:20 · Seen'),
+      theirs('DR', 'Thank you. Keep taking your medicines as prescribed and log one more reading this evening. We will look at it together on Friday.', '10:02'),
+      mine('', '10:05', { isText: false, isVoice: true }),
+      theirs('PH', 'Your refill is ready from Thursday. You can collect it or have it delivered.', '11:30', { hasAction: true, action: 'Order my refill' })
+    ];
+    this.state.sent.forEach(function (t) { msgs.push(mine(t, 'Now · Sending')); });
+    var send = function (t) { return function () { if (!t) return; self.setState({ sent: self.state.sent.concat([t]), draft: '' }); }; };
+    var d = this.state.draft;
+    return {
+      msgs: msgs,
+      draft: d,
+      hasDraft: d.length > 0, noDraft: d.length === 0,
+      type: function (e) { self.setState({ draft: e.target.value }); },
+      send: send(d.trim()),
+      quick: ['I am okay', 'I have a question', 'Share my readings'].map(function (t) { return { t: t, send: send(t) }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

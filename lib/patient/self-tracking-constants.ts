@@ -15,7 +15,57 @@ export const READING_KIND_LABEL: Record<string, string> = {
   symptom: "Symptom",
   note: "Note",
   other: "Reading",
+  // Logged from the phone app (migration 0170, ADR 0342).
+  pulse: "Pulse",
+  mood: "Mood",
+  water: "Water",
+  activity: "Walking",
 };
+
+/** A mood row's value, 1 to 3, in the words the phone shows. */
+const MOOD_WORDS: Record<string, string> = { "1": "Not well", "2": "Okay", "3": "Good" };
+
+/** The phone's sugar timings, written into a reading's note as `context:<key>`. */
+const CONTEXT_WORDS: Record<string, string> = {
+  fasting: "Before breakfast",
+  lunch: "Before lunch",
+  supper: "Before supper",
+  after: "After a meal",
+  bedtime: "Bedtime",
+  random: "Another time",
+};
+
+/** The phone's "How do you feel?" chips, written as `feel:<key>,<key>`. */
+const FEEL_WORDS: Record<string, string> = {
+  fine: "fine",
+  dizzy: "dizzy",
+  head: "headache",
+  tired: "very tired",
+  chest: "chest pain",
+};
+
+/**
+ * A reading's note for display. The phone stores machine-readable tokens
+ * (`context:fasting; feel:dizzy,head`) so it can read them back; here they
+ * become words. Anything else is the patient's own text, shown as written.
+ */
+export function formatReadingNote(note: string | null): string | null {
+  if (!note || !/^\s*(context|feel):/.test(note)) return note;
+  return note
+    .split(";")
+    .map((part) => {
+      const [key, value = ""] = part.split(":").map((x) => x.trim());
+      if (key === "context") return CONTEXT_WORDS[value] ?? value;
+      if (key === "feel")
+        return `Felt: ${value
+          .split(",")
+          .map((f) => FEEL_WORDS[f] ?? f)
+          .join(", ")}`;
+      return part.trim();
+    })
+    .filter(Boolean)
+    .join(" · ");
+}
 
 /** Numeric reading kinds (excludes symptom/note/other). */
 export const NUMERIC_READING_KINDS = ["glucose", "bp", "weight", "spo2", "temperature"] as const;
@@ -80,6 +130,7 @@ export function formatReadingValue(r: {
     return `${trimZeros(r.numericValue1)}/${trimZeros(r.numericValue2)} ${r.unit ?? "mmHg"}`;
   }
   if (!r.numericValue1) return null;
+  if (r.kind === "mood") return MOOD_WORDS[trimZeros(r.numericValue1)] ?? null;
   return `${trimZeros(r.numericValue1)}${r.unit ? ` ${r.unit}` : ""}`;
 }
 

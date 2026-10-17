@@ -47,16 +47,37 @@ export default function AppLayout() {
 
       <Stack.Protected guard={!gated}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="book" />
-        <Stack.Screen name="clinic/[id]" />
-        <Stack.Screen name="doctor/[id]" />
+        {/* Tide v1 (ADR 0340). The Plus opens over the current screen. */}
+        <Stack.Screen
+          name="add"
+          options={{
+            presentation: "transparentModal",
+            animation: "fade",
+            contentStyle: { backgroundColor: "transparent" },
+          }}
+        />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="mood" />
+        <Stack.Screen name="visits/[id]" />
+        <Stack.Screen name="book/index" />
+        <Stack.Screen name="book/today" />
+        <Stack.Screen name="book/day" />
+        <Stack.Screen name="care/medicines" />
+        <Stack.Screen name="care/reading" />
+        <Stack.Screen name="care/trends" />
+        <Stack.Screen name="care/labs" />
+        <Stack.Screen name="care/activity" />
+        <Stack.Screen name="care/chat" />
+        <Stack.Screen name="records/index" />
+        <Stack.Screen name="records/[id]" />
+        <Stack.Screen name="danger" options={{ animation: "fade" }} />
         <Stack.Screen name="household" />
         <Stack.Screen name="ticket" />
         <Stack.Screen name="today" />
-        <Stack.Screen name="visit/[id]" />
         {/* ADR 0098: the symptom catalog pre-step and the Emergency Pathway's
             pre-alert, status and calm routes. E1 itself is the Emergency tab. */}
         <Stack.Screen name="symptoms" />
+        <Stack.Screen name="emergency/lines" />
         <Stack.Screen name="emergency/tell" />
         <Stack.Screen name="emergency/status" />
         <Stack.Screen name="emergency/crisis" />

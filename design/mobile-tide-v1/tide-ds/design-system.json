@@ -1,0 +1,25 @@
+{
+  "v": 3,
+  "assetGroups": {},
+  "blobs": {},
+  "createdOnFiles": {
+    "at": "2026-10-17T11:05:00Z",
+    "v": 1
+  },
+  "docs": {
+    "readme": "project/README.md",
+    "sections": []
+  },
+  "groups": [],
+  "lastChange": {
+    "at": "2026-10-17T11:20:00Z",
+    "by": "Usama Fadhul",
+    "note": "NavPill reworked: navy chip for the current place, filled icons, count badges, cradled plus.",
+    "via": "Claude chat"
+  },
+  "layout": "files",
+  "libraries": [],
+  "namespace": "MedSyncTide",
+  "sections": {},
+  "title": "MedSync Tide"
+}

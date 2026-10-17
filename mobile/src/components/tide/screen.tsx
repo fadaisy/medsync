@@ -1,0 +1,314 @@
+import type { ReactNode } from "react";
+import type { StyleProp, ViewStyle } from "react-native";
+import { Children, isValidElement } from "react";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { ScrollView, Text, View } from "react-native";
+import Animated, { useReducedMotion } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { Icon } from "@/components/tide/icon";
+import { Press } from "@/components/tide/press";
+import { DemoRibbon } from "@/components/tide/primitives";
+import { track } from "@/lib/analytics";
+import { motion } from "@/motion/presets";
+import { useTide } from "@/theme/theme";
+import { tRadius, tSpace, tType } from "@/theme/tide";
+
+/** Room left under scrolling content on a tab screen so it clears the floating nav. */
+export const NAV_CLEARANCE = 130;
+
+/**
+ * The red Help control (law L6). Round with the accessible label
+ * "Help, emergency", or a pill carrying the word where the board shows it
+ * (Home, Visit detail). It is on every screen: `<Screen>` renders it unless
+ * the screen IS Help, and the route-crawl test fails a route without one.
+ */
+export function HelpButton({
+  variant = "round",
+  source,
+}: {
+  variant?: "round" | "pill";
+  /** The route it was pressed on, for `help_opened`. */
+  source?: string;
+}) {
+  const t = useTide();
+  const router = useRouter();
+  const open = () => {
+    track("help_opened", { source: source ?? "unknown" });
+    router.push("/help");
+  };
+  if (variant === "pill")
+    return (
+      <Press
+        onPress={open}
+        accessibilityLabel="Help, emergency"
+        style={{
+          height: 40,
+          paddingLeft: 10,
+          paddingRight: 13,
+          borderRadius: tRadius.pill,
+          backgroundColor: t.emergency,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          boxShadow: t.shadow.emergency,
+        }}
+        hitSlop={4}
+      >
+        <Icon name="phone" size={16} color={t.onEmergency} strokeWidth={2} />
+        <Text style={[tType.label, { fontSize: 15, color: t.onEmergency }]}>Help</Text>
+      </Press>
+    );
+  return (
+    <Press
+      onPress={open}
+      accessibilityLabel="Help, emergency"
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: t.emergency,
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: t.shadow.emergency,
+      }}
+    >
+      <Icon name="phone" size={20} color={t.onEmergency} strokeWidth={2} />
+    </Press>
+  );
+}
+
+/** The bell. Opens Notifications from anywhere; the count is ink on surface, never red. */
+export function BellButton({ count = 0, raised = false }: { count?: number; raised?: boolean }) {
+  const t = useTide();
+  const router = useRouter();
+  const ground = raised ? t.surface : t.bg;
+  return (
+    <Press
+      onPress={() => router.push("/notifications")}
+      accessibilityLabel={count > 0 ? `Notifications, ${count} new` : "Notifications"}
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: raised ? t.surface : "transparent",
+        boxShadow: raised ? t.shadow.card : undefined,
+      }}
+    >
+      <Icon name="bell" size={22} color={t.ink} />
+      {count > 0 ? (
+        <View
+          style={{
+            position: "absolute",
+            top: 5,
+            right: 5,
+            minWidth: 17,
+            height: 17,
+            paddingHorizontal: 4,
+            borderRadius: 9,
+            backgroundColor: t.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: `0px 0px 0px 2px ${ground}`,
+          }}
+        >
+          <Text style={[tType.micro, { fontSize: 10, color: t.onPrimary }]}>{count}</Text>
+        </View>
+      ) : null}
+    </Press>
+  );
+}
+
+/** "‹ Care": the back control with the name of where it goes. */
+export function BackLink({
+  label,
+  onPress,
+  color,
+  icon = "back",
+}: {
+  label?: string;
+  onPress?: () => void;
+  color?: string;
+  icon?: "back" | "close";
+}) {
+  const t = useTide();
+  const router = useRouter();
+  const fg = color ?? t.ink;
+  return (
+    <Press
+      onPress={onPress ?? (() => router.back())}
+      accessibilityLabel={label ? `Back to ${label}` : icon === "close" ? "Close" : "Back"}
+      style={{
+        minHeight: 44,
+        minWidth: 44,
+        paddingHorizontal: tSpace[2.5],
+        borderRadius: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 2,
+      }}
+    >
+      <Icon name={icon} size={icon === "close" ? 20 : 22} color={fg} />
+      {label ? <Text style={[tType.label, { fontSize: 15, color: fg }]}>{label}</Text> : null}
+    </Press>
+  );
+}
+
+/**
+ * The frame every Tide screen sits in.
+ *
+ * Header row: a back link (or a custom `header`), then `headerRight`, the bell
+ * and the red Help. Below it the overline, the display title and the content,
+ * which scrolls, rises in on mount (`pageIn`) and staggers its children
+ * (`staggerUp`). Tab screens pass `underNav` so the last card clears the
+ * floating nav. Fixture-fed screens pass `demo` for the ribbon (law L1).
+ */
+export function Screen({
+  children,
+  back,
+  header,
+  headerRight,
+  bell,
+  help = "round",
+  helpSource,
+  overline,
+  overlineColor,
+  title,
+  subtitle,
+  demo = false,
+  underNav = false,
+  footer,
+  scroll = true,
+  gap = tSpace[4],
+  stagger = true,
+  contentStyle,
+  background,
+  topBand,
+}: {
+  children: ReactNode;
+  back?: { label?: string; onPress?: () => void; icon?: "back" | "close" };
+  /** Replaces the back link on the left of the header (Home's greeting). */
+  header?: ReactNode;
+  headerRight?: ReactNode;
+  /** Show the bell; a number shows a count badge. */
+  bell?: boolean | number;
+  /** `none` only for Help itself, which is the destination. */
+  help?: "round" | "pill" | "none";
+  helpSource?: string;
+  overline?: string;
+  overlineColor?: string;
+  title?: string;
+  subtitle?: string;
+  demo?: boolean;
+  underNav?: boolean;
+  footer?: ReactNode;
+  scroll?: boolean;
+  gap?: number;
+  stagger?: boolean;
+  contentStyle?: StyleProp<ViewStyle>;
+  background?: string;
+  /** A full-bleed band drawn under the header (Visit detail, Help). */
+  topBand?: ReactNode;
+}) {
+  const t = useTide();
+  const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
+  const bg = background ?? t.bg;
+
+  const headerRow = (
+    <View
+      style={{
+        paddingTop: insets.top + 6,
+        paddingLeft: header ? tSpace[5] : tSpace[2.5],
+        paddingRight: tSpace[5],
+        flexDirection: "row",
+        alignItems: "center",
+        gap: tSpace[2],
+        minHeight: insets.top + 50,
+      }}
+    >
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
+        {header ?? (back ? <BackLink {...back} /> : null)}
+      </View>
+      {headerRight}
+      {bell ? <BellButton count={typeof bell === "number" ? bell : 0} raised={!header} /> : null}
+      {help !== "none" ? <HelpButton variant={help} source={helpSource} /> : null}
+    </View>
+  );
+
+  const heading =
+    title || overline ? (
+      <View style={{ gap: tSpace[1] }}>
+        {overline ? (
+          <Text style={[tType.overline, { color: overlineColor ?? t.ink3 }]}>{overline}</Text>
+        ) : null}
+        {title ? (
+          <Text accessibilityRole="header" style={[tType.display, { color: t.ink }]}>
+            {title}
+          </Text>
+        ) : null}
+        {subtitle ? <Text style={[tType.bodyM, { color: t.ink2 }]}>{subtitle}</Text> : null}
+      </View>
+    ) : null;
+
+  const items = [
+    demo ? <DemoRibbon key="__demo" /> : null,
+    heading,
+    ...Children.toArray(children),
+  ].filter((c) => c !== null);
+  const body = items.map((child, i) => (
+    <Animated.View
+      key={isValidElement(child) && child.key != null ? String(child.key) : `i${i}`}
+      style={stagger ? motion.staggerUp(i, reduced) : undefined}
+    >
+      {child}
+    </Animated.View>
+  ));
+
+  const padding: ViewStyle = {
+    paddingHorizontal: tSpace[5],
+    paddingTop: tSpace[1],
+    paddingBottom: underNav
+      ? NAV_CLEARANCE + insets.bottom
+      : footer
+        ? tSpace[6]
+        : tSpace[10] + insets.bottom,
+    gap,
+  };
+
+  return (
+    <Animated.View style={[{ flex: 1, backgroundColor: bg }, motion.pageIn(reduced)]}>
+      <StatusBar style={t.scheme === "dark" ? "light" : "dark"} />
+      {topBand}
+      {headerRow}
+      {scroll ? (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[padding, contentStyle]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {body}
+        </ScrollView>
+      ) : (
+        <View style={[{ flex: 1 }, padding, contentStyle]}>{body}</View>
+      )}
+      {footer ? (
+        <View
+          style={{
+            paddingHorizontal: tSpace[5],
+            paddingTop: tSpace[3],
+            paddingBottom: Math.max(insets.bottom, tSpace[4]) + tSpace[2],
+            backgroundColor: bg,
+            gap: tSpace[2],
+          }}
+        >
+          {footer}
+        </View>
+      ) : null}
+    </Animated.View>
+  );
+}

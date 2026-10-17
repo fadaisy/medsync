@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Help</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+@keyframes pulse{0%{scale:1;opacity:.55}100%{scale:1.75;opacity:0}}
+@keyframes countdown{from{stroke-dashoffset:0}to{stroke-dashoffset:628}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* MedSync Tide dark (auto) */
+@media (prefers-color-scheme: dark){
+[data-screen]{background-color:#0b1120!important;color:#e8ecf3!important}
+[style*="background: #f6f7f9"]{background:#0b1120!important}
+[style*="background: #ffffff"]{background:#151d30!important}
+[style*="background: #f8fafc"]{background:#151d30!important}
+[style*="background: #f3f4f7"]{background:#1c2539!important}
+[style*="background: #eef0f4"]{background:#222c42!important}
+[style*="background: #e6e9ef"]{background:#2c3650!important}
+[style*="background: #f0fdfa"]{background:rgba(45,212,191,.12)!important}
+[style*="background: #ccfbf1"]{background:rgba(45,212,191,.18)!important}
+[style*="background: #eef2ff"]{background:rgba(99,102,241,.16)!important}
+[style*="background: #f5f3ff"]{background:rgba(124,58,237,.18)!important}
+[style*="background: #fdf3f9"]{background:rgba(192,38,211,.16)!important}
+[style*="background: #e0f2fe"]{background:rgba(14,165,233,.16)!important}
+[style*="background: #fef3c7"]{background:rgba(245,158,11,.18)!important}
+[style*="background: #fffbeb"]{background:rgba(245,158,11,.14)!important}
+[style*="background: #dcfce7"]{background:rgba(34,197,94,.16)!important}
+[style*="background: #f0fdf4"]{background:rgba(34,197,94,.12)!important}
+[style*="background: #fef2f2"]{background:rgba(220,38,38,.16)!important}
+[style*="background: #1b2540"]{background:#24314f!important}
+[style*="background: #1b2540"][style*="border-radius: 999px"]{background:#e8ecf3!important;color:#0b1120!important}
+[style*="color: #1b2540"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#e8ecf3!important}
+[style*="color: #4a5574"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a9b2c7!important}
+[style*="color: #5f6987"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#8f99b3!important}
+[style*="color: #8a93ab"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#6f7a96!important}
+[style*="color: #92400e"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#fbbf24!important}
+[style*="color: #15803d"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#4ade80!important}
+[style*="color: #166534"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#4ade80!important}
+[style*="color: #0f766e"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#5eead4!important}
+[style*="color: #4338ca"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a5b4fc!important}
+[style*="color: #312e81"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#c7d2fe!important}
+[style*="color: #4f46e5"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a5b4fc!important}
+[style*="color: #5b21b6"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#c4b5fd!important}
+[style*="color: #87236a"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#f0abfc!important}
+[style*="color: #0284c7"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#7dd3fc!important}
+[style*="color: #991b1b"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#fca5a5!important}
+[style*="color: #0d9488"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#2dd4bf!important}
+[style*="inset 0 0 0 1px #dde1ea"],[style*="inset 0 0 0 2px #dde1ea"],[style*="inset 0 0 0 1.5px #dde1ea"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #c5cbd8"],[style*="inset 0 0 0 2px #c5cbd8"],[style*="inset 0 0 0 1.5px #c5cbd8"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #eef0f4"],[style*="inset 0 0 0 2px #eef0f4"],[style*="inset 0 0 0 1.5px #eef0f4"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #dde1e9"],[style*="inset 0 0 0 2px #dde1e9"],[style*="inset 0 0 0 1.5px #dde1e9"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="rgba(27,37,64,.06)"]{box-shadow:0 1px 2px rgba(0,0,0,.3),0 10px 24px -14px rgba(0,0,0,.6)!important}
+[style*="rgba(246,247,249"]{background:linear-gradient(180deg,rgba(11,17,32,0),#0b1120 30%)!important}
+circle[stroke="#e6e9ef"],circle[stroke="#eef0f4"],line[stroke="#eef0f4"]{stroke:#2c3650}
+input,textarea{color:#e8ecf3!important}
+}
+</style>
+</helmet>
+<div data-screen style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f6f7f9; color: #1b2540; font-family: Figtree, sans-serif">
+  <!-- red band -->
+  <div style="position: absolute; left: 0; right: 0; top: 0; height: {{bandH}}; background: #b91c1c; border-radius: 0 0 40px 40px; transition: height .5s cubic-bezier(.16,1,.3,1)"></div>
+  <div style="position: relative; padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between; color: #ffffff">
+    <a href="THome.dc.html" aria-label="Close help" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 4px; align-items: center; color: #ffffff; font: 600 15px Figtree, sans-serif"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Close</a>
+    <span style="display: inline-flex; gap: 6px; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,.16); font: 600 12px Figtree, sans-serif"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Location on</span>
+  </div>
+
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 0 20px 40px; display: flex; flex-direction: column; gap: 16px">
+
+    <!-- idle -->
+    <sc-if value="{{idle}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 18px; color: #ffffff; padding-top: 6px">
+        <span style="font: 600 28px/32px Figtree, sans-serif; letter-spacing: -0.02em; text-align: center">Do you need help now?</span>
+        <button type="button" onClick="{{start}}" aria-label="Call an ambulance" style="position: relative; width: 200px; height: 200px; border-radius: 999px; background: #ffffff; color: #b91c1c; display: grid; place-items: center; box-shadow: 0 20px 40px -12px rgba(0,0,0,.45)">
+          <span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 999px; background: #ffffff; animation: pulse 1.8s ease-out infinite"></span>
+          <span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 999px; background: #ffffff; animation: pulse 1.8s ease-out .9s infinite"></span>
+          <span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px"><svg class="ic" width="44" height="44" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span style="font: 800 22px Figtree, sans-serif">SOS</span><span style="font: 600 12px Figtree, sans-serif; color: #7f1d1d">Tap to call an ambulance</span></span>
+        </button>
+        <span style="font: 500 13px/18px Figtree, sans-serif; color: #fee2e2; text-align: center; max-width: 280px">We call 912 and send your location and health card to the ambulance, your care team and your emergency contact.</span>
+      </div>
+    </sc-if>
+
+    <!-- counting -->
+    <sc-if value="{{counting}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 18px; color: #ffffff; padding-top: 6px">
+        <span style="font: 600 28px/32px Figtree, sans-serif; letter-spacing: -0.02em">Calling in {{secs}}…</span>
+        <span style="position: relative; width: 200px; height: 200px; display: grid; place-items: center">
+          <svg width="216" height="216" viewBox="0 0 216 216" aria-hidden="true" style="position: absolute; left: -8px; top: -8px"><circle cx="108" cy="108" r="100" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="8"/><circle cx="108" cy="108" r="100" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-dasharray="628" transform="rotate(-90 108 108)" style="animation: countdown 3s linear forwards"/></svg>
+          <span style="width: 200px; height: 200px; border-radius: 999px; background: #ffffff; color: #b91c1c; display: grid; place-items: center; font: 800 72px 'Geist Mono', monospace">{{secs}}</span>
+        </span>
+        <button type="button" onClick="{{cancel}}" style="height: 52px; padding: 0 30px; border-radius: 999px; background: rgba(255,255,255,.16); color: #ffffff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.6); font: 700 16px Figtree, sans-serif">Cancel, I'm okay</button>
+      </div>
+    </sc-if>
+
+    <!-- calling -->
+    <sc-if value="{{calling}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; color: #ffffff; padding-top: 4px; text-align: center">
+        <span style="display: inline-flex; gap: 8px; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,.16); font: 700 12px Figtree, sans-serif"><span style="width: 8px; height: 8px; border-radius: 999px; background: #ffffff; animation: blink 1s ease-in-out infinite"></span>On call · 00:12</span>
+        <span style="font: 700 30px/34px Figtree, sans-serif; letter-spacing: -0.02em">Ambulance on the way</span>
+        <span style="font: 500 14px/20px Figtree, sans-serif; color: #fee2e2">Stay where you are. Keep your phone near you. Unlock your door if you can.</span>
+      </div>
+      <div style="border-radius: 24px; background: #ffffff; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+        <span style="font: 700 14px Figtree, sans-serif">We have told</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 600 14px Figtree, sans-serif"><span style="width: 22px; height: 22px; border-radius: 999px; background: #14b8a6; color: #ffffff; display: grid; place-items: center"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Ambulance 912 · your location sent</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 600 14px Figtree, sans-serif"><span style="width: 22px; height: 22px; border-radius: 999px; background: #14b8a6; color: #ffffff; display: grid; place-items: center"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Your care team at Kawempe HC IV</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 600 14px Figtree, sans-serif"><span style="width: 22px; height: 22px; border-radius: 999px; background: #14b8a6; color: #ffffff; display: grid; place-items: center"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>[Name], your son · SMS sent</span>
+      </div>
+      <div style="border-radius: 24px; background: #1b2540; color: #ffffff; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; justify-content: space-between; align-items: center"><span style="font: 700 11px Figtree, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #5eead4">Show this to the medic</span><span style="font: 600 11px 'Geist Mono', monospace; color: #e8ecf3">MS 0042 1187</span></span>
+        <span style="font: 700 18px Figtree, sans-serif">[First name] [Surname] · 54 · F</span>
+        <span style="font: 500 13px/19px Figtree, sans-serif; color: #e8ecf3">Diabetes · High blood pressure<br>Medicines: [Medicine A], [Medicine B], [Medicine C]<br>Allergies: none recorded · Last BP 138/86 at 07:40</span>
+        <sc-if value="{{hasSyms}}" hint-placeholder-val="{{false}}"><span style="font: 600 13px Figtree, sans-serif; color: #fecaca">Reported now: {{symList}}</span></sc-if>
+      </div>
+      <button type="button" onClick="{{endCall}}" style="height: 52px; border-radius: 999px; background: #ffffff; color: #b91c1c; box-shadow: inset 0 0 0 2px #fecaca; font: 700 15px Figtree, sans-serif">End emergency</button>
+    </sc-if>
+
+    <!-- what's wrong -->
+    <sc-if value="{{notCalling}}" hint-placeholder-val="{{true}}">
+      <div style="border-radius: 24px; background: #ffffff; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+        <span style="display: flex; justify-content: space-between"><span style="font: 700 15px Figtree, sans-serif">What is happening?</span><span style="font: 500 12px Figtree, sans-serif; color: #5f6987">optional · we tell the medic</span></span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" onClick="{{s_chest}}" aria-pressed="{{s_chestPr}}" style="height: 40px; padding: 0 14px; border-radius: 999px; background: {{s_chestBg}}; color: {{s_chestFg}}; box-shadow: {{s_chestRing}}; font: 600 13px Figtree, sans-serif">Chest pain</button><button type="button" onClick="{{s_breath}}" aria-pressed="{{s_breathPr}}" style="height: 40px; padding: 0 14px; border-radius: 999px; background: {{s_breathBg}}; color: {{s_breathFg}}; box-shadow: {{s_breathRing}}; font: 600 13px Figtree, sans-serif">Hard to breathe</button><button type="button" onClick="{{s_sugar}}" aria-pressed="{{s_sugarPr}}" style="height: 40px; padding: 0 14px; border-radius: 999px; background: {{s_sugarBg}}; color: {{s_sugarFg}}; box-shadow: {{s_sugarRing}}; font: 600 13px Figtree, sans-serif">Sugar very low or high</button><button type="button" onClick="{{s_faint}}" aria-pressed="{{s_faintPr}}" style="height: 40px; padding: 0 14px; border-radius: 999px; background: {{s_faintBg}}; color: {{s_faintFg}}; box-shadow: {{s_faintRing}}; font: 600 13px Figtree, sans-serif">Fainted or confused</button><button type="button" onClick="{{s_stroke}}" aria-pressed="{{s_strokePr}}" style="height: 40px; padding: 0 14px; border-radius: 999px; background: {{s_strokeBg}}; color: {{s_strokeFg}}; box-shadow: {{s_strokeRing}}; font: 600 13px Figtree, sans-serif">Face, arm or speech weak</button><button type="button" onClick="{{s_other}}" aria-pressed="{{s_otherPr}}" style="height: 40px; padding: 0 14px; border-radius: 999px; background: {{s_otherBg}}; color: {{s_otherFg}}; box-shadow: {{s_otherRing}}; font: 600 13px Figtree, sans-serif">Something else</button></div>
+        <sc-if value="{{lowSugar}}" hint-placeholder-val="{{false}}"><span style="display: flex; gap: 8px; padding: 10px 12px; border-radius: 14px; background: #eef2ff; font: 600 13px/18px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #4f46e5; margin-top: 1px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>If your sugar is low and you can swallow, eat or drink something sweet now.</span></sc-if>
+      </div>
+      <span style="font: 600 13px Figtree, sans-serif; color: #5f6987; padding: 0 4px">Not an emergency?</span>
+      <a href="TChat.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 20px; background: #ffffff; color: #1b2540; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)"><span style="width: 42px; height: 42px; border-radius: 999px; background: #f0fdfa; color: #0f766e; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 15px Figtree, sans-serif">Call my care team</span><span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Kawempe HC IV · answers 8:00 to 17:00</span></span><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #5f6987" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a href="TMe.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 20px; background: #ffffff; color: #1b2540; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)"><span style="width: 42px; height: 42px; border-radius: 999px; background: #eef2ff; color: #4f46e5; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0 .01"/></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 15px Figtree, sans-serif">Call my emergency contact</span><span style="font: 500 12px Figtree, sans-serif; color: #4a5574">[Name] · son · 0772 ··· 210</span></span><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #5f6987" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a href="TVisit.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 20px; background: #ffffff; color: #1b2540; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)"><span style="width: 42px; height: 42px; border-radius: 999px; background: #fdf3f9; color: #a21caf; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 15px Figtree, sans-serif">Nearest hospital</span><span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Kawempe HC IV · 4.2 km · open 24 hours</span></span><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #5f6987" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <span style="font: 500 11px/16px Figtree, sans-serif; color: #8a93ab; text-align: center">General emergency 112 · Ambulance 912. Numbers and first-aid wording pending MoH and CSO sign-off. Illustrative.</span>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: 'idle', secs: 3, syms: {} };
+  }
+  renderVals() {
+    var self = this, st = this.state, v = {};
+    var L = {"chest": "Chest pain", "breath": "Hard to breathe", "sugar": "Sugar very low or high", "faint": "Fainted or confused", "stroke": "Face, arm or speech weak", "other": "Something else"};
+    Object.keys(L).forEach(function (k) {
+      var a = !!st.syms[k];
+      v['s_' + k] = function () { var s = Object.assign({}, st.syms); s[k] = !a; self.setState({ syms: s }); };
+      v['s_' + k + 'Pr'] = a ? 'true' : 'false'; v['s_' + k + 'Bg'] = a ? '#b91c1c' : '#ffffff'; v['s_' + k + 'Fg'] = a ? '#ffffff' : '#1b2540'; v['s_' + k + 'Ring'] = a ? 'none' : 'inset 0 0 0 1px #dde1ea';
+    });
+    var chosen = Object.keys(L).filter(function (k) { return st.syms[k]; }).map(function (k) { return L[k].toLowerCase(); });
+    function tick(n) { clearTimeout(self._t); if (n <= 0) { self.setState({ phase: 'calling' }); return; } self._t = setTimeout(function () { self.setState({ secs: n - 1 }); tick(n - 1); }, 1000); }
+    return Object.assign(v, {
+      idle: st.phase === 'idle', counting: st.phase === 'counting', calling: st.phase === 'calling', notCalling: st.phase !== 'calling',
+      bandH: st.phase === 'calling' ? '300px' : '470px',
+      secs: st.secs, hasSyms: chosen.length > 0, symList: chosen.join(', '), lowSugar: !!st.syms.sugar,
+      start: function () { self.setState({ phase: 'counting', secs: 3 }); tick(3); },
+      cancel: function () { clearTimeout(self._t); self.setState({ phase: 'idle', secs: 3 }); },
+      endCall: function () { self.setState({ phase: 'idle', secs: 3 }); }
+    });
+  }
+}
+</script>
+</body>
+</html>

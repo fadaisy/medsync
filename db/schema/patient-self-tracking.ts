@@ -15,7 +15,8 @@ import {
 import { authUsers } from "./_auth";
 
 /**
- * Patient self-tracking — migration 0029.
+ * Patient self-tracking — migration 0029; 0170 adds the kinds pulse, mood
+ * (1 not well, 2 okay, 3 good), water (glasses) and activity (minutes).
  *
  * Three tables, all patient-owned:
  *   - personal_health_logs       readings + symptoms + free notes
@@ -54,7 +55,7 @@ export const personalHealthLogs = pgTable(
   (t) => [
     check(
       "personal_health_logs_kind_check",
-      sql`${t.kind} IN ('glucose','bp','weight','spo2','temperature','symptom','note','other')`,
+      sql`${t.kind} IN ('glucose','bp','weight','spo2','temperature','symptom','note','other','pulse','mood','water','activity')`,
     ),
     check("personal_health_logs_state_check", sql`${t.state} IN ('active','deleted')`),
     check(

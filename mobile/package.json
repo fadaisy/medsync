@@ -4,12 +4,15 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
+    "@expo-google-fonts/figtree": "^0.4.1",
     "@expo-google-fonts/geist": "^0.4.2",
+    "@expo-google-fonts/geist-mono": "^0.4.3",
     "@expo/ui": "~57.0.19",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.116.0",
     "expo": "~57.0.24",
+    "expo-camera": "~57.0.6",
     "expo-constants": "~57.0.18",
     "expo-device": "~57.0.2",
     "expo-font": "~57.0.4",
@@ -19,6 +22,8 @@
     "expo-image-picker": "~57.0.19",
     "expo-linear-gradient": "~57.0.2",
     "expo-linking": "~57.0.10",
+    "expo-local-authentication": "~57.0.3",
+    "expo-localization": "~57.0.2",
     "expo-location": "~57.0.19",
     "expo-notifications": "~57.0.20",
     "expo-router": "~57.0.22",
@@ -32,6 +37,7 @@
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
+    "react-native-maps": "1.27.2",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
@@ -40,9 +46,13 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "^0.86.3",
+    "@testing-library/react-native": "^14.1.0",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.2",
+    "jest-expo": "~57.0.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -51,7 +61,23 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "testMatch": [
+      "<rootDir>/src/**/*.test.ts?(x)"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@shared/(.*)$": "<rootDir>/../supabase/functions/_shared/$1",
+      "^@clinical-rules/(.*)$": "<rootDir>/../packages/clinical-rules/$1",
+      "^@patient/(.*)$": "<rootDir>/../lib/patient/$1"
+    },
+    "setupFiles": [
+      "<rootDir>/jest.setup.ts"
+    ]
+  }
 }

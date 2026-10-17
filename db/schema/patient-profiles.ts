@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, date, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, date, index, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { authUsers } from "./_auth";
 import { hospitals } from "./hospitals";
@@ -52,6 +52,12 @@ export const patientProfiles = pgTable(
 
     knownConditions: text("known_conditions").array(),
 
+    /** Migration 0170: the home pin from phone sign-up, with its own consent; all four set or none. */
+    homePinLat: numeric("home_pin_lat", { precision: 9, scale: 6 }),
+    homePinLng: numeric("home_pin_lng", { precision: 9, scale: 6 }),
+    homePinConsentVersion: text("home_pin_consent_version"),
+    homePinConsentedAt: timestamp("home_pin_consented_at", { withTimezone: true }),
+
     nokNameEncrypted: text("nok_name_encrypted"),
     nokRelationship: text("nok_relationship"),
     nokPhoneEncrypted: text("nok_phone_encrypted"),
@@ -60,6 +66,10 @@ export const patientProfiles = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    check(
+      "patient_profiles_home_pin_check",
+      sql`(${t.homePinLat} IS NULL AND ${t.homePinLng} IS NULL AND ${t.homePinConsentVersion} IS NULL AND ${t.homePinConsentedAt} IS NULL) OR (${t.homePinLat} BETWEEN -90 AND 90 AND ${t.homePinLng} BETWEEN -180 AND 180 AND ${t.homePinConsentVersion} IS NOT NULL AND ${t.homePinConsentedAt} IS NOT NULL)`,
+    ),
     check(
       "patient_profiles_title_check",
       sql`${t.titleCode} IS NULL OR ${t.titleCode} IN ('mr','ms','mrs','dr','other')`,

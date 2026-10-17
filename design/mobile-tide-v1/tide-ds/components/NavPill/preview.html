@@ -1,0 +1,32 @@
+<!-- @dsCard group="Navigation" height=180 subtitle="Frosted pill, navy chip for where you are, cradled plus" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:var(--bg);font-family:var(--font-sans);color:var(--ink)}
+.wrap{display:flex;justify-content:center;padding:30px 16px}
+.nav{position:relative;width:358px;height:92px}
+.shape{position:absolute;inset:0;overflow:visible;filter:drop-shadow(0 2px 6px rgba(27,37,64,.08)) drop-shadow(0 16px 28px rgba(27,37,64,.18))}
+.shape path{fill:var(--surface-raised);stroke:var(--line);stroke-width:1}
+.items{position:absolute;left:6px;right:6px;bottom:6px;height:64px;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;justify-items:center}
+.it{position:relative;width:62px;height:56px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink-3);font:500 11px/13px var(--font-sans);text-decoration:none}
+.it.cur{background:var(--ink);color:var(--surface);font-weight:700}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cur .ic .solid{fill:currentColor}
+.badge{position:absolute;top:5px;right:11px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--ink);color:var(--surface);font:700 10px/16px var(--font-sans);text-align:center;box-shadow:0 0 0 2px var(--surface-raised)}
+.plus{position:absolute;left:148px;top:0;width:62px;display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:var(--ink);font:600 11px/13px var(--font-sans)}
+.plus span{width:56px;height:56px;border-radius:999px;background:var(--accent);color:var(--accent-on);display:grid;place-items:center;box-shadow:0 0 0 5px var(--surface-raised),var(--shadow-accent)}
+</style></head>
+<body><div class="wrap">
+<nav class="nav" aria-label="Main">
+  <svg class="shape" width="358" height="92" viewBox="0 0 358 92" aria-hidden="true"><path d="M28 20 H124 C140 20 146 4 179 4 C212 4 218 20 234 20 H330 A28 28 0 0 1 358 48 V64 A28 28 0 0 1 330 92 H28 A28 28 0 0 1 0 64 V48 A28 28 0 0 1 28 20 Z"/></svg>
+  <div class="items">
+    <a class="it cur" aria-current="page" href="#"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path class="solid" d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+    <a class="it" href="#"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Visits</a>
+    <span></span>
+    <a class="it" href="#" aria-label="Care, 1 due"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>Care<span class="badge">1</span></a>
+    <a class="it" href="#"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>Me</a>
+  </div>
+  <a class="plus" href="#" aria-label="Add"><span><svg class="ic" width="26" height="26" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M5 12h14M12 5v14"/></svg></span>Add</a>
+</nav>
+</div></body></html>

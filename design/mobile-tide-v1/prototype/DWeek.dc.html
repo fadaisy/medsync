@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>This week</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+  <div style="padding: 58px 20px 0; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <a href="DVisit.dc.html" aria-label="Next: your visit on Friday 23 October, Diabetes review, 14th in line" style="flex: 1; min-width: 0; height: 48px; padding: 0 12px 0 6px; border-radius: 999px; background: #151d30; color: #e8ecf3; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="width: 36px; height: 36px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none"><span style="font: 700 13px/13px Figtree, sans-serif">23</span><span style="font: 600 8px/10px Figtree, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #5eead4">Fri</span></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="display: inline-flex; gap: 5px; align-items: center; font: 600 11px/14px Figtree, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #a9b2c7"><span style="width: 6px; height: 6px; border-radius: 999px; background: #a21caf"></span>Next · in 6 days</span><span style="font: 600 15px/19px Figtree, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Diabetes review</span></span>
+        <svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="DNotif.dc.html" aria-label="Notifications, 1 new" style="width: 44px; height: 44px; flex: none; border-radius: 999px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); color: #e8ecf3; display: grid; place-items: center; position: relative"><svg class="ic" width="23" height="23" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span style="position: absolute; top: 5px; right: 5px; min-width: 17px; height: 17px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 10px/17px Figtree, sans-serif; text-align: center; box-shadow: 0 0 0 2px #151d30">1</span></a>
+      <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; flex: none; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+    </div>
+  </div>
+
+  <!-- everything below the header scrolls, passing under the frosted nav -->
+  <div style="position: absolute; top: 112px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding-bottom: 130px">
+
+  <section aria-label="Calendar" style="margin: 8px 20px 0; background: #151d30; border-radius: 24px; padding: 14px 12px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px">
+      <span style="display: flex; flex-direction: column"><span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #a9b2c7">Your calendar</span><span style="font: 600 20px/26px Figtree, sans-serif; letter-spacing: -0.015em">October 2026</span></span>
+      <span style="display: flex; gap: 6px">
+        <button type="button" aria-label="Previous month" style="width: 36px; height: 36px; border-radius: 999px; background: #0b1120; color: #e8ecf3; display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button type="button" aria-label="Next month" style="width: 36px; height: 36px; border-radius: 999px; background: #0b1120; color: #e8ecf3; display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      </span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font: 600 11px/14px Figtree, sans-serif; color: #8f99b3"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 2px">
+      <sc-for list="{{cells}}" as="c" hint-placeholder-count="35">
+        <button type="button" onClick="{{c.pick}}" aria-label="{{c.aria}}" aria-pressed="{{c.pressed}}" style="height: 40px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0">
+          <span style="width: 32px; height: 28px; border-radius: 999px; display: grid; place-items: center; background: {{c.bg}}; color: {{c.fg}}; box-shadow: {{c.ring}}; font: {{c.weight}} 14px/1 Figtree, sans-serif">{{c.n}}</span>
+          <span style="display: flex; gap: 3px; height: 5px"><span style="width: 5px; height: 5px; border-radius: 999px; background: {{c.dot1}}"></span><span style="width: 5px; height: 5px; border-radius: 999px; background: {{c.dot2}}"></span></span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 2px 4px 4px; font: 500 12px Figtree, sans-serif; color: #a9b2c7">
+      <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 999px; background: rgba(45,212,191,.18)"></span>Clinic open</span>
+      <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 999px; box-shadow: inset 0 0 0 2px #e8ecf3"></span>Your visit</span>
+      <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 6px; height: 6px; border-radius: 999px; background: #7c3aed"></span>Lab</span>
+      <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 6px; height: 6px; border-radius: 999px; background: #a5b4fc"></span>Care team</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: #0b1120">
+      <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px/20px Figtree, sans-serif">{{selTitle}}</span><span style="font: 400 13px/18px Figtree, sans-serif; color: #a9b2c7">{{selLine}}</span></span>
+      <sc-if value="{{selBook}}" hint-placeholder-val="{{true}}">
+        <a href="DBookDay.dc.html" style="height: 36px; padding: 0 16px; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 14px/36px Figtree, sans-serif; box-shadow: 0 6px 16px -6px rgba(45,212,191,.6)">Book</a>
+      </sc-if>
+      <sc-if value="{{selVisit}}" hint-placeholder-val="{{false}}">
+        <a href="DVisit.dc.html" style="height: 36px; padding: 0 16px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 14px/36px Figtree, sans-serif">Open</a>
+      </sc-if>
+    </div>
+  </section>
+
+    <div style="display: flex; flex-direction: column; gap: 2px; margin: 26px 20px 0"><span style="font: 500 14px Figtree, sans-serif; color: #a9b2c7">12 to 18 October</span><h2 style="margin: 0; font: 600 24px/30px Figtree, sans-serif; letter-spacing: -0.02em">Your week ahead</h2></div>
+
+  <!-- the rail: no left padding, so the selected tile meets the screen edge -->
+  <div style="margin-top: 14px; padding: 0 20px 0 0; display: grid; grid-template-columns: 80px 1fr; gap: 10px 14px; align-items: start">
+
+    <div aria-current="date" style="height: 76px; background: #24314f; color: #ffffff; border-radius: 0 22px 22px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 4px; position: relative; box-shadow: 0 12px 24px -12px rgba(0,0,0,0.70)">
+      <span style="font: 600 30px/32px Figtree, sans-serif; letter-spacing: -0.02em">17</span><span style="font: 600 13px/17px Figtree, sans-serif; color: #5eead4">Today</span>
+      <span style="position: absolute; top: 9px; right: 9px; width: 9px; height: 9px; border-radius: 999px; background: #2dd4bf"></span>
+    </div>
+    <a href="DHome.dc.html" style="background: #151d30; color: #e8ecf3; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); border-radius: 20px; padding: 11px 14px; display: flex; flex-direction: column; gap: 4px">
+      <span style="display: inline-flex; gap: 7px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 999px; background: #7dd3fc"></span>Your care plan</span>
+      <span style="font: 600 16px/21px Figtree, sans-serif">2 readings, 3 medicines</span>
+      <span style="display: flex; gap: 10px; align-items: center"><span style="flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px"><span style="height: 6px; border-radius: 3px; background: #24314f"></span><span style="height: 6px; border-radius: 3px; background: #24314f"></span><span style="height: 6px; border-radius: 3px; background: #24314f"></span><span style="height: 6px; border-radius: 3px; background: #2c3650"></span><span style="height: 6px; border-radius: 3px; background: #2c3650"></span></span><span style="font: 500 13px Figtree, sans-serif; color: #a9b2c7">3 of 5</span></span>
+    </a>
+
+    <div style="height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+      <span style="font: 600 30px/32px Figtree, sans-serif; letter-spacing: -0.02em">23</span><span style="font: 500 13px/17px Figtree, sans-serif; color: #a9b2c7">Fri</span>
+    </div>
+    <div style="background: #151d30; color: #e8ecf3; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); border-radius: 20px; padding: 11px 14px; display: flex; flex-direction: column; gap: 4px">
+      <span style="display: flex; justify-content: space-between; align-items: center"><span style="display: inline-flex; gap: 7px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 999px; background: #a21caf"></span>Visit</span><span style="font: 600 14px Figtree, sans-serif; color: #a9b2c7">14th in line</span></span>
+      <a href="DVisit.dc.html" style="font: 600 16px/21px Figtree, sans-serif; color: #e8ecf3">Diabetes review</a>
+      <span style="display: flex; gap: 8px; align-items: center; padding-top: 2px">
+        <span style="flex: 1; font: 400 14px/19px Figtree, sans-serif; color: #a9b2c7">[Hospital name]</span>
+        <button type="button" aria-label="Directions" style="width: 36px; height: 36px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></button>
+        <button type="button" aria-label="Call the clinic" style="width: 36px; height: 36px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: grid; place-items: center"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+      </span>
+    </div>
+
+    <sc-if value="{{open}}" hint-placeholder-val="{{false}}">
+      <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 80px 1fr; gap: 10px 14px; align-items: start">
+    <div style="height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+      <span style="font: 600 30px/32px Figtree, sans-serif; letter-spacing: -0.02em; color: #e8ecf3">27</span><span style="font: 500 13px/17px Figtree, sans-serif; color: #a9b2c7">Tue</span>
+    </div>
+    <div style="background: #151d30; color: #e8ecf3; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); border-radius: 22px; padding: 11px 14px; display: flex; flex-direction: column; gap: 2px">
+      <span style="display: flex; justify-content: space-between; align-items: center"><span style="display: inline-flex; gap: 7px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 999px; background: #7c3aed"></span>Lab</span><span style="font: 600 14px Figtree, sans-serif; color: #a9b2c7; font-variant-numeric: tabular-nums">08:00</span></span>
+      <span style="font: 600 16px/21px Figtree, sans-serif">Blood test</span>
+    </div>
+
+    <div style="height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+      <span style="font: 600 30px/32px Figtree, sans-serif; letter-spacing: -0.02em; color: #8f99b3">29</span><span style="font: 500 13px/17px Figtree, sans-serif; color: #8f99b3">Thu</span>
+    </div>
+    <div style="background: #151d30; color: #e8ecf3; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); border-radius: 22px; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center">
+      <span style="display: flex; flex-direction: column; gap: 2px"><span style="display: inline-flex; gap: 7px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 999px; background: #a5b4fc"></span>Care team</span><span style="font: 600 16px/21px Figtree, sans-serif">Phone check-in</span></span>
+      <span style="font: 600 14px Figtree, sans-serif; color: #a9b2c7; font-variant-numeric: tabular-nums">10:00</span>
+    </div>
+      </div>
+    </sc-if>
+    <div style="grid-column: 1 / -1; display: flex; justify-content: center; padding-left: 20px">
+      <button type="button" onClick="{{toggle}}" aria-expanded="{{openAttr}}" style="height: 40px; padding: 0 14px 0 16px; border-radius: 999px; background: #151d30; color: #e8ecf3; font: 600 14px Figtree, sans-serif; display: inline-flex; gap: 6px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">{{toggleLabel}}<svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="transform: rotate({{chev}}deg); transition: transform 200ms" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    </div>
+  </div>
+  </div>
+
+  <div data-navwrap style="position: absolute; left: 16px; bottom: 14px">
+    <dc-import name="TideNav" dark="true" current="visits" hint-size="358px,92px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: false, sel: 20 };
+  }
+  renderVals() {
+    var self = this;
+    var o = this.state.open;
+    var sel = this.state.sel;
+    var openDays = { 20: 1, 27: 1, 30: 1 };
+    var info = {
+      17: ['Today', '2 readings and 3 medicines on your plan'],
+      20: ['Tue 20 Oct · Diabetes clinic open', 'Places left today. Book to save one.'],
+      23: ['Fri 23 Oct · Your visit', 'Diabetes review · 14th in line'],
+      27: ['Tue 27 Oct · Clinic open, and your blood test', 'Lab at 08:00. You can book the clinic the same day.'],
+      29: ['Thu 29 Oct · Phone check-in', 'Your care team calls you at 10:00'],
+      30: ['Fri 30 Oct · Diabetes clinic open', 'Book to save a place.']
+    };
+    var cells = [];
+    for (var b = 0; b < 3; b++) cells.push({ n: '', bg: 'transparent', fg: '#e8ecf3', ring: 'none', weight: '500', dot1: 'transparent', dot2: 'transparent', aria: '', pressed: 'false', pick: function () {} });
+    for (var d = 1; d <= 31; d++) {
+      (function (d) {
+        var past = d < 17, today = d === 17, visit = d === 23, open = !!openDays[d], picked = d === sel;
+        var bg = today ? '#e8ecf3' : (open ? 'rgba(45,212,191,.18)' : 'transparent');
+        var fg = today ? '#151d30' : (past ? '#929eb8' : (open ? '#5eead4' : '#e8ecf3'));
+        var ring = visit ? 'inset 0 0 0 2px #e8ecf3' : (picked && !today ? '0 0 0 2px #2dd4bf' : 'none');
+        if (picked && today) ring = '0 0 0 3px #2dd4bf';
+        var dot1 = visit ? '#a21caf' : (d === 27 ? '#7c3aed' : (d === 29 ? '#a5b4fc' : 'transparent'));
+        cells.push({ n: String(d), bg: bg, fg: fg, ring: ring, weight: (today || visit || open) ? '700' : '500', dot1: dot1, dot2: 'transparent',
+          aria: d + ' October' + (open ? ', clinic open' : '') + (visit ? ', your visit' : ''), pressed: picked ? 'true' : 'false',
+          pick: function () { self.setState({ sel: d }); } });
+      })(d);
+    }
+    while (cells.length % 7) cells.push({ n: '', bg: 'transparent', fg: '#e8ecf3', ring: 'none', weight: '500', dot1: 'transparent', dot2: 'transparent', aria: '', pressed: 'false', pick: function () {} });
+    var si = info[sel] || [sel + ' October', sel < 17 ? 'Past day' : 'Nothing planned. The clinic is closed.'];
+    return {
+      cells: cells,
+      selTitle: si[0],
+      selLine: si[1],
+      selBook: !!openDays[sel],
+      selVisit: sel === 23,
+      open: o,
+      openAttr: o ? 'true' : 'false',
+      chev: o ? 180 : 0,
+      toggleLabel: o ? 'Show less' : '2 more this week',
+      toggle: function () { self.setState({ open: !self.state.open }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

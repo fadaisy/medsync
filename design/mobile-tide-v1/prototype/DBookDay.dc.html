@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ask for a day</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+@keyframes pop{0%{transform:scale(.92);opacity:0}100%{transform:scale(1);opacity:1}}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="DBook.dc.html" aria-label="Back" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Book a visit</a>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 0 40px; display: flex; flex-direction: column; gap: 16px">
+
+    <sc-if value="{{picking}}" hint-placeholder-val="{{true}}">
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #a21caf">Diabetes clinic · open Tue and Fri</span>
+        <h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Ask for a day</h1>
+      </div>
+
+      <!-- day rail bleeding into bezel -->
+      <div style="display: flex; gap: 8px; flex-shrink: 0; overflow-x: auto; padding: 4px 20px 6px; margin-right: 0">
+        <button type="button" onClick="{{d20}}" aria-pressed="{{p20}}" style="flex: none; width: 74px; height: 96px; border-radius: 24px; background: {{bg20}}; color: {{fg20}}; box-shadow: {{ring20}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px"><span style="font: 600 12px Figtree, sans-serif; opacity: .8">TUE</span><span style="font: 600 28px 'Geist Mono', monospace">20</span><span style="font: 600 11px Figtree, sans-serif; color: {{dot20}}">Room</span></button>
+        <button type="button" onClick="{{d23}}" aria-pressed="{{p23}}" style="flex: none; width: 74px; height: 96px; border-radius: 24px; background: {{bg23}}; color: {{fg23}}; box-shadow: {{ring23}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px"><span style="font: 600 12px Figtree, sans-serif; opacity: .8">FRI</span><span style="font: 600 28px 'Geist Mono', monospace">23</span><span style="font: 600 11px Figtree, sans-serif; color: {{dot23}}">Busy</span></button>
+        <button type="button" onClick="{{d27}}" aria-pressed="{{p27}}" style="flex: none; width: 74px; height: 96px; border-radius: 24px; background: {{bg27}}; color: {{fg27}}; box-shadow: {{ring27}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px"><span style="font: 600 12px Figtree, sans-serif; opacity: .8">TUE</span><span style="font: 600 28px 'Geist Mono', monospace">27</span><span style="font: 600 11px Figtree, sans-serif; color: {{dot27}}">Room</span></button>
+        <button type="button" onClick="{{d30}}" aria-pressed="{{p30}}" style="flex: none; width: 74px; height: 96px; border-radius: 24px; background: {{bg30}}; color: {{fg30}}; box-shadow: {{ring30}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px"><span style="font: 600 12px Figtree, sans-serif; opacity: .8">FRI</span><span style="font: 600 28px 'Geist Mono', monospace">30</span><span style="font: 600 11px Figtree, sans-serif; color: {{dot30}}">Room</span></button>
+        <span style="flex: none; width: 74px; height: 96px; border-radius: 24px 0 0 24px; background: #222c42; color: #6f7a96; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; margin-right: -20px"><span style="font: 600 12px Figtree, sans-serif">TUE</span><span style="font: 600 28px 'Geist Mono', monospace">03</span><span style="font: 600 11px Figtree, sans-serif">Nov</span></span>
+      </div>
+      <sc-if value="{{is23}}" hint-placeholder-val="{{false}}">
+        <span style="margin: 0 20px; padding: 10px 12px; border-radius: 14px; background: rgba(192,38,211,.16); font: 500 13px/18px Figtree, sans-serif; color: #f0abfc">You already have your diabetes review on Fri 23. Want to add this to that visit instead?</span>
+      </sc-if>
+
+      <!-- session -->
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 15px Figtree, sans-serif">Morning or afternoon?</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+          <button type="button" onClick="{{am}}" aria-pressed="{{pam}}" style="height: 72px; border-radius: 20px; background: {{bgam}}; box-shadow: {{ringam}}; color: #e8ecf3; text-align: left; padding: 0 14px; display: flex; flex-direction: column; justify-content: center; gap: 2px"><span style="font: 600 15px Figtree, sans-serif">Morning</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Doors 8:00 · 11 booked</span></button>
+          <button type="button" onClick="{{pm}}" aria-pressed="{{ppm}}" style="height: 72px; border-radius: 20px; background: {{bgpm}}; box-shadow: {{ringpm}}; color: #e8ecf3; text-align: left; padding: 0 14px; display: flex; flex-direction: column; justify-content: center; gap: 2px"><span style="font: 600 15px Figtree, sans-serif">Afternoon</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Doors 13:00 · 4 booked</span></button>
+        </div>
+        <span style="font: 500 12px/17px Figtree, sans-serif; color: #8f99b3">The time is when doors open, not your hour. You are seen in the order people arrive with a code.</span>
+      </div>
+
+      <!-- who and payment -->
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 15px Figtree, sans-serif">Who do you want to see?</span>
+        <div style="display: flex; gap: 8px"><button type="button" onClick="{{wany}}" aria-pressed="{{wanyPr}}" style="flex: 1; min-width: 0; padding: 12px; border-radius: 18px; text-align: left; background: {{wanyBg}}; color: #e8ecf3; box-shadow: {{wanyRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 14px Figtree, sans-serif">Any doctor</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">No fee</span></button><button type="button" onClick="{{wspec}}" aria-pressed="{{wspecPr}}" style="flex: 1; min-width: 0; padding: 12px; border-radius: 18px; text-align: left; background: {{wspecBg}}; color: #e8ecf3; box-shadow: {{wspecRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 14px Figtree, sans-serif">Dr [Name A]</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Specialist · UGX 30,000</span></button></div>
+        <sc-if value="{{hasFee}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; gap: 8px"><button type="button" onClick="{{pmomo}}" aria-pressed="{{pmomoPr}}" style="flex: 1; min-width: 0; padding: 10px 12px; border-radius: 16px; text-align: left; background: {{pmomoBg}}; color: #e8ecf3; box-shadow: {{pmomoRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 13px Figtree, sans-serif">Pay now · Mobile Money</span><span style="font: 500 11px Figtree, sans-serif; color: #a9b2c7">Your day is held once paid</span></button><button type="button" onClick="{{plater}}" aria-pressed="{{platerPr}}" style="flex: 1; min-width: 0; padding: 10px 12px; border-radius: 16px; text-align: left; background: {{platerBg}}; color: #e8ecf3; box-shadow: {{platerRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 13px Figtree, sans-serif">Pay later</span><span style="font: 500 11px Figtree, sans-serif; color: #a9b2c7">Here before the day, or at the desk</span></button></div>
+        </sc-if>
+      </div>
+
+      <!-- note -->
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 15px Figtree, sans-serif">Anything the doctor should know? <span style="color: #8f99b3; font-weight: 500">(optional)</span></span>
+        <div style="min-height: 56px; border-radius: 18px; background: #151d30; box-shadow: inset 0 0 0 1px #2c3650; padding: 12px 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between">
+          <span style="font: 500 14px/20px Figtree, sans-serif; color: #6f7a96">Type, or hold to speak</span>
+          <span style="width: 36px; height: 36px; border-radius: 999px; background: rgba(45,212,191,.12); color: #5eead4; display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 17v5"/></svg></span>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 8px">
+        <button type="button" onClick="{{send}}" style="height: 56px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 16px Figtree, sans-serif">{{sendWord}}</button>
+        <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">The clinic confirms by SMS, usually the same day.</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{sent}}" hint-placeholder-val="{{false}}">
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #a21caf">Request sent</span>
+        <h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Waiting for the clinic</h1>
+      </div>
+
+      <!-- ticket -->
+      <div role="group" aria-label="Visit request ticket" style="margin: 0 20px; animation: pop .35s ease-out both; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.13)) drop-shadow(0 18px 28px rgba(0,0,0,0.29))">
+        <div style="position: relative; border-radius: 24px 24px 0 0; background: {{topBg}}; color: #ffffff; padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 14px">
+          <sc-if value="{{isPaid}}" hint-placeholder-val="{{false}}"><span aria-label="Paid" style="position: absolute; right: 16px; top: 70px; transform: rotate(-12deg); padding: 4px 12px; border: 3px solid #5eead4; border-radius: 10px; color: #5eead4; font: 800 22px/26px Figtree, sans-serif; letter-spacing: .12em">PAID</span></sc-if>
+          <span style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: #151d30; color: #e8ecf3; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M12 6v4 M14 14h-4 M14 18h-4 M14 8h-4 M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2 M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 16px/20px Figtree, sans-serif">Kawempe Health Centre IV</span><span style="font: 500 12px Figtree, sans-serif; color: #e8ecf3">Kawempe, Kampala · MedSync visit ticket</span></span>
+          </span>
+          <span style="display: flex; align-items: flex-end; justify-content: space-between">
+            <span style="display: flex; align-items: baseline; gap: 10px">
+              <span style="font: 700 72px/68px 'Geist Mono', monospace; letter-spacing: -0.04em; color: #f5d0fe">{{day}}</span>
+              <span style="display: flex; flex-direction: column"><span style="font: 700 18px Figtree, sans-serif">{{dow}} · OCT</span><span style="font: 500 13px Figtree, sans-serif; color: #e8ecf3">{{sessionName}} · doors {{doors}}</span></span>
+            </span>
+          </span>
+          <span style="display: inline-flex; align-self: flex-start; gap: 6px; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(232,236,243,.12); color: #e8ecf3; font: 600 12px Figtree, sans-serif"><span style="width: 7px; height: 7px; border-radius: 999px; background: #e8ecf3"></span>Waiting for the clinic to confirm</span>
+        </div>
+        <div style="position: relative; height: 0"><span style="position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 999px; background: #0b1120"></span><span style="position: absolute; right: -14px; top: -14px; width: 28px; height: 28px; border-radius: 999px; background: #0b1120"></span></div>
+        <div style="background: #151d30; padding: 0 18px"><div style="border-top: 2px dashed #2c3650"></div></div>
+        <div style="border-radius: 0 0 24px 24px; background: #151d30; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 14px">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Clinic</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Diabetes clinic</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">See</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{seeWho}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Room</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Room 4</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Time</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Not promised</span></span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Patient</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">[First name] [Surname]</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Asked</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Sat 17 Oct · 13:06</span></span>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: {{payBg}}; box-shadow: {{payRing}}">
+            <span style="width: 28px; height: 28px; border-radius: 999px; background: {{payDot}}; color: #ffffff; display: grid; place-items: center; flex: none; font: 800 13px Figtree, sans-serif">{{payMark}}</span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 14px Figtree, sans-serif; color: {{payFg}}">{{payTitle}}</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{payLine}}</span></span>
+            <sc-if value="{{owes}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{payNow}}" style="height: 34px; padding: 0 12px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 12px Figtree, sans-serif; flex: none">Pay now</button></sc-if>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <svg width="230" height="40" viewBox="0 0 230 40" aria-hidden="true" fill="#e8ecf3"><rect x="0" y="0" width="2" height="40"/><rect x="4" y="0" width="2" height="40"/><rect x="8" y="0" width="1" height="40"/><rect x="10" y="0" width="2" height="40"/><rect x="15" y="0" width="3" height="40"/><rect x="19" y="0" width="2" height="40"/><rect x="22" y="0" width="4" height="40"/><rect x="29" y="0" width="1" height="40"/><rect x="33" y="0" width="4" height="40"/><rect x="40" y="0" width="1" height="40"/><rect x="43" y="0" width="1" height="40"/><rect x="45" y="0" width="1" height="40"/><rect x="48" y="0" width="3" height="40"/><rect x="52" y="0" width="4" height="40"/><rect x="59" y="0" width="4" height="40"/><rect x="64" y="0" width="2" height="40"/><rect x="68" y="0" width="4" height="40"/><rect x="74" y="0" width="4" height="40"/><rect x="81" y="0" width="1" height="40"/><rect x="84" y="0" width="1" height="40"/><rect x="88" y="0" width="2" height="40"/><rect x="92" y="0" width="1" height="40"/><rect x="95" y="0" width="4" height="40"/><rect x="100" y="0" width="2" height="40"/><rect x="103" y="0" width="2" height="40"/><rect x="108" y="0" width="1" height="40"/><rect x="110" y="0" width="1" height="40"/><rect x="114" y="0" width="4" height="40"/><rect x="119" y="0" width="3" height="40"/><rect x="123" y="0" width="1" height="40"/><rect x="126" y="0" width="1" height="40"/><rect x="129" y="0" width="1" height="40"/><rect x="131" y="0" width="1" height="40"/><rect x="133" y="0" width="3" height="40"/><rect x="137" y="0" width="3" height="40"/><rect x="143" y="0" width="3" height="40"/><rect x="148" y="0" width="2" height="40"/><rect x="151" y="0" width="2" height="40"/><rect x="155" y="0" width="4" height="40"/><rect x="160" y="0" width="4" height="40"/><rect x="166" y="0" width="1" height="40"/><rect x="168" y="0" width="1" height="40"/><rect x="171" y="0" width="3" height="40"/><rect x="176" y="0" width="4" height="40"/><rect x="182" y="0" width="4" height="40"/><rect x="187" y="0" width="1" height="40"/><rect x="191" y="0" width="1" height="40"/><rect x="194" y="0" width="3" height="40"/><rect x="198" y="0" width="4" height="40"/><rect x="204" y="0" width="4" height="40"/><rect x="209" y="0" width="2" height="40"/><rect x="212" y="0" width="3" height="40"/><rect x="217" y="0" width="2" height="40"/><rect x="221" y="0" width="2" height="40"/><rect x="225" y="0" width="3" height="40"/><rect x="229" y="0" width="2" height="40"/></svg>
+            <span style="font: 600 20px 'Geist Mono', monospace; letter-spacing: .18em; color: #e8ecf3">KWP-{{code}}</span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #5eead4">Show at the desk · works with no internet</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- what happens next -->
+      <div style="margin: 0 20px; border-radius: 20px; padding: 14px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 12px">
+        <span style="font: 600 15px Figtree, sans-serif">What happens next</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 500 14px Figtree, sans-serif"><span style="width: 24px; height: 24px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: grid; place-items: center"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" style="stroke-width: 2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>You asked</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 500 14px Figtree, sans-serif"><span style="width: 24px; height: 24px; border-radius: 999px; box-shadow: inset 0 0 0 2px #e8ecf3"></span>The clinic confirms by SMS</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 500 14px Figtree, sans-serif; color: #a9b2c7"><span style="width: 24px; height: 24px; border-radius: 999px; box-shadow: inset 0 0 0 2px #3a4562"></span>A reminder the day before</span>
+        <span style="display: flex; gap: 10px; align-items: center; font: 500 14px Figtree, sans-serif; color: #a9b2c7"><span style="width: 24px; height: 24px; border-radius: 999px; box-shadow: inset 0 0 0 2px #3a4562"></span>Show your code at the desk</span>
+      </div>
+
+      <div style="margin: 0 20px; border-radius: 20px; padding: 14px; background: rgba(99,102,241,.16); font: 500 13px/19px Figtree, sans-serif"><b>We save your place in line. We cannot tell you the hour.</b> Your code works at the desk even with no internet.</div>
+
+      <div style="padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+        <button type="button" onClick="{{back}}" style="height: 52px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1px #3a4562; color: #e8ecf3; font: 600 14px Figtree, sans-serif">Change day</button>
+        <a href="DWeek.dc.html" style="height: 52px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 14px Figtree, sans-serif">See my week</a>
+      </div>
+    </sc-if>
+
+    <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Illustrative. No real patients.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { day: 20, session: 'am', sent: false, who: 'any', pay: 'momo', paid: false };
+  }
+  renderVals() {
+    var self = this, st = this.state, v = {};
+    var dow = { 20: 'TUE', 23: 'FRI', 27: 'TUE', 30: 'FRI' };
+    [20, 23, 27, 30].forEach(function (d) {
+      var sel = st.day === d, busy = d === 23;
+      v['p' + d] = sel ? 'true' : 'false';
+      v['bg' + d] = sel ? '#e8ecf3' : '#151d30';
+      v['fg' + d] = sel ? '#151d30' : '#e8ecf3';
+      v['ring' + d] = sel ? 'none' : '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)';
+      v['dot' + d] = busy ? (sel ? '#f5d0fe' : '#a21caf') : (sel ? '#5eead4' : '#5eead4');
+      v['d' + d] = function () { self.setState({ day: d }); };
+    });
+    ['am', 'pm'].forEach(function (s) {
+      var sel = st.session === s;
+      v['p' + s] = sel ? 'true' : 'false';
+      v['bg' + s] = sel ? 'rgba(45,212,191,.12)' : '#151d30';
+      v['ring' + s] = sel ? 'inset 0 0 0 2px #2dd4bf' : 'inset 0 0 0 1px #2c3650';
+      v[s] = function () { self.setState({ session: s }); };
+    });
+    var sname = st.session === 'am' ? 'Morning' : 'Afternoon';
+    var fee = st.who === 'spec' ? 30000 : 0, feeTxt = 'UGX ' + fee.toLocaleString('en-US');
+    ['any', 'spec'].forEach(function (k) { var a = st.who === k; v['w' + k] = function () { self.setState({ who: k }); }; v['w' + k + 'Pr'] = a ? 'true' : 'false'; v['w' + k + 'Bg'] = a ? 'rgba(45,212,191,.12)' : '#151d30'; v['w' + k + 'Ring'] = a ? 'inset 0 0 0 2px #2dd4bf' : 'inset 0 0 0 1px #2c3650'; });
+    ['momo', 'later'].forEach(function (k) { var a = st.pay === k; v['p' + k] = function () { self.setState({ pay: k }); }; v['p' + k + 'Pr'] = a ? 'true' : 'false'; v['p' + k + 'Bg'] = a ? 'rgba(124,58,237,.18)' : '#151d30'; v['p' + k + 'Ring'] = a ? 'inset 0 0 0 2px #7c3aed' : 'inset 0 0 0 1px #2c3650'; });
+    return Object.assign(v, {
+      picking: !st.sent, sent: st.sent, is23: st.day === 23,
+      summary: (dow[st.day].charAt(0) + dow[st.day].slice(1).toLowerCase()) + ' ' + st.day + ' ' + sname.toLowerCase(),
+      sessionName: sname, doors: st.session === 'am' ? '8:00' : '13:00',
+      dow: dow[st.day], day: st.day, code: String(5100 + st.day * 7),
+      send: function () { self.setState({ sent: true, paid: fee > 0 && st.pay === 'momo' }); },
+      sendWord: (fee > 0 && st.pay === 'momo' ? 'Pay ' + feeTxt + ' · ' : 'Ask for ') + (dow[st.day].charAt(0) + dow[st.day].slice(1).toLowerCase()) + ' ' + st.day + ' ' + sname.toLowerCase(),
+      hasFee: fee > 0, feeTxt: feeTxt, seeWho: st.who === 'any' ? 'Any doctor' : 'Dr [Name A]',
+      owes: st.sent && fee > 0 && !st.paid,
+      payPill: fee === 0 ? 'No fee' : st.paid ? '✓ PAID · ' + feeTxt : 'NOT PAID · ' + feeTxt,
+      payPillBg: fee === 0 ? 'rgba(232,236,243,.12)' : st.paid ? '#2dd4bf' : 'transparent',
+      payPillFg: fee === 0 ? '#e8ecf3' : st.paid ? '#0b3b38' : '#151d30',
+      payPillRing: fee > 0 && !st.paid ? 'inset 0 0 0 1.5px rgba(255,255,255,.6)' : 'none',
+      payNow: function () { self.setState({ paid: true }); },
+      isPaid: st.sent && st.paid && fee > 0,
+      topBg: st.paid && fee > 0 ? 'linear-gradient(135deg, #e8ecf3 0%, #134e4a 100%)' : '#e8ecf3',
+      payBg: fee === 0 ? '#0b1120' : st.paid ? 'rgba(45,212,191,.12)' : '#151d30',
+      payRing: fee > 0 && !st.paid ? 'inset 0 0 0 2px #e8ecf3' : 'none',
+      payDot: fee === 0 ? '#6f7a96' : st.paid ? '#5eead4' : '#e8ecf3',
+      payMark: fee === 0 ? '–' : st.paid ? '✓' : '!',
+      payFg: fee > 0 && st.paid ? '#5eead4' : '#e8ecf3',
+      payTitle: fee === 0 ? 'No fee' : st.paid ? 'Paid · ' + feeTxt : 'Not paid · ' + feeTxt,
+      payLine: fee === 0 ? 'This visit is free at this hospital' : st.paid ? 'Mobile Money · receipt sent by SMS' : 'Pay before the day, or at the desk',
+      back: function () { self.setState({ sent: false, paid: false }); }
+    });
+  }
+}
+</script>
+</body>
+</html>
