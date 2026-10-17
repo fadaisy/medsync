@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Children, isValidElement } from "react";
+import { Children, isValidElement, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, Text, View } from "react-native";
@@ -11,6 +12,7 @@ import { Icon } from "@/components/tide/icon";
 import { KeyboardFrame, useKeyboardAware } from "@/components/tide/keyboard";
 import { Press } from "@/components/tide/press";
 import { DemoRibbon } from "@/components/tide/primitives";
+import { NAV_H } from "@/components/tide/tide-nav";
 import { track } from "@/lib/analytics";
 import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
@@ -18,6 +20,19 @@ import { tRadius, tSpace, tType } from "@/theme/tide";
 
 /** Room left under scrolling content on a tab screen so it clears the floating nav. */
 export const NAV_CLEARANCE = 130;
+
+/** How tall the soft fade under the header is. */
+const EDGE_FADE = 28;
+/** The floating nav's gap above the home indicator (the tabs layout's `bottom: 14 + inset`). */
+const NAV_BOTTOM = 14;
+
+/**
+ * The page colour with no opacity, for the end of the fade. A plain
+ * "transparent" is clear black and greys the middle of the fade on iOS.
+ */
+function clearOf(color: string): string {
+  return /^#[0-9a-f]{6}$/i.test(color) ? `${color}00` : "transparent";
+}
 
 /**
  * The red Help control (law L6). Round with the accessible label
@@ -225,6 +240,9 @@ export function Screen({
   const reduced = useReducedMotion();
   const { scrollRef, keyboardShown } = useKeyboardAware();
   const bg = background ?? t.bg;
+  // True once the content has moved under the header: then it fades out there instead of
+  // stopping at a hard line. Set only when it changes, not on every scroll event.
+  const [scrolled, setScrolled] = useState(false);
 
   const headerRow = (
     <View
@@ -297,18 +315,57 @@ export function Screen({
       {headerRow}
       <KeyboardFrame>
         {scroll ? (
-          <ScrollView
-            ref={scrollRef}
-            style={{ flex: 1 }}
-            contentContainerStyle={[padding, contentStyle]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
-            bounces={bounce}
-            overScrollMode={bounce ? "auto" : "never"}
-            showsVerticalScrollIndicator={false}
-          >
-            {body}
-          </ScrollView>
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              ref={scrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={[padding, contentStyle]}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              bounces={bounce}
+              overScrollMode={bounce ? "auto" : "never"}
+              showsVerticalScrollIndicator={false}
+              scrollEventThrottle={32}
+              onScroll={(e) => {
+                const next = e.nativeEvent.contentOffset.y > 2;
+                if (next !== scrolled) setScrolled(next);
+              }}
+            >
+              {body}
+            </ScrollView>
+            {/* The soft edge under the header: the page colour fading to clear. */}
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: EDGE_FADE,
+                opacity: scrolled ? 1 : 0,
+                transitionProperty: "opacity",
+                transitionDuration: reduced ? 0 : 150,
+              }}
+            >
+              <LinearGradient colors={[bg, clearOf(bg)]} style={{ flex: 1 }} />
+            </Animated.View>
+            {underNav ? (
+              /* The same soft edge behind the floating nav: content melts into the page colour
+                 before it reaches the bar, instead of showing round its corners. */
+              <LinearGradient
+                pointerEvents="none"
+                colors={[clearOf(bg), bg, bg]}
+                locations={[0, 0.45, 1]}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: NAV_BOTTOM + NAV_H + insets.bottom + EDGE_FADE,
+                }}
+              />
+            ) : null}
+          </View>
         ) : (
           <View style={[{ flex: 1 }, padding, contentStyle]}>{body}</View>
         )}
