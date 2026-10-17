@@ -42,7 +42,7 @@ export const consentVersions = pgTable(
   (t) => [
     check(
       "consent_versions_type_check",
-      sql`${t.consentType} IN ('data_processing', 'sms_communication', 'research_use', 'third_party_share')`,
+      sql`${t.consentType} IN ('data_processing', 'sms_communication', 'research_use', 'third_party_share', 'results_in_app', 'results_sms')`,
     ),
     uniqueIndex("consent_versions_unique").on(t.consentType, t.version),
     index("consent_versions_type_effective_idx").on(t.consentType, t.effectiveDate),

@@ -55,6 +55,7 @@ export const PATIENT_NAV: ReadonlyArray<PatientNavItem> = [
       "/patient/settings",
       "/patient/consent",
       "/patient/care",
+      "/patient/results",
     ],
   },
 ];

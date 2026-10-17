@@ -18,6 +18,9 @@ import { consentVersions } from "@/db/schema/consent-versions";
  * (user, type, version) index forbids a second.
  */
 
+/** Lab Phase 5 (PR-12): the results consents reuse these helpers with their own type. */
+type ConsentKind = "sms_communication" | "results_in_app" | "results_sms";
+
 export interface SmsConsentVersion {
   version: string;
   body: string;
@@ -26,7 +29,9 @@ export interface SmsConsentVersion {
 }
 
 /** The active text, or null before migration 0061 seeded v1.0. */
-export async function fetchSmsConsentVersion(): Promise<SmsConsentVersion | null> {
+export async function fetchSmsConsentVersion(
+  consentType: ConsentKind = "sms_communication",
+): Promise<SmsConsentVersion | null> {
   const [row] = await db
     .select({
       version: consentVersions.version,
@@ -35,21 +40,24 @@ export async function fetchSmsConsentVersion(): Promise<SmsConsentVersion | null
       effectiveDate: consentVersions.effectiveDate,
     })
     .from(consentVersions)
-    .where(eq(consentVersions.consentType, "sms_communication"))
+    .where(eq(consentVersions.consentType, consentType))
     .orderBy(desc(consentVersions.effectiveDate))
     .limit(1);
   return row ?? null;
 }
 
 /** True when a live (un-revoked) `sms_communication` record exists — the dispatcher's own test. */
-export async function hasSmsConsent(userId: string): Promise<boolean> {
+export async function hasSmsConsent(
+  userId: string,
+  consentType: ConsentKind = "sms_communication",
+): Promise<boolean> {
   const [row] = await db
     .select({ id: consentRecords.id })
     .from(consentRecords)
     .where(
       and(
         eq(consentRecords.userId, userId),
-        eq(consentRecords.consentType, "sms_communication"),
+        eq(consentRecords.consentType, consentType),
         isNull(consentRecords.revokedAt),
       ),
     )
@@ -66,6 +74,7 @@ export async function setSmsConsent(
   on: boolean,
   version: SmsConsentVersion,
   meta: { ip?: string | null; userAgent?: string | null } = {},
+  consentType: ConsentKind = "sms_communication",
 ): Promise<void> {
   const now = new Date();
   if (!on) {
@@ -75,7 +84,7 @@ export async function setSmsConsent(
       .where(
         and(
           eq(consentRecords.userId, userId),
-          eq(consentRecords.consentType, "sms_communication"),
+          eq(consentRecords.consentType, consentType),
           isNull(consentRecords.revokedAt),
         ),
       );
@@ -85,7 +94,7 @@ export async function setSmsConsent(
     .insert(consentRecords)
     .values({
       userId,
-      consentType: "sms_communication",
+      consentType,
       version: version.version,
       consentTextSha256: version.bodySha256,
       acceptedAt: now,
@@ -96,4 +105,23 @@ export async function setSmsConsent(
       target: [consentRecords.userId, consentRecords.consentType, consentRecords.version],
       set: { revokedAt: null, acceptedAt: now },
     });
+}
+
+/** Lab Phase 5 (A5): signing the results consent notice publishes its wording as a consent version. */
+export async function publishConsentVersion(
+  consentType: ConsentKind,
+  version: string,
+  body: string,
+) {
+  const { createHash } = await import("node:crypto");
+  await db
+    .insert(consentVersions)
+    .values({
+      consentType,
+      version,
+      effectiveDate: new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" }),
+      body,
+      bodySha256: createHash("sha256").update(body).digest("hex"),
+    })
+    .onConflictDoNothing();
 }

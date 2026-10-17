@@ -258,3 +258,55 @@ list, because a reviewed result leaves that list. The chip words for states §5.
 signed", "Under the minors rule: not in the app", "Being checked", "Can see it") are added to `LAB5` for the CSO's
 signature with the rest. **Gaps:** the head of department reads aged results only through the orderer's list today;
 plain words have no harm anchor or calculated lines in the form (both stay null until a signed threshold exists).
+
+## STOP 7: Patients see their results (17 Oct 2026)
+
+Built behind `PATIENT_RESULTS` at the patient's hospital (and only live once Q7 and Q8 are cleared and the copy is
+signed):
+
+- **`/patient/results`** (§5.1, artboard 1): the record's two identifiers in the header; **Ready** cards (test, date,
+  value and unit, the plain status word, the doctor's note); **Not ready to show yet** with one line each ("Your doctor
+  looks at this first", "Sent to another lab. Expected back about {date}" from the Phase 4 turnaround, "Waiting for the
+  lab"); "No results yet"; the in-person footer; **Your choices** (the consent switch, `role="switch"` with On/Off in
+  words; who else can see; **Ask for a copy of all my results**; links to children a guardian holds).
+- **`/patient/results/[id]`** (§5.2, artboard 2): value, status word, the **range line** (SVG with the band, the dot,
+  end labels and the sentence as its accessible name), signed plain words and the action line for the band, earlier
+  results of the same component, the note and the fixed Emergency line, provenance, and "Corrected on" with the earlier
+  value struck through. Opening it records the view (PR-13); the doctor's chip becomes "Seen by the patient".
+- **One gate** (PR-1): `resultsFor` runs every result through `visibleToPatient`; for an adult the database floor
+  (`private.patient_visible_report_ids`) must also agree. Never-shown tests are dropped before anything is listed,
+  pending orders included (S30). Guardians open a linked child (`?for=`) only through a live `guardian_links` row.
+- **Consent (PR-12, A5):** the data protection lead drafts and signs **Results in the app and by SMS: consent
+  wording** on the governance desk (`/referral-governance`); signing publishes `results_in_app` and `results_sms`
+  consent versions, which the switch records against (the existing consent helpers, now typed by consent kind).
+- **Copy requests (PR-15):** one `records_requests` row per hospital, due in 30 days; `/hospital-admin/records-requests`
+  lists open ones by hospital number with "A result is held in the app: ask the clinician first", and **Mark sent**.
+- **Device privacy (PR-14):** the tab titles are "Results · MedSync" and "Result · MedSync"; nothing is written to
+  `localStorage` or IndexedDB; the service worker caches only the static offline page (ADR 0088), so there is no
+  offline copy of results to clear.
+
+| Scenario | Result  | Evidence (`tests/emr-db/lab-patient-results.test.ts`, real order → release → acknowledgement path)                                                |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S28      | Pass    | A reviewed creatinine (fixture range 50 to 100) shows 168, "higher", the range ends, the signed plain words and the note                          |
+| S29      | Pass    | An unreviewed result: "Your doctor looks at this first"; an unreleased order: "Waiting for the lab."                                              |
+| S30      | Pass    | A reviewed HIV viral load and a pending pregnancy test: neither name nor id appears anywhere in the patient payload                               |
+| S31      | Pass    | After the patient saw it, a correction shows "being checked" with no value; after acknowledgement, 158 with "Corrected on" and 168 struck through |
+| S32      | Pass    | Revoking consent blocks the page at once with no results                                                                                          |
+| S33      | Pass    | Before the minors rule: nothing for either child; after: the under-12's routine result shows, the 15-year-old's does not                          |
+| S34      | Pass    | A recorded view turns the doctor's chip to "Seen by the patient"                                                                                  |
+| S35      | Partial | By construction (titles, no device storage, no cached results); the browser check is in Step 11                                                   |
+| S36      | Pass    | "Ask for a copy" opens a request; with a hold in place, the records list flags it                                                                 |
+| S37      | Open    | The phone trial and the 3G budget are Step 11 (harness screenshots at 390 px and dark mode)                                                       |
+| S38      | Pass    | Another patient gets nothing from the app gate, `oneResult`, `patient_results_for_me()` or a direct select (RLS)                                  |
+
+**Fixed on the way:** 0154 dropped `consent_versions_consent_type_check`, but 0006 named it `consent_versions_type_check`,
+so results consent versions would have been refused (0154 is unapplied; corrected in place, Drizzle check updated). The
+Step 5 bed-board flag carried the condition into the board's patient object, against the board's "name and MRN only"
+invariant; the board now shows only the precaution ("Infection prevention: airborne"), and the condition stays in
+`/ipc`. The release form no longer spells a group as the bare word reserved for red.
+
+**Deviations and gaps:** no offline copy (5.1 asks for one in the service-worker store; with none, nothing can leak or
+need clearing). "Your doctor has seen this and will talk with you on {date}" needs the next booked visit, which the
+results loader does not read yet. Explanations are English until a language setting offers only signed languages
+(PR-17; the loader takes the language). The records-requests page is reachable by its address; it has no link in the
+hospital-admin navigation yet. Calculated values (eGFR) show only as their own component lines.

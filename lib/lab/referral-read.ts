@@ -40,7 +40,7 @@ export type ConfigState = {
 
 const stateOf = (
   configs: readonly SignedConfig[],
-  kind: Kind | "referral_wording" | "referral_ops",
+  kind: Kind | "referral_wording" | "referral_ops" | "results_consent_notice",
   key: string,
   now: Date,
 ): ConfigState => {
@@ -122,6 +122,8 @@ export async function loadReferralSettings(tx: EmrTx, hospitalId: string, now = 
   return {
     wording: stateOf(configs, "referral_wording", "high_risk", now),
     ops: stateOf(configs, "referral_ops", "settings", now),
+    // Lab Phase 5 (PR-12): the data protection lead's results consent wording, on the same desk.
+    consent: stateOf(configs, "results_consent_notice", "hospital", now),
   };
 }
 

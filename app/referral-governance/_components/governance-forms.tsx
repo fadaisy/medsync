@@ -239,7 +239,7 @@ export function SignGovernance({
   authoredByMe,
   label,
 }: {
-  kind: "partner_legal" | "partner_fields" | "referral_wording";
+  kind: "partner_legal" | "partner_fields" | "referral_wording" | "results_consent_notice";
   configId: string;
   authoredByMe: boolean;
   label: string;
@@ -372,5 +372,69 @@ export function EndDesignation({ id, name }: { id: string; name: string }) {
       </Button>
       <Said message={message} />
     </span>
+  );
+}
+
+/** Lab Phase 5 (PR-12, A5): what a patient agrees to before results show in the app or by SMS; signing publishes it. */
+export function ConsentNoticeDialog({
+  current,
+}: {
+  current: { version: string; inApp: string; sms: string; basis: string } | null;
+}) {
+  const { pending, message, act } = useAct();
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState(current ?? { version: "", inApp: "", sms: "", basis: "" });
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) =>
+    setF({ ...f, [k]: e.target.value });
+  return (
+    <Pop
+      label="Results consent wording"
+      title="Results in the app and by SMS: consent wording"
+      lede="Patients read this before they turn results on. Signing publishes it as a new consent version."
+      open={open}
+      setOpen={setOpen}
+      width="wide"
+      action={
+        <Button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            act(async () => {
+              const r = await saveGovernanceConfigAction({
+                kind: "results_consent_notice",
+                key: "hospital",
+                payload: f,
+              });
+              if (r.ok) setOpen(false);
+              return r;
+            }, "Draft saved.")
+          }
+        >
+          Save draft
+        </Button>
+      }
+    >
+      <Field label="Version (for example 1.0)">
+        <Input className={inputClass} value={f.version} onChange={set("version")} />
+      </Field>
+      <Field label="Results in the app">
+        <textarea
+          className="border-input bg-card text-body-s min-h-28 rounded-sm border p-2"
+          value={f.inApp}
+          onChange={set("inApp")}
+        />
+      </Field>
+      <Field label="Results-ready SMS">
+        <textarea
+          className="border-input bg-card text-body-s min-h-28 rounded-sm border p-2"
+          value={f.sms}
+          onChange={set("sms")}
+        />
+      </Field>
+      <Field label="Legal basis (DPPA 2019 section, or the legal opinion)">
+        <Input className={inputClass} value={f.basis} onChange={set("basis")} />
+      </Field>
+      <Said message={message} />
+    </Pop>
   );
 }

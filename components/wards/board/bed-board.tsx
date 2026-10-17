@@ -517,8 +517,8 @@ function BedPanel({
               <span className="text-mono-s text-ink-600 font-mono">
                 {bed.patient.mrn ?? "No MRN"}
               </span>
-              {bed.patient.ipc?.map((f) => (
-                <StatusWord key={f} tone="caution">{`Infection prevention flag: ${f}`}</StatusWord>
+              {bed.ipc?.map((f) => (
+                <StatusWord key={f} tone="caution">{`Infection prevention: ${f}`}</StatusWord>
               ))}
             </>
           ) : (

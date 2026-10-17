@@ -208,7 +208,8 @@ export async function ipcFlagsFor(hospitalId: string, patientIds: readonly strin
     if (flags.length)
       out.set(
         p,
-        flags.map((f) => `${f.condition} · ${f.precaution.replace(/_/g, " ")}`),
+        // Minimum necessary (Law 8): the bed board shows the precaution, not the condition.
+        [...new Set(flags.map((f) => f.precaution.replace(/_/g, " ")))],
       );
   }
   return out;

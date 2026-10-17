@@ -1,10 +1,12 @@
 "use client";
 
+import type { ReleaseGroup } from "@/lib/lab/patient-release";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RELEASE_GROUPS } from "@/lib/lab/patient-release";
 import { savePatientReleaseDraftAction } from "@/lib/lab/patient-release-actions";
 import { inputClass, Pop, selectClass } from "../../../_components/pop";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
@@ -12,13 +14,14 @@ import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 /* What patients see (Lab Phase 5 §5.5): the laboratory lead's drafts. Every setting, window and word is the lead's,
    with its source; MedSync proposes none. Another lead signs, the CSO countersigns. Centred pop-ups only. */
 
-const GROUPS = [
-  ["routine", "Routine results"],
-  ["critical", "Critical results"],
-  ["referred", "Results from a reference lab"],
-  ["bedside", "Bedside (point-of-care) results"],
-  ["corrected", "Corrected results"],
-] as const;
+const NAMES: Record<ReleaseGroup, string> = {
+  routine: "Routine results",
+  critical: "Results above or below the critical limits",
+  referred: "Results from a reference lab",
+  bedside: "Bedside (point-of-care) results",
+  corrected: "Corrected results",
+};
+const GROUPS = RELEASE_GROUPS.map((k) => [k, NAMES[k]] as const);
 const list = (s: string) =>
   s
     .split(/[,\n]/)

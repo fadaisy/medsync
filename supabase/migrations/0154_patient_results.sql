@@ -125,8 +125,10 @@ CREATE TABLE IF NOT EXISTS public.records_requests (
 ALTER TABLE public.consent_records DROP CONSTRAINT IF EXISTS consent_records_type_check;
 ALTER TABLE public.consent_records ADD CONSTRAINT consent_records_type_check CHECK (consent_type IN
   ('data_processing','sms_communication','research_use','third_party_share','results_in_app','results_sms'));
+-- 0006 named this one consent_versions_type_check.
+ALTER TABLE public.consent_versions DROP CONSTRAINT IF EXISTS consent_versions_type_check;
 ALTER TABLE public.consent_versions DROP CONSTRAINT IF EXISTS consent_versions_consent_type_check;
-ALTER TABLE public.consent_versions ADD CONSTRAINT consent_versions_consent_type_check CHECK (consent_type IN
+ALTER TABLE public.consent_versions ADD CONSTRAINT consent_versions_type_check CHECK (consent_type IN
   ('data_processing','sms_communication','research_use','third_party_share','results_in_app','results_sms'));
 
 ALTER TABLE public.notification_dispatches DROP CONSTRAINT IF EXISTS notification_dispatches_kind_check;
