@@ -133,6 +133,8 @@ export default function HomeScreen() {
         help="pill"
         helpSource="home"
         bell={unread || true}
+        // Room between the greeting and Today / This week.
+        contentStyle={{ paddingTop: tSpace[5] }}
         header={
           <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
             <Avatar initials={initials} size={44} />
