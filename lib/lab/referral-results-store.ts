@@ -441,6 +441,12 @@ export async function releasePaperResult(
       marks: [],
       note: i.calledWard,
       clientKey: i.clientKey,
+      autoCheck: {
+        check: { kind: "checked_not_repeated" },
+        sampleChecked: false,
+        secondCheckerId: i.checkedByUserId,
+        soloReason: i.checkedByUserId ? null : LAB4.provenanceOnePerson,
+      },
     });
   const notes = entries.flatMap(({ e }) => {
     const c = criticalCheckInput(e);

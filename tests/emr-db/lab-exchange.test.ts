@@ -790,6 +790,63 @@ describe.skipIf(!laneOn)("Lab Phase 4 exchange core and the partner simulator (S
     expect(after.map((x, i) => x - before[i]!)).toEqual([1, 1, 1]);
   });
 
+  it("§11 load: 500 inbound messages stored and acknowledged, then processed (in-process PGlite)", async () => {
+    const r = await referred();
+    const t = await token();
+    const ack: number[] = [];
+    const ids: string[] = [];
+    const start = performance.now();
+    for (let k = 0; k < 500; k++) {
+      const raw = statusMsg(
+        r.number,
+        "in-progress",
+        new Date(Date.UTC(2026, 9, 17, 6, 0, k)).toISOString(),
+      );
+      const t0 = performance.now();
+      const stored = await tx(async (x) => {
+        if (
+          !(await authenticate(x, {
+            token: t,
+            scope: SCOPE.inbound,
+            senderId,
+            hospitalId: h,
+            now: now(),
+          }))
+        )
+          throw new Error("unauthorised");
+        return storeInbound(x, {
+          senderId,
+          channel: "fhir",
+          contentType: "application/fhir+json",
+          raw,
+          externalId: null,
+          senderTime: null,
+          senderTimeUtc: null,
+        });
+      });
+      ack.push(performance.now() - t0);
+      ids.push(stored.messageId);
+    }
+    const storedIn = performance.now() - start;
+    const proc: number[] = [];
+    for (const id of ids) {
+      const t0 = performance.now();
+      await tx((x) => processInbound(x, id, now()));
+      proc.push(performance.now() - t0);
+    }
+    const p95 = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length * 0.95)]!;
+    // Recorded for the final report; the budgets are §11's (production numbers need the real database).
+    process.stderr.write(
+      `load: 500 stored in ${Math.round(storedIn)} ms; ack p95 ${p95(ack).toFixed(1)} ms; process p95 ${p95(proc).toFixed(1)} ms\n`,
+    );
+    expect(storedIn).toBeLessThan(60_000);
+    expect(p95(ack)).toBeLessThan(300);
+    expect(p95(proc)).toBeLessThan(5_000);
+    expect(
+      await n(`SELECT count(*)::int AS n FROM exchange_messages WHERE id = ANY($1)`, [ids]),
+    ).toBe(500);
+  }, 300_000);
+
   it("S36, AB-6 revoking takes effect at once: the next request fails and stored messages stay", async () => {
     const t = await token();
     await tx((x) => revokeSender(x, lab(), { senderId }, now()));

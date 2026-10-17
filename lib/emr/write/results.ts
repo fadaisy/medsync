@@ -584,7 +584,11 @@ async function writeReportVersion(
     testId: order.testId,
     kind,
     issuedAt: now,
-    performer: spec.referred || order.performer !== "in_house" ? "external" : "in_house",
+    // A referred report stays external on every later version (an amendment carries the referral, RB-8).
+    performer:
+      spec.referred || prior?.referralId || order.performer !== "in_house"
+        ? "external"
+        : "in_house",
     performerLabName: spec.performerLabName ?? prior?.performerLabName ?? null,
     entryMode: entry.entryMode,
     enteredByUserId: spec.enteredByUserId,

@@ -26,6 +26,8 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { enterReferredResult } from "@/lib/emr/write/results";
 import { decrypt, encrypt } from "@/lib/encryption";
 import { loadConfigs } from "@/lib/lab/catalogue-v2";
+import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
+import { alertAfterRelease } from "@/lib/lab/criticals/store";
 import { stateForTask } from "@/lib/lab/referral";
 import { patientForCompare } from "@/lib/lab/referral-results-store";
 import { appendEvent } from "@/lib/lab/referral-store";
@@ -429,6 +431,22 @@ export async function fileElectronicResult(
         decidedAt: now,
       })
       .onConflictDoNothing();
+  // RB-5: Phase 1's critical flow on the value in this hospital's unit, as for paper.
+  if (await unitsRangesLive(actor.hospitalId))
+    await alertAfterRelease(ctx, {
+      patientUserId: r.patientUserId,
+      orderId: r.orderId,
+      reportId: report.id,
+      marks: [],
+      note: null,
+      clientKey: i.clientKey,
+      autoCheck: {
+        check: { kind: "checked_not_repeated" },
+        sampleChecked: false,
+        secondCheckerId: null,
+        soloReason: `Filed from ${p!.name}'s system`,
+      },
+    });
   await event(tx, actor.hospitalId, m.id, "filed", { reportId: report.id });
   const a = { userId: actor.userId, hospitalId: actor.hospitalId };
   await appendEvent(
@@ -632,16 +650,14 @@ export async function retryOrSetAside(
       )
       .where(eq(exchangeOutbox.messageId, o.messageId));
   }
-  await tx
-    .insert(exchangeEvents)
-    .values({
-      hospitalId: a.hospitalId,
-      messageId: i.messageId,
-      state: i.action === "retry" ? "retried_by_person" : "set_aside",
-      detail: { reason: i.reason },
-      actorUserId: a.userId,
-      at: now,
-    });
+  await tx.insert(exchangeEvents).values({
+    hospitalId: a.hospitalId,
+    messageId: i.messageId,
+    state: i.action === "retry" ? "retried_by_person" : "set_aside",
+    detail: { reason: i.reason },
+    actorUserId: a.userId,
+    at: now,
+  });
   if (!o && i.action === "retry")
     await tx
       .insert(exchangeEvents)
@@ -662,16 +678,14 @@ export async function openRaw(
       and(eq(exchangeMessages.id, i.messageId), eq(exchangeMessages.hospitalId, a.hospitalId)),
     );
   if (!m?.payloadCiphertext) throw new EmrWriteError("not_found", "That message was not found.");
-  await tx
-    .insert(exchangeEvents)
-    .values({
-      hospitalId: a.hospitalId,
-      messageId: m.id,
-      state: "raw_viewed",
-      detail: { reason: i.reason },
-      actorUserId: a.userId,
-      at: now,
-    });
+  await tx.insert(exchangeEvents).values({
+    hospitalId: a.hospitalId,
+    messageId: m.id,
+    state: "raw_viewed",
+    detail: { reason: i.reason },
+    actorUserId: a.userId,
+    at: now,
+  });
   return decrypt(m.payloadCiphertext);
 }
 

@@ -12,10 +12,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { withPatientWrite } from "@/lib/emr/write/context";
 import { placeOrders } from "@/lib/emr/write/orders";
+import { amendResults } from "@/lib/emr/write/results";
 import { collectSpecimen, receiveSpecimen } from "@/lib/emr/write/specimens";
 import { encrypt, generateKey } from "@/lib/encryption";
 import { saveConfigDraft, signConfig } from "@/lib/lab/catalogue-v2";
 import { countMonth } from "@/lib/lab/hmis-store";
+import { saveLimitsDraft, signLimitsVersion } from "@/lib/lab/limits";
 import { saveMeasure } from "@/lib/lab/measures-setup";
 import {
   attachScan,
@@ -56,6 +58,7 @@ const FLAGS = [
   "LAB_ONE_MENU",
   "LAB_HIGH_RISK",
   "LAB_REFERRAL",
+  "LAB_CRITICALS",
 ];
 
 describe.skipIf(!laneOn)("Lab Phase 4 referrals and results back (Steps 4–7)", () => {
@@ -233,6 +236,7 @@ describe.skipIf(!laneOn)("Lab Phase 4 referrals and results back (Steps 4–7)",
     a.lead = await make(labDept, "LAB_TECHNOLOGIST", "lab");
     a.lead2 = await make(labDept, "LAB_TECHNOLOGIST", "lab");
     a.dp = await make(ward, "MEDICAL_OFFICER", "doctor");
+    a.cso = await make(ward, "CONSULTANT", "doctor");
     await pg.query(
       `INSERT INTO department_heads (hospital_id, department_id, user_id, acting) VALUES ($1, $2, $3, false), ($1, $2, $4, true)`,
       [h, labDept, a.lead.userId, a.lead2.userId],
@@ -961,6 +965,113 @@ describe.skipIf(!laneOn)("Lab Phase 4 referrals and results back (Steps 4–7)",
           scanConfirmed: true,
         }),
       ).rejects.toThrow(/not in this hospital's unit list/);
+    });
+    // Last in the file: S24 signs critical limits, so flagging is on for anything after it.
+    it("S24 RB-5 a referred value past the signed limit raises Phase 1's call on the value in our unit", async () => {
+      // FIXTURE limits, invented: adults at or below 2.0 mmol/L or at or above 25.0.
+      const v = await tx((t) =>
+        saveLimitsDraft(
+          t,
+          { userId: a.lead!.userId, hospitalId: h },
+          {
+            limits: [
+              {
+                testId: GLUCOSE_FASTING,
+                conceptId: "obs.glucose",
+                ageFromDays: 6575,
+                ageToDays: null,
+                low: "2.0",
+                high: "25.0",
+                referenceId: "FX-GLU-1",
+                source: "fixture",
+              },
+            ],
+          },
+          now(),
+        ),
+      );
+      for (const [who, as] of [
+        [a.lead2!, "lead"],
+        [a.cso!, "cso"],
+      ] as const)
+        await tx((t) =>
+          signLimitsVersion(
+            t,
+            { userId: who.userId, hospitalId: h, as },
+            { versionId: v, exceptionNote: null },
+            now(),
+          ),
+        );
+      await pg.query(
+        `INSERT INTO critical_response_versions (hospital_id, version, status, ack_within_min, source, authored_by, lead_signed_by, lead_signed_at, cso_signed_by, cso_signed_at)
+         VALUES ($1, 1, 'signed', 30, 'fixture: invented', $2, $2, now(), $3, now())`,
+        [h, a.lead!.userId, a.cso!.userId],
+      );
+      const s = await sentOut();
+      await scan(s.referralId);
+      // 27 mg/dL as printed is 1.5 mmol/L here: below the fixture's 2.0.
+      const r = await release(s, {
+        components: [
+          {
+            conceptId: "obs.glucose",
+            value: "27",
+            unitAsPrinted: "mg/dL",
+            rangeAsPrinted: "70 - 100",
+          },
+        ],
+        checkedByUserId: a.checker!.userId,
+        scanConfirmed: true,
+      });
+      if ("waitingItemId" in r) throw new Error("unexpected mismatch");
+      const alert = await one<{ id: string; state: string }>(
+        `SELECT id, state FROM critical_alerts WHERE report_id = $1`,
+        [r.id],
+      );
+      expect(alert.state).toBe("open");
+      expect(
+        (
+          await pg.query(`SELECT source, direction FROM critical_marks WHERE alert_id = $1`, [
+            alert.id,
+          ])
+        ).rows,
+      ).toEqual([{ source: "auto", direction: "low" }]);
+    });
+
+    it("S26 RB-8 a corrected report is a new version on the same referral, still external, provenance kept", async () => {
+      const s = await sentOut();
+      await scan(s.referralId);
+      const r = await release(s, { checkedByUserId: a.checker!.userId, scanConfirmed: true });
+      if ("waitingItemId" in r) throw new Error("unexpected mismatch");
+      const c = await as(a.lab!, s.p, (ctx) =>
+        amendResults(ctx, {
+          patientUserId: s.p,
+          reportId: r.id,
+          status: "corrected",
+          values: [{ conceptId: "obs.glucose", value: "5.2", unit: "mmol/L" }],
+          reasonText: "Corrected report from the reference lab (test)",
+          clientKey: key(),
+        }),
+      );
+      expect(c.id).not.toBe(r.id);
+      expect(
+        await one(
+          `SELECT status, performer, referral_id, provenance->>'theirReport' AS their FROM diagnostic_reports WHERE id = $1`,
+          [c.id],
+        ),
+      ).toEqual({
+        status: "corrected",
+        performer: "external",
+        referral_id: s.referralId,
+        their: "TEST-RPT",
+      });
+      expect(
+        (
+          await one<{ n: number }>(
+            `SELECT count(*)::int AS n FROM diagnostic_reports WHERE referral_id = $1`,
+            [s.referralId],
+          )
+        ).n,
+      ).toBe(2);
     });
   });
 });
