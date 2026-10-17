@@ -24,9 +24,15 @@ ALTER TABLE public.lab_result_snapshots
   ADD COLUMN IF NOT EXISTS range_source text NOT NULL DEFAULT 'hospital',
   ADD COLUMN IF NOT EXISTS printed jsonb,      -- {value, unit, range, flagText, converted} as printed or sent
   ADD COLUMN IF NOT EXISTS interfaced jsonb;   -- {value, unit, flags, ranges, editReason} (Step 10)
+-- A referred value's range is the performing lab's (D-LAB4-09): its own range state. The snapshot holds the value
+-- in this hospital's unit (so Phase 1's critical check reads it unchanged); what was printed is in `printed`.
+ALTER TABLE public.lab_result_snapshots DROP CONSTRAINT IF EXISTS lab_result_snapshots_range_state_check;
+ALTER TABLE public.lab_result_snapshots ADD CONSTRAINT lab_result_snapshots_range_state_check CHECK (range_state IN
+  ('signed','unsigned','no_band_for_age','sex_or_age_missing','no_signed_range','performing_lab'));
 ALTER TABLE public.lab_result_snapshots DROP CONSTRAINT IF EXISTS lrs_range_source;
 ALTER TABLE public.lab_result_snapshots ADD CONSTRAINT lrs_range_source
-  CHECK (range_source IN ('hospital','performing_lab') AND (range_source = 'hospital' OR printed IS NOT NULL));
+  CHECK (range_source IN ('hospital','performing_lab') AND (range_source = 'hospital' OR printed IS NOT NULL)
+         AND ((range_source = 'performing_lab') = (range_state = 'performing_lab')));
 
 -- ─── Scans of the paper report (RB-6; RB-9 keeps the old ones) ───────────
 CREATE TABLE IF NOT EXISTS public.lab_result_attachments (

@@ -99,7 +99,11 @@ export interface ResultValueInput {
   noConversion?: boolean;
 }
 
-type Entry = { entryMode: "direct" | "transcribed"; source: "lab" | "poc_staff"; poc: boolean };
+type Entry = {
+  entryMode: "direct" | "transcribed" | "interface";
+  source: "lab" | "poc_staff";
+  poc: boolean;
+};
 
 /** D-EMR-08 and §D: lab staff enter directly, nurses at the bedside, clinicians transcribe. */
 function entryFor(ctx: WriteCtx): Entry {
@@ -179,6 +183,8 @@ interface VersionSpec {
   resultedAt?: Date | null;
   /** Lab Phase 3 (QH-4): release past a QC hold, by a holder of lab.qc.override, with the reason. */
   qcOverride?: { reason: string } | null;
+  /** Lab Phase 4 (RB-1, RB-8): a referred result, on its original order, done elsewhere, with its provenance. */
+  referred?: { referralId: string; provenance: Record<string, unknown> } | null;
 }
 
 /** Lab Phase 3: what the QC gate decided for one release. */
@@ -207,7 +213,14 @@ async function qcGate(
   concepts: readonly string[],
 ): Promise<QcGate | null> {
   const { tx, actor, now } = ctx;
-  if (spec.status !== "final" || spec.order.kind !== "lab" || spec.bedside || !deviceId)
+  // A referred result was done elsewhere: this lab's QC never holds it (Lab Phase 4 RB-1).
+  if (
+    spec.status !== "final" ||
+    spec.order.kind !== "lab" ||
+    spec.bedside ||
+    spec.referred ||
+    !deviceId
+  )
     return null;
   if (!labQcLiveFor(actor.hospitalId)) return null;
   // A completion version (final after final) gates only the components still held.
@@ -571,7 +584,7 @@ async function writeReportVersion(
     testId: order.testId,
     kind,
     issuedAt: now,
-    performer: order.performer === "in_house" ? "in_house" : "external",
+    performer: spec.referred || order.performer !== "in_house" ? "external" : "in_house",
     performerLabName: spec.performerLabName ?? prior?.performerLabName ?? null,
     entryMode: entry.entryMode,
     enteredByUserId: spec.enteredByUserId,
@@ -585,6 +598,8 @@ async function writeReportVersion(
     deviceId: spec.bedside?.deviceId ?? null,
     lotId: spec.bedside?.lotId ?? null,
     qcHeld: held.size ? [...held] : null,
+    referralId: spec.referred?.referralId ?? prior?.referralId ?? null,
+    provenance: spec.referred?.provenance ?? prior?.provenance ?? null,
   });
   if (rows.length) await tx.insert(clinicalObservations).values(rows);
   await fixed?.snapshot(
@@ -621,6 +636,67 @@ async function writeReportVersion(
 }
 
 const CRITICAL_WARNING = "A value is critical: record who was told, how, and the read-back.";
+
+/* ─── Lab Phase 4: a referred result back on its original order ────── */
+
+export interface ReferredResultInput {
+  patientUserId: string;
+  orderId: string;
+  referralId: string;
+  performerLabName: string;
+  /** Paper typed from the report, or a partner's system (RB-10). */
+  entryMode: "transcribed" | "interface";
+  values: ResultValueInput[];
+  /** RB-7: the second person who checked against the paper, or null ("Entered by one person"). */
+  checkedByUserId: string | null;
+  provenance: Record<string, unknown>;
+  clientKey: string;
+}
+
+/**
+ * RB-1, RB-8, D-LAB4-02: a result done at a reference lab files on the original order and specimen, as a final
+ * report whose performer is external, through the same version writer as every other result. Units, ranges and
+ * flags are the reference lab's (each value's `referenceRange` and `labInterpretation` as printed): this hospital's
+ * fixed units and signed ranges are not applied (D-LAB4-09). A released result is changed only by amendResults.
+ */
+export async function enterReferredResult(
+  ctx: WriteCtx,
+  input: ReferredResultInput,
+): Promise<ReportResult> {
+  requireLabPermission(ctx, "lab.result.enter", "enter results");
+  const replay = await replayed(ctx.tx, diagnosticReports, input.clientKey, input.patientUserId);
+  if (replay) return { id: replay };
+  const order = await loadOrder(ctx, input.patientUserId, input.orderId);
+  if (order.kind !== "lab") throw invalid("Only a laboratory order takes a referred result.");
+  const test = await loadTest(ctx.tx, order.testId);
+  const status = await orderStatus(ctx.tx, order);
+  if (status.state === "resulted" || status.state === "acknowledged")
+    throw new EmrWriteError(
+      "conflict",
+      "This order already has a result: a corrected report is an amendment.",
+    );
+  const specimenId = "specimenId" in status ? status.specimenId : null;
+  const specimen = specimenId
+    ? ((await ctx.tx.select().from(specimens).where(eq(specimens.id, specimenId)))[0] ?? null)
+    : null;
+  const r = await writeReportVersion(ctx, {
+    patientUserId: input.patientUserId,
+    order,
+    test,
+    prior: null,
+    status: "final",
+    entry: { entryMode: input.entryMode, source: "lab", poc: false },
+    specimen,
+    values: input.values,
+    enteredByUserId: ctx.actor.userId,
+    verifiedByUserId: input.checkedByUserId,
+    performerLabName: input.performerLabName,
+    clientKey: input.clientKey,
+    criticalRefs: [],
+    referred: { referralId: input.referralId, provenance: input.provenance },
+  });
+  return { id: r.id, critical: r.critical };
+}
 
 /* ─── enterResults ───────────────────────────────────────────────── */
 
