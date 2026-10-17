@@ -41,7 +41,8 @@ export type LabNavId =
   | "matches"
   | "analysers"
   | "setup_delta"
-  | "setup_patient_release";
+  | "setup_patient_release"
+  | "setup_demo";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -76,6 +77,8 @@ export interface LabNavFlags {
   /** Lab Phase 5 (§5.5, §5.7): labDeltaChecks and patientResults. */
   deltaChecks?: boolean;
   patientResults?: boolean;
+  /** The hospital is a lab demo hospital (0157): the demo lab day loader. */
+  demo?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -161,6 +164,15 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     group: "setup",
     visibleFor: (p, f) => !!f.patientResults && p.has("lab.manage"),
+  },
+  {
+    id: "setup_demo",
+    label: "Demo lab day",
+    href: "/lab/setup/demo",
+    order: 9.8,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.demo && p.has("lab.manage"),
   },
   {
     id: "setup_criticals",
