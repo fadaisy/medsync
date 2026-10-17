@@ -62,7 +62,8 @@ const WEB = tree(
   "app/hospital-admin/departments",
   "lib/services",
 );
-const MOBILE = tree("mobile/src");
+// The app's own code; its colocated tests (theme/colour-laws.test.ts) name red hexes on purpose.
+const MOBILE = tree("mobile/src").filter(([p]) => !/\.test\.tsx?$/.test(p));
 
 /**
  * The JSX opening tag that contains `index`: from the nearest `<` that opens a
@@ -523,14 +524,12 @@ describe("red is reserved — the Expo app", () => {
    *   components/ui/icon-button.tsx       draws the `critical` disc
    *   components/ui/tab-bar.tsx           draws the `critical` tab chip
    *   components/patient/emergency-button.tsx  the red disc on pushed screens
-   *   app/(app)/(tabs)/_layout.tsx        the Emergency tab
    */
   const RED_ALLOWED = [
     "mobile/src/theme/tokens.ts",
     "mobile/src/components/ui/icon-button.tsx",
     "mobile/src/components/ui/tab-bar.tsx",
     "mobile/src/components/patient/emergency-button.tsx",
-    "mobile/src/app/(app)/(tabs)/_layout.tsx",
     // ADR 0098 (PRD §7.1): the Emergency sheet's header and primary actions,
     // the pre-alert's Send, the status panel, the catalog's emergency-tier
     // row marker and interrupt banner. Nothing else.
@@ -539,6 +538,16 @@ describe("red is reserved — the Expo app", () => {
     "mobile/src/components/emergency/status-panel.tsx",
     "mobile/src/components/symptoms/item-row.tsx",
     "mobile/src/components/symptoms/emergency-interrupt.tsx",
+    // ADR 0340 (Tide v1, law L3): red only for Help, SOS, the danger interrupt and a danger
+    // reading, its word from the reading rules (law L7). Tide's own scan of `t.critical` is
+    // mobile/src/theme/colour-laws.test.ts; these are the files this scan also sees.
+    "mobile/src/theme/tide.ts", // defines the Tide pairs, light and dark
+    "mobile/src/components/tide/primitives.tsx", // StatusPill's `critical` tone
+    "mobile/src/app/(app)/danger.tsx", // the danger interrupt
+    "mobile/src/data/trends.ts", // a danger reading's judgement
+    "mobile/src/features/care/week-chart.tsx", // a danger reading on the week chart
+    "mobile/src/features/care-more/chat-parts.tsx", // a danger reading shared in the chat
+    "mobile/src/app/dev/tide.tsx", // the __DEV__-only gallery of every primitive state
   ];
   const MOBILE_RED = new RegExp(
     [
@@ -589,14 +598,12 @@ describe("red is reserved — the Expo app", () => {
     }
   });
 
-  // ADR 0162 (MedSync Chroma): a booking state is not a clinical state, so the
-  // chip is a tag in cool hues only — no red, and no amber or green either.
-  it("the appointment Pill has no red tone at all", () => {
-    const pill = MOBILE.find(([p]) => p === "mobile/src/components/ui/pill.tsx")?.[1] ?? "";
-    expect(pill).not.toMatch(/critical|status\./);
-    const hues = [...pill.matchAll(/\{ hue: "(\w+)", word: "[^"]*" \}/g)].map((m) => m[1]);
-    expect(hues.length).toBeGreaterThanOrEqual(10);
-    for (const h of hues) expect(["teal", "sky", "iris", "slate"]).toContain(h);
+  // ADR 0162 (MedSync Chroma): a booking state is not a clinical state. Since Tide v1
+  // (ADR 0340) the Visits screen shows it as a word and nothing else: no tone at all.
+  it("an appointment status is a word, never a tone", () => {
+    const visits = MOBILE.find(([p]) => p === "mobile/src/app/(app)/(tabs)/visits.tsx")?.[1];
+    expect(visits).toMatch(/STATUS_LABEL\[row\.status\]/);
+    expect(visits).not.toMatch(/StatusPill|\bt\.(?:critical|caution|stable)\b/);
   });
 });
 
@@ -605,23 +612,25 @@ describe("never colour alone — the Expo app", () => {
     for (const [path, src] of MOBILE) {
       for (const i of each(src, /tone=["']critical["']/g)) {
         const el = elementAt(src, i);
-        expect(el.tag, `${path}: ${el.tag}`).toMatch(/\blabel=["'][^"']+["']/);
+        // A literal, or an expression whose words the component's contract requires
+        // (the danger interrupt's word comes from the reading rules, law L7).
+        expect(el.tag, `${path}: ${el.tag}`).toMatch(/\blabel=(?:["'][^"']+["']|\{)/);
       }
     }
   });
 
-  it("every Pill is keyed by status, and every status in its map has a word", () => {
+  it("every Pill carries its words, and every appointment status has one", () => {
     for (const [path, src] of MOBILE) {
-      if (path === "mobile/src/components/ui/pill.tsx") continue;
       for (const i of each(src, /<Pill\b/g)) {
-        expect(elementAt(src, i).tag, path).toMatch(/\bstatus=\{/);
+        expect(elementAt(src, i).tag, path).toMatch(/\blabel=/);
       }
     }
-    const pill = MOBILE.find(([p]) => p === "mobile/src/components/ui/pill.tsx")?.[1] ?? "";
-    const entries = [...pill.matchAll(/\{ hue: "(\w+)", word: "([^"]*)" \}/g)];
+    const booking = MOBILE.find(([p]) => p === "mobile/src/lib/booking.ts")?.[1] ?? "";
+    const map = booking.slice(booking.indexOf("export const STATUS_LABEL"));
+    const entries = [...map.slice(0, map.indexOf("};")).matchAll(/^\s+(\w+): "([^"]*)",$/gm)];
     expect(entries.length).toBeGreaterThanOrEqual(10); // the ten appointments.status values
-    for (const [, tone, word] of entries) {
-      expect((word ?? "").trim(), `tone ${tone} without a word`).not.toBe("");
+    for (const [, status, word] of entries) {
+      expect((word ?? "").trim(), `status ${status} without a word`).not.toBe("");
     }
   });
 });
