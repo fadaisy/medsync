@@ -32,13 +32,24 @@ describe("Lab Phase 5 flags", () => {
     expect(await all()).toEqual([false, false, false, false]);
   });
 
-  it("CF-3: production refuses all four while the Phase 5 copy is a draft", async () => {
+  it("CF-3: production honours all four now the Phase 5 copy is signed", async () => {
     const { LAB5_COPY_STATUS } = await import("@/content/lab-phase-5");
-    if (LAB5_COPY_STATUS.status !== "draft") return; // once signed, production honours them
+    expect(LAB5_COPY_STATUS.status).toBe("signed");
+    for (const e of [...BASE, ...FOUR]) vi.stubEnv(e, "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(await all()).toEqual([true, true, true, true]);
+  });
+
+  it("CF-3: production refuses all four while the Phase 5 copy is a draft", async () => {
+    vi.doMock("@/content/lab-phase-5", async (importOriginal) => ({
+      ...(await importOriginal<object>()),
+      LAB5_COPY_STATUS: { status: "draft" },
+    }));
     for (const e of [...BASE, ...FOUR]) vi.stubEnv(e, "1");
     vi.stubEnv("VERCEL_ENV", "production");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(await all()).toEqual([false, false, false, false]);
     warn.mockRestore();
+    vi.doUnmock("@/content/lab-phase-5");
   });
 });

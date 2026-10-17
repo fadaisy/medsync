@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { authCookieName, MAX_ACCOUNTS, parseSlot, slotsInUse } from "@/lib/supabase/accounts";
+
+// The cookie name derives from the project URL; CI has no Supabase env.
+vi.mock("@/lib/env", () => ({ env: { NEXT_PUBLIC_SUPABASE_URL: "https://abcd.supabase.co" } }));
 
 /** Several accounts in one browser: each has its own auth cookie slot. */
 describe("account slots", () => {

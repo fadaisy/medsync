@@ -21,15 +21,17 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+// Tide v1 (ADR 0340) retired the Emergency tab: the red Help (law L6) opens /help, whose
+// signed-in "All emergency lines" is the sheet at (app)/emergency/lines.
 const E1_FILES = [
   "mobile/src/components/emergency/emergency-sheet.tsx",
-  "mobile/src/app/(app)/(tabs)/emergency.tsx",
+  "mobile/src/app/(app)/emergency/lines.tsx",
   "mobile/src/app/emergency.tsx",
+  "mobile/src/app/help.tsx",
 ];
 const PATHWAY_FILES = [
   ...walk(resolve(ROOT, "mobile/src/components/emergency")),
   ...walk(resolve(ROOT, "mobile/src/app/(app)/emergency")),
-  resolve(ROOT, "mobile/src/app/(app)/(tabs)/emergency.tsx"),
   resolve(ROOT, "mobile/src/app/emergency.tsx"),
 ].map((p) => relative(ROOT, p));
 
@@ -37,21 +39,32 @@ const RED =
   /critical(?:Bg|Fg)\b|status\.critical|["']critical["']|#(?:fee2e2|fecaca|f87171|ef4444|dc2626|b91c1c|fca5a5|450a0a)\b/i;
 
 describe("the pill — the red disc reaches the sheet signed out (ruling 7)", () => {
-  it('the welcome and sign-in screens mount <EmergencyButton href="/emergency">', () => {
+  it("the welcome and sign-in screens carry Tide's red Help, and Help is outside the sign-in gate", () => {
     for (const p of ["mobile/src/app/index.tsx", "mobile/src/app/sign-in.tsx"]) {
-      expect(read(p), p).toMatch(/<EmergencyButton href="\/emergency" \/>/);
+      const src = stripComments(read(p));
+      expect(src, p).toMatch(/<Screen\b/); // <Screen> renders <HelpButton> by default
+      expect(src, p).not.toMatch(/help="none"/);
     }
+    const layout = stripComments(read("mobile/src/app/_layout.tsx"));
+    const signedInOnly = layout.slice(
+      layout.indexOf("<Stack.Protected guard={signedIn}>"),
+      layout.indexOf("</Stack.Protected>", layout.indexOf("<Stack.Protected guard={signedIn}>")),
+    );
+    expect(layout).toMatch(/<Stack\.Screen name="help"/);
+    expect(signedInOnly).not.toMatch(/name="help"/);
+    // Signed out, Help's "All emergency lines" is the root sheet.
+    expect(stripComments(read("mobile/src/app/help.tsx"))).toMatch(/router\.push\("\/emergency"\)/);
   });
 
-  it("EmergencyButton keeps the tab as its default target and stays red with its label", () => {
+  it("EmergencyButton opens Help by default and stays red with its label", () => {
     const src = read("mobile/src/components/patient/emergency-button.tsx");
-    expect(src).toMatch(/href = "\/\(app\)\/\(tabs\)\/emergency"/);
+    expect(src).toMatch(/href = "\/help"/);
     expect(src).toMatch(/tone="critical"/);
     expect(src).toMatch(/label="Emergency"/);
   });
 
-  it("the tab screen and the root screen are the same sheet", () => {
-    expect(read("mobile/src/app/(app)/(tabs)/emergency.tsx")).toMatch(/<EmergencySheet\b/);
+  it("the signed-in lines screen and the root screen are the same sheet", () => {
+    expect(read("mobile/src/app/(app)/emergency/lines.tsx")).toMatch(/<EmergencySheet\b/);
     expect(read("mobile/src/app/emergency.tsx")).toMatch(/<EmergencySheet\b/);
     // The pre-auth sheet never shows a draft number.
     expect(read("mobile/src/app/emergency.tsx")).toMatch(/showDrafts=\{false\}/);
@@ -73,7 +86,7 @@ describe("E1 — the primary call is a tel: tap, and numbers come from data (rul
   });
 
   it("no pathway file carries a literal emergency number", () => {
-    for (const p of PATHWAY_FILES) {
+    for (const p of [...PATHWAY_FILES, "mobile/src/app/help.tsx"]) {
       expect(stripComments(read(p)), p).not.toMatch(/\b(?:112|999|912)\b/);
     }
   });
@@ -170,13 +183,29 @@ describe("E3 — status (PRD §8.4)", () => {
   });
 });
 
-describe("location — asked from the pre-alert only (ruling 9)", () => {
+// Ruling 9 as narrowed by the Tide v1 build prompt (law L9, owner, ADR 0340): the pre-alert asks;
+// the optional home pin at sign-up asks only behind `mobileMapPin` and its own declinable consent;
+// Help reads a position the patient already allowed and never asks in the middle of an emergency.
+describe("location — asked from the pre-alert and the consented home pin only (ruling 9, L9)", () => {
   const importers = walk(resolve(ROOT, "mobile/src"))
     .map((p) => relative(ROOT, p))
     .filter((p) => /from "expo-location"/.test(stripComments(read(p))));
 
-  it("expo-location is imported by the pre-alert form and nothing else", () => {
-    expect(importers).toEqual(["mobile/src/components/emergency/pre-alert-form.tsx"]);
+  it("expo-location is imported by the pre-alert form, the home pin and Help's granted-only read", () => {
+    expect([...importers].sort()).toEqual([
+      "mobile/src/components/emergency/pre-alert-form.tsx",
+      "mobile/src/features/auth/map-pin.tsx",
+      "mobile/src/features/safety/location.ts",
+    ]);
+  });
+
+  it("Help's read never asks; the home pin is behind its flag and its own consent", () => {
+    const granted = stripComments(read("mobile/src/features/safety/location.ts"));
+    expect(granted).toMatch(/getForegroundPermissionsAsync\(\)/);
+    expect(granted).not.toMatch(/request\w*PermissionsAsync/);
+    const steps = stripComments(read("mobile/src/features/auth/steps.tsx"));
+    expect(steps).toMatch(/flag\("mobileMapPin"\)/);
+    expect(steps).toMatch(/\{draft\.pinConsent \? \(\s*<>\s*<MapPin\b/);
   });
 
   it("E1 never asks for a location", () => {

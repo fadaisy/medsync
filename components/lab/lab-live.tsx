@@ -37,7 +37,10 @@ export function LabLive({ hospitalId }: { hospitalId: string }) {
     };
     const schedule = () => {
       if (poll) clearInterval(poll);
-      poll = !live && document.visibilityState === "visible" ? setInterval(() => router.refresh(), POLL_MS) : null;
+      poll =
+        !live && document.visibilityState === "visible"
+          ? setInterval(() => router.refresh(), POLL_MS)
+          : null;
     };
     const supabase = createClient();
     const channel = supabase.channel(`lab:${hospitalId}`, { config: { private: true } });
@@ -46,7 +49,8 @@ export function LabLive({ hospitalId }: { hospitalId: string }) {
         pending.current = { ...pending.current, pending: pending.current.pending + 1 };
         const a = announce(pending.current, Date.now());
         pending.current = a.state;
-        if (a.say) setSaid(`${a.say} new ${a.say === 1 ? "specimen" : "specimens"} on the worklist.`);
+        if (a.say)
+          setSaid(`${a.say} new ${a.say === 1 ? "specimen" : "specimens"} on the worklist.`);
       }
       refresh();
     });

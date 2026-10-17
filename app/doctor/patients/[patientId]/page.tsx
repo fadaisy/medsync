@@ -1,3 +1,4 @@
+import type { EmrTx } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,15 +11,14 @@ import {
 } from "lucide-react";
 
 import { EmrChart } from "@/components/emr/chart/emr-chart";
-import { Button } from "@/components/ui/button";
 import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
+import { Button } from "@/components/ui/button";
+import { db } from "@/db";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { loadChart } from "@/lib/emr/read/chart";
-import { db } from "@/db";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
-import type { EmrTx } from "@/lib/emr/db";
 import { isOperator } from "@/lib/lab/bedside-store";
 import { openAlertsForPatient } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";

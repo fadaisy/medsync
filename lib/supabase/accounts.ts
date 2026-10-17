@@ -11,10 +11,10 @@ import { env } from "@/lib/env";
 export const ACTIVE_ACCOUNT_COOKIE = "ms-account";
 export const MAX_ACCOUNTS = 5;
 
-const BASE_KEY = `sb-${new URL(env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0]}-auth-token`;
-
 export function authCookieName(slot: number): string {
-  return slot === 0 ? BASE_KEY : `${BASE_KEY}-s${slot}`;
+  // Read on call, not at import: the build collects page data with no Supabase env (CI).
+  const base = `sb-${new URL(env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0]}-auth-token`;
+  return slot === 0 ? base : `${base}-s${slot}`;
 }
 
 export function parseSlot(value: string | undefined | null): number {
