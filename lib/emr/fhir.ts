@@ -704,3 +704,209 @@ export function exportBundle(input: FhirExportInput, opts: FhirExportOptions = {
     entry: resources.map((r) => ({ fullUrl: `${r.resourceType}/${r.id}`, resource: r })),
   };
 }
+
+/* ─── Lab Phase 4: a referral to a partner (FX-1, FX-5..FX-7) ─────── */
+
+/** FX-5, FX-6: national identifier systems, used only when the signed field list holds them (H6: verify before use). */
+export const NATIONAL = {
+  nin: "http://health.go.ug/cr/nationalid",
+  facility: "https://hmis.health.go.ug/",
+} as const;
+export const referralSystems = (hospitalId: string, partnerId: string) => ({
+  referral: `${MEDSYNC}/NamingSystem/lab-referral/${hospitalId}`,
+  labNumber: `${MEDSYNC}/NamingSystem/lab-number/${hospitalId}`,
+  mrn: `${SYSTEMS.mrn}/${hospitalId}`,
+  partnerTests: `urn:medsync:partner:${partnerId}:tests`,
+  partnerForm: `urn:medsync:partner:${partnerId}:form`,
+});
+
+export interface ReferralBundleInput {
+  hospitalId: string;
+  facilityCode: string | null;
+  referral: { id: string; number: string };
+  partner: { id: string; name: string };
+  /** From the signed partner_tests mapping; LOINC only where that mapping holds one (FX-4). */
+  code: { theirCode: string; loinc?: string; text: string };
+  specimen: {
+    id: string;
+    labNumber: string;
+    theirIds: readonly string[];
+    typeText: string;
+    collectedAt: string;
+    parentId: string | null;
+  };
+  /** Already cut to the signed field list (lib/exchange/partners.ts allowedFields): nothing else exists here. */
+  patient: {
+    hospitalNumber?: string;
+    name?: string;
+    birthDate?: string;
+    sex?: "female" | "male";
+    nin?: string;
+  };
+}
+
+/**
+ * FX-1: the outbound referral as a FHIR R4 transaction Bundle of Task, ServiceRequest, Specimen and Patient.
+ * The Patient carries only the fields the caller passed, which are the signed field list's; the input type has
+ * no place for a diagnosis, a phone number or an address (PT-3, D-LAB4-21).
+ */
+export function referralBundle(i: ReferralBundleInput): FhirResource {
+  const sys = referralSystems(i.hospitalId, i.partner.id);
+  const u = (k: string) => `urn:uuid:${k}`;
+  const ptId = `${i.referral.id}-patient`;
+  const srId = `${i.referral.id}-request`;
+  const p = i.patient;
+  const patient: FhirResource = {
+    resourceType: "Patient",
+    id: ptId,
+    identifier: [
+      ...(p.hospitalNumber ? [{ system: sys.mrn, value: p.hospitalNumber }] : []),
+      ...(p.nin ? [{ system: NATIONAL.nin, value: p.nin }] : []),
+    ],
+    ...(p.name ? { name: [{ text: p.name }] } : {}),
+    ...(p.birthDate ? { birthDate: p.birthDate } : {}),
+    ...(p.sex ? { gender: p.sex } : {}),
+  };
+  const specimen: FhirResource = {
+    resourceType: "Specimen",
+    id: i.specimen.id,
+    identifier: [
+      { system: sys.labNumber, value: i.specimen.labNumber },
+      ...i.specimen.theirIds.map((v) => ({ system: sys.partnerForm, value: v })),
+    ],
+    type: { text: i.specimen.typeText },
+    subject: { reference: u(ptId) },
+    collection: { collectedDateTime: i.specimen.collectedAt },
+    ...(i.specimen.parentId ? { parent: [{ reference: `Specimen/${i.specimen.parentId}` }] } : {}),
+  };
+  const request: FhirResource = {
+    resourceType: "ServiceRequest",
+    id: srId,
+    status: "active",
+    intent: "order",
+    subject: { reference: u(ptId) },
+    code: {
+      coding: [
+        { system: sys.partnerTests, code: i.code.theirCode },
+        ...(i.code.loinc ? [{ system: EXTERNAL.LOINC!, code: i.code.loinc }] : []),
+      ],
+      text: i.code.text,
+    },
+    specimen: [{ reference: u(i.specimen.id) }],
+  };
+  const task: FhirResource = {
+    resourceType: "Task",
+    id: i.referral.id,
+    status: "requested",
+    intent: "order",
+    identifier: [{ system: sys.referral, value: i.referral.number }],
+    basedOn: [{ reference: u(srId) }],
+    focus: { reference: u(srId) },
+    for: { reference: u(ptId) },
+    owner: { display: i.partner.name },
+    ...(i.facilityCode
+      ? { requester: { identifier: { system: NATIONAL.facility, value: i.facilityCode } } }
+      : {}),
+    input: [{ type: { text: "Specimen" }, valueReference: { reference: u(i.specimen.id) } }],
+  };
+  return {
+    resourceType: "Bundle",
+    id: `referral-${i.referral.id}`,
+    type: "transaction",
+    entry: [task, request, specimen, patient].map((r) => ({
+      fullUrl: u(r.id),
+      resource: r,
+      request: { method: "POST", url: r.resourceType },
+    })),
+  };
+}
+
+const TASK_STATUS = new Set([
+  "draft",
+  "requested",
+  "received",
+  "accepted",
+  "rejected",
+  "ready",
+  "cancelled",
+  "in-progress",
+  "on-hold",
+  "failed",
+  "completed",
+  "entered-in-error",
+]);
+const TASK_INTENT = new Set([
+  "unknown",
+  "proposal",
+  "plan",
+  "order",
+  "original-order",
+  "reflex-order",
+  "filler-order",
+  "instance-order",
+  "option",
+]);
+const SERVICE_REQUEST_STATUS = new Set([
+  "draft",
+  "active",
+  "on-hold",
+  "revoked",
+  "completed",
+  "entered-in-error",
+  "unknown",
+]);
+
+/**
+ * FX-7, A8: a structural check of the five resources MedSync sends (required elements, cardinality and the value
+ * sets used). NOT a full R4 validator: no profiles, no terminology server, no invariants beyond these.
+ */
+export function checkR4Structure(bundle: unknown): string[] {
+  const p: string[] = [];
+  const isObj = (v: unknown): v is Record<string, unknown> =>
+    !!v && typeof v === "object" && !Array.isArray(v);
+  if (!isObj(bundle) || bundle.resourceType !== "Bundle") return ["not a Bundle"];
+  if (
+    !["transaction", "collection", "batch", "message", "searchset", "document", "history"].includes(
+      String(bundle.type),
+    )
+  )
+    p.push("Bundle.type");
+  if (!Array.isArray(bundle.entry)) return [...p, "Bundle.entry"];
+  bundle.entry.forEach((e: unknown, n) => {
+    const at = `entry[${n}]`;
+    if (!isObj(e) || !isObj(e.resource)) return void p.push(`${at}.resource`);
+    const r = e.resource;
+    if (bundle.type === "transaction" && (!isObj(e.request) || !e.request.method || !e.request.url))
+      p.push(`${at}.request`);
+    if (typeof r.id !== "string" || !/^[A-Za-z0-9\-.]{1,64}$/.test(r.id)) p.push(`${at}.id`);
+    switch (r.resourceType) {
+      case "Task":
+        if (!TASK_STATUS.has(String(r.status))) p.push(`${at} Task.status`);
+        if (!TASK_INTENT.has(String(r.intent))) p.push(`${at} Task.intent`);
+        break;
+      case "ServiceRequest":
+        if (!SERVICE_REQUEST_STATUS.has(String(r.status))) p.push(`${at} ServiceRequest.status`);
+        if (r.intent !== "order" && r.intent !== "original-order" && r.intent !== "filler-order")
+          p.push(`${at} ServiceRequest.intent`);
+        if (!isObj(r.subject)) p.push(`${at} ServiceRequest.subject`);
+        break;
+      case "Specimen":
+        if (r.parent !== undefined && !Array.isArray(r.parent)) p.push(`${at} Specimen.parent`);
+        break;
+      case "Patient":
+        if (
+          r.gender !== undefined &&
+          !["male", "female", "other", "unknown"].includes(String(r.gender))
+        )
+          p.push(`${at} Patient.gender`);
+        if (r.birthDate !== undefined && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(String(r.birthDate)))
+          p.push(`${at} Patient.birthDate`);
+        for (const k of ["telecom", "address"])
+          if (k in r) p.push(`${at} Patient.${k} must not be sent`);
+        break;
+      default:
+        p.push(`${at} unexpected ${String(r.resourceType)}`);
+    }
+  });
+  return p;
+}

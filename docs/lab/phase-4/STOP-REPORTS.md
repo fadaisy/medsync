@@ -251,3 +251,53 @@ Phase 4 (`tests/lab/phase-4/flags.test.ts`).
 
 Checks: typecheck clean; lab unit tests 515 (512 pass, 3 baseline `it.fails` as designed); PGlite lab-phase3 29,
 lab-phase4 13, parity 298.
+
+## STOP 3: Engines (17 Oct 2026)
+
+Pure engines, no I/O and no screen. Written directly in this session: the three engine subagents stopped on a
+model error at launch (and again on resume) after the MedSync mod's tools appeared in the session; nothing they
+started was kept. **275 engine tests** (plus 3 flags, 3 baseline `it.fails`), all pass. Typecheck and lint clean;
+lab, EMR, design and FHIR suites 3,929 pass.
+
+| File                          | Rules                               | Tests (file)                       |
+| ----------------------------- | ----------------------------------- | ---------------------------------- |
+| `lib/lab/referral.ts`         | RF-1..RF-10, RF-3 table, EX-7       | `referral.test.ts` 188 (169 edges) |
+| `lib/lab/manifest.ts`         | MF-1..MF-4, RF-6, A18               | `manifest.test.ts` 8               |
+| `lib/lab/code128.ts`          | MF-2, A7                            | `code128.test.ts` 6                |
+| `lib/lab/referral-results.ts` | RB-2..RB-10, D-LAB4-09/10, A19, A20 | `referral-results.test.ts` 16      |
+| `lib/exchange/normalise.ts`   | gate-a §6 normalisation             | `match.test.ts` (4 of 25)          |
+| `lib/exchange/match.ts`       | MA-1..MA-9                          | `match.test.ts` 25                 |
+| `lib/exchange/outbox.ts`      | EX-3, EX-4, EX-5, EX-8              | `outbox.test.ts` 8                 |
+| `lib/exchange/adapter.ts`     | EX-10, FX-2, FX-3, FX-7 (in)        | `fhir-referral.test.ts` 10         |
+| `lib/emr/fhir.ts` (added)     | FX-1, FX-4..FX-7 (out)              | `fhir-referral.test.ts`            |
+| `lib/exchange/partners.ts`    | PT-1..PT-6, D-LAB4-19..22, A21      | `partners.test.ts` 10              |
+| `lib/lab/hmis105.ts` (added)  | HM-14, HM-16, HM-17                 | `hmis104.test.ts` 4                |
+| `lib/lab/signed-config.ts`    | the six kinds and their signers     | `partners.test.ts`                 |
+
+**Rule coverage.** Every rule of §6.1–6.9 has a test except these, which are proven where they happen (the write
+path, not a pure function) and are scheduled: RB-1 (files on the original order) and RF-11 (sending never
+changes the order) at Step 7 and Step 5 on the PGlite lane; EX-1, EX-2 store before acknowledge and EX-3 on the
+database: done at STOP 2 (`lab-phase4-data.test.ts`); EX-6 idempotent filing and EX-9 the raw view at Step 8;
+MF-4 audited prints at Step 5; RF-12 restricted classes at Steps 5–6 (the manifest half, A18, is tested here);
+HM-15 needs the Division of Health Information's definition (owner action Q14). Analyser rules beyond the pure
+MA-2/MA-8 engine (AB-_) and national rules (NX-_) are not built (A15).
+
+**HM-14 fixture review.** `tests/lab/phase-4/fixtures/hmis104-expected.json` holds the hand count for a synthetic
+October (5 referred, average 3.83 days, 2 pending), with the reasoning per referral in its note. The laboratory
+lead reviews it against the test file; until then it is "prepared by Claude".
+
+**Decisions made in the engines (within the signed decisions):**
+
+1. **EX-7 reads "arrival order".** Events are taken in the order they reached MedSync (the database sequence); each
+   applies only if its event time is later than the last one applied. A status that arrives after a later one
+   never moves the referral back (§5.1 example 4).
+2. **HM-16 is a signed declaration, not a guess.** The repo keeps no history of when a flag was switched on, so
+   the laboratory lead states the first month referral tracking was complete (`referral_ops.hmis104RecordsFrom`);
+   10.4 comes from records from that month.
+3. **A printed range that cannot say.** A value reported as "<1.5" against a printed 1.0–2.0 gets no flag (it may
+   be low or normal); "<0.5" is low.
+
+**For the CSO (raised, not applied):** MA-1 as signed files a result when name and date of birth agree **or** the
+hospital number agrees. So a result whose name and date of birth agree but whose hospital number plainly differs
+still files. That could be two patients with the same name and date of birth. The engine follows the signed rule
+exactly; a stricter variant (a differing hospital number always waits) is a one-line change if you want it.
