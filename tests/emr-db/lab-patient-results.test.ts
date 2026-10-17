@@ -398,6 +398,8 @@ describe.skipIf(!laneOn)("Lab Phase 5 patients see their results (S28–S38)", (
   it("S34 the doctor sees 'Seen by the patient'", async () => {
     const p = people.adult!;
     await recordView({ userId: p, subjectUserId: p }, ids.cr!, "Android", lane.db);
+    for (const ua of ["Mozilla/5.0 (Macintosh)", "Mozilla/5.0 (iPad)", null])
+      await recordView({ userId: p, subjectUserId: p }, ids.cr!, ua, lane.db);
     const ctx = await tx((t) => releaseContext(t, h, new Date()));
     const [f] = await tx((t) => resultFacts(t, h, [ids.cr!]));
     expect(patientSees(f!, ctx).kind).toBe("seen");

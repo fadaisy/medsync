@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { LAB4 } from "@/content/lab-phase-4";
 import { db } from "@/db";
 import { hospitalDesignations, labSignedConfigs, staffAffiliations, users } from "@/db/schema";
-import { patientResultsLiveFor } from "@/lib/lab/feature";
+import { labReferralLiveFor, patientResultsLiveFor } from "@/lib/lab/feature";
 import { governanceScope } from "@/lib/lab/governance-scope";
 import { loadPartners, loadReferralSettings } from "@/lib/lab/referral-read";
 import { kampalaToday } from "@/lib/lab/referral-words";
@@ -110,7 +110,7 @@ export default async function ReferralGovernancePage() {
           </div>
         ))}
       </section>
-      {dp || who.admin ? (
+      {(dp || who.admin) && labReferralLiveFor(who.hospitalId) ? (
         <section className={card}>
           <h2 className="text-heading-s">Partners: legal record and what we send</h2>
           {partners.length === 0 ? (
@@ -167,7 +167,7 @@ export default async function ReferralGovernancePage() {
           </ul>
         </section>
       ) : null}
-      {ipc || who.admin ? (
+      {(ipc || who.admin) && labReferralLiveFor(who.hospitalId) ? (
         <section className={card}>
           <h2 className="text-heading-s">High-risk referral wording</h2>
           <p>

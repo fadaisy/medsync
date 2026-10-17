@@ -5,6 +5,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Lab Phase 5: patients see their results, delta checks, the IPC feed — 17 Oct 2026
+
+Built dark on `feat/lab-beyond-lis`, behind `LAB_DELTA_CHECKS`, `IPC_LAB_FEED`, `PATIENT_RESULTS` and
+`PATIENT_RESULTS_SMS`, per hospital. All four stay off in production while the Phase 5 copy is a draft
+(`LAB5_COPY_STATUS`); patient results also wait for the legal opinion and the privacy notice, terms and PDPO
+registration. Migrations 0154 to 0157 are GATED and owner-applied, in order. No limit, release rule, wording or
+alert-list entry ships: the hospital's leads enter and sign them in the product.
+
+- One gate for what a patient sees, with a never-shown floor in code and in the database
+  ([ADR 0328](docs/adr/0328-lab-patient-release-one-gate-and-a-database-floor.md)); told events, dated holds and copy
+  requests ([ADR 0329](docs/adr/0329-lab-told-events-holds-and-copy-requests.md)); the patient's Results area
+  ([ADR 0330](docs/adr/0330-lab-patient-results-area-account-is-the-record.md)); signed plain words
+  ([ADR 0331](docs/adr/0331-lab-plain-words-signed-per-test-and-language.md)); the consent wording signed by the data
+  protection lead ([ADR 0339](docs/adr/0339-results-consent-wording-signed-by-the-data-protection-lead.md)).
+- The results-ready SMS with its own sender, a content-free template and fixed hours
+  ([ADR 0332](docs/adr/0332-lab-results-ready-sms-own-sender.md)).
+- Delta checks that hold an in-house release until each flag is decided
+  ([ADR 0333](docs/adr/0333-lab-delta-checks-gate-in-house-release.md),
+  [ADR 0334](docs/adr/0334-lab-delta-decisions-carry-across-versions.md)).
+- The infection prevention feed and the `/ipc` workspace
+  ([ADR 0335](docs/adr/0335-ipc-lab-feed-alerts-in-the-release-transaction.md)); the bed board shows the precaution,
+  never the condition ([ADR 0336](docs/adr/0336-ipc-bed-board-shows-the-precaution-not-the-condition.md)).
+- Autoverification and the microbiology feed recorded as gaps
+  ([ADR 0337](docs/adr/0337-lab-autoverification-and-microbiology-feed-deferred.md)); a demo lab day for demo hospitals
+  only ([ADR 0338](docs/adr/0338-lab-demo-hospitals-and-the-demo-lab-day.md)).
+- The whole laboratory documented in `docs/lab/LAB-DOCUMENTATION.md`.
+
 ### Added — Lab Phase 4: referred tests, results back and the exchange core — 17 Oct 2026
 
 Built dark on `feat/lab-connect-outward`, behind `LAB_REFERRAL` and `LAB_EXCHANGE`, per hospital. Both stay off in

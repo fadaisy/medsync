@@ -395,7 +395,15 @@ export async function recordView(
   userAgent: string | null,
   database?: EmrDb,
 ) {
-  const deviceClass = /mobile|android|iphone/i.test(userAgent ?? "") ? "phone" : "computer";
+  // The classes 0154 allows: phone, tablet, desktop, unknown.
+  const ua = userAgent ?? "";
+  const deviceClass = !ua
+    ? "unknown"
+    : /ipad|tablet/i.test(ua)
+      ? "tablet"
+      : /mobile|android|iphone/i.test(ua)
+        ? "phone"
+        : "desktop";
   await (
     await conn(database)
   )

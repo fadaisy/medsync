@@ -60,7 +60,11 @@ export default async function PatientResultPage({
               </p>
               <p className="text-body font-medium">{WORD[v.word]}</p>
               <RangeLine v={v} />
-              <h3 className="text-heading-s">What this test is</h3>
+              {c.values.length > 1 ? (
+                <h3 className="text-heading-s">What this test is</h3>
+              ) : (
+                <h2 className="text-heading-s">What this test is</h2>
+              )}
               <p className="text-body-s">{w ? w.whatThisTestIs : LAB5.noPlainWords}</p>
               {w ? (
                 <p className="text-body-s">
