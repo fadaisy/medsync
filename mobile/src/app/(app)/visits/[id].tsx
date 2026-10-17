@@ -1,0 +1,514 @@
+import type { MoveOption } from "@/data/visits";
+import type { AppointmentRow } from "@/lib/booking";
+import { useEffect, useState } from "react";
+import { cancellationSentence } from "@shared/cancel-reasons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ActivityIndicator, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import {
+  Avatar,
+  BackLink,
+  Button,
+  Card,
+  Chip,
+  ChipRow,
+  FieldError,
+  Icon,
+  Note,
+  Press,
+  Screen,
+  Sheet,
+  TextField,
+} from "@/components/tide";
+import { loadVisit, moveOptions, visitActions } from "@/data/visits";
+import { dayKeyOf, dayNumberOf, ordinal, shortDayOf, weekdayOf } from "@/features/visits/logic";
+import { HONEST, TravelCard } from "@/features/visits/parts";
+import {
+  APPOINTMENT_REASONS,
+  canArrive,
+  CANCELLABLE,
+  MIN_REASON_CHARS,
+  RESCHEDULABLE,
+  STATUS_LABEL,
+} from "@/lib/booking";
+import { confirmationPending } from "@/lib/notifications";
+import { useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+
+/**
+ * One visit (board TVisit/DVisit, PRD F-08): a navy band with the day tile
+ * pulled out of the right edge, who you will see, how to get there, and three
+ * actions, all real (`src/lib/booking.ts`):
+ *
+ * - "I'm coming" answers the clinic's day-before request (`pt-confirm-attendance`);
+ *   on the day itself it becomes "I'm here" (`ha-mark-arrived`).
+ * - "Move it" offers this clinician's open days as a day and a part of the
+ *   day, never a clock time (law L8). A place in a clinic day cannot move
+ *   (the server refuses), so the control is off there.
+ * - "Cancel" asks why, as the server requires.
+ *
+ * A household member's visit is logistics only: no action is offered.
+ * Travel times and the map are illustrative.
+ */
+type Mode = "idle" | "move" | "cancel";
+type Outcome = { ok: true } | { ok: false; error: string };
+
+export default function VisitScreen() {
+  const t = useTide();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const [visit, setVisit] = useState<AppointmentRow | null>(null);
+  const [state, setState] = useState<"loading" | "ready" | "missing" | "failed">("loading");
+  const [mode, setMode] = useState<Mode>("idle");
+  const [options, setOptions] = useState<MoveOption[] | null>(null);
+  const [chosen, setChosen] = useState<MoveOption | null>(null);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    loadVisit(id).then(
+      (row) => {
+        if (!live) return;
+        setVisit(row);
+        setState(row ? "ready" : "missing");
+      },
+      () => {
+        if (live) setState("failed");
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [id, attempt]);
+
+  if (state !== "ready" || !visit) {
+    return (
+      <Screen back={{ label: "Visits" }} title="Your visit" helpSource="visit">
+        {state === "loading" ? (
+          <ActivityIndicator color={t.ink} accessibilityLabel="Loading this visit" />
+        ) : state === "failed" ? (
+          <View style={{ gap: tSpace[3] }}>
+            <Note tone="plain">
+              {"Couldn't load this visit. Check your connection and try again."}
+            </Note>
+            <Button
+              label="Try again"
+              variant="outline"
+              onPress={() => {
+                setState("loading");
+                setAttempt((n) => n + 1);
+              }}
+            />
+          </View>
+        ) : (
+          <Note tone="plain">{"This visit isn't in your list. Go back and open it again."}</Note>
+        )}
+      </Screen>
+    );
+  }
+
+  const mine = visit.forMember === null;
+  const arrivable = mine && canArrive(visit);
+  const confirmable = mine && !arrivable && confirmationPending(visit);
+  const canMove = mine && RESCHEDULABLE.has(visit.status) && visit.sessionId === null;
+  const canCancel = mine && CANCELLABLE.has(visit.status);
+  const title =
+    APPOINTMENT_REASONS.find((r) => r.value === visit.reason)?.title ?? visit.departmentName;
+  const key = dayKeyOf(visit.startsAtIso);
+  const ended = cancellationSentence(visit.status, visit.cancelledReason);
+  const place = [
+    visit.positionNumber !== null
+      ? `${ordinal(visit.positionNumber)} in line`
+      : STATUS_LABEL[visit.status],
+    visit.bookingCode ? `code ${visit.bookingCode}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const reasonShort = reason.trim().length < MIN_REASON_CHARS;
+
+  const closeSheet = () => {
+    setMode("idle");
+    setChosen(null);
+    setReason("");
+    setError(null);
+  };
+
+  const openMove = () => {
+    setMode("move");
+    setError(null);
+    if (options === null)
+      moveOptions(visit).then(setOptions, () => {
+        setOptions([]);
+        setError("Couldn't load the days the clinic has open.");
+      });
+  };
+
+  /** One write: the server's own sentence on a refusal, verbatim. */
+  const run = async (act: () => Promise<Outcome>, done: string): Promise<boolean> => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    const res = await act();
+    setBusy(false);
+    if (!res.ok) {
+      setError(res.error);
+      return false;
+    }
+    setNotice(done);
+    return true;
+  };
+
+  const submitPrimary = () =>
+    arrivable
+      ? run(async () => {
+          const res = await visitActions.arrive(visit.id);
+          if (res.ok) setVisit({ ...visit, status: "arrived" });
+          return res;
+        }, "The clinic knows you are here.")
+      : run(async () => {
+          const res = await visitActions.confirm(visit.id);
+          if (res.ok)
+            setVisit({ ...visit, confirmedByPatientAtIso: res.data.confirmed_by_patient_at });
+          return res;
+        }, "Thank you. The clinic expects you.");
+
+  const submitMove = async () => {
+    if (!chosen) return;
+    const ok = await run(async () => {
+      const res = await visitActions.move(visit, chosen, reason);
+      if (res.ok)
+        setVisit({
+          ...visit,
+          id: res.data.new_appointment_id,
+          startsAtIso: chosen.startsAtIso,
+          endsAtIso: chosen.endsAtIso,
+          status: res.data.new_status,
+        });
+      return res;
+    }, "Your visit has moved.");
+    if (ok) {
+      setOptions(null);
+      closeSheet();
+    }
+  };
+
+  const submitCancel = async () => {
+    const ok = await run(async () => {
+      const res = await visitActions.cancel(visit.id, reason);
+      if (res.ok) setVisit({ ...visit, status: res.data.status });
+      return res;
+    }, "Your visit is cancelled.");
+    if (ok) closeSheet();
+  };
+
+  return (
+    <Screen
+      header={<BackLink label="Visits" color={t.onBand} />}
+      help="pill"
+      helpSource="visit"
+      topBand={
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: insets.top + 56,
+            backgroundColor: t.band,
+          }}
+        />
+      }
+      footer={
+        mine ? (
+          <View style={{ flexDirection: "row", justifyContent: "center", gap: 30 }}>
+            <RoundAction
+              icon="check"
+              label={arrivable ? "I'm here" : "I'm coming"}
+              primary
+              disabled={!(arrivable || confirmable) || busy}
+              onPress={() => void submitPrimary()}
+            />
+            <RoundAction icon="calendar" label="Move it" disabled={!canMove} onPress={openMove} />
+            <RoundAction
+              icon="close"
+              label="Cancel"
+              disabled={!canCancel}
+              onPress={() => {
+                setMode("cancel");
+                setError(null);
+              }}
+            />
+          </View>
+        ) : undefined
+      }
+    >
+      {/* the band, continued under the header */}
+      <View
+        style={{
+          marginHorizontal: -tSpace[5],
+          marginTop: -tSpace[1] - 6,
+          paddingTop: tSpace[2],
+          paddingLeft: tSpace[5],
+          paddingBottom: 48,
+          backgroundColor: t.band,
+          borderBottomLeftRadius: tRadius.xl,
+          borderBottomRightRadius: tRadius.xl,
+          flexDirection: "row",
+          gap: tSpace[3.5],
+          alignItems: "flex-start",
+        }}
+      >
+        <View style={{ flex: 1, gap: tSpace[2] }}>
+          <View
+            style={{
+              alignSelf: "flex-start",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 7,
+              minHeight: 28,
+              paddingHorizontal: 11,
+              borderRadius: tRadius.pill,
+              backgroundColor: t.bandGlass,
+            }}
+          >
+            <View
+              style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: t.area.visits }}
+            />
+            <Text style={[tType.bodyS, { color: t.onBand }]}>
+              {visit.forMember ? `Visit for ${visit.forMember}` : `Visit · ${visit.departmentName}`}
+            </Text>
+          </View>
+          <Text accessibilityRole="header" style={[tType.display, { color: t.onBand }]}>
+            {title}
+          </Text>
+          {place ? <Text style={[tType.bodyM, { color: t.onBand2 }]}>{place}</Text> : null}
+          <Text
+            style={[tType.bodyM, { fontFamily: tFont.regular, fontSize: 14, color: t.onBand2 }]}
+          >
+            {HONEST}
+          </Text>
+        </View>
+        {/* the day tile, pulled out of the right edge */}
+        <View
+          accessible
+          accessibilityLabel={shortDayOf(key)}
+          style={{
+            width: 72,
+            height: 84,
+            backgroundColor: t.surface,
+            borderTopLeftRadius: tRadius.cardLg,
+            borderBottomLeftRadius: tRadius.cardLg,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingRight: 4,
+          }}
+        >
+          <Text style={[tType.numeral, { color: t.ink }]}>{dayNumberOf(key)}</Text>
+          <Text style={[tType.bodyS, { color: t.ink2 }]}>{weekdayOf(key)}</Text>
+        </View>
+      </View>
+
+      {/* who you will see */}
+      <Card
+        radius={tRadius.cardLg}
+        style={{
+          marginTop: -28 - tSpace[4],
+          flexDirection: "row",
+          alignItems: "center",
+          gap: tSpace[3],
+          boxShadow: t.shadow.float,
+        }}
+      >
+        <Avatar initials={initialsOf(visit.clinicianName)} size={48} />
+        <View style={{ flex: 1 }}>
+          <Text style={[tType.heading, { color: t.ink }]}>{visit.clinicianName}</Text>
+          <Text style={[tType.bodyM, { fontFamily: tFont.regular, fontSize: 14, color: t.ink2 }]}>
+            Your clinician
+          </Text>
+        </View>
+        <Press
+          onPress={() => router.push("/care/chat")}
+          accessibilityLabel="Message your care team"
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: 23,
+            backgroundColor: t.accent,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icon name="message" size={20} color={t.onAccent} />
+        </Press>
+      </Card>
+
+      {notice ? (
+        <Note tone="info" icon="check">
+          {notice}
+        </Note>
+      ) : null}
+      {error && mode === "idle" ? <FieldError>{error}</FieldError> : null}
+      {ended ? <Note tone="plain">{ended}</Note> : null}
+      {!mine ? (
+        <Note tone="plain">{`You booked this for ${visit.forMember}. It can be moved or cancelled at the desk.`}</Note>
+      ) : null}
+
+      <View style={{ gap: tSpace[2] }}>
+        <Text accessibilityRole="header" style={[tType.heading, { fontSize: 18, color: t.ink }]}>
+          Getting there
+        </Text>
+        <Text style={[tType.bodyM, { fontFamily: tFont.regular, color: t.ink2 }]}>
+          {visit.hospitalName}
+        </Text>
+        <TravelCard />
+        <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
+          Map and travel times illustrative.
+        </Text>
+      </View>
+
+      <Sheet
+        visible={mode === "move"}
+        onClose={closeSheet}
+        overline="Move it"
+        title="Pick another day"
+      >
+        {options === null ? (
+          <ActivityIndicator
+            color={t.ink}
+            accessibilityLabel="Finding the days the clinic has open"
+          />
+        ) : options.length === 0 ? (
+          <Note tone="plain">No other day is open with this clinician on MedSync yet.</Note>
+        ) : (
+          <ChipRow>
+            {options.map((o) => (
+              <Chip
+                key={o.startsAtIso}
+                label={`${shortDayOf(o.dayKey)} · ${o.part}`}
+                selected={chosen?.startsAtIso === o.startsAtIso}
+                onPress={() => setChosen(o)}
+              />
+            ))}
+          </ChipRow>
+        )}
+        <Text style={[tType.bodyS, { color: t.ink2 }]}>{HONEST}</Text>
+        <ReasonField value={reason} onChange={setReason} />
+        {error ? <FieldError>{error}</FieldError> : null}
+        <Button
+          label="Move my visit"
+          busy={busy}
+          disabled={!chosen || reasonShort}
+          onPress={() => void submitMove()}
+        />
+        <Button label="Keep it" variant="soft" onPress={closeSheet} />
+      </Sheet>
+
+      <Sheet
+        visible={mode === "cancel"}
+        onClose={closeSheet}
+        overline="Cancel"
+        title="Cancel this visit?"
+      >
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>
+          The clinic can give your place to someone else. Moving it keeps you in the line.
+        </Text>
+        <ReasonField value={reason} onChange={setReason} />
+        {error ? <FieldError>{error}</FieldError> : null}
+        <Button
+          label="Cancel this visit"
+          busy={busy}
+          disabled={reasonShort}
+          onPress={() => void submitCancel()}
+        />
+        <Button label="Keep it" variant="soft" onPress={closeSheet} />
+      </Sheet>
+    </Screen>
+  );
+}
+
+/** "DR" for a name we cannot split; initials only, never a photo here. */
+function initialsOf(name: string): string {
+  const words = name
+    .replace(/^Dr\.?\s+/i, "")
+    .split(/\s+/)
+    .filter((w) => /^[A-Za-z]/.test(w));
+  return (
+    words
+      .slice(0, 2)
+      .map((w) => w.charAt(0).toUpperCase())
+      .join("") || "DR"
+  );
+}
+
+/** The reason both functions require (at least eight characters, for the audit log). */
+function ReasonField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <TextField
+      label="Why? The clinic reads this."
+      value={value}
+      onChangeText={onChange}
+      placeholder="For example, I cannot travel that day"
+      maxLength={300}
+      multiline
+    />
+  );
+}
+
+/** One of the three round actions at the foot of the visit. */
+function RoundAction({
+  icon,
+  label,
+  onPress,
+  primary = false,
+  disabled = false,
+}: {
+  icon: "check" | "calendar" | "close";
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+  disabled?: boolean;
+}) {
+  const t = useTide();
+  return (
+    <Press
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityLabel={label}
+      style={{ alignItems: "center", gap: tSpace[1.5], opacity: disabled ? 0.45 : 1 }}
+    >
+      <View
+        style={{
+          width: 58,
+          height: 58,
+          borderRadius: 29,
+          backgroundColor: primary ? t.accent : t.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: primary ? t.shadow.accent : t.shadow.card,
+        }}
+      >
+        <Icon
+          name={icon}
+          size={primary ? 24 : 22}
+          color={primary ? t.onAccent : t.ink}
+          strokeWidth={primary ? 2.3 : 1.8}
+        />
+      </View>
+      <Text
+        style={[
+          tType.bodyS,
+          { fontFamily: primary ? tFont.semibold : tFont.medium, color: primary ? t.ink : t.ink2 },
+        ]}
+      >
+        {label}
+      </Text>
+    </Press>
+  );
+}

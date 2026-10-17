@@ -121,9 +121,9 @@ export async function unregisterPushToken(): Promise<void> {
 /** Where a tapped notification goes. */
 function destinationFor(
   data: PushData,
-): { pathname: "/visit/[id]"; params: { id: string } } | "/(app)/(tabs)/visits" | null {
+): { pathname: "/visits/[id]"; params: { id: string } } | "/(app)/(tabs)/visits" | null {
   if (data.related_kind === "appointment" && data.related_id) {
-    return { pathname: "/visit/[id]", params: { id: data.related_id } };
+    return { pathname: "/visits/[id]", params: { id: data.related_id } };
   }
   if (data.related_kind === "waitlist_entry") return "/(app)/(tabs)/visits";
   return null;

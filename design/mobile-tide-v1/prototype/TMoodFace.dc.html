@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mood face</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>body{margin:0}</style>
+</helmet>
+<span style="display: block; width: {{size}}px; height: {{size}}px; transform: scale({{scale}}); transition: transform 260ms cubic-bezier(.34,1.56,.64,1)">
+  <sc-if value="{{isGood}}" hint-placeholder-val="{{true}}">
+    <svg width="{{size}}" height="{{size}}" viewBox="0 0 48 48" role="img" aria-label="Good" style="display: block">
+      <circle cx="24" cy="24" r="22" fill="#99f6e4"/>
+      <path d="M13.5 21.5 q3.5 -4.5 7 0" fill="none" stroke="#1b2540" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M27.5 21.5 q3.5 -4.5 7 0" fill="none" stroke="#1b2540" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M14 28 q10 11 20 0 z" fill="#1b2540"/>
+      <path d="M19 32.2 q5 3.6 10 0" fill="#5eead4"/>
+      <circle cx="11.5" cy="28" r="3" fill="#ffffff" opacity=".7"/>
+      <circle cx="36.5" cy="28" r="3" fill="#ffffff" opacity=".7"/>
+    </svg>
+  </sc-if>
+  <sc-if value="{{isOkay}}" hint-placeholder-val="{{false}}">
+    <svg width="{{size}}" height="{{size}}" viewBox="0 0 48 48" role="img" aria-label="Okay" style="display: block">
+      <circle cx="24" cy="24" r="22" fill="#38bdf8"/>
+      <circle cx="17" cy="21" r="2.8" fill="#1b2540"/>
+      <circle cx="31" cy="21" r="2.8" fill="#1b2540"/>
+      <path d="M16.5 31.5 L31.5 29.5" fill="none" stroke="#1b2540" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M27 14 l6 1.5" fill="none" stroke="#1b2540" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  </sc-if>
+  <sc-if value="{{isLow}}" hint-placeholder-val="{{false}}">
+    <svg width="{{size}}" height="{{size}}" viewBox="0 0 48 48" role="img" aria-label="Not well" style="display: block">
+      <circle cx="24" cy="24" r="22" fill="#4338ca"/>
+      <path d="M13 18.5 l6.5 2.5" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"/>
+      <path d="M35 18.5 l-6.5 2.5" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"/>
+      <circle cx="17.5" cy="24.5" r="2.6" fill="#ffffff"/>
+      <circle cx="30.5" cy="24.5" r="2.6" fill="#ffffff"/>
+      <path d="M17 35 q7 -6.5 14 0" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M37.5 11 q2.5 4 0 6 q-2.5 -2 0 -6 z" fill="#c7d2fe"/>
+    </svg>
+  </sc-if>
+  <sc-if value="{{isNone}}" hint-placeholder-val="{{false}}">
+    <svg width="{{size}}" height="{{size}}" viewBox="0 0 48 48" role="img" aria-label="Not recorded" style="display: block">
+      <circle cx="24" cy="24" r="21" fill="none" stroke="#c5cbd8" stroke-width="2" stroke-dasharray="3 4"/>
+    </svg>
+  </sc-if>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mood":{"editor":"enum","options":["good","okay","low","none"],"default":"good"},"size":{"editor":"int","default":48,"min":12,"max":120},"pop":{"editor":"boolean","default":false},"$preview":{"width":48,"height":48}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var m = this.props.mood ?? 'good';
+    return {
+      size: this.props.size ?? 48,
+      scale: this.props.pop ? 1.2 : 1,
+      isGood: m === 'good',
+      isOkay: m === 'okay',
+      isLow: m === 'low',
+      isNone: m !== 'good' && m !== 'okay' && m !== 'low'
+    };
+  }
+}
+</script>
+</body>
+</html>

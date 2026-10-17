@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How you have felt</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="DHome.dc.html" aria-label="Back" style="width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; color: #e8ecf3"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="height: 40px; padding: 0 13px 0 10px; border-radius: 999px; background: #dc2626; color: #ffffff; font: 600 15px Figtree, sans-serif; display: inline-flex; gap: 6px; align-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Help</a>
+  </div>
+
+  <div style="padding: 6px 20px 0; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="height: 30px; padding: 0 12px 0 10px; border-radius: 999px; background: #151d30; display: inline-flex; gap: 7px; align-items: center; font: 500 14px Figtree, sans-serif; width: fit-content; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)"><span style="width: 8px; height: 8px; border-radius: 999px; background: #64748b"></span>Me · Mood</span>
+      <h1 style="margin: 0; font: 500 34px/38px Figtree, sans-serif; letter-spacing: -0.03em">How you have felt</h1>
+    </div>
+
+    <div role="group" aria-label="Show" style="display: flex; gap: 6px">
+      <button type="button" onClick="{{showWeekView}}" aria-pressed="{{wkPressed}}" style="height: 38px; padding: 0 18px; border-radius: 999px; background: {{wkBg}}; color: #e8ecf3; font: 600 15px Figtree, sans-serif; box-shadow: {{wkRing}}">Week</button>
+      <button type="button" onClick="{{showMonthView}}" aria-pressed="{{moPressed}}" style="height: 38px; padding: 0 18px; border-radius: 999px; background: {{moBg}}; color: #e8ecf3; font: 600 15px Figtree, sans-serif; box-shadow: {{moRing}}">Month</button>
+      <button type="button" onClick="{{showYearView}}" aria-pressed="{{yrPressed}}" style="height: 38px; padding: 0 18px; border-radius: 999px; background: {{yrBg}}; color: #e8ecf3; font: 600 15px Figtree, sans-serif; box-shadow: {{yrRing}}">Year</button>
+    </div>
+
+    <!-- WEEK -->
+    <sc-if value="{{isWeek}}" hint-placeholder-val="{{true}}">
+      <div style="background: #151d30; border-radius: 22px; padding: 16px 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="font: 600 16px Figtree, sans-serif; padding-left: 4px">12 to 18 October</span>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px">
+          <sc-for list="{{weekDays}}" as="d" hint-placeholder-count="7">
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0; border-radius: 16px; background: {{d.bg}}">
+              <dc-import name="TMoodFace" mood="{{d.mood}}" size="36" hint-size="36px,36px"></dc-import>
+              <span style="display: flex; flex-direction: column; align-items: center"><span style="font: 600 12px/15px Figtree, sans-serif">{{d.day}}</span><span style="font: 500 12px/15px Figtree, sans-serif; color: #8f99b3">{{d.date}}</span></span>
+            </span>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-left: 4px">
+          <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 14px Figtree, sans-serif"><dc-import name="TMoodFace" mood="good" size="18" hint-size="18px,18px"></dc-import>4 good</span>
+          <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 14px Figtree, sans-serif"><dc-import name="TMoodFace" mood="okay" size="18" hint-size="18px,18px"></dc-import>1 okay</span>
+          <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 14px Figtree, sans-serif"><dc-import name="TMoodFace" mood="low" size="18" hint-size="18px,18px"></dc-import>1 not well</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- MONTH -->
+    <sc-if value="{{isMonth}}" hint-placeholder-val="{{false}}">
+      <div style="background: #151d30; border-radius: 22px; padding: 14px 10px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="font: 600 16px Figtree, sans-serif; padding-left: 6px">October 2026</span>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font: 600 11px/14px Figtree, sans-serif; color: #8f99b3"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 4px">
+          <sc-for list="{{monthCells}}" as="c" hint-placeholder-count="35">
+            <span style="height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 12px; background: {{c.bg}}">
+              <sc-if value="{{c.hasFace}}" hint-placeholder-val="{{true}}"><dc-import name="TMoodFace" mood="{{c.mood}}" size="24" hint-size="24px,24px"></dc-import></sc-if>
+              <span style="font: {{c.weight}} 10px/12px Figtree, sans-serif; color: {{c.color}}">{{c.n}}</span>
+            </span>
+          </sc-for>
+        </div>
+        <span style="font: 500 13px Figtree, sans-serif; color: #a9b2c7; padding-left: 6px">11 good · 4 okay · 2 not well, so far this month</span>
+      </div>
+    </sc-if>
+
+    <!-- YEAR -->
+    <sc-if value="{{isYear}}" hint-placeholder-val="{{false}}">
+      <div style="background: #151d30; border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 7px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="font: 600 16px Figtree, sans-serif">2026, month by month</span>
+        <sc-for list="{{yearRows}}" as="m" hint-placeholder-count="12">
+          <span style="display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: center">
+            <span style="font: 600 12px Figtree, sans-serif; color: {{m.labelColor}}">{{m.name}}</span>
+            <span style="display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: #222c42">
+              <span style="width: {{m.good}}%; background: #99f6e4"></span>
+              <span style="width: {{m.okay}}%; background: #38bdf8"></span>
+              <span style="width: {{m.low}}%; background: #a5b4fc"></span>
+            </span>
+          </span>
+        </sc-for>
+        <div style="display: flex; gap: 12px; padding-top: 4px">
+          <span style="display: inline-flex; gap: 5px; align-items: center; font: 500 13px Figtree, sans-serif"><dc-import name="TMoodFace" mood="good" size="16" hint-size="16px,16px"></dc-import>Good</span>
+          <span style="display: inline-flex; gap: 5px; align-items: center; font: 500 13px Figtree, sans-serif"><dc-import name="TMoodFace" mood="okay" size="16" hint-size="16px,16px"></dc-import>Okay</span>
+          <span style="display: inline-flex; gap: 5px; align-items: center; font: 500 13px Figtree, sans-serif"><dc-import name="TMoodFace" mood="low" size="16" hint-size="16px,16px"></dc-import>Not well</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="background: #24314f; color: #ffffff; border-radius: 22px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start">
+      <span style="width: 34px; height: 34px; border-radius: 999px; background: rgba(255,255,255,.14); display: grid; place-items: center; flex: none"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px"><span style="font: 600 15px/20px Figtree, sans-serif">Only you and your care team see this</span><span style="font: 400 14px/20px Figtree, sans-serif; color: #e8ecf3">If you feel not well a few days in a row, we will ask if you want to talk to someone.</span></span>
+    </div>
+    <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Illustrative. No real patients.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'week' };
+  }
+  renderVals() {
+    var self = this;
+    var view = this.state.view;
+    var on = { bg: '#2dd4bf', ring: '0 6px 16px -6px rgba(45,212,191,.6)', p: 'true' };
+    var off = { bg: '#151d30', ring: '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)', p: 'false' };
+    var w = view === 'week' ? on : off, mo = view === 'month' ? on : off, y = view === 'year' ? on : off;
+
+    var octMoods = ['good','good','okay','good','low','okay','good','good','good','okay','good','good','okay','good','low','good','good'];
+    var weekDays = [['Mon', 12], ['Tue', 13], ['Wed', 14], ['Thu', 15], ['Fri', 16], ['Sat', 17], ['Sun', 18]].map(function (d) {
+      var mood = d[1] <= 17 ? octMoods[d[1] - 1] : 'none';
+      return { day: d[0], date: d[1], mood: mood, bg: d[1] === 17 ? 'rgba(45,212,191,.12)' : 'transparent' };
+    });
+
+    var cells = [];
+    for (var b = 0; b < 3; b++) cells.push({ n: '', hasFace: false, mood: 'none', bg: 'transparent', color: '#8f99b3', weight: '500' });
+    for (var day = 1; day <= 31; day++) {
+      var past = day <= 17;
+      cells.push({ n: String(day), hasFace: past, mood: past ? octMoods[day - 1] : 'none', bg: day === 17 ? 'rgba(45,212,191,.12)' : 'transparent', color: past ? '#e8ecf3' : '#929eb8', weight: day === 17 ? '700' : '500' });
+    }
+    while (cells.length % 7) cells.push({ n: '', hasFace: false, mood: 'none', bg: 'transparent', color: '#8f99b3', weight: '500' });
+
+    var names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var mix = [[55,30,15],[60,28,12],[50,35,15],[58,30,12],[62,26,12],[48,34,18],[65,25,10],[60,30,10],[66,24,10],[65,24,11],[0,0,0],[0,0,0]];
+    var yearRows = names.map(function (n, i) {
+      return { name: n, good: mix[i][0], okay: mix[i][1], low: mix[i][2], labelColor: i <= 9 ? '#e8ecf3' : '#929eb8' };
+    });
+
+    return {
+      isWeek: view === 'week', isMonth: view === 'month', isYear: view === 'year',
+      wkBg: w.bg, wkRing: w.ring, wkPressed: w.p,
+      moBg: mo.bg, moRing: mo.ring, moPressed: mo.p,
+      yrBg: y.bg, yrRing: y.ring, yrPressed: y.p,
+      showWeekView: function () { self.setState({ view: 'week' }); },
+      showMonthView: function () { self.setState({ view: 'month' }); },
+      showYearView: function () { self.setState({ view: 'year' }); },
+      weekDays: weekDays, monthCells: cells, yearRows: yearRows
+    };
+  }
+}
+</script>
+</body>
+</html>

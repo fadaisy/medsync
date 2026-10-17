@@ -1,348 +1,655 @@
-import type { AppointmentRow } from "@/lib/booking";
+import type { Week } from "@/data/visits";
+import type { AppointmentRow, HouseholdMember } from "@/lib/booking";
 import type { WaitlistEntry } from "@/lib/notifications";
-import type { Palette } from "@/theme/tokens";
+import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { DEFAULT_TIME_ZONE } from "@shared/slots";
 import { useFocusEffect, useRouter } from "expo-router";
+import { Text, View } from "react-native";
+
+import { Button, Card, DateTile, Icon, Note, Press, Screen } from "@/components/tide";
+import { CARE_PLAN, loadWeek, WEEK_FIXTURES } from "@/data/visits";
 import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { WaitlistCard } from "@/components/patient/waitlist-card";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Chip, ChipRow } from "@/components/ui/chip";
-import { Empty } from "@/components/ui/empty";
-import { Pill } from "@/components/ui/pill";
-import { Screen } from "@/components/ui/screen";
-import { Section } from "@/components/ui/section";
-import { useTabBarClearance } from "@/components/ui/tab-bar";
-import { fetchAppointments, fetchHousehold, formatWhen } from "@/lib/booking";
+  addDays,
+  dayKeyOf,
+  dayNumberOf,
+  daysBetween,
+  inDays,
+  monthGrid,
+  monthShortOf,
+  monthTitleOf,
+  ordinal,
+  shiftMonth,
+  shortDayOf,
+  weekdayOf,
+} from "@/features/visits/logic";
+import { DemoTag, Dot } from "@/features/visits/parts";
+import { WaitlistCard } from "@/features/visits/waitlist-card";
+import { APPOINTMENT_REASONS, fetchHousehold, STATUS_LABEL } from "@/lib/booking";
 import { fetchWaitlist } from "@/lib/notifications";
-import { useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { useNow } from "@/lib/use-now";
+import { useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
- * Your visits — every appointment this patient holds.
+ * This week (board TWeek/DWeek, PRD F-08).
  *
- * Two chips split the list: what is still to come, and what has been. The
- * past is grouped by month so a date without a year ("Fri 18 Sep") can never
- * be read against the wrong one. Every row is the same card — the clinician's
- * monogram, the clinic, the day and time, the status word — because the word
- * on the chip is what says whether there is anything left to do.
+ * Real: the patient's appointments (`fetchAppointments`, RLS) and the clinic
+ * days that still have a place (`fetchSessions`). Demo, tagged on the row:
+ * the lab and care-team days and the care plan (clinical, law L2).
  *
- * The time is a clock time in the hospital's zone, and it never appears
- * without its day: `formatWhen` is "Mon 16 Nov · 9:30 AM" (ADR 0085 §3, which
- * supersedes 0084 §10 here and keeps the day beside the hour as its one
- * mitigation).
- *
- * Rows re-fetch on focus rather than on mount alone: the detail screen moves
- * and cancels visits, and the list a patient comes back to must already say so.
+ * The header pill names the next visit by what it is for, never by the
+ * clinician. A visit shows its place in line, never an hour (law L8).
  */
 
-/** "September 2026" in the clinic's zone — the past list's month heads. */
-const MONTH_FMT = new Intl.DateTimeFormat("en-GB", {
-  timeZone: DEFAULT_TIME_ZONE,
-  month: "long",
-  year: "numeric",
-});
+/** Statuses that no longer put a visit on the calendar. */
+const GONE = new Set(["cancelled", "declined", "no_show", "rescheduled"]);
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
-/**
- * Consecutive grouping, not a map: `past` arrives newest-first, so a single
- * pass keeps that order without a second sort.
- */
-function byMonth(past: AppointmentRow[]): { month: string; rows: AppointmentRow[] }[] {
-  const groups: { month: string; rows: AppointmentRow[] }[] = [];
-  for (const row of past) {
-    const month = MONTH_FMT.format(new Date(row.startsAtIso));
-    const last = groups[groups.length - 1];
-    if (last?.month === month) last.rows.push(row);
-    else groups.push({ month, rows: [row] });
-  }
-  return groups;
-}
+const reasonTitle = (row: AppointmentRow) =>
+  APPOINTMENT_REASONS.find((r) => r.value === row.reason)?.title ?? row.departmentName;
+const placeWord = (row: AppointmentRow) =>
+  row.positionNumber !== null
+    ? `${ordinal(row.positionNumber)} in line`
+    : (STATUS_LABEL[row.status] ?? "");
+
+type Fixture = (typeof WEEK_FIXTURES)[number] & { key: string };
 
 export default function VisitsScreen() {
+  const t = useTide();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  // The list owns its own scrolling, so it owns the bar's footprint too.
-  const clearance = useTabBarClearance();
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
+  const now = useNow();
+  const today = dayKeyOf(now);
 
-  // `null` = not loaded yet. Stale rows stay on screen through a refresh so a
-  // focus re-fetch never blanks the list under a patient reading it.
-  const [rows, setRows] = useState<{ upcoming: AppointmentRow[]; past: AppointmentRow[] } | null>(
-    null,
-  );
-  // Gate E: the line the patient is in. Fails to empty — a card is a convenience here.
+  const [week, setWeek] = useState<Week | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [month, setMonth] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [view, setView] = useState<"upcoming" | "past">("upcoming");
 
-  const load = useCallback(async () => {
-    try {
-      // One instant for both halves: two `new Date()`s leave a sliver in which
-      // a visit belongs to neither list.
-      const now = new Date();
-      const [upcoming, past, entries] = await Promise.all([
-        fetchAppointments("upcoming", 30, now),
-        fetchAppointments("past", 30, now),
-        fetchHousehold()
-          .then((h) => fetchWaitlist(new Map(h.map((m) => [m.provisionalPatientId, m.label]))))
-          .catch(() => [] as WaitlistEntry[]),
-      ]);
-      setRows({ upcoming, past });
-      setWaitlist(entries);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't load your visits.");
-    }
+  // Re-read on focus: Visit detail moves and cancels, and this list must say so.
+  const load = useCallback(() => {
+    loadWeek(new Date()).then(
+      (w) => {
+        setWeek(w);
+        setFailed(false);
+      },
+      () => setFailed(true),
+    );
+    // Gate E: places in line, named for the household member they are for.
+    fetchHousehold()
+      .catch(() => [] as HouseholdMember[])
+      .then((h) => fetchWaitlist(new Map(h.map((m) => [m.provisionalPatientId, m.label]))))
+      .then(setWaitlist, () => setWaitlist([]));
   }, []);
+  useFocusEffect(load);
 
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-    }, [load]),
+  const shownMonth = month ?? today;
+  const sel = picked ?? today;
+  const visits = [...(week?.upcoming ?? []), ...(week?.past ?? [])].filter(
+    (v) => !GONE.has(v.status),
   );
+  const visitsOn = (key: string) => visits.filter((v) => dayKeyOf(v.startsAtIso) === key);
+  const fixtures: Fixture[] = WEEK_FIXTURES.map((f) => ({ ...f, key: addDays(today, f.offset) }));
+  const fixtureOn = (key: string) => fixtures.find((f) => f.key === key) ?? null;
+  const next = (week?.upcoming ?? [])
+    .filter((v) => !GONE.has(v.status) && v.status !== "completed")
+    .sort((a, b) => a.startsAtIso.localeCompare(b.startsAtIso))[0];
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }, [load]);
-
-  const open = useCallback(
-    (row: AppointmentRow) => router.push({ pathname: "/visit/[id]", params: { id: row.id } }),
-    [router],
-  );
-
-  let body;
-  if (rows === null && error === null) {
-    body = (
-      <View style={styles.centre}>
-        <ActivityIndicator color={colors.primary} accessibilityLabel="Loading your visits" />
-      </View>
-    );
-  } else if (rows === null) {
-    body = (
-      <Empty
-        icon="cloud-offline-outline"
-        title="Couldn't load your visits."
-        hint="Check your connection and try again."
-        action={<Button label="Try again" variant="secondary" onPress={() => void load()} />}
-      />
-    );
-  } else {
-    const empty = rows.upcoming.length === 0 && rows.past.length === 0 && waitlist.length === 0;
-    const shown = view === "upcoming" ? rows.upcoming : rows.past;
-    body = (
-      <ScrollView
-        style={styles.fill}
-        contentContainerStyle={[
-          styles.list,
-          { paddingBottom: insets.bottom + clearance + space[8] },
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => void onRefresh()}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-            progressBackgroundColor={colors.card}
-          />
-        }
-      >
-        {empty ? (
-          <Empty
-            icon="calendar-outline"
-            title="No visits booked yet."
-            hint="When you ask the clinic for a day, it shows here."
-            action={
-              // ADR 0084 §2's door, label verbatim. Secondary here as there:
-              // this list is not the entry screen, and the same-day door is
-              // home's to make primary.
-              <Button
-                label="Ask for a day — the clinic confirms"
-                variant="secondary"
-                onPress={() => router.push("/book")}
-              />
-            }
-          />
-        ) : (
-          <>
-            <ChipRow>
-              <Chip
-                label="Upcoming"
-                role="button"
-                selected={view === "upcoming"}
-                onPress={() => setView("upcoming")}
-              />
-              <Chip
-                label="Past"
-                role="button"
-                selected={view === "past"}
-                onPress={() => setView("past")}
-              />
-            </ChipRow>
-
-            {/* Gate E: an open offer is the most time-bound thing on the page. */}
-            {view === "upcoming" && waitlist.length > 0 ? (
-              <View style={styles.rows}>
-                {waitlist.map((entry) => (
-                  <WaitlistCard
-                    key={entry.id}
-                    entry={entry}
-                    onChanged={({ bookedAppointmentId }) => {
-                      void load();
-                      if (bookedAppointmentId) {
-                        router.push({
-                          pathname: "/visit/[id]",
-                          params: { id: bookedAppointmentId },
-                        });
-                      }
-                    }}
-                  />
-                ))}
-              </View>
-            ) : null}
-
-            {shown.length === 0 ? (
-              <Text style={styles.none}>
-                {view === "past" ? "Nothing here yet." : "No upcoming visits."}
-              </Text>
-            ) : view === "upcoming" ? (
-              <View style={styles.rows}>
-                {shown.map((row) => (
-                  <VisitRow key={row.id} row={row} onPress={open} />
-                ))}
-              </View>
-            ) : (
-              byMonth(shown).map((group) => (
-                <Section key={group.month} title={group.month}>
-                  <View style={styles.rows}>
-                    {group.rows.map((row) => (
-                      <VisitRow key={row.id} row={row} onPress={open} />
-                    ))}
-                  </View>
-                </Section>
-              ))
-            )}
-          </>
-        )}
-      </ScrollView>
-    );
+  /* the selected-day line */
+  const selVisit = visitsOn(sel)[0];
+  const selFixture = fixtureOn(sel);
+  const selOpen = week?.openDays.has(sel) ?? false;
+  let selTitle = shortDayOf(sel);
+  let selLine = sel < today ? "Past day" : "Nothing planned. The clinic is closed.";
+  if (sel === today) {
+    selTitle = "Today";
+    selLine = `${CARE_PLAN.readings} readings and ${CARE_PLAN.medicines} medicines on your plan (demo)`;
   }
+  if (selFixture) {
+    selTitle = `${shortDayOf(sel)} · ${selFixture.title}`;
+    selLine = `${selFixture.line} (demo)`;
+  }
+  if (selOpen) {
+    selTitle = `${shortDayOf(sel)} · Clinic open`;
+    selLine = "Places left. Book to save one.";
+  }
+  if (selVisit) {
+    selTitle = `${shortDayOf(sel)} · Your visit`;
+    selLine = `${reasonTitle(selVisit)} · ${placeWord(selVisit)}`;
+  }
+  const openVisit = (id: string) => router.push({ pathname: "/visits/[id]", params: { id } });
+
+  /* the week ahead: today's plan, then this week's visits and fixtures */
+  const end = addDays(today, 6);
+  const inWeek = (key: string) => key > today && key <= end;
+  const rows: { key: string; node: ReactNode }[] = [
+    { key: today, node: <CarePlanCard onPress={() => router.navigate("/(app)/(tabs)")} /> },
+    ...visits
+      .filter((v) => inWeek(dayKeyOf(v.startsAtIso)))
+      .map((v) => ({
+        key: dayKeyOf(v.startsAtIso),
+        node: <VisitCard row={v} onOpen={() => openVisit(v.id)} />,
+      })),
+    ...fixtures
+      .filter((f) => inWeek(f.key))
+      .map((f) => ({ key: f.key, node: <FixtureCard item={f} /> })),
+  ].sort((a, b) => a.key.localeCompare(b.key));
+  const shown = open ? rows : rows.slice(0, 2);
+  const hidden = rows.length - 2;
 
   return (
-    <Screen title="Your visits" scroll={false}>
-      {body}
+    <Screen
+      underNav
+      bell
+      helpSource="visits"
+      header={
+        <NextPill
+          row={next ?? null}
+          days={next ? daysBetween(today, dayKeyOf(next.startsAtIso)) : 0}
+          onPress={() => (next ? openVisit(next.id) : router.push("/book"))}
+        />
+      }
+    >
+      {failed ? (
+        <Note tone="plain">{"Couldn't load your visits. Come back to this tab to try again."}</Note>
+      ) : null}
+
+      {/* An open offer is the most time-bound thing on the page. */}
+      {waitlist.map((entry) => (
+        <WaitlistCard
+          key={entry.id}
+          entry={entry}
+          onChanged={({ bookedAppointmentId }) => {
+            load();
+            if (bookedAppointmentId) openVisit(bookedAppointmentId);
+          }}
+        />
+      ))}
+
+      {/* calendar */}
+      <Card radius={tRadius.panel} padding={tSpace[3]} style={{ gap: tSpace[2] }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 4,
+          }}
+        >
+          <View>
+            <Text style={[tType.overline, { color: t.ink2 }]}>Your calendar</Text>
+            <Text accessibilityRole="header" style={[tType.section, { color: t.ink }]}>
+              {monthTitleOf(shownMonth)}
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row", gap: tSpace[1.5] }}>
+            {([-1, 1] as const).map((d) => (
+              <Press
+                key={d}
+                onPress={() => setMonth(shiftMonth(shownMonth, d))}
+                accessibilityLabel={d < 0 ? "Previous month" : "Next month"}
+                hitSlop={4}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: t.bg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon name={d < 0 ? "back" : "forward"} size={18} color={t.ink} />
+              </Press>
+            ))}
+          </View>
+        </View>
+        <View style={{ flexDirection: "row" }}>
+          {WEEKDAYS.map((w, i) => (
+            <Text
+              key={i}
+              style={[
+                tType.micro,
+                { flex: 1, textAlign: "center", fontFamily: tFont.semibold, color: t.ink3 },
+              ]}
+            >
+              {w}
+            </Text>
+          ))}
+        </View>
+        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+          {monthGrid(shownMonth).map((key, i) => {
+            if (!key) return <View key={`b${i}`} style={{ width: `${100 / 7}%`, height: 44 }} />;
+            const isToday = key === today;
+            const isVisit = visitsOn(key).length > 0;
+            const isOpen = week?.openDays.has(key) ?? false;
+            const fx = fixtureOn(key);
+            const isPicked = key === sel;
+            const dot = isVisit
+              ? t.area.visits
+              : fx?.kind === "lab"
+                ? t.area.medicines
+                : fx
+                  ? t.area.team
+                  : "transparent";
+            const label = [
+              shortDayOf(key),
+              isToday ? "today" : null,
+              isOpen ? "clinic open" : null,
+              isVisit ? "your visit" : null,
+              fx ? fx.label : null,
+            ]
+              .filter(Boolean)
+              .join(", ");
+            return (
+              <Press
+                key={key}
+                onPress={() => setPicked(key)}
+                accessibilityLabel={label}
+                accessibilityState={{ selected: isPicked }}
+                haptic={false}
+                style={{
+                  width: `${100 / 7}%`,
+                  height: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 2,
+                }}
+              >
+                <View
+                  style={{
+                    width: 34,
+                    height: 30,
+                    borderRadius: tRadius.pill,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: isToday ? t.band : isOpen ? t.accentTint : "transparent",
+                    borderWidth: isVisit || isPicked ? 2 : 0,
+                    borderColor: isVisit ? t.ink : t.accent,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: isToday || isVisit || isOpen ? tFont.bold : tFont.medium,
+                      fontSize: 14,
+                      color: isToday
+                        ? t.onBand
+                        : key < today
+                          ? t.ink4
+                          : isOpen
+                            ? t.accentText
+                            : t.ink,
+                    }}
+                  >
+                    {Number(key.slice(8))}
+                  </Text>
+                </View>
+                <Dot color={dot} size={5} />
+              </Press>
+            );
+          })}
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            columnGap: tSpace[3],
+            rowGap: tSpace[1.5],
+            paddingHorizontal: 4,
+          }}
+        >
+          <Legend
+            swatch={
+              <View
+                style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: t.accentTint }}
+              />
+            }
+            label="Clinic open"
+          />
+          <Legend
+            swatch={
+              <View
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  borderWidth: 2,
+                  borderColor: t.ink,
+                }}
+              />
+            }
+            label="Your visit"
+          />
+          <Legend swatch={<Dot color={t.area.medicines} size={6} />} label="Lab" />
+          <Legend swatch={<Dot color={t.area.team} size={6} />} label="Care team" />
+        </View>
+        <View
+          accessibilityLiveRegion="polite"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[2.5],
+            padding: tSpace[3],
+            borderRadius: tRadius.field,
+            backgroundColor: t.bg,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{selTitle}</Text>
+            <Text style={[tType.bodyS, { fontFamily: tFont.regular, color: t.ink2 }]}>
+              {selLine}
+            </Text>
+          </View>
+          {selVisit ? (
+            <Button label="Open" size="sm" onPress={() => openVisit(selVisit.id)} />
+          ) : selOpen ? (
+            <Button
+              label="Book"
+              size="sm"
+              variant="accent"
+              onPress={() => router.push({ pathname: "/book/day", params: { day: sel } })}
+            />
+          ) : null}
+        </View>
+      </Card>
+
+      {/* the week ahead */}
+      <View style={{ gap: 2, marginTop: tSpace[2] }}>
+        <Text style={[tType.bodyM, { fontSize: 14, color: t.ink2 }]}>
+          {`${dayNumberOf(today)} to ${dayNumberOf(end)} ${monthShortOf(end)}`}
+        </Text>
+        <Text accessibilityRole="header" style={[tType.title, { color: t.ink }]}>
+          Your week ahead
+        </Text>
+      </View>
+      {/* The rail has no left gutter, so today's tile meets the screen edge. */}
+      <View style={{ marginLeft: -tSpace[5], gap: tSpace[2.5] }}>
+        {shown.map((r, i) => (
+          <View
+            key={`${r.key}-${i}`}
+            style={{ flexDirection: "row", gap: tSpace[3.5], alignItems: "flex-start" }}
+          >
+            {r.key === today ? (
+              <View>
+                <DateTile day={dayNumberOf(r.key)} label="Today" selected bleed="left" />
+                <View style={{ position: "absolute", top: 9, right: 9 }}>
+                  <Dot color={t.accent} size={9} />
+                </View>
+              </View>
+            ) : (
+              <DateTile day={dayNumberOf(r.key)} label={weekdayOf(r.key)} />
+            )}
+            <View style={{ flex: 1 }}>{r.node}</View>
+          </View>
+        ))}
+        {hidden > 0 ? (
+          <View style={{ alignItems: "center", paddingLeft: tSpace[5] }}>
+            <Press
+              onPress={() => setOpen((o) => !o)}
+              accessibilityState={{ expanded: open }}
+              style={{
+                minHeight: 44,
+                paddingHorizontal: tSpace[4],
+                borderRadius: tRadius.pill,
+                backgroundColor: t.surface,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: tSpace[1.5],
+                boxShadow: t.shadow.card,
+              }}
+            >
+              <Text style={[tType.labelS, { color: t.ink }]}>
+                {open ? "Show less" : `${hidden} more this week`}
+              </Text>
+              <Icon name={open ? "arrowUp" : "down"} size={18} color={t.ink} />
+            </Press>
+          </View>
+        ) : null}
+      </View>
     </Screen>
   );
 }
 
-/**
- * One visit. The same card whatever its status — the word on the pill is what
- * says whether there is anything left to do about it. A past visit still
- * opens: it has a reason note worth reading.
- */
-function VisitRow({
-  row,
-  onPress,
-}: {
-  row: AppointmentRow;
-  onPress: (row: AppointmentRow) => void;
-}) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
+function Legend({ swatch, label }: { swatch: ReactNode; label: string }) {
+  const t = useTide();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityHint="Opens this visit"
-      onPress={() => onPress(row)}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-    >
-      <Avatar name={row.clinicianName} uri={row.clinicianPhotoUrl} size={56} />
-      <View style={styles.text}>
-        {/* Gate D: a household member's visit, by the name the agent gave them. */}
-        {row.forMember ? (
-          <Text style={styles.forMember} numberOfLines={1}>
-            For {row.forMember}
-          </Text>
-        ) : null}
-        <Text style={styles.who} numberOfLines={1}>
-          {row.clinicianName}
-        </Text>
-        <Text style={styles.where} numberOfLines={1}>
-          {row.departmentName}
-        </Text>
-        <Text style={styles.when}>{formatWhen(row.startsAtIso)}</Text>
-        {/* The code the desk searches by, and the place held in a clinic day
-            (Gate C) — monospaced, the two things read aloud (PRD §6.3). */}
-        {row.bookingCode ? (
-          <Text style={styles.code}>
-            Code {row.bookingCode}
-            {row.positionNumber !== null ? ` · Position ${row.positionNumber}` : ""}
-          </Text>
-        ) : null}
-        <View style={styles.pill}>
-          <Pill status={row.status} />
-        </View>
-      </View>
-      <Ionicons
-        name="chevron-forward"
-        size={18}
-        color={colors.mutedForeground}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      />
-    </Pressable>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+      {swatch}
+      <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}>{label}</Text>
+    </View>
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    fill: { flex: 1 },
-    centre: { flex: 1, alignItems: "center", justifyContent: "center" },
-    list: { flexGrow: 1, gap: space[5] },
-    rows: { gap: space[3] },
-    none: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
+/** The header pill: the next visit by its day and what it is for. No clinician name. */
+function NextPill({
+  row,
+  days,
+  onPress,
+}: {
+  row: AppointmentRow | null;
+  days: number;
+  onPress: () => void;
+}) {
+  const t = useTide();
+  const key = row ? dayKeyOf(row.startsAtIso) : null;
+  const title = row ? reasonTitle(row) : "Book a visit";
+  return (
+    <Press
+      onPress={onPress}
+      accessibilityLabel={
+        row && key
+          ? `Next: your visit on ${shortDayOf(key)}, ${title}, ${placeWord(row)}`
+          : "No visit booked. Book a visit"
+      }
+      style={{
+        flex: 1,
+        minHeight: 48,
+        paddingLeft: 6,
+        paddingRight: tSpace[3],
+        borderRadius: tRadius.pill,
+        backgroundColor: t.surface,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: tSpace[2.5],
+        boxShadow: t.shadow.card,
+      }}
+    >
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: t.band,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {key ? (
+          <>
+            <Text style={{ fontFamily: tFont.bold, fontSize: 13, lineHeight: 13, color: t.onBand }}>
+              {dayNumberOf(key)}
+            </Text>
+            <Text
+              style={{
+                fontFamily: tFont.semibold,
+                fontSize: 8,
+                lineHeight: 10,
+                letterSpacing: 0.3,
+                textTransform: "uppercase",
+                color: t.onBandAccent,
+              }}
+            >
+              {weekdayOf(key)}
+            </Text>
+          </>
+        ) : (
+          <Icon name="calendar" size={18} color={t.onBand} />
+        )}
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <Dot color={t.area.visits} size={6} />
+          <Text
+            style={[
+              tType.micro,
+              {
+                fontFamily: tFont.semibold,
+                letterSpacing: 0.55,
+                textTransform: "uppercase",
+                color: t.ink2,
+              },
+            ]}
+          >
+            {row ? `Next · ${inDays(days)}` : "No visit booked"}
+          </Text>
+        </View>
+        <Text numberOfLines={1} style={[tType.label, { fontSize: 15, color: t.ink }]}>
+          {title}
+        </Text>
+      </View>
+      <Icon name="forward" size={18} color={t.ink3} />
+    </Press>
+  );
+}
 
-    // A raised surface with an edge: a white card on a white page has no other
-    // outline, and the edge stays in the dark so both themes draw one shape.
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      padding: space[3],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    // Opacity, never scale — the kit's rule for every pressed thing.
-    pressed: { opacity: 0.88 },
+function RailCard({
+  children,
+  onPress,
+  label,
+}: {
+  children: ReactNode;
+  onPress?: () => void;
+  label?: string;
+}) {
+  return (
+    <Card
+      onPress={onPress}
+      accessibilityLabel={label}
+      radius={tRadius.card}
+      padding={tSpace[3]}
+      style={{ gap: tSpace[1], marginRight: tSpace[5] }}
+    >
+      {children}
+    </Card>
+  );
+}
 
-    text: { flex: 1, gap: 2 },
-    forMember: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      color: c.mutedForeground,
-    },
-    who: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
-    where: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
-    when: { fontFamily: font.body, fontSize: 14, lineHeight: 19, color: c.foreground },
-    code: { fontFamily: font.mono, fontSize: 13.5, lineHeight: 19, color: c.foreground },
-    pill: { marginTop: space[1] },
-  });
+function Kind({ color, label, right }: { color: string; label: string; right?: ReactNode }) {
+  const t = useTide();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: tSpace[2],
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 }}>
+        <Dot color={color} />
+        <Text style={[tType.bodyS, { color: t.ink2 }]} numberOfLines={1}>
+          {label}
+        </Text>
+      </View>
+      {right}
+    </View>
+  );
+}
+
+function CarePlanCard({ onPress }: { onPress: () => void }) {
+  const t = useTide();
+  return (
+    <RailCard
+      onPress={onPress}
+      label={`Your care plan, ${CARE_PLAN.done} of ${CARE_PLAN.total} done, demo data`}
+    >
+      <Kind color={t.area.readings} label="Your care plan" right={<DemoTag />} />
+      <Text style={[tType.label, { color: t.ink }]}>
+        {`${CARE_PLAN.readings} readings, ${CARE_PLAN.medicines} medicines`}
+      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
+        <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
+          {Array.from({ length: CARE_PLAN.total }, (_, i) => (
+            <View
+              key={i}
+              style={{
+                flex: 1,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: i < CARE_PLAN.done ? t.primary : t.line,
+              }}
+            />
+          ))}
+        </View>
+        <Text
+          style={[tType.bodyS, { color: t.ink2 }]}
+        >{`${CARE_PLAN.done} of ${CARE_PLAN.total}`}</Text>
+      </View>
+    </RailCard>
+  );
+}
+
+function VisitCard({ row, onOpen }: { row: AppointmentRow; onOpen: () => void }) {
+  const t = useTide();
+  return (
+    <RailCard>
+      <Kind
+        color={t.area.visits}
+        label={row.forMember ? `Visit · for ${row.forMember}` : "Visit"}
+        right={<Text style={[tType.labelS, { color: t.ink2 }]}>{placeWord(row)}</Text>}
+      />
+      <Press
+        onPress={onOpen}
+        accessibilityRole="link"
+        haptic={false}
+        style={{ minHeight: 28, justifyContent: "center" }}
+      >
+        <Text style={[tType.label, { color: t.ink }]}>{reasonTitle(row)}</Text>
+      </Press>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2], paddingTop: 2 }}>
+        <Text
+          style={[tType.bodyM, { flex: 1, fontFamily: tFont.regular, fontSize: 14, color: t.ink2 }]}
+          numberOfLines={1}
+        >
+          {row.hospitalName}
+        </Text>
+        <Press
+          onPress={onOpen}
+          accessibilityLabel="Directions"
+          hitSlop={4}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: t.accent,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icon name="mapPin" size={18} color={t.onAccent} />
+        </Press>
+      </View>
+    </RailCard>
+  );
+}
+
+function FixtureCard({ item }: { item: Fixture }) {
+  const t = useTide();
+  return (
+    <RailCard label={`${item.label}, ${item.title}, ${item.time}, demo data`}>
+      <Kind
+        color={item.kind === "lab" ? t.area.medicines : t.area.team}
+        label={item.label}
+        right={
+          <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
+            <DemoTag />
+            <Text style={[tType.labelS, { color: t.ink2, fontVariant: ["tabular-nums"] }]}>
+              {item.time}
+            </Text>
+          </View>
+        }
+      />
+      <Text style={[tType.label, { color: t.ink }]}>{item.title}</Text>
+    </RailCard>
+  );
+}

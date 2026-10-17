@@ -24,7 +24,7 @@ export default function StatusScreen() {
     if (params.id) return;
     readPendingPreArrival().then((p) => {
       if (p) setPending(p);
-      else router.navigate("/(app)/(tabs)/emergency");
+      else router.navigate("/(app)/emergency/lines");
     });
   }, [params.id, router]);
 
@@ -36,7 +36,7 @@ export default function StatusScreen() {
       token={params.token ?? pending?.token}
       sentAt={params.sentAt ?? pending?.sentAt ?? new Date().toISOString()}
       smsBody={params.smsBody || pending?.smsBody || null}
-      onBack={() => router.navigate("/(app)/(tabs)/emergency")}
+      onBack={() => router.navigate("/(app)/emergency/lines")}
     />
   );
 }

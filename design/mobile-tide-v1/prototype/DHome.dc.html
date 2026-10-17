@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home, your day</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+  <div data-scroll style="position: absolute; inset: 0; overflow-y: auto; padding: 58px 20px 130px; display: flex; flex-direction: column; gap: 16px">
+
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 44px; height: 44px; border-radius: 999px; background: #151d30; color: #a5b4fc; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: grid; place-items: center; font: 600 15px Figtree, sans-serif">AN</span>
+      <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 400 14px/18px Figtree, sans-serif; color: #a9b2c7">Hello,</span><span style="font: 600 18px/22px Figtree, sans-serif">[First name]</span></span>
+      <a href="DNotif.dc.html" aria-label="Notifications, 1 new" style="width: 44px; height: 44px; border-radius: 999px; background: transparent; color: #e8ecf3; display: grid; place-items: center; position: relative"><svg class="ic" width="23" height="23" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span style="position: absolute; top: 5px; right: 5px; min-width: 17px; height: 17px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 10px/17px Figtree, sans-serif; text-align: center; box-shadow: 0 0 0 2px #0b1120">1</span></a>
+      <a href="DHelp.dc.html" aria-label="Help, emergency" style="height: 40px; padding: 0 13px 0 10px; border-radius: 999px; background: #dc2626; color: #ffffff; font: 600 15px Figtree, sans-serif; display: inline-flex; gap: 6px; align-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Help</a>
+    </div>
+
+    <div style="display: flex; gap: 6px; align-items: center">
+      <button type="button" aria-pressed="true" style="height: 38px; padding: 0 18px; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 15px Figtree, sans-serif; box-shadow: 0 6px 16px -6px rgba(45,212,191,.6)">Today</button>
+      <a href="DWeek.dc.html" style="height: 38px; padding: 0 18px; border-radius: 999px; background: #151d30; color: #e8ecf3; font: 600 15px Figtree, sans-serif; display: grid; place-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">This week</a>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h1 style="margin: 0; font: 500 32px/36px Figtree, sans-serif; letter-spacing: -0.03em">{{feelTitle}}</h1>
+
+      <sc-if value="{{showTiles}}" hint-placeholder-val="{{true}}">
+        <div role="group" aria-label="How are you today?" style="display: flex; gap: 8px">
+          <button type="button" onClick="{{pickGood}}" aria-pressed="{{goodPressed}}" style="flex: 1; height: 74px; border-radius: 22px; background: {{goodBg}}; color: #e8ecf3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: {{goodRing}}; opacity: {{goodOp}}; transition: opacity 200ms, background 200ms">
+            <dc-import name="TMoodFace" mood="good" size="34" pop="{{goodPop}}" hint-size="34px,34px"></dc-import>
+            <span style="font: 600 14px/18px Figtree, sans-serif">Good</span>
+          </button>
+          <button type="button" onClick="{{pickOkay}}" aria-pressed="{{okayPressed}}" style="flex: 1; height: 74px; border-radius: 22px; background: {{okayBg}}; color: #e8ecf3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: {{okayRing}}; opacity: {{okayOp}}; transition: opacity 200ms, background 200ms">
+            <dc-import name="TMoodFace" mood="okay" size="34" pop="{{okayPop}}" hint-size="34px,34px"></dc-import>
+            <span style="font: 600 14px/18px Figtree, sans-serif">Okay</span>
+          </button>
+          <button type="button" onClick="{{pickLow}}" aria-pressed="{{lowPressed}}" style="flex: 1; height: 74px; border-radius: 22px; background: {{lowBg}}; color: #e8ecf3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: {{lowRing}}; opacity: {{lowOp}}; transition: opacity 200ms, background 200ms">
+            <dc-import name="TMoodFace" mood="low" size="34" pop="{{lowPop}}" hint-size="34px,34px"></dc-import>
+            <span style="font: 600 14px/18px Figtree, sans-serif">Not well</span>
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showWeek}}" hint-placeholder-val="{{false}}">
+        <div style="background: #151d30; border-radius: 22px; padding: 10px 14px 10px 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <div style="display: flex; justify-content: space-between; align-items: center; min-height: 24px">
+            <span style="font: 600 15px/20px Figtree, sans-serif">This week <span style="font-weight: 500; color: #a9b2c7">· {{weekSummary}}</span></span>
+            <sc-if value="{{isLow}}" hint-placeholder-val="{{false}}">
+              <a href="DAdd.dc.html" style="height: 30px; padding: 0 12px; border-radius: 999px; background: rgba(45,212,191,.18); color: #5eead4; font: 600 13px/30px Figtree, sans-serif">Tell my team</a>
+            </sc-if>
+            <sc-if value="{{notLow}}" hint-placeholder-val="{{true}}">
+              <a href="DMood.dc.html" style="font: 600 14px/24px Figtree, sans-serif; color: #5eead4">See all</a>
+            </sc-if>
+          </div>
+          <a href="DMood.dc.html" aria-label="See how you have felt" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); color: #e8ecf3">
+            <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+              <span style="display: flex; flex-direction: column; align-items: center; gap: 3px">
+                <span style="padding: 2px; border-radius: 999px; box-shadow: {{d.ring}}"><dc-import name="TMoodFace" mood="{{d.mood}}" size="22" hint-size="22px,22px"></dc-import></span>
+                <span style="font: {{d.weight}} 11px/13px Figtree, sans-serif; color: {{d.color}}">{{d.label}}</span>
+              </span>
+            </sc-for>
+          </a>
+        </div>
+      </sc-if>
+    </div>
+
+    <h2 style="margin: 0; font: 600 22px/28px Figtree, sans-serif; letter-spacing: -0.02em">Here is your day</h2>
+
+    <div data-cascade style="display: flex; flex-direction: column; margin-top: -6px">
+      <a href="DMedicines.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 14px 18px 46px; border-radius: 28px 28px 0 0; background: #24314f; color: #ffffff">
+        <span style="width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,.14); display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 17px/22px Figtree, sans-serif">Morning medicine</span><span style="font: 500 14px/19px Figtree, sans-serif; color: #e8ecf3">07:12 · taken</span></span>
+        <span style="width: 30px; height: 30px; border-radius: 999px; background: #151d30; color: #e8ecf3; display: grid; place-items: center"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+      </a>
+      <a href="DReading.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 14px 18px 46px; margin-top: -32px; border-radius: 28px 28px 0 0; background: #2f4a6d; color: #ffffff">
+        <span style="width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,.14); display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 17px/22px Figtree, sans-serif">Blood pressure · 138/86</span><span style="font: 500 14px/19px Figtree, sans-serif; color: #e8ecf3">07:40 · above your target</span></span>
+        <span style="width: 30px; height: 30px; border-radius: 999px; background: #151d30; color: #2f4a6d; display: grid; place-items: center"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+      </a>
+      <a href="DVisit.dc.html" style="display: flex; gap: 12px; align-items: center; padding: 14px 18px 46px; margin-top: -32px; border-radius: 28px 28px 0 0; background: #296a89; color: #ffffff">
+        <span style="width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,.14); display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 17px/22px Figtree, sans-serif">Your care team replied</span><span style="font: 500 14px/19px Figtree, sans-serif; color: #e8ecf3">09:15 · about this morning</span></span>
+        <svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+
+      <sc-if value="{{due}}" hint-placeholder-val="{{true}}">
+        <div style="margin-top: -32px; border-radius: 28px; padding: 18px; background: #2dd4bf; color: #1b2540; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase">Now · 13:00</span>
+            <span style="height: 28px; padding: 0 11px 0 9px; border-radius: 999px; background: rgba(255,255,255,.6); display: inline-flex; gap: 6px; align-items: center; font: 500 13px Figtree, sans-serif"><span style="width: 7px; height: 7px; border-radius: 999px; background: #7c3aed"></span>Medicines</span>
+          </div>
+          <span style="font: 600 24px/30px Figtree, sans-serif; letter-spacing: -0.02em">Midday medicine</span>
+          <span style="font: 400 15px/21px Figtree, sans-serif; margin-top: -8px">[Medicine B], as your clinician prescribed</span>
+          <div style="display: flex; gap: 8px">
+            <button type="button" onClick="{{take}}" style="flex: 1; height: 50px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 16px Figtree, sans-serif">I took it</button>
+            <button type="button" style="height: 50px; padding: 0 20px; border-radius: 999px; background: rgba(255,255,255,.6); color: #1b2540; font: 600 16px Figtree, sans-serif">Not yet</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 12px; align-items: center; padding: 14px 18px; margin-top: -32px; border-radius: 28px; background: #2dd4bf; color: #1b2540">
+          <span style="width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,.5); display: grid; place-items: center"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 17px/22px Figtree, sans-serif">Midday medicine</span><span style="font: 500 14px/19px Figtree, sans-serif">13:04 · taken</span></span>
+          <span style="width: 30px; height: 30px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: grid; place-items: center"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <!-- see a doctor -->
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px">
+      <h2 style="margin: 0; font: 600 22px/28px Figtree, sans-serif; letter-spacing: -0.02em">See a doctor</h2>
+      <a href="DBook.dc.html" style="font: 600 14px Figtree, sans-serif; color: #5eead4">See all</a>
+    </div>
+    <div style="display: flex; gap: 6px; flex-shrink: 0; overflow-x: auto; margin: -4px -20px 0; padding: 0 20px 2px">
+      <span style="flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: #e8ecf3; color: #0b1120; box-shadow: none; display: inline-flex; align-items: center; font: 600 13px Figtree, sans-serif">Available now</span><span style="flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: #151d30; color: #e8ecf3; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 600 13px Figtree, sans-serif">Diabetes</span><span style="flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: #151d30; color: #e8ecf3; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 600 13px Figtree, sans-serif">General</span><span style="flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: #151d30; color: #e8ecf3; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 600 13px Figtree, sans-serif">Children</span><span style="flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: #151d30; color: #e8ecf3; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 600 13px Figtree, sans-serif">Eye</span>
+    </div>
+    <div style="display: flex; gap: 10px; flex-shrink: 0; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 8px">
+        <div style="position: relative; flex: none; width: 236px; padding: 14px; border-radius: 24px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 10px">
+          <span style="position: absolute; top: 12px; right: 12px; height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(99,102,241,.16); color: #a5b4fc; font: 600 11px/22px Figtree, sans-serif">Your doctor</span>
+          <span style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 48px; height: 48px; border-radius: 999px; background: rgba(99,102,241,.16); color: #a5b4fc; display: grid; place-items: center; font: 700 15px Figtree, sans-serif; flex: none">NA</span>
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font: 600 15px Figtree, sans-serif">Dr [Name A]</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Specialist · Kawempe HC IV</span></span>
+          </span>
+          <span style="display: flex; gap: 10px; align-items: center; font: 600 13px Figtree, sans-serif">
+            <span style="display: inline-flex; gap: 4px; align-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="#e8ecf3" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>4.9<span style="font-weight: 500; color: #8f99b3">(212)</span></span>
+            <span style="width: 3px; height: 3px; border-radius: 999px; background: #3a4562"></span>
+            <span>UGX 30,000</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 14px; background: #0b1120">
+            <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #5eead4"><span style="width: 7px; height: 7px; border-radius: 999px; background: #14b8a6"></span>Available now</span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">5 in line · you would be #6</span>
+          </span>
+          <a href="DBookToday.dc.html" style="height: 42px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 14px Figtree, sans-serif">Join the line</a>
+        </div>
+        <div style="position: relative; flex: none; width: 236px; padding: 14px; border-radius: 24px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 10px">
+          
+          <span style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 48px; height: 48px; border-radius: 999px; background: #1c2539; color: #a9b2c7; display: grid; place-items: center; font: 700 15px Figtree, sans-serif; flex: none">NB</span>
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font: 600 15px Figtree, sans-serif">Dr [Name B]</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Diabetes · Kawempe HC IV</span></span>
+          </span>
+          <span style="display: flex; gap: 10px; align-items: center; font: 600 13px Figtree, sans-serif">
+            <span style="display: inline-flex; gap: 4px; align-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="#e8ecf3" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>4.7<span style="font-weight: 500; color: #8f99b3">(98)</span></span>
+            <span style="width: 3px; height: 3px; border-radius: 999px; background: #3a4562"></span>
+            <span>No fee</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 14px; background: #0b1120">
+            <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #5eead4"><span style="width: 7px; height: 7px; border-radius: 999px; background: #14b8a6"></span>Available now</span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">2 in line · you would be #3</span>
+          </span>
+          <a href="DBookToday.dc.html" style="height: 42px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 14px Figtree, sans-serif">Join the line</a>
+        </div>
+        <div style="position: relative; flex: none; width: 236px; padding: 14px; border-radius: 24px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 10px">
+          
+          <span style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 48px; height: 48px; border-radius: 999px; background: rgba(192,38,211,.16); color: #a21caf; display: grid; place-items: center; font: 700 15px Figtree, sans-serif; flex: none">NH</span>
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font: 600 15px Figtree, sans-serif">Dr [Name H]</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Physician · Private wing</span></span>
+          </span>
+          <span style="display: flex; gap: 10px; align-items: center; font: 600 13px Figtree, sans-serif">
+            <span style="display: inline-flex; gap: 4px; align-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="#e8ecf3" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>4.8<span style="font-weight: 500; color: #8f99b3">(143)</span></span>
+            <span style="width: 3px; height: 3px; border-radius: 999px; background: #3a4562"></span>
+            <span>UGX 50,000</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 14px; background: #0b1120">
+            <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #f0abfc"><span style="width: 7px; height: 7px; border-radius: 999px; background: #a21caf"></span>Next: Tue 20 Oct</span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Morning and afternoon open</span>
+          </span>
+          <a href="DBookDay.dc.html" style="height: 42px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 14px Figtree, sans-serif">Ask for a day</a>
+        </div>
+        <div style="position: relative; flex: none; width: 236px; padding: 14px; border-radius: 24px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 10px">
+          
+          <span style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 48px; height: 48px; border-radius: 999px; background: #1c2539; color: #a9b2c7; display: grid; place-items: center; font: 700 15px Figtree, sans-serif; flex: none">NE</span>
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font: 600 15px Figtree, sans-serif">Dr [Name E]</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Private wing · OPD</span></span>
+          </span>
+          <span style="display: flex; gap: 10px; align-items: center; font: 600 13px Figtree, sans-serif">
+            <span style="display: inline-flex; gap: 4px; align-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="#e8ecf3" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>4.6<span style="font-weight: 500; color: #8f99b3">(310)</span></span>
+            <span style="width: 3px; height: 3px; border-radius: 999px; background: #3a4562"></span>
+            <span>UGX 20,000</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 14px; background: #0b1120">
+            <span style="display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; color: #5eead4"><span style="width: 7px; height: 7px; border-radius: 999px; background: #14b8a6"></span>Available now</span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">4 in line · you would be #5</span>
+          </span>
+          <a href="DBookToday.dc.html" style="height: 42px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 14px Figtree, sans-serif">Join the line</a>
+        </div>
+    </div>
+    <span style="font: 500 11px/15px Figtree, sans-serif; color: #8f99b3; margin-top: -8px">Ratings come only from patients after a real visit. Illustrative.</span>
+  </div>
+
+  <sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: absolute; left: 20px; right: 20px; bottom: 122px; height: 52px; border-radius: 14px; background: #24314f; color: #ffffff; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px; box-shadow: 0 16px 36px -12px rgba(0,0,0,0.64)"><span style="display: inline-flex; gap: 8px; align-items: center; font: 500 15px Figtree, sans-serif"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #2dd4bf; stroke-width: 2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Your care team can see it</span><button type="button" onClick="{{undo}}" style="height: 40px; padding: 0 12px; border-radius: 10px; background: transparent; color: #5eead4; font: 600 15px Figtree, sans-serif">Undo</button></div>
+  </sc-if>
+
+  <div data-navwrap style="position: absolute; left: 16px; bottom: 14px">
+    <dc-import name="TideNav" dark="true" current="home" hint-size="358px,92px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { done: false, feel: null, phase: 'ask' };
+  }
+  componentWillUnmount() { if (this.timer) clearTimeout(this.timer); }
+  renderVals() {
+    var self = this;
+    var f = this.state.feel;
+    var phase = this.state.phase;
+    var tint = { good: 'rgba(45,212,191,.18)', okay: 'rgba(14,165,233,.16)', low: '#e0e7ff' };
+    var restRing = '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)';
+    var v = {};
+    ['good', 'okay', 'low'].forEach(function (k) {
+      var sel = f === k;
+      v[k + 'Bg'] = sel ? tint[k] : '#151d30';
+      v[k + 'Ring'] = sel ? 'inset 0 0 0 2px #e8ecf3' : restRing;
+      v[k + 'Op'] = f && !sel ? '0.45' : '1';
+      v[k + 'Pop'] = sel && phase === 'pop';
+      v[k + 'Pressed'] = sel ? 'true' : 'false';
+    });
+    var pick = function (k) {
+      return function () {
+        if (self.timer) clearTimeout(self.timer);
+        self.setState({ feel: k, phase: 'pop' });
+        self.timer = setTimeout(function () { self.setState({ phase: 'week' }); }, 900);
+      };
+    };
+    var days = [['M', 'good'], ['T', 'okay'], ['W', 'good'], ['T', 'low'], ['F', 'good'], ['S', f || 'none'], ['S', 'none']];
+    var week = days.map(function (d, i) {
+      var today = i === 5;
+      return { label: d[0], mood: d[1], ring: today ? '0 0 0 2px #e8ecf3' : 'none', weight: today ? '700' : '500', color: today ? '#e8ecf3' : '#8f99b3' };
+    });
+    var goodCount = days.filter(function (d) { return d[1] === 'good'; }).length;
+    v.week = week;
+    v.weekSummary = goodCount >= 3 ? 'mostly good' : 'mixed';
+    v.feelTitle = phase === 'ask' ? 'How are you today?' : (phase === 'pop' ? 'Added to your week' : (f === 'low' ? 'Sorry you are not well' : 'Thanks for telling us'));
+    v.showTiles = phase !== 'week';
+    v.showWeek = phase === 'week';
+    v.isLow = f === 'low';
+    v.notLow = f !== 'low';
+    v.pickGood = pick('good');
+    v.pickOkay = pick('okay');
+    v.pickLow = pick('low');
+    return Object.assign(v, {
+      due: !this.state.done,
+      done: this.state.done,
+      take: function () { self.setState({ done: true }); },
+      undo: function () { self.setState({ done: false }); }
+    });
+  }
+}
+</script>
+</body>
+</html>

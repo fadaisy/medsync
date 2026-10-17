@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Patient phone app rebuilt in Tide v1 — 2026-10-17
+
+On `feat/mobile-tide-v1` (local, not pushed). The patient app (`mobile/`) moves from Chroma to the Tide design system
+([ADR 0340](docs/adr/0340-tide-design-system-on-the-patient-phone.md)), with bottom sheets allowed on the phone only
+([ADR 0341](docs/adr/0341-bottom-sheets-allowed-on-the-patient-phone.md)). Clinical data stays demo on the phone until
+Gate CG (`mobileClinicalData` is off); every such screen carries the "Demo data" ribbon. No migration.
+
+- New splash, sign in and four-step sign-up. Sign-up runs on the web's `submitPatientSignup` through one thin route,
+  `app/api/mobile/patient-signup` (the only web change).
+- New Home (mood, the day cascade, the dose due now, See a doctor), the centre plus with in-place reading and dose
+  sheets, notifications with in-row actions, and the mood tracker.
+- This week, Visit detail, Book, Come today, Ask for a day and offline tickets on the live booking engines; the
+  waitlist offer card carried over.
+- Care hub, medicines, log a reading, trends, labs, move and eat, and care-team chat on fixture repositories.
+- Me with the flipping health card, Help · SOS (forced light, dials 112 after a cancellable 3 s) and the dangerous
+  reading interrupt. Help links the hospital's lines and the crisis and sexual-violence routes.
+- Law tests: Help on every route, no raw colours and red only where allowed, forced light, no hour promised, adults
+  18–120. Report: `docs/mobile-tide/99-REPORT.md`.
+
 ### Added — Lab Phase 3: registers, reports and quality — 2026-10-13
 
 Built dark on `feat/lab-quality-registers`, behind eight per-hospital flags that stay off in production until the CSO

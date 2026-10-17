@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Floating nav</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>body{margin:0}
+@keyframes navPop{0%{scale:.6;opacity:0}70%{scale:1.08}100%{scale:1;opacity:1}}
+@keyframes plusIn{0%{rotate:-90deg;scale:.4}100%{rotate:0deg;scale:1}}
+nav a{transition:background-color .3s cubic-bezier(.16,1,.3,1),color .25s ease,scale .16s ease}
+nav a:active{scale:.92}
+nav a[aria-current="page"]{animation:navPop .45s cubic-bezier(.34,1.56,.64,1) both}
+nav a[aria-label^="Add"]>span:first-child{animation:plusIn .6s cubic-bezier(.34,1.56,.64,1) .25s both;transition:rotate .3s ease,scale .16s ease}
+nav a[aria-label^="Add"]:hover>span:first-child{rotate:90deg}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+/* Tide dark (auto) */
+@media (prefers-color-scheme: dark){nav > svg path{fill:rgba(36,49,79,.96)!important;stroke:rgba(255,255,255,.06)!important} nav a[aria-current="false"]{color:#b4bccd!important} nav a[aria-current="page"]{background:#e8ecf3!important;color:#1b2540!important} nav a span{box-shadow:none} nav a[aria-label^="Add"]>span:first-child{box-shadow:0 0 0 5px #24314f,0 10px 22px -6px rgba(45,212,191,.6)!important} nav a[aria-label^="Add"]>span:last-child{color:#e8ecf3!important}}
+</style>
+</helmet>
+<nav aria-label="Main" style="width: 358px; height: 92px; position: relative; font-family: Figtree, sans-serif">
+  <!-- the frosted pill with its cradle -->
+  <svg width="358" height="92" viewBox="0 0 358 92" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible; filter: {{shadowF}}">
+    <path d="M36 20 H139.95 A10 10 0 0 0 149.03 14.19 A33 33 0 0 1 208.97 14.19 A10 10 0 0 0 218.05 20 H322 A36 36 0 0 1 322 92 H36 A36 36 0 0 1 36 20 Z" fill="{{fill}}" stroke="{{edge}}" stroke-width="1"/>
+  </svg>
+
+  <div style="position: absolute; left: 8px; right: 8px; bottom: 8px; height: 56px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 2px; align-items: center; justify-items: stretch">
+    <a href="THome.dc.html" aria-current="{{homeCur}}" style="height: 56px; border-radius: 28px; background: {{homeBg}}; color: {{homeC}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; transition: background 200ms">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="{{homeFill}}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" fill="{{homeCut}}"/></svg>
+      <span style="font: {{homeW}} 11px/13px Figtree, sans-serif">Home</span>
+    </a>
+    <a href="TWeek.dc.html" aria-current="{{visitsCur}}" style="height: 56px; border-radius: 28px; background: {{visitsBg}}; color: {{visitsC}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; transition: background 200ms">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="3" fill="{{visitsFill}}"/><path d="M16 2v4M8 2v4"/><path d="M3 10h18" stroke="{{visitsCut}}"/></svg>
+      <span style="font: {{visitsW}} 11px/13px Figtree, sans-serif">Visits</span>
+    </a>
+    <span></span>
+    <a href="TCare.dc.html" aria-current="{{careCur}}" aria-label="Care, 1 due" style="position: relative; height: 56px; border-radius: 28px; background: {{careBg}}; color: {{careC}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; transition: background 200ms">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="{{careFill}}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      <span style="font: {{careW}} 11px/13px Figtree, sans-serif">Care</span>
+      <span style="position: absolute; top: 6px; right: 14px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: {{badgeBg}}; color: {{badgeFg}}; font: 700 10px/16px Figtree, sans-serif; text-align: center; box-shadow: 0 0 0 2px {{fillSolid}}">1</span>
+    </a>
+    <a href="TMe.dc.html" aria-current="{{meCur}}" style="height: 56px; border-radius: 28px; background: {{meBg}}; color: {{meC}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; transition: background 200ms">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5" fill="{{meFill}}"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+      <span style="font: {{meW}} 11px/13px Figtree, sans-serif">Me</span>
+    </a>
+  </div>
+
+  <!-- the cradled plus -->
+  <a href="TAdd.dc.html" aria-label="Add: log a reading, a medicine, book a visit, tell your team" style="position: absolute; left: 148px; top: 0; width: 62px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none">
+    <span style="width: 56px; height: 56px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; box-shadow: 0 0 0 5px {{fillSolid}}, 0 10px 22px -6px rgba(45,212,191,.7)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></span>
+    <span style="font: 600 11px/13px Figtree, sans-serif; color: {{inkOn}}">Add</span>
+  </a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"current":{"editor":"enum","options":["home","visits","care","me"],"default":"home"},"dark":{"editor":"boolean","default":false},"$preview":{"width":358,"height":92}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var cur = this.props.current ?? 'home';
+    var dark = !!(this.props.dark ?? false);
+    var v = {
+      fill: dark ? 'rgba(47,61,95,0.94)' : 'rgba(255,255,255,0.94)',
+      fillSolid: dark ? '#2f3d5f' : '#ffffff',
+      edge: dark ? 'rgba(255,255,255,0.06)' : 'rgba(27,37,64,0.06)',
+      inkOn: dark ? '#f2f4f7' : '#1b2540',
+      badgeBg: dark ? '#f2f4f7' : '#1b2540',
+      badgeFg: dark ? '#1b2540' : '#ffffff',
+      shadowF: dark ? 'drop-shadow(0 2px 6px rgba(0,0,0,.4)) drop-shadow(0 16px 26px rgba(0,0,0,.45))' : 'drop-shadow(0 2px 6px rgba(27,37,64,.08)) drop-shadow(0 16px 28px rgba(27,37,64,.18))'
+    };
+    var activeBg = dark ? '#f2f4f7' : '#1b2540';
+    var activeFg = dark ? '#1b2540' : '#ffffff';
+    var off = dark ? '#b4bccd' : '#5f6987';
+    ['home', 'visits', 'care', 'me'].forEach(function (k) {
+      var a = k === cur;
+      v[k + 'Bg'] = a ? activeBg : 'transparent';
+      v[k + 'C'] = a ? activeFg : off;
+      v[k + 'W'] = a ? '700' : '500';
+      v[k + 'Fill'] = a ? activeFg : 'none';
+      v[k + 'Cur'] = a ? 'page' : 'false';
+    });
+    v.homeCut = cur === 'home' ? activeBg : 'none';
+    v.visitsCut = cur === 'visits' ? activeBg : 'currentColor';
+    if (cur === 'care') { v.badgeBg = '#2dd4bf'; v.badgeFg = '#1b2540'; }
+    return v;
+  }
+}
+</script>
+</body>
+</html>

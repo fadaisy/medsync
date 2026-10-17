@@ -111,7 +111,7 @@ function Body() {
 
   const toEmergency = (itemKey: string | null) =>
     router.push({
-      pathname: "/(app)/(tabs)/emergency",
+      pathname: "/(app)/emergency/lines",
       params: {
         from: "catalog",
         ...(submissionRef.current ? { submission: submissionRef.current.id } : {}),
