@@ -102,7 +102,7 @@ production build with the Phase 4 flags. Auth is patched in the harness copy onl
 2. Apply **0150 → 0151 → 0152 → 0153** from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`.
 3. After 0153, with `CRON_SECRET` in Vault as `medsync_cron_secret`, run
    `SELECT private.schedule_exchange_outbox('https://{host}/api/cron/exchange-outbox');` once.
-4. Add a Vercel Firewall rate limit on `/api/exchange/pair` and `/api/exchange/token` (GATE S S-5).
+4. Add a Vercel Firewall rate limit on `/api/exchange/pair` and `/api/exchange/token` (GATE S S-5). **Deferred**: needs the Vercel Pro plan; do it before any machine connection goes live.
 5. Send the letter to NHLDS (`letter-to-nhlds.md`) and record the date.
 6. Before switching `LAB_REFERRAL` on at a hospital: the Q3/Q4/Q11/Q12/Q14 answers, the partners entered and signed,
    the data protection and IPC leads named, the Code 128 manifest scanned with the site's scanners, and the timed
