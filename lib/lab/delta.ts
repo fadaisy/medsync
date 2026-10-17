@@ -16,10 +16,13 @@ export const DeltaRulePayload = z
     concept: z.string().regex(/^obs\.[a-z0-9_]+$/),
     type: z.enum(DELTA_TYPES),
     /** One limit for both directions, or separate rise and fall limits (in the unit, %, or per day). */
-    limit: z.union([
-      z.object({ both: positive }),
-      z.object({ rise: positive.nullable(), fall: positive.nullable() }),
-    ]),
+    /** Null only for an RCV rule, whose limit is the computed reference change value. */
+    limit: z
+      .union([
+        z.object({ both: positive }),
+        z.object({ rise: positive.nullable(), fall: positive.nullable() }),
+      ])
+      .nullable(),
     windowHours: z
       .number()
       .int()
@@ -56,6 +59,7 @@ export const DeltaRulePayload = z
     meaning: z.string().trim().min(5).max(200),
     source,
   })
+  .refine((r) => r.type === "rcv" || r.limit !== null, { message: "Set the limit." })
   .refine((r) => r.type !== "rcv" || r.basis.kind === "rcv", {
     message: "An RCV rule needs an RCV basis (CVA, CVI and Z with their sources).",
   });
@@ -179,6 +183,7 @@ export function evaluate(
       }
       return rcv(rule.basis.cvaPercent, rule.basis.cviPercent, zv);
     }
+    if (!rule.limit) return null;
     return "both" in rule.limit
       ? rule.limit.both
       : d === "rise"

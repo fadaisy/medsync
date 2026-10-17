@@ -612,7 +612,7 @@ export const specimenEvents = pgTable(
     check("specimen_events_kind_check", sql`${t.kind} IN ('received','rejected','receipt_undone')`),
     check(
       "specimen_events_reason_code_check",
-      sql`${t.reasonCode} IS NULL OR ${t.reasonCode} IN ('haemolysed','clotted','insufficient','unlabelled_or_mislabelled','wrong_container','delayed')`,
+      sql`${t.reasonCode} IS NULL OR ${t.reasonCode} IN ('haemolysed','clotted','insufficient','unlabelled_or_mislabelled','wrong_container','delayed','possible_wrong_sample')`,
     ),
     check("se_reject_reason", sql`(${t.kind} = 'rejected') = (${t.reasonCode} IS NOT NULL)`),
     index("specimen_events_specimen").on(t.specimenId, t.recordedAt),

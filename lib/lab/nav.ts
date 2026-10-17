@@ -39,7 +39,9 @@ export type LabNavId =
   | "partners"
   | "connections"
   | "matches"
-  | "analysers";
+  | "analysers"
+  | "setup_delta"
+  | "setup_patient_release";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -71,6 +73,9 @@ export interface LabNavFlags {
   /** Lab Phase 4 (§5): labReferral (Referrals, Partners) and labExchange (Connections, matches, analysers). */
   referral?: boolean;
   exchange?: boolean;
+  /** Lab Phase 5 (§5.5, §5.7): labDeltaChecks and patientResults. */
+  deltaChecks?: boolean;
+  patientResults?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -138,6 +143,24 @@ export const LAB_NAV: readonly LabNavItem[] = [
     group: "setup",
     visibleFor: (p, f) =>
       !!f.unitsRanges && !!(f.criticalsSetup ?? f.criticals) && p.has("lab.manage"),
+  },
+  {
+    id: "setup_delta",
+    label: "Delta checks",
+    href: "/lab/setup/delta",
+    order: 9.6,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.deltaChecks && p.has("lab.manage"),
+  },
+  {
+    id: "setup_patient_release",
+    label: "Patient release",
+    href: "/lab/setup/patient-release",
+    order: 9.7,
+    exact: false,
+    group: "setup",
+    visibleFor: (p, f) => !!f.patientResults && p.has("lab.manage"),
   },
   {
     id: "setup_criticals",

@@ -12,6 +12,7 @@ import { countFormsWaiting } from "@/lib/lab/downtime-read";
 import {
   labCatalogueV2LiveFor,
   labCriticalsLiveFor,
+  labDeltaChecksLiveFor,
   labDowntimeLiveFor,
   labEqaLiveFor,
   labEquipmentLiveFor,
@@ -25,6 +26,7 @@ import {
   labSettingsLiveFor,
   labStockLiveFor,
   labUnitsRangesLiveFor,
+  patientResultsLiveFor,
 } from "@/lib/lab/feature";
 import { countMatchesWaiting } from "@/lib/lab/match-read";
 import { navFor } from "@/lib/lab/nav";
@@ -69,6 +71,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_catalogue: null,
     setup_ranges: null,
     setup_limits: null,
+    setup_delta: null,
+    setup_patient_release: null,
     setup_criticals: null,
     setup_profiles: null,
     setup_drafts: null,
@@ -121,6 +125,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     connections: "",
     matches: `${matchesWaiting ?? 0} waiting for a match`,
     analysers: "",
+    setup_delta: "",
+    setup_patient_release: "",
     downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
@@ -141,6 +147,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     reports: emr && labReportsLiveFor(scope.hospitalId),
     referral: referral,
     exchange: emr && labExchangeLiveFor(scope.hospitalId),
+    deltaChecks: emr && labDeltaChecksLiveFor(scope.hospitalId),
+    patientResults: emr && patientResultsLiveFor(scope.hospitalId),
   }).map((i) => ({
     id: i.id,
     label: i.label,

@@ -79,6 +79,8 @@ export const REJECTION_REASONS = [
   "unlabelled_or_mislabelled",
   "wrong_container",
   "delayed",
+  // Lab Phase 5 DL-7: a delta check's outcome "recollect".
+  "possible_wrong_sample",
 ] as const;
 
 export interface CollectSpecimenInput {

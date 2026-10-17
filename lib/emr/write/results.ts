@@ -34,7 +34,7 @@ import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/sh
 import { METER_RANGE, withHivOutcome } from "@/lib/lab/bedside";
 import { componentsFor, loadConfigs } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
-import { labQcHoldLiveFor, labQcLiveFor } from "@/lib/lab/feature";
+import { labDeltaChecksLiveFor, labQcHoldLiveFor, labQcLiveFor } from "@/lib/lab/feature";
 import { qcReleasePlan, qcStatusFor } from "@/lib/lab/qc";
 import { analyteName, joinLookBackOnOverride, qcRowsFor } from "@/lib/lab/qc-store";
 import { inForce } from "@/lib/lab/signed-config";
@@ -616,6 +616,30 @@ async function writeReportVersion(
     id,
     gate?.snapshot,
   );
+  // Lab Phase 5 (DL-4, DL-6, DL-12): delta checks on every laboratory version with snapshots; an in-house release
+  // waits for a decision on each live flag (referred and bedside results are flagged, not held here).
+  if (kind === "lab" && fixed && labDeltaChecksLiveFor(actor.hospitalId)) {
+    const { evaluateDeltas, DELTA_DECISION_NEEDED } = await import("@/lib/lab/delta-store");
+    const open = await evaluateDeltas(tx, {
+      hospitalId: actor.hospitalId,
+      patientUserId: spec.patientUserId,
+      orderId: order.id,
+      reportId: id,
+      logicalId: prior?.logicalId ?? id,
+      testCode: spec.test?.code ?? null,
+      specimenType: specimen?.specimenType ?? null,
+      at: effectiveAt,
+      now,
+    });
+    if (
+      open.length &&
+      status === "final" &&
+      !spec.referred &&
+      !spec.bedside &&
+      entry.source === "lab"
+    )
+      throw new EmrWriteError("conflict", DELTA_DECISION_NEEDED);
+  }
   // QH-4: each result released past the hold joins the look-back, with the override recorded.
   for (const r of rows)
     if (gate?.overridden.has(r.conceptId ?? ""))

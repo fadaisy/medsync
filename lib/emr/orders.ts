@@ -220,6 +220,7 @@ export const REJECTION_REASON_TEXT: Record<string, string> = {
   unlabelled_or_mislabelled: "unlabelled or mislabelled",
   wrong_container: "wrong container",
   delayed: "delayed",
+  possible_wrong_sample: "possible wrong sample (delta check)",
 };
 
 /** Words for the status chip. Every state has text; colour is never the only signal. */

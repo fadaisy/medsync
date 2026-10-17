@@ -5,7 +5,8 @@
 --
 -- No limit, window or threshold ships here: every rule is entered and signed in the product with its basis.
 -- ADDITIVE and re-runnable. GATED: owner-applied (`npm run db:migrate -- 0155`).
--- Reverse: DROP TABLE public.delta_outcomes, public.delta_flags; restore the two CHECKs to their 0154/0150 lists.
+-- Reverse: DROP TABLE public.delta_outcomes, public.delta_flags; restore the three CHECKs to their 0154, 0150 and
+-- 0071 lists.
 
 CREATE TABLE IF NOT EXISTS public.delta_flags (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -67,6 +68,12 @@ ALTER TABLE public.lab_nonconformities DROP CONSTRAINT IF EXISTS lab_nonconformi
 ALTER TABLE public.lab_nonconformities ADD CONSTRAINT lab_nonconformities_source_check CHECK (source IN
   ('qc_reject','kit_qc_fail','eqa_unacceptable','temperature','lot_rejected','equipment','complaint','specimen',
    'other','referral','manifest','delta'));
+
+-- DL-7: "Possible wrong sample (delta check)" rejects the specimen through the Phase 1 rejection path.
+ALTER TABLE public.specimen_events DROP CONSTRAINT IF EXISTS specimen_events_reason_code_check;
+ALTER TABLE public.specimen_events ADD CONSTRAINT specimen_events_reason_code_check CHECK (reason_code IS NULL
+  OR reason_code IN ('haemolysed','clotted','insufficient','unlabelled_or_mislabelled','wrong_container','delayed',
+                     'possible_wrong_sample'));
 
 -- ─── Append-only, audit, RLS: the lab reads (DL-13: restricted results stay with the class's readers) ─
 DROP TRIGGER IF EXISTS delta_flags_no_mutation ON public.delta_flags;
