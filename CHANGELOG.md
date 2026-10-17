@@ -19,7 +19,7 @@ protection lead enter and sign them in the product.
 - Results back on paper with provenance, the reference lab's units and ranges, a required scan and a second check
   ([ADR 0314](docs/adr/0314-lab-results-back-provenance-ranges-scans-second-check.md),
   [ADR 0323](docs/adr/0323-lab-report-scans-private-bucket.md)); referred critical values raise the usual call
-  ([ADR 0327](docs/adr/0327-lab-referred-critical-values-checked-not-repeated.md), proposed).
+  ([ADR 0327](docs/adr/0327-lab-referred-critical-values-checked-not-repeated.md), CSO countersigned).
 - The exchange core: store before acknowledge, outbox, dead letters, MA-1 matching and the reconciliation queue
   ([ADR 0315](docs/adr/0315-exchange-store-before-acknowledge-outbox.md),
   [ADR 0316](docs/adr/0316-exchange-matching-rule-reconciliation-queue.md)); machine identity by signed JWT

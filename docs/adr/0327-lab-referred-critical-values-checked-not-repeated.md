@@ -1,6 +1,7 @@
 # ADR 0327 — A referred critical value is checked against the report, not repeated
 
-**Status:** Proposed — 2026-10-17. Built at Lab Phase 4 Step 12 within RB-5 as signed at [GATE A](../lab/phase-4/gate-a-proposal.md); the CSO is asked to countersign the check wording.
+**Status:** Accepted — 17 Oct 2026 (CSO countersigned, Fadhul). Built at Lab Phase 4 Step 12 within RB-5 as signed at
+[GATE A](../lab/phase-4/gate-a-proposal.md).
 
 ## Context
 
@@ -13,4 +14,4 @@ Phase 1 refuses to release a value past the signed critical limits without a che
 
 ## Consequences
 
-A referred critical value raises the same call and acknowledgement as an in-house one (S24, PGlite lane). **The CSO is asked to countersign this rule** (it is within RB-5 as signed, but the check wording is new).
+A referred critical value raises the same call and acknowledgement as an in-house one (S24, PGlite lane). The CSO countersigned this rule on 17 Oct 2026.

@@ -23,7 +23,7 @@ unapplied: the owner applies them in that order, from this branch's folder. ADRs
    Later versions now stay external with the referral and provenance (`lib/emr/write/results.ts`).
 2. **A referred critical value could not be released**: Phase 1 asks for a repeat, which a reference lab's result
    cannot have. Paper and electronic filing now record "checked, not repeated" for values the signed limits flag,
-   and the call runs as Phase 1's (S24). **ADR 0327 asks the CSO to countersign this rule.**
+   and the call runs as Phase 1's (S24). **ADR 0327: countersigned by the CSO, 17 Oct 2026.**
 3. **Electronic filing skipped the critical check altogether**; it now runs it, as paper does.
 4. **Connections crashed on the production driver** (a `Date` in raw SQL; PGlite accepted it). Found only by the
    harness, which runs postgres-js against the served database.
