@@ -1,3 +1,5 @@
+import type { PlaceOption } from "@/data/signup";
+
 import { formatUgPhone, isUgMobile } from "@/components/tide/field";
 
 /**
@@ -277,4 +279,15 @@ export function signupKey(random: () => number = Math.random): string {
   hex[16] = ((parseInt(hex[16], 16) & 0x3) | 0x8).toString(16);
   const h = hex.join("");
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+/**
+ * The official entry a geocoder's area name points to: the first result whose
+ * label starts with those words ("Rubaga Division" → "Rubaga Division,
+ * Kampala"). Null when nothing names it, so the patient picks by hand.
+ */
+export function autoPick(query: string, places: readonly PlaceOption[]): PlaceOption | null {
+  const want = query.trim().toLowerCase();
+  if (!want) return null;
+  return places.find((p) => p.label.toLowerCase().startsWith(want)) ?? null;
 }

@@ -1,4 +1,7 @@
+import type { PlaceOption } from "@/data/signup";
+
 import {
+  autoPick,
   buildSubmission,
   checkDob,
   formatUgPhone,
@@ -183,5 +186,25 @@ describe("steps and the key", () => {
     expect(signupKey()).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
+  });
+});
+
+describe("autoPick: the official area a location points to", () => {
+  const place = (code: string, name: string): PlaceOption => ({
+    code,
+    name,
+    label: `${name}, Kampala`,
+    path: "KCCA · Kampala",
+    level: "subcounty",
+    region: "Central",
+  });
+  const places = [place("a", "Rubaga Division"), place("b", "Kawempe Division")];
+  it("picks the entry the geocoder's words name", () => {
+    expect(autoPick("Rubaga Division", places)?.code).toBe("a");
+    expect(autoPick("  rubaga division ", places)?.code).toBe("a");
+  });
+  it("picks nothing when no entry names it, so the patient chooses", () => {
+    expect(autoPick("Nakawa", places)).toBeNull();
+    expect(autoPick("", places)).toBeNull();
   });
 });

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import {
-  Button,
   Card,
   Chip,
   ChipRow,
@@ -25,6 +24,7 @@ import {
 import { PLACE_CONSENT } from "@/data/places";
 import { searchPlaces, signupFromAppOn } from "@/data/signup";
 import {
+  autoPick,
   checkDob,
   isEmail,
   MINOR_NOTE,
@@ -200,9 +200,14 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
   const [locNote, setLocNote] = useState<string | null>(null);
   // The village words we filled in: a later pin may replace them, never what the patient typed.
   const [autoVillage, setAutoVillage] = useState<string | null>(null);
+  // The search words the phone's geocoder filled in; their single best match is picked for the patient.
+  const [autoQuery, setAutoQuery] = useState<string | null>(null);
 
   const fill = (geo: GeoWords) => {
-    if (!draft.place && geo.query) setQ(geo.query);
+    if (!draft.place && geo.query) {
+      setQ(geo.query);
+      setAutoQuery(geo.query);
+    }
     if (geo.village && (draft.village === "" || draft.village === autoVillage)) {
       const village = geo.village.slice(0, VILLAGE_MAX);
       patch({ village });
@@ -215,11 +220,11 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
     setLocNote(null);
     const at = await findMe();
     setFinding(false);
-    setMapOpen(true);
     if ("problem" in at) {
       setLocNote(at.problem);
       return;
     }
+    setMapOpen(true);
     patch({ pin: { ...at, address: null } });
     const geo = await wordsFor(at.lat, at.lng);
     if (!geo) return;
@@ -234,66 +239,49 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
     let live = true;
     const id = setTimeout(() => {
       void searchPlaces(q).then((places) => {
-        if (live) setFound({ q, places });
+        if (!live) return;
+        setFound({ q, places });
+        // Filled from the patient's own location: take the official entry that
+        // names it. It shows as chosen with "Change", so the patient still decides.
+        const best = q === autoQuery ? autoPick(q, places) : null;
+        if (best) {
+          patch({ place: { code: best.code, label: best.label } });
+          setQ("");
+          setAutoQuery(null);
+        }
       });
     }, 250);
     return () => {
       live = false;
       clearTimeout(id);
     };
-  }, [q]);
+  }, [q, autoQuery, patch]);
 
   const results = found && found.q === q && q.trim().length >= 2 ? found.places : null;
 
   return (
     <View style={{ gap: tSpace[4] }}>
       <StepHeading title="Where you live" sub="So we can show clinics near you." />
-      {mapOpen ? (
-        <View style={{ gap: tSpace[2] }}>
-          <PlaceMap
-            value={draft.pin}
-            onPick={(pick) => {
-              patch({ pin: { lat: pick.lat, lng: pick.lng, address: pick.geo?.address ?? null } });
-              if (pick.geo) fill(pick.geo);
-            }}
-          />
-          {draft.pin ? (
-            <CheckRow
-              checked={draft.pinConsent}
-              onToggle={() => patch({ pinConsent: !draft.pinConsent })}
-              title="Save this pin as my home place"
-              sub={PLACE_CONSENT.words}
-            />
+
+      <View style={{ gap: tSpace[1.5] }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        >
+          <FieldLabel>District or subcounty</FieldLabel>
+          {!draft.place ? (
+            <Press
+              onPress={() => void locateMe()}
+              disabled={finding}
+              accessibilityLabel="Use my location to fill this in"
+              style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1], minHeight: 44 }}
+            >
+              <Icon name="locate" size={16} color={t.accentText} />
+              <Text style={[tType.labelS, { color: t.accentText }]}>
+                {finding ? "Finding you…" : "Use my location"}
+              </Text>
+            </Press>
           ) : null}
         </View>
-      ) : (
-        <View style={{ flexDirection: "row", gap: tSpace[2] }}>
-          <Button
-            label="Use my location"
-            icon="locate"
-            variant="soft"
-            size="md"
-            busy={finding}
-            onPress={() => void locateMe()}
-            style={{ flex: 1 }}
-          />
-          <Button
-            label="Pin it on a map"
-            icon="mapPin"
-            variant="soft"
-            size="md"
-            onPress={() => setMapOpen(true)}
-            style={{ flex: 1 }}
-          />
-        </View>
-      )}
-      {locNote ? (
-        <Text accessibilityLiveRegion="polite" style={[tType.bodyS, { color: t.ink2 }]}>
-          {locNote}
-        </Text>
-      ) : null}
-      <View style={{ gap: tSpace[1.5] }}>
-        <FieldLabel>District or subcounty</FieldLabel>
         {draft.place ? (
           <View
             style={{
@@ -322,23 +310,32 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
           <>
             <TextField
               value={q}
-              onChangeText={setQ}
+              onChangeText={(v) => {
+                setQ(v);
+                setAutoQuery(null);
+              }}
               placeholder="Search, e.g. Kawempe"
               accessibilityLabel="Search your district or subcounty"
               inputProps={{ autoCorrect: false, returnKeyType: "search" }}
             />
+            {locNote ? (
+              <Text accessibilityLiveRegion="polite" style={[tType.bodyS, { color: t.ink2 }]}>
+                {locNote}
+              </Text>
+            ) : null}
             {!signupFromAppOn ? (
               <Note tone="plain">
                 Sign-up from the app is not switched on yet, so the place search is off.
               </Note>
             ) : results === null ? (
               <Text style={[tType.bodyS, { color: t.ink3 }]}>
-                Type at least 2 letters of your district or subcounty.
+                Type at least 2 letters, or use your location.
               </Text>
             ) : results.length === 0 ? (
               <Text style={[tType.bodyS, { color: t.ink3 }]}>No match. Try the district name.</Text>
             ) : (
               <View style={{ gap: tSpace[1.5] }}>
+                <Text style={[tType.bodyS, { color: t.ink3 }]}>Tap your area to choose it.</Text>
                 {results.map((p) => (
                   <Press
                     key={p.code}
@@ -371,19 +368,95 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
           </>
         )}
       </View>
-      <View style={{ gap: tSpace[1] }}>
-        <TextField
-          label="Village or address"
-          optional
-          value={draft.village}
-          onChangeText={(v) => patch({ village: v })}
-          placeholder="e.g. Bwaise II, near the market"
-          maxLength={VILLAGE_MAX}
-          multiline
-        />
-        <Text style={[tType.micro, { color: t.ink3, alignSelf: "flex-end" }]}>
-          {draft.village.length}/{VILLAGE_MAX}
-        </Text>
+
+      <TextField
+        label="Village or address"
+        optional
+        value={draft.village}
+        onChangeText={(v) => patch({ village: v })}
+        placeholder="e.g. Bwaise II, near the market"
+        maxLength={VILLAGE_MAX}
+      />
+
+      <View style={{ gap: tSpace[2] }}>
+        <FieldLabel optional>Pin your home</FieldLabel>
+        {mapOpen ? (
+          <>
+            <PlaceMap
+              value={draft.pin}
+              height={180}
+              onPick={(pick) => {
+                patch({
+                  pin: { lat: pick.lat, lng: pick.lng, address: pick.geo?.address ?? null },
+                });
+                if (pick.geo) fill(pick.geo);
+              }}
+            />
+            {draft.pin ? (
+              <Press
+                onPress={() => patch({ pinConsent: !draft.pinConsent })}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: draft.pinConsent }}
+                accessibilityLabel={`Save as my home place. ${PLACE_CONSENT.words}`}
+                haptic={false}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: tSpace[2.5],
+                  minHeight: 44,
+                }}
+              >
+                <View
+                  style={{
+                    width: 24,
+                    height: 24,
+                    marginTop: 1,
+                    borderRadius: 7,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: draft.pinConsent ? t.primary : t.surface,
+                    borderWidth: draft.pinConsent ? 0 : 2,
+                    borderColor: t.lineStrong,
+                  }}
+                >
+                  {draft.pinConsent ? (
+                    <Icon name="check" size={15} color={t.onPrimary} strokeWidth={3} />
+                  ) : null}
+                </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={[tType.labelS, { color: t.ink }]}>Save as my home place</Text>
+                  <Text style={[tType.bodyS, { fontSize: 13, color: t.ink2 }]}>
+                    {PLACE_CONSENT.words}
+                  </Text>
+                </View>
+              </Press>
+            ) : null}
+          </>
+        ) : (
+          <Press
+            onPress={() => setMapOpen(true)}
+            accessibilityLabel="Pin your home on a map"
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: tSpace[3],
+              minHeight: 56,
+              paddingHorizontal: tSpace[3.5],
+              borderRadius: tRadius.card,
+              backgroundColor: t.surface,
+              boxShadow: t.shadow.card,
+            }}
+          >
+            <Icon name="mapPin" size={20} color={t.accentText} />
+            <View style={{ flex: 1 }}>
+              <Text style={[tType.labelS, { color: t.ink }]}>Pin it on a map</Text>
+              <Text style={[tType.bodyS, { fontSize: 13, color: t.ink2 }]}>
+                Helps a health worker find you
+              </Text>
+            </View>
+            <Icon name="forward" size={18} color={t.ink3} />
+          </Press>
+        )}
       </View>
     </View>
   );

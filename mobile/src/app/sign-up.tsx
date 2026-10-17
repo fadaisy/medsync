@@ -1,6 +1,6 @@
 import type { SignupNotice } from "@/data/signup";
 import type { SignupDraft, Step } from "@/features/auth/rules";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Alert } from "react-native";
 
@@ -55,7 +55,11 @@ export default function SignUpScreen() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  const patch = (next: Partial<SignupDraft>) => setDraft((d) => ({ ...d, ...next }));
+  // Stable, so a step can list it in an effect without re-running it every render.
+  const patch = useCallback(
+    (next: Partial<SignupDraft>) => setDraft((d) => ({ ...d, ...next })),
+    [],
+  );
 
   // Read up front so step 4 shows the live text at once; its version and
   // hash are the ones the answer is bound to.

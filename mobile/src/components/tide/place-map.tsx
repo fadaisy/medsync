@@ -12,7 +12,7 @@ import { Press } from "@/components/tide/press";
 import { Note } from "@/components/tide/primitives";
 import { coordWords, geoWords } from "@/data/places";
 import { useTide } from "@/theme/theme";
-import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+import { tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * react-native-maps has no web build, and the lead previews screens on web,
@@ -57,7 +57,7 @@ const CLOSE = 0.008;
 export function PlaceMap({
   value,
   onPick,
-  height = 240,
+  height = 200,
 }: {
   /** Where the map opens; afterwards the map is the patient's to move. */
   value: { lat: number; lng: number } | null;
@@ -75,6 +75,8 @@ export function PlaceMap({
   const [address, setAddress] = useState<string | null>(null);
   // The blue dot only after the patient asked: showing it earlier makes the map ask for location itself.
   const [located, setLocated] = useState(false);
+  // Satellite with road names by default: a home is easier to find from above. Free on both maps.
+  const [satellite, setSatellite] = useState(true);
 
   const choose = (lat: number, lng: number) => {
     onPick({ lat, lng, geo: null });
@@ -116,7 +118,6 @@ export function PlaceMap({
   const MapView = Maps.default;
 
   const coords = value ? coordWords(value.lat, value.lng) : null;
-  const status = locating ? "Finding you…" : value ? "Pin set" : "Move the map to set the pin";
 
   return (
     <View style={{ gap: tSpace[1.5] }}>
@@ -143,6 +144,7 @@ export function PlaceMap({
                   }
                 : START
             }
+            mapType={satellite ? "hybrid" : "standard"}
             userInterfaceStyle={t.scheme}
             showsUserLocation={located}
             showsMyLocationButton={false}
@@ -173,13 +175,12 @@ export function PlaceMap({
           </Svg>
         </View>
         <Press
-          onPress={() => void locate()}
-          disabled={locating}
-          accessibilityLabel="Use my location"
+          onPress={() => setSatellite((v) => !v)}
+          accessibilityLabel={satellite ? "Show the street map" : "Show the satellite view"}
           style={{
             position: "absolute",
-            right: 10,
-            bottom: 10,
+            left: 10,
+            top: 10,
             minHeight: 44,
             paddingHorizontal: tSpace[3],
             borderRadius: tRadius.pill,
@@ -190,40 +191,42 @@ export function PlaceMap({
             boxShadow: t.shadow.float,
           }}
         >
-          <Icon name="locate" size={18} color={t.accentText} />
-          <Text style={[tType.labelS, { color: t.ink }]}>Use my location</Text>
+          <Icon name={satellite ? "mapPin" : "globe"} size={16} color={t.ink} />
+          <Text style={[tType.labelS, { color: t.ink }]}>{satellite ? "Map" : "Satellite"}</Text>
         </Press>
-        <View
-          pointerEvents="none"
+        <Press
+          onPress={() => void locate()}
+          disabled={locating}
+          accessibilityLabel={locating ? "Finding you" : "Use my location"}
           style={{
             position: "absolute",
-            left: 10,
+            right: 10,
             top: 10,
-            minHeight: 28,
-            paddingHorizontal: 10,
-            borderRadius: tRadius.pill,
-            backgroundColor: t.surface,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            alignItems: "center",
             justifyContent: "center",
-            boxShadow: t.shadow.card,
+            backgroundColor: t.surface,
+            boxShadow: t.shadow.float,
           }}
         >
-          <Text
-            accessibilityLiveRegion="polite"
-            style={[tType.micro, { fontFamily: tFont.semibold, color: t.ink }]}
-          >
-            {status}
-          </Text>
-        </View>
+          <Icon name="locate" size={20} color={locating ? t.ink3 : t.accentText} />
+        </Press>
       </View>
-      {address ? <Text style={[tType.bodyS, { color: t.ink2 }]}>{address}</Text> : null}
-      {coords ? (
-        <Text
-          style={{ fontFamily: tFont.mono, fontSize: 12, color: t.ink3 }}
-          accessibilityLabel={`Pin at ${coords.spoken}`}
-        >
-          {coords.text}
-        </Text>
-      ) : null}
+      <Text
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={coords ? `Pin at ${coords.spoken}. ${address ?? ""}` : undefined}
+        style={[tType.bodyS, { color: address ? t.ink : t.ink3 }]}
+      >
+        {locating
+          ? "Finding you…"
+          : address
+            ? address
+            : value
+              ? "Pin placed"
+              : "Move the map so the pin sits on your place."}
+      </Text>
       {locNote ? (
         <Text accessibilityLiveRegion="polite" style={[tType.bodyS, { color: t.ink2 }]}>
           {locNote}
