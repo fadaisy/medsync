@@ -46,6 +46,12 @@ export function LabShell({
               <LabSidebarNav items={nav.filter((i) => i.group === "reports")} />
             </>
           ) : null}
+          {nav.some((i) => i.group === "exchange") ? (
+            <>
+              <SidebarGroupLabel>Exchange</SidebarGroupLabel>
+              <LabSidebarNav items={nav.filter((i) => i.group === "exchange")} />
+            </>
+          ) : null}
           {nav.some((i) => i.group === "setup") ? (
             <>
               <SidebarGroupLabel>{LAB.nav.setup}</SidebarGroupLabel>

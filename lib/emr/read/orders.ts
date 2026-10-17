@@ -58,10 +58,12 @@ import {
   labHmisLiveFor,
   labOneMenuLiveFor,
   labPaymentLiveFor,
+  labReferralLiveFor,
 } from "@/lib/lab/feature";
 import { needsHivPurpose } from "@/lib/lab/hiv-purpose";
 import { currentPayment } from "@/lib/lab/one-menu";
 import { menuToday } from "@/lib/lab/one-menu-read";
+import { referralLinesForOrders } from "@/lib/lab/referral-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { entryComponents } from "./results";
 
@@ -466,6 +468,23 @@ export async function loadEncounterOrders(
       };
   }
 
+  // Lab Phase 4 (RF-11, §5.5): a referred order says where it went, when it is expected, overdue or rejected.
+  if (labReferralLiveFor(actor.hospitalId)) {
+    // Access to this encounter is already established (identityHead); the partner's name is not a clinician's
+    // row under RLS, so the lines are read on the server's connection for these orders only.
+    const conn = opts.database ?? ((await import("@/db")).db as unknown as EmrDb);
+    const lines = await conn.transaction((tx) =>
+      referralLinesForOrders(
+        tx,
+        actor.hospitalId,
+        orders.filter((o) => o.kind === "lab").map((o) => o.id),
+      ),
+    );
+    for (const o of orders) {
+      const l = lines.get(o.id);
+      if (l) Object.assign(o, { statusText: l.text, caution: o.caution || l.caution });
+    }
+  }
   await logRead(actor, patientUserId, head.basis, `emr_orders_${actor.surface}`, opts.database);
   return {
     encounterId,

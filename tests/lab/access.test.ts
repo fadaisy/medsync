@@ -17,7 +17,7 @@ const perms = (cadreCode: string | null, headOf = noHead) =>
   [...labAccess({ cadreCode, headOf }).permissions].sort();
 
 describe("lab access", () => {
-  it("LA-1: eleven permissions, by name (Phase 3 §4 adds five)", () => {
+  it("LA-1: fifteen permissions, by name (Phase 3 §4 adds five, Phase 4 §4 four)", () => {
     expect(LAB_PERMISSIONS).toEqual([
       "lab.view",
       "lab.collect",
@@ -30,6 +30,10 @@ describe("lab access", () => {
       "lab.eqa.manage",
       "lab.hmis.check",
       "poct.assess",
+      "lab.refer",
+      "lab.refer.result",
+      "lab.match.resolve",
+      "lab.exchange.manage",
     ]);
   });
 

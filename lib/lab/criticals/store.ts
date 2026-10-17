@@ -644,7 +644,17 @@ function releaseRefusal(errors: readonly string[]): string {
  */
 export async function alertAfterRelease(
   ctx: WriteCtx,
-  input: Omit<ReleaseAlertInput, "evaluations"> & { orderId: string },
+  {
+    autoCheck,
+    ...input
+  }: Omit<ReleaseAlertInput, "evaluations"> & {
+    orderId: string;
+    /**
+     * Lab Phase 4 RB-5: a referred result cannot be repeated here, so each value the signed limits flag takes
+     * this check (checked against their report, not repeated) instead of one typed by hand.
+     */
+    autoCheck?: Omit<MarkInput, "conceptId">;
+  },
 ) {
   const evaluations = (await unitsRangesLive(ctx.actor.hospitalId))
     ? await evaluateReport(ctx.tx, {
@@ -654,8 +664,14 @@ export async function alertAfterRelease(
         collectedAt: await collectedAtFor(ctx.tx, input.orderId, ctx.now),
       })
     : undefined;
+  const flagged = autoCheck
+    ? Object.entries(evaluations ?? {})
+        .filter(([c, e]) => e?.kind === "critical" && !input.marks.some((m) => m.conceptId === c))
+        .map(([conceptId]) => ({ conceptId, ...autoCheck }))
+    : [];
   return createAlertOnRelease(ctx, {
     ...input,
+    marks: [...input.marks, ...flagged],
     clientKey: `${input.clientKey}:alert`,
     ...(evaluations ? { evaluations } : {}),
   });

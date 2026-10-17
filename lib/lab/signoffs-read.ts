@@ -32,6 +32,12 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   competency_validity: "Bedside competency validity",
   hmis_mapping: "HMIS 105 mapping",
   register_config: "Daily register columns",
+  partner_tests: "Partner's tests and turnaround",
+  partner_packing: "Packing checklist",
+  partner_legal: "Partner's legal record",
+  partner_fields: "Fields sent to a partner",
+  referral_ops: "Referral settings (operational)",
+  referral_wording: "High-risk referral wording",
 };
 
 const author = alias(users, "author");
@@ -128,6 +134,18 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return `${key} · ${(p.rows as unknown[]).length} rows mapped`;
     case "register_config":
       return `${key} · ${(p.columns as unknown[]).length} columns`;
+    case "partner_tests":
+      return `${(p.tests as unknown[]).length} tests`;
+    case "partner_packing":
+      return `${String(p.category)} · ${(p.items as unknown[]).length} items`;
+    case "partner_legal":
+      return `basis ${String(p.basis).replace(/_/g, " ")}`;
+    case "partner_fields":
+      return `${(p.fields as unknown[]).length} fields${p.clinicalQuestion ? " · clinical question" : ""}`;
+    case "referral_ops":
+      return `presence ${String(p.presenceMinutes)} min`;
+    case "referral_wording":
+      return String(p.procedureRef);
   }
 }
 
@@ -249,5 +267,23 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
       return [summary(kind, p), `Form hash: ${p.formHash}`];
     case "register_config":
       return (p.columns as { label: string }[]).map((c, i) => `Column ${i + 1}: ${c.label}`);
+    case "partner_tests":
+      return (
+        p.tests as {
+          testCode: string;
+          theirCode: string;
+          turnaround?: { value: number; unit: string };
+        }[]
+      ).map(
+        (t) =>
+          `${t.testCode} → ${t.theirCode} · ${t.turnaround ? `${t.turnaround.value} ${t.turnaround.unit.replace("_", " ")}` : "turnaround not stated"}`,
+      );
+    case "partner_packing":
+      return (p.items as { words: string }[]).map((i, n) => `Item ${n + 1}: ${i.words}`);
+    case "partner_legal":
+    case "partner_fields":
+    case "referral_ops":
+    case "referral_wording":
+      return [summary(kind, p)];
   }
 }

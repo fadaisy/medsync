@@ -473,3 +473,90 @@ export function hmisReminder(
   const previous = addDays(`${today.slice(0, 7)}-01`, -1).slice(0, 7);
   return signedMonths.includes(previous) ? null : previous;
 }
+
+// ─── HM-14..HM-17: section 10.4 from referral records (Lab Phase 4 §6.9) ───────────────
+
+export const REFERRED = "No. of Specimen Referred";
+export const AVERAGE_TAT = "Average Turn Around Time (Days)";
+export const PENDING = "No. of Pending Results/Feedback";
+
+export interface HmisReferralRecord {
+  referralId: string;
+  hospitalId: string;
+  testCodes: readonly string[];
+  routine: boolean;
+  state: string;
+  /** Handed over (RF-5); null while still packed. */
+  sentAt: Date | null;
+  completedAt: Date | null;
+  /** The last state change; for "terminal by the end of the month". */
+  stateAt: Date | null;
+}
+
+const TERMINAL = new Set(["completed", "failed", "lost", "cancelled", "rejected"]);
+
+/**
+ * HM-14: per 10.4 row of the signed mapping (its `sources` name the tests): number referred = referrals handed
+ * over in the month for those tests; average turnaround = the mean of (result back − handed over), in days, for
+ * referrals completed in the month; pending = handed over and not terminal at the end of the month. HM-17:
+ * outbreak and cancelled referrals are left out; a rejected referral counts once as referred. Every cell carries
+ * the referral ids behind it (HM-11). The turnaround definition is the Division of Health Information's to
+ * confirm (HM-15): the form's column says days, and this counts elapsed days to two decimals.
+ */
+export function referralCells104(o: {
+  hospitalId: string;
+  month: string;
+  timeZone: string;
+  mapping: HmisMapping;
+  /** The 10.4 row codes on the form. */
+  rows: readonly string[];
+  referrals: readonly HmisReferralRecord[];
+}): Record<string, Cell> {
+  const inMonth = (at: Date | null) => !!at && dayOf(at, o.timeZone).startsWith(o.month);
+  const [y, m] = o.month.split("-").map(Number) as [number, number];
+  const lastDay = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+  const monthEnd = endOfDay(lastDay, o.timeZone);
+  const cells: Record<string, Cell> = {};
+  for (const code of o.rows) {
+    const tests = new Set(
+      (o.mapping.rows.find((r) => r.code === code)?.sources ?? []).map((s) => s.testCode),
+    );
+    const mine = o.referrals.filter(
+      (r) =>
+        r.hospitalId === o.hospitalId &&
+        r.routine &&
+        r.state !== "cancelled" &&
+        r.testCodes.some((t) => tests.has(t)),
+    );
+    const sent = mine.filter((r) => inMonth(r.sentAt));
+    const done = mine.filter((r) => r.state === "completed" && r.sentAt && inMonth(r.completedAt));
+    const pending = mine.filter(
+      (r) =>
+        r.sentAt &&
+        r.sentAt < monthEnd &&
+        !(TERMINAL.has(r.state) && r.stateAt && r.stateAt < monthEnd),
+    );
+    const days = done.map((r) => (r.completedAt!.getTime() - r.sentAt!.getTime()) / 86_400_000);
+    cells[cellKey(code, REFERRED)] = { value: sent.length, sources: sent.map((r) => r.referralId) };
+    cells[cellKey(code, AVERAGE_TAT)] = {
+      value: days.length
+        ? Math.round((days.reduce((a, b) => a + b, 0) / days.length) * 100) / 100
+        : null,
+      sources: done.map((r) => r.referralId),
+    };
+    cells[cellKey(code, PENDING)] = {
+      value: pending.length,
+      sources: pending.map((r) => r.referralId),
+    };
+  }
+  return cells;
+}
+
+/**
+ * HM-16: records replace the hand-entered 10.4 cells only from the first month the laboratory lead declares
+ * referral tracking complete (signed `referral_ops.hmis104RecordsFrom`, "YYYY-MM"): the repo keeps no history of
+ * when a flag was switched on, so the lead says it rather than MedSync guessing.
+ */
+export function recordsCover104(month: string, recordsFrom: string | null | undefined): boolean {
+  return !!recordsFrom && month >= recordsFrom;
+}

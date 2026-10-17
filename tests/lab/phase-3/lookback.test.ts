@@ -174,7 +174,11 @@ describe("nonconformities (§6.8)", () => {
       "eqa_unacceptable",
       "temperature",
       "lot_rejected",
+      // Lab Phase 4 (RF-10, MF-3): a referred specimen lost, a manifest received with a discrepancy.
+      "referral",
+      "manifest",
     ]);
+    expect(openAutomatic("referral", "lead-1").testingHalted).toBe(false);
     expect(openAutomatic("qc_reject", "lead-1")).toEqual({
       source: "qc_reject",
       owner: "lead-1",

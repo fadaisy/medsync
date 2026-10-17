@@ -1,0 +1,130 @@
+{
+  "p01-to-refer": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p01-to-refer-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p02-manifest-print": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p02-manifest-print-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p03-referrals": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p03-referrals-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p04-referral-panel": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p04-referral-panel-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p05-result-back": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p05-result-back-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p06-matches": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p06-matches-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p07-connections": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p07-connections-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p08-analysers": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p08-analysers-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p09-partners": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p09-partners-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p10-governance-dp": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p10-governance-dp-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p11-governance-ipc": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p11-governance-ipc-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p12-doctor-results": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "p12-doctor-results-390": {
+    "consoleErrors": [],
+    "axe": [],
+    "hscroll": false
+  },
+  "d07-connections-dark": {
+    "consoleErrors": [],
+    "axe": []
+  },
+  "d03-referrals-dark": {
+    "consoleErrors": [],
+    "axe": []
+  }
+}
