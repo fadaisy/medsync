@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { XIcon } from "lucide-react";
 
+import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { planAspect, PlanView } from "@/components/wards/plan/plan-view";
 import { PlanZoomControls, PlanZoomFrame, usePlanZoom } from "@/components/wards/plan/plan-zoom";
@@ -516,6 +517,9 @@ function BedPanel({
               <span className="text-mono-s text-ink-600 font-mono">
                 {bed.patient.mrn ?? "No MRN"}
               </span>
+              {bed.ipc?.map((f) => (
+                <StatusWord key={f} tone="caution">{`Infection prevention: ${f}`}</StatusWord>
+              ))}
             </>
           ) : (
             <span className="text-body-s text-ink-600">Occupied.</span>

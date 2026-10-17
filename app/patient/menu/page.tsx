@@ -6,6 +6,7 @@ import { LogOutIcon, UsersIcon } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
+import { patientResultsLiveFor } from "@/lib/lab/feature";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
 import { PatientPageHeader } from "../_components/page-header";
@@ -79,6 +80,18 @@ export default async function PatientMenuPage() {
       tint: "brand",
       soon: true,
     },
+    // Lab Phase 5 (§5.1): only where the hospital has switched results on.
+    ...(scope.primaryHospitalId && patientResultsLiveFor(scope.primaryHospitalId)
+      ? [
+          {
+            href: "/patient/results",
+            label: "Results",
+            sub: "Lab results your doctor has seen",
+            iconKey: "activity" as const,
+            tint: "teal" as const,
+          },
+        ]
+      : []),
     {
       href: "/patient/care",
       label: "My care",

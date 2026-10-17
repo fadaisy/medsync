@@ -21,7 +21,9 @@ export type NcSource =
   | "other"
   // Lab Phase 4 (RF-10, MF-3): a referred specimen marked lost; a manifest received with a discrepancy.
   | "referral"
-  | "manifest";
+  | "manifest"
+  // Lab Phase 5 (DL-7): a delta check's outcome "mislabel confirmed".
+  | "delta";
 
 /** NC-1: the sources MedSync opens by itself, with the laboratory lead as owner. */
 export const AUTOMATIC_SOURCES: readonly NcSource[] = [
@@ -32,6 +34,7 @@ export const AUTOMATIC_SOURCES: readonly NcSource[] = [
   "lot_rejected",
   "referral",
   "manifest",
+  "delta",
 ];
 
 /** NC-2: `NC-2026-007`. */

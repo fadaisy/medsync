@@ -340,6 +340,8 @@ async function drainDispatches(sender: SmsSender, now: Date) {
       and(
         inArray(notificationDispatches.state, ["queued", "held"]),
         lte(notificationDispatches.scheduledAt, now),
+        // Lab Phase 5: results-ready rows have their own sender (lib/notify/results-ready-store.ts).
+        sql`${notificationDispatches.kind} <> 'results_ready'`,
       ),
     )
     .orderBy(asc(notificationDispatches.scheduledAt))

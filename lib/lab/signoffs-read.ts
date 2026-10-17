@@ -38,6 +38,16 @@ export const KIND_WORDS: Record<ConfigKind, string> = {
   partner_fields: "Fields sent to a partner",
   referral_ops: "Referral settings (operational)",
   referral_wording: "High-risk referral wording",
+  patient_release: "What patients see, and when",
+  plain_words: "Plain words for patients",
+  minors_rule: "Patients under 18",
+  sms_template: "Results-ready SMS",
+  patient_floor_additions: "Tests never shown to patients (additions)",
+  results_consent_notice: "Results consent wording",
+  delta_rule: "Delta check rule",
+  panel_rule: "Panel delta rule",
+  pattern_rule: "Pattern rule",
+  ipc_alert_entry: "IPC alert list entry",
 };
 
 const author = alias(users, "author");
@@ -146,6 +156,25 @@ function summary(kind: ConfigKind, p: Record<string, unknown>, key = ""): string
       return `presence ${String(p.presenceMinutes)} min`;
     case "referral_wording":
       return String(p.procedureRef);
+    case "patient_release":
+      return `hold up to ${p.holdMaxDays} days · aged after ${p.agedWindowDays} days`;
+    case "plain_words":
+    case "sms_template":
+      return key;
+    case "minors_rule":
+      return `opinion ${String(p.legalOpinionRef)}`;
+    case "patient_floor_additions":
+      return (p.testCodes as string[]).join(", ");
+    case "results_consent_notice":
+      return `version ${String(p.version)}`;
+    case "delta_rule":
+      return `${String(p.concept)} · ${String(p.type).replace("_", " ")} · ${(p.basis as { kind: string }).kind.replace(/_/g, " ")} basis`;
+    case "panel_rule":
+      return `${String(p.testCode)} · ${String(p.k)} of ${(p.components as unknown[]).length}`;
+    case "pattern_rule":
+      return String(p.name);
+    case "ipc_alert_entry":
+      return String(p.condition);
   }
 }
 
@@ -284,6 +313,16 @@ function lines(kind: ConfigKind, p: Record<string, unknown>): string[] {
     case "partner_fields":
     case "referral_ops":
     case "referral_wording":
+    case "patient_release":
+    case "plain_words":
+    case "minors_rule":
+    case "sms_template":
+    case "patient_floor_additions":
+    case "results_consent_notice":
+    case "delta_rule":
+    case "panel_rule":
+    case "pattern_rule":
+    case "ipc_alert_entry":
       return [summary(kind, p)];
   }
 }

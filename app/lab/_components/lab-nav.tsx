@@ -13,6 +13,8 @@ import {
   CheckCheckIcon,
   ClipboardListIcon,
   CpuIcon,
+  DatabaseIcon,
+  DiffIcon,
   FileClockIcon,
   FileSearchIcon,
   FileSpreadsheetIcon,
@@ -30,6 +32,7 @@ import {
   SlidersHorizontalIcon,
   TestTubesIcon,
   TruckIcon,
+  UserRoundCheckIcon,
   WrenchIcon,
 } from "lucide-react";
 
@@ -52,6 +55,9 @@ const ICON = {
   setup_catalogue: TestTubesIcon,
   setup_ranges: RulerIcon,
   setup_limits: GaugeIcon,
+  setup_delta: DiffIcon,
+  setup_patient_release: UserRoundCheckIcon,
+  setup_demo: DatabaseIcon,
   downtime: FileClockIcon,
   setup_criticals: SettingsIcon,
   setup_profiles: CpuIcon,

@@ -3,6 +3,7 @@ import { CRITICALS_COPY_STATUS } from "@/content/lab-criticals";
 import { LAB2_COPY_STATUS } from "@/content/lab-phase-2";
 import { LAB3_COPY_STATUS } from "@/content/lab-phase-3";
 import { LAB4_COPY_STATUS } from "@/content/lab-phase-4";
+import { LAB5_COPY_STATUS } from "@/content/lab-phase-5";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -107,3 +108,22 @@ export const labReferralLiveFor = (h: string) =>
   labUnitsRangesLiveFor(h);
 export const labExchangeLiveFor = (h: string) =>
   phase4(process.env.LAB_EXCHANGE, "lab_exchange", h) && labReferralLiveFor(h);
+
+/**
+ * Lab Phase 5 (beyond a standard LIS; gate-a-proposal §2 A17, D-LAB5-26): per-hospital flags, off by default, each
+ * off in production while the Phase 5 copy is a draft. Delta checks and the IPC feed read the units-and-ranges
+ * snapshots; patient results need them too (the range line), and the results-ready SMS needs patient results.
+ * Autoverification and the microbiology feed have no flag: Steps 9 and 10 are gap reports. With all four off,
+ * behaviour is Phase 4's.
+ */
+const phase5 = (v: string | undefined, tag: string, h: string) =>
+  workspaceLiveFor(v, h, [LAB5_COPY_STATUS], tag) &&
+  labWorkspaceLiveFor(h) &&
+  labUnitsRangesLiveFor(h);
+export const labDeltaChecksLiveFor = (h: string) =>
+  phase5(process.env.LAB_DELTA_CHECKS, "lab_delta_checks", h);
+export const ipcLabFeedLiveFor = (h: string) => phase5(process.env.IPC_LAB_FEED, "ipc_lab_feed", h);
+export const patientResultsLiveFor = (h: string) =>
+  phase5(process.env.PATIENT_RESULTS, "patient_results", h);
+export const patientResultsSmsLiveFor = (h: string) =>
+  phase5(process.env.PATIENT_RESULTS_SMS, "patient_results_sms", h) && patientResultsLiveFor(h);

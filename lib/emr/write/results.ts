@@ -34,7 +34,12 @@ import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/sh
 import { METER_RANGE, withHivOutcome } from "@/lib/lab/bedside";
 import { componentsFor, loadConfigs } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
-import { labQcHoldLiveFor, labQcLiveFor } from "@/lib/lab/feature";
+import {
+  ipcLabFeedLiveFor,
+  labDeltaChecksLiveFor,
+  labQcHoldLiveFor,
+  labQcLiveFor,
+} from "@/lib/lab/feature";
 import { qcReleasePlan, qcStatusFor } from "@/lib/lab/qc";
 import { analyteName, joinLookBackOnOverride, qcRowsFor } from "@/lib/lab/qc-store";
 import { inForce } from "@/lib/lab/signed-config";
@@ -117,7 +122,7 @@ function entryFor(ctx: WriteCtx): Entry {
 const invalid = (m: string) => new EmrWriteError("invalid", m);
 
 /** The current (unsuperseded) version of a report of this patient here. */
-async function currentReport(
+export async function currentReport(
   ctx: WriteCtx,
   patientUserId: string,
   reportId: string,
@@ -616,6 +621,53 @@ async function writeReportVersion(
     id,
     gate?.snapshot,
   );
+  // Lab Phase 5 (DL-4, DL-6, DL-12): delta checks on every laboratory version with snapshots; an in-house release
+  // waits for a decision on each live flag (referred and bedside results are flagged, not held here).
+  if (kind === "lab" && fixed && labDeltaChecksLiveFor(actor.hospitalId)) {
+    const { evaluateDeltas, DELTA_DECISION_NEEDED } = await import("@/lib/lab/delta-store");
+    const open = await evaluateDeltas(tx, {
+      hospitalId: actor.hospitalId,
+      patientUserId: spec.patientUserId,
+      orderId: order.id,
+      reportId: id,
+      logicalId: prior?.logicalId ?? id,
+      testCode: spec.test?.code ?? null,
+      specimenType: specimen?.specimenType ?? null,
+      at: effectiveAt,
+      now,
+    });
+    if (
+      open.length &&
+      status === "final" &&
+      !spec.referred &&
+      !spec.bedside &&
+      entry.source === "lab"
+    )
+      throw new EmrWriteError("conflict", DELTA_DECISION_NEEDED);
+  }
+  // Lab Phase 5 (IC-2): a released laboratory result that matches the signed alert list reaches infection
+  // prevention in the same transaction; an amendment that removes the answer closes it (S19).
+  if (
+    kind === "lab" &&
+    status !== "preliminary" &&
+    status !== "cancelled" &&
+    ipcLabFeedLiveFor(actor.hospitalId)
+  ) {
+    const { raiseIpcAlerts } = await import("@/lib/ipc/store");
+    await raiseIpcAlerts(tx, {
+      hospitalId: actor.hospitalId,
+      patientUserId: spec.patientUserId,
+      reportId: id,
+      logicalId: prior?.logicalId ?? id,
+      encounterId: order.encounterId,
+      testCode: spec.test?.code ?? null,
+      restrictedClass: spec.test?.restrictedClass ?? null,
+      components: rows.map((r) => ({ concept: r.conceptId ?? "", answer: r.valueCode ?? null })),
+      specimenAt: specimen?.collectedAt ?? null,
+      releasedAt: now,
+      amended: status === "amended" || status === "corrected",
+    });
+  }
   // QH-4: each result released past the hold joins the look-back, with the override recorded.
   for (const r of rows)
     if (gate?.overridden.has(r.conceptId ?? ""))
@@ -995,7 +1047,7 @@ export interface AcknowledgeResultsInput {
  * department at this hospital, or whoever the result was forwarded to (brief W2); a cover rota
  * replaces the department rule when one exists.
  */
-async function requireResponsible(
+export async function requireResponsible(
   ctx: WriteCtx,
   report: ReportRow,
   acks: readonly { forwardedToUserId: string | null }[],

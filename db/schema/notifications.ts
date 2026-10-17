@@ -92,7 +92,7 @@ export const notificationDispatches = pgTable(
     costCurrency: text("cost_currency"),
     /** `${kind}:${related_kind}:${related_id}:${suffix}` — a retried writer ON CONFLICT DO NOTHING. */
     idempotencyKey: text("idempotency_key").notNull(),
-    /** 'appointment' | 'waitlist_entry' | 'clinic_session' | 'intake' | 'inbound_sms' */
+    /** 'appointment' | 'waitlist_entry' | 'clinic_session' | 'intake' | 'inbound_sms' | 'patient' */
     relatedKind: text("related_kind").notNull(),
     relatedId: uuid("related_id").notNull(),
     /** Ids only — never a name, never a phone. */
@@ -103,7 +103,7 @@ export const notificationDispatches = pgTable(
   (t) => [
     check(
       "notification_dispatches_kind_check",
-      sql`${t.kind} IN ('booking_receipt','confirmation_request','reminder','arrival_window','waitlist_offer','session_cancelled','window_shifted','position_called','payment','deterioration_flag','unconfirmed_release','sms_reply')`,
+      sql`${t.kind} IN ('booking_receipt','confirmation_request','reminder','arrival_window','waitlist_offer','session_cancelled','window_shifted','position_called','payment','deterioration_flag','unconfirmed_release','sms_reply','results_ready')`,
     ),
     check(
       "notification_dispatches_recipient_check",
@@ -120,7 +120,7 @@ export const notificationDispatches = pgTable(
     ),
     check(
       "notification_dispatches_related_kind_check",
-      sql`${t.relatedKind} IN ('appointment','waitlist_entry','clinic_session','intake','inbound_sms')`,
+      sql`${t.relatedKind} IN ('appointment','waitlist_entry','clinic_session','intake','inbound_sms','patient')`,
     ),
     unique("notification_dispatches_idempotency_unique").on(t.idempotencyKey),
     index("notification_dispatches_dispatcher_idx")

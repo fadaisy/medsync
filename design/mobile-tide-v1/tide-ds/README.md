@@ -29,18 +29,19 @@ Tide sits beside **MedSync Chroma**, the dense staff system used on the web. The
 
 Four jobs. Every colour belongs to one.
 
-| Job | Tokens | Where |
-| --- | --- | --- |
-| Ground | `bg`, `surface`, `surface-raised`, `surface-sunken`, `ink`, `ink-2`, `ink-3`, `line`, `line-strong` | Pages, cards, text, hairlines |
-| Action | `accent`, `accent-on`, `accent-text`, `accent-tint`, `focus` | Primary pills, centre plus, selected segment, nav dot, links |
-| Order | `cascade-1` to `cascade-3`, `cascade-now`, `cascade-next`, `navy-*`, `on-band`, `on-band-2` | The day cascade, header bands, the date tile |
-| Health | `status-*`, `emergency`, `on-emergency` | Reading pills, out-of-range values, Help |
+| Job    | Tokens                                                                                              | Where                                                        |
+| ------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Ground | `bg`, `surface`, `surface-raised`, `surface-sunken`, `ink`, `ink-2`, `ink-3`, `line`, `line-strong` | Pages, cards, text, hairlines                                |
+| Action | `accent`, `accent-on`, `accent-text`, `accent-tint`, `focus`                                        | Primary pills, centre plus, selected segment, nav dot, links |
+| Order  | `cascade-1` to `cascade-3`, `cascade-now`, `cascade-next`, `navy-*`, `on-band`, `on-band-2`         | The day cascade, header bands, the date tile                 |
+| Health | `status-*`, `emergency`, `on-emergency`                                                             | Reading pills, out-of-range values, Help                     |
 
 Area dots (`area-readings`, `area-medicines`, `area-visits`, `area-team`, `area-me`) are dots and icons only. They never fill behind text and never colour a button.
 
 **Two themes.** Light is the soft grey day. Navy is the night: the ground turns `navy-900`, cards turn `navy-800`, and the cascade keeps its tones. There is no pure black and no pure white text in Navy.
 
 **Rules**
+
 - Lagoon always carries navy text (`accent-on`). White on lagoon fails.
 - Lagoon as text is `accent-text`, never `accent`.
 - One lagoon fill per screen region. If two things look like the main action, one of them is wrong.
@@ -50,10 +51,10 @@ Area dots (`area-readings`, `area-medicines`, `area-visits`, `area-team`, `area-
 
 ## Typography
 
-| Family | Face | Use |
-| --- | --- | --- |
-| `sans` | **Figtree** (Google Fonts) | Everything: headlines, body, numbers, nav |
-| `mono` | **Geist Mono** (Google Fonts) | Booking codes only |
+| Family | Face                          | Use                                       |
+| ------ | ----------------------------- | ----------------------------------------- |
+| `sans` | **Figtree** (Google Fonts)    | Everything: headlines, body, numbers, nav |
+| `mono` | **Geist Mono** (Google Fonts) | Booking codes only                        |
 
 - Headlines are `display`, 36/40 at weight 500: large but not heavy, like the reference's "Check your schedule today".
 - Body is 17, the phone default. All sizes follow the phone's text setting up to 200%; layouts reflow, never clip.

@@ -319,10 +319,16 @@ export function ResultEntryView({
             <Button
               type="button"
               onClick={() => on.onSave?.("final")}
-              disabled={pending || lockAll || issues.length > 0}
+              disabled={pending || lockAll || issues.length > 0 || !!data.releaseBlocked}
+              aria-describedby={data.releaseBlocked ? "release-blocked" : undefined}
             >
               {releaseLabel}
             </Button>
+            {data.releaseBlocked ? (
+              <p id="release-blocked" className="text-body-s text-muted-foreground basis-full">
+                {data.releaseBlocked}
+              </p>
+            ) : null}
           </>
         ) : (
           <Button

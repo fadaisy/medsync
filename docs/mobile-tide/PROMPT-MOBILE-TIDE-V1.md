@@ -12,58 +12,59 @@
 **Why.** The current app covers monitoring and adherence, but it is busy and has no real path in, out or across. Tide v1 gives patients one calm design language and fills the gaps: getting in, booking, notifications, Help and dark mode.
 
 **Who.**
+
 - An adult with diabetes and/or high blood pressure, often over 45, on a low-end Android phone with intermittent data, reading English or Luganda.
 - A family member managing a parent's care.
 - The care team, who see what the patient logs.
 
 **Goals → what you must make true.**
 
-| Goal | Engineering consequence |
-|---|---|
-| G1 Get in, see the day and act in under 30 s | Cold start to Home under 3 s on a mid-range Android; the session is restored from secure storage |
-| G2 Log a reading or a dose in 2 taps from anywhere | Plus → sheet → Save stays in place, never a new route |
-| G3 Honest booking | The L8 sentence; tickets render offline |
-| G4 Help one tap away everywhere | The Help route crawl test is 100% |
-| G5 One design language, light and dark | Tokens only; every screen in both themes |
+| Goal                                               | Engineering consequence                                                                          |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| G1 Get in, see the day and act in under 30 s       | Cold start to Home under 3 s on a mid-range Android; the session is restored from secure storage |
+| G2 Log a reading or a dose in 2 taps from anywhere | Plus → sheet → Save stays in place, never a new route                                            |
+| G3 Honest booking                                  | The L8 sentence; tickets render offline                                                          |
+| G4 Help one tap away everywhere                    | The Help route crawl test is 100%                                                                |
+| G5 One design language, light and dark             | Tokens only; every screen in both themes                                                         |
 
 **Success metrics → instrument them.** Emit these analytics events, with no PHI in the payloads (IDs hashed, no values), through the repo's existing analytics layer. If the repo has none, emit to a local `analytics` interface with a console sink and STOP to ask before adding a vendor.
 
-| Metric (PRD) | Events |
-|---|---|
-| Open → Home under 3 s | `app_open`, `home_rendered` (ms) |
-| Sign-up completion at least 70% | `signup_step_viewed` (1–4), `signup_completed`, `signup_refused_age` |
-| Reading in 2 taps or fewer, at least 90% | `reading_saved` (entry: sheet or page; taps count) |
-| Dose confirmations at least 80% | `dose_confirmed`, `dose_snoozed`, `dose_undone` |
-| Tickets used at the desk at least 85% | `ticket_issued`, `ticket_shown_offline` |
-| Help reachable 100% | the route crawl test (CI), plus `help_opened` (source route) and `sos_started` / `sos_cancelled` / `sos_called` |
+| Metric (PRD)                             | Events                                                                                                          |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Open → Home under 3 s                    | `app_open`, `home_rendered` (ms)                                                                                |
+| Sign-up completion at least 70%          | `signup_step_viewed` (1–4), `signup_completed`, `signup_refused_age`                                            |
+| Reading in 2 taps or fewer, at least 90% | `reading_saved` (entry: sheet or page; taps count)                                                              |
+| Dose confirmations at least 80%          | `dose_confirmed`, `dose_snoozed`, `dose_undone`                                                                 |
+| Tickets used at the desk at least 85%    | `ticket_issued`, `ticket_shown_offline`                                                                         |
+| Help reachable 100%                      | the route crawl test (CI), plus `help_opened` (source route) and `sos_started` / `sos_cancelled` / `sos_called` |
 
 **Feature IDs** (PRD §Features). Each gate below names the IDs it delivers.
 
-| ID | Feature | Gate |
-|---|---|---|
-| F-01 | Splash (animated text, status, Sign in, Create account) | 2 |
-| F-02 | Sign in: phone code, password, health card scan | 2 |
-| F-03 | Create account: 4 steps, map pin, consent, done screen | 2 |
-| F-04 | Home: greeting, mood, day cascade, Now card, See a doctor | 3 |
-| F-05 | Centre plus with reading and medicine sheets | 3 |
-| F-06 | Notifications with in-row actions and delivery choice | 3 |
-| F-07 | Mood tracker | 3 |
-| F-08 | This week and Visit detail | 4 |
-| F-09 | Book: who, why, how | 4 |
-| F-10 | Come today: clinics, per-doctor queue, live line, payment | 4 |
-| F-11 | Ask for a day: day rail, session, who, pay, note | 4 |
-| F-12 | Tickets: paid, unpaid and no-fee looks, offline, map card | 4 |
-| F-13 | Care hub with lab preview | 5 |
-| F-14 | Medicines: ring, timeline, Now card, week, supply bars | 5 |
-| F-15 | Log a reading (full page) | 5 |
-| F-16 | Health trends | 5 |
-| F-17 | Lab results | 5 |
-| F-18 | Move and eat | 5 |
-| F-19 | Care team chat with lab card | 5 |
-| F-20 | Me: flipping health card, people, privacy, settings, theme | 6 |
-| F-21 | Help · SOS (forced light) | 6 |
-| F-22 | Dangerous reading interrupt (forced light) | 6 |
-| F-23 | Tide foundation: tokens, nav, motion, primitives, themes | 1 |
+| ID   | Feature                                                    | Gate |
+| ---- | ---------------------------------------------------------- | ---- |
+| F-01 | Splash (animated text, status, Sign in, Create account)    | 2    |
+| F-02 | Sign in: phone code, password, health card scan            | 2    |
+| F-03 | Create account: 4 steps, map pin, consent, done screen     | 2    |
+| F-04 | Home: greeting, mood, day cascade, Now card, See a doctor  | 3    |
+| F-05 | Centre plus with reading and medicine sheets               | 3    |
+| F-06 | Notifications with in-row actions and delivery choice      | 3    |
+| F-07 | Mood tracker                                               | 3    |
+| F-08 | This week and Visit detail                                 | 4    |
+| F-09 | Book: who, why, how                                        | 4    |
+| F-10 | Come today: clinics, per-doctor queue, live line, payment  | 4    |
+| F-11 | Ask for a day: day rail, session, who, pay, note           | 4    |
+| F-12 | Tickets: paid, unpaid and no-fee looks, offline, map card  | 4    |
+| F-13 | Care hub with lab preview                                  | 5    |
+| F-14 | Medicines: ring, timeline, Now card, week, supply bars     | 5    |
+| F-15 | Log a reading (full page)                                  | 5    |
+| F-16 | Health trends                                              | 5    |
+| F-17 | Lab results                                                | 5    |
+| F-18 | Move and eat                                               | 5    |
+| F-19 | Care team chat with lab card                               | 5    |
+| F-20 | Me: flipping health card, people, privacy, settings, theme | 6    |
+| F-21 | Help · SOS (forced light)                                  | 6    |
+| F-22 | Dangerous reading interrupt (forced light)                 | 6    |
+| F-23 | Tide foundation: tokens, nav, motion, primitives, themes   | 1    |
 
 **Non-goals (PRD):** real clinical data before Gate CG, real Mobile Money charges, push delivery, voice input, video, USSD, wearables, the clinician app.
 
@@ -84,28 +85,29 @@
 
 ## 1. Laws (non-negotiable; each one gets an invariant test where one is possible)
 
-| # | Law |
-|---|---|
-| L1 | **Engine-first.** No screen reads or writes real data without real tables, real RLS and passing tests. Where the engine doesn't exist yet, the screen reads a **fixture repository** behind the same interface (§4) and shows the "Demo data" ribbon. |
-| L2 | **Gate CG.** No clinical PHI is read on mobile, and no clinical write goes from mobile, until Fadhul signs the Gate CG governance artifact as CSO. Clinical PHI covers readings, medicines and adherence, labs, visits with clinical content, care-team chat, mood and the health card's clinical fields. Until then these repositories stay on fixtures behind the flag `mobileClinicalData = false`. **HARD STOP** if anything would need the flag on. |
-| L3 | **Red is for emergency only.** `#DC2626` and its dark-mode sibling appear only on Help, SOS, the danger interrupt and the danger states of a reading. A test scans the components and fails on any other use. |
-| L4 | **Amber and green are clinical signals only**, always paired with words and never colour alone. |
-| L5 | **No dosing on any screen** until CSO sign-off. Show medicine names, times of day and "As your clinician prescribed". Never show mg, units or tablet counts. |
-| L6 | **Help is reachable on every screen,** including splash, sign-in, sign-up, sheets and modals. It is a round red button in the top-right corner. Its accessibility label is "Help, emergency". |
-| L7 | **Clinical thresholds are data,** not code (`packages/clinical-rules/patient-thresholds.v0.json`). Each carries `status: "pending-cso"`, and the UI shows "pending CSO sign-off" wherever a threshold drives a message. |
-| L8 | **Queue honesty.** Booking never promises a time. Use the exact sentence "We save your place in line. We cannot tell you the hour." |
-| L9 | **DPPA 2019.** Consent is versioned and hashed. SMS consent is separate and unticked by default. A home pin on the map is optional and needs its own declinable consent. Location is never used for anything else without a further separate consent. No third-party fetches of patient data (no Gravatar-style lookups). |
-| L10 | **Adults only at sign-up (18 to 120).** Under 18 is refused with a pointer to "People I care for". Do not store the refused date of birth. |
-| L11 | **Emergency surfaces stay forced light** in dark mode (Help, SOS, the danger interrupt), so the red reads the same day or night. |
-| L12 | **TypeScript strict, no `any`. No hardcoded colours or sizes** in components; everything goes through tokens. |
-| L13 | **Accessibility.** Touch targets of at least 44 pt, and inputs at 16 pt or larger. Dynamic Type up to 200% without clipping. Every icon-only button has a label. Respect "reduce motion". Never colour alone. |
-| L14 | **Wording.** Plain words at about P7 reading level. Mock names stay as `[First name]` or `[Medicine A]`; never invent a real person. |
+| #   | Law                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | **Engine-first.** No screen reads or writes real data without real tables, real RLS and passing tests. Where the engine doesn't exist yet, the screen reads a **fixture repository** behind the same interface (§4) and shows the "Demo data" ribbon.                                                                                                                                                                                                    |
+| L2  | **Gate CG.** No clinical PHI is read on mobile, and no clinical write goes from mobile, until Fadhul signs the Gate CG governance artifact as CSO. Clinical PHI covers readings, medicines and adherence, labs, visits with clinical content, care-team chat, mood and the health card's clinical fields. Until then these repositories stay on fixtures behind the flag `mobileClinicalData = false`. **HARD STOP** if anything would need the flag on. |
+| L3  | **Red is for emergency only.** `#DC2626` and its dark-mode sibling appear only on Help, SOS, the danger interrupt and the danger states of a reading. A test scans the components and fails on any other use.                                                                                                                                                                                                                                            |
+| L4  | **Amber and green are clinical signals only**, always paired with words and never colour alone.                                                                                                                                                                                                                                                                                                                                                          |
+| L5  | **No dosing on any screen** until CSO sign-off. Show medicine names, times of day and "As your clinician prescribed". Never show mg, units or tablet counts.                                                                                                                                                                                                                                                                                             |
+| L6  | **Help is reachable on every screen,** including splash, sign-in, sign-up, sheets and modals. It is a round red button in the top-right corner. Its accessibility label is "Help, emergency".                                                                                                                                                                                                                                                            |
+| L7  | **Clinical thresholds are data,** not code (`packages/clinical-rules/patient-thresholds.v0.json`). Each carries `status: "pending-cso"`, and the UI shows "pending CSO sign-off" wherever a threshold drives a message.                                                                                                                                                                                                                                  |
+| L8  | **Queue honesty.** Booking never promises a time. Use the exact sentence "We save your place in line. We cannot tell you the hour."                                                                                                                                                                                                                                                                                                                      |
+| L9  | **DPPA 2019.** Consent is versioned and hashed. SMS consent is separate and unticked by default. A home pin on the map is optional and needs its own declinable consent. Location is never used for anything else without a further separate consent. No third-party fetches of patient data (no Gravatar-style lookups).                                                                                                                                |
+| L10 | **Adults only at sign-up (18 to 120).** Under 18 is refused with a pointer to "People I care for". Do not store the refused date of birth.                                                                                                                                                                                                                                                                                                               |
+| L11 | **Emergency surfaces stay forced light** in dark mode (Help, SOS, the danger interrupt), so the red reads the same day or night.                                                                                                                                                                                                                                                                                                                         |
+| L12 | **TypeScript strict, no `any`. No hardcoded colours or sizes** in components; everything goes through tokens.                                                                                                                                                                                                                                                                                                                                            |
+| L13 | **Accessibility.** Touch targets of at least 44 pt, and inputs at 16 pt or larger. Dynamic Type up to 200% without clipping. Every icon-only button has a label. Respect "reduce motion". Never colour alone.                                                                                                                                                                                                                                            |
+| L14 | **Wording.** Plain words at about P7 reading level. Mock names stay as `[First name]` or `[Medicine A]`; never invent a real person.                                                                                                                                                                                                                                                                                                                     |
 
 ## 2. Stack and dependencies
 
 Use what the app already has: Expo SDK (current in repo), Expo Router, TypeScript strict, NativeWind v4 with Tailwind v3, and the Supabase JS client.
 
 Likely additions. **List them with versions in the Gate 0 plan and STOP for approval before installing any of them:**
+
 - `react-native-reanimated` + `react-native-gesture-handler` (motion, sheets)
 - `react-native-svg` (rings, charts, the nav cradle, tickets)
 - `expo-font` (Figtree, Geist Mono)
@@ -122,24 +124,24 @@ Likely additions. **List them with versions in the Gate 0 plan and STOP for appr
 
 Put these in `apps/mobile/theme/tokens.ts` and the NativeWind config. Components read **roles**, never hex values.
 
-| Role | Light | Dark |
-|---|---|---|
-| bg (page) | #F6F7F9 | #0B1120 |
-| surface (card) | #FFFFFF | #151D30 |
-| surface-2 (soft field, track) | #F3F4F7 | #1C2539 |
-| line (borders, rings) | #DDE1EA | #2C3650 |
-| ink | #1B2540 | #E8ECF3 |
-| ink-2 | #4A5574 | #A9B2C7 |
-| ink-3 | #5F6987 | #8F99B3 |
-| navy surface (bands, tickets, health card) | #1B2540 | #24314F |
-| primary button | bg #1B2540 / text #FFFFFF | bg #E8ECF3 / text #0B1120 |
-| accent (action, success of an action) | #2DD4BF (text on it #1B2540) | same |
-| cascade 1 / 2 / 3 | #1B2540 / #2F4A6D / #296A89 | same, with 2 and 3 kept |
-| place (avatars, "where you are") | plum #A21CAF, tint #FDF3F9 | tint rgba(192,38,211,.16), text #F0ABFC |
-| info tint / text | #EEF2FF / #4338CA | rgba(99,102,241,.16) / #A5B4FC |
-| caution (clinical) tint / text | #FEF3C7 / #92400E | rgba(245,158,11,.18) / #FBBF24 |
-| stable (clinical) tint / text | #DCFCE7 / #15803D | rgba(34,197,94,.16) / #4ADE80 |
-| emergency | #DC2626 (bands #B91C1C) | forced light (L11) |
+| Role                                       | Light                        | Dark                                    |
+| ------------------------------------------ | ---------------------------- | --------------------------------------- |
+| bg (page)                                  | #F6F7F9                      | #0B1120                                 |
+| surface (card)                             | #FFFFFF                      | #151D30                                 |
+| surface-2 (soft field, track)              | #F3F4F7                      | #1C2539                                 |
+| line (borders, rings)                      | #DDE1EA                      | #2C3650                                 |
+| ink                                        | #1B2540                      | #E8ECF3                                 |
+| ink-2                                      | #4A5574                      | #A9B2C7                                 |
+| ink-3                                      | #5F6987                      | #8F99B3                                 |
+| navy surface (bands, tickets, health card) | #1B2540                      | #24314F                                 |
+| primary button                             | bg #1B2540 / text #FFFFFF    | bg #E8ECF3 / text #0B1120               |
+| accent (action, success of an action)      | #2DD4BF (text on it #1B2540) | same                                    |
+| cascade 1 / 2 / 3                          | #1B2540 / #2F4A6D / #296A89  | same, with 2 and 3 kept                 |
+| place (avatars, "where you are")           | plum #A21CAF, tint #FDF3F9   | tint rgba(192,38,211,.16), text #F0ABFC |
+| info tint / text                           | #EEF2FF / #4338CA            | rgba(99,102,241,.16) / #A5B4FC          |
+| caution (clinical) tint / text             | #FEF3C7 / #92400E            | rgba(245,158,11,.18) / #FBBF24          |
+| stable (clinical) tint / text              | #DCFCE7 / #15803D            | rgba(34,197,94,.16) / #4ADE80           |
+| emergency                                  | #DC2626 (bands #B91C1C)      | forced light (L11)                      |
 
 - **Radii:**
   - phone frame content 28
@@ -154,6 +156,7 @@ Put these in `apps/mobile/theme/tokens.ts` and the NativeWind config. Components
   - dark: black at about 1.6× the alpha
 
 **Theme.**
+
 - Settings offers System, Light and Dark. The default is System.
 - Store the choice locally.
 - Help, SOS and the danger interrupt ignore the theme (L11).
@@ -186,58 +189,59 @@ packages/clinical-rules/patient-thresholds.v0.json
 
 Reanimated. With "reduce motion" on, every preset becomes an instant opacity change.
 
-| Preset | Spec | Where |
-|---|---|---|
-| pageIn | opacity 0→1, scale .985→1, y +10→0, 500 ms, easeOutExpo | every screen mount |
-| staggerUp | children y +16→0 and fade, 550 ms, +40 ms per child, cap 9 | scrolling content |
-| cascade | y +26→0, scale .97→1, 600 ms, +100 ms per card from 180 ms | Home "Here is your day" |
-| navRise | y +40→0, spring (damping 14) at 200 ms | floating nav |
-| tabPop | scale .6→1.08→1, 450 ms | the active nav tab |
-| plusIn | rotate −90°→0, scale .4→1, 600 ms spring | centre plus |
-| press | scale .96 while pressed, 160 ms, plus a light haptic | every pressable |
-| sheetUp | translateY 100%→0, 360 ms, easeOutExpo, scrim .28 | all sheets |
-| fanRise | from the plus outward with overshoot, 420 ms, +50 ms each | plus menu bubbles |
-| pinDrop | y −40→0 with overshoot | map pin |
-| cardFlip | rotateY 0→180°, 800 ms springy, backface hidden | health card |
-| ticketPop | scale .92→1, fade, 350 ms | queue and visit tickets |
-| ringFill | stroke dash animates over 800 ms | adherence and progress rings |
-| splashLetters | each letter: y 40→0, blur 6→0, fade, 700 ms, +90 ms per letter, then a light sheen | splash |
-| sosPulse | two white rings expanding 1→1.75, 1.8 s, loop | SOS |
+| Preset        | Spec                                                                               | Where                        |
+| ------------- | ---------------------------------------------------------------------------------- | ---------------------------- |
+| pageIn        | opacity 0→1, scale .985→1, y +10→0, 500 ms, easeOutExpo                            | every screen mount           |
+| staggerUp     | children y +16→0 and fade, 550 ms, +40 ms per child, cap 9                         | scrolling content            |
+| cascade       | y +26→0, scale .97→1, 600 ms, +100 ms per card from 180 ms                         | Home "Here is your day"      |
+| navRise       | y +40→0, spring (damping 14) at 200 ms                                             | floating nav                 |
+| tabPop        | scale .6→1.08→1, 450 ms                                                            | the active nav tab           |
+| plusIn        | rotate −90°→0, scale .4→1, 600 ms spring                                           | centre plus                  |
+| press         | scale .96 while pressed, 160 ms, plus a light haptic                               | every pressable              |
+| sheetUp       | translateY 100%→0, 360 ms, easeOutExpo, scrim .28                                  | all sheets                   |
+| fanRise       | from the plus outward with overshoot, 420 ms, +50 ms each                          | plus menu bubbles            |
+| pinDrop       | y −40→0 with overshoot                                                             | map pin                      |
+| cardFlip      | rotateY 0→180°, 800 ms springy, backface hidden                                    | health card                  |
+| ticketPop     | scale .92→1, fade, 350 ms                                                          | queue and visit tickets      |
+| ringFill      | stroke dash animates over 800 ms                                                   | adherence and progress rings |
+| splashLetters | each letter: y 40→0, blur 6→0, fade, 700 ms, +90 ms per letter, then a light sheen | splash                       |
+| sosPulse      | two white rings expanding 1→1.75, 1.8 s, loop                                      | SOS                          |
 
 ## 6. Routes and screen inventory (board → route)
 
-| Board (prototype) | Route | Notes |
-|---|---|---|
-| TSplash | `app/(auth)/splash` | Text-only animated wordmark on navy with a soft teal glow. Hospital name pill, loading bar, Sign in, "Create an account", Help. |
-| TSignIn | `app/(auth)/sign-in` | Navy hero with three floating cascade cards and a white sheet with three method tiles: Phone code (OTP, 6 boxes, resend timer, "staff will never ask for this code"), Password (MedSync number, phone or email; show/hide; forgot; fingerprint toggle) and Health card (camera scan, behind `mobileQrSignIn`). |
-| TSignUp | `app/(auth)/sign-up` | Four steps (§8.1) plus a done screen. |
-| THome | `app/(tabs)/index` | §8.2 |
-| TAdd | `app/add` (transparent modal) | Fan of 3: Log a reading, I took a medicine (both open sheets in place) and Tell my team (chat). A "Right now" card. "Or just say it" pill (stub). |
-| TNotif | `app/notifications` | Filter chips All, Care, Visits, Medicines. Today, Yesterday and Earlier groups. Unread dot and weight. Actions inside rows ("I took it", "Open ticket", "See results"). "Mark all read". "Choose what you get" (app, SMS, voice in English or Luganda). |
-| TMood | `app/mood` | Week, month and year tracker using MoodFace. |
-| TWeek | `app/(tabs)/visits` | Header with an upcoming-visit pill (no name), bell and Help. Calendar card showing open clinic days and visits with Book or Open. "Your week ahead" rail. |
-| TVisit | `app/visits/[id]` | Navy band with the date tile bleeding into the edge, person card, map, actions. |
-| TBook | `app/book` | Who (me, my mother, add) → why (4 tiles) → how (come today or ask for a day). |
-| TBookToday | `app/book/today` | §8.3 |
-| TBookDay | `app/book/day` | §8.3 |
-| TCare | `app/(tabs)/care` | Adherence ring, next dose, trend cards with arrows, a "2 need review" lab preview (HbA1c and LDL tiles with small charts, plus a "N other results are healthy" row), move and eat rings, care team card. |
-| TMedicines | `app/care/medicines` | §8.4 |
-| TReading | `app/care/reading` | §8.5 (full page; the sheet version lives in TAdd) |
-| TTrends | `app/care/trends` | Metric tabs. Sugar context chips with per-context targets. Sugar diary grid (7 days × 6 slots). Insight card. List. |
-| TLabs | `app/care/labs` | Summary tiles. HbA1c panel (value beside a four-bar history with a target line). Lipids and kidney (RFT) as one-line rows (name with target, range bar, value and status). Normal electrolytes folded into one chip row. A one-line meaning per panel. No "ask the team" button here (the chat carries the lab card). |
-| TActivity | `app/care/activity` | Move and Eat tabs. Rings, bars, walks. Amber precaution card with the signs and a red "I feel this now · Get help". Plate guide with Ugandan foods. Water. |
-| TChat | `app/care/chat` | Role chips, voice and video (stubs). Starts with a Doctor "Lab results ready" card (3 rows plus "See all results" and quick replies). Reading card, voice note, refill action, quick replies, composer. |
-| TMe | `app/(tabs)/me` | §8.6 |
-| THelp | `app/help` (full-screen modal, forced light) | §8.7 |
-| TDanger | `app/danger` (forced light) | A dangerous reading: critical band, "how do you feel", recheck or get help. |
-| TideNav | `components/tide/TideNav` | §7 |
-| TMoodFace | `components/tide/MoodFace` | Good, okay and low faces with a pop animation. |
+| Board (prototype) | Route                                        | Notes                                                                                                                                                                                                                                                                                                                 |
+| ----------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TSplash           | `app/(auth)/splash`                          | Text-only animated wordmark on navy with a soft teal glow. Hospital name pill, loading bar, Sign in, "Create an account", Help.                                                                                                                                                                                       |
+| TSignIn           | `app/(auth)/sign-in`                         | Navy hero with three floating cascade cards and a white sheet with three method tiles: Phone code (OTP, 6 boxes, resend timer, "staff will never ask for this code"), Password (MedSync number, phone or email; show/hide; forgot; fingerprint toggle) and Health card (camera scan, behind `mobileQrSignIn`).        |
+| TSignUp           | `app/(auth)/sign-up`                         | Four steps (§8.1) plus a done screen.                                                                                                                                                                                                                                                                                 |
+| THome             | `app/(tabs)/index`                           | §8.2                                                                                                                                                                                                                                                                                                                  |
+| TAdd              | `app/add` (transparent modal)                | Fan of 3: Log a reading, I took a medicine (both open sheets in place) and Tell my team (chat). A "Right now" card. "Or just say it" pill (stub).                                                                                                                                                                     |
+| TNotif            | `app/notifications`                          | Filter chips All, Care, Visits, Medicines. Today, Yesterday and Earlier groups. Unread dot and weight. Actions inside rows ("I took it", "Open ticket", "See results"). "Mark all read". "Choose what you get" (app, SMS, voice in English or Luganda).                                                               |
+| TMood             | `app/mood`                                   | Week, month and year tracker using MoodFace.                                                                                                                                                                                                                                                                          |
+| TWeek             | `app/(tabs)/visits`                          | Header with an upcoming-visit pill (no name), bell and Help. Calendar card showing open clinic days and visits with Book or Open. "Your week ahead" rail.                                                                                                                                                             |
+| TVisit            | `app/visits/[id]`                            | Navy band with the date tile bleeding into the edge, person card, map, actions.                                                                                                                                                                                                                                       |
+| TBook             | `app/book`                                   | Who (me, my mother, add) → why (4 tiles) → how (come today or ask for a day).                                                                                                                                                                                                                                         |
+| TBookToday        | `app/book/today`                             | §8.3                                                                                                                                                                                                                                                                                                                  |
+| TBookDay          | `app/book/day`                               | §8.3                                                                                                                                                                                                                                                                                                                  |
+| TCare             | `app/(tabs)/care`                            | Adherence ring, next dose, trend cards with arrows, a "2 need review" lab preview (HbA1c and LDL tiles with small charts, plus a "N other results are healthy" row), move and eat rings, care team card.                                                                                                              |
+| TMedicines        | `app/care/medicines`                         | §8.4                                                                                                                                                                                                                                                                                                                  |
+| TReading          | `app/care/reading`                           | §8.5 (full page; the sheet version lives in TAdd)                                                                                                                                                                                                                                                                     |
+| TTrends           | `app/care/trends`                            | Metric tabs. Sugar context chips with per-context targets. Sugar diary grid (7 days × 6 slots). Insight card. List.                                                                                                                                                                                                   |
+| TLabs             | `app/care/labs`                              | Summary tiles. HbA1c panel (value beside a four-bar history with a target line). Lipids and kidney (RFT) as one-line rows (name with target, range bar, value and status). Normal electrolytes folded into one chip row. A one-line meaning per panel. No "ask the team" button here (the chat carries the lab card). |
+| TActivity         | `app/care/activity`                          | Move and Eat tabs. Rings, bars, walks. Amber precaution card with the signs and a red "I feel this now · Get help". Plate guide with Ugandan foods. Water.                                                                                                                                                            |
+| TChat             | `app/care/chat`                              | Role chips, voice and video (stubs). Starts with a Doctor "Lab results ready" card (3 rows plus "See all results" and quick replies). Reading card, voice note, refill action, quick replies, composer.                                                                                                               |
+| TMe               | `app/(tabs)/me`                              | §8.6                                                                                                                                                                                                                                                                                                                  |
+| THelp             | `app/help` (full-screen modal, forced light) | §8.7                                                                                                                                                                                                                                                                                                                  |
+| TDanger           | `app/danger` (forced light)                  | A dangerous reading: critical band, "how do you feel", recheck or get help.                                                                                                                                                                                                                                           |
+| TideNav           | `components/tide/TideNav`                    | §7                                                                                                                                                                                                                                                                                                                    |
+| TMoodFace         | `components/tide/MoodFace`                   | Good, okay and low faces with a pop animation.                                                                                                                                                                                                                                                                        |
 
 ## 7. Primitives (`components/tide/`)
 
 `Screen` (gutter, safe area, the "Demo data" ribbon slot, Help slot), `HelpButton`, `BellButton` (badge, opens notifications), `Card`, `Band` (navy surface), `Button` (primary, accent, soft, outline, danger), `Pill`, `Chip` (selectable, 44 pt hit slop), `SegmentTiles`, `Field` (text, phone with +256, OTP boxes, stepper with typing), `Sheet` (grab handle, scrim, focus trap), `Toast`, `Ring`, `RangeBar`, `Sparkbars`, `Ticket` (§8.3), `HealthCard` (§8.6), `MapPin` (§8.1), `Cascade`, `DateTile`, `TideNav`, `MoodFace`, `DemoRibbon`.
 
 **TideNav, exact geometry.** It is a floating pill 358 × 92 sitting 16 from the sides and 14 from the bottom, with the body from y 20 to 92 (72 tall).
+
 - Every curve shares one centre, so there are no rounding conflicts:
   - the body's ends are half-circles of radius 36;
   - the active tab is a pill of radius 28 (36 − 8) with an even 8 pt inset on every side;
@@ -252,12 +256,14 @@ Reanimated. With "reduce motion" on, every preset becomes an instant opacity cha
 ### 8.1 Sign-up (`/signup/patient` contract)
 
 Step 1 · **About you**
+
 - First name and surname, each up to 80 characters.
 - Sex at birth: Male, Female, Intersex, Prefer not to say.
 - Date of birth as DD / MM / YYYY boxes. It must be a real date, not in the future, with age 18 to 120 (L10).
 - Mobile number: +256, a leading 0 is stripped, and it must match `^7\d{8}$`.
 
 Step 2 · **Where you live**
+
 - The place picker reads the reference-data layer (UBOS hierarchy: district → county → subcounty → parish). The search picks the lowest level found.
 - Village or address is optional, with a 200-character counter (the required free-text fallback).
 - Optional "Pin your home" map:
@@ -266,16 +272,19 @@ Step 2 · **Where you live**
   - behind `mobileMapPin` plus its own consent line (L9).
 
 Step 3 · **Your sign-in**
+
 - Email.
 - Password of 12 or more characters, with show/hide, a 4-segment strength bar and countdown hints.
 
 Step 4 · **Consent**
+
 - The notice card shows its version and a "Read the full notice" link.
 - Required consent box.
 - SMS reminders box, unticked by default.
 - Hidden fields `consentVersion`, `consentSha`, `smsVersion` and `smsSha` are filled from the notice actually shown.
 
 Behaviour:
+
 - Continue stays disabled until the step is valid. Errors appear once a field has been filled.
 - The done screen shows "Welcome, {first name}" and the MedSync number. A "Later, in your profile" card lists National ID (never blocking), next of kin, usual hospital, photo, title and preferred language.
 - Writes go through the **existing patient onboarding path**. Reuse it and do not create a second one. If it lacks a field above, **HARD STOP** and list the migration it would need.
@@ -385,6 +394,7 @@ Behaviour:
 ## 9. Gates
 
 **Gate 0 · Recon and plan (no code).**
+
 - Delivers: the plan for F-01 to F-23.
 - Write `docs/mobile-tide/00-RECON.md` covering:
   - a table of F-01 to F-23, each with route, repositories and status (exists, rework, new);
@@ -398,6 +408,7 @@ Behaviour:
 - STOP.
 
 **Gate 1 · Foundation.** Delivers F-23 and the analytics interface.
+
 - Build:
   - tokens and theme (light, dark, system, forced light);
   - fonts;
@@ -415,6 +426,7 @@ Behaviour:
 - STOP with gallery screenshots in light and dark on a small Android (360 × 800) and an iPhone 15.
 
 **Gate 2 · Getting in.** Delivers F-01, F-02 and F-03. Metric events: `app_open`, `home_rendered`, `signup_*`.
+
 - Build Splash, Sign in (OTP through Supabase phone auth or the existing auth path; password; QR behind its flag) and Sign up (§8.1, on the existing onboarding path).
 - Tests:
   - every validation rule in §8.1, including 31/02, a future date, age 17, age 121, a phone starting 6 and the leading-0 strip;
@@ -423,21 +435,25 @@ Behaviour:
 - STOP.
 
 **Gate 3 · Home and quick actions.** Delivers F-04 to F-07. Metric events: `reading_saved`, `dose_*`, `help_opened`.
+
 - Build Home (§8.2), Plus with its two sheets, Notifications, Mood and the nav. Every bell and every Help is wired.
 - Clinical repositories stay on fixtures (L2).
 - STOP.
 
 **Gate 4 · Visits and booking.** Delivers F-08 to F-12. Metric events: `ticket_*`.
+
 - Build Week, Visit detail, Book, Come today, Ask for a day and both tickets (§8.3), plus the offline ticket.
 - Queue and visit data use real engines only where they already exist with RLS (the scheduling and book-or-queue prompts). Otherwise fixtures.
 - STOP.
 
 **Gate 5 · Care.** Delivers F-13 to F-19.
+
 - Build Care, Medicines (§8.4), Reading (§8.5), Trends, Labs, Move and eat, and Chat. All on fixtures (L2).
 - Test the reading classifier against every v0 threshold edge (±0.1, and each sugar context).
 - STOP.
 
 **Gate 6 · Me and safety.** Delivers F-20, F-21 and F-22. Metric events: `sos_*`.
+
 - Build Me (§8.6), with the card flip and the theme setting.
 - Build Help (§8.7) and the danger interrupt, both forced light.
 - Tests:
@@ -447,6 +463,7 @@ Behaviour:
 - STOP.
 
 **Gate 7 · Polish and proof.** Proves G1 to G5 with numbers.
+
 - A dark-mode pass on every screen against the `D*` boards.
 - Motion timings per §5.
 - Accessibility: screen-reader labels, focus order in sheets, 200% text.

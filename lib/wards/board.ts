@@ -19,6 +19,8 @@ import {
   hospitalBedServices,
   wardLayouts,
 } from "@/db/schema/ward-builder";
+import { ipcFlagsFor } from "@/lib/ipc/read";
+import { ipcLabFeedLiveFor } from "@/lib/lab/feature";
 import { roomOfBed } from "@/supabase/functions/_shared/ward-layout";
 import { openAssignments, wardTabs } from "./data";
 import { parseLayout } from "./layout-schema";
@@ -45,6 +47,8 @@ export interface BoardBed {
   roomName: string | null;
   /** Only for viewers allowed to see it: the MRN, and the name for the ward's own staff. */
   patient: { name: string | null; mrn: string | null } | null;
+  /** Lab Phase 5 (IC-8): infection prevention precautions in force for the patient in this bed, never the condition. */
+  ipc?: string[];
   assignmentId: string | null;
   /** Set when the bed was allocated for an admission (ADR 0199): an Arriving bed, or one it became. */
   admissionId: string | null;
@@ -286,6 +290,21 @@ export async function loadBedBoard(
           null,
       };
     });
+
+  // Lab Phase 5 (IC-8): an infection prevention flag shows on the bed, for every viewer who sees the patient.
+  if (ipcLabFeedLiveFor(hospitalId)) {
+    const flagged = await ipcFlagsFor(
+      hospitalId,
+      doc.beds.flatMap((b) => {
+        const a = b.bedId ? stateOf(b.bedId).a : null;
+        return a ? [a.patientUserId] : [];
+      }),
+    );
+    for (const bed of boardBeds) {
+      const a = stateOf(bed.bedId).a;
+      if (bed.patient && a && flagged.has(a.patientUserId)) bed.ipc = flagged.get(a.patientUserId);
+    }
+  }
 
   // Patients sent to this ward who have no bed yet (ADR 0194 §4).
   const intakes =

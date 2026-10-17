@@ -21,6 +21,7 @@ import { EmrWriteError } from "@/lib/emr/write/context";
 import { legalMissing, PartnerFieldsPayload, testFor } from "@/lib/exchange/partners";
 import { loadConfigs } from "./catalogue-v2";
 import { highRiskFor } from "./collection-store";
+import { ipcLabFeedLiveFor } from "./feature";
 import { manifestNumber, readiness, receiptOutcome } from "./manifest";
 import { openAutomaticNc } from "./nc-store";
 import { menuToday } from "./one-menu-read";
@@ -753,6 +754,21 @@ export async function recordOutbreakReferral(
     },
     now,
   );
+  // Lab Phase 5 (IC-2, S18): the outbreak referral reaches infection prevention at once, before any result.
+  if (ipcLabFeedLiveFor(a.hospitalId)) {
+    const { raiseForOutbreakReferral } = await import("@/lib/ipc/store");
+    const [enc] = await tx
+      .select({ e: encounterOrders.encounterId })
+      .from(encounterOrders)
+      .where(eq(encounterOrders.id, s.orderId));
+    await raiseForOutbreakReferral(tx, {
+      hospitalId: a.hospitalId,
+      patientUserId: s.patientUserId,
+      referralId: ref!.id,
+      encounterId: enc?.e ?? null,
+      at: now,
+    });
+  }
   return ref!.id;
 }
 
