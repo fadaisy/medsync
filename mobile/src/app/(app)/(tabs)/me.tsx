@@ -281,6 +281,19 @@ export default function MeTab() {
         />
       </Group>
 
+      <Label text="My details" z={z} />
+      <Group>
+        <Row
+          z={z}
+          first
+          icon="user"
+          color={t.ink2}
+          title="Profile details"
+          sub="Photo, title, language, hospital, ID and next of kin"
+          onPress={() => router.push("/profile/details")}
+        />
+      </Group>
+
       <Label text="Privacy and sharing" z={z} />
       <Group>
         <Row

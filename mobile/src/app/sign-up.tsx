@@ -8,6 +8,7 @@ import { Button, Note, Screen, TextLink } from "@/components/tide";
 import { addPlace, OFF_WORDS } from "@/data/places";
 import {
   fetchSignupNotice,
+  markFreshSignup,
   signInWithPassword,
   signupFromAppOn,
   submitSignup,
@@ -36,11 +37,12 @@ import { useNow } from "@/lib/use-now";
  * screen, on the web's one patient onboarding path.
  *
  * The draft lives in memory only, never on disk. The account is made by the
- * web action; on success the done screen shows, and "Go to my home" signs in
+ * web action; on success the done screen shows, and "Continue" signs in
  * with the same email and password, after which the root gate moves the
  * patient into the app (signing in earlier would drop this screen before
  * "Welcome" could show). Signed in, the pin is saved as the home place if
- * the patient agreed to PLACE_CONSENT (`addPlace`, migration 0171).
+ * the patient agreed to PLACE_CONSENT (`addPlace`, migration 0171). Home then
+ * opens "A few more details" once (`markFreshSignup`).
  */
 export default function SignUpScreen() {
   const router = useRouter();
@@ -114,6 +116,8 @@ export default function SignUpScreen() {
   const goHome = async () => {
     setBusy(true);
     setProblem(null);
+    // Before signing in: the gate may swap screens the moment the session lands.
+    markFreshSignup();
     const out = await signInWithPassword(draft.email, draft.password);
     setBusy(false);
     // On success the root gate replaces this screen with the app.
@@ -143,7 +147,7 @@ export default function SignUpScreen() {
     return (
       <Screen
         helpSource="sign-up"
-        footer={<Button label="Go to my home" onPress={goHome} busy={busy} />}
+        footer={<Button label="Continue" onPress={goHome} busy={busy} />}
       >
         <DoneStep firstName={draft.firstName.trim() || "[First name]"} />
         {problem ? (

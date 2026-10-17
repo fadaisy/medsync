@@ -71,7 +71,7 @@ export async function patientFromBearer(request: Request): Promise<Caller> {
     .where(eq(users.id, userId))
     .limit(1);
   if (!me || !REACHABLE_PATIENT_STATES.has(me.state))
-    return refuse(403, "This account can't see visit records yet.");
+    return refuse(403, "This account isn't ready for this yet. Finish signing up on the MedSync website first.");
 
   const consent = await dataProcessingConsent(userId);
   if (consent && consent.acceptedAt === null)

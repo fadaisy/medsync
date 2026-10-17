@@ -687,13 +687,14 @@ export function CheckRow({
 
 /* ─── Done ───────────────────────────────────────────────────────────── */
 
+/** A preview only: "Continue" signs in and Home opens the details screen with these inputs. */
 const LATER = [
-  "National ID",
-  "Next of kin",
-  "Usual hospital",
   "Photo",
   "Title",
   "Preferred language",
+  "Usual hospital",
+  "National ID",
+  "Next of kin",
 ];
 
 export function DoneStep({ firstName }: { firstName: string }) {
@@ -720,10 +721,10 @@ export function DoneStep({ firstName }: { firstName: string }) {
           accessibilityRole="header"
           style={[tType.labelS, { fontFamily: tFont.bold, color: t.ink }]}
         >
-          Later, in your profile
+          Next, a few details
         </Text>
         <Text style={[tType.bodyS, { lineHeight: 19, color: t.ink2 }]}>
-          We will ask for these when you need them. No rush.
+          About 2 minutes · all optional
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {LATER.map((w) => (

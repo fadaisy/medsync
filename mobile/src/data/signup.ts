@@ -108,6 +108,25 @@ export async function saveFingerprintChoice(on: boolean): Promise<void> {
   }
 }
 
+/* ─── After sign-up ──────────────────────────────────────────────────── */
+
+let freshSignup = false;
+
+/**
+ * Set by "Continue" on the welcome screen just before it signs in. The root
+ * gate then swaps in the app, and Home takes the flag once to open
+ * "A few more details". Module state, so it lives for this launch only.
+ */
+export function markFreshSignup(): void {
+  freshSignup = true;
+}
+
+export function takeFreshSignup(): boolean {
+  const was = freshSignup;
+  freshSignup = false;
+  return was;
+}
+
 /* ─── Sign-up ────────────────────────────────────────────────────────── */
 
 export interface SignupNotice {

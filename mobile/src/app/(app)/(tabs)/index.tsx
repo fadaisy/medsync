@@ -22,6 +22,7 @@ import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
 import { useReadings, whenWords } from "@/data/readings";
+import { takeFreshSignup } from "@/data/signup";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
@@ -59,6 +60,11 @@ export default function HomeScreen() {
   const shareShown = useShareBannerShown();
   const [toast, setToast] = useState<{ text: string; undo?: () => void } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Straight after sign-up, once: the details the welcome screen promised.
+  useEffect(() => {
+    if (takeFreshSignup()) router.push({ pathname: "/profile/details", params: { welcome: "1" } });
+  }, [router]);
 
   useEffect(() => {
     track("home_rendered", { ms: sinceBoot() });
