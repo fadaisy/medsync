@@ -449,3 +449,10 @@ None of the conditions holds (STOP 0, "Inputs in hand"). Each step is a gap repo
 | 11   | `national-gap.md` | All four GATE N items for any system; letter not yet sent (Q5)   | Connections shows each national line "Not connected"                       |
 
 Paper and typed entry remain the path for every partner, analyser and national system.
+
+## STOP 12: Hardening and documentation (17 Oct 2026)
+
+See [FINAL-REPORT.md](FINAL-REPORT.md): Section 13, the Definition of Done, the eight defects found and fixed at
+this step (two in the clinical path: S24 and S26), the checks, the screen harness (0 axe findings over 26 page
+states), the GATE S record ([gate-s.md](gate-s.md)), the hazard log closed against tests, the user guide
+([user-guide.md](user-guide.md)), ADRs 0312–0327, and the owner's actions in order.

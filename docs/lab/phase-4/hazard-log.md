@@ -1,6 +1,6 @@
 # Lab Phase 4: hazard log
 
-**Status: draft for GATE A, 17 OCT 2026. Not signed.** This log completes the 25 hazards seeded in Appendix B of the
+**Status: closed against tests at Step 12, 17 OCT 2026 (see "Closure at Step 12" at the end); scores still the CSO's and the laboratory lead's to set. Drafted for GATE A the same day.** This log completes the 25 hazards seeded in Appendix B of the
 [prompt](PROMPT-LAB-PHASE-4.md) (HZ-4-01 to HZ-4-25) and adds 15 found in the STOP 0 findings
 ([STOP-REPORTS.md](STOP-REPORTS.md)) and in reading the prompt against the repo (HZ-4-26 to HZ-4-40). Nothing in
 this slice is built yet. Every "proving test" below is a **planned** test: its file, its scenario number from §9 of
@@ -616,3 +616,50 @@ control.
 
 **Signed (CSO):** not yet signed.
 **Signed (laboratory lead, data protection lead, IPC lead):** not yet named (STOP 0 Q11, Q12).
+
+## Closure at Step 12 (17 Oct 2026)
+
+Each hazard against the test that now proves its control. "Lane" is the PGlite lane: `R` =
+`tests/emr-db/lab-referral.test.ts`, `X` = `tests/emr-db/lab-exchange.test.ts`, `D` =
+`tests/emr-db/lab-phase4-data.test.ts`; unit tests are in `tests/lab/phase-4/`. **Pass** means the control is built
+and a test fails if it breaks. **Gap** means it is not built, and the paper path is the control.
+
+| Hazard             | Proving test                                                                          | State                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| HZ-4-01            | R S17/S18 (lost needs a call note, opens a nonconformity); `referral.test.ts` overdue | Pass; **no notification** to named people (no notification module)                     |
+| HZ-4-02            | R S20 (on the original order; no new order)                                           | Pass                                                                                   |
+| HZ-4-03            | R S21; X S32, S33, S34; `match.test.ts` (MA-1 as signed)                              | Pass                                                                                   |
+| HZ-4-04            | R S20, S23 (their range only; no printed range, no flag)                              | Pass                                                                                   |
+| HZ-4-05            | R S22; `referral-results.test.ts` (registry conversion)                               | Pass                                                                                   |
+| HZ-4-06            | R S20 (second person), S25 (one person, next-shift check)                             | Pass                                                                                   |
+| HZ-4-07            | R S24 (a referred value past the limits raises the call)                              | Pass after the Step 12 fix (ADR 0327, CSO to countersign)                              |
+| HZ-4-08            | R S9; D (outbreak referral never on a manifest)                                       | Pass                                                                                   |
+| HZ-4-09            | `manifest.test.ts` (no patient field in a manifest line)                              | Pass                                                                                   |
+| HZ-4-10 to HZ-4-13 | —                                                                                     | Gap: Step 10 not built (`analyser-gap.md`); results typed from the printout            |
+| HZ-4-14            | X S29; D (store before acknowledge)                                                   | Pass on the server; the bridge side is Step 10                                         |
+| HZ-4-15            | X S30, S37/S38 (filing twice gives one report)                                        | Pass                                                                                   |
+| HZ-4-16            | R S14/S15; X S15 (EX-7)                                                               | Pass                                                                                   |
+| HZ-4-17            | Sender time stored with the zone assumed and UTC                                      | Partial: the skew note waits for a real sender                                         |
+| HZ-4-18            | `jwt.test.ts`; X tokens, S-4 refusals, S36                                            | Pass for what exists; bridge host items wait (GATE S S-9 to S-14)                      |
+| HZ-4-19            | R S2, S3; `partners.test.ts`; `enableSender` needs the signed legal record            | Pass                                                                                   |
+| HZ-4-20            | `partners.test.ts` (field allow-list); `fhir-referral.test.ts`                        | Pass                                                                                   |
+| HZ-4-21            | No national code exists (`national-gap.md`)                                           | Pass by absence (GATE N)                                                               |
+| HZ-4-22            | R S28; `hmis104.test.ts`                                                              | Pass                                                                                   |
+| HZ-4-23            | R S26 (a new version on the same referral, still external)                            | Pass after the Step 12 fix                                                             |
+| HZ-4-24            | Connections and Matches tiles show waiting counts                                     | Partial: no notification                                                               |
+| HZ-4-25            | `manifest.test.ts` (restricted prints as their code); D (RLS per actor)               | Pass for the manifest and the tables; no lane test of a restricted result on the queue |
+| HZ-4-26            | R S25 (the checker confirms the scan)                                                 | Pass                                                                                   |
+| HZ-4-27            | —                                                                                     | Gap: Step 10                                                                           |
+| HZ-4-28            | X S36 (revocation at once)                                                            | Pass                                                                                   |
+| HZ-4-29            | X S31 (dead, then retried or set aside with a reason); Connections "Needs a person"   | Pass; no notification                                                                  |
+| HZ-4-30            | `manifest.test.ts`                                                                    | Pass                                                                                   |
+| HZ-4-31            | X S29 (the sweep processes it once)                                                   | Pass; the worker needs its schedule (`gate-s.md`)                                      |
+| HZ-4-32            | R S8 (an aliquot has its own lab number)                                              | Pass                                                                                   |
+| HZ-4-33            | R S25 (`openChecks`)                                                                  | Pass                                                                                   |
+| HZ-4-34            | The turnaround is in a signed `partner_tests` (two people)                            | Pass by signature                                                                      |
+| HZ-4-35            | X S35 (logs); D (no payload column for a person's role); live events carry ids only   | Pass                                                                                   |
+| HZ-4-36            | —                                                                                     | Gap: no virus scanning (ADR 0323), residual                                            |
+| HZ-4-37            | `code128.test.ts` (check value computed by hand)                                      | Pass in code; the site's scanners still to prove (owner)                               |
+| HZ-4-38            | R S2 (the lab lead cannot sign the legal record)                                      | Pass                                                                                   |
+| HZ-4-39            | `referral.test.ts` (`destinationCheck`)                                               | Pass                                                                                   |
+| HZ-4-40            | `flags.test.ts` (`labReferral` needs the high-risk mark)                              | Pass                                                                                   |

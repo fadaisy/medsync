@@ -27,8 +27,8 @@ the work merges. Highest numbers are read across `origin/main` and every local a
 | migration 0150–0159      | Lab Phase 3 (spare, unused)                                    | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
 | ADR 0300–0311            | Lab Phase 3                                                    | `feat/lab-quality-registers` | 13 Oct 2026 | used                         |
 | ADR 0312–0319            | Lab Phase 3 (spare, unused)                                    | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
-| migration 0150–0169      | Lab Phase 4 (connect outward)                                  | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
-| ADR 0312–0329            | Lab Phase 4 (connect outward)                                  | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
+| migration 0150–0169      | Lab Phase 4: 0150 to 0153 used, the rest spare                 | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
+| ADR 0312–0329            | Lab Phase 4: 0312 to 0327 used, 0328 and 0329 spare            | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
 
 On `origin/main` (cf404abd, 11 Oct 2026) the highest migration is **0121** and the highest ADR **0280**.
 

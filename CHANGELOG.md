@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Lab Phase 4: referred tests, results back and the exchange core — 17 Oct 2026
+
+Built dark on `feat/lab-connect-outward`, behind `LAB_REFERRAL` and `LAB_EXCHANGE`, per hospital. Both stay off in
+production while the Phase 4 copy is a draft (`LAB4_COPY_STATUS`). Migrations 0150 to 0153 are GATED and
+owner-applied, in order. No partner, turnaround, code or range ships: each hospital's laboratory lead and data
+protection lead enter and sign them in the product.
+
+- Referrals on the original order with FHIR Task states, EX-7 ordering and computed overdue
+  ([ADR 0312](docs/adr/0312-lab-referrals-on-the-original-order-fhir-task-states.md)); manifests with no patient
+  names and a Code 128 number ([ADR 0313](docs/adr/0313-lab-manifests-carry-no-patient-names.md),
+  [ADR 0321](docs/adr/0321-lab-code-128-encoder-no-dependency.md)).
+- Results back on paper with provenance, the reference lab's units and ranges, a required scan and a second check
+  ([ADR 0314](docs/adr/0314-lab-results-back-provenance-ranges-scans-second-check.md),
+  [ADR 0323](docs/adr/0323-lab-report-scans-private-bucket.md)); referred critical values raise the usual call
+  ([ADR 0327](docs/adr/0327-lab-referred-critical-values-checked-not-repeated.md), proposed).
+- The exchange core: store before acknowledge, outbox, dead letters, MA-1 matching and the reconciliation queue
+  ([ADR 0315](docs/adr/0315-exchange-store-before-acknowledge-outbox.md),
+  [ADR 0316](docs/adr/0316-exchange-matching-rule-reconciliation-queue.md)); machine identity by signed JWT
+  ([ADR 0318](docs/adr/0318-exchange-machine-identity-signed-jwt.md)); Connections and Analysers pages.
+- Partners' legal records and field lists under the DPPA, signed by the data protection lead at
+  `/referral-governance` ([ADR 0319](docs/adr/0319-lab-partners-legal-record-dppa-data-protection-lead.md)).
+- HMIS 10.4 from records ([ADR 0325](docs/adr/0325-lab-hmis-10-4-from-records.md)); live events
+  ([ADR 0326](docs/adr/0326-lab-live-events-from-referral-and-exchange-tables.md)); structural FHIR checks
+  ([ADR 0324](docs/adr/0324-fhir-structural-check-not-full-validator.md)); table naming
+  ([ADR 0322](docs/adr/0322-lab-table-prefix-and-generic-exchange-tables.md)).
+- Not built, with gap reports: a partner's electronic connection, the analyser bridge
+  ([ADR 0317](docs/adr/0317-lab-analyser-bridge-reuse-pending-makers-document.md)) and national connections
+  ([ADR 0320](docs/adr/0320-national-connections-only-past-gate-n.md)).
+
+### Fixed — 17 Oct 2026
+
+- An amended referred report kept performer `external` (it fell back to `in_house`).
+
 ### Added — Lab Phase 3: registers, reports and quality — 2026-10-13
 
 Built dark on `feat/lab-quality-registers`, behind eight per-hospital flags that stay off in production until the CSO
