@@ -147,3 +147,39 @@ Signed kinds registered (`lib/lab/signed-config.ts`); the IPC alert list is sign
 by a laboratory lead (new slot `lab_counter`); the results consent notice by the data protection lead alone. Rules
 covered in later steps by the lanes: PR-2, PR-10, PR-13, PR-14, PR-15 (Step 6–7), PS-5, PS-6 (Step 8), DL-4, DL-5,
 DL-7, DL-12, DL-13 (Step 4), IC-4, IC-5, IC-9, IC-11–IC-14 (Step 5). AV-_ and MB-_ are gap reports.
+
+## STOP 4: Delta checks (17 Oct 2026)
+
+Built behind `LAB_DELTA_CHECKS`:
+
+- **Evaluation** in the shared result writer (`writeReportVersion`) on every laboratory version that has unit
+  snapshots: signed delta, panel and pattern rules in force at the time of writing, against the patient's released
+  results in the same unit (`lib/lab/delta-store.ts`). A flag keeps both values, the rule version, the change and the
+  interval; a release that carries the same value keeps the earlier decision.
+- **Release gate (DL-6)**: an in-house lab release refuses while any live flag has no decision; the result-entry page
+  shows the flags (`delta-panel.tsx`, amber, `role="alert"` once) and Release stays disabled with the reason. Referred
+  and bedside results are flagged but not held here (A20, recorded below).
+- **Decisions (DL-6, DL-7)**: a structured outcome with a required note; "recollect" rejects the specimen with the new
+  reason "possible wrong sample (delta check)"; "mislabel confirmed" opens a nonconformity from the new source `delta`.
+- **Rules page** `/lab/setup/delta` (§5.7): rules with status, last-30-day flags and "Flags often · review"; forms for
+  delta (with a live RCV calculator, symmetric or log-normal), panel and pattern rules; "Try it on past results"
+  (reads only); signing in the lead slot, countersigning in the CSO console.
+
+| Scenario | Result | Evidence (`tests/emr-db/lab-delta.test.ts`)                                                                                          |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| S1       | Pass   | MCV change fires DC-MCV-1 with both values; release refused until a decision; "with whom" required                                   |
+| S2       | Pass   | Recollect rejects the specimen as `possible_wrong_sample`                                                                            |
+| S3       | Pass   | Mislabel confirmed opens an NC from `delta`                                                                                          |
+| S4       | Pass   | A procedure between the results is listed; the rule still fires                                                                      |
+| S5       | Pass   | RCV from the signed CVA and CVI: 5 % does not fire, 9.5 % does (CVA and CVI are in the signed payload, so a change is a new version) |
+| S6       | Pass   | A previous result by another method code is not compared                                                                             |
+| S7, S8   | Pass   | Panel rule fires once; pattern rule informs with its meaning                                                                         |
+| S9       | Pass   | A draft rule never runs                                                                                                              |
+| S10      | Pass   | Trial reads pairs and writes nothing; review shows outcome shares                                                                    |
+
+Baseline (a) flipped to a plain `it` (fixed).
+
+**A20 (recorded):** DL-12 asks for referred and interfaced results to be evaluated; they are, but the release gate
+holds only in-house lab releases, because the referred result form (Phase 4) has no decision step yet. Their flags
+show on the order. **Gaps:** the "Last time" column of artboard 6 is the panel's Previous line; the rules page cannot
+tell the author of a draft, so the exception note is not offered (the server still refuses the author).
