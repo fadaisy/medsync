@@ -21,6 +21,8 @@ export interface Ticket {
   dayKey: string | null;
   part: "Morning" | "Afternoon" | null;
   doors: string | null;
+  /** A doctor's booked slot: its start ("09:20", clinic time); null for a clinic day (ADR 0344). */
+  time?: string | null;
   /** Day: true until the clinic confirms. */
   awaiting: boolean;
   /** UGX, or null for no fee. */

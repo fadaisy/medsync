@@ -5,6 +5,7 @@ import {
   doctorFilters,
   FEE_UNKNOWN,
   initialsOf,
+  isDoctor,
   matchesFilter,
   ratingWords,
   toDoctorCards,
@@ -199,5 +200,18 @@ describe("card words", () => {
     expect(availabilityWords(null, "2026-10-18", words).text).toBe(
       "No open day in the next two weeks",
     );
+  });
+});
+
+describe("doctors only", () => {
+  it("keeps medical officers, consultants and dentists", () => {
+    expect(isDoctor({ cadreId: "00000000-0000-0000-0000-000000000d02" })).toBe(true);
+    expect(isDoctor({ cadreId: "00000000-0000-0000-0000-000000000d05" })).toBe(true);
+    expect(isDoctor({ cadreId: "00000000-0000-0000-0000-000000000d07" })).toBe(true);
+  });
+  it("leaves out interns, nurses, clinical officers, lab staff and pharmacists", () => {
+    for (const id of ["d01", "d08", "d0a", "d0b", "d0c", "d0d", "d12", "d13"])
+      expect(isDoctor({ cadreId: `00000000-0000-0000-0000-000000000${id}` })).toBe(false);
+    expect(isDoctor({ cadreId: null })).toBe(false);
   });
 });

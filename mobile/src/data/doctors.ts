@@ -78,6 +78,28 @@ export interface DoctorsState {
   doctors: DoctorCard[];
 }
 
+/**
+ * The doctor cadres a patient books (ADR 0344): the UMDPC-registered cadres
+ * of the reference seed (migration 0009), less intern doctors, who do not
+ * practise on their own. Nurses, midwives, clinical officers, lab staff,
+ * therapists and pharmacists are clinical but are not on "See a doctor".
+ *
+ * ponytail: the seed's fixed ids, read on the phone. Upgrade path: the server
+ * returns the cadre's council code and this becomes `council === "UMDPC"`.
+ */
+export const DOCTOR_CADRE_IDS: ReadonlySet<string> = new Set([
+  "00000000-0000-0000-0000-000000000d02", // Medical Officer
+  "00000000-0000-0000-0000-000000000d03", // Medical Officer (Special Grade)
+  "00000000-0000-0000-0000-000000000d04", // Consultant
+  "00000000-0000-0000-0000-000000000d05", // Senior Consultant
+  "00000000-0000-0000-0000-000000000d06", // Dental Officer
+  "00000000-0000-0000-0000-000000000d07", // Dental Surgeon
+]);
+
+export function isDoctor(c: Pick<ClinicianOption, "cadreId">): boolean {
+  return c.cadreId !== null && DOCTOR_CADRE_IDS.has(c.cadreId);
+}
+
 /** "Dr Jane Doe" → "JD". Initials stand in where the clinician gave no photo. */
 export function initialsOf(name: string): string {
   const words = name
@@ -193,10 +215,11 @@ const store = createStore<DoctorsState>({ status: "loading", doctors: [] });
 export async function loadDoctors(): Promise<void> {
   if (store.get().status !== "ready") store.set((s) => ({ ...s, status: "loading" }));
   try {
-    const [profile, clinicians] = await Promise.all([
+    const [profile, everyone] = await Promise.all([
       fetchPatientProfile().catch(() => null),
       fetchBookableClinicians(),
     ]);
+    const clinicians = everyone.filter(isDoctor);
     const home = profile?.hospitalId ?? null;
     const hospitalIds = [...new Set(clinicians.map((c) => c.hospitalId))];
     const [lines, walkIns] = await Promise.all([

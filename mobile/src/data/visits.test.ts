@@ -38,8 +38,8 @@ describe("a clinician's open slots as days", () => {
     departmentName: "General clinic",
     slotsByDate: {
       "2026-10-21": [
-        { startsAtIso: "2026-10-21T10:00:00Z", endsAtIso: "2026-10-21T10:15:00Z" },
         { startsAtIso: "2026-10-21T10:30:00Z", endsAtIso: "2026-10-21T10:45:00Z" },
+        { startsAtIso: "2026-10-21T10:00:00Z", endsAtIso: "2026-10-21T10:15:00Z" },
       ],
       "2026-10-20": [{ startsAtIso: "2026-10-20T05:00:00Z", endsAtIso: "2026-10-20T05:15:00Z" }],
     },
@@ -51,19 +51,25 @@ describe("a clinician's open slots as days", () => {
     fee: { posture: "full", baseFeeUgx: 20000, lineName: "OPD", cadreFees: [] },
   } as unknown as ServiceLine;
 
-  it("one option per part of a day, earliest slot, never a clock time", () => {
+  it("every open time of each day, in order, each one place with its own slot", () => {
     const days = slotDays(c, [line], "follow_up");
     expect(days.map((d) => d.key)).toEqual(["2026-10-20", "2026-10-21"]);
     expect(days[0].sessions).toEqual([
       expect.objectContaining({ part: "Morning", doors: null, placesLeft: 1, fee: 20000 }),
     ]);
-    expect(days[1].sessions[0]).toMatchObject({
+    expect(days[1].sessions.map((s) => s.slot?.startsAtIso)).toEqual([
+      "2026-10-21T10:00:00Z",
+      "2026-10-21T10:30:00Z",
+    ]);
+    expect(days[1].sessions[1]).toMatchObject({
+      id: "slot:2026-10-21T10:30:00Z",
       part: "Afternoon",
-      placesLeft: 2,
+      placesLeft: 1,
       slot: {
         clinicianUserId: "u1",
         departmentId: "d1",
-        startsAtIso: "2026-10-21T10:00:00Z",
+        startsAtIso: "2026-10-21T10:30:00Z",
+        endsAtIso: "2026-10-21T10:45:00Z",
         serviceLineId: "l1",
       },
     });

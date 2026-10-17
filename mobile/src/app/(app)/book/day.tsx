@@ -2,11 +2,12 @@ import type { DayOption, Days, SessionOption, Ticket as TicketData } from "@/dat
 import type { AppointmentReason } from "@/lib/booking";
 import { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import {
   Button,
   Card,
+  Chip,
   FieldError,
   Icon,
   IconDisc,
@@ -17,12 +18,15 @@ import {
   Ticket,
 } from "@/components/tide";
 import { loadDays, payments, requestDay, useTickets } from "@/data/visits";
+import { BookingCalendar } from "@/features/visits/calendar";
+import { dayState, firstOpenDay, TIME_GROUPS, timeGroup } from "@/features/visits/calendar-logic";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
 import {
   clockOf,
   dayKeyOf,
   dayNumberOf,
   feeText,
+  longDayOf,
   monthShortOf,
   shortDayOf,
   weekdayOf,
@@ -31,6 +35,7 @@ import { HonestNote, pickStyle, StepTitle } from "@/features/visits/parts";
 import { APPOINTMENT_REASONS, newIdempotencyKey } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { useSession } from "@/lib/session";
+import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -43,8 +48,12 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * itself (`pt-request-appointment`, one idempotency key per attempt). The fee
  * is the clinic's own price list; where none is priced it says "No fee".
  *
- * Morning or afternoon is shown as when doors open, never as your hour (law
- * L8). Payment is simulated (`payments`). With no hospital chosen the patient
+ * The days sit on a month calendar reaching `PATIENT_BOOKING_HORIZON_DAYS`
+ * ahead; a day with no open time cannot be chosen. A clinic day shows morning
+ * or afternoon as when doors open, never as your hour (law L8). A named
+ * doctor's day shows each open time to pick, with the owner's plain words that
+ * the doctor may see you later (18 Oct 2026). No count of what is left is ever
+ * shown (ADR 0084). Payment is simulated (`payments`). With no hospital chosen the patient
  * chooses one first; nothing is shown in its place.
  */
 const REASONS = new Set<string>(APPOINTMENT_REASONS.map((r) => r.value));
@@ -77,6 +86,7 @@ export default function BookDayScreen() {
   const [attempt, setAttempt] = useState(0);
   const [picked, setPicked] = useState<string | null>(params.day ?? null);
   const [part, setPart] = useState<"Morning" | "Afternoon" | null>(null);
+  const [slotId, setSlotId] = useState<string | null>(null);
   const [whoId, setWhoId] = useState<string | null>(null);
   const [pay, setPay] = useState<"momo" | "later">("momo");
   const [note, setNote] = useState("");
@@ -85,6 +95,7 @@ export default function BookDayScreen() {
   const [error, setError] = useState<string | null>(null);
   const [ticketId, setTicketId] = useState<string | null>(null);
   const all = useTickets();
+  const now = useNow(60_000);
   const ticket = ticketId ? (all.find((x) => x.id === ticketId) ?? null) : null;
 
   const { doctor, department, hospital } = params;
@@ -161,8 +172,21 @@ export default function BookDayScreen() {
     );
   }
 
+  const today = dayKeyOf(now);
   const takeable = (d: DayOption) => d.sessions.some((s) => s.placesLeft > 0);
-  const day = days.days.find((d) => d.key === picked) ?? days.days.find(takeable) ?? null;
+  const openKeys = new Set(days.days.filter(takeable).map((d) => d.key));
+  const first = firstOpenDay(today, openKeys);
+  const dayKey = picked && dayState(picked, today, openKeys) === "open" ? picked : first;
+  const day = days.days.find((d) => d.key === dayKey) ?? null;
+  const doctorName = days.doctorName;
+  const clinicName =
+    day?.sessions[0]?.clinicName ?? days.days[0]?.sessions[0]?.clinicName ?? "The clinic";
+
+  // A named doctor: every open time of the day, and the patient picks one.
+  const slots = doctorName ? (day?.sessions ?? []).filter((s) => s.slot) : [];
+  const slotSession = slots.find((s) => s.id === slotId) ?? null;
+
+  // A clinic day: morning or afternoon, and who to see.
   const inPart = (p: "Morning" | "Afternoon") => (day?.sessions ?? []).filter((s) => s.part === p);
   const partOpen = (p: "Morning" | "Afternoon") => inPart(p).some((s) => s.placesLeft > 0);
   const chosenPart =
@@ -173,26 +197,32 @@ export default function BookDayScreen() {
         : partOpen("Afternoon")
           ? "Afternoon"
           : null;
-  const open = chosenPart ? inPart(chosenPart).filter((s) => s.placesLeft > 0) : [];
+  const inChosen = chosenPart ? inPart(chosenPart).filter((s) => s.placesLeft > 0) : [];
   // "Any doctor" takes the cheapest open place; a named doctor is their own session.
-  const anySession = [...open].sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0))[0] ?? null;
-  const named = open.filter((s) => s.clinicianName !== "Clinic team");
+  const anySession = [...inChosen].sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0))[0] ?? null;
+  const named = inChosen.filter((s) => s.clinicianName !== "Clinic team");
   const whoSel = whoId === "any" ? null : whoId;
-  const session: SessionOption | null = (whoSel && open.find((s) => s.id === whoSel)) || anySession;
-  // From a doctor's card the clinician is already chosen: no "who" question.
-  const whoOptions = days.doctorName
+  const session: SessionOption | null = doctorName
+    ? slotSession
+    : (whoSel && inChosen.find((s) => s.id === whoSel)) || anySession;
+  const whoOptions = doctorName
     ? []
     : [
         { key: "any", name: "Any doctor", fee: anySession?.fee ?? null },
         ...named.map((s) => ({ key: s.id, name: s.clinicianName, fee: s.fee })),
       ];
   const fee = session?.fee ?? null;
-  const clinicName = days.days[0]?.sessions[0]?.clinicName ?? "The clinic";
-  const weekdays = [...new Set(days.days.map((d) => weekdayOf(d.key)))];
-  const dayWords = day
-    ? `${weekdayOf(day.key)} ${dayNumberOf(day.key)} ${(chosenPart ?? "").toLowerCase()}`
-    : "";
-  const send = fee && pay === "momo" ? `Pay ${feeText(fee)} · ${dayWords}` : `Ask for ${dayWords}`;
+  const when = slotSession?.slot
+    ? clockOf(slotSession.slot.startsAtIso)
+    : (chosenPart ?? "").toLowerCase();
+  const dayWords = day ? `${weekdayOf(day.key)} ${dayNumberOf(day.key)} ${when}` : "";
+  const send = !session
+    ? doctorName
+      ? "Choose a time"
+      : "Choose a day"
+    : fee && pay === "momo"
+      ? `Pay ${feeText(fee)} · ${dayWords}`
+      : `Ask for ${dayWords}`;
 
   const reset = () => setKey(null);
 
@@ -223,93 +253,100 @@ export default function BookDayScreen() {
     setTicketId(res.ticket.id);
   };
 
+  const header = {
+    back: { label: "Book a visit" },
+    overline: doctorName ? `${days.hospitalName} · ${clinicName}` : days.hospitalName,
+    overlineColor: t.area.visits,
+    title: doctorName ? `Ask ${doctorName} for a day` : "Ask for a day",
+    helpSource: "book-day",
+  } as const;
+
+  if (!first) {
+    return (
+      <Screen {...header}>
+        <Card>
+          <View style={{ alignItems: "center", gap: tSpace[3], paddingVertical: tSpace[4] }}>
+            <IconDisc name="calendar" size={56} color={t.area.visits} bg={t.surface2} />
+            <Text
+              accessibilityRole="header"
+              style={[tType.heading, { color: t.ink, textAlign: "center" }]}
+            >
+              No open days in the next two months
+            </Text>
+            <Text style={[tType.bodyM, { color: t.ink2, textAlign: "center" }]}>
+              {doctorName
+                ? `${doctorName} has no open time on MedSync yet. Try another doctor, or come back later.`
+                : "No clinic day for this kind of visit is open on MedSync yet. Come back later."}
+            </Text>
+          </View>
+        </Card>
+        <Button
+          label={doctorName ? "Back to doctors" : "Back to Book a visit"}
+          variant="outline"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        />
+      </Screen>
+    );
+  }
+
   return (
-    <Screen
-      back={{ label: "Book a visit" }}
-      overline={
-        days.days.length ? `${clinicName} · open ${weekdays.join(" and ")}` : days.hospitalName
-      }
-      overlineColor={t.area.visits}
-      title={days.doctorName ? `Ask ${days.doctorName} for a day` : "Ask for a day"}
-      helpSource="book-day"
-    >
-      {days.days.length === 0 ? (
-        <Note tone="plain">
-          {days.doctorName
-            ? `${days.doctorName} has no open day on MedSync in the next two weeks.`
-            : "No clinic day for this kind of visit is open on MedSync in the next two weeks."}
-        </Note>
-      ) : (
-        // The rail runs off the right edge: no right padding.
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginHorizontal: -tSpace[5], flexGrow: 0 }}
-          contentContainerStyle={{ paddingLeft: tSpace[5], gap: tSpace[2], paddingVertical: 4 }}
-        >
-          {days.days.map((d) => {
-            const on = d.key === day?.key;
-            const room = takeable(d);
+    <Screen {...header}>
+      <BookingCalendar
+        today={today}
+        open={openKeys}
+        selected={day?.key ?? null}
+        onSelect={(k) => {
+          setPicked(k);
+          setSlotId(null);
+          setPart(null);
+          setWhoId(null);
+          reset();
+        }}
+      />
+
+      {day && doctorName ? (
+        <View style={{ gap: tSpace[3] }}>
+          <StepTitle>{`Choose a time on ${longDayOf(day.key)}`}</StepTitle>
+          {TIME_GROUPS.map((g) => {
+            const inGroup = slots.filter((s) => s.slot && timeGroup(s.slot.startsAtIso) === g);
+            if (!inGroup.length) return null;
             return (
-              <Press
-                key={d.key}
-                onPress={() => {
-                  setPicked(d.key);
-                  setWhoId(null);
-                  reset();
-                }}
-                disabled={!room}
-                accessibilityState={{ selected: on, disabled: !room }}
-                accessibilityLabel={`${shortDayOf(d.key)}, ${room ? "places left" : "full"}`}
-                style={{
-                  width: 74,
-                  height: 96,
-                  borderRadius: tRadius.panel,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 2,
-                  backgroundColor: on ? t.band : room ? t.surface : t.surface3,
-                  boxShadow: on || !room ? undefined : t.shadow.card,
-                }}
-              >
-                <Text style={[tType.caption, { color: on ? t.onBand2 : room ? t.ink2 : t.ink4 }]}>
-                  {weekdayOf(d.key).toUpperCase()}
+              <View key={g} style={{ gap: tSpace[1.5] }}>
+                <Text style={[tType.caption, { fontFamily: tFont.semibold, color: t.ink2 }]}>
+                  {g}
                 </Text>
-                <Text
-                  style={{
-                    fontFamily: tFont.monoSemibold,
-                    fontSize: 28,
-                    lineHeight: 32,
-                    color: on ? t.onBand : room ? t.ink : t.ink4,
-                  }}
-                >
-                  {dayNumberOf(d.key).padStart(2, "0")}
-                </Text>
-                <Text
-                  style={[
-                    tType.micro,
-                    {
-                      fontFamily: tFont.semibold,
-                      color: on ? t.onBandAccent : room ? t.accentText : t.ink4,
-                    },
-                  ]}
-                >
-                  {room ? "Room" : "Full"}
-                </Text>
-              </Press>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
+                  {inGroup.map((s) => (
+                    <Chip
+                      key={s.id}
+                      label={s.slot ? clockOf(s.slot.startsAtIso) : ""}
+                      selected={s.id === slotSession?.id}
+                      onPress={() => {
+                        setSlotId(s.id);
+                        reset();
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
             );
           })}
-        </ScrollView>
-      )}
+          {slotSession ? (
+            <Note tone="plain" icon="clock">
+              Please arrive a little early. The doctor may see you later than this time.
+            </Note>
+          ) : null}
+        </View>
+      ) : null}
 
-      {day ? (
+      {day && !doctorName ? (
         <View style={{ gap: tSpace[2] }}>
           <StepTitle>Morning or afternoon?</StepTitle>
           <View style={{ flexDirection: "row", gap: tSpace[2] }}>
             {(["Morning", "Afternoon"] as const).map((p) => {
               const ss = inPart(p);
               const ok = partOpen(p);
-              const places = ss.reduce((n, s) => n + s.placesLeft, 0);
+              const doors = ss[0]?.doors;
               const on = p === chosenPart;
               return (
                 <Press
@@ -323,8 +360,8 @@ export default function BookDayScreen() {
                   accessibilityState={{ selected: on, disabled: !ok }}
                   accessibilityLabel={
                     ok
-                      ? `${p}, ${ss[0]?.doors ? `doors open ${ss[0].doors}, ` : ""}${places} places left`
-                      : `${p}, full`
+                      ? `${p}, ${doors ? `doors open ${doors}` : "open"}`
+                      : `${p}, ${ss.length ? "full" : "no clinic"}`
                   }
                   style={{
                     flex: 1,
@@ -342,7 +379,9 @@ export default function BookDayScreen() {
                     {ss.length === 0
                       ? "No clinic"
                       : ok
-                        ? `${ss[0]?.doors ? `Doors ${ss[0].doors} · ` : ""}${places} places left`
+                        ? doors
+                          ? `Doors ${doors}`
+                          : "Open"
                         : "Full"}
                   </Text>
                 </Press>
@@ -489,7 +528,8 @@ function Sent({ ticket: tk }: { ticket: TicketData }) {
           { label: "Clinic", value: tk.clinic },
           { label: "See", value: tk.see },
           { label: "Room", value: tk.room },
-          { label: "Time", value: "Not promised" },
+          // A doctor's slot has the time the patient chose (ADR 0344); a clinic day promises none.
+          { label: "Time", value: tk.time ? `${tk.time} · arrive a little early` : "Not promised" },
           { label: "Patient", value: tk.patient },
           {
             label: "Asked",

@@ -338,7 +338,7 @@ export interface SlotPick {
 export interface SessionOption extends Fee {
   id: string;
   part: "Morning" | "Afternoon";
-  /** When doors open ("08:00") for a clinic day; null for a clinician's slot (never your hour, law L8). */
+  /** When doors open ("08:00") for a clinic day; null for a clinician's slot, whose time is `slot.startsAtIso`. */
   doors: string | null;
   placesLeft: number;
   clinicianName: string;
@@ -371,10 +371,11 @@ function sessionFee(line: ServiceLine | undefined): Fee {
 }
 
 /**
- * One clinician's open slots as day options: each part of a day offers its
- * earliest slot, shown as morning or afternoon, never as a clock time (law
- * L8). The fee is the line in their department that takes this reason; that
- * line is sent with the request so the record keeps the same quote.
+ * One clinician's open slots as day options: every open time of each day, in
+ * order, each its own option (one place, never a count shown). The server
+ * already returns only truly bookable slots. The fee is the line in their
+ * department that takes this reason; that line is sent with the request so
+ * the record keeps the same quote.
  */
 export function slotDays(
   c: ClinicianOption,
@@ -388,37 +389,35 @@ export function slotDays(
   return Object.keys(c.slotsByDate)
     .sort()
     .flatMap((key) => {
-      const sessions: SessionOption[] = [];
-      for (const part of ["Morning", "Afternoon"] as const) {
-        const slots = (c.slotsByDate[key] ?? []).filter((s) => partOf(s.startsAtIso) === part);
-        const first = slots[0];
-        if (!first) continue;
-        sessions.push({
-          id: `slot:${first.startsAtIso}`,
-          part,
-          doors: null,
-          placesLeft: slots.length,
-          clinicianName: c.fullName,
-          clinicName: c.departmentName,
-          room: c.departmentName,
-          ...fee,
-          slot: {
-            clinicianUserId: c.userId,
-            departmentId: c.departmentId,
-            startsAtIso: first.startsAtIso,
-            endsAtIso: first.endsAtIso,
-            ...(line ? { serviceLineId: line.id } : {}),
-          },
-        });
-      }
+      const sessions = [...(c.slotsByDate[key] ?? [])]
+        .sort((a, b) => a.startsAtIso.localeCompare(b.startsAtIso))
+        .map(
+          (s): SessionOption => ({
+            id: `slot:${s.startsAtIso}`,
+            part: partOf(s.startsAtIso),
+            doors: null,
+            placesLeft: 1,
+            clinicianName: c.fullName,
+            clinicName: c.departmentName,
+            room: c.departmentName,
+            ...fee,
+            slot: {
+              clinicianUserId: c.userId,
+              departmentId: c.departmentId,
+              startsAtIso: s.startsAtIso,
+              endsAtIso: s.endsAtIso,
+              ...(line ? { serviceLineId: line.id } : {}),
+            },
+          }),
+        );
       return sessions.length ? [{ key, sessions }] : [];
     });
 }
 
 /**
- * Published clinic days within the 14-day horizon that take this reason,
+ * Published clinic days within the booking horizon that take this reason,
  * grouped by day; or, with `doctor`, that clinician's own open slots. A day
- * with no place left stays on the rail as "Full".
+ * with no place left stays on the calendar as "no open times".
  */
 export async function loadDays(
   reason: AppointmentReason,
@@ -527,6 +526,7 @@ export async function requestDay(input: {
     dayKey: input.day.key,
     part: session.part,
     doors: session.doors,
+    time: session.slot ? clockOf(session.slot.startsAtIso) : null,
     awaiting: res.data.status === "requested" || res.data.status === "pending_approval",
     fee: session.fee,
     feeLabel: session.feeLabel,

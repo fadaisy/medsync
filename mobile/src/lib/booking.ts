@@ -3,6 +3,7 @@ import type { FeeInputs } from "@shared/fees";
 import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { BookingSymptom } from "@shared/symptoms";
 import type { ImagePickerOptions } from "expo-image-picker";
+import { PATIENT_BOOKING_HORIZON_DAYS } from "@shared/booking-horizon";
 import { feeRange, rangeLine } from "@shared/fees";
 import {
   DEFAULT_TIME_ZONE,
@@ -932,7 +933,7 @@ interface SessionRow {
 }
 
 /** ADR 0084 §8: the server refuses a day past this; the list never offers one. */
-const HORIZON_MS = 14 * 86_400_000;
+const HORIZON_MS = PATIENT_BOOKING_HORIZON_DAYS * 86_400_000;
 
 /**
  * Published, future clinic days within the 14-day horizon — every line at a
