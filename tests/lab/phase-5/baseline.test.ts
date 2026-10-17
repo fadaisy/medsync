@@ -39,6 +39,8 @@ describe("Lab Phase 5 baseline — defects reproduced at Step 0", () => {
   // the report and, at most, a critical alert to the clinician; nothing reaches infection prevention.
   it.fails("(b) a released RR-TB result raises an infection prevention alert", () => {
     expect(migrations()).toMatch(/create table[^;]*\bipc_alerts\b/i);
+    // …and the release path raises it (the table alone arrives at Step 2; the feed at Step 5).
+    expect(read("lib/emr/write/results.ts")).toMatch(/raiseIpcAlerts/);
   });
 
   // (c) Today no patient surface reads a laboratory result (Step 0 Q3), so none can show one before review. From

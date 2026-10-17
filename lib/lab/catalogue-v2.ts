@@ -264,7 +264,7 @@ async function anotherSigner(
     return (Array.isArray(r) ? r : r.rows).length > 0;
   }
   const q =
-    s.as === "lead"
+    s.as === "lead" || s.as === "lab_counter"
       ? sql`SELECT 1 FROM department_heads h JOIN hospital_departments d ON d.id = h.department_id
               LEFT JOIN hospital_departments p ON p.id = d.parent_id
              WHERE h.hospital_id = ${s.hospitalId} AND h.user_id <> ${s.userId} AND h.ends_at IS NULL
@@ -287,14 +287,17 @@ async function anotherSigner(
  * or the IPC lead's (referral_wording); the second slot is the CSO's, or the HMIS focal person's for
  * `hmis_mapping` (E-LAB3-12; Lab Phase 4 A4).
  */
-export type Signer = "lead" | "cso" | "focal" | "dp_lead" | "ipc_lead";
+export type Signer = "lead" | "cso" | "focal" | "dp_lead" | "ipc_lead" | "lab_counter";
 const LEAD_SLOT: readonly Signer[] = ["lead", "dp_lead", "ipc_lead"];
 const leadSlotFor = (kind: string): Signer =>
-  kind === "partner_legal" || kind === "partner_fields"
+  kind === "partner_legal" || kind === "partner_fields" || kind === "results_consent_notice"
     ? "dp_lead"
-    : kind === "referral_wording"
+    : kind === "referral_wording" || kind === "ipc_alert_entry"
       ? "ipc_lead"
       : "lead";
+/** Who signs second: the CSO, the HMIS focal person (hmis_mapping), or a laboratory lead (the IPC alert list). */
+const secondSlotFor = (kind: string): Signer =>
+  kind === "hmis_mapping" ? "focal" : kind === "ipc_alert_entry" ? "lab_counter" : "cso";
 
 export async function signConfig(
   tx: EmrTx,
@@ -355,15 +358,22 @@ export async function signConfig(
     }
   } else {
     if (leadOnly) throw new EmrWriteError("conflict", "The laboratory lead signs this alone.");
-    if ((c.kind === "hmis_mapping") !== (signer.as === "focal"))
+    if (signer.as !== secondSlotFor(c.kind))
       throw new EmrWriteError(
         "forbidden",
         c.kind === "hmis_mapping"
           ? "The HMIS focal person co-signs the HMIS mapping."
-          : "The CSO countersigns this.",
+          : c.kind === "ipc_alert_entry"
+            ? "A laboratory lead countersigns the alert list."
+            : "The CSO countersigns this.",
       );
-    if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The laboratory lead signs first.");
-    const second = signer.as === "focal" ? "the HMIS focal person" : "CSO";
+    if (!c.leadSignedBy) throw new EmrWriteError("conflict", "The lead signs first.");
+    const second =
+      signer.as === "focal"
+        ? "the HMIS focal person"
+        : signer.as === "lab_counter"
+          ? "the laboratory lead"
+          : "CSO";
     if (c.leadSignedBy === signer.userId) {
       if (!note && !c.exceptionNote)
         throw new EmrWriteError(
@@ -373,7 +383,7 @@ export async function signConfig(
       if (await anotherSigner(tx, signer, now))
         throw new EmrWriteError(
           "forbidden",
-          `You signed as the lead and another ${signer.as === "focal" ? "HMIS focal person" : "CSO"} can sign: they sign it.`,
+          `You signed as the lead and another ${signer.as === "focal" ? "HMIS focal person" : signer.as === "lab_counter" ? "laboratory lead" : "CSO"} can sign: they sign it.`,
         );
     }
   }

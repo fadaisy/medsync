@@ -228,6 +228,8 @@ export const testCatalogue = pgTable(
     active: boolean("active").notNull().default(true),
     /** 0107: CC-8 (changed only by the CSO). */
     restrictedClass: text("restricted_class"),
+    /** 0154 (Lab Phase 5 PR-3): tissue or cytology joins the never-shown floor. */
+    patientGroup: text("patient_group"),
     createdAt: timestamp("created_at", tz).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
   },

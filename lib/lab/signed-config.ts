@@ -14,9 +14,19 @@ import {
   ReferralOpsPayload,
   ReferralWordingPayload,
 } from "@/lib/exchange/partners";
+import { AlertEntryPayload } from "@/lib/ipc/lab-alerts";
 import { compareDecimal, isDecimal } from "@/lib/lab/catalogue";
+import { DeltaRulePayload, PanelRulePayload, PatternRulePayload } from "@/lib/lab/delta";
+import {
+  FloorAdditionsPayload,
+  MinorsRulePayload,
+  PatientReleasePayload,
+  ResultsConsentNoticePayload,
+} from "@/lib/lab/patient-release";
+import { PlainWordsPayload } from "@/lib/lab/plain-words";
 import { RULE_IDS } from "@/lib/lab/qc-rules";
 import { inForceAt } from "@/lib/lab/ranges";
+import { SmsTemplatePayload } from "@/lib/notify/results-ready";
 
 const decimal = z.string().refine(isDecimal, "a decimal");
 const days = z.number().int().min(0).nullable();
@@ -284,6 +294,18 @@ export const PAYLOADS = {
   partner_fields: PartnerFieldsPayload,
   referral_wording: ReferralWordingPayload,
   referral_ops: ReferralOpsPayload,
+  /** Lab Phase 5 (gate-a-proposal §2.2 A7): key = `hospital` (release, minors, floor), `{concept}:{language}`
+   *  (plain words), `{language}` (SMS template), the rule id (delta, panel, pattern) or the entry key (IPC). */
+  patient_release: PatientReleasePayload,
+  plain_words: PlainWordsPayload,
+  minors_rule: MinorsRulePayload,
+  sms_template: SmsTemplatePayload,
+  patient_floor_additions: FloorAdditionsPayload,
+  results_consent_notice: ResultsConsentNoticePayload,
+  delta_rule: DeltaRulePayload,
+  panel_rule: PanelRulePayload,
+  pattern_rule: PatternRulePayload,
+  ipc_alert_entry: AlertEntryPayload,
 } as const;
 /** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */
 export const LEAD_ONLY_KINDS: readonly string[] = [
@@ -299,6 +321,8 @@ export const LEAD_ONLY_KINDS: readonly string[] = [
   "partner_legal",
   "partner_fields",
   "referral_ops",
+  // Lab Phase 5: the data protection lead alone signs the results consent wording (lead slot).
+  "results_consent_notice",
 ];
 export type ConfigKind = keyof typeof PAYLOADS;
 export type Payload<K extends ConfigKind> = z.infer<(typeof PAYLOADS)[K]>;

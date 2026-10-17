@@ -114,3 +114,36 @@ are taken with the harness at Step 11 (the Phase 4 harness shots stand for the l
 E-LAB5-01–03 and A1–A19 are recorded as signed as recommended. Data that needs a named signer (release table, plain
 words, the minors rule, the SMS template, delta rules, the alert list) is signed later in the product. Patient access
 stays closed in production until the legal opinion (Q7) and the privacy notice, terms and PDPO registration (Q8).
+
+## STOP 2: Data layer (17 Oct 2026)
+
+Migrations **0154** (patient results), **0155** (delta checks), **0156** (IPC feed), **0157** (lab demo), all GATED
+and unapplied; Drizzle in `db/schema/lab-phase5.ts` (+ `test_catalogue.patient_group`), parity green (313).
+
+| Proof                                                                                                                                                                                             | Where                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The never-shown floor in the database: HIV, TB, pregnancy, tissue, signed additions; FBC is not                                                                                                   | `tests/emr-db/lab-phase5-data.test.ts`   |
+| The patient's read (`patient_results_for_me()`): only released, current, adult, consented, reviewed, told-when-critical, unheld results of their own; never the floor; never a child; anon denied | same                                     |
+| No client INSERT, UPDATE or DELETE on any of the 15 new tables (lab reader, patient, anon)                                                                                                        | same                                     |
+| Append-only triggers on the 10 append-only tables                                                                                                                                                 | same                                     |
+| IPC alerts: link nurse all, in-charge their ward, focal person routed only; clinician, lab, another hospital none; IC-3 uniqueness                                                                | same                                     |
+| Demo rows only at a hospital marked demo; demo patients labelled "Demo …"                                                                                                                         | same                                     |
+| No regression                                                                                                                                                                                     | every PGlite lane: 74 files, 1,319 tests |
+
+Found and fixed: `patient_results_for_me()` was callable by `anon` through Supabase's default function privileges;
+revoked explicitly.
+
+## STOP 3: Engines (17 Oct 2026)
+
+| Module                        | Rules                                                                                                                                               | Tests                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `lib/lab/patient-release.ts`  | PR-1 (decision table), PR-3 (floor + property test over 1,152 combinations), PR-4, PR-5, PR-6, PR-7, PR-8, PR-9 (edges), PR-11, PR-12, PR-16, PR-17 | 18                             |
+| `lib/notify/results-ready.ts` | PS-1, PS-2, PS-3 (hours across midnight, batching), PS-4                                                                                            | 5 (in `results-ready.test.ts`) |
+| `lib/lab/plain-words.ts`      | PW-1, PW-2, PW-3 (lint), PW-4, PW-5, PW-6                                                                                                           | 3                              |
+| `lib/lab/delta.ts`            | DL-1, DL-2, DL-3 (every type, rise/fall, RCV at both Z conventions and log-normal), DL-6, DL-8, DL-9, DL-10, DL-11                                  | 13                             |
+| `lib/ipc/lab-alerts.ts`       | IC-1, IC-2 (result, referral, amendment, off-menu), IC-3, IC-6, IC-7, IC-8, IC-10, IDSR-only                                                        | 10                             |
+
+Signed kinds registered (`lib/lab/signed-config.ts`); the IPC alert list is signed by the IPC lead and countersigned
+by a laboratory lead (new slot `lab_counter`); the results consent notice by the data protection lead alone. Rules
+covered in later steps by the lanes: PR-2, PR-10, PR-13, PR-14, PR-15 (Step 6–7), PS-5, PS-6 (Step 8), DL-4, DL-5,
+DL-7, DL-12, DL-13 (Step 4), IC-4, IC-5, IC-9, IC-11–IC-14 (Step 5). AV-_ and MB-_ are gap reports.
