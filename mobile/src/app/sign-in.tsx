@@ -57,6 +57,7 @@ export default function SignInScreen() {
         helpSource="sign-in"
         background={t.band}
         stagger={false}
+        growLast
         gap={0}
         contentStyle={{ flexGrow: 1, paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 }}
       >

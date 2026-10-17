@@ -188,6 +188,7 @@ export function Screen({
   contentStyle,
   background,
   topBand,
+  growLast = false,
 }: {
   children: ReactNode;
   back?: { label?: string; onPress?: () => void; icon?: "back" | "close" };
@@ -213,6 +214,8 @@ export function Screen({
   background?: string;
   /** A full-bleed band drawn under the header (Visit detail, Help). */
   topBand?: ReactNode;
+  /** The last child stretches to the bottom of the screen (a sheet-style card under a band, Sign in). */
+  growLast?: boolean;
 }) {
   const t = useTide();
   const insets = useSafeAreaInsets();
@@ -264,7 +267,10 @@ export function Screen({
   const body = items.map((child, i) => (
     <Animated.View
       key={isValidElement(child) && child.key != null ? String(child.key) : `i${i}`}
-      style={stagger ? motion.staggerUp(i, reduced) : undefined}
+      style={[
+        stagger ? motion.staggerUp(i, reduced) : undefined,
+        growLast && i === items.length - 1 ? { flexGrow: 1 } : undefined,
+      ]}
     >
       {child}
     </Animated.View>
