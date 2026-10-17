@@ -36,13 +36,13 @@ describe("Lab Phase 4 flags", () => {
     expect(await both()).toEqual([true, false]);
   });
 
-  it("CF-3: production refuses both while the Phase 4 copy is a draft", async () => {
+  // The owner signed the Phase 4 copy on 17 Oct 2026 (PR #238), so production now honours both flags; the
+  // draft-blocks-production rule itself is proven for Phase 5 in tests/lab/phase-5/flags.test.ts.
+  it("CF-3: production honours both now the Phase 4 copy is signed", async () => {
     const { LAB4_COPY_STATUS } = await import("@/content/lab-phase-4");
-    expect(LAB4_COPY_STATUS.status).toBe("draft");
+    expect(LAB4_COPY_STATUS.status).toBe("signed");
     for (const e of [...BASE, "LAB_REFERRAL", "LAB_EXCHANGE"]) vi.stubEnv(e, "1");
     vi.stubEnv("VERCEL_ENV", "production");
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(await both()).toEqual([false, false]);
-    warn.mockRestore();
+    expect(await both()).toEqual([true, true]);
   });
 });

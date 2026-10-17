@@ -122,7 +122,7 @@ function entryFor(ctx: WriteCtx): Entry {
 const invalid = (m: string) => new EmrWriteError("invalid", m);
 
 /** The current (unsuperseded) version of a report of this patient here. */
-async function currentReport(
+export async function currentReport(
   ctx: WriteCtx,
   patientUserId: string,
   reportId: string,
@@ -1047,7 +1047,7 @@ export interface AcknowledgeResultsInput {
  * department at this hospital, or whoever the result was forwarded to (brief W2); a cover rota
  * replaces the department rule when one exists.
  */
-async function requireResponsible(
+export async function requireResponsible(
   ctx: WriteCtx,
   report: ReportRow,
   acks: readonly { forwardedToUserId: string | null }[],

@@ -90,6 +90,22 @@ export const LAB5 = {
   needsMicrobiology: "Waiting for the microbiology module.",
   /** all */
   noData: "No data",
+  /** clinician: the "The patient sees it" chip (§5.4's table; the extra states are drafted for the CSO's signature) */
+  sees: {
+    in_person: "In person only",
+    minor: "Under the minors rule: not in the app",
+    no_consent: "Patient has not agreed to see results",
+    not_released: "Not released",
+    rules_unsigned: "Release rules not signed",
+    when_reviewed: "When you mark it reviewed",
+    after_told: "After you have spoken to them",
+    held: "Held until {date}",
+    being_checked: "Being checked",
+    visible: "Can see it",
+    seen: "Seen by the patient {date}",
+  },
+  /** clinician */
+  agedResults: "Released more than {days} days ago and not yet reviewed.",
 } as const;
 
 export { fill } from "@/content/lab-phase-3";

@@ -218,3 +218,43 @@ Baseline (b) flipped (fixed). **Gaps:** "live" is a page refresh, not a broadcas
 IPC needs its own authorisation); the optional SMS to the on-duty link nurse is not sent (no roster); the flag shows on
 the bed board only, not yet on registration and triage screens; Q15–Q17 (named people, the 2025 guideline chapters)
 remain owner actions.
+
+## STOP 6: Release rules and the clinician's side (17 Oct 2026)
+
+Built behind `PATIENT_RESULTS`:
+
+- **One decision for every reader** (PR-1): `resultFacts` reads the snapshot (status, current version, critical,
+  reviewed, told, latest hold, referred, bedside, earlier seen, age, consent) and `patientSees` maps the pure
+  `visibleToPatient` reason to the doctor's chip. The patient side (Step 7) reads the same snapshot through the same
+  gate, and the database has its own floor (`private.never_shown`, 0154).
+- **The doctor's results page** gains **The patient sees it** (§5.4): the clinician's released results of the last
+  14 days, each with its chip and the three acts in centred dialogs: **I have spoken to them** (how: in person, by
+  phone, through the guardian; one event per report version, PR-4), **Hold from the patient** (reason and an
+  until-date no later than the signed maximum, PR-7), **Release hold**, and **Note to patient**. Aged results (PR-16)
+  head the section. Writes go through `runEmrWrite` and the responsible-clinician rule of the result path.
+- **`/lab/setup/patient-release`** (§5.5) for `lab.manage`: the release table (every group starts at "Never in the
+  app"; the hold maximum and the aged window are blank until the lead types them, with a source), plain words per
+  test and language (translation trio required off English; the banned-phrase lint refuses the draft), the minors
+  rule (legal opinion reference), the results-ready message (template check refuses a test, value, clinic, link, or
+  a missing STOP) and additions to the never-in-the-app floor. Another laboratory lead signs, the CSO countersigns.
+
+| Scenario | Result | Evidence (`tests/emr-db/lab-patient-release.test.ts`)                                                                                         |
+| -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| S26      | Pass   | Unsigned rules show "Release rules not signed"; the author cannot sign; the lead alone is not enough; CSO makes it live                       |
+| S21      | Pass   | A routine result shows "When you mark it reviewed"; a `seen` acknowledgement makes it visible                                                 |
+| S22      | Pass   | A critical needs a told event; a second critical needs its own                                                                                |
+| S23      | Pass   | HIV viral load, a urine pregnancy test and a tissue-group test stay "In person only" even with a told event                                   |
+| S24      | Pass   | A hold beyond the signed maximum is refused; a lapsed until-date still holds (back to the clinician); the month list has it; release shows it |
+| S25      | Pass   | A result released 10 days ago, unreviewed, lists for its orderer with the department; reviewing removes it                                    |
+| S27      | Pass   | A banned phrase fails the lint; without it the text passes                                                                                    |
+
+Also: two older lab tests were stale, not broken. Phase 4's CF-3 test expected a draft copy (signed 17 Oct) and now
+asserts that production honours both flags. Phase 3's NC-1 list gains `delta`. A new `tests/lab/phase-5/flags.test.ts`
+proves the four Phase 5 flags and the draft-blocks-production rule.
+
+**Deviations:** §5.4 asks for amber chips for "after told" and "held"; the design system forbids amber for a workflow
+state, so every chip is a neutral square `Tag` with its words. The column sits in its own section under the review
+list, because a reviewed result leaves that list. The chip words for states §5.4 does not name ("Release rules not
+signed", "Under the minors rule: not in the app", "Being checked", "Can see it") are added to `LAB5` for the CSO's
+signature with the rest. **Gaps:** the head of department reads aged results only through the orderer's list today;
+plain words have no harm anchor or calculated lines in the form (both stay null until a signed threshold exists).
