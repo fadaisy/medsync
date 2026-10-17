@@ -41,6 +41,10 @@ export const PartnerTestsPayload = z.object({
           )
           .default([]),
         requirements: words.optional(),
+        /** EX-10, FX-3: their result codes → our components, for a partner's electronic results (signed). */
+        components: z
+          .record(z.string().trim().min(1).max(80), z.string().trim().min(3).max(80))
+          .optional(),
         category: z.string().trim().min(1).max(60),
       }),
     )

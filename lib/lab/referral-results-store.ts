@@ -101,7 +101,7 @@ export async function referralForEntry(
 }
 
 /** The patient's name, date of birth and hospital number, for comparison on the server only (never returned). */
-async function patientForCompare(tx: EmrTx, patientUserId: string) {
+export async function patientForCompare(tx: EmrTx, patientUserId: string) {
   const [p] = await tx
     .select({
       code: patientProfiles.patientCode,

@@ -375,3 +375,65 @@ two parts: the store layer (`6b710211`), then the screens.
 
 Checks: typecheck clean; lint clean on every new file; lab, design and EMR suites pass (5,195), PGlite lanes
 (referral 14, Phase 4 data 13, HMIS 10, parity 298) pass.
+
+## STOP 8: Exchange core and reconciliation (17 Oct 2026)
+
+### What is built
+
+- **Machine identity** (`lib/exchange/jwt.ts`): SMART Backend Services client assertions, ES384 or RS384 only, on
+  `node:crypto` with no new dependency. The token is opaque, lasts 300 s and only its SHA-256 is stored. Each jti
+  is used once (`exchange_jti`). Pairing uses a one-time code (only its hash is stored) that expires in 30 minutes
+  and locks after 10 wrong codes. The lab lead then types the key fingerprint the machine shows (B3). Enabling
+  needs a fresh second factor. A partner also needs its signed legal record (PT-4). Revoking deletes the tokens and
+  takes effect on the next request.
+- **Inbound** (`/api/exchange/token`, `/api/exchange/inbound/[hospital]/[sender]`, `/api/exchange/pair`, and the
+  bridge config and heartbeat): the message is stored before it is acknowledged (`private.exchange_store_inbound`,
+  202 with `{messageId, duplicate}`) and processed after the response (`after()`). The cron sweeps anything left
+  at `received`. Duplicates are recorded and never processed twice. Unreadable messages are kept and marked.
+- **Processing** (`lib/exchange/store.ts`): a Task status appends a `partner_message` referral event under EX-7 (an
+  out-of-order status is stored but not applied). A result goes through MA-1 exactly as signed. Matched → **back to
+  file** for a lab user (RB-10, D-LAB4-11), who files it on the original order as an external, interfaced report,
+  idempotently (one match item per component). Anything else → Waiting for a match, with no values.
+- **Outbox** (`drainOutbox`): claims rows with a conditional update, backs off with jitter, sets a message dead
+  at the limit, and lets a person retry it or set it aside with a reason. Nothing is purged. The cron drains with
+  an "unavailable" transport until a partner endpoint exists (Step 9).
+- **Connections** `/lab/exchange` (§5.6): tiles (delivered today in and out, retrying with the oldest, needs a
+  person, waiting for a match). The connections list shows each sender, each partner not connected, and the three
+  national lines (CPHL/NHLDS and the LDR not connected, A-LIS not used here). Results back to file come with File
+  on the order. Messages show Not delivered (the default) or All today, with dead-letter actions. The raw message
+  opens only with a reason that is recorded.
+- **Analysers** `/lab/exchange/analysers` (§5.8): bridges with their health (AB-13 "Not heard since"); each
+  analyser on the equipment register reads "Waiting for {model}'s interface document · Typed by hand" (Step 10 is
+  a gap report).
+
+### Scenario results (PGlite lane, `tests/emr-db/lab-exchange.test.ts`, 13 pass, against a partner simulator)
+
+| #       | Result           | Evidence                                                                                                                                                                 |
+| ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tokens  | Pass             | Right assertion → 43-char token, TTL ≤ 300 s; wrong audience, jti replay, `alg: none`, 1-hour expiry, a stranger's key → `invalid_client`                                |
+| Pairing | Pass             | Ten wrong codes, then the right one → `locked`                                                                                                                           |
+| S15     | Pass             | Status dated earlier than the last applied is stored with `applied=false`; the referral stays `in_progress`                                                              |
+| S29     | Pass             | Stored and acknowledged, "crash" before processing; the sweep processes it once; a second sweep finds nothing                                                            |
+| S30     | Pass             | The same message three times (same and different external ids): one message, one `matched`, two `duplicate`                                                              |
+| S31     | Pass             | Partner down → `retrying` with a later `next_at`; at the limit → `dead`; partner up → `delivered`                                                                        |
+| S32     | Pass             | A different name → `demographics_disagree`; the item holds no name, date or value                                                                                        |
+| S33     | Pass             | One form number on two open referrals → `ambiguous`; nothing picked                                                                                                      |
+| S34     | Pass             | Wrong-patient and unknown-number messages create no patient, order or specimen                                                                                           |
+| S35     | Pass             | Raw view needs a reason and writes `raw_viewed` with the reader; logger and console spies hold no name or date                                                           |
+| S36     | Pass             | Revoked: the held token fails, a new assertion is refused, stored messages remain                                                                                        |
+| S37/S38 | Pass (simulator) | A status moves the referral; a matching result waits as back-to-file; filing twice gives one report, performer external, entry interface, provenance with the message id |
+| EX-5    | Pass             | A malformed body is stored and marked `unreadable`                                                                                                                       |
+
+### Gaps (stated, not hidden)
+
+- **No real partner.** S37 and S38 pass against the simulator only. Step 9 is a gap report: the outbound
+  transport is "unavailable" and no partner endpoint is configured.
+- **HL7 v2** inbound is not built: the simulator speaks FHIR R4. HL7 arrives with the analyser bridge (Step 10, a
+  gap) or a partner that needs it.
+- **Ask the partner** and **Fix the mapping** on a dead letter are a person's actions outside MedSync; the page
+  records Retry or Set aside with a reason.
+- **Clock skew note** (EX-8): sender times are stored as given with the zone assumed and the parsed UTC; the note
+  on Connections waits for a real sender's clock.
+
+Checks: typecheck clean; lint clean; lab, design and EMR suites pass (3,922 + PGlite-only files skipped in that
+run); PGlite lanes exchange 13, referral 14 and Phase 4 data 13 pass.
