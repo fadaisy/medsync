@@ -1,5 +1,43 @@
 # Tide v1 — build report
 
+## Round 2 (17 Oct 2026): real data, ready for Expo Go
+
+The owner asked for everything to work in Expo. The app now runs on real data (ADR 0342):
+
+- **Readings, medicines, doses, mood, water and walking:** the patient's own log, in the tables `personal_health_logs`, `self_medications` and `self_medication_takes`. The phone uses the web's own dose logic, `lib/patient/doses.ts`.
+- **Visit records and lab tests:** shared visit summaries, through `app/api/mobile/visit-summaries`.
+- **Notifications:** `notification_dispatches`, plus the medicine doses that are due.
+- **See a doctor:** bookable clinicians from the real booking data.
+- **Me:** age, conditions and the home facility come from the profile.
+- **Offline:** saves wait in the outbox and replay safely when the phone is back online.
+- **Wording:** the phone never says the care team sees what the patient logs. No clinician can read those tables.
+- **Switches, all off for now:** chat (`mobileChat`), sign-in by text code (`mobilePhoneOtp`) and card scan (`mobileQrSignIn`).
+- **Example data left:** only payments, still labelled "Demo payment · no money moved".
+
+**Checks:**
+
+| Check | Result |
+|---|---|
+| mobile `tsc` | 0 errors |
+| mobile `eslint` | clean |
+| mobile `jest` | 25 suites, 356 tests pass |
+| web `tsc` (full) | 0 errors |
+| web `vitest` (new route) | 4 of 4 pass |
+| iOS bundle | builds |
+| Sign-up route over the local network | answers, with the live consent notice |
+
+**The owner must apply migration 0170** before mood, pulse, water, walking, the home pin and "N ahead of you" work:
+
+```
+cd ~/Desktop/medsync-tide && npm run db:migrate -- 0170
+```
+
+Until then, those saves show "Couldn't save that. Try again later."
+
+---
+
+## Round 1
+
 17 Oct 2026, on branch `feat/mobile-tide-v1`, with local commits only. Read `00-RECON.md` for the decision ledger.
 
 ## Checks (run in `mobile/`)

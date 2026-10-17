@@ -1,28 +1,24 @@
-import type { ReactNode } from "react";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
 import { Band, Button, Card, Icon, IconDisc, Press, Ring } from "@/components/tide";
 import {
   activityRepo,
+  DAY_GOAL,
   GLASSES,
-  MEALS,
   PLATE_ART,
   SAFETY_SIGNS,
   SAFETY_STEPS,
-  TODAY,
   useActivity,
+  WALK_MINUTES,
   WEEK_GOAL,
-  WEEK_LETTERS,
-  WEEK_MINUTES,
 } from "@/data/activity";
 import { PlateGuide } from "@/features/care-more/plate-guide";
+import { lastSevenDays } from "@/features/care/logic";
 import { track } from "@/lib/analytics";
+import { savedLine } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
-
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const fmt = (n: number) => n.toLocaleString("en-US");
 
 function Heading({ children }: { children: string }) {
   const t = useTide();
@@ -36,55 +32,29 @@ function Heading({ children }: { children: string }) {
   );
 }
 
-/** A card holding rows split by hairlines. */
-function ListCard({ rows }: { rows: ReactNode[] }) {
+function Loading({ error, retry }: { error: boolean; retry: () => void }) {
   const t = useTide();
-  return (
-    <Card padding={0} style={{ gap: 0, overflow: "hidden" }}>
-      {rows.map((c, i) => (
-        <View
-          key={i}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: tSpace[3],
-            paddingVertical: tSpace[3],
-            paddingHorizontal: tSpace[4],
-            borderTopWidth: i === 0 ? 0 : 1,
-            borderTopColor: t.surface3,
-          }}
-        >
-          {c}
-        </View>
-      ))}
-    </Card>
+  return error ? (
+    <View style={{ gap: tSpace[2], alignItems: "flex-start" }}>
+      <Text style={[tType.bodyM, { color: t.ink2 }]}>Couldn&apos;t load what you logged.</Text>
+      <Button label="Try again" variant="outline" size="sm" onPress={retry} />
+    </View>
+  ) : (
+    <Text style={[tType.bodyM, { color: t.ink2 }]}>Loading…</Text>
   );
 }
 
 /* ─── Move ───────────────────────────────────────────────────────────── */
 
-export function MovePanel({ now }: { now: Date }) {
+/** Minutes walked, from the walks the patient logs: today, the week, and three one-tap walk lengths. */
+export function MovePanel({ now, onToast }: { now: Date; onToast: (text: string) => void }) {
   const t = useTide();
   const router = useRouter();
-  const { walkStartedAt } = useActivity();
-  const weekTotal = WEEK_MINUTES.reduce((a, b) => a + b, 0);
-  const goalDay = WEEK_GOAL / 5;
-  const stat = (label: string, dot: string, value: number, goal: number) => (
-    <View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dot }} />
-        <Text style={[tType.overline, { color: dot }]}>{label}</Text>
-      </View>
-      <Text
-        style={[
-          tType.title,
-          { fontFamily: tType.numeral.fontFamily, fontSize: 22, lineHeight: 26, color: t.onBand },
-        ]}
-      >
-        {fmt(value)} <Text style={[tType.bodyS, { color: t.onBand2 }]}>of {fmt(goal)}</Text>
-      </Text>
-    </View>
-  );
+  const act = useActivity(now);
+  const days = lastSevenDays(now);
+  const weekTotal = act.weekMinutes.reduce((a, b) => a + b, 0);
+  if (act.loading && !weekTotal) return <Loading error={false} retry={act.retry} />;
+  if (act.error) return <Loading error retry={act.retry} />;
   return (
     <View style={{ gap: tSpace[3.5] }}>
       <Band
@@ -97,32 +67,58 @@ export function MovePanel({ now }: { now: Date }) {
         }}
       >
         <Ring
-          value={TODAY.steps / TODAY.stepsGoal}
+          value={act.minutesToday / DAY_GOAL}
           size={112}
           stroke={12}
           color={t.accent}
           track={t.bandGlass}
-          accessibilityLabel={`${fmt(TODAY.steps)} of ${fmt(TODAY.stepsGoal)} steps, ${TODAY.activeMin} of ${TODAY.activeGoal} active minutes`}
+          accessibilityLabel={`${act.minutesToday} of ${DAY_GOAL} minutes walked today`}
         >
-          <Ring
-            value={TODAY.activeMin / TODAY.activeGoal}
-            size={70}
-            stroke={10}
-            color={t.onBand2}
-            track={t.bandGlass}
-          />
+          <Icon name="walk" size={28} color={t.onBand} />
         </Ring>
-        <View style={{ gap: tSpace[2.5], flex: 1 }}>
-          {stat("Steps", t.onBandAccent, TODAY.steps, TODAY.stepsGoal)}
-          {stat("Active minutes", t.onBand2, TODAY.activeMin, TODAY.activeGoal)}
+        <View style={{ gap: tSpace[1], flex: 1 }}>
+          <Text style={[tType.overline, { color: t.onBandAccent }]}>Walked today</Text>
+          <Text
+            style={[
+              tType.title,
+              {
+                fontFamily: tType.numeral.fontFamily,
+                fontSize: 22,
+                lineHeight: 26,
+                color: t.onBand,
+              },
+            ]}
+          >
+            {act.minutesToday} min{" "}
+            <Text style={[tType.bodyS, { color: t.onBand2 }]}>of {DAY_GOAL}</Text>
+          </Text>
         </View>
       </Band>
+
+      <Card padding={tSpace[4]} style={{ gap: tSpace[3] }}>
+        <Text style={[tType.label, { color: t.ink }]}>I walked</Text>
+        <View style={{ flexDirection: "row", gap: tSpace[2] }}>
+          {WALK_MINUTES.map((m) => (
+            <Button
+              key={m}
+              label={`${m} min`}
+              variant="soft"
+              size="sm"
+              accessibilityLabel={`Log a ${m} minute walk`}
+              onPress={async () =>
+                onToast(savedLine(await activityRepo.logWalk(m), `Saved · ${m} minutes`))
+              }
+              style={{ flex: 1 }}
+            />
+          ))}
+        </View>
+      </Card>
 
       <Card padding={tSpace[4]}>
         <View
           style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}
         >
-          <Text style={[tType.label, { color: t.ink }]}>Active minutes this week</Text>
+          <Text style={[tType.label, { color: t.ink }]}>Minutes walked this week</Text>
           <Text style={[tType.caption, { fontSize: 13, color: t.accentText }]}>
             {weekTotal} of {WEEK_GOAL}
           </Text>
@@ -130,19 +126,19 @@ export function MovePanel({ now }: { now: Date }) {
         <View
           accessible
           accessibilityRole="image"
-          accessibilityLabel={`Active minutes: ${WEEK_MINUTES.map((m, i) => `${DAY_NAMES[i]} ${m}`).join(", ")}. Today is ${DAY_NAMES[6]}.`}
+          accessibilityLabel={`Minutes walked: ${act.weekMinutes.map((m, i) => `${i === 6 ? "today" : days[i].name} ${m}`).join(", ")}.`}
           style={{ flexDirection: "row", gap: tSpace[2], height: 96, alignItems: "flex-end" }}
         >
-          {WEEK_MINUTES.map((m, i) => {
-            const today = i === WEEK_MINUTES.length - 1;
+          {act.weekMinutes.map((m, i) => {
+            const today = i === act.weekMinutes.length - 1;
             return (
               <View key={i} style={{ flex: 1, alignItems: "center", gap: tSpace[1] }}>
                 <View
                   style={{
                     alignSelf: "stretch",
-                    height: Math.max(4, Math.round((Math.min(m, goalDay) / goalDay) * 76)),
+                    height: Math.max(4, Math.round((Math.min(m, DAY_GOAL) / DAY_GOAL) * 76)),
                     borderRadius: 8,
-                    backgroundColor: today ? t.accent : m >= goalDay ? t.primary : t.lineStrong,
+                    backgroundColor: today ? t.accent : m >= DAY_GOAL ? t.primary : t.lineStrong,
                   }}
                 />
                 <Text
@@ -151,67 +147,17 @@ export function MovePanel({ now }: { now: Date }) {
                     { fontSize: 11, color: today ? t.ink : t.ink2 },
                   ]}
                 >
-                  {WEEK_LETTERS[i]}
+                  {days[i].letter}
                 </Text>
               </View>
             );
           })}
         </View>
         <Text style={[tType.bodyS, { fontFamily: tType.body.fontFamily, color: t.ink2 }]}>
-          {WEEK_GOAL} minutes a week of brisk walking is the goal your team set.
+          A common goal is {WEEK_GOAL} minutes of brisk walking a week. Ask your care team what is
+          right for you.
         </Text>
       </Card>
-
-      <Heading>Today&apos;s movement</Heading>
-      <ListCard
-        rows={[
-          <>
-            <IconDisc name="walk" size={38} color={t.accentText} bg={t.accentTint} />
-            <View style={{ flex: 1 }}>
-              <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>Morning walk</Text>
-              <Text style={[tType.bodyS, { fontFamily: tType.body.fontFamily, color: t.ink2 }]}>
-                07:00 · 22 min · 2,600 steps
-              </Text>
-            </View>
-            <View
-              accessible
-              accessibilityLabel="Done"
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 13,
-                backgroundColor: t.primary,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon name="check" size={13} color={t.onPrimary} strokeWidth={3} />
-            </View>
-          </>,
-          <>
-            <IconDisc name="message" size={38} color={t.info.text} bg={t.info.tint} />
-            <View style={{ flex: 1 }}>
-              <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>
-                Evening walk, 10 min
-              </Text>
-              <Text style={[tType.bodyS, { fontFamily: tType.body.fontFamily, color: t.ink2 }]}>
-                {walkStartedAt ? `Started ${walkStartedAt}` : "Suggested by your care team"}
-              </Text>
-            </View>
-            {walkStartedAt ? (
-              <Icon name="check" size={20} color={t.accentText} strokeWidth={2.4} />
-            ) : (
-              <Button
-                label="Start"
-                variant="accent"
-                size="sm"
-                accessibilityLabel="Start the evening walk"
-                onPress={() => activityRepo.startWalk(now)}
-              />
-            )}
-          </>,
-        ]}
-      />
 
       <View
         accessibilityRole="summary"
@@ -301,69 +247,15 @@ export function MovePanel({ now }: { now: Date }) {
 
 /* ─── Eat ────────────────────────────────────────────────────────────── */
 
-export function EatPanel({ onStub }: { onStub: (text: string) => void }) {
+/** The plate guide (education), water from the patient's own log, and meals not yet available. */
+export function EatPanel({ now, onToast }: { now: Date; onToast: (text: string) => void }) {
   const t = useTide();
-  const { water } = useActivity();
-  const mealColours = [t.primary, t.cascade[2], t.accent];
+  const act = useActivity(now);
   const swatch = (c: string) => (
     <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: c }} />
   );
   return (
     <View style={{ gap: tSpace[3.5] }}>
-      <Card radius={26} padding={tSpace[4]} style={{ gap: tSpace[3] }}>
-        <View
-          style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}
-        >
-          <View>
-            <Text style={[tType.caption, { fontSize: 13, color: t.ink2 }]}>Food today</Text>
-            <Text
-              style={[
-                tType.title,
-                { fontFamily: tType.numeral.fontFamily, fontSize: 26, color: t.ink },
-              ]}
-            >
-              {fmt(TODAY.kcal)}{" "}
-              <Text style={[tType.bodyM, { fontSize: 14, color: t.ink2 }]}>
-                of {fmt(TODAY.kcalGoal)} kcal
-              </Text>
-            </Text>
-          </View>
-          <Text style={[tType.caption, { fontSize: 13, color: t.accentText }]}>
-            {fmt(TODAY.kcalGoal - TODAY.kcal)} left
-          </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            height: 14,
-            borderRadius: tRadius.pill,
-            overflow: "hidden",
-            backgroundColor: t.surface3,
-            gap: 2,
-          }}
-        >
-          {MEALS.map((m, i) => (
-            <View
-              key={m.id}
-              style={{
-                width: `${(m.kcal / TODAY.kcalGoal) * 100}%` as `${number}%`,
-                backgroundColor: mealColours[i],
-              }}
-            />
-          ))}
-        </View>
-        <View style={{ flexDirection: "row", gap: tSpace[3] }}>
-          {MEALS.map((m, i) => (
-            <View key={m.id} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-              {swatch(mealColours[i])}
-              <Text style={[tType.caption, { fontFamily: tType.bodyS.fontFamily, color: t.ink2 }]}>
-                {m.name}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </Card>
-
       <Card
         padding={tSpace[4]}
         style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3.5] }}
@@ -396,73 +288,30 @@ export function EatPanel({ onStub }: { onStub: (text: string) => void }) {
           variant="accent"
           size="sm"
           icon="camera"
-          onPress={() => onStub("Not available yet")}
+          onPress={() => onToast("Not available yet")}
         />
       </View>
-      <ListCard
-        rows={[
-          ...MEALS.map((m) => (
-            <>
-              <Text style={[tType.caption, { fontSize: 13, width: 52, color: t.ink2 }]}>
-                {m.time}
-              </Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{m.name}</Text>
-                <Text style={[tType.bodyS, { fontFamily: tType.body.fontFamily, color: t.ink2 }]}>
-                  {m.what}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  tType.labelS,
-                  {
-                    fontFamily: tType.numeral.fontFamily,
-                    color: t.ink,
-                    fontVariant: ["tabular-nums"],
-                  },
-                ]}
-              >
-                {m.kcal}
-              </Text>
-            </>
-          )),
-          <>
-            <Text style={[tType.caption, { fontSize: 13, width: 52, color: t.ink3 }]}>Later</Text>
-            <Text style={[tType.label, { fontSize: 15, flex: 1, color: t.ink3 }]}>Supper</Text>
-            <Press
-              onPress={() => onStub("Not available yet")}
-              accessibilityLabel="Add supper"
-              hitSlop={7}
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                borderWidth: 1.5,
-                borderColor: t.lineStrong,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon name="plus" size={15} color={t.ink2} />
-            </Press>
-          </>,
-        ]}
-      />
+      <Text style={[tType.bodyM, { color: t.ink2 }]}>
+        Writing down your meals is not available yet.
+      </Text>
 
       <Card padding={tSpace[4]}>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>Water</Text>
           <Text style={[tType.caption, { fontSize: 13, color: t.ink2 }]}>
-            {water} of {GLASSES} glasses
+            {act.loading ? "Loading…" : `${act.water} of ${GLASSES} glasses`}
           </Text>
         </View>
         <View style={{ flexDirection: "row", gap: tSpace[1.5] }}>
           {Array.from({ length: GLASSES }, (_, i) => {
-            const full = i < water;
+            const full = i < act.water;
             return (
               <Press
                 key={i}
-                onPress={() => activityRepo.tapGlass(i)}
+                onPress={async () => {
+                  const r = await activityRepo.tapGlass(act.water, i);
+                  if (r !== "sent") onToast(savedLine(r));
+                }}
                 accessibilityLabel={`Glass ${i + 1}${full ? ", drunk" : ""}`}
                 accessibilityState={{ checked: full }}
                 hitSlop={{ top: 2, bottom: 2 }}

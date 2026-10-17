@@ -220,9 +220,8 @@ function DangerBody() {
           <Card style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}>
             <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: t.area.team }} />
             <Text style={[tType.bodyM, { flex: 1, color: t.ink }]}>
-              Your care team can see this reading.
+              Only you can see this reading. Your care team is not alerted.
             </Text>
-            <StatusPill tone="pending" label="Demo" />
           </Card>
           <Text style={[tType.bodyM, { lineHeight: 22, color: t.ink2 }]}>
             If any of those signs start, press the red Help button at once.

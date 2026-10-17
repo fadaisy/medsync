@@ -1,12 +1,10 @@
-import type { Clinic, DemoLine, Ticket as TicketData, Today } from "@/data/visits";
+import type { Clinic, Ticket as TicketData, Today } from "@/data/visits";
 import type { LiveIntake } from "@/lib/booking";
-import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 import {
-  Avatar,
   Button,
   Card,
   FieldError,
@@ -21,21 +19,23 @@ import {
   hydrateTickets,
   joinLine,
   leaveLine,
+  loadAhead,
   loadToday,
   payments,
   shownOffline,
   todaysQueueTicket,
   useTickets,
 } from "@/data/visits";
+import { HospitalPicker } from "@/features/visits/hospital-picker";
 import {
+  AHEAD_NOTE,
+  aheadWords,
   clockOf,
   dayKeyOf,
   feeText,
   shortDayOf,
-  shortestLine,
-  yourNumber,
 } from "@/features/visits/logic";
-import { HONEST, HonestNote, pickStyle, StepTitle, TravelCard } from "@/features/visits/parts";
+import { HONEST, HonestNote, pickStyle, StepTitle } from "@/features/visits/parts";
 import { STAGE_WORD } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { useSession } from "@/lib/session";
@@ -46,17 +46,17 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 /**
  * Come today (board TBookToday, prompt §8.3, PRD F-10 and F-12).
  *
- * REAL: the clinics taking walk-ins now (`fetchWalkInDepartments`), saving
- * your place (`pt-declare-intake`), its stage (`fetchLiveIntake`) and giving
- * it up (`ha-cancel-intake`). The ticket code is your MedSync number, the one
- * the desk matches.
+ * All real: the clinics taking walk-ins now (`fetchWalkInDepartments`) and
+ * their fee (the clinic's own price list), saving your place
+ * (`pt-declare-intake`), its stage (`fetchLiveIntake`), giving it up
+ * (`ha-cancel-intake`), and, once you are at the hospital, "N ahead of you"
+ * (`patient_intake_ahead`, ADR 0084 §6). The ticket code is your MedSync
+ * number, the one the desk matches.
  *
- * DEMO, under the ribbon: how many are before you and each doctor's line.
- * `patient_intakes` RLS shows a patient their own row only, so the count
- * needs a server-side read that does not exist yet; and an intake goes to a
- * clinic, not a doctor, so the doctor is a preference on the ticket.
- *
- * Never an hour (law L8). Payments are simulated (`payments`).
+ * No count before a clinic is chosen and none on the clinic picker; never a
+ * place number, a total, a wait or an hour (law L8). An intake goes to a
+ * clinic, never to a doctor, so no doctor is offered here. Without a hospital
+ * the patient chooses one first. Payments are simulated (`payments`).
  */
 type Pay = "momo" | "desk";
 
@@ -65,7 +65,8 @@ export default function BookTodayScreen() {
   const router = useRouter();
   const now = useNow();
   const { session } = useSession();
-  const { doctor } = useLocalSearchParams<{ doctor?: string }>();
+  // Home's "Come today" on a doctor's card names their clinic.
+  const { clinic: fromHome } = useLocalSearchParams<{ clinic?: string }>();
   const fullName = session?.user.user_metadata?.full_name;
   const patient =
     typeof fullName === "string" && fullName.trim() ? fullName : "[First name] [Surname]";
@@ -74,7 +75,7 @@ export default function BookTodayScreen() {
   const [loadError, setLoadError] = useState(false);
   const [offline, setOffline] = useState(false);
   const [clinicId, setClinicId] = useState<string | null>(null);
-  const [lineId, setLineId] = useState<string | null>(null);
+  const [ahead, setAhead] = useState<number | null>(null);
   const [pay, setPay] = useState<Pay>("momo");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,40 +85,43 @@ export default function BookTodayScreen() {
   const all = useTickets();
   const held = todaysQueueTicket(all, now);
 
-  useFocusEffect(
-    useCallback(() => {
-      // The saved ticket first, from the phone; then the server.
-      void hydrateTickets().then((cached) =>
-        loadToday().then(
-          (next) => {
-            setToday(next);
-            setLoadError(false);
-            setOffline(false);
-          },
-          () => {
-            setLoadError(true);
-            const mine = todaysQueueTicket(cached, new Date());
-            if (mine) {
-              setOffline(true);
-              shownOffline(mine);
-            }
-          },
-        ),
-      );
-    }, []),
-  );
+  // On focus, on "Check again" and after a hospital is chosen (ADR 0084 §15: never on a timer).
+  const load = useCallback(() => {
+    // The saved ticket first, from the phone; then the server.
+    void hydrateTickets().then((cached) =>
+      loadToday().then(
+        (next) => {
+          setToday(next);
+          setLoadError(false);
+          setOffline(false);
+          if (next.live) void loadAhead(next.live.id).then(setAhead);
+          else setAhead(null);
+        },
+        () => {
+          setLoadError(true);
+          const mine = todaysQueueTicket(cached, new Date());
+          if (mine) {
+            setOffline(true);
+            shownOffline(mine);
+          }
+        },
+      ),
+    );
+  }, []);
+  useFocusEffect(load);
 
   // A real ticket shows while the server still holds the place (or while offline).
   const live = today?.live ?? null;
-  const ticket =
-    held && (held.demo || offline || held.id === issuedId || live?.id === held.id) ? held : null;
+  const ticket = held && (offline || held.id === issuedId || live?.id === held.id) ? held : null;
 
   if (ticket)
     return (
       <Held
         tk={ticket}
         live={today?.live ?? null}
+        ahead={ahead}
         offline={offline}
+        onRefresh={load}
         onLeft={() => {
           setLeft(true);
           setToday((d) => (d ? { ...d, live: null } : d));
@@ -129,15 +133,29 @@ export default function BookTodayScreen() {
     return (
       <Screen back={{ label: "Book a visit" }} title="Join today's line" helpSource="book-today">
         {loadError ? (
-          <Note tone="plain">
-            {"Couldn't load the clinics. Check your connection and try again."}
-          </Note>
+          <View style={{ gap: tSpace[3] }}>
+            <Note tone="plain">
+              {"Couldn't load the clinics. Check your connection and try again."}
+            </Note>
+            <Button label="Try again" variant="outline" onPress={load} />
+          </View>
         ) : (
           <ActivityIndicator color={t.ink} accessibilityLabel="Loading the clinics open now" />
         )}
       </Screen>
     );
   }
+
+  if (!today.profile?.hospitalId || !today.hospitalName) {
+    return (
+      <Screen back={{ label: "Book a visit" }} title="Join today's line" helpSource="book-today">
+        <HospitalPicker onChosen={load} />
+        <HonestNote />
+      </Screen>
+    );
+  }
+  const profile = { ...today.profile, hospitalId: today.profile.hospitalId };
+  const hospitalName = today.hospitalName;
 
   if (live) {
     return (
@@ -154,24 +172,22 @@ export default function BookTodayScreen() {
           <Text style={[tType.bodyM, { color: t.ink2 }]}>
             {STAGE_WORD[live.status] ?? "In the line"}
           </Text>
+          <AheadLines status={live.status} ahead={ahead} />
         </Card>
         <HonestNote />
+        <View style={{ alignItems: "center" }}>
+          <TextLink label="Check again" onPress={load} />
+        </View>
         <Button label="Done" onPress={() => router.dismissTo("/(app)/(tabs)")} />
       </Screen>
     );
   }
 
   const clinics = today.clinics;
-  const fromDoctor = doctor ? clinics.find((c) => c.lines.some((l) => l.id === doctor)) : undefined;
   const clinic: Clinic | undefined =
-    clinics.find((c) => c.id === clinicId) ?? fromDoctor ?? clinics[0];
-  const lines = clinic?.lines ?? [];
-  const shortest = shortestLine(lines);
-  const pickedId = lineId ?? (doctor && lines.some((l) => l.id === doctor) ? doctor : "any");
-  const line: DemoLine | null =
-    pickedId === "any" ? null : (lines.find((l) => l.id === pickedId) ?? null);
-  const ahead = line ? line.ahead : (shortest?.ahead ?? 0);
-  const fee = line?.fee ?? null;
+    clinics.find((c) => c.id === clinicId) ?? clinics.find((c) => c.id === fromHome) ?? clinics[0];
+  const fee = clinic?.fee ?? null;
+  const money = clinic?.feeLabel ?? feeText(fee);
   const save = fee && pay === "momo" ? `Pay ${feeText(fee)} and save my place` : "Save my place";
 
   const onSave = async () => {
@@ -179,10 +195,9 @@ export default function BookTodayScreen() {
     setBusy(true);
     setError(null);
     const res = await joinLine({
-      today,
+      profile,
+      hospitalName,
       clinic,
-      line,
-      ahead,
       patient,
       payNow: pay === "momo",
       now: new Date(),
@@ -199,7 +214,6 @@ export default function BookTodayScreen() {
       overlineColor={t.accentText}
       title="Join today's line"
       helpSource="book-today"
-      demo
     >
       {left ? (
         <Note tone="info" icon="check">
@@ -229,12 +243,9 @@ export default function BookTodayScreen() {
               return (
                 <Press
                   key={c.id}
-                  onPress={() => {
-                    setClinicId(c.id);
-                    setLineId("any");
-                  }}
+                  onPress={() => setClinicId(c.id)}
                   accessibilityState={{ selected: on }}
-                  accessibilityLabel={`${c.name}, ${c.sub}`}
+                  accessibilityLabel={`${c.name}, open now`}
                   style={{
                     minWidth: 128,
                     minHeight: 52,
@@ -253,7 +264,7 @@ export default function BookTodayScreen() {
                       { fontFamily: tFont.medium, color: on ? t.onPrimary : t.ink2 },
                     ]}
                   >
-                    {c.sub}
+                    Open now
                   </Text>
                 </Press>
               );
@@ -262,109 +273,7 @@ export default function BookTodayScreen() {
         )}
       </View>
 
-      {clinic ? (
-        <View style={{ gap: tSpace[2] }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-            }}
-          >
-            <StepTitle>Who do you want to see?</StepTitle>
-            <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-              Line now · your number
-            </Text>
-          </View>
-          <LineRow
-            on={pickedId === "any"}
-            onPress={() => setLineId("any")}
-            lead={<IconDisc name="users" size={40} color={t.accentText} bg={t.accentTint} />}
-            name="Any doctor"
-            meta="Fastest · first one free sees you"
-            ahead={shortest?.ahead ?? 0}
-            best
-          />
-          {lines.map((l) => (
-            <LineRow
-              key={l.id}
-              on={pickedId === l.id}
-              onPress={() => setLineId(l.id)}
-              lead={
-                <Avatar
-                  initials={l.initials}
-                  size={40}
-                  bg={l.yours ? t.info.tint : t.surface2}
-                  fg={l.yours ? t.info.text : t.ink2}
-                />
-              }
-              name={l.name}
-              meta={`${l.role} · ${feeText(l.fee)}`}
-              ahead={l.ahead}
-              best={l.ahead === shortest?.ahead}
-            />
-          ))}
-        </View>
-      ) : null}
-
-      {clinic ? (
-        <View
-          style={{
-            borderRadius: tRadius.panel,
-            padding: tSpace[4],
-            backgroundColor: t.band,
-            gap: tSpace[2.5],
-          }}
-        >
-          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: tSpace[2] }}>
-            <Text style={[tType.bodyS, { flex: 1, color: t.onBand2 }]} numberOfLines={1}>
-              {`${clinic.name} · ${line?.name ?? "Any doctor"}`}
-            </Text>
-            <Text style={[tType.bodyS, { color: t.onBand2 }]}>{`${ahead} before you`}</Text>
-          </View>
-          <View
-            accessible
-            accessibilityLabel={`${ahead} people before you`}
-            style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end", gap: 4 }}
-          >
-            {Array.from({ length: Math.min(ahead, 14) }, (_, i) => (
-              <View
-                key={i}
-                style={{
-                  width: 18,
-                  height: 26,
-                  borderTopLeftRadius: 9,
-                  borderTopRightRadius: 9,
-                  borderBottomLeftRadius: 5,
-                  borderBottomRightRadius: 5,
-                  backgroundColor: t.onBand2,
-                  opacity: i === 0 ? 1 : 0.35,
-                }}
-              />
-            ))}
-            <View
-              style={{
-                width: 26,
-                height: 34,
-                borderTopLeftRadius: 13,
-                borderTopRightRadius: 13,
-                borderBottomLeftRadius: 7,
-                borderBottomRightRadius: 7,
-                backgroundColor: t.accent,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={{ fontFamily: tFont.bold, fontSize: 10, color: t.onAccent }}>You</Text>
-            </View>
-          </View>
-          <Text
-            style={[tType.heading, { color: t.onBand }]}
-          >{`You would be number ${yourNumber(ahead)}`}</Text>
-        </View>
-      ) : null}
-
-      <HonestNote after="Doctors take longer with some people." />
+      <HonestNote after="Sicker people are seen first. Any doctor in the clinic may see you." />
 
       {fee ? (
         <View style={{ gap: tSpace[2] }}>
@@ -382,7 +291,7 @@ export default function BookTodayScreen() {
                 { fontFamily: tFont.bold, color: t.ink, fontVariant: ["tabular-nums"] },
               ]}
             >
-              {feeText(fee)}
+              {money}
             </Text>
           </View>
           <View style={{ flexDirection: "row", gap: tSpace[2] }}>
@@ -415,7 +324,7 @@ export default function BookTodayScreen() {
       <View style={{ gap: tSpace[2] }}>
         <StepTitle>Please bring</StepTitle>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[1.5] }}>
-          {["Your medicines", "Clinic book", "Your sugar meter"].map((b) => (
+          {["Your medicines", "Clinic book"].map((b) => (
             <View
               key={b}
               style={{
@@ -453,16 +362,36 @@ export default function BookTodayScreen() {
   );
 }
 
-/** The saved place: the ticket, how the line stands, the way there, and leaving it. */
+/**
+ * "N ahead of you" under the stage, only once the patient is present and the
+ * count came back (`aheadWords`); with the reason it can move. Else nothing.
+ */
+function AheadLines({ status, ahead }: { status: string | null; ahead: number | null }) {
+  const t = useTide();
+  const words = aheadWords(status, ahead);
+  if (!words) return null;
+  return (
+    <View accessibilityLiveRegion="polite" style={{ gap: 2 }}>
+      <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{words}</Text>
+      <Text style={[tType.bodyS, { color: t.ink2 }]}>{AHEAD_NOTE}</Text>
+    </View>
+  );
+}
+
+/** The saved place: the ticket, where it stands, and leaving it. */
 function Held({
   tk,
   live,
+  ahead,
   offline,
+  onRefresh,
   onLeft,
 }: {
   tk: TicketData;
   live: LiveIntake | null;
+  ahead: number | null;
   offline: boolean;
+  onRefresh: () => void;
   onLeft: () => void;
 }) {
   const t = useTide();
@@ -471,16 +400,16 @@ function Held({
   const [paying, setPaying] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const n = yourNumber(tk.ahead ?? 0);
-  const room = tk.room;
+  const stage = live ? (STAGE_WORD[live.status] ?? "In the line") : "Place saved";
+  // Offline the count is not read: a number kept on the phone would go stale.
+  const aheadLine = offline ? null : aheadWords(live?.status ?? null, ahead);
   return (
     <Screen
       back={{ label: "Book a visit" }}
       overline="Your place is saved"
       overlineColor={t.accentText}
-      title={`You are number ${n}`}
+      title={stage}
       helpSource="ticket"
-      demo={tk.countDemo || tk.demo}
     >
       {offline ? (
         <Note tone="plain">No internet. This is your saved ticket; it works at the desk.</Note>
@@ -488,12 +417,11 @@ function Held({
       <Ticket
         kind="queue"
         hospitalName={tk.hospitalName}
-        number={n}
-        ahead={tk.ahead ?? 0}
+        stage={stage}
+        aheadLine={aheadLine}
         details={[
           { label: "Clinic", value: tk.clinic },
-          { label: "See", value: tk.see },
-          { label: "Room", value: room },
+          { label: "Room", value: tk.room },
           {
             label: "Date",
             value: `${shortDayOf(tk.dayKey ?? dayKeyOf(now))} · joined ${clockOf(tk.issuedAtIso)}`,
@@ -516,36 +444,18 @@ function Held({
         code={tk.code}
       />
       <Card>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Text
-            style={[tType.label, { fontSize: 15, color: t.ink }]}
-          >{`${tk.ahead ?? 0} people before you`}</Text>
-          <Text style={[tType.bodyS, { color: t.ink3 }]}>
-            {live ? (STAGE_WORD[live.status] ?? "In the line") : "Saved on this phone"}
+        <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>
+          {live ? stage : "Saved on this phone"}
+        </Text>
+        {offline ? null : <AheadLines status={live?.status ?? null} ahead={ahead} />}
+        {live?.status === "declared" ? (
+          <Text style={[tType.bodyS, { color: t.ink2 }]}>
+            Show your code at the desk when you arrive. Your place in line starts then.
           </Text>
-        </View>
-        <View
-          style={{ height: 8, borderRadius: 4, backgroundColor: t.surface3, overflow: "hidden" }}
-        >
-          <View
-            style={{
-              width: `${Math.max(8, Math.round(100 / ((tk.ahead ?? 0) + 2)))}%`,
-              height: "100%",
-              borderRadius: 4,
-              backgroundColor: t.accent,
-            }}
-          />
-        </View>
+        ) : null}
         <Text style={[tType.bodyS, { color: t.ink2 }]}>{HONEST}</Text>
+        <TextLink label="Check again" onPress={onRefresh} />
       </Card>
-      <TravelCard
-        room={room}
-        footer={
-          <Text style={[tType.caption, { flex: 1, fontFamily: tFont.medium, color: t.ink2 }]}>
-            Map and travel times illustrative. If you are far, leave in good time.
-          </Text>
-        }
-      />
       {err ? <FieldError>{err}</FieldError> : null}
       <Button
         label="Give up my place"
@@ -562,64 +472,6 @@ function Held({
       />
       <Button label="Done" onPress={() => router.dismissTo("/(app)/(tabs)")} />
     </Screen>
-  );
-}
-
-/** One line: who, their fee, how many wait, and the number you would hold. */
-function LineRow({
-  on,
-  onPress,
-  lead,
-  name,
-  meta,
-  ahead,
-  best,
-}: {
-  on: boolean;
-  onPress: () => void;
-  lead: ReactNode;
-  name: string;
-  meta: string;
-  ahead: number;
-  best: boolean;
-}) {
-  const t = useTide();
-  return (
-    <Press
-      onPress={onPress}
-      accessibilityState={{ selected: on }}
-      accessibilityLabel={`${name}, ${meta}, ${ahead} waiting, you would be number ${yourNumber(ahead)}`}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: tSpace[3],
-        padding: tSpace[2.5],
-        paddingHorizontal: tSpace[3],
-        borderRadius: tRadius.row,
-        ...pickStyle(t, on),
-      }}
-    >
-      {lead}
-      <View style={{ flex: 1 }}>
-        <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{name}</Text>
-        <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}>{meta}</Text>
-      </View>
-      <View style={{ alignItems: "flex-end" }}>
-        <Text
-          style={[
-            tType.label,
-            { fontFamily: tFont.bold, fontSize: 15, color: t.ink, fontVariant: ["tabular-nums"] },
-          ]}
-        >
-          {`${ahead} waiting`}
-        </Text>
-        <Text
-          style={[tType.micro, { fontFamily: tFont.semibold, color: best ? t.accentText : t.ink2 }]}
-        >
-          {`You: #${yourNumber(ahead)}`}
-        </Text>
-      </View>
-    </Press>
   );
 }
 

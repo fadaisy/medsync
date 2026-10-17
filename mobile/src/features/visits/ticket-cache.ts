@@ -3,10 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 /**
  * Issued tickets, kept on the phone (prompt §8.3, PRD G3): the ticket and its
  * code must render at the desk with no network. Only what the ticket prints
- * is stored; no reason, symptom or note.
+ * is stored; no reason, symptom or note, and no count of people (that is
+ * read fresh, never kept).
  */
 export interface Ticket {
-  /** The intake or appointment id; a `demo-` id when nothing reached a server. */
+  /** The intake or appointment id. */
   id: string;
   kind: "queue" | "day";
   hospitalName: string;
@@ -16,8 +17,6 @@ export interface Ticket {
   patient: string;
   code: string;
   issuedAtIso: string;
-  /** Queue: people before you when issued. Null when it cannot be read (see `countDemo`). */
-  ahead: number | null;
   /** Day: the clinic day as `YYYY-MM-DD`, its part and when doors open ("08:00"). */
   dayKey: string | null;
   part: "Morning" | "Afternoon" | null;
@@ -31,10 +30,6 @@ export interface Ticket {
   paid: boolean;
   /** Paid through the simulated payments object (`mobilePayments` off). */
   demoPayment: boolean;
-  /** The line count came from a fixture: the ticket shows the demo ribbon. */
-  countDemo: boolean;
-  /** Nothing reached a server: the whole ticket is a demo. */
-  demo: boolean;
 }
 
 const KEY = "medsync-tickets-v1";

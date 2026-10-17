@@ -1,29 +1,33 @@
+import type { FeeInputs } from "@shared/fees";
+import { feeRange, resolveFee } from "@shared/fees";
 import { DEFAULT_TIME_ZONE, localDateKey, localSession } from "@shared/slots";
 
 /**
  * The arithmetic behind the booking screens (Gate 4), kept pure so it is
- * tested without a network: the line maths, the ticket's payment look, the
- * calendar grid and the words for a clinic day. Nothing here reads a clock
- * on its own; callers pass `now`.
+ * tested without a network: the "ahead of you" rule, fees, the ticket's
+ * payment look, the calendar grid and the words for a clinic day. Nothing
+ * here reads a clock on its own; callers pass `now`.
  */
 
-/** A doctor's line today: how many are waiting before a newcomer. */
-export interface Line {
-  id: string;
-  ahead: number;
+/* ─── where the patient stands (ADR 0084 §6, ADR 0342 §5) ───────── */
+
+/** Present at the hospital: the only statuses where a count ahead is a true sentence. */
+const PRESENT = new Set(["arrived", "awaiting_triage"]);
+
+/**
+ * "N ahead of you", or null when nothing honest can be said. Only once the
+ * patient is present (a declared row is not a place in the line), only from
+ * `patient_intake_ahead` (null on any error or before migration 0170), and
+ * never an ordinal, a total or a wait.
+ */
+export function aheadWords(status: string | null, ahead: number | null): string | null {
+  if (!status || !PRESENT.has(status)) return null;
+  if (ahead === null || !Number.isInteger(ahead) || ahead < 0) return null;
+  return ahead === 0 ? "No one is ahead of you." : `${ahead} ahead of you`;
 }
 
-/** The number you would hold if you joined a line with `ahead` people in it. */
-export function yourNumber(ahead: number): number {
-  return Math.max(0, Math.floor(ahead)) + 1;
-}
-
-/** "Any doctor" means the shortest line; ties go to the first listed. */
-export function shortestLine<T extends Line>(lines: readonly T[]): T | null {
-  let best: T | null = null;
-  for (const l of lines) if (!best || l.ahead < best.ahead) best = l;
-  return best;
-}
+/** Said beside a count, so it is never read as a promise (the web's own words). */
+export const AHEAD_NOTE = "Sicker people are seen first, so this number can go up as well as down.";
 
 /**
  * The three ticket looks (prompt §8.3), chosen by the money alone:
@@ -42,12 +46,42 @@ export function feeText(fee: number | null): string {
   return fee && fee > 0 ? `UGX ${fee.toLocaleString("en-US")}` : "No fee";
 }
 
-/** 1st, 2nd, 3rd, 4th … 11th, 12th, 13th, 21st. */
-export function ordinal(n: number): string {
-  const tens = n % 100;
-  if (tens >= 11 && tens <= 13) return `${n}th`;
-  const last = n % 10;
-  return `${n}${last === 1 ? "st" : last === 2 ? "nd" : last === 3 ? "rd" : "th"}`;
+/** One fee as a patient reads it: the lowest amount, and the words when it is a range. */
+export interface Fee {
+  fee: number | null;
+  /** "UGX 20,000 to UGX 50,000" when the clinic charges more than one amount; else null. */
+  feeLabel: string | null;
+}
+
+/**
+ * What a department charges, from its own service lines (ADR 0092, `@shared/fees`):
+ * the clinician's cadre resolves one amount per line when it is known; unknown
+ * (a walk-in) spans every line's range. No line with a price is no fee: a
+ * number is never invented.
+ *
+ * ponytail: a free line beside a paid one in the same department is ignored,
+ * so the paid amount shows. Ceiling: a department mixing free and paid
+ * clinics; upgrade by pricing per service line once the patient picks one.
+ */
+export function feeFor(
+  lines: readonly { departmentId: string; fee: FeeInputs }[],
+  departmentId: string,
+  cadreId: string | null,
+): Fee {
+  const amounts = lines
+    .filter((l) => l.departmentId === departmentId)
+    .flatMap((l) => {
+      if (cadreId) {
+        const q = resolveFee(l.fee, cadreId).feeUgx;
+        return q === null ? [] : [q];
+      }
+      const r = feeRange(l.fee);
+      return r ? [r.minUgx, r.maxUgx] : [];
+    });
+  if (amounts.length === 0) return { fee: null, feeLabel: null };
+  const min = Math.min(...amounts);
+  const max = Math.max(...amounts);
+  return { fee: min, feeLabel: min === max ? null : `${feeText(min)} to ${feeText(max)}` };
 }
 
 /* ─── days, in the hospital's zone ───────────────────────────────── */
@@ -121,31 +155,4 @@ export function monthGrid(key: string): (string | null)[] {
     cells.push(`${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
   while (cells.length % 7) cells.push(null);
   return cells;
-}
-
-/** A short code a desk can read aloud, from any id: "KWP-4827" style, digits only after the dash. */
-export function deskCode(prefix: string, id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return `${prefix}-${String(h % 10_000).padStart(4, "0")}`;
-}
-
-/**
- * Bar widths for the drawn barcode, from the code itself so the same code
- * always draws the same bars. Decoration: the desk reads the printed code.
- */
-export function barsFor(code: string, width = 230): { x: number; w: number }[] {
-  const bars: { x: number; w: number }[] = [];
-  let seed = 0;
-  for (let i = 0; i < code.length; i++) seed = (seed * 33 + code.charCodeAt(i)) >>> 0;
-  let x = 0;
-  while (x < width) {
-    seed = (seed * 1_103_515_245 + 12_345) >>> 0;
-    const w = 1 + ((seed >>> 8) % 4);
-    const gap = 1 + ((seed >>> 16) % 3);
-    if (x + w > width) break;
-    bars.push({ x, w });
-    x += w + gap;
-  }
-  return bars;
 }

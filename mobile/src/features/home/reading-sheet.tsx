@@ -1,11 +1,12 @@
+import type { StartValues } from "@/data/readings";
 import type { ReadingInput, ReadingKind, ReadingLevel, SugarContext } from "@/lib/readings";
+import type { SaveResult } from "@/offline/outbox";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
 import { Button, Chip, ChipRow, Sheet, Stepper, TextLink } from "@/components/tide";
-import { readingsRepo, START_VALUES } from "@/data/readings";
-import { savedWords } from "@/lib/flags";
+import { readingsRepo, startValues, useReadings } from "@/data/readings";
 import {
   checkReading,
   parseReading,
@@ -13,6 +14,7 @@ import {
   SUGAR_CONTEXT_WORDS,
   THRESHOLDS_NOTE,
 } from "@/lib/readings";
+import { savedLine } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -65,8 +67,10 @@ export function CheckBand({ level, text }: { level: ReadingLevel; text: string }
 /**
  * Log a reading in place, from the Plus (F-05). Type tiles, typeable numbers
  * with − and +, the sugar timing chips, the live check and Save: two taps
- * from the Plus when the numbers are already right. A dangerous reading is
- * saved, then turns the sheet into the danger card that offers help.
+ * from the Plus when the numbers are already right. The numbers start from
+ * the patient's own last reading, or empty for a first one. A dangerous
+ * reading is saved, then turns the sheet into the danger card that offers
+ * help: no one else is alerted, so the card says so.
  */
 export function ReadingSheet({
   visible,
@@ -81,17 +85,17 @@ export function ReadingSheet({
   const router = useRouter();
   const [kind, setKind] = useState<ReadingKind>("bp");
   const [ctx, setCtx] = useState<SugarContext>("fasting");
-  const [values, setValues] = useState<
-    Record<"top" | "bottom" | "sugar" | "weight" | "pulse", string>
-  >({
-    ...START_VALUES,
-  });
+  const { readings } = useReadings();
+  // What the patient changed; anything untouched shows their last reading.
+  const [edited, setEdited] = useState<Partial<StartValues>>({});
+  const values: StartValues = { ...startValues(readings), ...edited };
   const [taps, setTaps] = useState(1);
   const [savedDanger, setSavedDanger] = useState<ReadingInput | null>(null);
+  const [dangerResult, setDangerResult] = useState<SaveResult | null>(null);
 
-  const set = (key: keyof typeof values) => (v: string) => {
+  const set = (key: keyof StartValues) => (v: string) => {
     setTaps((n) => n + 1);
-    setValues((s) => ({ ...s, [key]: v }));
+    setEdited((s) => ({ ...s, [key]: v }));
   };
 
   const input: ReadingInput =
@@ -105,20 +109,24 @@ export function ReadingSheet({
 
   const close = () => {
     setSavedDanger(null);
+    setDangerResult(null);
+    setEdited({});
     setTaps(1);
     onClose();
   };
 
-  const save = () => {
+  const save = async () => {
     if (check.level === "empty") return;
-    readingsRepo.save(input, { entry: "sheet", taps: taps + 1 });
+    const saving = readingsRepo.save(input, { entry: "sheet", taps: taps + 1 });
     if (check.level === "danger") {
       setSavedDanger(input);
+      setDangerResult(await saving);
       return;
     }
+    const watch = check.level === "watch" ? " · outside your target" : "";
     close();
     onSaved(
-      `Saved · ${readingValueText(input)}${check.level === "watch" ? " · above target" : ""}`,
+      savedLine(await saving, `Saved · ${readingValueText(input)}${watch} · only you can see it`),
     );
   };
 
@@ -141,7 +149,7 @@ export function ReadingSheet({
             }}
           >
             <Text style={[tType.overline, { color: t.onEmergency }]}>
-              Saved · this reading needs attention
+              This reading needs attention
             </Text>
             <Text
               style={{
@@ -197,11 +205,23 @@ export function ReadingSheet({
             variant="outline"
             onPress={() => {
               close();
-              onSaved("We will remind you to check again");
+              onSaved(
+                savedDanger.kind === "sugar" && dangerCheck.selfCare
+                  ? "Check again in 15 minutes"
+                  : "Check again in 5 minutes",
+              );
             }}
           />
+          {dangerResult ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[tType.labelS, { fontSize: 13, color: t.ink2, textAlign: "center" }]}
+            >
+              {savedLine(dangerResult)}
+            </Text>
+          ) : null}
           <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3, textAlign: "center" }]}>
-            {savedWords("this reading")}. {THRESHOLDS_NOTE}
+            Your care team is not alerted. If you feel unwell, get help now. {THRESHOLDS_NOTE}
           </Text>
         </View>
       ) : (
@@ -294,7 +314,7 @@ export function ReadingSheet({
             label={check.level === "danger" ? "Save and get help" : "Save reading"}
             variant={check.level === "danger" ? "danger" : "primary"}
             disabled={check.level === "empty"}
-            onPress={save}
+            onPress={() => void save()}
           />
           <View style={{ alignItems: "center", gap: tSpace[1] }}>
             <TextLink

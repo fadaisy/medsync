@@ -1,10 +1,8 @@
 import type { IconName } from "@/components/tide";
 import type { TrendTile } from "@/data/trends";
 import type { Href } from "expo-router";
-import type { ReactNode } from "react";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
-import Svg, { Circle, Line, Rect } from "react-native-svg";
 
 import {
   Avatar,
@@ -16,15 +14,17 @@ import {
   Ring,
   Screen,
   SectionHead,
-  Sparkbars,
-  StatusPill,
 } from "@/components/tide";
-import { useActivityToday } from "@/data/activity";
+import { DAY_GOAL, GLASSES, useActivity } from "@/data/activity";
 import { useChatPreview } from "@/data/chat";
+import { lastDays } from "@/data/health-log";
 import { useLabsSummary } from "@/data/labs";
-import { LOW_SUPPLY_DAYS, SLOT_WORDS, useMedicines } from "@/data/medicines";
-import { TREND_TILES } from "@/data/trends";
+import { SLOT_WORDS, useMedicines } from "@/data/medicines";
+import { useReadings } from "@/data/readings";
+import { trendTiles } from "@/data/trends";
 import { lastSevenDays, longDate } from "@/features/care/logic";
+import { flag } from "@/lib/flags";
+import { THRESHOLDS_NOTE } from "@/lib/readings";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -32,9 +32,10 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 const n = (v: number) => v.toLocaleString("en-US");
 
 /**
- * The Care hub (board TCare, PRD F-13). Demo data until Gate CG (law L2):
- * medicines, trends, labs, activity and the team's last message all read
- * fixture repositories.
+ * The Care hub (board TCare, PRD F-13). Medicines, trends, water and minutes
+ * walked come from the patient's own log (ADR 0342), with empty states for a
+ * patient who has logged nothing. The care-team card shows only while chat
+ * is on (`mobileChat`); until then it offers "Book a visit".
  */
 export default function CareTab() {
   const t = useTide();
@@ -42,26 +43,23 @@ export default function CareTab() {
   const now = useNow();
   const med = useMedicines(now);
   const labs = useLabsSummary();
-  const act = useActivityToday();
+  const act = useActivity(now);
+  const { readings } = useReadings();
   const chat = useChatPreview();
+  const chatOn = flag("mobileChat");
   const go = (href: Href) => () => router.push(href);
 
   const days = lastSevenDays(now);
+  const tiles = trendTiles(readings, lastDays(now));
   const weekTaken = med.week.reduce((a, b) => a + b, 0);
-  const weekTotal = med.week.length * med.total;
+  const weekTotal = med.weekTotals.reduce((a, b) => a + b, 0);
   const next =
     med.doses.find((d) => d.status === "due") ?? med.doses.find((d) => d.status === "later");
-  const low = med.medicines.filter((m) => m.daysLeft <= LOW_SUPPLY_DAYS);
-  const soonest = Math.min(...low.map((m) => m.daysLeft));
-  const refill = low.length
-    ? ` · ${low.length} refill${low.length > 1 ? "s" : ""} due in ${soonest} days`
-    : "";
-  const hba1cPrev = labs.hba1c.history[labs.hba1c.history.length - 2];
+  const noMedicines = !med.loading && !med.medicines.length;
 
   return (
     <Screen
       underNav
-      demo
       bell
       header={
         <View>
@@ -100,7 +98,7 @@ export default function CareTab() {
         <View style={{ flex: 1, gap: tSpace[1.5] }}>
           <Text style={[tType.overline, { color: t.onBandAccent }]}>Medicines this week</Text>
           <Text style={[tType.heading, { fontSize: 18, lineHeight: 23, color: t.onBand }]}>
-            {weekTaken} of {weekTotal} doses taken
+            {weekTotal ? `${weekTaken} of ${weekTotal} doses taken` : "No doses on your list yet"}
           </Text>
           <View style={{ flexDirection: "row", gap: tSpace[1] }}>
             {med.week.map((count, i) => (
@@ -111,7 +109,7 @@ export default function CareTab() {
                     height: 18,
                     borderRadius: 6,
                     backgroundColor: count === 0 ? t.bandGlass : t.accent,
-                    opacity: count === 0 || count >= med.total ? 1 : 0.45,
+                    opacity: count === 0 || count >= med.weekTotals[i] ? 1 : 0.45,
                     borderWidth: i === 6 ? 2 : 0,
                     borderColor: t.onBand,
                   }}
@@ -138,13 +136,20 @@ export default function CareTab() {
         <IconDisc name="pill" color={t.area.medicines} bg={t.surface2} size={38} />
         <View style={{ flex: 1 }}>
           <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>
-            {next
-              ? `${SLOT_WORDS[next.slot]} medicine is ${next.status === "due" ? "due" : "next"}`
-              : "All medicines taken today"}
+            {noMedicines
+              ? "Add your medicines"
+              : next
+                ? `${SLOT_WORDS[next.slot]} medicine is ${next.status === "due" ? "due" : "next"}`
+                : med.total
+                  ? "Nothing more due today"
+                  : "No doses due today"}
           </Text>
           <Text style={[tType.bodyS, { fontFamily: tFont.regular, color: t.ink2 }]}>
-            {next ? next.time : "Well done"}
-            {refill}
+            {noMedicines
+              ? "Names and times of day, to keep track"
+              : next
+                ? `${next.time} · ${next.medicine}`
+                : `${med.taken} of ${med.total} taken today`}
           </Text>
         </View>
         <View
@@ -162,203 +167,168 @@ export default function CareTab() {
 
       <SectionHead title="Health trends" action="See all" onAction={go("/care/trends")} />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2.5] }}>
-        {TREND_TILES.map((tile) => (
+        {tiles.map((tile) => (
           <TrendCard key={tile.metric} tile={tile} onPress={go("/care/trends")} />
         ))}
       </View>
 
-      <SectionHead title="Latest lab results" action="All results" onAction={go("/care/labs")} />
-      <View style={{ gap: tSpace[2] }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingHorizontal: 2,
-          }}
-        >
-          <StatusPill tone="caution" label={`${labs.needReview} need review`} />
-          <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3 }]}>
-            Released by your doctor · {labs.releasedOn}
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", gap: tSpace[2] }}>
-          <LabTile
-            title="HbA1c · 3-month sugar"
-            value={String(labs.hba1c.value)}
-            unit="%"
-            words={`${labs.hba1c.value < hba1cPrev ? "Coming down" : "Not coming down yet"}. Target is below ${labs.hba1c.target}.`}
-            onPress={go("/care/labs")}
-            a11y={`HbA1c ${labs.hba1c.history.join(", ")}. Target below ${labs.hba1c.target}.`}
-          >
-            <Sparkbars
-              values={labs.hba1c.history}
-              min={0}
-              max={Math.max(...labs.hba1c.history) * 1.05}
-              target={labs.hba1c.target}
-              highlight={t.caution.text}
-              height={40}
-              width={132}
-              showValues={false}
-            />
-          </LabTile>
-          <LabTile
-            title="LDL · bad cholesterol"
-            value={String(labs.ldl.value)}
-            unit="mmol/L"
-            words={
-              labs.ldl.value > labs.ldl.target
-                ? `A little high. Your doctor will talk about it ${labs.visit}.`
-                : `In your target, below ${labs.ldl.target}.`
-            }
-            onPress={go("/care/labs")}
-            a11y={`LDL ${labs.ldl.value}, target below ${labs.ldl.target}`}
-          >
-            <LdlBar value={labs.ldl.value} target={labs.ldl.target} />
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <Text style={[tType.micro, { fontSize: 10, color: t.ink3 }]}>Low</Text>
-              <Text
-                style={[
-                  tType.micro,
-                  { fontSize: 10, fontFamily: tFont.semibold, color: t.stable.text },
-                ]}
-              >
-                Target &lt;{labs.ldl.target}
+      <SectionHead title="Lab tests" action="All tests" onAction={go("/care/labs")} />
+      <Card
+        onPress={go("/care/labs")}
+        accessibilityLabel="Lab tests. Open the list."
+        style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}
+      >
+        <IconDisc name="flask" color={t.area.medicines} bg={t.surface2} size={36} />
+        <View style={{ flex: 1, gap: 2 }}>
+          {labs.status === "loading" ? (
+            <Text style={[tType.bodyS, { color: t.ink2 }]}>Loading your tests…</Text>
+          ) : labs.latest ? (
+            <>
+              <Text style={[tType.labelS, { color: t.ink }]}>
+                {labs.latest.tests
+                  .slice(0, 3)
+                  .map((x) => x.name)
+                  .join(", ")}
+                {labs.latest.tests.length > 3 ? ` and ${labs.latest.tests.length - 3} more` : ""}
               </Text>
-              <Text style={[tType.micro, { fontSize: 10, color: t.ink3 }]}>High</Text>
-            </View>
-          </LabTile>
-        </View>
-        <Card
-          onPress={go("/care/labs")}
-          radius={tRadius.row}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: tSpace[3],
-            paddingVertical: tSpace[3],
-          }}
-        >
-          <IconDisc name="check" color={t.stable.text} bg={t.stable.tint} size={32} />
-          <View style={{ flex: 1 }}>
-            <Text style={[tType.labelS, { color: t.ink }]}>
-              {labs.healthy} other results are healthy
+              <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>{labs.latest.note}</Text>
+            </>
+          ) : (
+            <Text style={[tType.bodyS, { color: t.ink2 }]}>
+              {labs.message ?? "No tests from your visits yet."}
             </Text>
-            <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>{labs.healthyLine}</Text>
-          </View>
-          <Icon name="forward" size={16} color={t.ink3} />
-        </Card>
-      </View>
+          )}
+        </View>
+        <Icon name="forward" size={16} color={t.ink3} />
+      </Card>
 
       <SectionHead title="Move and eat" action="Open" onAction={go("/care/activity")} />
       <Card onPress={go("/care/activity")} style={{ flexDirection: "row", padding: tSpace[3.5] }}>
         <MoveRing
-          value={act.steps}
-          goal={act.stepsGoal}
-          label={`of ${n(act.stepsGoal)} steps`}
-          shown={n(act.steps)}
-          icon="footprints"
+          value={act.minutesToday}
+          goal={DAY_GOAL}
+          label={`of ${DAY_GOAL} walked today`}
+          shown={`${n(act.minutesToday)} min`}
+          icon="walk"
           color={t.accent}
           iconColor={t.accentText}
         />
         <MoveRing
-          value={act.activeMin}
-          goal={act.activeGoal}
-          label={`of ${act.activeGoal} active`}
-          shown={`${act.activeMin} min`}
-          icon="activity"
+          value={act.water}
+          goal={GLASSES}
+          label={`of ${GLASSES} glasses`}
+          shown={`${act.water}`}
+          icon="droplet"
           color={t.cascade[2]}
           iconColor={t.cascade[2]}
         />
-        <MoveRing
-          value={act.kcal}
-          goal={act.kcalGoal}
-          label={`of ${n(act.kcalGoal)} kcal`}
-          shown={n(act.kcal)}
-          icon="utensils"
-          color={t.ink}
-          iconColor={t.ink}
-        />
       </Card>
 
-      <SectionHead title="Your care team" action="Open chat" onAction={go("/care/chat")} />
-      <Card style={{ gap: tSpace[3] }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
-          <View style={{ flexDirection: "row" }}>
-            {[
-              { i: "DR", bg: t.info.tint, fg: t.info.text },
-              { i: "NS", bg: t.pending.tint, fg: t.pending.text },
-              { i: "PH", bg: t.place.tint, fg: t.place.text },
-              { i: "DT", bg: t.accentTint, fg: t.accentText },
-            ].map((a, k) => (
-              <View
-                key={a.i}
-                style={{
-                  marginLeft: k ? -8 : 0,
-                  borderRadius: 20,
-                  borderWidth: 2,
-                  borderColor: t.surface,
-                }}
-              >
-                <Avatar initials={a.i} size={36} bg={a.bg} fg={a.fg} />
-              </View>
-            ))}
-          </View>
-          <Text style={[tType.bodyS, { flex: 1, color: t.ink2 }]}>
-            Doctor, nurse, pharmacist and dietitian
-          </Text>
-        </View>
-        <Press
-          onPress={go("/care/chat")}
-          accessibilityLabel={`${chat.from}, ${chat.time}: ${chat.text}`}
-          style={{
-            flexDirection: "row",
-            gap: tSpace[2.5],
-            alignItems: "flex-start",
-            paddingVertical: tSpace[2.5],
-            paddingHorizontal: tSpace[3],
-            borderRadius: 16,
-            backgroundColor: t.bg,
-          }}
-        >
-          <View
-            style={{
-              width: 8,
-              height: 8,
-              marginTop: 6,
-              borderRadius: 4,
-              backgroundColor: t.accent,
-            }}
-          />
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={[tType.labelS, { color: t.ink }]}>
-              {chat.from} · {chat.time}
-            </Text>
-            <Text
-              style={[
-                tType.bodyM,
-                { fontFamily: tFont.regular, fontSize: 14, lineHeight: 19, color: t.ink2 },
-              ]}
-            >
-              {chat.text}
+      {chatOn ? (
+        <SectionHead title="Your care team" action="Open chat" onAction={go("/care/chat")} />
+      ) : (
+        <SectionHead title="See your care team" />
+      )}
+      {chatOn ? (
+        <Card style={{ gap: tSpace[3] }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
+            <View style={{ flexDirection: "row" }}>
+              {[
+                { i: "DR", bg: t.info.tint, fg: t.info.text },
+                { i: "NS", bg: t.pending.tint, fg: t.pending.text },
+                { i: "PH", bg: t.place.tint, fg: t.place.text },
+                { i: "DT", bg: t.accentTint, fg: t.accentText },
+              ].map((a, k) => (
+                <View
+                  key={a.i}
+                  style={{
+                    marginLeft: k ? -8 : 0,
+                    borderRadius: 20,
+                    borderWidth: 2,
+                    borderColor: t.surface,
+                  }}
+                >
+                  <Avatar initials={a.i} size={36} bg={a.bg} fg={a.fg} />
+                </View>
+              ))}
+            </View>
+            <Text style={[tType.bodyS, { flex: 1, color: t.ink2 }]}>
+              Doctor, nurse, pharmacist and dietitian
             </Text>
           </View>
-        </Press>
-        <View style={{ flexDirection: "row", gap: tSpace[2] }}>
-          <Button
-            label="Reply"
-            icon="message"
-            size="md"
+          <Press
             onPress={go("/care/chat")}
-            style={{ flex: 1 }}
-          />
-          <Button label="Voice" icon="mic" size="md" variant="soft" onPress={go("/care/chat")} />
-          <Button label="Video" icon="video" size="md" variant="soft" onPress={go("/care/chat")} />
-        </View>
-      </Card>
+            accessibilityLabel={`${chat.from}, ${chat.time}: ${chat.text}`}
+            style={{
+              flexDirection: "row",
+              gap: tSpace[2.5],
+              alignItems: "flex-start",
+              paddingVertical: tSpace[2.5],
+              paddingHorizontal: tSpace[3],
+              borderRadius: 16,
+              backgroundColor: t.bg,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                marginTop: 6,
+                borderRadius: 4,
+                backgroundColor: t.accent,
+              }}
+            />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[tType.labelS, { color: t.ink }]}>
+                {chat.from} · {chat.time}
+              </Text>
+              <Text
+                style={[
+                  tType.bodyM,
+                  { fontFamily: tFont.regular, fontSize: 14, lineHeight: 19, color: t.ink2 },
+                ]}
+              >
+                {chat.text}
+              </Text>
+            </View>
+          </Press>
+          <View style={{ flexDirection: "row", gap: tSpace[2] }}>
+            <Button
+              label="Reply"
+              icon="message"
+              size="md"
+              onPress={go("/care/chat")}
+              style={{ flex: 1 }}
+            />
+            <Button label="Voice" icon="mic" size="md" variant="soft" onPress={go("/care/chat")} />
+            <Button
+              label="Video"
+              icon="video"
+              size="md"
+              variant="soft"
+              onPress={go("/care/chat")}
+            />
+          </View>
+        </Card>
+      ) : (
+        <Card
+          onPress={go("/book")}
+          accessibilityLabel="Book a visit"
+          style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}
+        >
+          <IconDisc name="calendar" color={t.area.team} bg={t.surface2} size={38} />
+          <View style={{ flex: 1 }}>
+            <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>Book a visit</Text>
+            <Text style={[tType.bodyS, { color: t.ink2 }]}>
+              Your care team does not see what you log here. Bring it to your visit.
+            </Text>
+          </View>
+          <Icon name="forward" size={16} color={t.ink3} />
+        </Card>
+      )}
 
       <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3, textAlign: "center" }]}>
-        Illustrative. No real patients. Targets set by your care team.
+        Only you can see what you log. {THRESHOLDS_NOTE}
       </Text>
     </Screen>
   );
@@ -368,9 +338,9 @@ export default function CareTab() {
 function TrendCard({ tile, onPress }: { tile: TrendTile; onPress: () => void }) {
   const t = useTide();
   const pair =
-    tile.dir === "flat"
+    tile.tone === "neutral"
       ? t.pending
-      : tile.good
+      : tile.tone === "good"
         ? { tint: t.accentTint, text: t.accentText }
         : t.caution;
   const rotate = tile.dir === "down" ? "0deg" : tile.dir === "up" ? "180deg" : "-90deg";
@@ -429,82 +399,6 @@ function TrendCard({ tile, onPress }: { tile: TrendTile; onPress: () => void }) 
         {tile.trend}
       </Text>
     </Card>
-  );
-}
-
-function LabTile({
-  title,
-  value,
-  unit,
-  words,
-  onPress,
-  a11y,
-  children,
-}: {
-  title: string;
-  value: string;
-  unit: string;
-  words: string;
-  onPress: () => void;
-  a11y: string;
-  children: ReactNode;
-}) {
-  const t = useTide();
-  return (
-    <Card
-      onPress={onPress}
-      accessibilityLabel={`${title}: ${value} ${unit}. ${words} ${a11y}`}
-      style={{ flex: 1, gap: tSpace[2] }}
-    >
-      <Text style={[tType.bodyS, { fontFamily: tFont.semibold, color: t.ink2 }]}>{title}</Text>
-      <View style={{ flexDirection: "row", alignItems: "baseline", gap: tSpace[1] }}>
-        <Text
-          style={{
-            fontFamily: tFont.bold,
-            fontSize: 28,
-            lineHeight: 30,
-            letterSpacing: -0.5,
-            color: t.ink,
-          }}
-        >
-          {value}
-        </Text>
-        <Text style={[tType.caption, { color: t.ink2 }]}>{unit}</Text>
-      </View>
-      {children}
-      <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}>{words}</Text>
-    </Card>
-  );
-}
-
-/** LDL against its target: the healthy span in green tint, above it amber tint, the value a ringed dot. */
-function LdlBar({ value, target }: { value: number; target: number }) {
-  const t = useTide();
-  const max = target * 2;
-  const x = (v: number) => Math.max(8, Math.min(124, (v / max) * 132));
-  const tone = value > target ? t.caution.text : t.stable.text;
-  return (
-    <Svg width="100%" height={40} viewBox="0 0 132 40" preserveAspectRatio="none">
-      <Rect x={0} y={16} width={x(target) + 2} height={10} rx={5} fill={t.stable.tint} />
-      <Rect
-        x={x(target) - 2}
-        y={16}
-        width={134 - x(target)}
-        height={10}
-        rx={5}
-        fill={t.caution.tint}
-      />
-      <Line
-        x1={x(target)}
-        y1={10}
-        x2={x(target)}
-        y2={32}
-        stroke={t.stable.text}
-        strokeWidth={1.5}
-        strokeDasharray="3 3"
-      />
-      <Circle cx={x(value)} cy={21} r={8} fill={t.surface} stroke={tone} strokeWidth={3} />
-    </Svg>
   );
 }
 

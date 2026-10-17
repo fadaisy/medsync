@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 
 import { Avatar, Icon, IconDisc, Note, Press, Screen } from "@/components/tide";
 import { loadBookGlance } from "@/data/visits";
+import { HospitalPicker } from "@/features/visits/hospital-picker";
 import { shortDayOf } from "@/features/visits/logic";
 import { HONEST, pickStyle, StepTitle } from "@/features/visits/parts";
 import { fetchHousehold } from "@/lib/booking";
@@ -21,9 +22,10 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * plus opens the household screen to add one. Why: four tiles, each mapped to
  * the server's reason code; "Something new is wrong" goes to the symptom
  * catalogue first, so the right clinic sees them. How: come today (joins the
- * line) or ask for a day. The glance on each door is real where the patient
- * has a hospital: whether a clinic takes walk-ins now, and the next clinic
- * day with a place. No count of people in line (ADR 0084 §5).
+ * line) or ask for a day. The glance on each door is real: whether a clinic
+ * takes walk-ins now, and the next clinic day with a place. No count of
+ * people in line (ADR 0084 §5). Without a hospital the patient chooses one
+ * first, here.
  */
 type Why = "review" | "new" | "lab" | "meds";
 
@@ -46,13 +48,13 @@ export default function BookScreen() {
   const [household, setHousehold] = useState<HouseholdMember[]>([]);
   const [glance, setGlance] = useState<BookGlance | null>(null);
 
-  // On focus: a person added on the household screen shows when they come back.
-  useFocusEffect(
-    useCallback(() => {
-      fetchHousehold().then(setHousehold, () => setHousehold([]));
-      loadBookGlance().then(setGlance, () => setGlance(null));
-    }, []),
-  );
+  // On focus (a person added on the household screen shows when they come
+  // back), and again once a hospital is chosen below.
+  const load = useCallback(() => {
+    fetchHousehold().then(setHousehold, () => setHousehold([]));
+    loadBookGlance().then(setGlance, () => setGlance(null));
+  }, []);
+  useFocusEffect(load);
 
   const reason = WHY.find((w) => w.key === why)?.reason ?? null;
   const params = {
@@ -108,6 +110,7 @@ export default function BookScreen() {
       title="Book a visit"
       helpSource="book"
     >
+      {glance?.hasHospital === false ? <HospitalPicker onChosen={load} /> : null}
       <View style={{ gap: tSpace[2] }}>
         <StepTitle n={1}>Who is this visit for?</StepTitle>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
@@ -198,7 +201,11 @@ export default function BookScreen() {
             >
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent }} />
               <Text style={[tType.caption, { color: t.onBandAccent }]}>
-                {glance?.openNow === false ? "No clinic takes walk-ins now" : "Open now"}
+                {glance?.openNow === true
+                  ? "Open now"
+                  : glance?.openNow === false
+                    ? "No clinic takes walk-ins now"
+                    : "Today"}
               </Text>
             </View>
             <Icon name="arrowRight" size={22} color={t.onBand} />

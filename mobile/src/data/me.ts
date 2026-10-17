@@ -3,37 +3,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { createStore, useStore } from "@/data/store";
 import { fetchPatientProfile } from "@/lib/booking";
-import { flag } from "@/lib/flags";
 
 /**
  * Me: who the patient is, their health card, and the phone's own settings.
  *
- * Two kinds of data, kept apart on purpose:
- * - Identity (name, patient code, home facility, sex) is REAL: the session's
- *   metadata and `fetchPatientProfile()` under RLS. It is cached on the phone
- *   per account so the health card and Help's medic card draw with no network.
- * - Clinical fields (conditions, allergies, medicines, last BP, primary
- *   doctor, emergency contact, record openings, payments) are DEMO until
- *   Gate CG (law L2), placeholders only (law L14).
+ * All REAL: the session's metadata and `fetchPatientProfile()` under RLS
+ * (patient code, home facility, sex, date of birth, and the conditions the
+ * patient wrote on their own profile). Cached on the phone per account so the
+ * health card and Help's medic card draw with no network.
+ *
+ * Not shown, because the phone cannot read it truthfully: allergies (the
+ * clinical record is not the patient's to read yet, ADR 0342; Me says "Tell
+ * your nurse about any allergy"), a primary doctor (no such record), the
+ * emergency contact (encrypted server-side), blood group (not recorded).
  */
-
-/* ── Demo fixture ───────────────────────────────────────────────────── */
-
-export const meDemo = {
-  demo: !flag("mobileClinicalData"),
-  conditions: ["Diabetes", "High blood pressure"],
-  conditionsShort: "Diabetes · High BP",
-  allergies: "None recorded",
-  medicines: ["[Medicine A]", "[Medicine B]", "[Medicine C]"],
-  medicinesLine: "3 medicines · 1 refill ready",
-  lastBp: "138/86 at 07:40",
-  primaryDoctor: "Dr [Name A] · Diabetes clinic",
-  contact: "[Name] · 0772 ··· 210",
-  contactLong: "[Name] · son · 0772 ··· 210",
-  lastOpened: "Last: Nurse [Name], Wed 14 Oct",
-  payments: "Mobile Money · 0772 ··· 418",
-  bloodGroup: "Not recorded",
-} as const;
 
 /* ── Phone settings (stored on this phone only) ─────────────────────── */
 
@@ -41,8 +24,6 @@ export interface MePrefs {
   lang: "en" | "lg";
   /** Text size A+ (larger). */
   big: boolean;
-  /** Demo switch: nothing is shared from the phone before Gate CG. */
-  shareReadings: boolean;
   /** PRD Q6, owner decision: conditions on the card's back are hidden until the patient shows them. */
   showConditionsOnCard: boolean;
 }
@@ -51,7 +32,6 @@ const PREFS_KEY = "medsync:me-prefs";
 const DEFAULT_PREFS: MePrefs = {
   lang: "en",
   big: false,
-  shareReadings: true,
   showConditionsOnCard: false,
 };
 
@@ -86,9 +66,20 @@ export interface CardIdentity {
   code: string | null;
   facility: string | null;
   sex: string | null;
+  /** `patient_profiles.date_of_birth`, "YYYY-MM-DD". */
+  dob: string | null;
+  /** The patient's own `known_conditions`. Shown on the card only when they switch it on. */
+  conditions: string[];
 }
 
-const EMPTY: CardIdentity = { name: null, code: null, facility: null, sex: null };
+const EMPTY: CardIdentity = {
+  name: null,
+  code: null,
+  facility: null,
+  sex: null,
+  dob: null,
+  conditions: [],
+};
 const cardKey = (userId: string) => `medsync:health-card:${userId}`;
 
 /**
@@ -104,7 +95,9 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
     let cancelled = false;
     AsyncStorage.getItem(cardKey(userId))
       .then((raw) => {
-        if (!cancelled && raw) setRead({ userId, value: JSON.parse(raw) as CardIdentity });
+        // An older cached copy lacks the newer fields: the defaults fill them.
+        if (!cancelled && raw)
+          setRead({ userId, value: { ...EMPTY, ...(JSON.parse(raw) as Partial<CardIdentity>) } });
       })
       .catch(() => {})
       .then(() => fetchPatientProfile())
@@ -115,6 +108,8 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
           code: p.patientCode,
           facility: p.hospitalName,
           sex: p.sex,
+          dob: p.dateOfBirth,
+          conditions: p.knownConditions,
         };
         setRead({ userId, value });
         void AsyncStorage.setItem(cardKey(userId), JSON.stringify(value)).catch(() => {});
@@ -134,6 +129,27 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
 /** "MS-2026-00042" → "MS 2026 00042": spaced for the card's mono line. */
 export function cardNumber(code: string | null): string {
   return code ? code.replace(/-/g, " ") : "Given at your first visit";
+}
+
+/**
+ * Whole years from a "YYYY-MM-DD" date of birth to `now`, or null when there
+ * is no usable date. A birthday later this year has not happened yet.
+ */
+export function ageFrom(dob: string | null, now: Date): number | null {
+  const m = dob ? /^(\d{4})-(\d{2})-(\d{2})/.exec(dob) : null;
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const thisYear = now.getFullYear();
+  const before =
+    now.getMonth() + 1 < mo || (now.getMonth() + 1 === mo && now.getDate() < d) ? 1 : 0;
+  const age = thisYear - y - before;
+  return age >= 0 && age < 130 ? age : null;
+}
+
+/** "34 years", or null. */
+export function ageWords(dob: string | null, now: Date): string | null {
+  const age = ageFrom(dob, now);
+  return age === null ? null : `${age} ${age === 1 ? "year" : "years"}`;
 }
 
 /** `patient_profiles.sex` → the card's one letter; anything else says nothing. */

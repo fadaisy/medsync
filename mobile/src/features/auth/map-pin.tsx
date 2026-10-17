@@ -24,19 +24,32 @@ export interface PinAnchor {
   lng: number;
 }
 
-/** Coordinates for the pin: offsets from the real fix. None until the patient asks for location. */
-export function pinCoords(pin: PinSpot, anchor: PinAnchor | null): string | null {
+/**
+ * The pin as latitude and longitude: offsets from the real fix. Null until the
+ * patient asks for their location; a pin on the drawing alone is not a place.
+ */
+export function pinLatLng(pin: PinSpot, anchor: PinAnchor | null): PinAnchor | null {
   if (!anchor) return null;
-  const lat = anchor.lat + (H / 2 - pin.y) * DEG_PER_UNIT;
-  const lng = anchor.lng + (pin.x - W / 2) * DEG_PER_UNIT;
+  return {
+    lat: anchor.lat + (H / 2 - pin.y) * DEG_PER_UNIT,
+    lng: anchor.lng + (pin.x - W / 2) * DEG_PER_UNIT,
+  };
+}
+
+/** Coordinates for the pin, in words. None until the patient asks for location. */
+export function pinCoords(pin: PinSpot, anchor: PinAnchor | null): string | null {
+  const at = pinLatLng(pin, anchor);
+  if (!at) return null;
+  const { lat, lng } = at;
   return `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(4)}° ${lng >= 0 ? "E" : "W"}`;
 }
 
 /**
  * "Pin your home": a drawn street map, tap to move the pin, zoom, use my
- * location. The pin is navy with a teal centre, never red. Nothing here is
- * sent anywhere: there is no column for it yet (see the Gate 2 report), and
- * the coordinates of a location fix are never logged.
+ * location. The pin is navy with a teal centre, never red. Nothing here sends
+ * it: after sign-up and sign-in, `saveHomePin` writes it to the patient's own
+ * profile (migration 0170) only with the consent in `HOME_PIN_CONSENT`. The
+ * coordinates of a location fix are never logged.
  */
 export function MapPin({
   pin,

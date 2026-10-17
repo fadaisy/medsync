@@ -1,32 +1,75 @@
+import type { FeeInputs } from "@shared/fees";
+
 import {
-  barsFor,
-  deskCode,
+  aheadWords,
+  feeFor,
   feeText,
   monthGrid,
-  ordinal,
   partOf,
   payLook,
   shiftMonth,
-  shortestLine,
-  yourNumber,
 } from "@/features/visits/logic";
 
-describe("line maths", () => {
-  it("your number is the people ahead plus one", () => {
-    expect(yourNumber(0)).toBe(1);
-    expect(yourNumber(5)).toBe(6);
-    expect(yourNumber(13)).toBe(14);
+describe("ahead of you (ADR 0084 §6)", () => {
+  it("shows the count only once the patient is present", () => {
+    expect(aheadWords("arrived", 3)).toBe("3 ahead of you");
+    expect(aheadWords("awaiting_triage", 1)).toBe("1 ahead of you");
+    expect(aheadWords("arrived", 0)).toBe("No one is ahead of you.");
   });
 
-  it("any doctor is the shortest line, first on a tie", () => {
-    const lines = [
-      { id: "a", ahead: 5 },
-      { id: "b", ahead: 2 },
-      { id: "c", ahead: 2 },
-    ];
-    expect(shortestLine(lines)?.id).toBe("b");
-    expect(yourNumber(shortestLine(lines)!.ahead)).toBe(3);
-    expect(shortestLine([])).toBeNull();
+  it("says nothing for a declared place, a seen patient or no status", () => {
+    expect(aheadWords("declared", 3)).toBeNull();
+    expect(aheadWords("triaged", 3)).toBeNull();
+    expect(aheadWords(null, 3)).toBeNull();
+  });
+
+  it("hides the count when the read failed or is not a count", () => {
+    expect(aheadWords("arrived", null)).toBeNull();
+    expect(aheadWords("arrived", -1)).toBeNull();
+    expect(aheadWords("arrived", 2.5)).toBeNull();
+  });
+
+  it("is never an ordinal, a total or a wait", () => {
+    const words = aheadWords("arrived", 12) ?? "";
+    expect(words).not.toMatch(/#|\b\d+(st|nd|rd|th)\b|number|of \d|min|hour/i);
+  });
+});
+
+describe("department fees", () => {
+  const line = (departmentId: string, fee: Partial<FeeInputs>) => ({
+    departmentId,
+    fee: { posture: "full", baseFeeUgx: 30000, lineName: "OPD", cadreFees: [], ...fee },
+  });
+
+  it("no priced line is no fee, never a guess", () => {
+    expect(feeFor([], "d1", null)).toEqual({ fee: null, feeLabel: null });
+    expect(feeFor([line("d1", { posture: "none" })], "d1", null)).toEqual({
+      fee: null,
+      feeLabel: null,
+    });
+    expect(feeFor([line("d2", {})], "d1", null)).toEqual({ fee: null, feeLabel: null });
+  });
+
+  it("one amount is one number", () => {
+    expect(feeFor([line("d1", {})], "d1", null)).toEqual({ fee: 30000, feeLabel: null });
+  });
+
+  it("a known cadre resolves its own override", () => {
+    const l = line("d1", {
+      cadreFees: [{ cadreId: "c1", cadreName: "Consultant", feeUgx: 50000 }],
+    });
+    expect(feeFor([l], "d1", "c1")).toEqual({ fee: 50000, feeLabel: null });
+    expect(feeFor([l], "d1", "c2")).toEqual({ fee: 30000, feeLabel: null });
+  });
+
+  it("an unknown clinician spans the range, in words", () => {
+    const l = line("d1", {
+      cadreFees: [{ cadreId: "c1", cadreName: "Consultant", feeUgx: 50000 }],
+    });
+    expect(feeFor([l], "d1", null)).toEqual({
+      fee: 30000,
+      feeLabel: "UGX 30,000 to UGX 50,000",
+    });
   });
 });
 
@@ -46,22 +89,6 @@ describe("ticket payment look", () => {
 });
 
 describe("words and grids", () => {
-  it("ordinals", () => {
-    expect([1, 2, 3, 4, 11, 12, 13, 14, 21, 22, 112].map(ordinal)).toEqual([
-      "1st",
-      "2nd",
-      "3rd",
-      "4th",
-      "11th",
-      "12th",
-      "13th",
-      "14th",
-      "21st",
-      "22nd",
-      "112th",
-    ]);
-  });
-
   it("October 2026 starts on a Thursday and fills whole weeks", () => {
     const g = monthGrid("2026-10-17");
     expect(g.length % 7).toBe(0);
@@ -77,12 +104,5 @@ describe("words and grids", () => {
   it("splits the day at Kampala noon", () => {
     expect(partOf("2026-10-20T05:00:00Z")).toBe("Morning"); // 08:00 EAT
     expect(partOf("2026-10-20T10:00:00Z")).toBe("Afternoon"); // 13:00 EAT
-  });
-
-  it("codes and bars are stable for the same id", () => {
-    expect(deskCode("KWP", "abc")).toBe(deskCode("KWP", "abc"));
-    expect(deskCode("KWP", "abc")).toMatch(/^KWP-\d{4}$/);
-    expect(barsFor("KWP-4827")).toEqual(barsFor("KWP-4827"));
-    expect(barsFor("KWP-4827").every((b) => b.x + b.w <= 230)).toBe(true);
   });
 });

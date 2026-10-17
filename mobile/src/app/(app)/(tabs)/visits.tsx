@@ -4,10 +4,11 @@ import type { WaitlistEntry } from "@/lib/notifications";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import { Button, Card, DateTile, Icon, Note, Press, Screen } from "@/components/tide";
-import { CARE_PLAN, loadWeek, WEEK_FIXTURES } from "@/data/visits";
+import { useMedicines } from "@/data/medicines";
+import { loadWeek } from "@/data/visits";
 import {
   addDays,
   dayKeyOf,
@@ -17,12 +18,11 @@ import {
   monthGrid,
   monthShortOf,
   monthTitleOf,
-  ordinal,
   shiftMonth,
   shortDayOf,
   weekdayOf,
 } from "@/features/visits/logic";
-import { DemoTag, Dot } from "@/features/visits/parts";
+import { Dot } from "@/features/visits/parts";
 import { WaitlistCard } from "@/features/visits/waitlist-card";
 import { APPOINTMENT_REASONS, fetchHousehold, STATUS_LABEL } from "@/lib/booking";
 import { fetchWaitlist } from "@/lib/notifications";
@@ -33,12 +33,13 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 /**
  * This week (board TWeek/DWeek, PRD F-08).
  *
- * Real: the patient's appointments (`fetchAppointments`, RLS) and the clinic
- * days that still have a place (`fetchSessions`). Demo, tagged on the row:
- * the lab and care-team days and the care plan (clinical, law L2).
+ * All real: the patient's appointments (`fetchAppointments`, RLS), the clinic
+ * days that still have a place (`fetchSessions`) and today's medicines from
+ * the patient's own list (`useMedicines`). No example rows.
  *
  * The header pill names the next visit by what it is for, never by the
- * clinician. A visit shows its place in line, never an hour (law L8).
+ * clinician. A visit shows its status, never a place number or an hour
+ * (law L8, ADR 0084 §6).
  */
 
 /** Statuses that no longer put a visit on the calendar. */
@@ -47,18 +48,14 @@ const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
 const reasonTitle = (row: AppointmentRow) =>
   APPOINTMENT_REASONS.find((r) => r.value === row.reason)?.title ?? row.departmentName;
-const placeWord = (row: AppointmentRow) =>
-  row.positionNumber !== null
-    ? `${ordinal(row.positionNumber)} in line`
-    : (STATUS_LABEL[row.status] ?? "");
-
-type Fixture = (typeof WEEK_FIXTURES)[number] & { key: string };
+const placeWord = (row: AppointmentRow) => STATUS_LABEL[row.status] ?? "";
 
 export default function VisitsScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
   const today = dayKeyOf(now);
+  const meds = useMedicines(now);
 
   const [week, setWeek] = useState<Week | null>(null);
   const [failed, setFailed] = useState(false);
@@ -90,25 +87,18 @@ export default function VisitsScreen() {
     (v) => !GONE.has(v.status),
   );
   const visitsOn = (key: string) => visits.filter((v) => dayKeyOf(v.startsAtIso) === key);
-  const fixtures: Fixture[] = WEEK_FIXTURES.map((f) => ({ ...f, key: addDays(today, f.offset) }));
-  const fixtureOn = (key: string) => fixtures.find((f) => f.key === key) ?? null;
   const next = (week?.upcoming ?? [])
     .filter((v) => !GONE.has(v.status) && v.status !== "completed")
     .sort((a, b) => a.startsAtIso.localeCompare(b.startsAtIso))[0];
 
   /* the selected-day line */
   const selVisit = visitsOn(sel)[0];
-  const selFixture = fixtureOn(sel);
   const selOpen = week?.openDays.has(sel) ?? false;
   let selTitle = shortDayOf(sel);
   let selLine = sel < today ? "Past day" : "Nothing planned. The clinic is closed.";
   if (sel === today) {
     selTitle = "Today";
-    selLine = `${CARE_PLAN.readings} readings and ${CARE_PLAN.medicines} medicines on your plan (demo)`;
-  }
-  if (selFixture) {
-    selTitle = `${shortDayOf(sel)} · ${selFixture.title}`;
-    selLine = `${selFixture.line} (demo)`;
+    selLine = meds.total > 0 ? medsWords(meds.taken, meds.total) : "Nothing planned.";
   }
   if (selOpen) {
     selTitle = `${shortDayOf(sel)} · Clinic open`;
@@ -120,20 +110,30 @@ export default function VisitsScreen() {
   }
   const openVisit = (id: string) => router.push({ pathname: "/visits/[id]", params: { id } });
 
-  /* the week ahead: today's plan, then this week's visits and fixtures */
+  /* the week ahead: today's medicines, then this week's visits */
   const end = addDays(today, 6);
   const inWeek = (key: string) => key > today && key <= end;
   const rows: { key: string; node: ReactNode }[] = [
-    { key: today, node: <CarePlanCard onPress={() => router.navigate("/(app)/(tabs)")} /> },
+    ...(meds.total > 0
+      ? [
+          {
+            key: today,
+            node: (
+              <MedicinesCard
+                taken={meds.taken}
+                total={meds.total}
+                onPress={() => router.push("/care/medicines")}
+              />
+            ),
+          },
+        ]
+      : []),
     ...visits
       .filter((v) => inWeek(dayKeyOf(v.startsAtIso)))
       .map((v) => ({
         key: dayKeyOf(v.startsAtIso),
         node: <VisitCard row={v} onOpen={() => openVisit(v.id)} />,
       })),
-    ...fixtures
-      .filter((f) => inWeek(f.key))
-      .map((f) => ({ key: f.key, node: <FixtureCard item={f} /> })),
   ].sort((a, b) => a.key.localeCompare(b.key));
   const shown = open ? rows : rows.slice(0, 2);
   const hidden = rows.length - 2;
@@ -152,7 +152,12 @@ export default function VisitsScreen() {
       }
     >
       {failed ? (
-        <Note tone="plain">{"Couldn't load your visits. Come back to this tab to try again."}</Note>
+        <View style={{ gap: tSpace[2] }}>
+          <Note tone="plain">{"Couldn't load your visits. Check your connection."}</Note>
+          <Button label="Try again" variant="outline" size="md" onPress={load} />
+        </View>
+      ) : week === null ? (
+        <ActivityIndicator color={t.ink} accessibilityLabel="Loading your visits" />
       ) : null}
 
       {/* An open offer is the most time-bound thing on the page. */}
@@ -223,21 +228,13 @@ export default function VisitsScreen() {
             const isToday = key === today;
             const isVisit = visitsOn(key).length > 0;
             const isOpen = week?.openDays.has(key) ?? false;
-            const fx = fixtureOn(key);
             const isPicked = key === sel;
-            const dot = isVisit
-              ? t.area.visits
-              : fx?.kind === "lab"
-                ? t.area.medicines
-                : fx
-                  ? t.area.team
-                  : "transparent";
+            const dot = isVisit ? t.area.visits : "transparent";
             const label = [
               shortDayOf(key),
               isToday ? "today" : null,
               isOpen ? "clinic open" : null,
               isVisit ? "your visit" : null,
-              fx ? fx.label : null,
             ]
               .filter(Boolean)
               .join(", ");
@@ -320,8 +317,6 @@ export default function VisitsScreen() {
             }
             label="Your visit"
           />
-          <Legend swatch={<Dot color={t.area.medicines} size={6} />} label="Lab" />
-          <Legend swatch={<Dot color={t.area.team} size={6} />} label="Care team" />
         </View>
         <View
           accessibilityLiveRegion="polite"
@@ -362,6 +357,13 @@ export default function VisitsScreen() {
           Your week ahead
         </Text>
       </View>
+      {week && rows.length === 0 ? (
+        <Note tone="plain">
+          {visits.length === 0
+            ? "No visits yet. When you book one, it shows here."
+            : "Nothing planned this week."}
+        </Note>
+      ) : null}
       {/* The rail has no left gutter, so today's tile meets the screen edge. */}
       <View style={{ marginLeft: -tSpace[5], gap: tSpace[2.5] }}>
         {shown.map((r, i) => (
@@ -556,34 +558,37 @@ function Kind({ color, label, right }: { color: string; label: string; right?: R
   );
 }
 
-function CarePlanCard({ onPress }: { onPress: () => void }) {
+/** "2 of 4 medicines taken today": the patient's own list, never an example. */
+function medsWords(taken: number, total: number): string {
+  return `${taken} of ${total} ${total === 1 ? "medicine" : "medicines"} taken today`;
+}
+
+function MedicinesCard({
+  taken,
+  total,
+  onPress,
+}: {
+  taken: number;
+  total: number;
+  onPress: () => void;
+}) {
   const t = useTide();
   return (
-    <RailCard
-      onPress={onPress}
-      label={`Your care plan, ${CARE_PLAN.done} of ${CARE_PLAN.total} done, demo data`}
-    >
-      <Kind color={t.area.readings} label="Your care plan" right={<DemoTag />} />
-      <Text style={[tType.label, { color: t.ink }]}>
-        {`${CARE_PLAN.readings} readings, ${CARE_PLAN.medicines} medicines`}
-      </Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
-        <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
-          {Array.from({ length: CARE_PLAN.total }, (_, i) => (
-            <View
-              key={i}
-              style={{
-                flex: 1,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: i < CARE_PLAN.done ? t.primary : t.line,
-              }}
-            />
-          ))}
-        </View>
-        <Text
-          style={[tType.bodyS, { color: t.ink2 }]}
-        >{`${CARE_PLAN.done} of ${CARE_PLAN.total}`}</Text>
+    <RailCard onPress={onPress} label={`Your medicines, ${medsWords(taken, total)}`}>
+      <Kind color={t.area.medicines} label="Your medicines" />
+      <Text style={[tType.label, { color: t.ink }]}>{medsWords(taken, total)}</Text>
+      <View style={{ flexDirection: "row", gap: 4 }}>
+        {Array.from({ length: total }, (_, i) => (
+          <View
+            key={i}
+            style={{
+              flex: 1,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: i < taken ? t.primary : t.line,
+            }}
+          />
+        ))}
       </View>
     </RailCard>
   );
@@ -629,27 +634,6 @@ function VisitCard({ row, onOpen }: { row: AppointmentRow; onOpen: () => void })
           <Icon name="mapPin" size={18} color={t.onAccent} />
         </Press>
       </View>
-    </RailCard>
-  );
-}
-
-function FixtureCard({ item }: { item: Fixture }) {
-  const t = useTide();
-  return (
-    <RailCard label={`${item.label}, ${item.title}, ${item.time}, demo data`}>
-      <Kind
-        color={item.kind === "lab" ? t.area.medicines : t.area.team}
-        label={item.label}
-        right={
-          <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
-            <DemoTag />
-            <Text style={[tType.labelS, { color: t.ink2, fontVariant: ["tabular-nums"] }]}>
-              {item.time}
-            </Text>
-          </View>
-        }
-      />
-      <Text style={[tType.label, { color: t.ink }]}>{item.title}</Text>
     </RailCard>
   );
 }

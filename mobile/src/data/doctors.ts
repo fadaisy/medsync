@@ -1,105 +1,137 @@
+import type { ClinicianOption, ServiceLine, WalkInDepartment } from "@/lib/booking";
+
 import { createStore, useStore } from "@/data/store";
+import { feeFor, feeText } from "@/features/visits/logic";
+import {
+  fetchBookableClinicians,
+  fetchPatientProfile,
+  fetchServiceLines,
+  fetchWalkInDepartments,
+} from "@/lib/booking";
 
 /**
- * "See a doctor" on Home and the per-doctor lines in Come today.
- *
- * Contract between Home (Gate 3) and booking (Gate 4): `useDoctors()` returns
- * these cards. Until the booking repository fills them from the live intake
- * and session engines, they are demo data with placeholder names.
- *
- * Ratings and fees show only where the facility turns them on (PRD Q3, Q4);
- * public no-fee services always say "No fee".
+ * "See a doctor" on Home: the real clinicians at the patient's own hospital,
+ * from `pt-bookable-clinicians` (the server's slot engine) and the hospital's
+ * price list (`service_lines`, ADR 0092). Nothing is invented: no placeholder
+ * doctor, no rating (ratings stay off, PRD Q3), and no count of people in any
+ * line (ADR 0084 §6). A fee shows only where the clinic priced one.
  */
-export type DoctorStatus =
-  | { kind: "now"; ahead: number }
-  | { kind: "next"; day: string; line: string };
-
 export interface DoctorCard {
-  id: string;
+  /** User id and department: one clinician may work in two. */
+  key: string;
+  userId: string;
   name: string;
+  /** Specialty, else the cadre ("Medical Officer"). */
   role: string;
+  departmentId: string;
   place: string;
   initials: string;
-  /** The patient's own doctor gets a "Your doctor" tag. */
-  yours: boolean;
-  /** Null when the facility has ratings off. */
-  rating: { score: number; count: number } | null;
-  /** UGX; null means no fee. */
-  fee: number | null;
-  status: DoctorStatus;
-  tags: string[];
+  photoUrl: string | null;
+  /** The first day with an open slot ("YYYY-MM-DD"), or null within the 14-day horizon. */
+  nextDayKey: string | null;
+  /** Their clinic takes walk-ins right now. A yes or no, never a queue length. */
+  walkInToday: boolean;
+  /** "UGX 30,000", a range in words, or "No fee". */
+  feeWords: string;
 }
+
+export type DoctorsStatus = "loading" | "ready" | "error" | "no-hospital";
 
 export interface DoctorsState {
+  status: DoctorsStatus;
   doctors: DoctorCard[];
-  demo: boolean;
-  /** Facility switch for ratings (default off until legal review, PRD Q3). */
-  ratingsOn: boolean;
+  hospitalName: string | null;
 }
 
-export const DOCTOR_FILTERS = ["Available now", "Diabetes", "General", "Children", "Eye"] as const;
+/** "Dr Jane Doe" → "JD". Initials stand in where the clinician gave no photo. */
+export function initialsOf(name: string): string {
+  const words = name
+    .replace(/^Dr\.?\s+/i, "")
+    .split(/\s+/)
+    .filter((w) => /^[A-Za-z]/.test(w));
+  return (
+    words
+      .slice(0, 2)
+      .map((w) => w.charAt(0).toUpperCase())
+      .join("") || "DR"
+  );
+}
 
-const FIXTURE: DoctorCard[] = [
-  {
-    id: "na",
-    name: "Dr [Name A]",
-    role: "Specialist",
-    place: "Kawempe HC IV",
-    initials: "NA",
-    yours: true,
-    rating: { score: 4.9, count: 212 },
-    fee: 30000,
-    status: { kind: "now", ahead: 5 },
-    tags: ["Diabetes"],
-  },
-  {
-    id: "nb",
-    name: "Dr [Name B]",
-    role: "Diabetes",
-    place: "Kawempe HC IV",
-    initials: "NB",
-    yours: false,
-    rating: { score: 4.7, count: 98 },
-    fee: null,
-    status: { kind: "now", ahead: 2 },
-    tags: ["Diabetes", "General"],
-  },
-  {
-    id: "nh",
-    name: "Dr [Name H]",
-    role: "Physician",
-    place: "Private wing",
-    initials: "NH",
-    yours: false,
-    rating: { score: 4.8, count: 143 },
-    fee: 50000,
-    status: { kind: "next", day: "Tue 20 Oct", line: "Morning and afternoon open" },
-    tags: ["General"],
-  },
-  {
-    id: "ne",
-    name: "Dr [Name E]",
-    role: "Private wing",
-    place: "OPD",
-    initials: "NE",
-    yours: false,
-    rating: { score: 4.6, count: 310 },
-    fee: 20000,
-    status: { kind: "now", ahead: 4 },
-    tags: ["General"],
-  },
-];
+/** One card per clinician and department, in the server's order (open days first, soonest first). */
+export function toDoctorCards(
+  clinicians: readonly ClinicianOption[],
+  lines: readonly Pick<ServiceLine, "departmentId" | "fee">[],
+  departments: readonly WalkInDepartment[],
+): DoctorCard[] {
+  const openNow = new Set(departments.filter((d) => d.openNow).map((d) => d.id));
+  return clinicians.map((c) => {
+    const { fee, feeLabel } = feeFor(lines, c.departmentId, c.cadreId);
+    return {
+      key: `${c.userId}:${c.departmentId}`,
+      userId: c.userId,
+      name: c.fullName,
+      role: c.specialty ?? c.cadre,
+      departmentId: c.departmentId,
+      place: c.departmentName,
+      initials: initialsOf(c.fullName),
+      photoUrl: c.photoUrl,
+      nextDayKey: Object.keys(c.slotsByDate).sort()[0] ?? null,
+      walkInToday: openNow.has(c.departmentId),
+      feeWords: feeLabel ?? feeText(fee),
+    };
+  });
+}
 
-export const doctorsStore = createStore<DoctorsState>({
-  doctors: FIXTURE,
-  demo: true,
-  ratingsOn: false,
-});
+/** The walk-in chip's words. */
+export const WALK_IN_FILTER = "Walk-ins today";
+
+/**
+ * The filter chips the data can answer: walk-ins when some clinics take them
+ * today and some do not, and each department when there are two or more. No
+ * chip for a facet the cards do not carry.
+ */
+export function doctorFilters(cards: readonly DoctorCard[]): string[] {
+  const out: string[] = [];
+  const walkIns = cards.filter((c) => c.walkInToday).length;
+  if (walkIns > 0 && walkIns < cards.length) out.push(WALK_IN_FILTER);
+  const places = [...new Set(cards.map((c) => c.place))];
+  if (places.length > 1) out.push(...places.sort());
+  return out;
+}
+
+export function matchesFilter(card: DoctorCard, filter: string | null): boolean {
+  if (!filter) return true;
+  return filter === WALK_IN_FILTER ? card.walkInToday : card.place === filter;
+}
+
+const store = createStore<DoctorsState>({ status: "loading", doctors: [], hospitalName: null });
+
+/** Read the doctors again (Home calls this on focus). A failure keeps a list already shown. */
+export async function loadDoctors(): Promise<void> {
+  if (store.get().status !== "ready") store.set((s) => ({ ...s, status: "loading" }));
+  try {
+    const profile = await fetchPatientProfile();
+    const hospitalId = profile?.hospitalId;
+    if (!hospitalId) {
+      store.set({ status: "no-hospital", doctors: [], hospitalName: null });
+      return;
+    }
+    const [clinicians, lines, departments] = await Promise.all([
+      fetchBookableClinicians(hospitalId),
+      fetchServiceLines({ hospitalId }),
+      // Walk-in hours only decide "Come today"; without them that button stays away.
+      fetchWalkInDepartments(hospitalId).catch(() => [] as WalkInDepartment[]),
+    ]);
+    store.set({
+      status: "ready",
+      doctors: toDoctorCards(clinicians, lines, departments),
+      hospitalName: profile.hospitalName,
+    });
+  } catch {
+    store.set((s) => (s.status === "ready" ? s : { ...s, status: "error" }));
+  }
+}
 
 export function useDoctors(): DoctorsState {
-  return useStore(doctorsStore);
-}
-
-export function feeWords(fee: number | null): string {
-  return fee ? `UGX ${fee.toLocaleString("en-US")}` : "No fee";
+  return useStore(store);
 }

@@ -1,124 +1,136 @@
+import type { SavedReading } from "@/data/readings";
 import type { ReadingInput, SugarContext } from "@/lib/readings";
 import rules from "@clinical-rules/patient-thresholds.v0.json";
 
-import { checkReading, UNITS } from "@/lib/readings";
+import { dayKey } from "@/data/health-log";
+import { checkReading, readingValueText, SUGAR_CONTEXT_WORDS, UNITS } from "@/lib/readings";
 
 /**
- * Health trends (Care hub tiles and Health trends). Demo data until Gate CG
- * (law L2): a fixed week of example readings, Sunday to today. Targets and
- * every in-range judgement come from the thresholds file through
- * `checkReading` (law L7), never from numbers written here.
+ * Health trends (Care hub tiles and Health trends), computed from the
+ * patient's own readings (`data/readings.ts`). Targets and every in-range
+ * judgement come from the thresholds file through `checkReading` (law L7),
+ * never from numbers written here. A day with no reading is a gap, never a
+ * guess.
  */
 export type Metric = "bp" | "sugar" | "weight" | "pulse";
 
-export interface MetricSeries {
+export interface MetricInfo {
   key: Metric;
   /** The tab word. */
   name: string;
   label: string;
   unit: string;
-  /** Seven days, oldest first. Blood pressure's top numbers. */
-  a: number[];
-  /** Blood pressure's bottom numbers. */
-  b?: number[];
-  /** The chart's value range and grid lines. */
+  /** The chart's usual value range; real values outside it widen it. */
   lo: number;
   hi: number;
-  grid: number[];
   l1: string;
   l2?: string;
-  insight: string;
 }
 
-export const METRICS: Record<Metric, MetricSeries> = {
+export const METRICS: Record<Metric, MetricInfo> = {
   bp: {
     key: "bp",
     name: "Pressure",
     label: "Blood pressure",
     unit: UNITS.bp,
-    a: [148, 142, 139, 145, 136, 138, 134],
-    b: [92, 88, 86, 90, 84, 86, 82],
     lo: 70,
     hi: 160,
-    grid: [80, 120, 160],
     l1: "Top number",
     l2: "Bottom number",
-    insight: "Your top number came down 14 points since last Sunday.",
   },
   sugar: {
     key: "sugar",
     name: "Sugar",
     label: "Blood sugar",
     unit: UNITS.sugar,
-    a: [8.4, 7.9, 8.8, 7.2, 7.6, 6.9, 7.1],
     lo: 3,
     hi: 13,
-    grid: [4, 8, 12],
-    l1: "Before breakfast",
-    insight: "3 of 7 mornings in target this week, up from 1.",
+    l1: "Sugar",
   },
   weight: {
     key: "weight",
     name: "Weight",
     label: "Weight",
     unit: UNITS.weight,
-    a: [86.4, 86.2, 86.3, 85.9, 85.8, 85.6, 85.5],
-    lo: 84,
-    hi: 87.5,
-    grid: [84, 86, 87.5],
-    l1: "Morning weight",
-    insight: "Down 0.9 kg this week. Slow and steady is right.",
+    lo: 0,
+    hi: 0,
+    l1: "Weight",
   },
-  pulse: {
-    key: "pulse",
-    name: "Pulse",
-    label: "Pulse",
-    unit: "bpm",
-    a: [78, 76, 80, 75, 77, 73, 74],
-    lo: 40,
-    hi: 110,
-    grid: [60, 80, 100],
-    l1: "Resting pulse",
-    insight: "Steady and in range all week.",
-  },
+  pulse: { key: "pulse", name: "Pulse", label: "Pulse", unit: "bpm", lo: 40, hi: 110, l1: "Pulse" },
 };
 
 /** The sugar chart's "When was it measured?" chips. */
-export const SUGAR_SERIES: { ctx: SugarContext; name: string; a: number[]; insight: string }[] = [
-  {
-    ctx: "fasting",
-    name: "Before breakfast",
-    a: [8.4, 7.9, 8.8, 7.2, 7.6, 6.9, 7.1],
-    insight: "3 of 7 mornings in target this week, up from 1.",
-  },
-  {
-    ctx: "lunch",
-    name: "Before lunch or supper",
-    a: [7.8, 8.1, 7.4, 6.8, 7.0, 6.6, 7.2],
-    insight: "Before-meal readings are settling into your target.",
-  },
-  {
-    ctx: "after",
-    name: "2 hours after a meal",
-    a: [11.6, 10.8, 12.4, 9.6, 10.2, 9.1, 9.4],
-    insight: "After-meal sugar is highest after lunch. Your dietitian may adjust lunch.",
-  },
-  {
-    ctx: "bedtime",
-    name: "Bedtime",
-    a: [8.9, 8.2, 9.4, 7.9, 8.1, 7.6, 7.8],
-    insight: "Bedtime readings came down 1.1 this week.",
-  },
-  {
-    ctx: "random",
-    name: "Any other time",
-    a: [9.2, 8.4, 3.8, 8.0, 7.7, 8.6, 7.9],
-    insight: "One low reading on Tuesday (3.8). Tell your team if you felt shaky.",
-  },
-];
+export const SUGAR_CHIPS: { ctx: SugarContext; name: string }[] = (
+  Object.keys(SUGAR_CONTEXT_WORDS) as SugarContext[]
+).map((ctx) => ({
+  ctx,
+  name: SUGAR_CONTEXT_WORDS[ctx][0].toUpperCase() + SUGAR_CONTEXT_WORDS[ctx].slice(1),
+}));
 
-/** Morning reading times for the list, oldest first. */
-export const READING_TIMES = ["07:40", "07:37", "07:34", "07:31", "07:28", "07:25", "07:22"];
+const matches = (r: SavedReading, metric: Metric, ctx: SugarContext) =>
+  r.input.kind === metric && (r.input.kind !== "sugar" || r.input.context === ctx);
+
+/** The readings of one metric (sugar: one time of day) within the days, newest first. */
+export function readingsIn(
+  readings: SavedReading[],
+  metric: Metric,
+  ctx: SugarContext,
+  days: Date[],
+): SavedReading[] {
+  const keys = new Set(days.map(dayKey));
+  return readings.filter((r) => matches(r, metric, ctx) && keys.has(dayKey(new Date(r.at))));
+}
+
+export interface WeekSeries {
+  /** One per day, oldest first; null where nothing was logged. Blood pressure's top numbers. */
+  a: (number | null)[];
+  /** Blood pressure's bottom numbers. */
+  b?: (number | null)[];
+  inputs: (ReadingInput | null)[];
+}
+
+/** Each day's latest reading of the metric. */
+export function weekSeries(
+  readings: SavedReading[],
+  metric: Metric,
+  ctx: SugarContext,
+  days: Date[],
+): WeekSeries {
+  const inputs = days.map((d) => {
+    const k = dayKey(d);
+    return (
+      readings.find((r) => matches(r, metric, ctx) && dayKey(new Date(r.at)) === k)?.input ?? null
+    );
+  });
+  const first = (i: ReadingInput | null) => (!i ? null : i.kind === "bp" ? i.top : i.value);
+  return {
+    a: inputs.map(first),
+    b: metric === "bp" ? inputs.map((i) => (i?.kind === "bp" ? i.bottom : null)) : undefined,
+    inputs,
+  };
+}
+
+/** The chart's range: the usual one, widened to fit the values and the target band. */
+export function chartRange(
+  m: MetricInfo,
+  values: (number | null)[],
+  band: { lo: number; hi: number } | null,
+): { lo: number; hi: number; grid: number[] } {
+  const xs = values.filter((v): v is number => v !== null);
+  if (band) xs.push(band.lo, band.hi);
+  let lo = m.lo;
+  let hi = m.hi;
+  if (m.key === "weight") {
+    lo = xs.length ? Math.floor(Math.min(...xs) - 1) : 50;
+    hi = xs.length ? Math.ceil(Math.max(...xs) + 1) : 100;
+  } else if (xs.length) {
+    lo = Math.min(lo, Math.floor(Math.min(...xs)));
+    hi = Math.max(hi, Math.ceil(Math.max(...xs)));
+  }
+  const step = (hi - lo) / 4;
+  const round = (v: number) => (hi - lo > 20 ? Math.round(v) : Math.round(v * 10) / 10);
+  return { lo, hi, grid: [round(lo + step), round(lo + 2 * step), round(lo + 3 * step)] };
+}
 
 /**
  * The target band drawn on the chart, from the thresholds file. Weight has
@@ -135,12 +147,6 @@ export function targetBand(metric: Metric, ctx: SugarContext): { lo: number; hi:
     case "weight":
       return null;
   }
-}
-
-export function seriesInput(m: MetricSeries, i: number, ctx: SugarContext): ReadingInput {
-  if (m.key === "bp") return { kind: "bp", top: m.a[i], bottom: m.b?.[i] ?? null };
-  if (m.key === "sugar") return { kind: "sugar", value: m.a[i], context: ctx };
-  return { kind: m.key, value: m.a[i] };
 }
 
 export type Judgement = { tone: "stable" | "caution" | "critical" | "pending"; word: string };
@@ -163,6 +169,47 @@ export function judge(input: ReadingInput): Judgement {
   return { tone: "stable", word: "In range" };
 }
 
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const fmt1 = (n: number) => String(Math.round(n * 10) / 10);
+
+/** The first and last logged values of a series, with the day of the first. */
+function ends(series: WeekSeries, days: Date[]) {
+  const idx = series.a.flatMap((v, i) => (v === null ? [] : [i]));
+  if (idx.length < 2) return null;
+  const i0 = idx[0];
+  const i1 = idx[idx.length - 1];
+  return {
+    from: series.a[i0] as number,
+    to: series.a[i1] as number,
+    day: DAY_NAMES[days[i0].getDay()],
+  };
+}
+
+/** "k of n" readings the thresholds call in range. */
+function inRange(inputs: (ReadingInput | null)[]): { k: number; n: number } {
+  const real = inputs.filter((i): i is ReadingInput => i !== null);
+  return { k: real.filter((i) => checkReading(i).level === "ok").length, n: real.length };
+}
+
+/** The one plain sentence under the chart, from the week's own readings. */
+export function insight(metric: Metric, series: WeekSeries, days: Date[]): string {
+  if (metric === "sugar" || metric === "pulse") {
+    const { k, n } = inRange(series.inputs);
+    if (!n) return "No readings at this time this week.";
+    const where = metric === "sugar" ? "in your target" : "in the usual range";
+    return `${k} of ${n} ${n === 1 ? "reading" : "readings"} ${where} this week.`;
+  }
+  const e = ends(series, days);
+  if (!e) return "Log on a few days to see your trend.";
+  const diff = e.to - e.from;
+  if (metric === "weight") {
+    if (Math.abs(diff) < 0.05) return `The same as on ${e.day}.`;
+    return `${diff < 0 ? "Down" : "Up"} ${fmt1(Math.abs(diff))} kg since ${e.day}.`;
+  }
+  if (diff === 0) return `Your top number is the same as on ${e.day}.`;
+  return `Your top number went ${diff < 0 ? "down" : "up"} ${Math.abs(diff)} since ${e.day}.`;
+}
+
 /* ─── The sugar diary ─────────────────────────────────────────────────── */
 
 export const DIARY_SLOTS: { head: string; ctx: SugarContext; words: string }[] = [
@@ -174,16 +221,43 @@ export const DIARY_SLOTS: { head: string; ctx: SugarContext; words: string }[] =
   { head: "Bed-time", ctx: "bedtime", words: "bedtime" },
 ];
 
-/** Seven days × six slots, oldest first; null is not measured. */
-export const DIARY: (number | null)[][] = [
-  [8.4, 11.2, null, 11.6, 7.8, 8.9],
-  [7.9, null, 8.1, 10.8, null, 8.2],
-  [8.8, 10.6, 3.8, 12.4, 7.4, 9.4],
-  [7.2, null, 6.8, 9.6, null, 7.9],
-  [7.6, 9.8, 7.0, 10.2, 7.1, 8.1],
-  [6.9, null, 6.6, 9.1, null, 7.6],
-  [7.1, 9.4, null, null, null, null],
-];
+/**
+ * The diary column a sugar reading belongs in. "After a meal" is one choice
+ * on the form, so the clock splits it: before noon is after breakfast, later
+ * is after lunch. "Another time" has no column.
+ */
+export function diaryColumn(context: SugarContext, at: Date): number | null {
+  switch (context) {
+    case "fasting":
+      return 0;
+    case "after":
+      return at.getHours() < 12 ? 1 : 3;
+    case "lunch":
+      return 2;
+    case "supper":
+      return 4;
+    case "bedtime":
+      return 5;
+    case "random":
+      return null;
+  }
+}
+
+/** Days × six slots, oldest day first; each cell the latest reading there, null if none. */
+export function sugarDiary(readings: SavedReading[], days: Date[]): (number | null)[][] {
+  const grid = days.map(() => DIARY_SLOTS.map((): number | null => null));
+  const row = new Map(days.map((d, i) => [dayKey(d), i]));
+  // Newest first, so the first value written into a cell is that cell's latest.
+  for (const r of readings) {
+    if (r.input.kind !== "sugar") continue;
+    const at = new Date(r.at);
+    const i = row.get(dayKey(at));
+    const j = diaryColumn(r.input.context, at);
+    if (i === undefined || j === null || grid[i][j] !== null) continue;
+    grid[i][j] = r.input.value;
+  }
+  return grid;
+}
 
 export type DiaryClass = "none" | "in" | "high" | "low" | "veryHigh";
 
@@ -212,48 +286,79 @@ export interface TrendTile {
   value: string;
   unit: string;
   dir: "down" | "up" | "flat";
-  /** Whether the direction is the good one; drives the arrow's tint, beside its words. */
-  good: boolean;
+  /** `good` and `watch` tint the arrow (beside its words); `neutral` has no judgement. */
+  tone: "good" | "watch" | "neutral";
   trend: string;
 }
 
-const last = (xs: number[]) => xs[xs.length - 1];
-
-export const TREND_TILES: TrendTile[] = [
-  {
-    metric: "bp",
-    name: "Blood pressure",
-    value: `${last(METRICS.bp.a)}/${last(METRICS.bp.b ?? [])}`,
-    unit: "mmHg",
-    dir: "down",
-    good: true,
-    trend: "Down 14 this week",
-  },
-  {
-    metric: "sugar",
-    name: "Sugar · before breakfast",
-    value: String(last(METRICS.sugar.a)),
-    unit: "mmol/L",
-    dir: "down",
-    good: true,
-    trend: "3 of 7 mornings in target",
-  },
-  {
-    metric: "weight",
-    name: "Weight",
-    value: last(METRICS.weight.a).toFixed(1),
-    unit: "kg",
-    dir: "down",
-    good: true,
-    trend: "0.9 kg down",
-  },
-  {
-    metric: "pulse",
-    name: "Pulse",
-    value: String(last(METRICS.pulse.a)),
-    unit: "bpm",
-    dir: "flat",
-    good: true,
-    trend: "Steady",
-  },
-];
+/** One tile per metric from the patient's readings; an empty tile says so. */
+export function trendTiles(readings: SavedReading[], days: Date[]): TrendTile[] {
+  const keys = new Set(days.map(dayKey));
+  const week = readings.filter((r) => keys.has(dayKey(new Date(r.at))));
+  return (["bp", "sugar", "weight", "pulse"] as const).map((metric) => {
+    const info = METRICS[metric];
+    const latest = readings.find((r) => r.input.kind === metric);
+    const name = metric === "sugar" ? "Blood sugar" : info.label;
+    const unit = metric === "pulse" ? "bpm" : info.unit;
+    if (!latest)
+      return {
+        metric,
+        name,
+        value: "–",
+        unit,
+        dir: "flat",
+        tone: "neutral",
+        trend: "No readings yet",
+      };
+    const value =
+      latest.input.kind === "bp"
+        ? `${latest.input.top}/${latest.input.bottom}`
+        : readingValueText(latest.input).split(" ")[0];
+    const mine = week.filter((r) => r.input.kind === metric);
+    if (metric === "sugar" || metric === "pulse") {
+      const { k, n } = inRange(mine.map((r) => r.input));
+      if (!n)
+        return { metric, name, value, unit, dir: "flat", tone: "neutral", trend: "None this week" };
+      return {
+        metric,
+        name,
+        value,
+        unit,
+        dir: "flat",
+        tone: k === n ? "good" : "watch",
+        trend: `${k} of ${n} in range this week`,
+      };
+    }
+    const vals = mine.map((r) =>
+      r.input.kind === "bp" ? r.input.top : "value" in r.input ? r.input.value : null,
+    );
+    const to = vals[0];
+    const from = vals[vals.length - 1];
+    if (mine.length < 2 || to === null || from === null || to === undefined || from === undefined)
+      return {
+        metric,
+        name,
+        value,
+        unit,
+        dir: "flat",
+        tone: "neutral",
+        trend: "Log more to see a trend",
+      };
+    const diff = to - from;
+    const dir = Math.abs(diff) < 0.05 ? "flat" : diff < 0 ? "down" : "up";
+    const amount = metric === "weight" ? `${fmt1(Math.abs(diff))} kg` : String(Math.abs(diff));
+    return {
+      metric,
+      name,
+      value,
+      unit,
+      dir,
+      // Weight has no target in v0, so its arrow is never judged.
+      tone: metric === "weight" || dir === "flat" ? "neutral" : dir === "down" ? "good" : "watch",
+      trend:
+        dir === "flat"
+          ? "Steady this week"
+          : `${dir === "down" ? "Down" : "Up"} ${amount} this week`,
+    };
+  });
+}

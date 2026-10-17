@@ -14,9 +14,9 @@ const Y1 = 146;
 
 /**
  * The week chart on Health trends (board TTrends): the target band, grid,
- * one or two lines and a point a day. A point outside the target turns amber
- * (red only for a danger reading); the legend under the chart says so in
- * words (law L4).
+ * one or two lines and a point for each day with a reading. A point outside
+ * the target turns amber (red only for a danger reading); the legend under
+ * the chart says so in words (law L4).
  */
 export function WeekChart({
   a,
@@ -29,25 +29,31 @@ export function WeekChart({
   judged,
   label,
 }: {
-  a: number[];
-  b?: number[];
+  a: (number | null)[];
+  b?: (number | null)[];
   lo: number;
   hi: number;
   grid: number[];
   band: { lo: number; hi: number } | null;
   days: string[];
-  judged: Judgement[];
+  judged: (Judgement | null)[];
   label: string;
 }) {
   const t = useTide();
   const y = (v: number) => Y0 + (1 - (v - lo) / (hi - lo)) * (Y1 - Y0);
   const x = (i: number) => X0 + (i * (X1 - X0)) / (a.length - 1);
-  const path = (vs: number[]) => vs.map((v, i) => `${i ? "L" : "M"}${x(i)} ${y(v)}`).join(" ");
-  const flag = (j: Judgement) =>
-    j.tone === "critical" ? t.critical.text : j.tone === "caution" ? t.caution.text : null;
+  // A day with no reading is a gap: the line joins the days that have one.
+  const path = (vs: (number | null)[]) =>
+    vs
+      .flatMap((v, i) => (v === null ? [] : [[x(i), y(v)]]))
+      .map(([px, py], k) => `${k ? "L" : "M"}${px} ${py}`)
+      .join(" ");
+  const flag = (j: Judgement | null) =>
+    j?.tone === "critical" ? t.critical.text : j?.tone === "caution" ? t.caution.text : null;
   const bandTop = band ? y(Math.min(band.hi, hi)) : 0;
   const bandBottom = band ? y(Math.max(band.lo, lo)) : 0;
   const lastI = a.length - 1;
+  const lastLogged = a.reduce<number>((n, v, i) => (v === null ? n : i), -1);
   return (
     <View accessible accessibilityRole="image" accessibilityLabel={label}>
       <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`}>
@@ -107,28 +113,32 @@ export function WeekChart({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {a.map((v, i) => (
-          <Circle
-            key={`a${i}`}
-            cx={x(i)}
-            cy={y(v)}
-            r={i === lastI ? 6 : 4.5}
-            fill={flag(judged[i]) ?? (i === lastI ? t.accent : t.ink)}
-            stroke={t.surface}
-            strokeWidth={2}
-          />
-        ))}
-        {b?.map((v, i) => (
-          <Circle
-            key={`b${i}`}
-            cx={x(i)}
-            cy={y(v)}
-            r={3.5}
-            fill={flag(judged[i]) ?? t.cascade[2]}
-            stroke={t.surface}
-            strokeWidth={2}
-          />
-        ))}
+        {a.map((v, i) =>
+          v === null ? null : (
+            <Circle
+              key={`a${i}`}
+              cx={x(i)}
+              cy={y(v)}
+              r={i === lastLogged ? 6 : 4.5}
+              fill={flag(judged[i]) ?? (i === lastLogged ? t.accent : t.ink)}
+              stroke={t.surface}
+              strokeWidth={2}
+            />
+          ),
+        )}
+        {b?.map((v, i) =>
+          v === null ? null : (
+            <Circle
+              key={`b${i}`}
+              cx={x(i)}
+              cy={y(v)}
+              r={3.5}
+              fill={flag(judged[i]) ?? t.cascade[2]}
+              stroke={t.surface}
+              strokeWidth={2}
+            />
+          ),
+        )}
         {days.map((d, i) => (
           <SvgText
             key={`d${i}`}

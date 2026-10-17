@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { Screen, Segments } from "@/components/tide";
-import { ACTIVITY_NOTE, activityRepo } from "@/data/activity";
+import { ACTIVITY_NOTE } from "@/data/activity";
 import { EatPanel, MovePanel } from "@/features/care-more/activity-parts";
 import { useToast } from "@/features/care-more/use-toast";
 import { useNow } from "@/lib/use-now";
@@ -15,9 +15,10 @@ const TABS = [
 ] as const;
 
 /**
- * Move and eat (F-18, board TActivity). Demo data (law L2). The amber safety
- * card carries its words and the one red "Get help" (laws L3, L4); water and
- * a started walk stay in the store on the phone.
+ * Move and eat (F-18, board TActivity). Minutes walked and glasses of water
+ * are the patient's own log (ADR 0342); the plate guide is education. The
+ * amber safety card carries its words and the one red "Get help" (laws L3,
+ * L4). Steps, food and meal photos have no source yet, so they are not shown.
  */
 export default function ActivityScreen() {
   const t = useTide();
@@ -29,12 +30,15 @@ export default function ActivityScreen() {
       <Screen
         back={{ label: "Care" }}
         title="Move and eat"
-        demo={activityRepo.demo}
         gap={tSpace[3.5]}
         helpSource="care/activity"
       >
         <Segments options={TABS} value={tab} onChange={setTab} />
-        {tab === "move" ? <MovePanel key="move" now={now} /> : <EatPanel key="eat" onStub={show} />}
+        {tab === "move" ? (
+          <MovePanel key="move" now={now} onToast={show} />
+        ) : (
+          <EatPanel key="eat" now={now} onToast={show} />
+        )}
         <Text
           style={[
             tType.caption,

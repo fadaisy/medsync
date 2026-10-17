@@ -6,8 +6,8 @@ import { ThemeProvider } from "@/theme/theme";
 const base = {
   kind: "queue" as const,
   hospitalName: "[Hospital name]",
-  number: 3,
-  ahead: 2,
+  stage: "In the line",
+  aheadLine: "2 ahead of you",
   details: [{ label: "Time", value: "Not promised" }],
   code: "KWP-4827",
 };
@@ -18,6 +18,25 @@ const show = async (fee: number | null, paid: boolean) =>
       <Ticket {...base} fee={fee} paid={paid} demoPayment={paid} onPayNow={() => {}} />
     </ThemeProvider>,
   );
+
+describe("ticket place in line", () => {
+  it("shows the stage and the ahead line, never a place number", async () => {
+    await show(null, false);
+    expect(screen.getByText("In the line")).toBeTruthy();
+    expect(screen.getByText("2 ahead of you")).toBeTruthy();
+    expect(screen.queryByText(/#\d/)).toBeNull();
+  });
+
+  it("hides the count when there is none", async () => {
+    await render(
+      <ThemeProvider>
+        <Ticket {...base} aheadLine={null} fee={null} paid={false} />
+      </ThemeProvider>,
+    );
+    expect(screen.getByText("In the line")).toBeTruthy();
+    expect(screen.queryByText(/ahead of you/)).toBeNull();
+  });
+});
 
 describe("ticket payment looks", () => {
   it("no fee: the quiet strip, no stamp, no Pay now", async () => {

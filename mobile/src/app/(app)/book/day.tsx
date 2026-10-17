@@ -16,6 +16,7 @@ import {
   Ticket,
 } from "@/components/tide";
 import { loadDays, payments, requestDay, useTickets } from "@/data/visits";
+import { HospitalPicker } from "@/features/visits/hospital-picker";
 import {
   clockOf,
   dayKeyOf,
@@ -35,14 +36,15 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 /**
  * Ask for a day (board TBookDay, prompt §8.3, PRD F-11 and F-12).
  *
- * REAL where the patient has a hospital: the published clinic days that take
- * this kind of visit (`fetchSessions`, `fetchServiceLines`) and the request
- * itself (`pt-request-appointment`, one idempotency key per attempt). The
- * fee is the clinic's own price list; public services say "No fee".
+ * All real: the published clinic days that take this kind of visit
+ * (`fetchSessions`, `fetchServiceLines`) or, from a doctor's card on Home,
+ * that clinician's own open slots (`pt-bookable-clinicians`), and the request
+ * itself (`pt-request-appointment`, one idempotency key per attempt). The fee
+ * is the clinic's own price list; where none is priced it says "No fee".
  *
  * Morning or afternoon is shown as when doors open, never as your hour (law
- * L8). Payment is simulated (`payments`). With no hospital chosen the days
- * are a fixture, under the ribbon.
+ * L8). Payment is simulated (`payments`). With no hospital chosen the patient
+ * chooses one first; nothing is shown in its place.
  */
 const REASONS = new Set<string>(APPOINTMENT_REASONS.map((r) => r.value));
 
@@ -54,7 +56,9 @@ export default function BookDayScreen() {
     reason?: string;
     member?: string;
     memberName?: string;
+    /** Home's "Ask for a day": the clinician's user id and their department. */
     doctor?: string;
+    department?: string;
   }>();
   const reason = (
     params.reason && REASONS.has(params.reason) ? params.reason : "follow_up"
@@ -79,9 +83,10 @@ export default function BookDayScreen() {
   const all = useTickets();
   const ticket = ticketId ? (all.find((x) => x.id === ticketId) ?? null) : null;
 
+  const { doctor, department } = params;
   useEffect(() => {
     let live = true;
-    loadDays(reason, new Date()).then(
+    loadDays(reason, doctor ? { userId: doctor, departmentId: department } : null).then(
       (d) => {
         if (live) setDays(d);
       },
@@ -92,9 +97,9 @@ export default function BookDayScreen() {
     return () => {
       live = false;
     };
-  }, [reason, attempt]);
+  }, [reason, doctor, department, attempt]);
 
-  if (ticket) return <Sent ticket={ticket} onChange={() => setTicketId(null)} />;
+  if (ticket) return <Sent ticket={ticket} />;
 
   if (!days) {
     return (
@@ -120,6 +125,20 @@ export default function BookDayScreen() {
     );
   }
 
+  const hospitalId = days.hospitalId;
+  if (!hospitalId) {
+    return (
+      <Screen back={{ label: "Book a visit" }} title="Ask for a day" helpSource="book-day">
+        <HospitalPicker
+          onChosen={() => {
+            setDays(null);
+            setAttempt((n) => n + 1);
+          }}
+        />
+      </Screen>
+    );
+  }
+
   const takeable = (d: DayOption) => d.sessions.some((s) => s.placesLeft > 0);
   const day = days.days.find((d) => d.key === picked) ?? days.days.find(takeable) ?? null;
   const inPart = (p: "Morning" | "Afternoon") => (day?.sessions ?? []).filter((s) => s.part === p);
@@ -136,14 +155,15 @@ export default function BookDayScreen() {
   // "Any doctor" takes the cheapest open place; a named doctor is their own session.
   const anySession = [...open].sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0))[0] ?? null;
   const named = open.filter((s) => s.clinicianName !== "Clinic team");
-  // Home's "Ask for a day" on a doctor card preselects the named doctor (demo days only).
-  const demoNamed = !days.real && params.doctor ? (named[0]?.id ?? null) : null;
-  const whoSel = whoId === "any" ? null : (whoId ?? demoNamed);
+  const whoSel = whoId === "any" ? null : whoId;
   const session: SessionOption | null = (whoSel && open.find((s) => s.id === whoSel)) || anySession;
-  const whoOptions = [
-    { key: "any", name: "Any doctor", fee: anySession?.fee ?? null },
-    ...named.map((s) => ({ key: s.id, name: s.clinicianName, fee: s.fee })),
-  ];
+  // From a doctor's card the clinician is already chosen: no "who" question.
+  const whoOptions = days.doctorName
+    ? []
+    : [
+        { key: "any", name: "Any doctor", fee: anySession?.fee ?? null },
+        ...named.map((s) => ({ key: s.id, name: s.clinicianName, fee: s.fee })),
+      ];
   const fee = session?.fee ?? null;
   const clinicName = days.days[0]?.sessions[0]?.clinicName ?? "The clinic";
   const weekdays = [...new Set(days.days.map((d) => weekdayOf(d.key)))];
@@ -161,7 +181,7 @@ export default function BookDayScreen() {
     setBusy(true);
     setError(null);
     const res = await requestDay({
-      days,
+      days: { ...days, hospitalId },
       day,
       session,
       reason,
@@ -184,15 +204,18 @@ export default function BookDayScreen() {
   return (
     <Screen
       back={{ label: "Book a visit" }}
-      overline={`${clinicName} · open ${weekdays.join(" and ")}`}
+      overline={
+        days.days.length ? `${clinicName} · open ${weekdays.join(" and ")}` : days.hospitalName
+      }
       overlineColor={t.area.visits}
-      title="Ask for a day"
+      title={days.doctorName ? `Ask ${days.doctorName} for a day` : "Ask for a day"}
       helpSource="book-day"
-      demo={!days.real}
     >
       {days.days.length === 0 ? (
         <Note tone="plain">
-          No clinic day for this kind of visit is open on MedSync in the next two weeks.
+          {days.doctorName
+            ? `${days.doctorName} has no open day on MedSync in the next two weeks.`
+            : "No clinic day for this kind of visit is open on MedSync in the next two weeks."}
         </Note>
       ) : (
         // The rail runs off the right edge: no right padding.
@@ -277,7 +300,9 @@ export default function BookDayScreen() {
                   disabled={!ok}
                   accessibilityState={{ selected: on, disabled: !ok }}
                   accessibilityLabel={
-                    ok ? `${p}, doors open ${ss[0]?.doors}, ${places} places left` : `${p}, full`
+                    ok
+                      ? `${p}, ${ss[0]?.doors ? `doors open ${ss[0].doors}, ` : ""}${places} places left`
+                      : `${p}, full`
                   }
                   style={{
                     flex: 1,
@@ -295,7 +320,7 @@ export default function BookDayScreen() {
                     {ss.length === 0
                       ? "No clinic"
                       : ok
-                        ? `Doors ${ss[0]?.doors} · ${places} places left`
+                        ? `${ss[0]?.doors ? `Doors ${ss[0].doors} · ` : ""}${places} places left`
                         : "Full"}
                   </Text>
                 </Press>
@@ -311,7 +336,13 @@ export default function BookDayScreen() {
 
       {session ? (
         <View style={{ gap: tSpace[2] }}>
-          <StepTitle>Who do you want to see?</StepTitle>
+          {days.doctorName ? (
+            <Text style={[tType.bodyM, { color: t.ink2 }]}>
+              {`${days.doctorName} · ${session.feeLabel ?? feeText(session.fee)}`}
+            </Text>
+          ) : (
+            <StepTitle>Who do you want to see?</StepTitle>
+          )}
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
             {whoOptions.map((o) => {
               const on = o.key === "any" ? whoSel === null : whoSel === o.key;
@@ -405,7 +436,7 @@ export default function BookDayScreen() {
 }
 
 /** The day ticket and what happens next. */
-function Sent({ ticket: tk, onChange }: { ticket: TicketData; onChange: () => void }) {
+function Sent({ ticket: tk }: { ticket: TicketData }) {
   const t = useTide();
   const router = useRouter();
   const [paying, setPaying] = useState(false);
@@ -424,14 +455,13 @@ function Sent({ ticket: tk, onChange }: { ticket: TicketData; onChange: () => vo
       overlineColor={t.area.visits}
       title={tk.awaiting ? "Waiting for the clinic" : "Your day is confirmed"}
       helpSource="ticket"
-      demo={tk.demo}
     >
       <Ticket
         kind="day"
         hospitalName={tk.hospitalName}
         day={dayNumberOf(key)}
         dayLine={`${weekdayOf(key)} · ${monthShortOf(key)}`.toUpperCase()}
-        sessionLine={`${tk.part ?? ""} · doors ${tk.doors ?? ""}`}
+        sessionLine={tk.doors ? `${tk.part ?? ""} · doors ${tk.doors}` : (tk.part ?? "")}
         status={tk.awaiting ? "Waiting for the clinic to confirm" : "Confirmed"}
         details={[
           { label: "Clinic", value: tk.clinic },
@@ -494,9 +524,7 @@ function Sent({ ticket: tk, onChange }: { ticket: TicketData; onChange: () => vo
           label="Change day"
           variant="outline"
           style={{ flex: 1 }}
-          onPress={() =>
-            tk.demo ? onChange() : router.push({ pathname: "/visits/[id]", params: { id: tk.id } })
-          }
+          onPress={() => router.push({ pathname: "/visits/[id]", params: { id: tk.id } })}
         />
         <Button
           label="See my week"

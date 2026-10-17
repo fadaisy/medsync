@@ -1,11 +1,10 @@
 import { hhmm } from "@/data/medicines";
 import { createStore, useStore } from "@/data/store";
-import { flag } from "@/lib/flags";
 import { enqueue } from "@/offline/outbox";
 
 /**
- * The care-team chat. Demo data until Gate CG (law L2): the thread is the
- * board's (TChat). There is no messaging engine yet, so a sent message goes
+ * The care-team chat. Demo data: the thread is the board's (TChat), shown only
+ * when `mobileChat` is on (ADR 0342 §4). There is no messaging engine yet, so a sent message goes
  * into this store as "Waiting to send" and into the outbox on the phone, and
  * nowhere else.
  */
@@ -51,7 +50,7 @@ const THREAD: ChatMessage[] = [
     time: "16:20",
     body: {
       kind: "labs",
-      text: "Sugar is improving. Cholesterol is a bit high. We will talk on Friday.",
+      text: "We ordered your tests. We will talk about them on Friday.",
       replies: ["What should I change?", "Okay, Friday"],
     },
   },
@@ -115,7 +114,8 @@ export const QUICK_REPLIES = ["I am okay", "I have a question", "Share my readin
 const store = createStore<ChatMessage[]>(THREAD);
 
 export const chatRepo = {
-  demo: !flag("mobileClinicalData"),
+  /** Always: there is no messaging engine; the thread only shows when `mobileChat` is on. */
+  demo: true,
   list: (): ChatMessage[] => store.get(),
 
   /** Adds the message as "Waiting to send" and queues it on the phone. Returns the outbox write. */

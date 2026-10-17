@@ -10,14 +10,15 @@ import { Image, Linking, Switch, Text, View } from "react-native";
 
 import { Avatar, Button, HealthCard, Icon, Press, Screen, TextLink } from "@/components/tide";
 import {
+  ageWords,
   cardNumber,
   initials,
-  meDemo,
   metaName,
   sexLetter,
   useCardIdentity,
   useMePrefs,
 } from "@/data/me";
+import { useMedicines } from "@/data/medicines";
 import {
   AVATAR_PICKER_OPTIONS,
   fetchHousehold,
@@ -28,6 +29,7 @@ import { SMS_CONSENT_COPY } from "@/lib/consent-copy";
 import { fetchSmsConsent, setSmsConsent } from "@/lib/notifications";
 import { registerPushToken } from "@/lib/push";
 import { useSession } from "@/lib/session";
+import { useNow } from "@/lib/use-now";
 import { useTheme, useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -35,13 +37,15 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * Me (board TMe/DMe, §8.6, F-20): the health card, my health, the people I
  * book for, privacy, and the phone's settings.
  *
- * Real: name (auth metadata), patient code, home facility and sex (profile,
- * cached for the offline card), the household, photo, SMS consent, push
- * permission, theme and sign out (everything the old Settings tab did).
- * Demo until Gate CG (law L2): conditions, allergies, medicines, primary
- * doctor, emergency contact, record openings, payments, the share switch.
- * Language and text size are stored on this phone only.
+ * All real: name (auth metadata), patient code, home facility, sex, age and
+ * the conditions the patient wrote on their profile (cached for the offline
+ * card), their medicines list, the household, photo, SMS consent, push
+ * permission, theme and sign out. Allergies are not the patient's to read on
+ * the phone yet, so the row says to tell the nurse. No primary doctor,
+ * emergency contact, record openings or payment method is shown: the phone
+ * holds none of them truthfully. Language and text size stay on this phone.
  */
+const ALLERGY_WORDS = "Tell your nurse about any allergy";
 export default function MeTab() {
   const t = useTide();
   const router = useRouter();
@@ -50,6 +54,8 @@ export default function MeTab() {
   const [prefs, setPrefs] = useMePrefs();
   const name = metaName(session?.user.user_metadata);
   const id = useCardIdentity(session?.user.id ?? null, name);
+  const now = useNow();
+  const meds = useMedicines(now);
   // A+ applies to this screen's rows (board: zoom 1.12).
   const z = (n: number) => Math.round(n * (prefs.big ? 1.12 : 1));
 
@@ -128,19 +134,19 @@ export default function MeTab() {
   };
 
   const sex = sexLetter(id.sex);
+  const conditions = id.conditions.length ? id.conditions.join(" · ") : null;
+  const medCount = meds.medicines.length;
 
   return (
-    <Screen title="Me" underNav demo={meDemo.demo} helpSource="me" gap={tSpace[2.5]}>
+    <Screen title="Me" underNav helpSource="me" gap={tSpace[2.5]}>
       <HealthCard
         data={{
           holder: id.name ?? "Name not recorded",
           number: cardNumber(id.code),
-          facility: id.facility ?? "No home facility yet",
-          doctor: meDemo.primaryDoctor,
-          conditions: prefs.showConditionsOnCard ? meDemo.conditionsShort : null,
-          allergies: meDemo.allergies,
-          bloodGroup: meDemo.bloodGroup,
-          contact: meDemo.contact,
+          facility: id.facility,
+          age: ageWords(id.dob, now),
+          conditions: prefs.showConditionsOnCard ? (conditions ?? "None added") : null,
+          allergies: "Tell your nurse",
         }}
       />
       <View
@@ -169,21 +175,19 @@ export default function MeTab() {
           icon="heart"
           color={t.area.readings}
           title="My conditions"
-          sub={meDemo.conditions.join(" · ")}
+          sub={conditions ?? "None added to your profile"}
         />
-        <Row
-          z={z}
-          icon="alert"
-          color={t.ink2}
-          title="Allergies"
-          sub={`${meDemo.allergies} · tell your nurse if this is wrong`}
-        />
+        <Row z={z} icon="alert" color={t.ink2} title="Allergies" sub={ALLERGY_WORDS} />
         <Row
           z={z}
           icon="pill"
           color={t.area.medicines}
           title="My medicines"
-          sub={meDemo.medicinesLine}
+          sub={
+            medCount === 0
+              ? "None on your list yet"
+              : `${medCount} ${medCount === 1 ? "medicine" : "medicines"} on your list`
+          }
           onPress={() => router.push("/care/medicines")}
         />
         <Row
@@ -191,8 +195,8 @@ export default function MeTab() {
           icon="file"
           color={t.area.team}
           title="Visits and documents"
-          sub="Lab results, letters, receipts"
-          onPress={() => router.push("/care/labs")}
+          sub="What your clinician shared after a visit"
+          onPress={() => router.push("/records")}
         />
       </Group>
 
@@ -261,20 +265,6 @@ export default function MeTab() {
         <Row
           z={z}
           first
-          icon="shield"
-          color={t.accentText}
-          title="Share my readings with my care team"
-          sub="They see them between visits"
-          right={
-            <Toggle
-              label="Share my readings"
-              on={prefs.shareReadings}
-              onChange={(v) => setPrefs({ shareReadings: v })}
-            />
-          }
-        />
-        <Row
-          z={z}
           icon="card"
           color={t.ink2}
           title="Show conditions on my card"
@@ -294,11 +284,10 @@ export default function MeTab() {
         <Row
           z={z}
           icon="eye"
-          color={t.area.team}
-          title="Who has opened my records"
-          sub={meDemo.lastOpened}
+          color={t.accentText}
+          title="Readings and doses you log"
+          sub="Only you can see them. Bring them to your visit."
         />
-        <Row z={z} icon="user" color={t.ink} title="Emergency contact" sub={meDemo.contactLong} />
       </Group>
 
       <Label text="App" z={z} />
@@ -426,7 +415,6 @@ export default function MeTab() {
             />
           }
         />
-        <Row z={z} icon="wallet" color={t.ink2} title="Payments" sub={meDemo.payments} />
       </Group>
 
       <Button

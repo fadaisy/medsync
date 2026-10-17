@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/tide";
+import type { StartValues } from "@/data/readings";
 import type { ReadingInput, ReadingKind, ReadingLevel, SugarContext } from "@/lib/readings";
 import type { Tide } from "@/theme/tide";
 import { useState } from "react";
@@ -7,7 +8,7 @@ import { Text, TextInput, View } from "react-native";
 
 import { Button, Chip, ChipRow, Icon, Pill, Press, Screen, SegmentTiles } from "@/components/tide";
 import { hhmm } from "@/data/medicines";
-import { LAST_TIME, readingsRepo, START_VALUES } from "@/data/readings";
+import { lastTimeLine, readingsRepo, startValues, useReadings } from "@/data/readings";
 import { saveButton } from "@/features/care/logic";
 import {
   checkReading,
@@ -18,6 +19,7 @@ import {
   UNITS,
 } from "@/lib/readings";
 import { useNow } from "@/lib/use-now";
+import { savedLine } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -58,24 +60,22 @@ const bandColours = (t: Tide, level: ReadingLevel) =>
   })[level];
 
 /**
- * Log a reading, full page (board TReading, prompt §8.5, PRD F-15). Demo
- * data until Gate CG (law L2): the reading is saved on the phone only. The
- * live check comes from `checkReading` over the pending-CSO thresholds (L7).
+ * Log a reading, full page (board TReading, prompt §8.5, PRD F-15), into the
+ * patient's own log (ADR 0342). The numbers start from their last reading,
+ * or empty. The live check comes from `checkReading` over the pending-CSO
+ * thresholds (L7). Only the patient sees the reading, so a dangerous one or
+ * chest pain goes straight to Help: no one else is alerted.
  */
 export default function ReadingScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
   const [kind, setKind] = useState<ReadingKind>("bp");
-  const [values, setValues] = useState<{
-    top: string;
-    bottom: string;
-    sugar: string;
-    weight: string;
-    pulse: string;
-  }>({
-    ...START_VALUES,
-  });
+  const { readings } = useReadings();
+  // What the patient changed; anything untouched shows their last reading.
+  const [edited, setEdited] = useState<Partial<StartValues>>({});
+  const values: StartValues = { ...startValues(readings), ...edited };
+  const [problem, setProblem] = useState<string | null>(null);
   const [ctx, setCtx] = useState<SugarContext>("fasting");
   const [feel, setFeel] = useState<string[]>([]);
   const [taps, setTaps] = useState(0);
@@ -94,7 +94,7 @@ export default function ReadingScreen() {
   const save = saveButton(check.level, chestPain);
   const band = bandColours(t, check.level);
 
-  const set = (key: keyof typeof values, v: string) => setValues((s) => ({ ...s, [key]: v }));
+  const set = (key: keyof StartValues, v: string) => setEdited((s) => ({ ...s, [key]: v }));
   const pickFeel = (key: string) => {
     tap();
     setFeel((f) => {
@@ -119,9 +119,15 @@ export default function ReadingScreen() {
       });
   };
 
-  const onSave = () => {
-    if (check.level !== "empty") readingsRepo.save(input, { entry: "page", taps: taps + 1, feel });
-    if (save.help) goForHelp();
+  const onSave = async () => {
+    // Help never waits for the network.
+    const saving =
+      check.level !== "empty"
+        ? readingsRepo.save(input, { entry: "page", taps: taps + 1, feel })
+        : null;
+    if (save.help) return goForHelp();
+    const result = saving ? await saving : "failed";
+    if (result === "failed") setProblem(savedLine(result));
     else router.back();
   };
 
@@ -138,13 +144,12 @@ export default function ReadingScreen() {
   return (
     <Screen
       back={{ label: "Care" }}
-      demo
       footer={
         <Button
           label={save.label}
           variant={save.help ? "danger" : "primary"}
           disabled={save.disabled}
-          onPress={onSave}
+          onPress={() => void onSave()}
           style={{ minHeight: 56 }}
         />
       }
@@ -279,7 +284,7 @@ export default function ReadingScreen() {
           ) : null}
         </View>
         <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3 }]}>
-          Last time: {LAST_TIME[kind]}
+          Last time: {lastTimeLine(readings, kind, now)}
         </Text>
       </View>
 
@@ -360,8 +365,16 @@ export default function ReadingScreen() {
         ) : null}
       </View>
 
+      {problem ? (
+        <Text
+          accessibilityRole="alert"
+          style={[tType.labelS, { color: t.ink, textAlign: "center" }]}
+        >
+          {problem}
+        </Text>
+      ) : null}
       <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3, textAlign: "center" }]}>
-        {THRESHOLDS_NOTE}
+        Only you can see this reading; your care team is not alerted. {THRESHOLDS_NOTE}
       </Text>
     </Screen>
   );

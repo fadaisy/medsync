@@ -1,44 +1,40 @@
-import { Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Text } from "react-native";
 
 import { Screen } from "@/components/tide";
-import { LABS_NOTE, labsRepo, PANELS, useLabsSummary } from "@/data/labs";
-import { HbA1cPanel, PanelCard, SummaryTiles } from "@/features/care-more/lab-parts";
+import { useLabsSummary } from "@/data/labs";
+import { LabVisitCard, RecordsStatusBlock } from "@/features/care-more/lab-parts";
 import { useTide } from "@/theme/theme";
 import { tSpace, tType } from "@/theme/tide";
 
 /**
- * Lab results (F-17, board TLabs). Demo data (law L2). One line per result:
- * name with its target, a range bar, the value and a word (law L4). No "ask
- * the team" button here: the chat carries the lab card.
+ * Lab tests (F-17, ADR 0342 §2). Real: the tests ordered on each shared visit,
+ * newest first. No result values exist for patients anywhere in MedSync yet,
+ * so the screen shows none and says when they come, in the summary's words.
  */
 export default function LabsScreen() {
   const t = useTide();
+  const router = useRouter();
   const s = useLabsSummary();
   return (
-    <Screen
-      back={{ label: "Care" }}
-      title="Lab results"
-      demo={labsRepo.demo}
-      gap={tSpace[3.5]}
-      helpSource="care/labs"
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginTop: -tSpace[2] }}>
-        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.area.medicines }} />
-        <Text style={[tType.bodyS, { color: t.ink2 }]}>Released {s.releasedOn}</Text>
-      </View>
-      <SummaryTiles needReview={s.needReview} healthy={s.healthy} visit={s.visit} />
-      <HbA1cPanel />
-      {PANELS.map((p) => (
-        <PanelCard key={p.id} panel={p} />
-      ))}
-      <Text
-        style={[
-          tType.caption,
-          { fontFamily: tType.bodyS.fontFamily, color: t.ink3, textAlign: "center" },
-        ]}
-      >
-        {LABS_NOTE}
+    <Screen back={{ label: "Care" }} title="Lab tests" gap={tSpace[3.5]} helpSource="care/labs">
+      <Text style={[tType.bodyS, { color: t.ink2, marginTop: -tSpace[2] }]}>
+        Tests your clinician ordered at your visits
       </Text>
+      <RecordsStatusBlock
+        status={s.status}
+        message={s.message}
+        count={s.visits.length}
+        empty="No tests yet. When a clinician orders a test at a visit and shares the visit with you, it shows here."
+        onRetry={s.reload}
+      />
+      {s.visits.map((v) => (
+        <LabVisitCard
+          key={v.recordId}
+          visit={v}
+          onOpen={() => router.push({ pathname: "/records/[id]", params: { id: v.recordId } })}
+        />
+      ))}
     </Screen>
   );
 }

@@ -6,10 +6,11 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } fro
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Chip, DemoRibbon, HelpButton, Icon, Press } from "@/components/tide";
+import { Button, Chip, DemoRibbon, HelpButton, Icon, Press, Screen } from "@/components/tide";
 import { chatRepo, QUICK_REPLIES, ROLES, useChat } from "@/data/chat";
 import { DayMark, Message } from "@/features/care-more/chat-parts";
 import { useToast } from "@/features/care-more/use-toast";
+import { flag } from "@/lib/flags";
 import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -17,13 +18,38 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 const NOT_YET = "Not available yet";
 
 /**
- * Care team chat (F-19, board TChat). Demo data (law L2). There is no
+ * Care team chat (F-19). Hidden behind `mobileChat` (off) until there is a
+ * clinician inbox to answer it (ADR 0342 §4): until then the screen says so
+ * plainly and offers a visit and Help instead.
+ */
+export default function ChatScreen() {
+  return flag("mobileChat") ? <ChatThread /> : <ChatNotYet />;
+}
+
+function ChatNotYet() {
+  const t = useTide();
+  const router = useRouter();
+  return (
+    <Screen back={{ label: "Care" }} title="Messages" helpSource="care/chat">
+      <Text style={[tType.bodyM, { color: t.ink }]}>
+        Messaging your care team is not available yet.
+      </Text>
+      <Text style={[tType.bodyS, { color: t.ink2 }]}>
+        To talk to a clinician, book a visit. If you feel very unwell, press the red Help button.
+      </Text>
+      <Button label="Book a visit" icon="calendar" onPress={() => router.push("/book")} />
+    </Screen>
+  );
+}
+
+/**
+ * The thread (board TChat), for when `mobileChat` is on. Demo data. There is no
  * messaging engine: a sent message joins the thread as "Waiting to send" and
  * waits in the outbox on the phone. Voice, video, attach and voice notes are
  * stubs. The screen keeps its own frame (header, thread, docked composer) and
  * still carries the red Help (law L6).
  */
-export default function ChatScreen() {
+function ChatThread() {
   const t = useTide();
   const router = useRouter();
   const insets = useSafeAreaInsets();

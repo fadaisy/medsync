@@ -67,6 +67,12 @@ Branch `feat/mobile-tide-v1`, worktree `~/Desktop/medsync-tide`, cut from `origi
 | L-7 | The waitlist offer card (Gate E) rebuilt in Tide on This week (`features/visits/waitlist-card.tsx`) | lead |
 | L-8 | `/dev/screen?name=…` (development builds only) renders a signed-in screen outside the gate, for web screenshots | lead |
 
+| R2-1 | Round 2 (owner, 17 Oct): real data from the existing tables (ADR 0342), chat hidden behind `mobileChat`, Expo Go on the local network, password-only sign-in. Every feature that is off stays behind a switch in `EXPO_PUBLIC_MOBILE_FLAGS` | owner |
+| R2-2 | Migration 0170 (not applied): log kinds pulse, mood, water and activity; the home pin and its consent; `patient_intake_ahead()` | lead |
+| R2-3 | Queue numbers per ADR 0084 §6: "N ahead of you" on the ticket only, once present; all other counts and ordinals removed | lead |
+| R2-4 | Lab values do not exist for patients anywhere, so Labs lists the tests from shared visit summaries with their own "results after review" sentence | lead |
+| R2-5 | Removed rather than faked: health-card QR and ticket barcode (nothing could scan them), primary doctor, emergency contact, ratings, supply bars | lead |
+
 ## Risks carried
 
 - No Xcode or Android device on this machine, so nothing has run on a phone. All visual checks were done on Expo web at 390×844.

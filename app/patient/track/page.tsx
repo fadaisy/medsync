@@ -17,6 +17,7 @@ import {
   READING_KIND_LABEL,
   SCHEDULE_PATTERN_LABEL,
 } from "@/lib/patient/self-tracking";
+import { formatReadingNote } from "@/lib/patient/self-tracking-constants";
 import { cn } from "@/lib/utils";
 import { startOfDay } from "../_components/day-strip";
 import { DoseStatus } from "../_components/dose-status";
@@ -273,8 +274,9 @@ function ReadingCard({ reading, now }: { reading: ReadingRow; now: Date }) {
   // A note or a symptom has no number. Render the prose where the value
   // would go rather than leaving an empty mono slot — and then don't
   // repeat it underneath.
-  const valueText = value ?? (reading.note ? truncate(reading.note, 80) : null);
-  const noteBelow = value && reading.note ? reading.note : null;
+  const note = formatReadingNote(reading.note);
+  const valueText = value ?? (note ? truncate(note, 80) : null);
+  const noteBelow = value && note ? note : null;
 
   return (
     <li className="bg-card dark:shadow-card flex items-start gap-2 rounded-xl p-4 shadow-xs">

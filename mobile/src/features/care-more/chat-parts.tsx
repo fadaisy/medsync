@@ -6,7 +6,6 @@ import Svg, { Rect } from "react-native-svg";
 
 import { Button, Icon, Press, StatusPill } from "@/components/tide";
 import { ROLE_WORDS } from "@/data/chat";
-import { EGFR, HBA1C, labStatus, LDL } from "@/data/labs";
 import { checkReading, THRESHOLDS_NOTE } from "@/lib/readings";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
@@ -64,24 +63,15 @@ export function DayMark({ label }: { label: string }) {
   );
 }
 
+/** The "Lab results ready" card: the message and the way to the tests. No values exist for patients. */
 function LabsCard({ text }: { text: string }) {
   const t = useTide();
   const router = useRouter();
-  const rows = [
-    { name: "HbA1c", value: `${HBA1C.value}%`, s: labStatus(HBA1C.value, HBA1C.bound) },
-    { name: "LDL", value: String(LDL.value), s: labStatus(LDL.value, LDL.bound) },
-    // The chat says "Normal" for kidneys, the lab sheet "Good": same result, the patient's word.
-    {
-      name: "Kidneys",
-      value: `eGFR ${EGFR.value}`,
-      s: { ...labStatus(EGFR.value, EGFR.bound), word: "Normal" },
-    },
-  ];
   return (
     <View style={{ gap: tSpace[1] }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
         <Icon name="flask" size={14} color={t.area.medicines} />
-        <Text style={[tType.overline, { fontSize: 11, color: t.ink2 }]}>Lab results ready</Text>
+        <Text style={[tType.overline, { fontSize: 11, color: t.ink2 }]}>Lab tests</Text>
       </View>
       <Text
         style={[
@@ -97,41 +87,8 @@ function LabsCard({ text }: { text: string }) {
       >
         {text}
       </Text>
-      {rows.map((r) => (
-        <View
-          key={r.name}
-          accessible
-          accessibilityLabel={`${r.name} ${r.value}, ${r.s.word}`}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: tSpace[2],
-            paddingVertical: tSpace[2],
-            borderTopWidth: 1,
-            borderTopColor: t.surface3,
-          }}
-        >
-          <Text style={[tType.labelS, { color: t.ink }]}>{r.name}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2] }}>
-            <Text
-              style={[
-                tType.labelS,
-                {
-                  fontFamily: tType.numeral.fontFamily,
-                  color: t.ink,
-                  fontVariant: ["tabular-nums"],
-                },
-              ]}
-            >
-              {r.value}
-            </Text>
-            <StatusPill tone={r.s.tone} label={r.s.word} />
-          </View>
-        </View>
-      ))}
       <Button
-        label="See all results"
+        label="See your tests"
         variant="soft"
         size="sm"
         iconRight="forward"

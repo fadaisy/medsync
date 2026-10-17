@@ -12,7 +12,6 @@ const ticket = (id: string): Ticket => ({
   patient: "[First name]",
   code: "KWP-4827",
   issuedAtIso: "2026-10-17T10:04:00Z",
-  ahead: 2,
   dayKey: null,
   part: null,
   doors: null,
@@ -21,8 +20,6 @@ const ticket = (id: string): Ticket => ({
   feeLabel: null,
   paid: false,
   demoPayment: false,
-  countDemo: true,
-  demo: false,
 });
 
 describe("offline ticket cache", () => {

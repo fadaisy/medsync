@@ -1,7 +1,8 @@
 /**
  * Tide feature flags (build prompt §4). All start off.
  *
- * `EXPO_PUBLIC_MOBILE_FLAGS` turns one on for a build ("mobilePayments,mobileMapPin").
+ * `EXPO_PUBLIC_MOBILE_FLAGS` turns one on for a build ("mobilePhoneOtp,mobileChat"): each feature that is
+ * off for now stays built and wired, so switching it on is a setting, not a code change.
  *
  * `mobileClinicalData` cannot be turned on from the environment: it reads
  * patient readings, medicines, labs, mood and chat, which law L2 keeps off the
@@ -13,7 +14,9 @@ export type Flag =
   | "mobilePayments"
   | "mobileQrSignIn"
   | "mobileMapPin"
-  | "mobilePhoneOtp";
+  | "mobilePhoneOtp"
+  /** Care-team chat: hidden until there is a clinician inbox to answer it (ADR 0342). */
+  | "mobileChat";
 
 /** Gate CG governance artifact: not signed (17 Oct 2026). */
 export const GATE_CG_SIGNED = false;
@@ -28,14 +31,4 @@ const fromEnv = new Set(
 export function flag(name: Flag): boolean {
   if (name === "mobileClinicalData") return GATE_CG_SIGNED && fromEnv.has(name);
   return fromEnv.has(name);
-}
-
-/**
- * What a save tells the patient. Until clinical data is live nothing leaves
- * the phone, so the screens must not say the care team can see it (law L1).
- */
-export function savedWords(what: "it" | "this reading"): string {
-  return flag("mobileClinicalData")
-    ? `Your care team can see ${what}`
-    : "Saved on this phone · demo";
 }

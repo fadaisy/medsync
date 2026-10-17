@@ -1,32 +1,6 @@
-import type { LabBound } from "@/data/labs";
-
 import { tapGlass } from "@/data/activity";
 import { chatRepo } from "@/data/chat";
-import { labStatus, PANELS, panelStatus } from "@/data/labs";
 import { readOutbox } from "@/offline/outbox";
-
-describe("labStatus", () => {
-  const target: LabBound = { dir: "below", limit: 2.6, kind: "target" };
-  const best: LabBound = { dir: "above", limit: 1.2, kind: "best" };
-  const normal: LabBound = { dir: "below", limit: 3, kind: "normal" };
-
-  it.each([
-    [2.5, target, "stable", "Good"],
-    [2.6, target, "caution", "Above target"],
-    [3.1, target, "caution", "Above target"],
-    [1.3, best, "stable", "Good"],
-    [1.2, best, "caution", "A little low"],
-    [2.1, normal, "stable", "Normal"],
-    [3.4, normal, "caution", "A little high"],
-    [1.0, { dir: "above", limit: 1.2, kind: "target" } as LabBound, "caution", "Below target"],
-  ])("%s against %o is %s, %s", (value, bound, tone, word) => {
-    expect(labStatus(value, bound)).toEqual({ tone, word });
-  });
-
-  it("gives the boards' panel words", () => {
-    expect(PANELS.map((p) => panelStatus(p.items).word)).toEqual(["Needs attention", "All normal"]);
-  });
-});
 
 describe("tapGlass", () => {
   it("empties down to a full glass and fills up to an empty one", () => {

@@ -68,6 +68,8 @@ export default function AppLayout() {
         <Stack.Screen name="care/labs" />
         <Stack.Screen name="care/activity" />
         <Stack.Screen name="care/chat" />
+        <Stack.Screen name="records/index" />
+        <Stack.Screen name="records/[id]" />
         <Stack.Screen name="danger" options={{ animation: "fade" }} />
         <Stack.Screen name="household" />
         <Stack.Screen name="ticket" />

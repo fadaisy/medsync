@@ -181,6 +181,41 @@ export async function submitSignup(
   }
 }
 
+/* ─── The home pin (migration 0170) ──────────────────────────────────── */
+
+/**
+ * After sign-up AND sign-in: the patient's own `patient_profiles` row takes
+ * the pin, the consent version and when (policy `patient_profiles_update_own`,
+ * migration 0011). All four go together, as the 0170 check demands; saying no
+ * calls nothing. False on any failure, including 0170 not applied yet: the
+ * account is made either way, and the screen says the pin was not saved.
+ * The coordinates are never logged.
+ */
+export async function saveHomePin(
+  at: { lat: number; lng: number },
+  consentVersion: string,
+  now: Date,
+): Promise<boolean> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user.id;
+    if (!userId) return false;
+    const { error } = await supabase
+      .from("patient_profiles")
+      .update({
+        // numeric(9,6): six places is about 10 cm, finer than any pin.
+        home_pin_lat: Number(at.lat.toFixed(6)),
+        home_pin_lng: Number(at.lng.toFixed(6)),
+        home_pin_consent_version: consentVersion,
+        home_pin_consented_at: now.toISOString(),
+      })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 /* ─── The drawn map (art, not UI) ────────────────────────────────────── */
 
 /**

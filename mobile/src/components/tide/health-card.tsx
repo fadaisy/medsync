@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
-import Svg, { Circle, Rect } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 
 import { Press } from "@/components/tide/press";
 import { CARD_ART } from "@/data/card-art";
@@ -12,65 +12,17 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 /** Bank-card proportion (ISO/IEC 7810 ID-1). */
 export const CARD_RATIO = 1.586;
 
-/**
- * The QR on the card. It encodes NOTHING: a fixed placeholder pattern (three
- * finder squares and a seeded fill) until the owner approves the signed,
- * short-lived token design (PRD Q2). The patient code alone is not an
- * authenticator, so it is deliberately not put in a scannable code.
- */
-const QR_N = 21;
-const QR_CELLS: readonly (readonly [number, number])[] = (() => {
-  const finder = (x: number, y: number) => {
-    const cx = x < 7 ? 0 : QR_N - 7;
-    const cy = y < 7 ? 0 : QR_N - 7;
-    const dx = x - cx;
-    const dy = y - cy;
-    if (dx < 0 || dx > 6 || dy < 0 || dy > 6) return null;
-    return (
-      dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4)
-    );
-  };
-  const cells: [number, number][] = [];
-  let seed = 7;
-  for (let y = 0; y < QR_N; y++)
-    for (let x = 0; x < QR_N; x++) {
-      const inFinder = (x < 8 && y < 8) || (x > QR_N - 9 && y < 8) || (x < 8 && y > QR_N - 9);
-      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-      const on = inFinder ? finder(x, y) === true : seed % 5 < 2;
-      if (on) cells.push([x, y]);
-    }
-  return cells;
-})();
-
-function PlaceholderQr({ size }: { size: number }) {
-  const t = useTide();
-  return (
-    <View
-      accessible
-      accessibilityRole="image"
-      accessibilityLabel="Health card code, not active yet"
-      style={{ width: size, height: size, padding: 3, borderRadius: 8, backgroundColor: t.onBand }}
-    >
-      <Svg width={size - 6} height={size - 6} viewBox={`-1 -1 ${QR_N + 2} ${QR_N + 2}`}>
-        {QR_CELLS.map(([x, y]) => (
-          <Rect key={`${x}.${y}`} x={x} y={y} width={1.02} height={1.02} fill={t.band} />
-        ))}
-      </Svg>
-    </View>
-  );
-}
-
 export interface HealthCardData {
   holder: string;
   /** Spaced code, or "Given at your first visit". */
   number: string;
-  facility: string;
-  doctor: string;
+  /** Null until the patient has a home facility. */
+  facility: string | null;
+  /** "34 years", from the date of birth; null when there is none. */
+  age: string | null;
   /** Null when the patient keeps them off the card (the default, PRD Q6). */
   conditions: string | null;
   allergies: string;
-  bloodGroup: string;
-  contact: string;
 }
 
 /**
@@ -78,6 +30,10 @@ export interface HealthCardData {
  * turned over by a tap (`transition.cardFlip`, backface hidden). Under reduce
  * motion it cross-fades instead of turning. Everything it shows comes in as
  * props, so the screen can draw it from the phone's cache with no network.
+ *
+ * No QR: a code that encodes nothing would invite a scan that fails, and the
+ * patient code alone is not an authenticator (PRD Q2). The desk reads the
+ * printed number.
  */
 export function HealthCard({ data }: { data: HealthCardData }) {
   const t = useTide();
@@ -157,7 +113,7 @@ export function HealthCard({ data }: { data: HealthCardData }) {
               numberOfLines={1}
               style={[tType.micro, { fontFamily: tFont.semibold, color: t.onBand }]}
             >
-              {data.facility}
+              {data.facility ?? "No home facility yet"}
             </Text>
             <Text style={[tType.micro, { fontSize: 10, color: t.onBand2 }]}>Home facility</Text>
           </View>
@@ -226,17 +182,15 @@ export function HealthCard({ data }: { data: HealthCardData }) {
                 {data.holder.toUpperCase()}
               </Text>
             </View>
-            <View>
-              {label("Primary doctor")}
-              <Text
-                numberOfLines={1}
-                style={[tType.bodyS, { fontFamily: tFont.semibold, color: t.onBandAccent }]}
-              >
-                {data.doctor}
+          </View>
+          {data.age ? (
+            <View style={{ alignItems: "flex-end" }}>
+              {label("Age")}
+              <Text style={[tType.bodyS, { fontFamily: tFont.semibold, color: t.onBandAccent }]}>
+                {data.age}
               </Text>
             </View>
-          </View>
-          <PlaceholderQr size={58} />
+          ) : null}
         </View>
       </View>
     </Animated.View>
@@ -285,10 +239,8 @@ export function HealthCard({ data }: { data: HealthCardData }) {
           </Text>
           {row("Conditions", data.conditions ?? "Hidden")}
           {row("Allergies", data.allergies)}
-          {row("Blood group", data.bloodGroup)}
-          {row("Contact", data.contact)}
+          {row("MedSync number", data.number)}
         </View>
-        <PlaceholderQr size={84} />
       </View>
       <Text
         numberOfLines={1}
@@ -304,7 +256,7 @@ export function HealthCard({ data }: { data: HealthCardData }) {
           },
         ]}
       >
-        If found, return to {data.facility}
+        If found, return to {data.facility ?? "any hospital"}
       </Text>
     </Animated.View>
   );

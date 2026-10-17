@@ -1,7 +1,9 @@
+import type { Fee } from "@/features/visits/logic";
 import type { Ticket } from "@/features/visits/ticket-cache";
 import type {
   AppointmentReason,
   AppointmentRow,
+  ClinicianOption,
   ClinicSession,
   LiveIntake,
   PatientProfile,
@@ -10,15 +12,17 @@ import type {
 import { feeRange } from "@shared/fees";
 
 import { createStore, useStore } from "@/data/store";
-import { addDays, clockOf, dayKeyOf, deskCode, partOf, payLook } from "@/features/visits/logic";
+import { clockOf, dayKeyOf, feeFor, partOf, payLook } from "@/features/visits/logic";
 import { dropTicket, readTickets, saveTicket } from "@/features/visits/ticket-cache";
 import { track } from "@/lib/analytics";
 import {
   cancelAppointment,
   cancelIntake,
+  choosePrimaryHospital,
   declareIntake,
   fetchAppointments,
   fetchBookableClinicians,
+  fetchHospitals,
   fetchLiveIntake,
   fetchPatientProfile,
   fetchServiceLines,
@@ -32,169 +36,24 @@ import {
 import { flag } from "@/lib/flags";
 import { confirmAttendance } from "@/lib/notifications";
 import { clearPendingCatalogDraft, getPendingCatalogDraft } from "@/lib/pending-symptoms";
+import { supabase } from "@/lib/supabase";
 
 export type { Ticket } from "@/features/visits/ticket-cache";
 
 /**
- * Visits, booking and tickets (Gate 4, PRD F-08 to F-12).
- *
- * REAL where an engine with RLS exists: the patient's appointments, the walk-in
+ * Visits, booking and tickets (Gate 4, PRD F-08 to F-12), all REAL, under RLS
+ * or through an Edge Function: the patient's appointments, the walk-in
  * clinics open now, joining today's line (`pt-declare-intake`), leaving it,
- * the published clinic days, asking for one (`pt-request-appointment`), and
- * moving, cancelling, confirming and arriving for a visit.
+ * "N ahead of you" (`patient_intake_ahead`, migration 0170), the published
+ * clinic days and a clinician's open slots, asking for one
+ * (`pt-request-appointment`), and moving, cancelling, confirming and arriving.
  *
- * DEMO where none does, always shown with the ribbon (law L1):
- * - The people before you in a line. `patient_intakes` RLS lets a patient
- *   read their own rows only, so a count from the phone is always 0; it needs
- *   a server-side read (ADR 0084 §6). The counts here are fixtures.
- * - Per-doctor lines: an intake is declared into a department, never to a
- *   doctor, so the doctor picked in Come today is a preference on the ticket.
- * - Lab and care-team days, the care plan (clinical, law L2), travel times
- *   and the drawn map.
+ * Without a chosen hospital nothing is shown in its place: the screens ask
+ * the patient to choose one (`HospitalPicker`).
  *
- * Payments never move money (PRD non-goal): see `payments`.
+ * The one example left is money: payments never move it (PRD non-goal), see
+ * `payments`. No travel time, map or count of people is drawn: none exists.
  */
-
-/* ─── art and fixtures ──────────────────────────────────────────── */
-
-/** The drawn map's colours: art, not UI, so they live with the fixture. */
-export const MAP_ART = {
-  land: "#e4e7ee",
-  road: "#ffffff",
-  route: "#1b2540",
-  start: "#2dd4bf",
-  end: "#1b2540",
-  ring: "#ffffff",
-} as const;
-
-/** "Map and travel times illustrative." */
-export const TRAVEL = { distance: "4.2 km", boda: "~15 min", taxi: "~35 min" } as const;
-
-/** One doctor's line in Come today. `ahead` is a fixture (see the header). */
-export interface DemoLine {
-  id: string;
-  name: string;
-  role: string;
-  initials: string;
-  ahead: number;
-  yours: boolean;
-  /** UGX; null = no fee. Public services never charge (PRD Q4). */
-  fee: number | null;
-}
-
-const LINE_SETS: DemoLine[][] = [
-  [
-    {
-      id: "na",
-      name: "Dr [Name A]",
-      role: "Specialist · your usual",
-      initials: "NA",
-      ahead: 5,
-      yours: true,
-      fee: 30000,
-    },
-    {
-      id: "nb",
-      name: "Dr [Name B]",
-      role: "Diabetes doctor",
-      initials: "NB",
-      ahead: 2,
-      yours: false,
-      fee: null,
-    },
-    {
-      id: "nc",
-      name: "[Name C]",
-      role: "Clinical officer",
-      initials: "NC",
-      ahead: 1,
-      yours: false,
-      fee: null,
-    },
-  ],
-  [
-    {
-      id: "nd",
-      name: "Dr [Name D]",
-      role: "Medical officer",
-      initials: "ND",
-      ahead: 7,
-      yours: false,
-      fee: null,
-    },
-    {
-      id: "ne",
-      name: "Dr [Name E]",
-      role: "Private wing",
-      initials: "NE",
-      ahead: 4,
-      yours: false,
-      fee: 20000,
-    },
-    {
-      id: "nf",
-      name: "[Name F]",
-      role: "Clinical officer",
-      initials: "NF",
-      ahead: 3,
-      yours: false,
-      fee: null,
-    },
-  ],
-  [
-    {
-      id: "ng",
-      name: "[Name G]",
-      role: "Eye clinical officer",
-      initials: "NG",
-      ahead: 6,
-      yours: false,
-      fee: 15000,
-    },
-  ],
-];
-
-export interface Clinic {
-  id: string;
-  name: string;
-  /** "Room 4 · 3 doctors" on a demo clinic; "Open now" on a real one (no room is recorded). */
-  sub: string;
-  room: string;
-  lines: DemoLine[];
-}
-
-const DEMO_CLINICS: Clinic[] = [
-  {
-    id: "dm",
-    name: "Diabetes clinic",
-    sub: "Room 4 · 3 doctors",
-    room: "Room 4",
-    lines: LINE_SETS[0],
-  },
-  { id: "opd", name: "General clinic", sub: "OPD · 4 doctors", room: "OPD", lines: LINE_SETS[1] },
-  { id: "eye", name: "Eye clinic", sub: "Room 9 · 1 doctor", room: "Room 9", lines: LINE_SETS[2] },
-];
-
-/** Clinical items on the week (law L2: fixtures until Gate CG), days after today. */
-export const WEEK_FIXTURES = [
-  {
-    offset: 3,
-    kind: "lab" as const,
-    label: "Lab",
-    title: "Blood test",
-    time: "08:00",
-    line: "Lab at 08:00.",
-  },
-  {
-    offset: 5,
-    kind: "team" as const,
-    label: "Care team",
-    title: "Phone check-in",
-    time: "10:00",
-    line: "Your care team calls you at 10:00",
-  },
-];
-export const CARE_PLAN = { readings: 2, medicines: 3, done: 3, total: 5 } as const;
 
 /* ─── tickets: a store over the offline cache ───────────────────── */
 
@@ -205,7 +64,8 @@ let hydrated = false;
 export async function hydrateTickets(): Promise<Ticket[]> {
   if (!hydrated) {
     hydrated = true;
-    const cached = await readTickets();
+    // Round 1 kept example tickets with `demo-` ids; nothing reached a desk with them.
+    const cached = (await readTickets()).filter((c) => !c.id.startsWith("demo-"));
     tickets.set((now) => [...now, ...cached.filter((c) => !now.some((t) => t.id === c.id))]);
   }
   return tickets.get();
@@ -223,11 +83,7 @@ async function keep(ticket: Ticket): Promise<void> {
 /** A new ticket: kept on the phone and counted (`ticket_issued`). */
 async function issue(ticket: Ticket): Promise<Ticket> {
   await keep(ticket);
-  track("ticket_issued", {
-    kind: ticket.kind,
-    look: payLook(ticket.fee, ticket.paid),
-    demo: ticket.demo,
-  });
+  track("ticket_issued", { kind: ticket.kind, look: payLook(ticket.fee, ticket.paid) });
   return ticket;
 }
 
@@ -343,123 +199,120 @@ export const visitActions = {
 
 /* ─── Come today ────────────────────────────────────────────────── */
 
+/** A clinic taking walk-ins now. No count rides along (ADR 0084 §5). */
+export interface Clinic extends Fee {
+  id: string;
+  name: string;
+}
+
 export interface Today {
-  /** False when the patient has no hospital yet: the whole screen is a demo. */
-  real: boolean;
   profile: PatientProfile | null;
-  hospitalName: string;
+  /** Null when the patient has no hospital yet: the screen asks them to choose one. */
+  hospitalName: string | null;
   clinics: Clinic[];
   live: LiveIntake | null;
 }
 
 export async function loadToday(): Promise<Today> {
   const profile = await fetchPatientProfile();
-  if (!profile?.hospitalId)
-    return {
-      real: false,
-      profile,
-      hospitalName: "[Hospital name]",
-      clinics: DEMO_CLINICS,
-      live: null,
-    };
-  const [departments, live] = await Promise.all([
+  if (!profile?.hospitalId) return { profile, hospitalName: null, clinics: [], live: null };
+  const [departments, live, lines] = await Promise.all([
     fetchWalkInDepartments(profile.hospitalId),
     fetchLiveIntake(profile.hospitalId),
+    fetchServiceLines({ hospitalId: profile.hospitalId }),
   ]);
-  const clinics = departments
-    .filter((d) => d.openNow)
-    .map((d, i) => ({
-      id: d.id,
-      name: d.name,
-      sub: "Open now",
-      room: "Ask at the desk",
-      lines: LINE_SETS[i % 3],
-    }));
   return {
-    real: true,
     profile,
     hospitalName: profile.hospitalName ?? "Your hospital",
-    clinics,
+    clinics: departments
+      .filter((d) => d.openNow)
+      .map((d) => ({ id: d.id, name: d.name, ...feeFor(lines, d.id, null) })),
     live,
   };
+}
+
+/**
+ * "N ahead of you" for the patient's own intake (ADR 0084 §6), from
+ * `patient_intake_ahead` (migration 0170). Null on ANY failure, including the
+ * function not existing yet: the count is then simply not shown.
+ */
+export async function loadAhead(intakeId: string): Promise<number | null> {
+  try {
+    const { data, error } = await supabase.rpc("patient_intake_ahead", { p_intake: intakeId });
+    return error || typeof data !== "number" ? null : data;
+  } catch {
+    return null;
+  }
 }
 
 export type IssueResult = { ok: true; ticket: Ticket } | { ok: false; error: string };
 
 /**
- * Save my place. Real: `pt-declare-intake` into the chosen clinic; a refusal
- * because a ticket already exists today recovers that ticket instead. The
- * doctor is a preference printed on the ticket (intakes are not per doctor),
- * and the count before you is the fixture's.
+ * Save my place: `pt-declare-intake` into the chosen clinic. A refusal because
+ * a ticket already exists today recovers that ticket instead. An intake goes
+ * to a clinic, never to a doctor, so the ticket names no one.
  */
 export async function joinLine(input: {
-  today: Today;
+  profile: PatientProfile & { hospitalId: string };
+  hospitalName: string;
   clinic: Clinic;
-  line: DemoLine | null;
-  ahead: number;
   patient: string;
   payNow: boolean;
   now: Date;
 }): Promise<IssueResult> {
-  const { today, clinic, line } = input;
-  let id = `demo-${input.now.getTime().toString(36)}`;
-  if (today.real && today.profile?.hospitalId) {
-    const res = await declareIntake({
-      hospitalId: today.profile.hospitalId,
-      receivingDepartmentId: clinic.id,
-      symptomSubmissionId: getPendingCatalogDraft()?.submissionId,
-    });
-    if (res.ok) id = res.data.intake_id;
-    else {
-      const live = await fetchLiveIntake(today.profile.hospitalId).catch(() => null);
-      if (!live) return { ok: false, error: res.error };
-      id = live.id;
-    }
-    clearPendingCatalogDraft();
+  const { profile, clinic } = input;
+  let id: string;
+  const res = await declareIntake({
+    hospitalId: profile.hospitalId,
+    receivingDepartmentId: clinic.id,
+    symptomSubmissionId: getPendingCatalogDraft()?.submissionId,
+  });
+  if (res.ok) id = res.data.intake_id;
+  else {
+    const live = await fetchLiveIntake(profile.hospitalId).catch(() => null);
+    if (!live) return { ok: false, error: res.error };
+    id = live.id;
   }
-  const fee = line?.fee ?? null;
-  let paid = false;
-  let demoPayment = false;
-  if (fee && input.payNow) {
-    const res = await payments.pay(fee);
-    if (res.ok) {
-      paid = true;
-      demoPayment = res.demo;
-    }
-  }
+  clearPendingCatalogDraft();
+  const { paid, demoPayment } = await payIfAsked(clinic.fee, input.payNow);
   const ticket = await issue({
     id,
     kind: "queue",
-    hospitalName: today.hospitalName,
+    hospitalName: input.hospitalName,
     clinic: clinic.name,
-    see: line?.name ?? "Any doctor",
-    room: clinic.room,
+    see: "The clinic team",
+    room: "Ask at the desk",
     patient: input.patient,
-    code: today.profile?.patientCode ?? deskCode("KWP", id),
+    code: profile.patientCode,
     issuedAtIso: input.now.toISOString(),
-    ahead: input.ahead,
     dayKey: dayKeyOf(input.now),
     part: null,
     doors: null,
     awaiting: false,
-    fee,
-    feeLabel: null,
+    fee: clinic.fee,
+    feeLabel: clinic.feeLabel,
     paid,
     demoPayment,
-    countDemo: true,
-    demo: !today.real,
   });
   return { ok: true, ticket };
+}
+
+/** The simulated payment, when there is a fee and the patient chose to pay now. */
+async function payIfAsked(
+  fee: number | null,
+  payNow: boolean,
+): Promise<{ paid: boolean; demoPayment: boolean }> {
+  if (!fee || !payNow) return { paid: false, demoPayment: false };
+  const res = await payments.pay(fee);
+  return res.ok ? { paid: true, demoPayment: res.demo } : { paid: false, demoPayment: false };
 }
 
 /** Give up my place: `ha-cancel-intake` admits the patient while the row is still `declared`. */
 export async function leaveLine(
   ticket: Ticket,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!ticket.demo) {
-    const res = await cancelIntake(ticket.id);
-    if (!res.ok) return { ok: false, error: res.error };
-  }
+  const res = await cancelIntake(ticket.id);
+  if (!res.ok) return { ok: false, error: res.error };
   tickets.set((all) => all.filter((t) => t.id !== ticket.id));
   await dropTicket(ticket.id);
   return { ok: true };
@@ -473,16 +326,26 @@ export function todaysQueueTicket(all: Ticket[], now: Date): Ticket | null {
 
 /* ─── Ask for a day ─────────────────────────────────────────────── */
 
-export interface SessionOption {
+/** A clinician's own slot, when the day was asked for with a named clinician. */
+export interface SlotPick {
+  clinicianUserId: string;
+  departmentId: string;
+  startsAtIso: string;
+  endsAtIso: string;
+  serviceLineId?: string;
+}
+
+export interface SessionOption extends Fee {
   id: string;
   part: "Morning" | "Afternoon";
-  doors: string;
+  /** When doors open ("08:00") for a clinic day; null for a clinician's slot (never your hour, law L8). */
+  doors: string | null;
   placesLeft: number;
   clinicianName: string;
   clinicName: string;
   room: string;
-  fee: number | null;
-  feeLabel: string | null;
+  /** Set when this is a clinician's slot rather than a place in a clinic day. */
+  slot?: SlotPick;
 }
 
 export interface DayOption {
@@ -491,60 +354,96 @@ export interface DayOption {
 }
 
 export interface Days {
-  real: boolean;
+  /** Null when the patient has no hospital yet: the screen asks them to choose one. */
   hospitalId: string | null;
   hospitalName: string;
+  /** The patient's own MedSync number: the ticket's code when the clinic issues none. */
+  patientCode: string | null;
+  /** The clinician the days were asked for (Home's "Ask for a day"); null for every clinic day. */
+  doctorName: string | null;
   days: DayOption[];
 }
 
-function sessionFee(line: ServiceLine | undefined): {
-  fee: number | null;
-  feeLabel: string | null;
-} {
+function sessionFee(line: ServiceLine | undefined): Fee {
   const range = line ? feeRange(line.fee) : null;
   if (!range) return { fee: null, feeLabel: null };
   return { fee: range.minUgx, feeLabel: range.single ? null : (line?.feeLine ?? null) };
 }
 
-function demoDays(now: Date): DayOption[] {
-  const today = dayKeyOf(now);
-  return [3, 6, 10, 13].map((offset, i) => {
-    const key = addDays(today, offset);
-    const s = (
-      part: "Morning" | "Afternoon",
-      doors: string,
-      places: number,
-      named: boolean,
-    ): SessionOption => ({
-      id: `demo-${key}-${part}-${named ? "a" : "any"}`,
-      part,
-      doors,
-      placesLeft: places,
-      clinicianName: named ? "Dr [Name A]" : "Clinic team",
-      clinicName: "Diabetes clinic",
-      room: "Room 4",
-      fee: named ? 30000 : null,
-      feeLabel: null,
+/**
+ * One clinician's open slots as day options: each part of a day offers its
+ * earliest slot, shown as morning or afternoon, never as a clock time (law
+ * L8). The fee is the line in their department that takes this reason; that
+ * line is sent with the request so the record keeps the same quote.
+ */
+export function slotDays(
+  c: ClinicianOption,
+  lines: readonly ServiceLine[],
+  reason: AppointmentReason,
+): DayOption[] {
+  const line = lines.find(
+    (l) => l.departmentId === c.departmentId && l.reasonCodes.includes(reason),
+  );
+  const fee = line ? feeFor([line], c.departmentId, c.cadreId) : { fee: null, feeLabel: null };
+  return Object.keys(c.slotsByDate)
+    .sort()
+    .flatMap((key) => {
+      const sessions: SessionOption[] = [];
+      for (const part of ["Morning", "Afternoon"] as const) {
+        const slots = (c.slotsByDate[key] ?? []).filter((s) => partOf(s.startsAtIso) === part);
+        const first = slots[0];
+        if (!first) continue;
+        sessions.push({
+          id: `slot:${first.startsAtIso}`,
+          part,
+          doors: null,
+          placesLeft: slots.length,
+          clinicianName: c.fullName,
+          clinicName: c.departmentName,
+          room: c.departmentName,
+          ...fee,
+          slot: {
+            clinicianUserId: c.userId,
+            departmentId: c.departmentId,
+            startsAtIso: first.startsAtIso,
+            endsAtIso: first.endsAtIso,
+            ...(line ? { serviceLineId: line.id } : {}),
+          },
+        });
+      }
+      return sessions.length ? [{ key, sessions }] : [];
     });
-    return {
-      key,
-      sessions: [
-        s("Morning", "08:00", i === 1 ? 0 : 6, false),
-        s("Morning", "08:00", i === 1 ? 0 : 3, true),
-        s("Afternoon", "13:00", 4, false),
-      ],
-    };
-  });
 }
 
 /**
  * Published clinic days within the 14-day horizon that take this reason,
- * grouped by day. A day with no place left stays on the rail as "Full".
+ * grouped by day; or, with `doctor`, that clinician's own open slots. A day
+ * with no place left stays on the rail as "Full".
  */
-export async function loadDays(reason: AppointmentReason, now: Date): Promise<Days> {
+export async function loadDays(
+  reason: AppointmentReason,
+  doctor: { userId: string; departmentId?: string } | null,
+): Promise<Days> {
   const profile = await fetchPatientProfile();
   if (!profile?.hospitalId)
-    return { real: false, hospitalId: null, hospitalName: "[Hospital name]", days: demoDays(now) };
+    return { hospitalId: null, hospitalName: "", patientCode: null, doctorName: null, days: [] };
+  const base = {
+    hospitalId: profile.hospitalId,
+    hospitalName: profile.hospitalName ?? "Your hospital",
+    patientCode: profile.patientCode,
+  };
+  if (doctor) {
+    const [clinicians, lines] = await Promise.all([
+      fetchBookableClinicians(profile.hospitalId),
+      fetchServiceLines({ hospitalId: profile.hospitalId }),
+    ]);
+    const c = clinicians.find(
+      (x) =>
+        x.userId === doctor.userId &&
+        (!doctor.departmentId || x.departmentId === doctor.departmentId),
+    );
+    if (c) return { ...base, doctorName: c.fullName, days: slotDays(c, lines, reason) };
+  }
   const [lines, sessions] = await Promise.all([
     fetchServiceLines({ hospitalId: profile.hospitalId }),
     fetchSessions({ hospitalId: profile.hospitalId }),
@@ -568,17 +467,12 @@ export async function loadDays(reason: AppointmentReason, now: Date): Promise<Da
       ...sessionFee(line),
     });
   }
-  return {
-    real: true,
-    hospitalId: profile.hospitalId,
-    hospitalName: profile.hospitalName ?? "Your hospital",
-    days,
-  };
+  return { ...base, doctorName: null, days };
 }
 
-/** Ask for a day: one place in a clinic day, through `pt-request-appointment`. */
+/** Ask for a day: a place in a clinic day, or a clinician's slot, through `pt-request-appointment`. */
 export async function requestDay(input: {
-  days: Days;
+  days: Days & { hospitalId: string };
   day: DayOption;
   session: SessionOption;
   reason: AppointmentReason;
@@ -590,61 +484,53 @@ export async function requestDay(input: {
   now: Date;
 }): Promise<IssueResult> {
   const { days, session } = input;
-  let id = `demo-${input.now.getTime().toString(36)}`;
-  let code = deskCode("KWP", id);
-  let awaiting = true;
-  if (days.real && days.hospitalId) {
-    const res = await requestAppointment({
-      hospitalId: days.hospitalId,
-      reason: input.reason,
-      reasonNote: input.note.trim() || null,
-      idempotencyKey: input.idempotencyKey,
-      ...(input.forProvisionalId ? { forProvisionalId: input.forProvisionalId } : {}),
-      session: { sessionId: session.id },
-    });
-    if (!res.ok) return { ok: false, error: res.error };
-    id = res.data.appointment_id;
-    code = res.data.booking_code ?? code;
-    awaiting = res.data.status === "requested" || res.data.status === "pending_approval";
-  }
-  let paid = false;
-  let demoPayment = false;
-  if (session.fee && input.payNow) {
-    const res = await payments.pay(session.fee);
-    if (res.ok) {
-      paid = true;
-      demoPayment = res.demo;
-    }
-  }
+  const res = await requestAppointment({
+    hospitalId: days.hospitalId,
+    reason: input.reason,
+    reasonNote: input.note.trim() || null,
+    idempotencyKey: input.idempotencyKey,
+    ...(input.forProvisionalId ? { forProvisionalId: input.forProvisionalId } : {}),
+    ...(session.slot ? { slot: session.slot } : { session: { sessionId: session.id } }),
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+  const { paid, demoPayment } = await payIfAsked(session.fee, input.payNow);
   const ticket = await issue({
-    id,
+    id: res.data.appointment_id,
     kind: "day",
     hospitalName: days.hospitalName,
     clinic: session.clinicName,
     see: session.clinicianName,
     room: session.room,
     patient: input.patient,
-    code,
+    code: res.data.booking_code ?? days.patientCode ?? "Ask at the desk",
     issuedAtIso: input.now.toISOString(),
-    ahead: null,
     dayKey: input.day.key,
     part: session.part,
     doors: session.doors,
-    awaiting,
+    awaiting: res.data.status === "requested" || res.data.status === "pending_approval",
     fee: session.fee,
     feeLabel: session.feeLabel,
     paid,
     demoPayment,
-    countDemo: false,
-    demo: !days.real,
   });
   return { ok: true, ticket };
 }
 
+/* ─── the patient's hospital ────────────────────────────────────── */
+
+export type { HospitalOption } from "@/lib/booking";
+
+/** Every active hospital, by name (ADR 0086). */
+export const loadHospitals = fetchHospitals;
+
+/** Make one the patient's hospital: the web's own write, under RLS. */
+export const chooseHospital = choosePrimaryHospital;
+
 /* ─── Book: the glance on the two doors ─────────────────────────── */
 
 export interface BookGlance {
-  /** Null when the patient has no hospital yet (the doors then run on demo data). */
+  /** False until the patient has chosen a hospital: the page asks them to. */
+  hasHospital: boolean;
   openNow: boolean | null;
   nextDayKey: string | null;
 }
@@ -652,13 +538,14 @@ export interface BookGlance {
 /** Whether a clinic takes walk-ins now, and the next clinic day with a place. No counts (ADR 0084 §5). */
 export async function loadBookGlance(): Promise<BookGlance> {
   const profile = await fetchPatientProfile();
-  if (!profile?.hospitalId) return { openNow: null, nextDayKey: null };
+  if (!profile?.hospitalId) return { hasHospital: false, openNow: null, nextDayKey: null };
   const [departments, sessions] = await Promise.all([
     fetchWalkInDepartments(profile.hospitalId),
     fetchSessions({ hospitalId: profile.hospitalId }),
   ]);
   const next = sessions.find(sessionTakeable);
   return {
+    hasHospital: true,
     openNow: departments.some((d) => d.openNow),
     nextDayKey: next ? dayKeyOf(next.startsAtIso) : null,
   };

@@ -21,12 +21,15 @@ import {
   Ring,
   Screen,
 } from "@/components/tide";
-import { cardNumber, meDemo, metaName, sexLetter, useCardIdentity } from "@/data/me";
+import { cardNumber, metaName, sexLetter, useCardIdentity } from "@/data/me";
+import { useMedicines } from "@/data/medicines";
+import { useSavedReadings } from "@/data/readings";
 import { EMERGENCY_NUMBERS, SOS_COUNTDOWN_S, SOS_DIAL, SYMPTOMS } from "@/features/safety/config";
 import { formatLatLng, useGrantedLocation } from "@/features/safety/location";
 import { useSos } from "@/features/safety/use-sos";
 import { emergencyEvent, telUrl, useEmergencySheet } from "@/lib/emergency";
 import { orderFacilities } from "@/lib/nearest";
+import { readingValueText } from "@/lib/readings";
 import { useSession } from "@/lib/session";
 import { useNow } from "@/lib/use-now";
 import { motion } from "@/motion/presets";
@@ -351,16 +354,7 @@ function HelpBody() {
                         .filter(Boolean)
                         .join(" · ")}
                     </Text>
-                    {meDemo.demo ? (
-                      <Text style={[tType.caption, { color: t.onBandAccent }]}>
-                        Demo data · example values, not your records
-                      </Text>
-                    ) : null}
-                    <Text style={[tType.bodyS, { color: t.onBand2 }]}>
-                      {meDemo.conditions.join(" · ")}
-                      {"\n"}Medicines: {meDemo.medicines.join(", ")}
-                      {"\n"}Allergies: {meDemo.allergies.toLowerCase()} · Last BP {meDemo.lastBp}
-                    </Text>
+                    <MedicLines conditions={id.conditions} />
                   </>
                 ) : null}
                 {reported.length ? (
@@ -597,4 +591,24 @@ function LinkRow({
       {onPress ? <Icon name="forward" size={18} color={t.ink3} /> : null}
     </Card>
   );
+}
+
+/**
+ * What the medic reads off the card: the patient's own conditions, medicine
+ * names (never amounts, law L5) and their last blood pressure, all from the
+ * patient's real records. Allergies are not readable on the phone, so the
+ * line says to ask.
+ */
+function MedicLines({ conditions }: { conditions: string[] }) {
+  const t = useTide();
+  const now = useNow();
+  const { doses } = useMedicines(now);
+  const bp = useSavedReadings().find((r) => r.input.kind === "bp");
+  const names = [...new Set(doses.map((d) => d.medicine))];
+  const lines = [
+    conditions.length ? conditions.join(" · ") : "No conditions recorded",
+    names.length ? `Medicines: ${names.join(", ")}` : "No medicines on their list",
+    `Allergies: ask the patient${bp ? ` · Last BP ${readingValueText(bp.input)}` : ""}`,
+  ];
+  return <Text style={[tType.bodyS, { color: t.onBand2 }]}>{lines.join("\n")}</Text>;
 }

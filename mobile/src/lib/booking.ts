@@ -244,6 +244,10 @@ export interface PatientProfile {
   emergencyPhone: string | null;
   /** `patient_profiles.sex` — the catalog shows the pregnancy toggle for female or unknown (ADR 0098). */
   sex: string;
+  /** `patient_profiles.date_of_birth` ("YYYY-MM-DD", plaintext by design, 0011). Me shows the age. */
+  dateOfBirth: string | null;
+  /** `patient_profiles.known_conditions`: the patient's own words, from their profile. */
+  knownConditions: string[];
 }
 
 interface ProfileRow {
@@ -251,6 +255,8 @@ interface ProfileRow {
   patient_code: string;
   primary_facility_id: string | null;
   sex: string;
+  date_of_birth: string | null;
+  known_conditions: string[] | null;
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
@@ -265,7 +271,10 @@ export async function fetchPatientProfile(): Promise<PatientProfile | null> {
 
   const { data, error } = await supabase
     .from("patient_profiles")
-    .select("id, patient_code, primary_facility_id, sex, hospitals(name, emergency_phone)")
+    .select(
+      "id, patient_code, primary_facility_id, sex, date_of_birth, known_conditions, " +
+        "hospitals(name, emergency_phone)",
+    )
     .eq("id", userId)
     .maybeSingle()
     .overrideTypes<ProfileRow, { merge: false }>();
@@ -279,6 +288,8 @@ export async function fetchPatientProfile(): Promise<PatientProfile | null> {
     hospitalName: hospital?.name ?? null,
     emergencyPhone: hospital?.emergency_phone ?? null,
     sex: data.sex,
+    dateOfBirth: data.date_of_birth,
+    knownConditions: (data.known_conditions ?? []).filter((c) => c.trim()),
   };
 }
 

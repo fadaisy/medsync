@@ -1,16 +1,14 @@
-import type { DoctorCard } from "@/data/doctors";
 import type { DayMood } from "@/data/mood";
+import type { SaveResult } from "@/offline/outbox";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import {
   Avatar,
   Button,
   Cascade,
   CascadeStep,
-  Chip,
-  ChipRow,
   Icon,
   MoodFace,
   Pill,
@@ -20,18 +18,19 @@ import {
   Segments,
   Toast,
 } from "@/components/tide";
-import { DOCTOR_FILTERS, feeWords, useDoctors } from "@/data/doctors";
 import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
-import { useSavedReadings } from "@/data/readings";
+import { useReadings, whenWords } from "@/data/readings";
+import { Doctors } from "@/features/home/doctors";
 import { sinceBoot, track } from "@/lib/analytics";
-import { savedWords } from "@/lib/flags";
+import { flag } from "@/lib/flags";
 import { checkReading, readingValueText } from "@/lib/readings";
 import { useSession } from "@/lib/session";
 import { useNow } from "@/lib/use-now";
+import { savedLine, startOutbox } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
-import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+import { tRadius, tSpace, tType } from "@/theme/tide";
 
 const MOODS: { key: DayMood; label: string }[] = [
   { key: "good", label: "Good" },
@@ -39,23 +38,29 @@ const MOODS: { key: DayMood; label: string }[] = [
   { key: "low", label: "Not well" },
 ];
 
+const KIND_WORDS = { bp: "Blood pressure", sugar: "Blood sugar", weight: "Weight", pulse: "Pulse" };
+
 /**
- * Home, your day (F-02). The greeting, today's mood, the day cascade with the
- * dose due now on top, and "See a doctor". Clinical parts are demo data until
- * Gate CG (law L2), so the screen carries the ribbon.
+ * Home, your day (F-02). The greeting, today's mood, the day cascade built
+ * from the patient's own log (doses taken today, the latest reading, the dose
+ * due now on top) and "See a doctor". A patient with nothing logged yet gets
+ * one calm card that starts them off. Home also starts the outbox, so saves
+ * made offline send once the phone is back.
  */
 export default function HomeScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
   const { session } = useSession();
-  const { dueNow, doses } = useMedicines(now);
+  const med = useMedicines(now);
+  const { readings, loading: readingsLoading, error: readingsError, retry } = useReadings();
   const { unread } = useNotifications();
   const [toast, setToast] = useState<{ text: string; undo?: () => void } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     track("home_rendered", { ms: sinceBoot() });
+    startOutbox();
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
@@ -72,16 +77,51 @@ export default function HomeScreen() {
     typeof fullName === "string" && fullName.trim() ? fullName.trim().split(/\s+/)[0] : "there";
   const initials = first === "there" ? "·" : first.slice(0, 2).toUpperCase();
 
+  const { doses, dueNow } = med;
   const due = dueNow[0];
-  const morning = doses.find((d) => d.slot === "morning");
-  const lastTaken = [...doses].reverse().find((d) => d.status === "taken" && d.slot !== "morning");
+  const takenToday = doses.filter((d) => d.status === "taken");
   const next = doses.find((d) => d.status === "later");
+  const latest = readings[0];
+  const loading = (med.loading || readingsLoading) && !doses.length && !latest;
+  const failed = (med.error || readingsError) && !doses.length && !latest;
+  const firstRun = !loading && !failed && !med.medicines.length && !readings.length;
+
+  const steps = [
+    ...takenToday.slice(-2).map((d) => ({
+      key: d.id,
+      icon: "pill" as const,
+      title: `${SLOT_WORDS[d.slot]} medicine · ${d.medicine}`,
+      line: `${d.takenAt} · taken`,
+      done: true,
+      href: "/care/medicines" as const,
+    })),
+    ...(latest
+      ? [
+          {
+            key: latest.id,
+            icon: "activity" as const,
+            title: `${KIND_WORDS[latest.input.kind]} · ${readingValueText(latest.input)}`,
+            line: `${whenWords(latest.at, now)} · ${readingWord(latest.input)}`,
+            done: false,
+            href: "/care/trends" as const,
+          },
+        ]
+      : []),
+  ];
+  const tail = due || next;
+
+  const take = async (id: string) => {
+    const result: SaveResult = await medicinesRepo.take(id, now);
+    showToast({
+      text: savedLine(result, "Saved · only you can see it"),
+      undo: result === "failed" ? undefined : () => void medicinesRepo.undo(id),
+    });
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <Screen
         underNav
-        demo
         help="pill"
         helpSource="home"
         bell={unread || true}
@@ -107,61 +147,71 @@ export default function HomeScreen() {
           }}
         />
 
-        <MoodCard onTell={() => router.push("/care/chat")} onWeek={() => router.push("/mood")} />
+        <MoodCard now={now} onSaved={(text) => showToast({ text })} />
 
         <View style={{ gap: tSpace[3] }}>
           <SectionHead title="Here is your day" />
-          <Cascade>
-            {morning ? (
-              <CascadeStep
-                step={0}
-                icon="pill"
-                title="Morning medicine"
-                line={morning.takenAt ? `${morning.takenAt} · taken` : "Not marked yet"}
-                done={!!morning.takenAt}
-                onPress={() => router.push("/care/medicines")}
+          {loading ? (
+            <Text style={[tType.bodyM, { color: t.ink2 }]}>Loading your day…</Text>
+          ) : failed ? (
+            <View style={{ gap: tSpace[2], alignItems: "flex-start" }}>
+              <Text style={[tType.bodyM, { color: t.ink2 }]}>Couldn&apos;t load your day.</Text>
+              <Button
+                label="Try again"
+                variant="outline"
+                size="sm"
+                onPress={() => {
+                  med.retry();
+                  retry();
+                }}
               />
-            ) : null}
-            <BpStep />
-            <CascadeStep
-              step={2}
-              icon="message"
-              title="Your care team replied"
-              line="09:15 · about this morning"
-              onPress={() => router.push("/care/chat")}
-              last={!due && !next && !lastTaken}
+            </View>
+          ) : firstRun ? (
+            <FirstRunCard
+              onMedicine={() => router.push({ pathname: "/care/medicines", params: { add: "1" } })}
+              onReading={() => router.push("/care/reading")}
             />
-            {due ? (
-              <NowCard
-                time={due.time}
-                title={`${SLOT_WORDS[due.slot]} medicine`}
-                line={`${due.medicine}, as your clinician prescribed`}
-                snoozed={due.snoozedUntil}
-                onTake={() => {
-                  medicinesRepo.take(due.id, now);
-                  showToast({
-                    text: savedWords("it"),
-                    undo: () => medicinesRepo.undo(due.id),
-                  });
-                }}
-                onLater={() => {
-                  medicinesRepo.snooze(due.id, now);
-                  showToast({ text: "We will remind you in 15 minutes" });
-                }}
-              />
-            ) : next ? (
-              <DoneCard
-                upcoming
-                title={`${SLOT_WORDS[next.slot]} medicine`}
-                line={`Next · ${next.time} · ${next.medicine}`}
-              />
-            ) : lastTaken ? (
-              <DoneCard
-                title={`${SLOT_WORDS[lastTaken.slot]} medicine`}
-                line={`${lastTaken.takenAt} · taken`}
-              />
-            ) : null}
-          </Cascade>
+          ) : (
+            <Cascade>
+              {steps.map((s, i) => (
+                <CascadeStep
+                  key={s.key}
+                  step={Math.min(i, 2) as 0 | 1 | 2}
+                  icon={s.icon}
+                  title={s.title}
+                  line={s.line}
+                  done={s.done}
+                  onPress={() => router.push(s.href)}
+                  last={i === steps.length - 1 && !tail}
+                />
+              ))}
+              {due ? (
+                <NowCard
+                  time={due.time}
+                  title={`${SLOT_WORDS[due.slot]} medicine`}
+                  line={`${due.medicine}, as your clinician prescribed`}
+                  snoozed={due.snoozedUntil}
+                  onTake={() => void take(due.id)}
+                  onLater={() => {
+                    medicinesRepo.snooze(due.id, now);
+                    showToast({ text: "Snoozed for 15 minutes" });
+                  }}
+                />
+              ) : next ? (
+                <DoneCard
+                  upcoming
+                  title={`${SLOT_WORDS[next.slot]} medicine`}
+                  line={`Next · ${next.time} · ${next.medicine}`}
+                />
+              ) : !steps.length ? (
+                <DoneCard
+                  upcoming
+                  title="Nothing due right now"
+                  line="Log a reading from the plus below"
+                />
+              ) : null}
+            </Cascade>
+          )}
         </View>
 
         <Doctors />
@@ -180,10 +230,71 @@ export default function HomeScreen() {
   );
 }
 
-/** "How are you today?": three faces, then the week strip; a low day offers "Tell my team". */
-function MoodCard({ onTell, onWeek }: { onTell: () => void; onWeek: () => void }) {
+/** The reading's plain word: in range, outside the target, or needs attention. Weight is never judged. */
+function readingWord(input: Parameters<typeof checkReading>[0]): string {
+  if (input.kind === "weight") return "saved";
+  const level = checkReading(input).level;
+  return level === "ok"
+    ? "in your range"
+    : level === "watch"
+      ? "outside your target"
+      : "needs attention";
+}
+
+/** Nothing logged yet: one calm card with the two ways to start. */
+function FirstRunCard({
+  onMedicine,
+  onReading,
+}: {
+  onMedicine: () => void;
+  onReading: () => void;
+}) {
   const t = useTide();
-  const { today, month } = useMood();
+  return (
+    <View
+      style={{
+        borderRadius: tRadius.xl,
+        padding: tSpace[4.5],
+        backgroundColor: t.surface,
+        gap: tSpace[3],
+        boxShadow: t.shadow.card,
+      }}
+    >
+      <Text accessibilityRole="header" style={[tType.heading, { color: t.ink }]}>
+        Start your day here
+      </Text>
+      <Text style={[tType.bodyM, { color: t.ink2 }]}>
+        Add the medicines you take, or log a reading. Your day builds up here. Only you can see what
+        you log.
+      </Text>
+      <View style={{ flexDirection: "row", gap: tSpace[2], flexWrap: "wrap" }}>
+        <Button label="Add a medicine" icon="pill" onPress={onMedicine} style={{ flexGrow: 1 }} />
+        <Button
+          label="Log a reading"
+          icon="activity"
+          variant="outline"
+          onPress={onReading}
+          style={{ flexGrow: 1 }}
+        />
+      </View>
+    </View>
+  );
+}
+
+/**
+ * "How are you today?": three faces, then the week strip. A not-well day
+ * offers "Tell my team" while chat is on; until there is a clinician inbox
+ * (`mobileChat` off) it offers "Book a visit", and Help is always in the header.
+ */
+function MoodCard({ now, onSaved }: { now: Date; onSaved: (text: string) => void }) {
+  const t = useTide();
+  const router = useRouter();
+  const { today, week } = useMood(now);
+  const chat = flag("mobileChat");
+  const pick = async (mood: DayMood) => {
+    const result = await moodRepo.pick(mood);
+    if (result !== "sent") onSaved(savedLine(result));
+  };
   return (
     <View
       style={{
@@ -203,7 +314,7 @@ function MoodCard({ onTell, onWeek }: { onTell: () => void; onWeek: () => void }
           return (
             <Press
               key={m.key}
-              onPress={() => moodRepo.pick(m.key)}
+              onPress={() => void pick(m.key)}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
               accessibilityLabel={`Today I feel ${m.label}`}
@@ -230,7 +341,7 @@ function MoodCard({ onTell, onWeek }: { onTell: () => void; onWeek: () => void }
       {today ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2] }}>
           <Press
-            onPress={onWeek}
+            onPress={() => router.push("/mood")}
             accessibilityLabel="This week's moods. See all."
             style={{
               flex: 1,
@@ -241,14 +352,14 @@ function MoodCard({ onTell, onWeek }: { onTell: () => void; onWeek: () => void }
             }}
           >
             <Text style={[tType.caption, { color: t.ink3 }]}>This week</Text>
-            {month.slice(-7).map((m, i) => (
+            {week.map((m, i) => (
               <MoodFace key={i} mood={m} size={20} />
             ))}
           </Press>
           {today === "low" ? (
             <Press
-              onPress={onTell}
-              accessibilityLabel="Tell my team"
+              onPress={() => router.push(chat ? "/care/chat" : "/book")}
+              accessibilityLabel={chat ? "Tell my team" : "Book a visit"}
               style={{ minHeight: 44, justifyContent: "center" }}
             >
               <View
@@ -261,13 +372,13 @@ function MoodCard({ onTell, onWeek }: { onTell: () => void; onWeek: () => void }
                 }}
               >
                 <Text style={[tType.labelS, { fontSize: 13, color: t.accentText }]}>
-                  Tell my team
+                  {chat ? "Tell my team" : "Book a visit"}
                 </Text>
               </View>
             </Press>
           ) : (
             <Press
-              onPress={onWeek}
+              onPress={() => router.push("/mood")}
               style={{ minHeight: 44, justifyContent: "center" }}
               accessibilityRole="link"
             >
@@ -277,28 +388,6 @@ function MoodCard({ onTell, onWeek }: { onTell: () => void; onWeek: () => void }
         </View>
       ) : null}
     </View>
-  );
-}
-
-/** The latest blood pressure: what the patient saved today, else the demo morning reading. */
-function BpStep() {
-  const router = useRouter();
-  const saved = useSavedReadings().find((r) => r.input.kind === "bp");
-  const input = saved?.input ?? { kind: "bp" as const, top: 138, bottom: 86 };
-  const at = saved
-    ? new Date(saved.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
-    : "07:40";
-  const level = checkReading(input).level;
-  const word =
-    level === "ok" ? "in your range" : level === "watch" ? "above your target" : "needs attention";
-  return (
-    <CascadeStep
-      step={1}
-      icon="activity"
-      title={`Blood pressure · ${readingValueText(input)}`}
-      line={`${at} · ${word}`}
-      onPress={() => router.push("/care/trends")}
-    />
   );
 }
 
@@ -395,132 +484,6 @@ function DoneCard({
           {line}
         </Text>
       </View>
-    </View>
-  );
-}
-
-/** "See a doctor": filters and a sideways row of doctor cards (contract in `data/doctors.ts`). */
-function Doctors() {
-  const router = useRouter();
-  const t = useTide();
-  const { doctors, ratingsOn } = useDoctors();
-  const [filter, setFilter] = useState<(typeof DOCTOR_FILTERS)[number] | null>(null);
-  const shown = doctors.filter((d) =>
-    !filter ? true : filter === "Available now" ? d.status.kind === "now" : d.tags.includes(filter),
-  );
-  return (
-    <View style={{ gap: tSpace[3] }}>
-      <SectionHead title="See a doctor" action="See all" onAction={() => router.push("/book")} />
-      <ChipRow scroll>
-        {DOCTOR_FILTERS.map((f) => (
-          <Chip
-            key={f}
-            label={f}
-            size="sm"
-            selected={filter === f}
-            onPress={() => setFilter(filter === f ? null : f)}
-          />
-        ))}
-      </ChipRow>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -tSpace[5], flexGrow: 0 }}
-        contentContainerStyle={{
-          paddingHorizontal: tSpace[5],
-          paddingBottom: tSpace[2],
-          gap: tSpace[3],
-        }}
-      >
-        {shown.map((d) => (
-          <DoctorTile key={d.id} d={d} ratingsOn={ratingsOn} />
-        ))}
-        {shown.length === 0 ? (
-          <Text style={[tType.bodyM, { color: t.ink2, paddingVertical: tSpace[4] }]}>
-            No doctor matches this filter today.
-          </Text>
-        ) : null}
-      </ScrollView>
-      {ratingsOn ? (
-        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3 }]}>
-          Ratings come only from patients after a real visit.
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-function DoctorTile({ d, ratingsOn }: { d: DoctorCard; ratingsOn: boolean }) {
-  const t = useTide();
-  const router = useRouter();
-  return (
-    <View
-      style={{
-        width: 252,
-        borderRadius: tRadius.cardLg,
-        padding: tSpace[4],
-        backgroundColor: t.surface,
-        gap: tSpace[2.5],
-        boxShadow: t.shadow.card,
-      }}
-    >
-      {d.yours ? <Pill label="Your doctor" bg={t.info.tint} fg={t.info.text} /> : null}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
-        <Avatar initials={d.initials} size={44} />
-        <View style={{ flex: 1 }}>
-          <Text style={[tType.label, { color: t.ink }]} numberOfLines={1}>
-            {d.name}
-          </Text>
-          <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]} numberOfLines={1}>
-            {d.role} · {d.place}
-          </Text>
-        </View>
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2] }}>
-        {ratingsOn && d.rating ? (
-          <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
-            accessibilityLabel={`Rated ${d.rating.score} by ${d.rating.count} patients`}
-          >
-            <Icon name="star" size={14} color={t.ink} />
-            <Text style={{ fontFamily: tFont.monoSemibold, fontSize: 13, color: t.ink }}>
-              {d.rating.score}
-            </Text>
-            <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3 }]}>({d.rating.count})</Text>
-          </View>
-        ) : null}
-        <Text style={[tType.labelS, { fontSize: 13, color: t.ink2 }]}>{feeWords(d.fee)}</Text>
-      </View>
-      {d.status.kind === "now" ? (
-        <>
-          <View style={{ gap: 2 }}>
-            <Pill label="Available now" bg={t.accentTint} fg={t.accentText} />
-            <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
-              {d.status.ahead} in line · you would be #{d.status.ahead + 1}
-            </Text>
-          </View>
-          <Button
-            size="md"
-            label="Join the line"
-            accessibilityLabel={`Join the line for ${d.name}`}
-            onPress={() => router.push({ pathname: "/book/today", params: { doctor: d.id } })}
-          />
-        </>
-      ) : (
-        <>
-          <View style={{ gap: 2 }}>
-            <Text style={[tType.labelS, { fontSize: 13, color: t.ink }]}>Next: {d.status.day}</Text>
-            <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>{d.status.line}</Text>
-          </View>
-          <Button
-            size="md"
-            variant="outline"
-            label="Ask for a day"
-            accessibilityLabel={`Ask ${d.name} for a day`}
-            onPress={() => router.push({ pathname: "/book/day", params: { doctor: d.id } })}
-          />
-        </>
-      )}
     </View>
   );
 }

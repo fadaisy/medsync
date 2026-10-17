@@ -14,6 +14,9 @@
       ],
       "@clinical-rules/*": [
         "../packages/clinical-rules/*"
+      ],
+      "@patient/*": [
+        "../lib/patient/*"
       ]
     },
     "resolveJsonModule": true,

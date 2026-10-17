@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 
 import {
   Band,
+  Button,
   Card,
   Chip,
   ChipRow,
@@ -16,21 +17,25 @@ import {
   Segments,
   StatusPill,
 } from "@/components/tide";
+import { lastDays } from "@/data/health-log";
+import { useReadings } from "@/data/readings";
 import {
-  DIARY,
+  chartRange,
   DIARY_SLOTS,
   DIARY_WORDS,
   diaryClass,
+  insight,
   judge,
   METRICS,
-  READING_TIMES,
-  seriesInput,
-  SUGAR_SERIES,
+  readingsIn,
+  SUGAR_CHIPS,
+  sugarDiary,
   targetBand,
+  weekSeries,
 } from "@/data/trends";
 import { lastSevenDays } from "@/features/care/logic";
 import { WeekChart } from "@/features/care/week-chart";
-import { THRESHOLDS_NOTE } from "@/lib/readings";
+import { readingValueText, THRESHOLDS_NOTE } from "@/lib/readings";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
@@ -40,38 +45,44 @@ const TABS = (["bp", "sugar", "weight", "pulse"] as const).map((key) => ({
   label: METRICS[key].name,
 }));
 
-/** Health trends (board TTrends, PRD F-16). Demo data until Gate CG (law L2). */
+const SHORT_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const hhmmOf = (iso: string) => {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
+/**
+ * Health trends (board TTrends, PRD F-16), from the patient's own readings
+ * of the last seven days. A day with no reading is a gap in the chart. Only
+ * the patient sees these; the screen says so.
+ */
 export default function TrendsScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
   const [metric, setMetric] = useState<Metric>("bp");
   const [ctx, setCtx] = useState<SugarContext>("fasting");
+  const { readings, loading, error, retry } = useReadings();
 
-  const base = METRICS[metric];
-  const sugar = SUGAR_SERIES.find((s) => s.ctx === ctx) ?? SUGAR_SERIES[0];
-  const m =
-    metric === "sugar"
-      ? {
-          ...base,
-          a: sugar.a,
-          l1: sugar.name,
-          label: `Blood sugar · ${sugar.name.toLowerCase()}`,
-          insight: sugar.insight,
-        }
-      : base;
+  const m = METRICS[metric];
+  const chip = SUGAR_CHIPS.find((c) => c.ctx === ctx) ?? SUGAR_CHIPS[0];
+  const label = metric === "sugar" ? `Blood sugar · ${chip.name.toLowerCase()}` : m.label;
+  const dates = lastDays(now);
+  const series = weekSeries(readings, metric, ctx, dates);
   const band = targetBand(metric, ctx);
-  const judged = m.a.map((_, i) => judge(seriesInput(m, i, ctx)));
+  const range = chartRange(m, [...series.a, ...(series.b ?? [])], band);
+  const judged = series.inputs.map((i) => (i ? judge(i) : null));
   const week = lastSevenDays(now);
-  const lastI = m.a.length - 1;
-  const latest = m.b ? `${m.a[lastI]}/${m.b[lastI]}` : String(m.a[lastI]);
+  const list = readingsIn(readings, metric, ctx, dates);
+  const latest = list[0];
+  const latestJudged = latest ? judge(latest.input) : null;
   const status =
-    judged[lastI].tone === "stable" ? { ...judged[lastI], word: "In your range" } : judged[lastI];
+    latestJudged?.tone === "stable" ? { ...latestJudged, word: "In your range" } : latestJudged;
 
   return (
     <Screen
       back={{ label: "Care" }}
-      demo
       title="Health trends"
       headerRight={
         <Press
@@ -97,7 +108,7 @@ export default function TrendsScreen() {
         <View style={{ gap: tSpace[2] }}>
           <Text style={[tType.bodyS, { color: t.ink2 }]}>When was it measured?</Text>
           <ChipRow scroll>
-            {SUGAR_SERIES.map((s) => (
+            {SUGAR_CHIPS.map((s) => (
               <Chip
                 key={s.ctx}
                 label={s.name}
@@ -109,122 +120,157 @@ export default function TrendsScreen() {
           </ChipRow>
           {band ? (
             <Text style={[tType.bodyS, { color: t.ink2 }]}>
-              Your target {sugar.name.toLowerCase()}: up to {band.hi} {m.unit}
+              Target {chip.name.toLowerCase()}: up to {band.hi} {m.unit}
             </Text>
           ) : null}
         </View>
       ) : null}
 
-      <Card radius={tRadius.panel} style={{ paddingTop: tSpace[4] }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            paddingHorizontal: 4,
-          }}
-        >
-          <View style={{ gap: 2, flex: 1 }}>
-            <Text style={[tType.bodyS, { color: t.ink2 }]}>{m.label} · this week</Text>
-            <View style={{ flexDirection: "row", alignItems: "baseline", gap: 5 }}>
-              <Text style={[tType.numeral, { color: t.ink }]}>{latest}</Text>
-              <Text style={[tType.bodyM, { fontSize: 14, color: t.ink2 }]}>{m.unit}</Text>
+      {loading && !readings.length ? (
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>Loading your readings…</Text>
+      ) : error ? (
+        <View style={{ gap: tSpace[2], alignItems: "flex-start" }}>
+          <Text style={[tType.bodyM, { color: t.ink2 }]}>Couldn&apos;t load your readings.</Text>
+          <Button label="Try again" variant="outline" size="sm" onPress={retry} />
+        </View>
+      ) : (
+        <>
+          <Card radius={tRadius.panel} style={{ paddingTop: tSpace[4] }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                paddingHorizontal: 4,
+              }}
+            >
+              <View style={{ gap: 2, flex: 1 }}>
+                <Text style={[tType.bodyS, { color: t.ink2 }]}>{label} · this week</Text>
+                <View style={{ flexDirection: "row", alignItems: "baseline", gap: 5 }}>
+                  <Text style={[tType.numeral, { color: t.ink }]}>
+                    {latest ? readingValueText(latest.input).split(" ")[0] : "–"}
+                  </Text>
+                  <Text style={[tType.bodyM, { fontSize: 14, color: t.ink2 }]}>{m.unit}</Text>
+                </View>
+              </View>
+              {status ? <StatusPill tone={status.tone} label={status.word} /> : null}
             </View>
-          </View>
-          <StatusPill tone={status.tone} label={status.word} />
-        </View>
-        <WeekChart
-          a={m.a}
-          b={m.b}
-          lo={m.lo}
-          hi={m.hi}
-          grid={m.grid}
-          band={band}
-          days={week.map((d, i) => (i === 6 ? "Today" : d.name.slice(0, 3)))}
-          judged={judged}
-          label={`${m.label} over the last seven days`}
-        />
-        <View
-          style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[3.5], paddingHorizontal: 4 }}
-        >
-          <Legend color={t.ink} label={m.l1} line />
-          {m.l2 ? <Legend color={t.cascade[2]} label={m.l2} line /> : null}
-          {band ? <Legend color={t.caution.text} label="Above target" /> : null}
-        </View>
-      </Card>
+            <WeekChart
+              a={series.a}
+              b={series.b}
+              lo={range.lo}
+              hi={range.hi}
+              grid={range.grid}
+              band={band}
+              days={week.map((d, i) => (i === 6 ? "Today" : d.name.slice(0, 3)))}
+              judged={judged}
+              label={`${label} over the last seven days`}
+            />
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: tSpace[3.5],
+                paddingHorizontal: 4,
+              }}
+            >
+              <Legend color={t.ink} label={m.l1} line />
+              {m.l2 ? <Legend color={t.cascade[2]} label={m.l2} line /> : null}
+              {band ? <Legend color={t.caution.text} label="Outside target" /> : null}
+            </View>
+          </Card>
 
-      {metric === "sugar" ? <SugarDiary days={week.map((d) => d.name.slice(0, 3))} /> : null}
+          {metric === "sugar" ? (
+            <SugarDiary
+              cells={sugarDiary(readings, dates)}
+              days={week.map((d) => d.name.slice(0, 3))}
+            />
+          ) : null}
 
-      <Band
-        style={{
-          flexDirection: "row",
-          gap: tSpace[3],
-          alignItems: "flex-start",
-          borderRadius: tRadius.cardLg,
-        }}
-      >
-        <View
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 17,
-            backgroundColor: t.bandGlass,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon name="trend" size={17} color={t.onBand} />
-        </View>
-        <View style={{ flex: 1, gap: 3 }}>
-          <Text style={[tType.label, { fontSize: 15, color: t.onBand }]}>{m.insight}</Text>
-          <Text style={[tType.bodyS, { color: t.onBand2 }]}>
-            Your care team sees the same chart.
-          </Text>
-        </View>
-      </Band>
-
-      <Text
-        accessibilityRole="header"
-        style={[tType.heading, { fontSize: 18, lineHeight: 24, color: t.ink }]}
-      >
-        Readings
-      </Text>
-      <Card padding={0} style={{ gap: 0, overflow: "hidden" }}>
-        {[6, 5, 4, 3].map((i, n) => (
-          <View
-            key={i}
+          <Band
             style={{
               flexDirection: "row",
-              alignItems: "center",
               gap: tSpace[3],
-              paddingVertical: tSpace[3],
-              paddingHorizontal: tSpace[4],
-              borderTopWidth: n ? 1 : 0,
-              borderTopColor: t.surface3,
+              alignItems: "flex-start",
+              borderRadius: tRadius.cardLg,
             }}
           >
-            <View style={{ width: 52 }}>
-              <Text style={[tType.labelS, { fontSize: 13, color: t.ink2 }]}>
-                {week[i].name.slice(0, 3)} {week[i].date}
-              </Text>
-              <Text style={[tType.bodyS, { color: t.ink2 }]}>{READING_TIMES[i]}</Text>
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: t.bandGlass,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Icon name="trend" size={17} color={t.onBand} />
             </View>
-            <Text style={[tType.heading, { flex: 1, color: t.ink, fontVariant: ["tabular-nums"] }]}>
-              {m.b ? `${m.a[i]}/${m.b[i]}` : m.a[i]}{" "}
-              <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>{m.unit}</Text>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={[tType.label, { fontSize: 15, color: t.onBand }]}>
+                {insight(metric, series, dates)}
+              </Text>
+              <Text style={[tType.bodyS, { color: t.onBand2 }]}>
+                Only you can see this chart. Show it at your visit.
+              </Text>
+            </View>
+          </Band>
+
+          <Text
+            accessibilityRole="header"
+            style={[tType.heading, { fontSize: 18, lineHeight: 24, color: t.ink }]}
+          >
+            Readings
+          </Text>
+          {list.length ? (
+            <Card padding={0} style={{ gap: 0, overflow: "hidden" }}>
+              {list.slice(0, 8).map((r, n) => {
+                const d = new Date(r.at);
+                const j = judge(r.input);
+                return (
+                  <View
+                    key={r.id}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: tSpace[3],
+                      paddingVertical: tSpace[3],
+                      paddingHorizontal: tSpace[4],
+                      borderTopWidth: n ? 1 : 0,
+                      borderTopColor: t.surface3,
+                    }}
+                  >
+                    <View style={{ width: 52 }}>
+                      <Text style={[tType.labelS, { fontSize: 13, color: t.ink2 }]}>
+                        {SHORT_DAYS[d.getDay()]} {d.getDate()}
+                      </Text>
+                      <Text style={[tType.bodyS, { color: t.ink2 }]}>{hhmmOf(r.at)}</Text>
+                    </View>
+                    <Text
+                      style={[
+                        tType.heading,
+                        { flex: 1, color: t.ink, fontVariant: ["tabular-nums"] },
+                      ]}
+                    >
+                      {readingValueText(r.input).split(" ")[0]}{" "}
+                      <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>{m.unit}</Text>
+                    </Text>
+                    <StatusPill tone={j.tone} label={j.word} />
+                  </View>
+                );
+              })}
+            </Card>
+          ) : (
+            <Text style={[tType.bodyM, { color: t.ink2 }]}>
+              No readings of this kind in the last seven days. Tap + to log one.
             </Text>
-            <StatusPill tone={judged[i].tone} label={judged[i].word} />
-          </View>
-        ))}
-      </Card>
-      <View style={{ gap: tSpace[1] }}>
-        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3, textAlign: "center" }]}>
-          Illustrative values. Targets set per patient by the clinician.
-        </Text>
-        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3, textAlign: "center" }]}>
-          {THRESHOLDS_NOTE}
-        </Text>
-      </View>
+          )}
+        </>
+      )}
+      <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3, textAlign: "center" }]}>
+        {THRESHOLDS_NOTE}
+      </Text>
     </Screen>
   );
 }
@@ -256,9 +302,9 @@ const cellColours = (t: Tide, c: DiaryClass) =>
   })[c];
 
 /** "Your sugar diary": seven days × six times of day, each cell judged against its own target. */
-function SugarDiary({ days }: { days: string[] }) {
+function SugarDiary({ cells: values, days }: { cells: (number | null)[][]; days: string[] }) {
   const t = useTide();
-  const cells = DIARY.map((row) =>
+  const cells = values.map((row) =>
     row.map((v, j) => ({ v, c: diaryClass(v, DIARY_SLOTS[j].ctx) })),
   );
   const shown = new Set(cells.flat().map((x) => x.c));

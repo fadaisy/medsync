@@ -1,11 +1,20 @@
 import type { NotifFilter, NotifGroup } from "@/data/notifications";
-import type { Href } from "expo-router";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
-import { Button, Chip, ChipRow, Icon, IconDisc, Press, Screen, TextLink } from "@/components/tide";
-import { medicinesRepo, useMedicines } from "@/data/medicines";
+import {
+  Button,
+  Chip,
+  ChipRow,
+  Icon,
+  IconDisc,
+  Note,
+  Press,
+  Screen,
+  TextLink,
+} from "@/components/tide";
+import { medicinesRepo } from "@/data/medicines";
 import { GROUP_WORDS, notificationsRepo, useNotifications } from "@/data/notifications";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
@@ -20,26 +29,28 @@ const FILTERS: { key: NotifFilter; label: string }[] = [
 const GROUPS: NotifGroup[] = ["today", "yesterday", "earlier"];
 
 /**
- * Notifications (F-10): grouped by day, filterable, each with the action it
+ * Notifications (F-06): the messages MedSync sent this patient and the
+ * medicines due now, grouped by day and filterable, each with the action it
  * asks for inside the row so "I took it" never needs another screen.
  */
 export default function NotificationsScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
-  const { items, read, unread } = useNotifications();
-  const { doses } = useMedicines(now);
+  const { items, unread, status } = useNotifications();
   const [filter, setFilter] = useState<NotifFilter>("all");
   const shown = items.filter((n) => filter === "all" || n.type === filter);
+  const canMarkAll = items.some((n) => n.unread && n.dispatchIds.length > 0);
 
   return (
     <Screen
       back={{ label: "Home" }}
-      demo
       title="Notifications"
       subtitle={unread ? `${unread} new` : "All caught up"}
       headerRight={
-        unread ? <TextLink label="Mark all read" onPress={notificationsRepo.markAllRead} /> : null
+        canMarkAll ? (
+          <TextLink label="Mark all read" onPress={notificationsRepo.markAllRead} />
+        ) : null
       }
     >
       <ChipRow scroll>
@@ -54,8 +65,29 @@ export default function NotificationsScreen() {
         ))}
       </ChipRow>
 
-      {shown.length === 0 ? (
-        <Text style={[tType.bodyM, { color: t.ink2 }]}>Nothing here yet</Text>
+      {status === "loading" && items.length === 0 ? (
+        <View style={{ paddingVertical: tSpace[6], alignItems: "center" }}>
+          <ActivityIndicator color={t.ink3} accessibilityLabel="Loading" />
+        </View>
+      ) : null}
+      {status === "error" ? (
+        <View style={{ gap: tSpace[3] }}>
+          <Note tone="plain">Couldn&apos;t load your messages. Try again.</Note>
+          <Button
+            label="Try again"
+            variant="soft"
+            size="md"
+            icon="replay"
+            onPress={notificationsRepo.reload}
+          />
+        </View>
+      ) : null}
+      {status === "ready" && shown.length === 0 ? (
+        <Note tone="plain">
+          {filter === "all"
+            ? "Nothing here yet. Messages about your visits and medicines show here."
+            : "Nothing here yet."}
+        </Note>
       ) : null}
 
       {GROUPS.map((g) => {
@@ -75,12 +107,11 @@ export default function NotificationsScreen() {
               }}
             >
               {rows.map((n, i) => {
-                const isNew = !read[n.id];
-                const doseId = n.action?.kind === "takeDose" ? n.action.doseId : null;
-                const dose = doseId ? doses.find((d) => d.id === doseId) : undefined;
+                const href = n.href;
+                const action = n.action;
                 const open = () => {
-                  notificationsRepo.markRead(n.id);
-                  if (n.href) router.push(n.href as Href);
+                  notificationsRepo.markRead(n);
+                  if (href) router.push(href);
                 };
                 return (
                   <View
@@ -98,14 +129,14 @@ export default function NotificationsScreen() {
                       <Press
                         onPress={open}
                         haptic={false}
-                        accessibilityRole={n.href ? "link" : "text"}
-                        accessibilityLabel={`${isNew ? "New. " : ""}${n.title}. ${n.line}. ${n.time}`}
+                        accessibilityRole={href ? "link" : "text"}
+                        accessibilityLabel={`${n.unread ? "New. " : ""}${n.title}. ${n.line}. ${n.time}`}
                         style={{ gap: 2 }}
                       >
                         <View
                           style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}
                         >
-                          {isNew ? (
+                          {n.unread ? (
                             <View
                               accessibilityElementsHidden
                               style={{
@@ -121,7 +152,7 @@ export default function NotificationsScreen() {
                               tType.label,
                               {
                                 flex: 1,
-                                fontFamily: isNew ? tFont.bold : tFont.semibold,
+                                fontFamily: n.unread ? tFont.bold : tFont.semibold,
                                 color: t.ink,
                               },
                             ]}
@@ -136,42 +167,24 @@ export default function NotificationsScreen() {
                         </View>
                         <Text style={[tType.bodyS, { color: t.ink2 }]}>{n.line}</Text>
                       </Press>
-                      {n.action?.kind === "takeDose" && dose ? (
-                        dose.takenAt ? (
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: tSpace[1],
-                              marginTop: tSpace[1.5],
-                            }}
-                          >
-                            <Icon name="check" size={16} color={t.accentText} strokeWidth={2.6} />
-                            <Text style={[tType.labelS, { color: t.accentText }]}>
-                              Taken at {dose.takenAt}
-                            </Text>
-                          </View>
-                        ) : (
-                          <Button
-                            size="sm"
-                            label="I took it"
-                            style={{ alignSelf: "flex-start", marginTop: tSpace[1.5] }}
-                            onPress={() => {
-                              medicinesRepo.take(dose.id, now);
-                              notificationsRepo.markRead(n.id);
-                            }}
-                          />
-                        )
+                      {action?.kind === "takeDose" ? (
+                        <Button
+                          size="sm"
+                          label="I took it"
+                          icon="check"
+                          style={{ alignSelf: "flex-start", marginTop: tSpace[1.5] }}
+                          onPress={() => medicinesRepo.take(action.doseId, now)}
+                        />
                       ) : null}
-                      {n.action?.kind === "link" ? (
+                      {action?.kind === "link" ? (
                         <Button
                           size="sm"
                           variant="soft"
-                          label={n.action.label}
+                          label={action.label}
                           style={{ alignSelf: "flex-start", marginTop: tSpace[1.5] }}
                           onPress={() => {
-                            notificationsRepo.markRead(n.id);
-                            if (n.action?.kind === "link") router.push(n.action.href as Href);
+                            notificationsRepo.markRead(n);
+                            router.push(action.href);
                           }}
                         />
                       ) : null}

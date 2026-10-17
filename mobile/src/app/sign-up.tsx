@@ -3,16 +3,20 @@ import type { PinAnchor } from "@/features/auth/map-pin";
 import type { SignupDraft, Step } from "@/features/auth/rules";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import { Alert } from "react-native";
 
 import { Button, Note, Screen, TextLink } from "@/components/tide";
 import {
   fetchSignupNotice,
+  saveHomePin,
   signInWithPassword,
   signupFromAppOn,
   submitSignup,
 } from "@/data/signup";
+import { pinLatLng } from "@/features/auth/map-pin";
 import {
   buildSubmission,
+  HOME_PIN_CONSENT,
   initialDraft,
   signupKey,
   stepOfField,
@@ -38,7 +42,8 @@ import { useNow } from "@/lib/use-now";
  * web action; on success the done screen shows, and "Go to my home" signs in
  * with the same email and password, after which the root gate moves the
  * patient into the app (signing in earlier would drop this screen before
- * "Welcome" could show).
+ * "Welcome" could show). Signed in, the home pin is saved if the patient
+ * agreed to it (`saveHomePin`).
  */
 export default function SignUpScreen() {
   const router = useRouter();
@@ -112,7 +117,22 @@ export default function SignUpScreen() {
     const out = await signInWithPassword(draft.email, draft.password);
     setBusy(false);
     // On success the root gate replaces this screen with the app.
-    if (!out.ok) setProblem(out.message);
+    if (!out.ok) {
+      setProblem(out.message);
+      return;
+    }
+    // The home pin, only with its yes. The screen may already be gone, so a
+    // failure is said in a system alert; it never undoes the account.
+    if (!draft.pinConsent || !draft.pin) return;
+    const at = pinLatLng(draft.pin, anchor);
+    const saved = at ? await saveHomePin(at, HOME_PIN_CONSENT.version, new Date()) : false;
+    if (!saved)
+      Alert.alert(
+        "Your home pin was not saved",
+        at
+          ? "Your account is ready. We couldn't save the pin, so nothing about your home is kept."
+          : "Your account is ready. The pin needs your phone's location, so nothing about your home is kept.",
+      );
   };
 
   if (step === "done")

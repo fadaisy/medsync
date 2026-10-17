@@ -7,11 +7,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, HelpButton, Icon, IconDisc, Press, Toast } from "@/components/tide";
 import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
+import { lastTimeLine, useReadings } from "@/data/readings";
 import { MedicineSheet } from "@/features/home/medicine-sheet";
 import { ReadingSheet } from "@/features/home/reading-sheet";
-import { savedWords } from "@/lib/flags";
+import { flag } from "@/lib/flags";
 import { useNow } from "@/lib/use-now";
 import { motion } from "@/motion/presets";
+import { savedLine } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -20,7 +22,9 @@ type SheetKind = "reading" | "medicine" | null;
 /**
  * The Plus (F-05): what is due right now, then three bubbles that fan out of
  * the plus. A reading and a dose are logged in place on a sheet, so the
- * common case is two taps; "Tell my team" opens the chat.
+ * common case is two taps. "Tell my team" opens the chat only while chat is
+ * switched on (`mobileChat`); until a clinician inbox exists it is "Book a
+ * visit" instead.
  */
 export default function AddScreen() {
   const t = useTide();
@@ -29,6 +33,9 @@ export default function AddScreen() {
   const reduced = useReducedMotion();
   const now = useNow();
   const { dueNow } = useMedicines(now);
+  const { readings } = useReadings();
+  const last = readings[0];
+  const chat = flag("mobileChat");
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [toast, setToast] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,15 +75,25 @@ export default function AddScreen() {
       dy: 104,
       onPress: () => setSheet("medicine"),
     },
-    {
-      key: "team",
-      label: "Tell my team",
-      icon: "message",
-      color: t.area.team,
-      dx: -96,
-      dy: 56,
-      onPress: () => router.push("/care/chat"),
-    },
+    chat
+      ? {
+          key: "team",
+          label: "Tell my team",
+          icon: "message",
+          color: t.area.team,
+          dx: -96,
+          dy: 56,
+          onPress: () => router.push("/care/chat"),
+        }
+      : {
+          key: "book",
+          label: "Book a visit",
+          icon: "calendar",
+          color: t.area.team,
+          dx: -96,
+          dy: 56,
+          onPress: () => router.push("/book"),
+        },
   ];
 
   return (
@@ -127,16 +144,13 @@ export default function AddScreen() {
               <Button
                 size="sm"
                 label="I took it"
-                onPress={() => {
-                  medicinesRepo.take(due.id, now);
-                  say(savedWords("it"));
-                }}
+                onPress={async () => say(savedLine(await medicinesRepo.take(due.id, now), "Saved"))}
               />
             </View>
           ) : null}
           <Press
             onPress={() => setSheet("reading")}
-            accessibilityLabel="Evening blood pressure. Due at 20:00. Log it now."
+            accessibilityLabel="Log a reading"
             style={{
               flexDirection: "row",
               alignItems: "center",
@@ -149,9 +163,11 @@ export default function AddScreen() {
           >
             <IconDisc name="activity" size={40} color={t.area.readings} bg={t.surface2} />
             <View style={{ flex: 1 }}>
-              <Text style={[tType.label, { color: t.ink }]}>Evening blood pressure</Text>
+              <Text style={[tType.label, { color: t.ink }]}>Log a reading</Text>
               <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
-                Due at 20:00 · your doctor asked for it
+                {last
+                  ? `Last: ${lastTimeLine(readings, last.input.kind, now)}`
+                  : "Pressure, sugar, weight or pulse"}
               </Text>
             </View>
             <Icon name="forward" size={20} color={t.ink3} />

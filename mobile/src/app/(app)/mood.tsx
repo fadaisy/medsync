@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 
-import { MoodFace, Note, Screen, Segments } from "@/components/tide";
-import { countMoods, useMood, YEAR_MIX } from "@/data/mood";
+import { Button, MoodFace, Note, Screen, Segments } from "@/components/tide";
+import { countMoods, useMood, yearMix } from "@/data/mood";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -13,19 +13,21 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 /**
  * How you have felt (F-02 mood): the week, the month as a calendar of faces,
- * and the year as good / okay / not well bars. Demo data (law L2).
+ * and the year as good / okay / not well bars, from the faces the patient
+ * picks on Home (kind 'mood' in their own log, ADR 0342). Only they see it.
  */
 export default function MoodScreen() {
   const t = useTide();
   const now = useNow();
-  const { month } = useMood();
+  const { week, month, rows, loading, error, retry } = useMood(now);
   const [view, setView] = useState<View3>("week");
-  const week = month.slice(-7);
   const weekCount = countMoods(week);
   const monthCount = countMoods(month);
+  const year = yearMix(rows, now);
+  const none = !rows.some((r) => r.kind === "mood");
 
   return (
-    <Screen back={{ label: "Me" }} demo overline="Me · Mood" title="How you have felt">
+    <Screen back={{ label: "Me" }} overline="Me · Mood" title="How you have felt">
       <Segments
         tone="accent"
         options={[
@@ -36,6 +38,19 @@ export default function MoodScreen() {
         value={view}
         onChange={setView}
       />
+
+      {loading && none ? (
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>Loading…</Text>
+      ) : error ? (
+        <View style={{ gap: tSpace[2], alignItems: "flex-start" }}>
+          <Text style={[tType.bodyM, { color: t.ink2 }]}>Couldn&apos;t load your moods.</Text>
+          <Button label="Try again" variant="outline" size="sm" onPress={retry} />
+        </View>
+      ) : none ? (
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>
+          Nothing yet. Pick a face on Home each day, and your weeks and months show here.
+        </Text>
+      ) : null}
 
       {view === "week" ? (
         <View
@@ -105,27 +120,35 @@ export default function MoodScreen() {
           }}
         >
           <Text style={[tType.overline, { color: t.ink3 }]}>Month by month</Text>
-          {YEAR_MIX.map(([good, okay, low], i) => (
+          {year.map((mix, i) => (
             <View
               key={i}
               accessible
-              accessibilityLabel={`${MONTHS[i]}: ${good}% good, ${okay}% okay, ${low}% not well`}
+              accessibilityLabel={
+                mix
+                  ? `${MONTHS[i]}: ${mix[0]}% good, ${mix[1]}% okay, ${mix[2]}% not well`
+                  : `${MONTHS[i]}: nothing logged`
+              }
               style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2] }}
             >
               <Text style={[tType.caption, { width: 32, color: t.ink2 }]}>{MONTHS[i]}</Text>
-              <View
-                style={{
-                  flex: 1,
-                  height: 12,
-                  borderRadius: 6,
-                  overflow: "hidden",
-                  flexDirection: "row",
-                }}
-              >
-                <View style={{ flex: good, backgroundColor: t.mood.good }} />
-                <View style={{ flex: okay, backgroundColor: t.mood.okay }} />
-                <View style={{ flex: low, backgroundColor: t.mood.low }} />
-              </View>
+              {mix ? (
+                <View
+                  style={{
+                    flex: 1,
+                    height: 12,
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    flexDirection: "row",
+                  }}
+                >
+                  <View style={{ flex: mix[0], backgroundColor: t.mood.good }} />
+                  <View style={{ flex: mix[1], backgroundColor: t.mood.okay }} />
+                  <View style={{ flex: mix[2], backgroundColor: t.mood.low }} />
+                </View>
+              ) : (
+                <Text style={[tType.micro, { flex: 1, color: t.ink3 }]}>Nothing logged</Text>
+              )}
             </View>
           ))}
           <View style={{ flexDirection: "row", gap: tSpace[3], marginTop: tSpace[1] }}>
@@ -142,11 +165,9 @@ export default function MoodScreen() {
       ) : null}
 
       <Note icon="lock" tone="plain">
-        Only you and your care team see this
+        Only you can see this
       </Note>
-      <Note>
-        If you feel not well a few days in a row, we will ask if you want to talk to someone.
-      </Note>
+      <Note>Not well a few days in a row? Book a visit, or press Help if it cannot wait.</Note>
     </Screen>
   );
 }

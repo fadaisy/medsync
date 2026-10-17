@@ -22,6 +22,7 @@ import { searchPlaces, signupFromAppOn } from "@/data/signup";
 import { MapPin } from "@/features/auth/map-pin";
 import {
   checkDob,
+  HOME_PIN_CONSENT,
   isEmail,
   MINOR_NOTE,
   NAME_MAX,
@@ -320,8 +321,8 @@ export function PlaceStep({
               // Declining takes the pin away with it: nothing is kept without the yes.
               patch(draft.pinConsent ? { pinConsent: false, pin: null } : { pinConsent: true })
             }
-            title="Keep a pin of my home"
-            sub="Used only to help an ambulance or health worker find you. Only your care team sees it. You can say no."
+            title={HOME_PIN_CONSENT.title}
+            sub={HOME_PIN_CONSENT.words}
           />
           {draft.pinConsent ? (
             <>
@@ -332,8 +333,9 @@ export function PlaceStep({
                 onAnchor={onAnchor}
               />
               <Text style={[tType.bodyS, { fontSize: 12, lineHeight: 16, color: t.ink3 }]}>
-                Tap the map to move the pin. It helps an ambulance or health worker find you. Only
-                your care team sees it.
+                {
+                  'Tap "Use my location" first, then tap the map to move the pin. Without your location the pin is not saved.'
+                }
               </Text>
             </>
           ) : null}

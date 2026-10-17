@@ -1,10 +1,9 @@
 import { Text, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
-import Svg, { Rect } from "react-native-svg";
 
 import { Icon } from "@/components/tide/icon";
 import { Button } from "@/components/tide/primitives";
-import { barsFor, feeText, payLook } from "@/features/visits/logic";
+import { feeText, payLook } from "@/features/visits/logic";
 import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -13,8 +12,8 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * The tear-off ticket (prompt §8.3), for a place in today's line and for an
  * asked-for clinic day. A navy top band, a perforation with 28pt notches cut
  * in the page colour, the details (Time is always "Not promised", law L8), a
- * payment strip in one of three looks that never read alike, a drawn barcode
- * and the code in mono. It pops in once (`ticketPop`).
+ * payment strip in one of three looks that never read alike, and the code
+ * in mono, which is what the desk reads (no drawn barcode: nothing could scan it). It pops in once (`ticketPop`).
  *
  * The three money looks: paid is a lagoon strip with a tilted PAID stamp on
  * the band; not paid is an outlined strip with "Pay now"; no fee is a quiet
@@ -25,8 +24,8 @@ const NOTCH = 28;
 export function Ticket({
   kind,
   hospitalName,
-  number,
-  ahead,
+  stage,
+  aheadLine,
   day,
   dayLine,
   sessionLine,
@@ -43,9 +42,13 @@ export function Ticket({
 }: {
   kind: "queue" | "day";
   hospitalName: string;
-  /** Queue: your number and the people before you. */
-  number?: number;
-  ahead?: number;
+  /**
+   * Queue: the stage as a word ("Place saved", "In the line") and, only once
+   * the patient is present, "N ahead of you" (ADR 0084 §6). Never a place
+   * number, a total or a wait; null hides it.
+   */
+  stage?: string;
+  aheadLine?: string | null;
   /** Day: "20", "TUE · OCT", "Morning · doors 08:00", "Waiting for the clinic to confirm". */
   day?: string;
   dayLine?: string;
@@ -100,7 +103,7 @@ export function Ticket({
   }[look];
   const label =
     kind === "queue"
-      ? `Queue ticket, number ${number ?? ""}, ${ahead ?? 0} before you. Code ${code.split("").join(" ")}`
+      ? `Queue ticket, ${stage ?? ""}${aheadLine ? `, ${aheadLine}` : ""}. Code ${code.split("").join(" ")}`
       : `Visit ticket, ${dayLine ?? ""} ${day ?? ""}, ${sessionLine ?? ""}. Code ${code.split("").join(" ")}`;
 
   return (
@@ -143,42 +146,24 @@ export function Ticket({
         </View>
 
         {kind === "queue" ? (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-            }}
-          >
-            <View style={{ gap: 2 }}>
-              <Text style={[tType.bodyS, { color: t.onBand2 }]}>Your place in line</Text>
-              <Text
-                style={{
-                  fontFamily: tFont.monoBold,
-                  fontSize: 72,
-                  lineHeight: 72,
-                  letterSpacing: -2.8,
-                  color: t.accent,
-                }}
-              >
-                #{number}
+          <View style={{ gap: tSpace[1] }}>
+            <Text style={[tType.bodyS, { color: t.onBand2 }]}>Your place in line</Text>
+            <Text
+              style={{
+                fontFamily: tFont.bold,
+                fontSize: 34,
+                lineHeight: 38,
+                letterSpacing: -0.8,
+                color: t.accent,
+              }}
+            >
+              {stage}
+            </Text>
+            {aheadLine ? (
+              <Text style={[tType.heading, { fontFamily: tFont.bold, color: t.onBand }]}>
+                {aheadLine}
               </Text>
-            </View>
-            <View style={{ alignItems: "flex-end", paddingBottom: tSpace[1.5] }}>
-              <Text
-                style={{
-                  fontFamily: tFont.monoBold,
-                  fontSize: 22,
-                  lineHeight: 26,
-                  color: t.onBand,
-                }}
-              >
-                {ahead}
-              </Text>
-              <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.onBand2 }]}>
-                before you
-              </Text>
-            </View>
+            ) : null}
           </View>
         ) : (
           <>
@@ -358,17 +343,6 @@ export function Ticket({
         </View>
 
         <View style={{ alignItems: "center", gap: tSpace[1.5], paddingTop: tSpace[1] }}>
-          <Svg
-            width={230}
-            height={44}
-            viewBox="0 0 230 44"
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          >
-            {barsFor(code).map((b) => (
-              <Rect key={b.x} x={b.x} y={0} width={b.w} height={44} fill={t.ink} />
-            ))}
-          </Svg>
           <Text selectable style={[tType.code, { color: t.ink }]}>
             {code}
           </Text>

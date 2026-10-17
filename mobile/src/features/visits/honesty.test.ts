@@ -22,6 +22,8 @@ const ALL = [
   "components/tide/ticket.tsx",
   "features/visits/parts.tsx",
   "data/visits.ts",
+  "features/home/doctors.tsx",
+  "data/doctors.ts",
 ];
 
 describe("queue honesty (law L8)", () => {
@@ -39,6 +41,19 @@ describe("queue honesty (law L8)", () => {
     expect(src).not.toMatch(/your turn[^\n]{0,60}\d{1,2}[:.]\d{2}/);
     expect(src).not.toMatch(/\d{1,2}[:.]\d{2}[^\n]{0,60}your turn/);
     expect(src).not.toMatch(/(seen|see you|your hour) at \d{1,2}[:.]\d{2}/);
+  });
+
+  it.each(ALL)("%s prints no place number, total or line count (ADR 0084 §6)", (file) => {
+    const src = read(file);
+    expect(src).not.toMatch(
+      /you would be|your number|You: #|#\$\{|in line ·|\} waiting|before you`/i,
+    );
+    expect(src).not.toMatch(/ordinal\(|yourNumber\(|positionNumber/);
+  });
+
+  it("the only count is the ahead line, from the server, on the ticket screen", () => {
+    expect(read("app/(app)/book/today.tsx")).toContain("aheadWords(");
+    expect(read("data/visits.ts")).toContain('rpc("patient_intake_ahead"');
   });
 
   it("the ticket always says the time is not promised", () => {

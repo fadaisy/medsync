@@ -22,8 +22,8 @@ import {
   TextField,
 } from "@/components/tide";
 import { loadVisit, moveOptions, visitActions } from "@/data/visits";
-import { dayKeyOf, dayNumberOf, ordinal, shortDayOf, weekdayOf } from "@/features/visits/logic";
-import { HONEST, TravelCard } from "@/features/visits/parts";
+import { dayKeyOf, dayNumberOf, shortDayOf, weekdayOf } from "@/features/visits/logic";
+import { HONEST } from "@/features/visits/parts";
 import {
   APPOINTMENT_REASONS,
   canArrive,
@@ -32,6 +32,7 @@ import {
   RESCHEDULABLE,
   STATUS_LABEL,
 } from "@/lib/booking";
+import { flag } from "@/lib/flags";
 import { confirmationPending } from "@/lib/notifications";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -48,8 +49,10 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  *   (the server refuses), so the control is off there.
  * - "Cancel" asks why, as the server requires.
  *
- * A household member's visit is logistics only: no action is offered.
- * Travel times and the map are illustrative.
+ * A household member's visit is logistics only: no action is offered. The
+ * visit shows its status, never a place number (ADR 0084 §6); no map or travel
+ * time is drawn, because none is known. The message button shows only with
+ * `mobileChat` on (ADR 0342 §4).
  */
 type Mode = "idle" | "move" | "cancel";
 type Outcome = { ok: true } | { ok: false; error: string };
@@ -123,12 +126,7 @@ export default function VisitScreen() {
     APPOINTMENT_REASONS.find((r) => r.value === visit.reason)?.title ?? visit.departmentName;
   const key = dayKeyOf(visit.startsAtIso);
   const ended = cancellationSentence(visit.status, visit.cancelledReason);
-  const place = [
-    visit.positionNumber !== null
-      ? `${ordinal(visit.positionNumber)} in line`
-      : STATUS_LABEL[visit.status],
-    visit.bookingCode ? `code ${visit.bookingCode}` : null,
-  ]
+  const place = [STATUS_LABEL[visit.status], visit.bookingCode ? `code ${visit.bookingCode}` : null]
     .filter(Boolean)
     .join(" · ");
   const reasonShort = reason.trim().length < MIN_REASON_CHARS;
@@ -333,20 +331,22 @@ export default function VisitScreen() {
             Your clinician
           </Text>
         </View>
-        <Press
-          onPress={() => router.push("/care/chat")}
-          accessibilityLabel="Message your care team"
-          style={{
-            width: 46,
-            height: 46,
-            borderRadius: 23,
-            backgroundColor: t.accent,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon name="message" size={20} color={t.onAccent} />
-        </Press>
+        {flag("mobileChat") ? (
+          <Press
+            onPress={() => router.push("/care/chat")}
+            accessibilityLabel="Message your care team"
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 23,
+              backgroundColor: t.accent,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon name="message" size={20} color={t.onAccent} />
+          </Press>
+        ) : null}
       </Card>
 
       {notice ? (
@@ -365,11 +365,12 @@ export default function VisitScreen() {
           Getting there
         </Text>
         <Text style={[tType.bodyM, { fontFamily: tFont.regular, color: t.ink2 }]}>
-          {visit.hospitalName}
+          {`${visit.hospitalName} · ${visit.departmentName}`}
         </Text>
-        <TravelCard />
         <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-          Map and travel times illustrative.
+          {visit.bookingCode
+            ? `Show code ${visit.bookingCode} at the desk when you arrive.`
+            : "Show your MedSync number at the desk when you arrive."}
         </Text>
       </View>
 

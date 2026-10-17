@@ -42,7 +42,7 @@ export interface SignupDraft {
   refusedMinor: boolean;
   place: PlaceChoice | null;
   village: string;
-  /** Phone only: no column holds it yet, and it is never sent. */
+  /** Saved to the patient's own profile after sign-in, only with `pinConsent` (migration 0170). */
   pin: PinSpot | null;
   pinConsent: boolean;
   email: string;
@@ -268,6 +268,19 @@ export function buildSubmission(d: SignupDraft, notice: ShownNotice, sms: ShownS
     smsSha: sms?.sha,
   };
 }
+
+/**
+ * The home pin's consent: the exact words the patient agrees to, and the
+ * version stored with the pin (`patient_profiles.home_pin_consent_version`).
+ * Change a word, change the version. The words claim nothing about who reads
+ * it, because nothing reads it yet (migration 0170).
+ */
+export const HOME_PIN_CONSENT = {
+  version: "home-pin-v1",
+  title: "Keep a pin of my home",
+  words:
+    "Saved with your MedSync account, to help an ambulance or health worker find you. You can say no.",
+} as const;
 
 /** A v4 UUID for the action's idempotency key (`^[0-9a-f-]{36}$`). Called once per draft. */
 export function signupKey(random: () => number = Math.random): string {
