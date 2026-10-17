@@ -6,6 +6,14 @@
  */
 import { z } from "zod";
 
+import {
+  PartnerFieldsPayload,
+  PartnerLegalPayload,
+  PartnerPackingPayload,
+  PartnerTestsPayload,
+  ReferralOpsPayload,
+  ReferralWordingPayload,
+} from "@/lib/exchange/partners";
 import { compareDecimal, isDecimal } from "@/lib/lab/catalogue";
 import { RULE_IDS } from "@/lib/lab/qc-rules";
 import { inForceAt } from "@/lib/lab/ranges";
@@ -269,6 +277,13 @@ export const PAYLOADS = {
       .array(z.object({ key: z.string().regex(/^[a-z][a-zA-Z0-9]{1,30}$/), label: hmisKey }))
       .min(1, "Keep at least one column."),
   }),
+  /** Lab Phase 4 (gate-a-proposal §3.1, A4): key = the partner id (`{partnerId}:{category}` for packing). */
+  partner_tests: PartnerTestsPayload,
+  partner_packing: PartnerPackingPayload,
+  partner_legal: PartnerLegalPayload,
+  partner_fields: PartnerFieldsPayload,
+  referral_wording: ReferralWordingPayload,
+  referral_ops: ReferralOpsPayload,
 } as const;
 /** E-LAB3-12: kinds the laboratory lead signs alone (in force on the lead's signature). */
 export const LEAD_ONLY_KINDS: readonly string[] = [
@@ -277,6 +292,13 @@ export const LEAD_ONLY_KINDS: readonly string[] = [
   "device_qc_rule",
   "competency_validity",
   "register_config",
+  // Lab Phase 4: the lab lead alone (tests, packing, operational settings); the data protection lead alone, in the
+  // lead slot (legal record, field list). referral_wording needs the IPC lead (lead slot) and the CSO.
+  "partner_tests",
+  "partner_packing",
+  "partner_legal",
+  "partner_fields",
+  "referral_ops",
 ];
 export type ConfigKind = keyof typeof PAYLOADS;
 export type Payload<K extends ConfigKind> = z.infer<(typeof PAYLOADS)[K]>;

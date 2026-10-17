@@ -251,10 +251,18 @@ export async function saveConfigDraft(
  */
 async function anotherSigner(
   tx: EmrTx,
-  s: { userId: string; hospitalId: string; as: "lead" | "cso" | "focal" },
+  s: { userId: string; hospitalId: string; as: Signer },
   now: Date,
 ): Promise<boolean> {
   const day = now.toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" });
+  if (s.as === "dp_lead" || s.as === "ipc_lead") {
+    const role = s.as === "dp_lead" ? "data_protection_lead" : "ipc_lead";
+    const r = (await tx.execute(
+      sql`SELECT 1 FROM hospital_designations WHERE hospital_id = ${s.hospitalId} AND role = ${role}
+            AND user_id <> ${s.userId} AND starts_on <= ${day} AND (ends_on IS NULL OR ends_on >= ${day}) LIMIT 1`,
+    )) as unknown as unknown[] | { rows: unknown[] };
+    return (Array.isArray(r) ? r : r.rows).length > 0;
+  }
   const q =
     s.as === "lead"
       ? sql`SELECT 1 FROM department_heads h JOIN hospital_departments d ON d.id = h.department_id
@@ -274,10 +282,23 @@ async function anotherSigner(
  * (a different person). The CSO's signature checks the payload once more and supersedes the version in
  * force; released results keep the one they were read against (DS-9).
  */
+/**
+ * Who signs: the lead slot is the laboratory lead's, the data protection lead's (partner_legal, partner_fields)
+ * or the IPC lead's (referral_wording); the second slot is the CSO's, or the HMIS focal person's for
+ * `hmis_mapping` (E-LAB3-12; Lab Phase 4 A4).
+ */
+export type Signer = "lead" | "cso" | "focal" | "dp_lead" | "ipc_lead";
+const LEAD_SLOT: readonly Signer[] = ["lead", "dp_lead", "ipc_lead"];
+const leadSlotFor = (kind: string): Signer =>
+  kind === "partner_legal" || kind === "partner_fields"
+    ? "dp_lead"
+    : kind === "referral_wording"
+      ? "ipc_lead"
+      : "lead";
+
 export async function signConfig(
   tx: EmrTx,
-  /** The second slot is the CSO's, or the HMIS focal person's for `hmis_mapping` (E-LAB3-12). */
-  signer: { userId: string; hospitalId: string; as: "lead" | "cso" | "focal" },
+  signer: { userId: string; hospitalId: string; as: Signer },
   input: { configId: string; exceptionNote: string | null },
   now: Date,
 ): Promise<{ kind: ConfigKind; key: string }> {
@@ -296,8 +317,28 @@ export async function signConfig(
   const note = input.exceptionNote?.trim() || null;
   if (note && note.length < 10) throw invalid("Say in a sentence why no second person can sign.");
   const leadOnly = LEAD_ONLY_KINDS.includes(c.kind);
+  const inLeadSlot = LEAD_SLOT.includes(signer.as);
   // Who may sign is decided before what is signed (S53).
-  if (signer.as === "lead") {
+  if (inLeadSlot && signer.as !== leadSlotFor(c.kind))
+    throw new EmrWriteError(
+      "forbidden",
+      leadSlotFor(c.kind) === "dp_lead"
+        ? "The data protection lead signs this."
+        : leadSlotFor(c.kind) === "ipc_lead"
+          ? "The infection prevention lead signs this."
+          : "The laboratory lead signs this.",
+    );
+  if (signer.as === "dp_lead" || signer.as === "ipc_lead") {
+    const day = now.toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" });
+    const role = signer.as === "dp_lead" ? "data_protection_lead" : "ipc_lead";
+    const r = (await tx.execute(
+      sql`SELECT 1 FROM hospital_designations WHERE hospital_id = ${signer.hospitalId} AND role = ${role}
+            AND user_id = ${signer.userId} AND starts_on <= ${day} AND (ends_on IS NULL OR ends_on >= ${day}) LIMIT 1`,
+    )) as unknown as unknown[] | { rows: unknown[] };
+    if ((Array.isArray(r) ? r : r.rows).length === 0)
+      throw new EmrWriteError("forbidden", "You are not designated to sign this here.");
+  }
+  if (inLeadSlot) {
     if (c.leadSignedBy)
       throw new EmrWriteError("conflict", "The laboratory lead has already signed.");
     if (c.authoredBy === signer.userId) {
@@ -343,7 +384,7 @@ export async function signConfig(
         ? "Set every boundary first: each category must start exactly where the one below ends, with one side included."
         : "This draft is incomplete; open it and finish it before signing.",
     );
-  if (signer.as === "lead" && !leadOnly) {
+  if (inLeadSlot && !leadOnly) {
     await tx
       .update(labSignedConfigs)
       .set({
@@ -370,7 +411,7 @@ export async function signConfig(
     .update(labSignedConfigs)
     .set({
       status: "signed",
-      ...(signer.as === "lead"
+      ...(inLeadSlot
         ? { leadSignedBy: signer.userId, leadSignedAt: now }
         : { csoSignedBy: signer.userId, csoSignedAt: now }),
       inForceFrom: now,

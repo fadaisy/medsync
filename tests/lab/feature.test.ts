@@ -126,15 +126,15 @@ describe("Lab Phase 3 flags (gate-a-proposal §13)", () => {
     expect(await all()).toEqual([false, true, false, false, true, false, true, true]);
   });
 
-  it("CF-3: production refuses all eight while the Phase 3 copy is a draft", async () => {
+  // The CSO signed the Phase 3 copy on 16 Oct 2026 (PR #237), so production now honours the flags; the
+  // draft-blocks-production rule itself is proven for Phase 4 in tests/lab/phase-4/flags.test.ts.
+  it("CF-3: production honours all eight now the Phase 3 copy is signed", async () => {
     const { LAB3_COPY_STATUS } = await import("@/content/lab-phase-3");
-    expect(LAB3_COPY_STATUS.status).toBe("draft");
+    expect(LAB3_COPY_STATUS.status).toBe("signed");
     for (const e of [...ENVS, "LAB_WORKSPACE", "LAB_UNITS_RANGES", "LAB_BEDSIDE"])
       vi.stubEnv(e, "1");
     vi.stubEnv("VERCEL_ENV", "production");
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(await all()).toEqual(Array(8).fill(false));
-    warn.mockRestore();
+    expect(await all()).toEqual(Array(8).fill(true));
   });
 
   it("Appendix A is in the product word for word (§14), with the nine HM-3 counting rules (§8.3)", async () => {

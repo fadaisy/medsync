@@ -550,6 +550,8 @@ export const specimens = pgTable(
     /** 0109: payment state at collection, and the reason when collected while awaiting (PY-3). */
     paymentState: text("payment_state"),
     paymentReason: text("payment_reason"),
+    /** 0151 (RF-2): an aliquot's parent tube. */
+    parentSpecimenId: uuid("parent_specimen_id"),
   },
   (t) => [
     check(
@@ -650,6 +652,9 @@ export const diagnosticReports = pgTable(
     lotId: uuid("lot_id"),
     /** 0114 (E-LAB3-08): components held for QC, still preliminary inside a final report. */
     qcHeld: text("qc_held").array(),
+    /** 0152 (RB-1, RB-8): the referral it came back on, and where it was done and how it reached the record. */
+    referralId: uuid("referral_id"),
+    provenance: jsonb("provenance"),
   },
   (t) => [
     ...factEnvelopeExtras("diagnostic_reports", t),

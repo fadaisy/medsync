@@ -5,12 +5,15 @@ import { sortReview } from "@/components/emr/results/model";
 import { ReviewList } from "@/components/emr/results/review-list";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
-import { clinicianOptions, loadResultsToReview } from "@/lib/emr/read/results";
+import { clinicianOptions, identitiesFor, loadResultsToReview } from "@/lib/emr/read/results";
 import { reportsWithOpenAlert } from "@/lib/lab/criticals/read";
+import { labReferralLiveFor } from "@/lib/lab/feature";
+import { loadSentOutForClinician } from "@/lib/lab/referral-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PinnedCriticals } from "../_components/critical-alerts";
 import { PageHeader } from "../_components/page-header";
 import { myCriticals } from "../_lib/criticals";
+import { SentOut } from "./sent-out";
 
 export const metadata: Metadata = { title: "Results to review · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -23,11 +26,17 @@ export const dynamic = "force-dynamic";
 export default async function ResultsToReviewPage() {
   const scope = await requireDoctorScope();
   if (!emrV1LiveFor(scope.hospitalId)) notFound();
-  const [items, staff, criticals] = await Promise.all([
+  const [items, staff, criticals, sentOut] = await Promise.all([
     loadResultsToReview(scope),
     clinicianOptions(scope.hospitalId),
     myCriticals(scope.userId, scope.hospitalId),
+    labReferralLiveFor(scope.hospitalId) ? loadSentOutForClinician(scope) : Promise.resolve([]),
   ]);
+  const sentIds = await identitiesFor(
+    scope,
+    sentOut.map((r) => r.patientUserId),
+    "doctor_sent_out",
+  );
   // CA-12: a report with an open critical alert is acknowledged through its alert, never in a batch.
   const alerted = criticals
     ? await reportsWithOpenAlert(
@@ -56,6 +65,7 @@ export default async function ResultsToReviewPage() {
           time={criticals.time}
         />
       ) : null}
+      <SentOut rows={sentOut} ids={sentIds} />
       <ReviewList
         // An open critical alert first (CA-12): the baseline left it fourth of four.
         items={[...sortReview(items)].sort(

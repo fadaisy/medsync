@@ -1,0 +1,11 @@
+{
+  "note": "HM-14 hand count for tests/lab/phase-4/hmis104.test.ts (October 2026, Africa/Kampala, row VS02 mapped to test.referred). Referred: rf-1, rf-2, rf-3, rf-5, rf-11 (handed over in October; rf-4 went in September; rf-6 outbreak and rf-7 cancelled are left out; rf-8 another hospital; rf-9 another test; rf-10 never sent). Turnaround: rf-1 4 days, rf-2 2.5 days, rf-4 5 days, mean 3.83. Pending at 31 OCT 24:00: rf-3 (at hub), rf-11 (sent 31 OCT 22:30); rf-5 was rejected on 7 OCT. Prepared by Claude, 17 OCT 2026; to be reviewed by the laboratory lead (STOP 3).",
+  "cells": {
+    "VS02|No. of Specimen Referred": {
+      "value": 5,
+      "sources": ["rf-1", "rf-2", "rf-3", "rf-5", "rf-11"]
+    },
+    "VS02|Average Turn Around Time (Days)": { "value": 3.83, "sources": ["rf-1", "rf-2", "rf-4"] },
+    "VS02|No. of Pending Results/Feedback": { "value": 2, "sources": ["rf-3", "rf-11"] }
+  }
+}

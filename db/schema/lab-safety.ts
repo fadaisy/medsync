@@ -210,6 +210,10 @@ export const labResultSnapshots = pgTable("lab_result_snapshots", {
   /* 0112 (Law 4, LU-3): the lots in use and the QC status at release. */
   lots: jsonb("lots"),
   qc: jsonb("qc"),
+  /* 0152 (RB-3, RB-4): whose range flagged it, and the value, unit, range and flag as printed or sent. */
+  rangeSource: text("range_source").notNull().default("hospital"),
+  printed: jsonb("printed"),
+  interfaced: jsonb("interfaced"),
 });
 
 /* ─── 0104 ranges and limits ───────────────────────────────────────── */

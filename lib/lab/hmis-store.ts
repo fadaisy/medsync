@@ -1,7 +1,15 @@
 import "server-only";
 
 import type { HmisRole } from "./hmis-designations";
-import type { Cell, CellChange, Count105, HmisForm, HmisMapping, HmisReport } from "./hmis105";
+import type {
+  Cell,
+  CellChange,
+  Count105,
+  HmisForm,
+  HmisMapping,
+  HmisReferralRecord,
+  HmisReport,
+} from "./hmis105";
 import type { Payload } from "./signed-config";
 import type { StockKind, TxKind } from "./stock";
 import type { EmrTx } from "@/lib/emr/db";
@@ -17,6 +25,7 @@ import {
   hmisDesignations,
   labControlChecks,
   labHmisReports,
+  labReferrals,
   labSignedConfigs,
   labStockItems,
   labStockTransactions,
@@ -27,7 +36,7 @@ import {
 } from "@/db/schema";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { saveConfigDraft, signConfig } from "./catalogue-v2";
+import { loadConfigs, saveConfigDraft, signConfig } from "./catalogue-v2";
 import { eqaRoundsFor } from "./eqa-store";
 import { hmisRolesFor } from "./hmis-designations";
 import { hmisForm } from "./hmis-form";
@@ -36,11 +45,13 @@ import {
   count105,
   hmisTransition,
   mappingSignErrors,
+  recordsCover104,
+  referralCells104,
   revisionDiff,
   rowKey,
   toCsv,
 } from "./hmis105";
-import { PAYLOADS } from "./signed-config";
+import { inForce, PAYLOADS } from "./signed-config";
 import { addDays, daysOfMonth, endOfDay } from "./stock";
 
 /**
@@ -385,11 +396,68 @@ export async function countMonth(
   mapping: HmisMapping,
   manual: Record<string, number>,
 ): Promise<Count105> {
-  const [sources, menu] = await Promise.all([
+  const [sources, menu, from] = await Promise.all([
     monthSources(tx, hospitalId, month),
     inHouseMenu(tx, hospitalId),
+    referralRecordsFrom(tx, hospitalId),
   ]);
-  return count105({ hospitalId, month, timeZone: TZ, mapping, menu, manual, ...sources });
+  const counted = count105({ hospitalId, month, timeZone: TZ, mapping, menu, manual, ...sources });
+  // Lab Phase 4 (HM-14..HM-17): from the month the lab lead declares, 10.4 comes from referral records; the
+  // hand-entered 10.4 cells are retired for that month (HM-16).
+  if (!recordsCover104(month, from)) return counted;
+  const rows = hmisForm()
+    .form.rows.filter((r) => r.section === "10.4")
+    .map((r) => r.code)
+    .filter((c): c is string => !!c);
+  const cells = referralCells104({
+    hospitalId,
+    month,
+    timeZone: TZ,
+    mapping,
+    rows,
+    referrals: await referralRecords(tx, hospitalId),
+  });
+  const ignored = Object.keys(cells).filter((k) => counted.cells[k]?.manual);
+  return {
+    ...counted,
+    cells: { ...counted.cells, ...cells },
+    manualIgnored: [...counted.manualIgnored, ...ignored],
+  };
+}
+
+/** HM-16: the signed operational setting naming the first month 10.4 comes from records. */
+export async function referralRecordsFrom(tx: EmrTx, hospitalId: string): Promise<string | null> {
+  const ops = inForce(await loadConfigs(tx, hospitalId), "referral_ops", "settings", new Date());
+  return ops?.payload.hmis104RecordsFrom ?? null;
+}
+
+/** HM-14: every referral of the hospital, with its tests (by code), for the 10.4 count. */
+async function referralRecords(tx: EmrTx, hospitalId: string): Promise<HmisReferralRecord[]> {
+  const rows = await tx
+    .select({
+      id: labReferrals.id,
+      routine: labReferrals.routine,
+      state: labReferrals.state,
+      sentAt: labReferrals.sentAt,
+      completedAt: labReferrals.completedAt,
+      stateAt: labReferrals.stateAt,
+      testCode: testCatalogue.code,
+    })
+    .from(labReferrals)
+    .innerJoin(specimens, eq(specimens.id, labReferrals.specimenId))
+    .innerJoin(encounterOrders, eq(encounterOrders.id, specimens.orderId))
+    .leftJoin(testCatalogue, eq(testCatalogue.id, encounterOrders.testId))
+    .where(eq(labReferrals.hospitalId, hospitalId));
+  return rows.map((r) => ({
+    referralId: r.id,
+    hospitalId,
+    testCodes: r.testCode ? [r.testCode] : [],
+    routine: r.routine,
+    state: r.state,
+    sentAt: r.sentAt,
+    completedAt: r.completedAt,
+    stateAt: r.stateAt,
+  }));
 }
 
 /* ─── HM-10..HM-12: the report's lifecycle ──────────────────────────────── */
@@ -526,7 +594,15 @@ export async function saveManualCells(
   const r = await latest(tx, a.hospitalId, input.month);
   if (!r) throw conflict("Generate the month first.");
   if (r.state !== "draft") throw conflict("Only a draft takes hand-entered numbers.");
-  const allowed = new Set(manualKeys(f.form));
+  const records = recordsCover104(input.month, await referralRecordsFrom(tx, a.hospitalId));
+  const allowed = new Set(
+    manualKeys(f.form).filter(
+      (k) =>
+        !(
+          records && f.form.rows.some((r) => r.section === "10.4" && k.startsWith(`${rowKey(r)}|`))
+        ),
+    ),
+  );
   const manual = { ...(r.manual as Record<string, number>) };
   const cells = { ...(r.cells as Record<string, StoredCell>) };
   for (const [key, value] of Object.entries(input.cells)) {
