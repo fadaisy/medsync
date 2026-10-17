@@ -1,81 +1,52 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { TabList, Tabs, TabSlot, TabTrigger } from "expo-router/ui";
-import { StyleSheet } from "react-native";
-import Animated from "react-native-reanimated";
+import type { NavPlace } from "@/components/tide/tide-nav";
+import { Tabs, useRouter } from "expo-router";
+import { useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import {
-  TAB_BAR_GAP,
-  TAB_BAR_HEIGHT,
-  TAB_TRANSITION,
-  TabBarClearance,
-  TabButton,
-  useTabBarFrame,
-} from "@/components/ui/tab-bar";
-import { useTheme } from "@/theme/theme";
-import { withAlpha } from "@/theme/tokens";
+import { TideNav } from "@/components/tide/tide-nav";
+import { useMedicines } from "@/data/medicines";
+import { useNow } from "@/lib/use-now";
 
 /**
- * The four places a patient can stand: home (the two doors), their visits,
- * the emergency contact, and settings. The doors themselves are NOT tabs —
- * ADR 0084 §2 makes them two unequal choices on one screen, and a tab bar
- * would make them equal. They push over the tabs from home, with a Back, and
- * the bar stays behind.
- *
- * Emergency is the one red thing in the app (ADR 0085 §5): it IS the
- * emergency affordance, so it is red at rest, and nothing else may be.
- *
- * Headless tabs from `expo-router/ui` rather than the React Navigation bar,
- * because the design IS the bar: a floating pill whose current tab opens into
- * a chip. `<TabList>` and `<TabTrigger>` must be literal here — the router
- * finds the tabs by walking this JSX — so the look lives in `tab-bar.tsx`
- * and only the assembly is on this page.
+ * The four places, Home, Visits, Care and Me, under Tide's floating pill
+ * (ADR 0340). The centre plus is not a tab: it opens "What would you like to
+ * do?" over the current screen (`/add`). Help is never in the nav; it is the
+ * red button in every screen's header (law L6).
  */
+const ROUTE_FOR: Record<NavPlace, string> = { home: "index", visits: "visits", care: "care", me: "me" };
+const PLACE_FOR: Record<string, NavPlace> = { index: "home", visits: "visits", care: "care", me: "me" };
+
 export default function TabsLayout() {
-  const frame = useTabBarFrame();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const { dueNow } = useMedicines(useNow());
 
   return (
-    <TabBarClearance>
-      <Tabs>
-        <TabSlot />
-        {/* The page dissolves into its own ground under the bar, so a list
-            scrolling past it fades out rather than colliding with it. */}
-        <LinearGradient
-          pointerEvents="none"
-          colors={[withAlpha(colors.background, 0), colors.background]}
-          locations={[0, 0.55]}
-          style={[styles.fade, { height: insets.bottom + TAB_BAR_GAP * 2 + TAB_BAR_HEIGHT + 24 }]}
-        />
-        {/* `asChild` so the pill itself can animate its width as the chip
-            moves — the plain TabList View cannot take a layout transition. */}
-        <TabList asChild>
-          <Animated.View layout={TAB_TRANSITION} style={frame}>
-            <TabTrigger name="index" href="/(app)/(tabs)" asChild>
-              <TabButton label="Home" icon="home-outline" iconActive="home" />
-            </TabTrigger>
-            <TabTrigger name="visits" href="/(app)/(tabs)/visits" asChild>
-              <TabButton label="Visits" icon="calendar-outline" iconActive="calendar" />
-            </TabTrigger>
-            <TabTrigger name="emergency" href="/(app)/(tabs)/emergency" asChild>
-              <TabButton
-                label="Emergency"
-                tone="critical"
-                icon="alert-circle-outline"
-                iconActive="alert-circle"
-              />
-            </TabTrigger>
-            <TabTrigger name="settings" href="/(app)/(tabs)/settings" asChild>
-              <TabButton label="Settings" icon="settings-outline" iconActive="settings" />
-            </TabTrigger>
-          </Animated.View>
-        </TabList>
-      </Tabs>
-    </TabBarClearance>
+    <Tabs
+      screenOptions={{ headerShown: false, animation: "fade" }}
+      tabBar={({ state, navigation }) => {
+        const current = PLACE_FOR[state.routes[state.index]?.name ?? "index"] ?? "home";
+        return (
+          <View
+            pointerEvents="box-none"
+            style={{ position: "absolute", left: 16, right: 16, bottom: 14 + insets.bottom }}
+          >
+            <TideNav
+              width={width - 32}
+              current={current}
+              careCount={dueNow.length}
+              onNavigate={(place) => navigation.navigate(ROUTE_FOR[place])}
+              onPlus={() => router.push("/add")}
+            />
+          </View>
+        );
+      }}
+    >
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="visits" />
+      <Tabs.Screen name="care" />
+      <Tabs.Screen name="me" />
+    </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  fade: { position: "absolute", left: 0, right: 0, bottom: 0 },
-});

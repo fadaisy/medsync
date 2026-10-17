@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { EmergencyNotice } from "@/components/patient/emergency-notice";
+import { HelpButton } from "@/components/tide";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { fetchPatientProfile } from "@/lib/booking";
@@ -31,6 +32,9 @@ import { font, radius, space } from "@/theme/tokens";
  * `consent` comes from the session provider, which also owns the reopen:
  * `consentAccepted()` flips the layout's guard and the tabs return.
  */
+/** The red Help (law L6): the consent gate is the only screen until it is clear, so it carries Help itself. */
+const HELP = <HelpButton source="consent" />;
+
 export default function ConsentScreen() {
   const { consent, consentAccepted, recheckConsent, signOut } = useSession();
   const styles = useStyles(makeStyles);
@@ -61,7 +65,7 @@ export default function ConsentScreen() {
   if (consent.kind === "checking" || consent.kind === "clear") {
     // `clear` only for the frame in which the guard flips and the tabs replace this screen.
     return (
-      <Screen>
+      <Screen trailing={HELP}>
         {emergency}
         <ActivityIndicator style={styles.loading} accessibilityLabel="Checking your account" />
       </Screen>
@@ -71,6 +75,7 @@ export default function ConsentScreen() {
   if (consent.kind === "unknown") {
     return (
       <Screen
+        trailing={HELP}
         title="We couldn't check your account"
         footer={<Button label="Try again" onPress={recheckConsent} />}
       >
@@ -133,6 +138,7 @@ function ConsentForm({
 
   return (
     <Screen
+      trailing={HELP}
       title="Please read and accept"
       footer={
         <Button

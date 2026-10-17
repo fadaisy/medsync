@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lab results</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* MedSync Tide dark (auto) */
+@media (prefers-color-scheme: dark){
+[data-screen]{background-color:#0b1120!important;color:#e8ecf3!important}
+[style*="background: #f6f7f9"]{background:#0b1120!important}
+[style*="background: #ffffff"]{background:#151d30!important}
+[style*="background: #f8fafc"]{background:#151d30!important}
+[style*="background: #f3f4f7"]{background:#1c2539!important}
+[style*="background: #eef0f4"]{background:#222c42!important}
+[style*="background: #e6e9ef"]{background:#2c3650!important}
+[style*="background: #f0fdfa"]{background:rgba(45,212,191,.12)!important}
+[style*="background: #ccfbf1"]{background:rgba(45,212,191,.18)!important}
+[style*="background: #eef2ff"]{background:rgba(99,102,241,.16)!important}
+[style*="background: #f5f3ff"]{background:rgba(124,58,237,.18)!important}
+[style*="background: #fdf3f9"]{background:rgba(192,38,211,.16)!important}
+[style*="background: #e0f2fe"]{background:rgba(14,165,233,.16)!important}
+[style*="background: #fef3c7"]{background:rgba(245,158,11,.18)!important}
+[style*="background: #fffbeb"]{background:rgba(245,158,11,.14)!important}
+[style*="background: #dcfce7"]{background:rgba(34,197,94,.16)!important}
+[style*="background: #f0fdf4"]{background:rgba(34,197,94,.12)!important}
+[style*="background: #fef2f2"]{background:rgba(220,38,38,.16)!important}
+[style*="background: #1b2540"]{background:#24314f!important}
+[style*="background: #1b2540"][style*="border-radius: 999px"]{background:#e8ecf3!important;color:#0b1120!important}
+[style*="color: #1b2540"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#e8ecf3!important}
+[style*="color: #4a5574"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a9b2c7!important}
+[style*="color: #5f6987"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#8f99b3!important}
+[style*="color: #8a93ab"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#6f7a96!important}
+[style*="color: #92400e"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#fbbf24!important}
+[style*="color: #15803d"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#4ade80!important}
+[style*="color: #166534"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#4ade80!important}
+[style*="color: #0f766e"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#5eead4!important}
+[style*="color: #4338ca"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a5b4fc!important}
+[style*="color: #312e81"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#c7d2fe!important}
+[style*="color: #4f46e5"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a5b4fc!important}
+[style*="color: #5b21b6"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#c4b5fd!important}
+[style*="color: #87236a"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#f0abfc!important}
+[style*="color: #0284c7"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#7dd3fc!important}
+[style*="color: #991b1b"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#fca5a5!important}
+[style*="color: #0d9488"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#2dd4bf!important}
+[style*="inset 0 0 0 1px #dde1ea"],[style*="inset 0 0 0 2px #dde1ea"],[style*="inset 0 0 0 1.5px #dde1ea"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #c5cbd8"],[style*="inset 0 0 0 2px #c5cbd8"],[style*="inset 0 0 0 1.5px #c5cbd8"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #eef0f4"],[style*="inset 0 0 0 2px #eef0f4"],[style*="inset 0 0 0 1.5px #eef0f4"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #dde1e9"],[style*="inset 0 0 0 2px #dde1e9"],[style*="inset 0 0 0 1.5px #dde1e9"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="rgba(27,37,64,.06)"]{box-shadow:0 1px 2px rgba(0,0,0,.3),0 10px 24px -14px rgba(0,0,0,.6)!important}
+[style*="rgba(246,247,249"]{background:linear-gradient(180deg,rgba(11,17,32,0),#0b1120 30%)!important}
+circle[stroke="#e6e9ef"],circle[stroke="#eef0f4"],line[stroke="#eef0f4"]{stroke:#2c3650}
+input,textarea{color:#e8ecf3!important}
+}
+</style>
+</helmet>
+<div data-screen style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f6f7f9; color: #1b2540; font-family: Figtree, sans-serif">
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="TCare.dc.html" aria-label="Back to Care" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #1b2540; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Care</a>
+    <a href="THelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 40px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font: 500 32px/36px Figtree, sans-serif; letter-spacing: -0.03em">Lab results</h1>
+      <span style="display: inline-flex; gap: 7px; align-items: center; font: 500 13px Figtree, sans-serif; color: #4a5574"><span style="width: 7px; height: 7px; border-radius: 999px; background: #7c3aed"></span>Released Wed 14 Oct</span>
+    </div>
+    <div style="display: flex; gap: 8px">
+      <span style="flex: 1; padding: 10px 12px; border-radius: 16px; background: #fef3c7; display: flex; flex-direction: column"><span style="font: 700 18px Figtree, sans-serif; color: #92400e">2</span><span style="font: 600 12px Figtree, sans-serif; color: #92400e">need attention</span></span>
+      <span style="flex: 1; padding: 10px 12px; border-radius: 16px; background: #dcfce7; display: flex; flex-direction: column"><span style="font: 700 18px Figtree, sans-serif; color: #15803d">8</span><span style="font: 600 12px Figtree, sans-serif; color: #15803d">healthy</span></span>
+      <span style="flex: 1; padding: 10px 12px; border-radius: 16px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22); display: flex; flex-direction: column"><span style="font: 700 18px Figtree, sans-serif">Fri 23</span><span style="font: 600 12px Figtree, sans-serif; color: #4a5574">your visit</span></span>
+    </div>
+      <section style="background: #ffffff; border-radius: 22px; padding: 12px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+        <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 6px">
+          <span style="width: 32px; height: 32px; border-radius: 10px; background: #f5f3ff; color: #7c3aed; display: grid; place-items: center; flex: none"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 16px/20px Figtree, sans-serif">HbA1c</span><span style="font: 500 12px Figtree, sans-serif; color: #4a5574">3-month sugar average</span></span>
+          <span style="height: 26px; padding: 0 10px; border-radius: 999px; background: #fef3c7; color: #92400e; font: 600 12px/26px Figtree, sans-serif">Above target</span>
+        </div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="display: flex; flex-direction: column; gap: 2px; flex: none"><span style="font: 700 30px/34px Figtree, sans-serif; letter-spacing: -0.02em">7.8<span style="font: 600 18px Figtree, sans-serif">%</span></span><span style="display: inline-flex; gap: 4px; align-items: center; font: 600 13px Figtree, sans-serif; color: #0f766e"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="stroke-width: 2.4" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>0.8 since July</span></div>
+            <svg width="190" height="66" viewBox="0 0 310 108" role="img" aria-label="HbA1c: January 9.2, April 8.9, July 8.6, October 7.8 percent; target below 7" style="display: block; margin-left: auto"><rect x="20" y="27" width="34" height="59" rx="8" fill="#c5cbd8"/><text x="37" y="21" text-anchor="middle" font-family="Figtree" font-size="12" font-weight="700" fill="#1b2540">9.2</text><text x="37" y="102" text-anchor="middle" font-family="Figtree" font-size="11" font-weight="600" fill="#4a5574">Jan</text><rect x="90" y="31" width="34" height="55" rx="8" fill="#c5cbd8"/><text x="107" y="25" text-anchor="middle" font-family="Figtree" font-size="12" font-weight="700" fill="#1b2540">8.9</text><text x="107" y="102" text-anchor="middle" font-family="Figtree" font-size="11" font-weight="600" fill="#4a5574">Apr</text><rect x="160" y="36" width="34" height="50" rx="8" fill="#c5cbd8"/><text x="177" y="30" text-anchor="middle" font-family="Figtree" font-size="12" font-weight="700" fill="#1b2540">8.6</text><text x="177" y="102" text-anchor="middle" font-family="Figtree" font-size="11" font-weight="600" fill="#4a5574">Jul</text><rect x="230" y="47" width="34" height="39" rx="8" fill="#1b2540"/><text x="247" y="41" text-anchor="middle" font-family="Figtree" font-size="12" font-weight="700" fill="#1b2540">7.8</text><text x="247" y="102" text-anchor="middle" font-family="Figtree" font-size="11" font-weight="600" fill="#4a5574">Oct</text><line x1="8" x2="302" y1="58" y2="58" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="5 5"/><text x="302" y="53" text-anchor="end" font-family="Figtree" font-size="11" font-weight="700" fill="#0f766e">Target below 7%</text></svg>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; padding: 8px 10px; margin-top: 6px; border-radius: 12px; background: #eef2ff; font: 500 13px/18px Figtree, sans-serif"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="color: #4f46e5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Improving. Nearly at target.</div>
+      </section>
+      <section style="background: #ffffff; border-radius: 22px; padding: 12px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+        <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 6px">
+          <span style="width: 32px; height: 32px; border-radius: 10px; background: #f5f3ff; color: #7c3aed; display: grid; place-items: center; flex: none"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-4 0-7 3-7 7 0 5 4 11 7 11s7-6 7-11c0-4-3-7-7-7z M12 8v6"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 16px/20px Figtree, sans-serif">Lipid profile</span><span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Cholesterol · fasting</span></span>
+          <span style="height: 26px; padding: 0 10px; border-radius: 999px; background: #fef3c7; color: #92400e; font: 600 12px/26px Figtree, sans-serif">Needs attention</span>
+        </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef0f4">
+            <span style="display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">LDL · bad</span><span style="font: 500 11px Figtree, sans-serif; color: #5f6987">Target below 2.6</span></span>
+            <svg width="64" height="14" preserveAspectRatio="none" viewBox="0 0 110 14" aria-hidden="true" style="display: block"><rect x="0" y="5" width="110" height="4" rx="2" fill="#eef0f4"/><rect x="0.0" y="5" width="57.2" height="4" rx="2" fill="#bbf7d0"/><circle cx="68.2" cy="7" r="5.5" fill="#92400e" stroke="#ffffff" stroke-width="2"/></svg>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">3.1 <span style="font: 500 11px Figtree, sans-serif; color: #4a5574">mmol/L</span></span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font: 600 11px/22px Figtree, sans-serif">Above target</span></span>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef0f4">
+            <span style="display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">HDL · good</span><span style="font: 500 11px Figtree, sans-serif; color: #5f6987">Best above 1.2</span></span>
+            <svg width="64" height="14" preserveAspectRatio="none" viewBox="0 0 110 14" aria-hidden="true" style="display: block"><rect x="0" y="5" width="110" height="4" rx="2" fill="#eef0f4"/><rect x="44.0" y="5" width="66.0" height="4" rx="2" fill="#bbf7d0"/><circle cx="47.7" cy="7" r="5.5" fill="#15803d" stroke="#ffffff" stroke-width="2"/></svg>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">1.3 <span style="font: 500 11px Figtree, sans-serif; color: #4a5574">mmol/L</span></span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #dcfce7; color: #15803d; font: 600 11px/22px Figtree, sans-serif">Good</span></span>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef0f4">
+            <span style="display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">Triglycerides</span><span style="font: 500 11px Figtree, sans-serif; color: #5f6987">Best below 1.7</span></span>
+            <svg width="64" height="14" preserveAspectRatio="none" viewBox="0 0 110 14" aria-hidden="true" style="display: block"><rect x="0" y="5" width="110" height="4" rx="2" fill="#eef0f4"/><rect x="0.0" y="5" width="46.8" height="4" rx="2" fill="#bbf7d0"/><circle cx="52.2" cy="7" r="5.5" fill="#92400e" stroke="#ffffff" stroke-width="2"/></svg>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">1.9 <span style="font: 500 11px Figtree, sans-serif; color: #4a5574">mmol/L</span></span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font: 600 11px/22px Figtree, sans-serif">A little high</span></span>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef0f4">
+            <span style="display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">Total</span><span style="font: 500 11px Figtree, sans-serif; color: #5f6987">Best below 5.0</span></span>
+            <svg width="64" height="14" preserveAspectRatio="none" viewBox="0 0 110 14" aria-hidden="true" style="display: block"><rect x="0" y="5" width="110" height="4" rx="2" fill="#eef0f4"/><rect x="0.0" y="5" width="55.0" height="4" rx="2" fill="#bbf7d0"/><circle cx="62.3" cy="7" r="5.5" fill="#92400e" stroke="#ffffff" stroke-width="2"/></svg>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">5.4 <span style="font: 500 11px Figtree, sans-serif; color: #4a5574">mmol/L</span></span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font: 600 11px/22px Figtree, sans-serif">A little high</span></span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; padding: 8px 10px; margin-top: 6px; border-radius: 12px; background: #eef2ff; font: 500 13px/18px Figtree, sans-serif"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="color: #4f46e5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Above target. Your doctor will discuss it Fri 23.</div>
+      </section>
+      <section style="background: #ffffff; border-radius: 22px; padding: 12px 14px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+        <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 6px">
+          <span style="width: 32px; height: 32px; border-radius: 10px; background: #f5f3ff; color: #7c3aed; display: grid; place-items: center; flex: none"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31 M14 9.3V1.99 M8.5 2h7 M14 9.3a6.5 6.5 0 1 1-4 0 M5.52 16h12.96"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 16px/20px Figtree, sans-serif">Kidney tests (RFTs)</span><span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Kidney function</span></span>
+          <span style="height: 26px; padding: 0 10px; border-radius: 999px; background: #dcfce7; color: #15803d; font: 600 12px/26px Figtree, sans-serif">All normal</span>
+        </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef0f4">
+            <span style="display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">eGFR</span><span style="font: 500 11px Figtree, sans-serif; color: #5f6987">Healthy above 60</span></span>
+            <svg width="64" height="14" preserveAspectRatio="none" viewBox="0 0 110 14" aria-hidden="true" style="display: block"><rect x="0" y="5" width="110" height="4" rx="2" fill="#eef0f4"/><rect x="55.0" y="5" width="55.0" height="4" rx="2" fill="#bbf7d0"/><circle cx="78.8" cy="7" r="5.5" fill="#15803d" stroke="#ffffff" stroke-width="2"/></svg>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">86 <span style="font: 500 11px Figtree, sans-serif; color: #4a5574">mL/min</span></span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #dcfce7; color: #15803d; font: 600 11px/22px Figtree, sans-serif">Good</span></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 7px 0; border-top: 1px solid #eef0f4"><span style="display: flex; justify-content: space-between; font: 600 13px Figtree, sans-serif"><span>Salts and wastes</span><span style="color: #15803d">All normal</span></span><span style="display: flex; flex-wrap: wrap; gap: 6px"><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: #f6f7f9; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Creatinine 88</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: #f6f7f9; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Urea 5.2</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: #f6f7f9; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Potassium 4.4</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: #f6f7f9; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Sodium 139</span></span></div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef0f4">
+            <span style="display: flex; flex-direction: column"><span style="font: 600 14px Figtree, sans-serif">Urine albumin</span><span style="font: 500 11px Figtree, sans-serif; color: #5f6987">Normal below 3</span></span>
+            <svg width="64" height="14" preserveAspectRatio="none" viewBox="0 0 110 14" aria-hidden="true" style="display: block"><rect x="0" y="5" width="110" height="4" rx="2" fill="#eef0f4"/><rect x="0.0" y="5" width="33.0" height="4" rx="2" fill="#bbf7d0"/><circle cx="23.1" cy="7" r="5.5" fill="#15803d" stroke="#ffffff" stroke-width="2"/></svg>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">2.1 <span style="font: 500 11px Figtree, sans-serif; color: #4a5574">mg/mmol</span></span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #dcfce7; color: #15803d; font: 600 11px/22px Figtree, sans-serif">Normal</span></span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; padding: 8px 10px; margin-top: 6px; border-radius: 12px; background: #eef2ff; font: 500 13px/18px Figtree, sans-serif"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="color: #4f46e5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Kidneys working well. Checked yearly.</div>
+      </section>
+    <span style="font: 500 12px/17px Figtree, sans-serif; color: #5f6987; text-align: center">Illustrative. Ranges pending CSO sign-off.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

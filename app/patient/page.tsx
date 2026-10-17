@@ -18,6 +18,7 @@ import {
   listRecentReadings,
   READING_KIND_LABEL,
 } from "@/lib/patient/self-tracking";
+import { formatReadingNote } from "@/lib/patient/self-tracking-constants";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import {
@@ -338,7 +339,9 @@ function ReadingRowItem({ reading, now }: { reading: ReadingRow; now: Date }) {
         {value ? (
           <span className="text-foreground text-body-m block font-mono tabular-nums">{value}</span>
         ) : reading.note ? (
-          <span className="text-foreground text-body-m block truncate">{reading.note}</span>
+          <span className="text-foreground text-body-m block truncate">
+            {formatReadingNote(reading.note)}
+          </span>
         ) : reading.severity !== null ? (
           <span className="text-foreground text-body-m block">
             Severity <span className="font-mono tabular-nums">{reading.severity}</span> of 5

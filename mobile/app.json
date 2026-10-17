@@ -23,7 +23,7 @@
       "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -59,7 +59,8 @@
           "locationWhenInUsePermission": "MedSync uses your location only to list the nearest hospitals when you ask for emergency help. It stays on your phone unless you choose to share it with a hospital.",
           "isAndroidBackgroundLocationEnabled": false
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

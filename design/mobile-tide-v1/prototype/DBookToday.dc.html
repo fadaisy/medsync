@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Come today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+@keyframes pop{0%{transform:scale(.92);opacity:0}100%{transform:scale(1);opacity:1}}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="DBook.dc.html" aria-label="Back" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Book a visit</a>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 40px; display: flex; flex-direction: column; gap: 16px">
+
+    <sc-if value="{{notJoined}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #5eead4">Today · Sat 17 Oct</span>
+        <h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Join today's line</h1>
+      </div>
+
+      <!-- clinics open today -->
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 15px Figtree, sans-serif">Clinics open now</span>
+        <div style="display: flex; gap: 8px; flex-shrink: 0; overflow-x: auto; margin: 0 -20px; padding: 0 20px 2px">
+          <button type="button" onClick="{{cdm}}" aria-pressed="{{cdmPr}}" style="flex: none; min-width: 128px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{cdmBg}}; color: {{cdmFg}}; box-shadow: {{cdmRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 14px Figtree, sans-serif">Diabetes clinic</span><span style="font: 500 12px Figtree, sans-serif; opacity: .8">Room 4 · 3 doctors</span></button><button type="button" onClick="{{copd}}" aria-pressed="{{copdPr}}" style="flex: none; min-width: 128px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{copdBg}}; color: {{copdFg}}; box-shadow: {{copdRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 14px Figtree, sans-serif">General clinic</span><span style="font: 500 12px Figtree, sans-serif; opacity: .8">OPD · 4 doctors</span></button><button type="button" onClick="{{ceye}}" aria-pressed="{{ceyePr}}" style="flex: none; min-width: 128px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{ceyeBg}}; color: {{ceyeFg}}; box-shadow: {{ceyeRing}}; display: flex; flex-direction: column; gap: 2px"><span style="font: 600 14px Figtree, sans-serif">Eye clinic</span><span style="font: 500 12px Figtree, sans-serif; opacity: .8">Room 9 · 1 doctor</span></button>
+        </div>
+      </div>
+
+      <!-- doctors and their lines -->
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font: 600 15px Figtree, sans-serif">Who do you want to see?</span><span style="font: 500 12px Figtree, sans-serif; color: #8f99b3">Line now · your number</span></span>
+        <button type="button" onClick="{{dany}}" aria-pressed="{{danyPr}}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{danyBg}}; color: #e8ecf3; box-shadow: {{danyRing}}">
+          <span style="width: 40px; height: 40px; border-radius: 999px; background: rgba(45,212,191,.12); color: #5eead4; display: grid; place-items: center; flex: none"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font: 600 15px Figtree, sans-serif">Any doctor</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Fastest · first one free sees you</span></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{anyQ}}</span><span style="font: 600 11px Figtree, sans-serif; color: #5eead4">{{anyYou}}</span></span>
+        </button>
+        <sc-if value="{{d0Has}}" hint-placeholder-val="{{true}}">
+        <button type="button" onClick="{{d0}}" aria-pressed="{{d0Pr}}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{d0Bg}}; color: #e8ecf3; box-shadow: {{d0Ring}}">
+          <span style="width: 40px; height: 40px; border-radius: 999px; background: {{d0Tint}}; color: {{d0Ink}}; display: grid; place-items: center; font: 700 13px Figtree, sans-serif; flex: none">{{d0Init}}</span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font: 600 15px Figtree, sans-serif">{{d0Name}}</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{d0Meta}}</span></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{d0Q}}</span><span style="font: 600 11px Figtree, sans-serif; color: {{d0YouC}}">{{d0You}}</span></span>
+        </button>
+        </sc-if>
+        <sc-if value="{{d1Has}}" hint-placeholder-val="{{true}}">
+        <button type="button" onClick="{{d1}}" aria-pressed="{{d1Pr}}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{d1Bg}}; color: #e8ecf3; box-shadow: {{d1Ring}}">
+          <span style="width: 40px; height: 40px; border-radius: 999px; background: {{d1Tint}}; color: {{d1Ink}}; display: grid; place-items: center; font: 700 13px Figtree, sans-serif; flex: none">{{d1Init}}</span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font: 600 15px Figtree, sans-serif">{{d1Name}}</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{d1Meta}}</span></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{d1Q}}</span><span style="font: 600 11px Figtree, sans-serif; color: {{d1YouC}}">{{d1You}}</span></span>
+        </button>
+        </sc-if>
+        <sc-if value="{{d2Has}}" hint-placeholder-val="{{true}}">
+        <button type="button" onClick="{{d2}}" aria-pressed="{{d2Pr}}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; text-align: left; background: {{d2Bg}}; color: #e8ecf3; box-shadow: {{d2Ring}}">
+          <span style="width: 40px; height: 40px; border-radius: 999px; background: {{d2Tint}}; color: {{d2Ink}}; display: grid; place-items: center; font: 700 13px Figtree, sans-serif; flex: none">{{d2Init}}</span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font: 600 15px Figtree, sans-serif">{{d2Name}}</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{d2Meta}}</span></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px"><span style="font: 700 15px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{d2Q}}</span><span style="font: 600 11px Figtree, sans-serif; color: {{d2YouC}}">{{d2You}}</span></span>
+        </button>
+        </sc-if>
+      </div>
+
+      <!-- the line, live -->
+      <div style="border-radius: 24px; padding: 14px 16px; background: #24314f; color: #ffffff; display: flex; flex-direction: column; gap: 10px">
+        <span style="display: flex; justify-content: space-between; font: 500 13px Figtree, sans-serif; color: #e8ecf3"><span>{{lineFor}}</span><span>{{waitingWord}}</span></span>
+        <div aria-label="{{lineAria}}" style="display: flex; gap: 4px; align-items: flex-end; flex-wrap: wrap">
+          <span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot0}}; display: {{dotShow0}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot1}}; display: {{dotShow1}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot2}}; display: {{dotShow2}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot3}}; display: {{dotShow3}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot4}}; display: {{dotShow4}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot5}}; display: {{dotShow5}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot6}}; display: {{dotShow6}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot7}}; display: {{dotShow7}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot8}}; display: {{dotShow8}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot9}}; display: {{dotShow9}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot10}}; display: {{dotShow10}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot11}}; display: {{dotShow11}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot12}}; display: {{dotShow12}}"></span><span style="width: 18px; height: 26px; border-radius: 9px 9px 5px 5px; background: {{dot13}}; display: {{dotShow13}}"></span><span style="width: 26px; height: 34px; border-radius: 13px 13px 7px 7px; background: #2dd4bf; color: #0b3b38; display: grid; place-items: center; font: 700 10px Figtree, sans-serif">You</span>
+        </div>
+        <span style="font: 600 17px Figtree, sans-serif">You would be number {{yourNo}}</span>
+      </div>
+
+      <!-- honest promise -->
+      <div style="border-radius: 20px; padding: 14px; background: rgba(99,102,241,.16); display: flex; gap: 10px">
+        <svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="color: #a5b4fc; margin-top: 2px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span style="font: 500 14px/20px Figtree, sans-serif"><b>We save your place in line. We cannot tell you the hour.</b> Doctors take longer with some people. We send you an SMS when 3 people are before you.</span>
+      </div>
+
+      <!-- payment -->
+      <sc-if value="{{hasFee}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font: 600 15px Figtree, sans-serif">Payment</span><span style="font: 700 17px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{feeWord}}</span></span>
+          <div style="display: flex; gap: 8px">
+          <button type="button" onClick="{{pmomo}}" aria-pressed="{{pmomoPr}}" style="flex: 1; min-width: 0; padding: 12px; border-radius: 18px; text-align: left; background: {{pmomoBg}}; color: #e8ecf3; box-shadow: {{pmomoRing}}; display: flex; flex-direction: column; gap: 6px">
+            <span style="width: 32px; height: 32px; border-radius: 999px; background: rgba(124,58,237,.18); color: #7c3aed; display: grid; place-items: center"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z M12 18h.01"/></svg></span>
+            <span style="font: 600 14px/18px Figtree, sans-serif">Mobile Money now</span><span style="font: 500 12px/16px Figtree, sans-serif; color: #a9b2c7">MTN or Airtel · skip the cash line</span>
+          </button>
+          <button type="button" onClick="{{pdesk}}" aria-pressed="{{pdeskPr}}" style="flex: 1; min-width: 0; padding: 12px; border-radius: 18px; text-align: left; background: {{pdeskBg}}; color: #e8ecf3; box-shadow: {{pdeskRing}}; display: flex; flex-direction: column; gap: 6px">
+            <span style="width: 32px; height: 32px; border-radius: 999px; background: rgba(124,58,237,.18); color: #7c3aed; display: grid; place-items: center"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 7h20v12H2z M2 11h20 M6 15h4"/></svg></span>
+            <span style="font: 600 14px/18px Figtree, sans-serif">Pay at the desk</span><span style="font: 500 12px/16px Figtree, sans-serif; color: #a9b2c7">Cash or card before you are seen</span>
+          </button>
+          </div>
+          <sc-if value="{{isMomo}}" hint-placeholder-val="{{true}}">
+            <span style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: #151d30; box-shadow: inset 0 0 0 1px #2c3650; font: 500 13px/18px Figtree, sans-serif"><span style="font: 700 13px 'Geist Mono', monospace">0772 ··· 418</span><span style="color: #a9b2c7">A prompt comes to this phone. Enter your PIN to pay.</span></span>
+          </sc-if>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #8f99b3">Fee set by the hospital. You get a receipt by SMS.</span>
+        </div>
+      </sc-if>
+
+      <!-- bring -->
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 15px Figtree, sans-serif">Please bring</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <span style="height: 34px; padding: 0 12px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 500 13px Figtree, sans-serif">Your medicines</span>
+          <span style="height: 34px; padding: 0 12px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 500 13px Figtree, sans-serif">Clinic book</span>
+          <span style="height: 34px; padding: 0 12px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; align-items: center; font: 500 13px Figtree, sans-serif">Your sugar meter</span>
+        </div>
+      </div>
+
+      <button type="button" onClick="{{join}}" style="height: 56px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 17px Figtree, sans-serif; display: flex; gap: 8px; align-items: center; justify-content: center">{{saveWord}}<svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <a href="DBookDay.dc.html" style="text-align: center; font: 600 14px Figtree, sans-serif; color: #a5b4fc; padding: 6px">Cannot come today? Ask for a day</a>
+    </sc-if>
+
+    <sc-if value="{{joined}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #5eead4">Your place is saved</span>
+        <h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">You are number {{yourNo}}</h1>
+      </div>
+
+      <!-- ticket -->
+      <div role="group" aria-label="Queue ticket, number {{yourNo}}" style="animation: pop .35s ease-out both; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.13)) drop-shadow(0 18px 28px rgba(0,0,0,0.29))">
+        <div style="position: relative; border-radius: 24px 24px 0 0; background: {{topBg}}; color: #ffffff; padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 12px">
+          <sc-if value="{{paid}}" hint-placeholder-val="{{false}}"><span aria-label="Paid" style="position: absolute; right: 16px; top: 66px; transform: rotate(-12deg); padding: 4px 12px; border: 3px solid #5eead4; border-radius: 10px; color: #5eead4; font: 800 22px/26px Figtree, sans-serif; letter-spacing: .12em">PAID</span></sc-if>
+          <span style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: #151d30; color: #e8ecf3; display: grid; place-items: center; flex: none"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M12 6v4 M14 14h-4 M14 18h-4 M14 8h-4 M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2 M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 16px/20px Figtree, sans-serif">Kawempe Health Centre IV</span><span style="font: 500 12px Figtree, sans-serif; color: #e8ecf3">Kawempe, Kampala · MedSync queue ticket</span></span>
+          </span>
+          <span style="display: flex; align-items: flex-end; justify-content: space-between">
+            <span style="display: flex; flex-direction: column; gap: 2px"><span style="font: 500 13px Figtree, sans-serif; color: #e8ecf3">Your place in line</span><span style="font: 700 76px/72px 'Geist Mono', monospace; letter-spacing: -0.04em; color: #2dd4bf">#{{yourNo}}</span></span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding-bottom: 6px"><span style="font: 700 22px 'Geist Mono', monospace">{{ahead}}</span><span style="font: 500 12px Figtree, sans-serif; color: #e8ecf3">before you</span></span>
+          </span>
+        </div>
+        <div style="position: relative; height: 0; background: #151d30">
+          <span style="position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 999px; background: #0b1120"></span><span style="position: absolute; right: -14px; top: -14px; width: 28px; height: 28px; border-radius: 999px; background: #0b1120"></span>
+        </div>
+        <div style="position: relative; background: #151d30; padding: 0 18px"><div style="border-top: 2px dashed #2c3650"></div></div>
+        <div style="border-radius: 0 0 24px 24px; background: #151d30; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: {{payBg}}; box-shadow: {{payRing}}">
+            <span style="width: 28px; height: 28px; border-radius: 999px; background: {{payDot}}; color: #ffffff; display: grid; place-items: center; flex: none; font: 800 13px Figtree, sans-serif">{{payMark}}</span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 14px Figtree, sans-serif; color: {{payFg}}">{{payTitle}}</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{payLine}}</span></span>
+            <sc-if value="{{owes}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{payNow}}" style="height: 34px; padding: 0 12px; border-radius: 999px; background: #e8ecf3; color: #0b1120; font: 600 12px Figtree, sans-serif; flex: none">Pay now</button></sc-if>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 14px">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Clinic</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{clinicName}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">See</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{docName}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Room</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{room}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Date</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Sat 17 Oct · joined 13:04</span></span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Patient</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">[First name] [Surname]</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 600 10px Figtree, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #6f7a96">Time</span><span style="font: 600 14px/18px Figtree, sans-serif; color: #e8ecf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Not promised</span></span>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 4px">
+            <svg width="230" height="44" viewBox="0 0 230 44" aria-hidden="true" fill="#e8ecf3"><rect x="0" y="0" width="1" height="44"/><rect x="3" y="0" width="1" height="44"/><rect x="7" y="0" width="2" height="44"/><rect x="11" y="0" width="1" height="44"/><rect x="13" y="0" width="1" height="44"/><rect x="17" y="0" width="3" height="44"/><rect x="22" y="0" width="1" height="44"/><rect x="25" y="0" width="3" height="44"/><rect x="30" y="0" width="2" height="44"/><rect x="34" y="0" width="1" height="44"/><rect x="37" y="0" width="1" height="44"/><rect x="39" y="0" width="4" height="44"/><rect x="45" y="0" width="2" height="44"/><rect x="49" y="0" width="1" height="44"/><rect x="52" y="0" width="2" height="44"/><rect x="56" y="0" width="1" height="44"/><rect x="59" y="0" width="4" height="44"/><rect x="66" y="0" width="3" height="44"/><rect x="71" y="0" width="1" height="44"/><rect x="74" y="0" width="2" height="44"/><rect x="78" y="0" width="1" height="44"/><rect x="81" y="0" width="1" height="44"/><rect x="84" y="0" width="3" height="44"/><rect x="89" y="0" width="3" height="44"/><rect x="94" y="0" width="2" height="44"/><rect x="99" y="0" width="3" height="44"/><rect x="104" y="0" width="2" height="44"/><rect x="109" y="0" width="1" height="44"/><rect x="112" y="0" width="2" height="44"/><rect x="116" y="0" width="1" height="44"/><rect x="118" y="0" width="1" height="44"/><rect x="122" y="0" width="4" height="44"/><rect x="128" y="0" width="3" height="44"/><rect x="134" y="0" width="4" height="44"/><rect x="140" y="0" width="1" height="44"/><rect x="143" y="0" width="1" height="44"/><rect x="147" y="0" width="1" height="44"/><rect x="151" y="0" width="2" height="44"/><rect x="155" y="0" width="2" height="44"/><rect x="160" y="0" width="4" height="44"/><rect x="166" y="0" width="4" height="44"/><rect x="172" y="0" width="2" height="44"/><rect x="175" y="0" width="1" height="44"/><rect x="178" y="0" width="2" height="44"/><rect x="182" y="0" width="1" height="44"/><rect x="185" y="0" width="1" height="44"/><rect x="188" y="0" width="2" height="44"/><rect x="191" y="0" width="1" height="44"/><rect x="194" y="0" width="4" height="44"/><rect x="199" y="0" width="2" height="44"/><rect x="203" y="0" width="1" height="44"/><rect x="206" y="0" width="2" height="44"/><rect x="210" y="0" width="1" height="44"/><rect x="214" y="0" width="3" height="44"/><rect x="218" y="0" width="2" height="44"/><rect x="222" y="0" width="2" height="44"/><rect x="226" y="0" width="1" height="44"/><rect x="229" y="0" width="2" height="44"/></svg>
+            <span style="font: 600 20px 'Geist Mono', monospace; letter-spacing: .18em; color: #e8ecf3">KWP-4827</span>
+            <span style="display: inline-flex; gap: 6px; align-items: center; font: 500 12px Figtree, sans-serif; color: #5eead4"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Show at the desk · works with no internet</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- live progress -->
+      <div style="border-radius: 20px; padding: 14px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 10px">
+        <span style="display: flex; justify-content: space-between; font: 600 15px Figtree, sans-serif"><span>{{ahead}} people before you</span><span style="color: #8f99b3; font-weight: 500; font-size: 13px">Updated now</span></span>
+        <span style="height: 8px; border-radius: 999px; background: #222c42; overflow: hidden"><span style="display: block; width: {{prog}}; height: 100%; background: #2dd4bf; border-radius: 999px"></span></span>
+        <span style="font: 500 13px/18px Figtree, sans-serif; color: #a9b2c7">We send an SMS to 0772 ··· 418 when 3 people are before you. We cannot tell you the hour.</span>
+      </div>
+
+      <!-- getting there -->
+      <div style="background: #151d30; border-radius: 22px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <div style="display: flex; gap: 22px; padding: 12px 16px">
+          <span style="display: flex; flex-direction: column"><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Distance</span><span style="font: 600 16px Figtree, sans-serif; font-variant-numeric: tabular-nums">4.2 km</span></span>
+          <span style="display: flex; flex-direction: column"><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">By boda</span><span style="font: 600 16px Figtree, sans-serif">~15 min</span></span>
+          <span style="display: flex; flex-direction: column"><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">By taxi</span><span style="font: 600 16px Figtree, sans-serif">~35 min</span></span>
+        </div>
+        <div style="position: relative">
+        <svg width="100%" height="140" preserveAspectRatio="xMidYMid slice" viewBox="0 0 350 140" role="img" aria-label="Map with the route to the hospital" style="display: block">
+          <rect width="350" height="140" fill="#e4e7ee"/>
+          <g stroke="#ffffff" stroke-width="7" fill="none" stroke-linecap="round"><path d="M0 36 H350"/><path d="M0 102 H350"/><path d="M70 0 V140"/><path d="M190 0 V140"/><path d="M290 0 V140"/><path d="M0 140 L120 26"/></g>
+          <path d="M40 112 C 70 104, 72 72, 105 66 S 160 92, 190 68 S 230 30, 262 40 S 300 64, 312 52" stroke="#1b2540" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <circle cx="40" cy="112" r="7" fill="#2dd4bf" stroke="#ffffff" stroke-width="3"/>
+          <circle cx="312" cy="52" r="9" fill="#e8ecf3" stroke="#ffffff" stroke-width="3"/>
+        </svg>
+          <span style="position: absolute; right: 10px; top: 10px; height: 26px; padding: 0 10px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: inline-flex; align-items: center; font: 600 11px Figtree, sans-serif">{{room}}</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; padding: 12px 16px">
+          <span style="flex: 1; font: 500 12px/17px Figtree, sans-serif; color: #a9b2c7">We SMS you when 3 people are before you. If you are far, leave then.</span>
+          <a href="DVisit.dc.html" style="height: 40px; padding: 0 14px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: inline-flex; gap: 6px; align-items: center; font: 600 13px Figtree, sans-serif; flex: none"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 19-9-9 19-2-8-8-2z"/></svg>Start route</a>
+        </div>
+      </div>
+
+      <button type="button" onClick="{{leave}}" style="height: 52px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1px #3a4562; color: #e8ecf3; font: 600 14px Figtree, sans-serif">Give up my place</button>
+      <a href="DHome.dc.html" style="height: 52px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 15px Figtree, sans-serif">Done</a>
+    </sc-if>
+
+    <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Illustrative. No real patients.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { joined: false, clinic: 'dm', doc: 'any', pay: 'momo', paid: false };
+  }
+  renderVals() {
+    var self = this, st = this.state, v = {};
+    var CL = {
+      dm: { name: 'Diabetes clinic', room: 'Room 4', docs: [['Dr [Name A]', 'Specialist · your usual', 'NA', 5, true, 30000], ['Dr [Name B]', 'Diabetes doctor', 'NB', 2, false, 0], ['[Name C]', 'Clinical officer', 'NC', 1, false, 0]] },
+      opd: { name: 'General clinic', room: 'OPD', docs: [['Dr [Name D]', 'Medical officer', 'ND', 7, false, 0], ['Dr [Name E]', 'Private wing', 'NE', 4, false, 20000], ['[Name F]', 'Clinical officer', 'NF', 3, false, 0]] },
+      eye: { name: 'Eye clinic', room: 'Room 9', docs: [['[Name G]', 'Eye clinical officer', 'NG', 6, false, 15000], null, null] }
+    };
+    var c = CL[st.clinic];
+    var on = { bg: '#e8ecf3', fg: '#151d30', ring: 'none' }, off = { bg: '#151d30', fg: '#e8ecf3', ring: '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)' };
+    ['dm', 'opd', 'eye'].forEach(function (k) {
+      var a = k === st.clinic ? on : off;
+      v['c' + k] = function () { self.setState({ clinic: k, doc: 'any' }); };
+      v['c' + k + 'Pr'] = k === st.clinic ? 'true' : 'false'; v['c' + k + 'Bg'] = a.bg; v['c' + k + 'Fg'] = a.fg; v['c' + k + 'Ring'] = a.ring;
+    });
+    var selOn = 'inset 0 0 0 2px #2dd4bf', selOff = 'inset 0 0 0 1px #222c42';
+    var docs = c.docs.filter(Boolean), minQ = Math.min.apply(null, docs.map(function (d) { return d[3]; }));
+    [0, 1, 2].forEach(function (i) {
+      var d = c.docs[i], sel = st.doc === i;
+      v['d' + i + 'Has'] = !!d;
+      v['d' + i] = function () { self.setState({ doc: i }); };
+      v['d' + i + 'Pr'] = sel ? 'true' : 'false';
+      v['d' + i + 'Bg'] = sel ? 'rgba(45,212,191,.12)' : '#151d30'; v['d' + i + 'Ring'] = sel ? selOn : selOff;
+      if (!d) { v['d' + i + 'Ring'] = 'none'; v['d' + i + 'Name'] = ''; v['d' + i + 'Meta'] = ''; v['d' + i + 'Init'] = ''; v['d' + i + 'Q'] = ''; v['d' + i + 'You'] = ''; v['d' + i + 'Tint'] = 'transparent'; v['d' + i + 'Ink'] = 'transparent'; v['d' + i + 'YouC'] = 'transparent'; v['d' + i + 'Bg'] = 'transparent'; return; }
+      v['d' + i + 'Name'] = d[0]; v['d' + i + 'Meta'] = d[1] + ' · ' + (d[5] ? 'UGX ' + d[5].toLocaleString('en-US') : 'No fee'); v['d' + i + 'Init'] = d[2];
+      v['d' + i + 'Tint'] = d[4] ? 'rgba(99,102,241,.16)' : '#1c2539'; v['d' + i + 'Ink'] = d[4] ? '#a5b4fc' : '#a9b2c7';
+      v['d' + i + 'Q'] = d[3] + ' waiting'; v['d' + i + 'You'] = 'You: #' + (d[3] + 1); v['d' + i + 'YouC'] = d[3] === minQ ? '#5eead4' : '#a9b2c7';
+    });
+    v.danyPr = st.doc === 'any' ? 'true' : 'false'; v.danyBg = st.doc === 'any' ? 'rgba(45,212,191,.12)' : '#151d30'; v.danyRing = st.doc === 'any' ? selOn : selOff;
+    v.dany = function () { self.setState({ doc: 'any' }); };
+    v.anyQ = minQ + ' waiting'; v.anyYou = 'You: #' + (minQ + 1);
+    var ahead = st.doc === 'any' ? minQ : c.docs[st.doc][3];
+    var who = st.doc === 'any' ? 'Any doctor' : c.docs[st.doc][0];
+    var fee = st.doc === 'any' ? 0 : (c.docs[st.doc][5] || 0), feeTxt = 'UGX ' + fee.toLocaleString('en-US');
+    ['momo', 'desk'].forEach(function (k) {
+      var a = st.pay === k;
+      v['p' + k] = function () { self.setState({ pay: k }); };
+      v['p' + k + 'Pr'] = a ? 'true' : 'false'; v['p' + k + 'Bg'] = a ? 'rgba(124,58,237,.18)' : '#151d30'; v['p' + k + 'Ring'] = a ? 'inset 0 0 0 2px #7c3aed' : 'inset 0 0 0 1px #2c3650';
+    });
+    var owes = st.joined && fee > 0 && !st.paid;
+    Object.assign(v, {
+      hasFee: fee > 0, feeWord: feeTxt, isMomo: st.pay === 'momo',
+      saveWord: fee > 0 && st.pay === 'momo' ? 'Pay ' + feeTxt + ' and save my place' : 'Save my place',
+      paid: st.joined && st.paid, owes: owes,
+      topBg: st.paid ? 'linear-gradient(135deg, #e8ecf3 0%, #134e4a 100%)' : '#e8ecf3',
+      payBg: st.paid ? 'rgba(45,212,191,.12)' : fee > 0 ? '#151d30' : '#0b1120',
+      payRing: fee > 0 && !st.paid ? 'inset 0 0 0 2px #e8ecf3' : 'none',
+      payDot: st.paid ? '#5eead4' : fee > 0 ? '#e8ecf3' : '#6f7a96',
+      payMark: st.paid ? '✓' : fee > 0 ? '!' : '–',
+      payFg: st.paid ? '#5eead4' : '#e8ecf3',
+      payTitle: st.paid ? 'Paid · ' + feeTxt : fee > 0 ? 'Not paid · ' + feeTxt : 'No fee',
+      payLine: st.paid ? 'Mobile Money · receipt MP24' + (1000 + fee / 100) + ' sent by SMS' : fee > 0 ? 'Pay before you are seen, here or at the desk' : 'This visit is free at this hospital',
+      payNow: function () { self.setState({ paid: true }); }
+    });
+    for (var i = 0; i < 14; i++) { v['dot' + i] = i === 0 ? '#e8ecf3' : 'rgba(232,236,243,.35)'; v['dotShow' + i] = i < ahead ? 'block' : 'none'; }
+    return Object.assign(v, {
+      lineFor: c.name + ' · ' + who, waitingWord: ahead + ' before you',
+      lineAria: ahead + ' people before you', yourNo: ahead + 1, ahead: ahead,
+      ticketWho: c.name + ' · ' + who, clinicName: c.name, docName: who, room: c.room, prog: Math.max(8, Math.round(100 / (ahead + 2))) + '%',
+      joined: st.joined, notJoined: !st.joined,
+      join: function () { self.setState({ joined: true, paid: fee > 0 && st.pay === 'momo' }); },
+      leave: function () { self.setState({ joined: false, paid: false }); }
+    });
+  }
+}
+</script>
+</body>
+</html>

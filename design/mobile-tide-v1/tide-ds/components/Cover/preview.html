@@ -1,0 +1,33 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0}
+body{background:var(--bg);font-family:var(--font-sans)}
+.cover{position:relative;width:960px;height:288px;overflow:hidden;background:var(--bg)}
+svg{position:absolute;left:480px;top:0}
+.blk{rx:var(--radius-xl);ry:var(--radius-xl)}
+.n7{fill:var(--navy-700)} .c2{fill:var(--cascade-2)} .c3{fill:var(--cascade-3)} .now{fill:var(--accent)} .nx{fill:var(--cascade-next)}
+.halo{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-dasharray:0.5 9}
+.text{position:absolute;left:40px;bottom:32px;width:420px}
+h1{margin:0;font:600 96px/0.95 var(--font-sans);letter-spacing:-0.04em;color:var(--ink)}
+p{margin:16px 0 0;font:500 14px/20px var(--font-sans);color:var(--ink-2)}
+</style></head>
+<body><div class="cover">
+<svg width="480" height="288" viewBox="0 0 480 288" aria-hidden="true">
+<!--
+blocks: navy-700, cascade-2, cascade-3, accent (now) as 400x112 bands; cascade-next as a 72px disc
+arrangement: the day cascade, each band stepping 20px right and sliding under the one above, bleeding off the right and bottom
+pattern: soft and rounded (radius-xl 28, radius-pill) -> one dotted halo ring from the nav's centre plus, around the foam disc
+steps and radii: band pitch 64 (space-8 x2), stagger 20 (space-5), corners radius-xl 28, disc radius-pill, halo gap 9
+-->
+  <rect class="blk n7" x="56" y="-28" width="440" height="112"/>
+  <rect class="blk c2" x="76" y="36" width="440" height="112"/>
+  <rect class="blk c3" x="96" y="100" width="440" height="112"/>
+  <rect class="blk now" x="116" y="164" width="440" height="140"/>
+  <circle class="halo" cx="60" cy="226" r="46"/>
+  <circle class="nx" cx="60" cy="226" r="34"/>
+</svg>
+<div class="text"><h1>MedSync<br>Tide</h1><p>Calm, rounded, one thing at a time. The patient app's design language.</p></div>
+</div></body></html>

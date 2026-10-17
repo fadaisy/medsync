@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Medicines today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
+@keyframes popIn{0%{scale:.5;opacity:0}70%{scale:1.12}100%{scale:1;opacity:1}}
+@keyframes burst{0%{scale:.4;opacity:.9}100%{scale:2.2;opacity:0}}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* MedSync Tide dark (auto) */
+@media (prefers-color-scheme: dark){
+[data-screen]{background-color:#0b1120!important;color:#e8ecf3!important}
+[style*="background: #f6f7f9"]{background:#0b1120!important}
+[style*="background: #ffffff"]{background:#151d30!important}
+[style*="background: #f8fafc"]{background:#151d30!important}
+[style*="background: #f3f4f7"]{background:#1c2539!important}
+[style*="background: #eef0f4"]{background:#222c42!important}
+[style*="background: #e6e9ef"]{background:#2c3650!important}
+[style*="background: #f0fdfa"]{background:rgba(45,212,191,.12)!important}
+[style*="background: #ccfbf1"]{background:rgba(45,212,191,.18)!important}
+[style*="background: #eef2ff"]{background:rgba(99,102,241,.16)!important}
+[style*="background: #f5f3ff"]{background:rgba(124,58,237,.18)!important}
+[style*="background: #fdf3f9"]{background:rgba(192,38,211,.16)!important}
+[style*="background: #e0f2fe"]{background:rgba(14,165,233,.16)!important}
+[style*="background: #fef3c7"]{background:rgba(245,158,11,.18)!important}
+[style*="background: #fffbeb"]{background:rgba(245,158,11,.14)!important}
+[style*="background: #dcfce7"]{background:rgba(34,197,94,.16)!important}
+[style*="background: #f0fdf4"]{background:rgba(34,197,94,.12)!important}
+[style*="background: #fef2f2"]{background:rgba(220,38,38,.16)!important}
+[style*="background: #1b2540"]{background:#24314f!important}
+[style*="background: #1b2540"][style*="border-radius: 999px"]{background:#e8ecf3!important;color:#0b1120!important}
+[style*="color: #1b2540"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#e8ecf3!important}
+[style*="color: #4a5574"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a9b2c7!important}
+[style*="color: #5f6987"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#8f99b3!important}
+[style*="color: #8a93ab"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#6f7a96!important}
+[style*="color: #92400e"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#fbbf24!important}
+[style*="color: #15803d"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#4ade80!important}
+[style*="color: #166534"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#4ade80!important}
+[style*="color: #0f766e"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#5eead4!important}
+[style*="color: #4338ca"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a5b4fc!important}
+[style*="color: #312e81"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#c7d2fe!important}
+[style*="color: #4f46e5"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#a5b4fc!important}
+[style*="color: #5b21b6"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#c4b5fd!important}
+[style*="color: #87236a"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#f0abfc!important}
+[style*="color: #0284c7"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#7dd3fc!important}
+[style*="color: #991b1b"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#fca5a5!important}
+[style*="color: #0d9488"]:not([style*="background: #2dd4bf"]):not([style*="background: #14b8a6"]):not([style*="background: #a7f3e4"]):not([style*="background: #dc2626"]):not([style*="background: #b91c1c"]):not([style*="background: #1b2540"][style*="border-radius: 999px"]){color:#2dd4bf!important}
+[style*="inset 0 0 0 1px #dde1ea"],[style*="inset 0 0 0 2px #dde1ea"],[style*="inset 0 0 0 1.5px #dde1ea"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #c5cbd8"],[style*="inset 0 0 0 2px #c5cbd8"],[style*="inset 0 0 0 1.5px #c5cbd8"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #eef0f4"],[style*="inset 0 0 0 2px #eef0f4"],[style*="inset 0 0 0 1.5px #eef0f4"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="inset 0 0 0 1px #dde1e9"],[style*="inset 0 0 0 2px #dde1e9"],[style*="inset 0 0 0 1.5px #dde1e9"]{box-shadow:inset 0 0 0 1.5px #2c3650!important}
+[style*="rgba(27,37,64,.06)"]{box-shadow:0 1px 2px rgba(0,0,0,.3),0 10px 24px -14px rgba(0,0,0,.6)!important}
+[style*="rgba(246,247,249"]{background:linear-gradient(180deg,rgba(11,17,32,0),#0b1120 30%)!important}
+circle[stroke="#e6e9ef"],circle[stroke="#eef0f4"],line[stroke="#eef0f4"]{stroke:#2c3650}
+input,textarea{color:#e8ecf3!important}
+}
+</style>
+</helmet>
+<div data-screen style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f6f7f9; color: #1b2540; font-family: Figtree, sans-serif">
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="TCare.dc.html" aria-label="Back to Care" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #1b2540; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Care</a>
+    <a href="THelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 130px; display: flex; flex-direction: column; gap: 16px">
+
+    <!-- hero -->
+    <div style="display: flex; align-items: center; gap: 18px">
+      <span style="position: relative; width: 116px; height: 116px; flex: none">
+        <svg width="116" height="116" viewBox="0 0 116 116" aria-label="{{todayCount}} of 3 doses taken today"><circle cx="58" cy="58" r="48" fill="none" stroke="#e6e9ef" stroke-width="12"/><circle cx="58" cy="58" r="48" fill="none" stroke="#14b8a6" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ringDash}} 301.6" transform="rotate(-90 58 58)" style="transition: stroke-dasharray .8s cubic-bezier(.16,1,.3,1)"/></svg>
+        <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font: 800 34px/34px 'Geist Mono', monospace; letter-spacing: -0.04em">{{todayCount}}<span style="font-size: 18px; color: #8a93ab">/3</span></span><span style="font: 600 11px Figtree, sans-serif; color: #4a5574">taken today</span></span>
+      </span>
+      <span style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #7c3aed">Saturday 17 Oct</span>
+        <h1 style="margin: 0; font: 500 30px/33px Figtree, sans-serif; letter-spacing: -0.03em">{{heroTitle}}</h1>
+        <span style="font: 500 13px/18px Figtree, sans-serif; color: #4a5574">92% this month · your care team sees it</span>
+      </span>
+    </div>
+
+    <!-- day timeline -->
+    <div style="position: relative; display: flex; padding: 14px 6px 12px; border-radius: 24px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+      <span aria-hidden="true" style="position: absolute; left: 60px; right: 60px; top: 40px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, #14b8a6 0 {{lineFill}}, #e6e9ef {{lineFill}} 100%)"></span>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative">
+          <span style="width: 52px; height: 52px; border-radius: 999px; background: {{mBg}}; color: {{mFg}}; box-shadow: {{mRing}}; display: grid; place-items: center; transition: background .3s ease"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span style="font: 700 13px Figtree, sans-serif">Morning</span>
+          <span style="font: 600 11px Figtree, sans-serif; color: {{mSubC}}">{{mSub}}</span>
+        </div>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative">
+          <span style="width: 52px; height: 52px; border-radius: 999px; background: {{nBg}}; color: {{nFg}}; box-shadow: {{nRing}}; display: grid; place-items: center; transition: background .3s ease"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="{{nIcon}}"/></svg></span>
+          <span style="font: 700 13px Figtree, sans-serif">Midday</span>
+          <span style="font: 600 11px Figtree, sans-serif; color: {{nSubC}}">{{nSub}}</span>
+        </div>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative">
+          <span style="width: 52px; height: 52px; border-radius: 999px; background: {{eBg}}; color: {{eFg}}; box-shadow: {{eRing}}; display: grid; place-items: center; transition: background .3s ease"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="{{eIcon}}"/></svg></span>
+          <span style="font: 700 13px Figtree, sans-serif">Evening</span>
+          <span style="font: 600 11px Figtree, sans-serif; color: {{eSubC}}">{{eSub}}</span>
+        </div>
+    </div>
+
+    <!-- now card -->
+    <sc-if value="{{due}}" hint-placeholder-val="{{true}}">
+      <div style="position: relative; overflow: hidden; border-radius: 28px; padding: 18px; background: #2dd4bf; color: #1b2540; display: flex; flex-direction: column; gap: 14px">
+        <span aria-hidden="true" style="position: absolute; right: 18px; top: 18px; animation: bob 3s ease-in-out infinite"><span aria-hidden="true" style="width: 64px; height: 27px; border-radius: 999px; overflow: hidden; display: flex; transform: rotate(-30deg); box-shadow: inset 0 -3px 0 rgba(0,0,0,.12), 0 6px 12px -6px rgba(0,0,0,.35)"><span style="flex: 1; background: #ffffff"></span><span style="flex: 1; background: #1b2540"></span></span></span>
+        <span aria-hidden="true" style="position: absolute; right: 70px; top: 64px; animation: bob 3.4s ease-in-out .4s infinite"><span aria-hidden="true" style="width: 26px; height: 26px; border-radius: 999px; background: #ffffff; box-shadow: inset 0 -3px 0 rgba(0,0,0,.1), 0 6px 12px -6px rgba(0,0,0,.3); display: grid; place-items: center"><span style="width: 60%; height: 2px; border-radius: 2px; background: rgba(0,0,0,.15)"></span></span></span>
+        <span style="display: inline-flex; align-self: flex-start; gap: 6px; align-items: center; height: 28px; padding: 0 11px; border-radius: 999px; background: rgba(255,255,255,.6); font: 700 12px Figtree, sans-serif"><span style="width: 7px; height: 7px; border-radius: 999px; background: #1b2540"></span>Now · 13:00</span>
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font: 700 26px/30px Figtree, sans-serif; letter-spacing: -0.02em">[Medicine B]</span><span style="font: 500 14px Figtree, sans-serif">As your clinician prescribed · with food</span></span>
+        <div style="display: flex; gap: 8px">
+          <button type="button" onClick="{{take}}" style="flex: 1; height: 52px; border-radius: 999px; background: #1b2540; color: #ffffff; font: 600 16px Figtree, sans-serif; display: inline-flex; gap: 8px; align-items: center; justify-content: center"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>I took it</button>
+          <button type="button" onClick="{{snooze}}" style="height: 52px; padding: 0 16px; border-radius: 999px; background: rgba(255,255,255,.6); color: #1b2540; font: 600 14px Figtree, sans-serif">{{snoozeWord}}</button>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{taken}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: 28px; background: #1b2540; color: #ffffff">
+        <span style="position: relative; width: 52px; height: 52px; flex: none; display: grid; place-items: center"><span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 999px; background: #2dd4bf; animation: burst .7s ease-out both"></span><span style="width: 52px; height: 52px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 700 17px Figtree, sans-serif">Midday done · 13:04</span><span style="font: 500 13px Figtree, sans-serif; color: #e8ecf3">Next: evening at 20:00. We'll remind you.</span></span>
+        <button type="button" onClick="{{undo}}" style="height: 36px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,.12); color: #5eead4; font: 600 13px Figtree, sans-serif">Undo</button>
+      </div>
+    </sc-if>
+
+    <!-- week -->
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 24px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+      <span style="display: flex; justify-content: space-between; font: 700 15px Figtree, sans-serif"><span>This week</span><span style="font: 600 12px Figtree, sans-serif; color: #0f766e">20 of 21 doses</span></span>
+      <div style="display: flex; justify-content: space-between"><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: none">3</span><span style="font: 600 11px Figtree, sans-serif; color: #5f6987">S</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: none">3</span><span style="font: 600 11px Figtree, sans-serif; color: #5f6987">M</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #a7f3e4; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: none">2</span><span style="font: 600 11px Figtree, sans-serif; color: #5f6987">T</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: none">3</span><span style="font: 600 11px Figtree, sans-serif; color: #5f6987">W</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: none">3</span><span style="font: 600 11px Figtree, sans-serif; color: #5f6987">T</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: none">3</span><span style="font: 600 11px Figtree, sans-serif; color: #5f6987">F</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 5px"><span style="width: 30px; height: 30px; border-radius: 999px; background: #ffffff; color: #1b2540; display: grid; place-items: center; font: 700 11px Figtree, sans-serif; box-shadow: inset 0 0 0 2px #1b2540">{{todayCount}}</span><span style="font: 600 11px Figtree, sans-serif; color: #1b2540">S</span></span></div>
+    </div>
+
+    <!-- my medicines -->
+    <span style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px"><span style="font: 600 20px Figtree, sans-serif; letter-spacing: -0.015em">My medicines</span><span style="font: 600 13px Figtree, sans-serif; color: #5f6987">3 active</span></span>
+    <div style="display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 22px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+          <span style="width: 56px; height: 56px; border-radius: 18px; background: #f6f7f9; display: grid; place-items: center; flex: none"><span aria-hidden="true" style="width: 40px; height: 17px; border-radius: 999px; overflow: hidden; display: flex; transform: rotate(-35deg); box-shadow: inset 0 -3px 0 rgba(0,0,0,.12), 0 6px 12px -6px rgba(0,0,0,.35)"><span style="flex: 1; background: #7c3aed"></span><span style="flex: 1; background: #ede9fe"></span></span></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="font: 700 15px Figtree, sans-serif">[Medicine A]</span></span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Diabetes · morning and evening</span>
+            <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; height: 5px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="display: block; width: 60%; height: 100%; border-radius: 999px; background: #14b8a6"></span></span><span style="font: 600 11px Figtree, sans-serif; color: #4a5574">18 days left</span></span>
+          </span>
+        </div>
+    <div style="display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 22px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+          <span style="width: 56px; height: 56px; border-radius: 18px; background: #f6f7f9; display: grid; place-items: center; flex: none"><span aria-hidden="true" style="width: 40px; height: 17px; border-radius: 999px; overflow: hidden; display: flex; transform: rotate(-35deg); box-shadow: inset 0 -3px 0 rgba(0,0,0,.12), 0 6px 12px -6px rgba(0,0,0,.35)"><span style="flex: 1; background: #ffffff"></span><span style="flex: 1; background: #1b2540"></span></span></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="font: 700 15px Figtree, sans-serif">[Medicine B]</span><a href="TChat.dc.html" style="height: 30px; padding: 0 12px; border-radius: 999px; background: #1b2540; color: #ffffff; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Ask for refill</a></span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Diabetes · midday with food</span>
+            <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; height: 5px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="display: block; width: 13%; height: 100%; border-radius: 999px; background: #f59e0b"></span></span><span style="font: 600 11px Figtree, sans-serif; color: #92400e">4 days left</span></span>
+          </span>
+        </div>
+    <div style="display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 22px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,.06), 0 10px 24px -14px rgba(27,37,64,.22)">
+          <span style="width: 56px; height: 56px; border-radius: 18px; background: #f6f7f9; display: grid; place-items: center; flex: none"><span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 999px; background: #bae6fd; box-shadow: inset 0 -3px 0 rgba(0,0,0,.1), 0 6px 12px -6px rgba(0,0,0,.3); display: grid; place-items: center"><span style="width: 60%; height: 2px; border-radius: 2px; background: rgba(0,0,0,.15)"></span></span></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="font: 700 15px Figtree, sans-serif">[Medicine C]</span></span>
+            <span style="font: 500 12px Figtree, sans-serif; color: #4a5574">Blood pressure · morning</span>
+            <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; height: 5px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="display: block; width: 73%; height: 100%; border-radius: 999px; background: #14b8a6"></span></span><span style="font: 600 11px Figtree, sans-serif; color: #4a5574">22 days left</span></span>
+          </span>
+        </div>
+    <span style="font: 500 12px/17px Figtree, sans-serif; color: #5f6987; text-align: center">Doses follow your prescription. Names illustrative; dosing shown only after CSO sign-off.</span>
+  </div>
+  <div data-navwrap style="position: absolute; left: 16px; bottom: 14px">
+    <dc-import name="TideNav" current="care" hint-size="358px,92px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { taken: false, snoozed: false };
+  }
+  renderVals() {
+    var self = this, st = this.state, t = st.taken, n = t ? 2 : 1;
+    var SUNP = 'M12 2v2 M12 20v2 M4.93 4.93l1.41 1.41 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M6.34 17.66l-1.41 1.41 M19.07 4.93l-1.41 1.41 M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z';
+    var MOON = 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z';
+    var CHK = 'M20 6 9 17l-5-5';
+    return {
+      taken: t, due: !t, todayCount: n,
+      ringDash: (301.6 * n / 3).toFixed(1), ringFull: 301.6,
+      heroTitle: t ? 'Two down, one to go' : 'One down, two to go',
+      lineFill: t ? '50%' : '25%',
+      mBg: '#14b8a6', mFg: '#ffffff', mRing: 'none', mSub: 'Taken 08:12', mSubC: '#0f766e',
+      nBg: t ? '#14b8a6' : '#ffffff', nFg: t ? '#ffffff' : '#1b2540', nRing: t ? 'none' : 'inset 0 0 0 3px #2dd4bf, 0 0 0 6px rgba(45,212,191,.2)', nSub: t ? 'Taken 13:04' : (st.snoozed ? 'Snoozed · 13:15' : 'Due now'), nSubC: t ? '#0f766e' : '#1b2540', nIcon: t ? CHK : SUNP,
+      eBg: '#f3f4f7', eFg: '#8a93ab', eRing: 'none', eSub: 'Later', eSubC: '#8a93ab', eIcon: MOON,
+      snoozeWord: st.snoozed ? 'Snoozed' : 'In 15 min',
+      take: function () { self.setState({ taken: true }); },
+      undo: function () { self.setState({ taken: false }); },
+      snooze: function () { self.setState({ snoozed: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

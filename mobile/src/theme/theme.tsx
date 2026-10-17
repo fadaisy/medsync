@@ -1,9 +1,11 @@
+import type { Tide } from "@/theme/tide";
 import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "react-native";
 
+import { tideDark, tideLight } from "@/theme/tide";
 import { dark, light } from "@/theme/tokens";
 
 /**
@@ -20,6 +22,8 @@ const STORAGE_KEY = "medsync-theme";
 
 interface ThemeContextValue {
   colors: Palette;
+  /** The Tide roles (ADR 0340). New screens read these; `colors` goes when the Chroma screens do. */
+  tide: Tide;
   preference: ThemePreference;
   setPreference: (next: ThemePreference) => void;
   /**
@@ -70,9 +74,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const scheme = preference === "system" ? (system ?? "light") : preference;
   const colors = scheme === "dark" ? dark : light;
+  const tide = scheme === "dark" ? tideDark : tideLight;
 
   return (
-    <ThemeContext.Provider value={{ colors, preference, setPreference, ready }}>
+    <ThemeContext.Provider value={{ colors, tide, preference, setPreference, ready }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -94,6 +99,7 @@ export function ForcedScheme({
   const parent = useContext(ThemeContext);
   const value: ThemeContextValue = {
     colors: scheme === "dark" ? dark : light,
+    tide: scheme === "dark" ? tideDark : tideLight,
     preference: parent?.preference ?? "system",
     setPreference: parent?.setPreference ?? (() => {}),
     ready: parent?.ready ?? true,
@@ -121,4 +127,19 @@ export function useTheme(): ThemeContextValue {
 export function useStyles<T>(make: (colors: Palette) => T): T {
   const { colors } = useTheme();
   return make(colors);
+}
+
+/** The Tide roles for the current (or forced) scheme. */
+export function useTide(): Tide {
+  return useTheme().tide;
+}
+
+/**
+ * `useStyles` for Tide screens:
+ *
+ *   const styles = useTideStyles(makeStyles);
+ *   const makeStyles = (t: Tide) => StyleSheet.create({ root: { backgroundColor: t.bg } });
+ */
+export function useTideStyles<T>(make: (t: Tide) => T): T {
+  return make(useTheme().tide);
 }

@@ -1,0 +1,27 @@
+<!-- @dsCard group="Content" height=330 subtitle="Selected date bleeds into the screen edge" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:var(--bg);font-family:var(--font-sans);color:var(--ink)}
+.screen{width:360px;padding:20px 20px 20px 0;display:grid;grid-template-columns:78px 1fr;gap:12px 14px;align-items:start}
+.d{height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-left:6px}
+.d b{font:600 30px/32px var(--font-sans);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.d span{font:500 13px/17px var(--font-sans);color:var(--ink-2)}
+.d.sel{background:var(--surface);border-radius:0 22px 22px 0;box-shadow:var(--shadow-card);position:relative}
+.d.sel::after{content:"";position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:999px;background:var(--accent)}
+.d.far b{color:var(--ink-3)}
+.card{background:var(--surface);border-radius:22px;padding:14px 16px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:6px;min-height:56px}
+.tag{display:inline-flex;gap:6px;align-items:center;font:500 13px var(--font-sans);color:var(--ink-2)}
+.dot{width:8px;height:8px;border-radius:999px}
+.card b{font:600 17px/22px var(--font-sans)}
+.t{font:500 14px var(--font-sans);color:var(--ink-2)}
+</style></head>
+<body><div class="screen">
+  <div class="d sel" aria-current="date"><b>17</b><span>Today</span></div>
+  <div class="card"><span class="tag"><span class="dot" style="background:var(--area-readings)"></span>Readings</span><b>2 readings, 3 medicines</b><span class="t">3 of 5 done</span></div>
+  <div class="d"><b>23</b><span>Thu</span></div>
+  <div class="card"><span class="tag"><span class="dot" style="background:var(--area-visits)"></span>Visit</span><b>Diabetes review</b><span class="t">14th in line</span></div>
+  <div class="d far"><b>27</b><span>Mon</span></div>
+  <div class="card"><span class="tag"><span class="dot" style="background:var(--area-medicines)"></span>Lab</span><b>Blood test</b></div>
+</div></body></html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create account</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+input::placeholder,textarea::placeholder{color:#6f7a96}
+@keyframes pinDrop{0%{translate:0 -40px;opacity:0}60%{opacity:1}100%{translate:0 0}}
+@keyframes rise{0%{transform:translateY(12px);opacity:0}100%{transform:none;opacity:1}}
+[data-scroll]>*,[data-scroll]>sc-if>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; gap: 8px">
+    <sc-if value="{{canBack}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{back}}" aria-label="Back" style="height: 44px; padding: 0 10px; border-radius: 12px; background: transparent; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</button></sc-if>
+    <sc-if value="{{firstStep}}" hint-placeholder-val="{{true}}"><a href="DSplash.dc.html" aria-label="Close" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Cancel</a></sc-if>
+    <span style="flex: 1"></span>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+  <sc-if value="{{showProgress}}" hint-placeholder-val="{{true}}">
+    <div style="padding: 8px 20px 0; display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; justify-content: space-between; font: 600 12px Figtree, sans-serif; color: #8f99b3"><span>Step {{stepNo}} of 4</span><span>{{stepName}}</span></span>
+      <span style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px"><span style="height: 6px; border-radius: 999px; background: {{p1}}"></span><span style="height: 6px; border-radius: 999px; background: {{p2}}"></span><span style="height: 6px; border-radius: 999px; background: {{p3}}"></span><span style="height: 6px; border-radius: 999px; background: {{p4}}"></span></span>
+    </div>
+  </sc-if>
+  <div data-scroll style="position: absolute; top: 142px; left: 0; right: 0; bottom: 100px; overflow-y: auto; padding: 8px 20px 24px; display: flex; flex-direction: column; gap: 16px">
+
+      <sc-if value="{{st1}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 4px; animation: rise .35s ease-out both"><h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">About you</h1><span style="font: 500 14px/20px Figtree, sans-serif; color: #a9b2c7">We use this to find and keep your records.</span></div>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">First name</span><input type="text" inputmode="text" autocomplete="given-name" maxlength="80" placeholder="e.g. Sarah" value="{{firstName}}" onInput="{{set_firstName}}" style="height: 54px; border-radius: 16px; border: 0; outline: none; background: #151d30; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif; box-sizing: border-box; width: 100%; box-shadow: inset 0 0 0 2px {{firstNameRing}}"><sc-if value="{{firstNameErrShow}}" hint-placeholder-val="{{false}}"><span role="alert" style="font: 500 12px/16px Figtree, sans-serif; color: #b91c1c">{{firstNameErr}}</span></sc-if></label>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Surname</span><input type="text" inputmode="text" autocomplete="family-name" maxlength="80" placeholder="e.g. Nakato" value="{{surname}}" onInput="{{set_surname}}" style="height: 54px; border-radius: 16px; border: 0; outline: none; background: #151d30; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif; box-sizing: border-box; width: 100%; box-shadow: inset 0 0 0 2px {{surnameRing}}"><sc-if value="{{surnameErrShow}}" hint-placeholder-val="{{false}}"><span role="alert" style="font: 500 12px/16px Figtree, sans-serif; color: #b91c1c">{{surnameErr}}</span></sc-if></label>
+        <div style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Sex at birth</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" onClick="{{sex_m}}" aria-pressed="{{sex_mPr}}" style="height: 44px; padding: 0 14px; border-radius: 999px; background: {{sex_mBg}}; color: {{sex_mFg}}; box-shadow: {{sex_mRing}}; font: 600 14px Figtree, sans-serif">Male</button><button type="button" onClick="{{sex_f}}" aria-pressed="{{sex_fPr}}" style="height: 44px; padding: 0 14px; border-radius: 999px; background: {{sex_fBg}}; color: {{sex_fFg}}; box-shadow: {{sex_fRing}}; font: 600 14px Figtree, sans-serif">Female</button><button type="button" onClick="{{sex_i}}" aria-pressed="{{sex_iPr}}" style="height: 44px; padding: 0 14px; border-radius: 999px; background: {{sex_iBg}}; color: {{sex_iFg}}; box-shadow: {{sex_iRing}}; font: 600 14px Figtree, sans-serif">Intersex</button><button type="button" onClick="{{sex_n}}" aria-pressed="{{sex_nPr}}" style="height: 44px; padding: 0 14px; border-radius: 999px; background: {{sex_nBg}}; color: {{sex_nFg}}; box-shadow: {{sex_nRing}}; font: 600 14px Figtree, sans-serif">Prefer not to say</button></div></div>
+        <div style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Date of birth</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px">
+            <input type="text" inputmode="numeric" maxlength="2" aria-label="Day" placeholder="DD" value="{{dobDay}}" onInput="{{set_dobDay}}" style="height: 54px; border-radius: 16px; border: 0; outline: none; background: #151d30; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif; box-sizing: border-box; width: 100%; text-align: center; box-shadow: inset 0 0 0 2px {{dobRing}}">
+            <input type="text" inputmode="numeric" maxlength="2" aria-label="Month" placeholder="MM" value="{{dobMonth}}" onInput="{{set_dobMonth}}" style="height: 54px; border-radius: 16px; border: 0; outline: none; background: #151d30; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif; box-sizing: border-box; width: 100%; text-align: center; box-shadow: inset 0 0 0 2px {{dobRing}}">
+            <input type="text" inputmode="numeric" maxlength="4" aria-label="Year" placeholder="YYYY" value="{{dobYear}}" onInput="{{set_dobYear}}" style="height: 54px; border-radius: 16px; border: 0; outline: none; background: #151d30; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif; box-sizing: border-box; width: 100%; text-align: center; box-shadow: inset 0 0 0 2px {{dobRing}}">
+          </div><sc-if value="{{dobErrShow}}" hint-placeholder-val="{{false}}"><span role="alert" style="font: 500 12px/16px Figtree, sans-serif; color: #b91c1c">{{dobErr}}</span></sc-if>
+          <sc-if value="{{minor}}" hint-placeholder-val="{{false}}"><span style="display: flex; gap: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(99,102,241,.16); font: 500 12px/17px Figtree, sans-serif"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="color: #a5b4fc; margin-top: 1px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>MedSync accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".</span></sc-if>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Mobile number</span>
+          <span style="display: flex; align-items: center; height: 54px; border-radius: 16px; background: #151d30; box-shadow: inset 0 0 0 2px {{phoneRing}}; overflow: hidden"><span style="height: 100%; padding: 0 12px; display: inline-flex; align-items: center; border-right: 1px solid #222c42; font: 700 16px Figtree, sans-serif">+256</span><input type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="772 000 000" value="{{phone}}" onInput="{{set_phone}}" style="flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; padding: 0 12px; color: #e8ecf3; font: 600 17px 'Geist Mono', monospace"></span><sc-if value="{{phoneErrShow}}" hint-placeholder-val="{{false}}"><span role="alert" style="font: 500 12px/16px Figtree, sans-serif; color: #b91c1c">{{phoneErr}}</span></sc-if></label>
+      </sc-if>
+      <sc-if value="{{st2}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 4px; animation: rise .35s ease-out both"><h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Where you live</h1><span style="font: 500 14px/20px Figtree, sans-serif; color: #a9b2c7">So we can show clinics near you.</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">District or subcounty</span>
+          <sc-if value="{{noPlace}}" hint-placeholder-val="{{true}}">
+            <div style="border-radius: 16px; overflow: hidden; background: #151d30; box-shadow: inset 0 0 0 2px #2c3650">
+              <span style="display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 54px"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input type="search" placeholder="Search, e.g. Kawempe" value="{{q}}" onInput="{{set_q}}" style="flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: #e8ecf3; font: 600 16px Figtree, sans-serif"></span>
+              <div style="display: flex; flex-direction: column; max-height: 196px; overflow-y: auto"><sc-if value="{{pl0}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{pick0}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Kawempe Division, Kampala</button></sc-if><sc-if value="{{pl1}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{pick1}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Nakawa Division, Kampala</button></sc-if><sc-if value="{{pl2}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{pick2}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Makindye Division, Kampala</button></sc-if><sc-if value="{{pl3}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick3}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Rubaga Division, Kampala</button></sc-if><sc-if value="{{pl4}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick4}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Central Division, Kampala</button></sc-if><sc-if value="{{pl5}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick5}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Kira Municipality, Wakiso</button></sc-if><sc-if value="{{pl6}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick6}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Nansana Municipality, Wakiso</button></sc-if><sc-if value="{{pl7}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick7}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Entebbe Municipality, Wakiso</button></sc-if><sc-if value="{{pl8}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick8}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Mukono Municipality, Mukono</button></sc-if><sc-if value="{{pl9}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick9}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Jinja City, Jinja</button></sc-if><sc-if value="{{pl10}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick10}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Mbarara City, Mbarara</button></sc-if><sc-if value="{{pl11}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{pick11}}" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: #151d30; color: #e8ecf3; text-align: left; border-top: 1px solid #222c42; font: 500 15px Figtree, sans-serif"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" style="color: #8f99b3" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Gulu City, Gulu</button></sc-if></div>
+              <sc-if value="{{noMatch}}" hint-placeholder-val="{{false}}"><span style="display: block; padding: 12px 14px; border-top: 1px solid #222c42; font: 500 13px Figtree, sans-serif; color: #8f99b3">No match. Try the district name.</span></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{hasPlace}}" hint-placeholder-val="{{false}}">
+            <span style="display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 8px 0 14px; border-radius: 16px; background: rgba(45,212,191,.12); box-shadow: inset 0 0 0 2px #14b8a6; font: 600 15px Figtree, sans-serif"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #5eead4" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span style="flex: 1">{{place}}</span><button type="button" onClick="{{clearPlace}}" style="height: 36px; padding: 0 12px; border-radius: 999px; background: #151d30; color: #5eead4; font: 600 13px Figtree, sans-serif">Change</button></span>
+          </sc-if>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Village or address <span style="font-weight: 500; color: #6f7a96">(optional)</span></span><textarea maxlength="200" rows="2" placeholder="e.g. Bwaise II, near the market" onInput="{{set_village}}" style="border-radius: 16px; border: 0; outline: none; resize: none; background: #151d30; box-shadow: inset 0 0 0 2px #2c3650; padding: 12px 14px; color: #e8ecf3; font: 500 15px/21px Figtree, sans-serif">{{village}}</textarea><span style="align-self: flex-end; font: 500 11px Figtree, sans-serif; color: #6f7a96">{{villageCount}}/200</span></label>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Pin your home <span style="font-weight: 500; color: #6f7a96">(optional)</span></span><span style="font: 500 11px 'Geist Mono', monospace; color: #8f99b3">{{coords}}</span></span>
+          <div style="position: relative; height: 230px; border-radius: 20px; overflow: hidden; box-shadow: inset 0 0 0 1px #2c3650, 0 10px 24px -14px rgba(0,0,0,0.48)">
+            <div onClick="{{tapMap}}" style="position: absolute; inset: 0; cursor: crosshair; transform: scale({{zoom}}); transform-origin: {{pinX}}px {{pinY}}px; transition: transform .35s cubic-bezier(.16,1,.3,1)">
+            <svg width="100%" height="100%" viewBox="0 0 350 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="display: block">
+              <rect width="350" height="220" fill="#f2efe9"/>
+              <path d="M-10 170 C 60 150, 110 190, 180 175 S 300 140, 360 160 L360 230 L-10 230 Z" fill="#aadaff"/>
+              <rect x="210" y="22" width="92" height="58" rx="8" fill="#c8e6c9"/>
+              <rect x="30" y="96" width="56" height="40" rx="6" fill="#c8e6c9"/>
+              <g fill="#e8e3da"><rect x="20" y="20" width="70" height="60" rx="4"/><rect x="104" y="20" width="90" height="60" rx="4"/><rect x="104" y="96" width="90" height="48" rx="4"/><rect x="210" y="96" width="120" height="48" rx="4"/><rect x="316" y="20" width="40" height="60" rx="4"/></g>
+              <g stroke="#ffffff" stroke-width="9" fill="none" stroke-linecap="round"><path d="M0 88 H350"/><path d="M97 0 V160"/><path d="M202 0 V150"/><path d="M308 0 V140"/></g>
+              <g stroke="#dadce0" stroke-width="1" fill="none"><path d="M0 83.5 H350 M0 92.5 H350"/></g>
+              <path d="M-10 130 C 80 120, 150 60, 360 40" stroke="#fde293" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <path d="M-10 130 C 80 120, 150 60, 360 40" stroke="#f9c74f" stroke-width="1" fill="none" stroke-opacity=".7"/>
+              <g font-family="Figtree, sans-serif" font-size="8" fill="#5f6368" font-weight="600"><text x="226" y="54">Kawempe grounds</text><text x="112" y="112">Bwaise II</text><text x="230" y="120">Kawempe HC IV</text><text x="40" y="190" fill="#4a7dbf">Nsooba channel</text><text x="250" y="36" fill="#9a7b1c" transform="rotate(-6 250 36)">Bombo Road</text></g>
+              <g transform="translate(222 113)"><circle r="5" fill="#ffffff" stroke="#296a89" stroke-width="2"/><path d="M-2 0 H2 M0 -2 V2" stroke="#296a89" stroke-width="1.5"/></g>
+            </svg>
+            </div>
+            <span aria-hidden="true" style="position: absolute; left: {{pinX}}px; top: {{pinY}}px; width: 18px; height: 6px; margin: -3px 0 0 -9px; border-radius: 999px; background: rgba(0,0,0,.25); filter: blur(1px)"></span>
+            <span aria-label="Your pin" style="position: absolute; left: {{pinX}}px; top: {{pinY}}px; margin: -44px 0 0 -16px; width: 32px; height: 44px; pointer-events: none; animation: pinDrop .5s cubic-bezier(.34,1.56,.64,1) both" data-k="{{pinKey}}">
+              <svg width="32" height="44" viewBox="0 0 32 44" aria-hidden="true"><path d="M16 43c0 0 14-14.5 14-27A14 14 0 0 0 2 16c0 12.5 14 27 14 27z" fill="#e8ecf3"/><circle cx="16" cy="16" r="6" fill="#2dd4bf"/></svg>
+            </span>
+            <span style="position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; background: #151d30; box-shadow: 0 2px 8px rgba(0,0,0,.18)">
+              <button type="button" onClick="{{zoomIn}}" aria-label="Zoom in" style="width: 36px; height: 36px; background: #151d30; color: #e8ecf3; font: 600 20px Figtree, sans-serif">+</button>
+              <span style="height: 1px; background: #222c42"></span>
+              <button type="button" onClick="{{zoomOut}}" aria-label="Zoom out" style="width: 36px; height: 36px; background: #151d30; color: #e8ecf3; font: 600 20px Figtree, sans-serif">−</button>
+            </span>
+            <button type="button" onClick="{{locate}}" aria-label="Use my location" style="position: absolute; right: 10px; bottom: 10px; width: 40px; height: 40px; border-radius: 999px; background: #151d30; color: #296a89; display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.18)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 1v3 M12 20v3 M1 12h3 M20 12h3"/></svg></button>
+            <span style="position: absolute; left: 10px; bottom: 10px; height: 28px; padding: 0 10px; border-radius: 999px; background: rgba(255,255,255,.92); display: inline-flex; align-items: center; gap: 6px; font: 600 11px Figtree, sans-serif; color: #1b2540; box-shadow: 0 1px 4px rgba(0,0,0,.12)">{{pinWord}}</span>
+          </div>
+          <span style="font: 500 12px/16px Figtree, sans-serif; color: #8f99b3">Tap the map to move the pin. It helps an ambulance or health worker find you. Only your care team sees it.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{st3}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 4px; animation: rise .35s ease-out both"><h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Your sign-in</h1><span style="font: 500 14px/20px Figtree, sans-serif; color: #a9b2c7">You can also sign in later with a code sent to your phone.</span></div>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Email</span><input type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="name@example.com" value="{{email}}" onInput="{{set_email}}" style="height: 54px; border-radius: 16px; border: 0; outline: none; background: #151d30; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif; box-sizing: border-box; width: 100%; box-shadow: inset 0 0 0 2px {{emailRing}}"><sc-if value="{{emailErrShow}}" hint-placeholder-val="{{false}}"><span role="alert" style="font: 500 12px/16px Figtree, sans-serif; color: #b91c1c">{{emailErr}}</span></sc-if></label>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Password</span>
+          <span style="display: flex; align-items: center; height: 54px; border-radius: 16px; background: #151d30; box-shadow: inset 0 0 0 2px {{passwordRing}}"><input type="{{pwType}}" autocomplete="new-password" placeholder="12 or more characters" value="{{password}}" onInput="{{set_password}}" style="flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; padding: 0 14px; color: #e8ecf3; font: 600 16px Figtree, sans-serif"><button type="button" onClick="{{togglePw}}" aria-label="Show or hide password" style="width: 50px; height: 100%; background: transparent; color: #a9b2c7; display: grid; place-items: center"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></button></span>
+          <span style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px"><span style="height: 4px; border-radius: 999px; background: {{s1}}"></span><span style="height: 4px; border-radius: 999px; background: {{s2}}"></span><span style="height: 4px; border-radius: 999px; background: {{s3}}"></span><span style="height: 4px; border-radius: 999px; background: {{s4}}"></span></span>
+          <span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{pwHint}}</span>
+        </label>
+      </sc-if>
+      <sc-if value="{{st4}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 4px; animation: rise .35s ease-out both"><h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Your consent</h1><span style="font: 500 14px/20px Figtree, sans-serif; color: #a9b2c7">Please read this before we create your account.</span></div>
+        <div style="border-radius: 20px; background: #151d30; padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="display: flex; justify-content: space-between; align-items: center"><span style="font: 700 15px Figtree, sans-serif">How we use your data</span><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: #1c2539; font: 600 11px/22px Figtree, sans-serif; color: #a9b2c7">Notice v1.2</span></span>
+          <span style="font: 500 13px/19px Figtree, sans-serif; color: #a9b2c7">Your health records are kept safe and shared only with the care teams treating you. You can see who opened them. We never sell your data. Under Uganda's Data Protection and Privacy Act you can ask to see, correct or delete it.</span>
+          <span style="font: 600 13px Figtree, sans-serif; color: #5eead4">Read the full notice</span>
+        </div>
+        <button type="button" role="checkbox" aria-checked="{{consentPr}}" onClick="{{toggle_consent}}" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 18px; background: #151d30; text-align: left; color: #e8ecf3; box-shadow: inset 0 0 0 2px {{consentRing}}">
+          <span style="width: 24px; height: 24px; border-radius: 7px; flex: none; background: {{consentBox}}; box-shadow: inset 0 0 0 2px {{consentBoxRing}}; color: #ffffff; display: grid; place-items: center"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="stroke-width: 3; opacity: {{consentTick}}" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font: 600 14px/19px Figtree, sans-serif">I have read and agree to the data notice</span><span style="font: 500 12px/17px Figtree, sans-serif; color: #a9b2c7">Required to create your account</span></span>
+        </button>
+        <button type="button" role="checkbox" aria-checked="{{smsPr}}" onClick="{{toggle_sms}}" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 18px; background: #151d30; text-align: left; color: #e8ecf3; box-shadow: inset 0 0 0 2px {{smsRing}}">
+          <span style="width: 24px; height: 24px; border-radius: 7px; flex: none; background: {{smsBox}}; box-shadow: inset 0 0 0 2px {{smsBoxRing}}; color: #ffffff; display: grid; place-items: center"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" style="stroke-width: 3; opacity: {{smsTick}}" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font: 600 14px/19px Figtree, sans-serif">Send me SMS reminders</span><span style="font: 500 12px/17px Figtree, sans-serif; color: #a9b2c7">Medicines, visits and results. You can stop any time.</span></span>
+        </button>
+      </sc-if>
+      <sc-if value="{{st5}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 24px; text-align: center; animation: rise .4s ease-out both">
+          <span style="width: 84px; height: 84px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center"><svg class="ic" width="40" height="40" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <h1 style="margin: 0; font: 500 30px/34px Figtree, sans-serif; letter-spacing: -0.03em">Welcome, {{firstNameShow}}</h1>
+          <span style="font: 500 15px/21px Figtree, sans-serif; color: #a9b2c7">Your account is ready. Your MedSync number is <b style="color: #e8ecf3">MS 0042 1187</b>.</span>
+        </div>
+        <div style="border-radius: 20px; background: #151d30; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="font: 700 14px Figtree, sans-serif">Later, in your profile</span>
+          <span style="font: 500 13px/19px Figtree, sans-serif; color: #a9b2c7">We will ask for these when you need them. No rush.</span>
+          <span style="display: flex; flex-wrap: wrap; gap: 6px"><span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #1c2539; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">National ID</span><span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #1c2539; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Next of kin</span><span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #1c2539; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Usual hospital</span><span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #1c2539; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Photo</span><span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #1c2539; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Title</span><span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #1c2539; display: inline-flex; align-items: center; font: 600 12px Figtree, sans-serif">Preferred language</span></span>
+        </div>
+      </sc-if>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 28px; background: linear-gradient(180deg, rgba(11,17,32,0), #0b1120 28%)">
+    <sc-if value="{{notDone}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{next}}" aria-disabled="{{nextOff}}" style="width: 100%; height: 56px; border-radius: 999px; background: {{nextBg}}; color: #ffffff; font: 600 17px Figtree, sans-serif">{{nextWord}}</button></sc-if>
+    <sc-if value="{{st5}}" hint-placeholder-val="{{false}}"><a href="DHome.dc.html" style="width: 100%; height: 56px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: flex; align-items: center; justify-content: center; font: 600 17px Figtree, sans-serif">Go to my home</a></sc-if>
+    <button type="button" onClick="{{demo}}" style="display: block; margin: 8px auto 0; background: transparent; padding: 0; font: 600 12px Figtree, sans-serif; color: #a5b4fc">{{demoWord}}</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 1, firstName: '', surname: '', sex: '', dobDay: '', dobMonth: '', dobYear: '', phone: '', q: '', place: '', village: '', pinX: 160, pinY: 128, zoom: 1, pinMoved: false, pk: 0, email: '', password: '', showPw: false, consent: false, sms: false };
+  }
+  renderVals() {
+    var self = this, st = this.state, v = {};
+    var PLACES = ["Kawempe Division, Kampala", "Nakawa Division, Kampala", "Makindye Division, Kampala", "Rubaga Division, Kampala", "Central Division, Kampala", "Kira Municipality, Wakiso", "Nansana Municipality, Wakiso", "Entebbe Municipality, Wakiso", "Mukono Municipality, Mukono", "Jinja City, Jinja", "Mbarara City, Mbarara", "Gulu City, Gulu"];
+    function set(k, fn) { return function (e) { var o = {}; o[k] = fn ? fn(e.target.value) : e.target.value; self.setState(o); }; }
+    var digits = function (n) { return function (x) { return x.replace(/[^0-9]/g, '').slice(0, n); }; };
+    ['firstName', 'surname', 'email', 'password', 'village', 'q'].forEach(function (k) { v['set_' + k] = set(k); });
+    v.set_dobDay = set('dobDay', digits(2)); v.set_dobMonth = set('dobMonth', digits(2)); v.set_dobYear = set('dobYear', digits(4));
+    v.set_phone = set('phone', function (x) { var d = x.replace(/[^0-9]/g, ''); if (d.charAt(0) === '0') d = d.slice(1); return d.slice(0, 9).replace(/(\d{3})(\d{1,3})?(\d{1,3})?/, function (m, a, b, c) { return [a, b, c].filter(Boolean).join(' '); }); });
+    var ok = {}, msg = {};
+    ok.firstName = st.firstName.trim().length > 0; msg.firstName = 'Please enter your first name';
+    ok.surname = st.surname.trim().length > 0; msg.surname = 'Please enter your surname';
+    ok.sex = !!st.sex;
+    var d = +st.dobDay, m = +st.dobMonth, y = +st.dobYear, dobFilled = st.dobDay && st.dobMonth && st.dobYear.length === 4, minor = false, dobMsg = '';
+    if (dobFilled) {
+      var dt = new Date(y, m - 1, d), today = new Date(2026, 9, 17);
+      var real = dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+      if (!real) dobMsg = 'That date does not exist. Check the day and month.';
+      else if (dt > today) dobMsg = 'The date cannot be in the future.';
+      else { var age = today.getFullYear() - y - ((today.getMonth() < m - 1 || (today.getMonth() === m - 1 && today.getDate() < d)) ? 1 : 0);
+        if (age < 18) { dobMsg = 'You must be 18 or older to create an account.'; minor = true; } else if (age > 120) dobMsg = 'Please check the year.'; }
+    }
+    ok.dob = dobFilled && !dobMsg; msg.dob = dobMsg;
+    var ph = st.phone.replace(/ /g, '');
+    ok.phone = /^7[0-9]{8}$/.test(ph); msg.phone = ph.length >= 9 ? 'Ugandan mobile numbers start with 7, like 772 000 000' : 'Enter all 9 digits after +256';
+    ok.place = !!st.place;
+    ok.email = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(st.email.trim()); msg.email = 'Enter a valid email, like name@example.com';
+    ok.password = st.password.length >= 12; msg.password = 'Use 12 or more characters';
+    ['firstName', 'surname', 'email', 'password'].forEach(function (k) {
+      var filled = st[k].length > 0;
+      v[k] = st[k]; v[k + 'Ring'] = ok[k] ? '#14b8a6' : (filled && k !== 'firstName' && k !== 'surname' ? '#f87171' : '#2c3650');
+      v[k + 'ErrShow'] = filled && !ok[k] && k !== 'password'; v[k + 'Err'] = msg[k];
+    });
+    v.dobDay = st.dobDay; v.dobMonth = st.dobMonth; v.dobYear = st.dobYear;
+    v.dobRing = ok.dob ? '#14b8a6' : (dobFilled ? '#f87171' : '#2c3650'); v.dobErrShow = dobFilled && !ok.dob; v.dobErr = msg.dob; v.minor = minor;
+    v.phone = st.phone; v.phoneRing = ok.phone ? '#14b8a6' : (ph.length >= 9 ? '#f87171' : '#2c3650'); v.phoneErrShow = ph.length >= 9 && !ok.phone; v.phoneErr = msg.phone;
+    [['m', 'Male'], ['f', 'Female'], ['i', 'Intersex'], ['n', 'Prefer not to say']].forEach(function (s) {
+      var a = st.sex === s[0]; v['sex_' + s[0]] = function () { self.setState({ sex: s[0] }); };
+      v['sex_' + s[0] + 'Pr'] = a ? 'true' : 'false'; v['sex_' + s[0] + 'Bg'] = a ? '#e8ecf3' : '#151d30'; v['sex_' + s[0] + 'Fg'] = a ? '#151d30' : '#e8ecf3'; v['sex_' + s[0] + 'Ring'] = a ? 'none' : 'inset 0 0 0 1px #2c3650';
+    });
+    var q = st.q.trim().toLowerCase(), shown = 0;
+    PLACES.forEach(function (p, i) { var match = q ? p.toLowerCase().indexOf(q) >= 0 : i < 4; v['pl' + i] = match; if (match) shown++; v['pick' + i] = function () { self.setState({ place: p, q: '' }); }; });
+    var PIN = [[222,118],[300,60],[150,40],[60,60],[130,70],[320,30],[40,40],[260,180],[200,40],[120,60],[90,120],[250,60]];
+    v.pickers = 0;
+    PLACES.forEach(function (p, i) { v['pick' + i] = function () { self.setState({ place: p, q: '', pinX: PIN[i][0], pinY: PIN[i][1], pk: st.pk + 1 }); }; });
+    v.pinX = st.pinX; v.pinY = st.pinY; v.zoom = st.zoom; v.pinKey = st.pk;
+    v.coords = (0.3476 + (128 - st.pinY) * 0.0004).toFixed(4) + '° N, ' + (32.5552 + (st.pinX - 160) * 0.0004).toFixed(4) + '° E';
+    v.pinWord = st.pinMoved ? 'Pin set' : (st.place ? st.place.split(',')[0] : 'Tap the map to set');
+    v.tapMap = function (e) { var r = e.currentTarget.getBoundingClientRect(); var sx = r.width / 350 ? (e.clientX - r.left) / (r.width / (e.currentTarget.offsetWidth || r.width)) : 0; var x = Math.round((e.clientX - r.left) * (e.currentTarget.offsetWidth / r.width)); var y = Math.round((e.clientY - r.top) * (e.currentTarget.offsetHeight / r.height)); self.setState({ pinX: Math.max(16, Math.min(330, x)), pinY: Math.max(44, Math.min(220, y)), pinMoved: true, pk: st.pk + 1 }); };
+    v.zoomIn = function () { self.setState({ zoom: Math.min(2, st.zoom + 0.3) }); };
+    v.zoomOut = function () { self.setState({ zoom: Math.max(1, st.zoom - 0.3) }); };
+    v.locate = function () { self.setState({ pinX: 205, pinY: 128, pinMoved: true, pk: st.pk + 1 }); };
+    v.noMatch = shown === 0; v.noPlace = !st.place; v.hasPlace = !!st.place; v.place = st.place; v.q = st.q;
+    v.clearPlace = function () { self.setState({ place: '' }); };
+    v.village = st.village; v.villageCount = st.village.length;
+    var L = st.password.length, score = L === 0 ? 0 : L < 8 ? 1 : L < 12 ? 2 : (/[0-9]/.test(st.password) && /[A-Za-z]/.test(st.password) ? 4 : 3);
+    var sc = ['#2c3650', '#f87171', '#fbbf24', '#2dd4bf', '#14b8a6'];
+    [1, 2, 3, 4].forEach(function (i) { v['s' + i] = i <= score ? sc[score] : '#2c3650'; });
+    v.pwHint = L === 0 ? 'At least 12 characters. A short sentence works well.' : L < 12 ? (12 - L) + ' more characters to go' : (score === 4 ? 'Strong password' : 'Good. Adding a number makes it stronger.');
+    v.passwordRing = ok.password ? '#14b8a6' : '#2c3650'; v.pwType = st.showPw ? 'text' : 'password'; v.togglePw = function () { self.setState({ showPw: !st.showPw }); };
+    ['consent', 'sms'].forEach(function (k) {
+      var a = st[k]; v['toggle_' + k] = function () { var o = {}; o[k] = !st[k]; self.setState(o); };
+      v[k + 'Pr'] = a ? 'true' : 'false'; v[k + 'Ring'] = a ? '#14b8a6' : '#2c3650'; v[k + 'Box'] = a ? '#14b8a6' : '#151d30'; v[k + 'BoxRing'] = a ? '#14b8a6' : '#3a4562'; v[k + 'Tick'] = a ? 1 : 0;
+    });
+    var stepOk = { 1: ok.firstName && ok.surname && ok.sex && ok.dob && ok.phone, 2: ok.place, 3: ok.email && ok.password, 4: st.consent };
+    var names = { 1: 'About you', 2: 'Where you live', 3: 'Your sign-in', 4: 'Consent' };
+    for (var i = 1; i <= 5; i++) v['st' + i] = st.step === i;
+    [1, 2, 3, 4].forEach(function (i) { v['p' + i] = i < st.step ? '#14b8a6' : i === st.step ? '#e8ecf3' : '#2c3650'; });
+    var good = !!stepOk[st.step];
+    var demoData = { 1: { firstName: 'Sarah', surname: 'Nakato', sex: 'f', dobDay: '12', dobMonth: '03', dobYear: '1972', phone: '772 123 418' }, 2: { place: PLACES[0], village: 'Bwaise II, near the market' }, 3: { email: 'sarah.nakato@example.com', password: 'my mango tree 2026' }, 4: { consent: true } };
+    return Object.assign(v, {
+      stepNo: Math.min(st.step, 4), stepName: names[Math.min(st.step, 4)], showProgress: st.step <= 4,
+      canBack: st.step > 1 && st.step <= 4, firstStep: st.step === 1, notDone: st.step <= 4,
+      back: function () { self.setState({ step: st.step - 1 }); },
+      next: function () { if (good) self.setState({ step: st.step + 1 }); },
+      nextOff: good ? 'false' : 'true', nextBg: good ? '#e8ecf3' : '#3a4562',
+      nextWord: st.step === 4 ? 'Create my account' : 'Continue',
+      firstNameShow: st.firstName || '[First name]',
+      demo: function () { if (st.step <= 4) self.setState(demoData[st.step]); else self.setState({ step: 1 }); },
+      demoWord: st.step <= 4 ? 'Demo: fill this step' : 'Demo: start again'
+    });
+  }
+}
+</script>
+</body>
+</html>

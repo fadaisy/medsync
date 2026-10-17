@@ -1,0 +1,16 @@
+<!-- @dsCard group="Safety" height=100 subtitle="Reading states, CSO-owned colours, always icon and word" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:var(--bg);font-family:var(--font-sans)}
+.wrap{display:flex;gap:8px;flex-wrap:wrap;padding:28px 20px}
+.p{height:30px;padding:0 12px 0 10px;border-radius:999px;display:inline-flex;gap:6px;align-items:center;font:600 14px/18px var(--font-sans)}
+.ic{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+</style></head>
+<body><div class="wrap">
+  <span class="p" style="background:var(--status-stable-bg);color:var(--status-stable-fg)"><svg class="ic" width="15" height="15" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>In your range</span>
+  <span class="p" style="background:var(--status-caution-bg);color:var(--status-caution-fg)"><svg class="ic" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="1"/></svg>Above your target</span>
+  <span class="p" style="background:var(--status-critical-bg);color:var(--status-critical-fg)"><svg class="ic" width="15" height="15" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Danger</span>
+  <span class="p" style="background:var(--status-pending-bg);color:var(--status-pending-fg)"><svg class="ic" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Waiting for the clinic</span>
+</div></body></html>

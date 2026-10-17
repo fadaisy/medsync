@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Log a reading</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+input::placeholder{color:#c5cbd8}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="DHome.dc.html" aria-label="Back" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Home</a>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+
+  <div style="position: absolute; top: 104px; left: 0; right: 0; bottom: 96px; overflow-y: auto">
+    <div style="padding: 4px 20px 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end">
+        <h1 style="margin: 0; font: 500 32px/36px Figtree, sans-serif; letter-spacing: -0.03em">Log a reading</h1>
+        <span style="height: 30px; padding: 0 10px; border-radius: 999px; background: #151d30; box-shadow: inset 0 0 0 1px #2c3650; display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 6v6l4 2"/></svg>Now · 13:04</span>
+      </div>
+
+      <div style="display: flex; gap: 8px"><button type="button" onClick="{{kbp}}" aria-pressed="{{kbpPr}}" style="flex: 1; min-width: 0; height: 74px; border-radius: 20px; background: {{kbpBg}}; color: {{kbpFg}}; box-shadow: {{kbpRing}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: background 200ms"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg><span style="font: 600 13px Figtree, sans-serif">Pressure</span></button><button type="button" onClick="{{ksugar}}" aria-pressed="{{ksugarPr}}" style="flex: 1; min-width: 0; height: 74px; border-radius: 20px; background: {{ksugarBg}}; color: {{ksugarFg}}; box-shadow: {{ksugarRing}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: background 200ms"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg><span style="font: 600 13px Figtree, sans-serif">Sugar</span></button><button type="button" onClick="{{kweight}}" aria-pressed="{{kweightPr}}" style="flex: 1; min-width: 0; height: 74px; border-radius: 20px; background: {{kweightBg}}; color: {{kweightFg}}; box-shadow: {{kweightRing}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: background 200ms"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M6.5 8a2 2 0 0 0-1.9 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.9-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z"/></svg><span style="font: 600 13px Figtree, sans-serif">Weight</span></button><button type="button" onClick="{{kpulse}}" aria-pressed="{{kpulsePr}}" style="flex: 1; min-width: 0; height: 74px; border-radius: 20px; background: {{kpulseBg}}; color: {{kpulseFg}}; box-shadow: {{kpulseRing}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: background 200ms"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span style="font: 600 13px Figtree, sans-serif">Pulse</span></button></div>
+
+      <!-- the number -->
+      <div style="border-radius: 28px; background: #151d30; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35); padding: 18px 16px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">{{prompt}}</span>
+        <sc-if value="{{isBp}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 2px">
+            <input type="text" inputmode="numeric" aria-label="Top number" value="{{top}}" onInput="{{setTop}}" placeholder="–" style="width: 128px; border: 0; background: transparent; outline: none; text-align: center; color: #e8ecf3; font: 600 64px/70px 'Geist Mono', monospace; letter-spacing: -0.05em; padding: 0">
+            <span style="font: 500 54px/70px Figtree, sans-serif; color: #3a4562">/</span>
+            <input type="text" inputmode="numeric" aria-label="Bottom number" value="{{bottom}}" onInput="{{setBottom}}" placeholder="–" style="width: 104px; border: 0; background: transparent; outline: none; text-align: center; color: #e8ecf3; font: 600 64px/70px 'Geist Mono', monospace; letter-spacing: -0.05em; padding: 0">
+          </div>
+          <div style="display: flex; gap: 70px; font: 600 11px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #6f7a96"><span>Top</span><span>Bottom</span></div>
+        </sc-if>
+        <sc-if value="{{isSingle}}" hint-placeholder-val="{{false}}">
+          <input type="text" inputmode="decimal" aria-label="{{prompt}}" value="{{single}}" onInput="{{setOne}}" placeholder="–" style="width: 190px; border: 0; background: transparent; outline: none; text-align: center; color: #e8ecf3; font: 600 64px/70px 'Geist Mono', monospace; letter-spacing: -0.05em; padding: 0">
+        </sc-if>
+        <span style="font: 600 13px Figtree, sans-serif; color: #8f99b3">{{unit}}</span>
+        <span style="margin-top: 6px; align-self: stretch; display: flex; gap: 8px; align-items: center; justify-content: center; padding: 10px 12px; border-radius: 16px; background: {{fbBg}}; color: {{fbFg}}; font: 600 14px/19px Figtree, sans-serif; text-align: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{fbDot}}; flex: none"></span>{{fbText}}</span>
+        <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3">Last time: {{lastWord}}</span>
+      </div>
+
+      <sc-if value="{{isSugar}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font: 600 15px Figtree, sans-serif">When did you check?</span>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px"><button type="button" onClick="{{cfasting}}" aria-pressed="{{cfastingPr}}" style="min-height: 64px; padding: 10px; border-radius: 18px; background: {{cfastingBg}}; color: #e8ecf3; box-shadow: {{cfastingRing}}; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: {{cfastingIc}}" aria-hidden="true"><path d="M12 2v2 M4.93 4.93l1.41 1.41 M2 12h2 M20 12h2 M19.07 4.93l-1.41 1.41 M8 16a4 4 0 0 1 8 0 M2 20h20"/></svg><span style="font: 600 12px/15px Figtree, sans-serif">Before breakfast</span></button><button type="button" onClick="{{clunch}}" aria-pressed="{{clunchPr}}" style="min-height: 64px; padding: 10px; border-radius: 18px; background: {{clunchBg}}; color: #e8ecf3; box-shadow: {{clunchRing}}; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: {{clunchIc}}" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 6v6l4 2"/></svg><span style="font: 600 12px/15px Figtree, sans-serif">Before lunch</span></button><button type="button" onClick="{{csupper}}" aria-pressed="{{csupperPr}}" style="min-height: 64px; padding: 10px; border-radius: 18px; background: {{csupperBg}}; color: #e8ecf3; box-shadow: {{csupperRing}}; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: {{csupperIc}}" aria-hidden="true"><path d="M12 10V2 M5 10l1.5 1.5 M2 18h2 M20 18h2 M19 10l-1.5 1.5 M16 18a4 4 0 0 0-8 0 M2 22h20"/></svg><span style="font: 600 12px/15px Figtree, sans-serif">Before supper</span></button><button type="button" onClick="{{cafter}}" aria-pressed="{{cafterPr}}" style="min-height: 64px; padding: 10px; border-radius: 18px; background: {{cafterBg}}; color: #e8ecf3; box-shadow: {{cafterRing}}; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: {{cafterIc}}" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2 M7 2v20 M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg><span style="font: 600 12px/15px Figtree, sans-serif">After a meal</span></button><button type="button" onClick="{{cbedtime}}" aria-pressed="{{cbedtimePr}}" style="min-height: 64px; padding: 10px; border-radius: 18px; background: {{cbedtimeBg}}; color: #e8ecf3; box-shadow: {{cbedtimeRing}}; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: {{cbedtimeIc}}" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span style="font: 600 12px/15px Figtree, sans-serif">Bedtime</span></button><button type="button" onClick="{{crandom}}" aria-pressed="{{crandomPr}}" style="min-height: 64px; padding: 10px; border-radius: 18px; background: {{crandomBg}}; color: #e8ecf3; box-shadow: {{crandomRing}}; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: {{crandomIc}}" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 8v4 M12 16h.01"/></svg><span style="font: 600 12px/15px Figtree, sans-serif">Another time</span></button></div>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 15px Figtree, sans-serif">How do you feel? <span style="font-weight: 500; color: #8f99b3">(optional)</span></span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" onClick="{{ffine}}" aria-pressed="{{ffinePr}}" style="height: 36px; padding: 0 14px; border-radius: 999px; background: {{ffineBg}}; color: {{ffineFg}}; box-shadow: {{ffineRing}}; font: 600 13px Figtree, sans-serif">I feel fine</button><button type="button" onClick="{{fdizzy}}" aria-pressed="{{fdizzyPr}}" style="height: 36px; padding: 0 14px; border-radius: 999px; background: {{fdizzyBg}}; color: {{fdizzyFg}}; box-shadow: {{fdizzyRing}}; font: 600 13px Figtree, sans-serif">Dizzy</button><button type="button" onClick="{{fhead}}" aria-pressed="{{fheadPr}}" style="height: 36px; padding: 0 14px; border-radius: 999px; background: {{fheadBg}}; color: {{fheadFg}}; box-shadow: {{fheadRing}}; font: 600 13px Figtree, sans-serif">Headache</button><button type="button" onClick="{{ftired}}" aria-pressed="{{ftiredPr}}" style="height: 36px; padding: 0 14px; border-radius: 999px; background: {{ftiredBg}}; color: {{ftiredFg}}; box-shadow: {{ftiredRing}}; font: 600 13px Figtree, sans-serif">Very tired</button><button type="button" onClick="{{fchest}}" aria-pressed="{{fchestPr}}" style="height: 36px; padding: 0 14px; border-radius: 999px; background: {{fchestBg}}; color: {{fchestFg}}; box-shadow: {{fchestRing}}; font: 600 13px Figtree, sans-serif">Chest pain</button></div>
+        <sc-if value="{{chestPain}}" hint-placeholder-val="{{false}}">
+          <a href="DDanger.dc.html" style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 16px; background: #dc2626; color: #ffffff; font: 600 14px/19px Figtree, sans-serif"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M12 9v4 M12 17h.01 M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span style="flex: 1">Chest pain needs help now. Tap to get help.</span></a>
+        </sc-if>
+      </div>
+
+      <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Thresholds illustrative, pending CSO sign-off.</span>
+    </div>
+  </div>
+
+  <!-- save bar -->
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 26px; background: linear-gradient(180deg, rgba(11,17,32,0) 0%, #0b1120 30%)">
+    <a href="{{saveHref}}" aria-disabled="{{saveDisabled}}" style="height: 56px; border-radius: 999px; background: {{saveBg}}; color: #ffffff; display: flex; gap: 8px; align-items: center; justify-content: center; font: 600 17px Figtree, sans-serif; box-shadow: 0 10px 24px -10px rgba(0,0,0,0.70)">{{saveWord}}</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kind: 'bp', top: '138', bottom: '86', sugar: '7.1', weight: '85.5', pulse: '74', ctx: 'fasting', feel: {} };
+  }
+  renderVals() {
+    var self = this, st = this.state, kind = st.kind, v = {};
+    var K = { bp: ['Pressure', '#7dd3fc'], sugar: ['Sugar', '#7c3aed'], weight: ['Weight', '#5eead4'], pulse: ['Pulse', '#be185d'] };
+    var C = { fasting: ['before breakfast', 7.2], lunch: ['before lunch', 7.2], supper: ['before supper', 7.2], after: ['after a meal', 10], bedtime: ['bedtime', 8.3], random: ['another time', 10] };
+    Object.keys(K).forEach(function (k) {
+      var a = k === kind;
+      v['k' + k] = function () { self.setState({ kind: k }); };
+      v['k' + k + 'Pr'] = a ? 'true' : 'false'; v['k' + k + 'Bg'] = a ? '#e8ecf3' : '#151d30'; v['k' + k + 'Fg'] = a ? '#151d30' : K[k][1];
+      v['k' + k + 'Ring'] = a ? 'none' : '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)';
+    });
+    Object.keys(C).forEach(function (k) {
+      var a = k === st.ctx;
+      v['c' + k] = function () { self.setState({ ctx: k }); };
+      v['c' + k + 'Pr'] = a ? 'true' : 'false'; v['c' + k + 'Bg'] = a ? 'rgba(124,58,237,.18)' : '#151d30'; v['c' + k + 'Ring'] = a ? 'inset 0 0 0 2px #7c3aed' : 'inset 0 0 0 1px #2c3650'; v['c' + k + 'Ic'] = a ? '#7c3aed' : '#8f99b3';
+    });
+    ['fine', 'dizzy', 'head', 'tired', 'chest'].forEach(function (k) {
+      var a = !!st.feel[k];
+      v['f' + k] = function () { var f = Object.assign({}, st.feel); if (k === 'fine') f = { fine: !a }; else { f[k] = !a; delete f.fine; } self.setState({ feel: f }); };
+      v['f' + k + 'Pr'] = a ? 'true' : 'false'; v['f' + k + 'Bg'] = a ? '#e8ecf3' : '#151d30'; v['f' + k + 'Fg'] = a ? '#151d30' : '#e8ecf3'; v['f' + k + 'Ring'] = a ? 'none' : 'inset 0 0 0 1px #2c3650';
+    });
+    function num(x) { var n = parseFloat(x); return isNaN(n) ? null : n; }
+    var T = num(st.top), B = num(st.bottom), one = num(st[kind]);
+    var filled = kind === 'bp' ? (T > 0 && B > 0) : one > 0;
+    var dang = false, high = false, fb = '';
+    if (kind === 'bp') {
+      dang = T >= 180 || B >= 120; high = !dang && (T >= 140 || B >= 90);
+      fb = dang ? 'Very high' : high ? 'Above your target of 140/90' : 'In your range';
+      if (filled && !dang && (T < 90 || B < 50)) { high = true; fb = T < 50 || B < 30 ? 'That looks too low. Check the number.' : 'Low. Recheck, and tell your team if you feel dizzy.'; }
+    } else if (kind === 'sugar') {
+      var c = C[st.ctx];
+      if (one < 4) { dang = true; fb = 'Too low. Eat or drink something sweet now.'; }
+      else if (one >= 16.7) { dang = true; fb = 'Very high'; }
+      else if (one > c[1]) { high = true; fb = 'Above your target for ' + c[0] + ' (' + c[1] + ')'; }
+      else fb = 'In your target for ' + c[0];
+    } else if (kind === 'pulse') {
+      dang = one < 40 || one > 130; high = !dang && (one < 50 || one > 100);
+      fb = dang ? 'Out of the safe range' : high ? 'Outside the usual range' : 'Steady';
+    } else fb = '0.5 kg less than last week';
+    if (!filled) { dang = false; high = false; fb = 'Type your number'; }
+    var chest = !!st.feel.chest;
+    var prompts = { bp: 'Type the numbers from your machine', sugar: 'The number on your meter', weight: 'Morning, before breakfast', pulse: 'Sitting still for a minute' };
+    var units = { bp: 'mmHg', sugar: 'mmol/L', weight: 'kg', pulse: 'beats per minute' };
+    var last = { bp: '142/88 · yesterday 20:10', sugar: '6.8 · before breakfast, yesterday', weight: '86.0 kg · last Saturday', pulse: '76 · yesterday' };
+    var go = dang || chest;
+    return Object.assign(v, {
+      isBp: kind === 'bp', isSingle: kind !== 'bp', isSugar: kind === 'sugar',
+      top: st.top, bottom: st.bottom, single: kind === 'bp' ? '' : st[kind],
+      setTop: function (e) { self.setState({ top: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) }); },
+      setBottom: function (e) { self.setState({ bottom: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) }); },
+      setOne: function (e) { var o = {}; o[kind] = e.target.value.replace(/[^0-9.]/g, '').slice(0, 5); self.setState(o); },
+      prompt: prompts[kind], unit: units[kind], lastWord: last[kind],
+      fbBg: !filled ? '#1c2539' : dang ? 'rgba(220,38,38,.16)' : high ? 'rgba(245,158,11,.14)' : 'rgba(34,197,94,.12)',
+      fbFg: !filled ? '#a9b2c7' : dang ? '#fca5a5' : high ? '#fbbf24' : '#4ade80',
+      fbDot: !filled ? '#3a4562' : dang ? '#dc2626' : high ? '#f59e0b' : '#22c55e',
+      fbText: fb, chestPain: chest,
+      saveHref: !filled && !chest ? '#' : (go ? 'DDanger.dc.html' : 'DHome.dc.html'),
+      saveDisabled: !filled && !chest ? 'true' : 'false',
+      saveBg: !filled && !chest ? '#3a4562' : (go ? '#dc2626' : '#e8ecf3'),
+      saveWord: go ? 'Save and get help' : 'Save reading'
+    });
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Move and eat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="DCare.dc.html" aria-label="Back to Care" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Care</a>
+    <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+  </div>
+
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 40px; display: flex; flex-direction: column; gap: 14px">
+    <h1 style="margin: 0; font: 500 32px/36px Figtree, sans-serif; letter-spacing: -0.03em">Move and eat</h1>
+    <div role="group" aria-label="Show" style="display: flex; gap: 6px">
+      <button type="button" onClick="{{showMove}}" aria-pressed="{{movePressed}}" style="height: 38px; padding: 0 18px; border-radius: 999px; background: {{moveBg}}; color: {{moveFg}}; font: 600 15px Figtree, sans-serif; box-shadow: {{moveRing}}">Move</button>
+      <button type="button" onClick="{{showEat}}" aria-pressed="{{eatPressed}}" style="height: 38px; padding: 0 18px; border-radius: 999px; background: {{eatBg}}; color: {{eatFg}}; font: 600 15px Figtree, sans-serif; box-shadow: {{eatRing}}">Eat</button>
+    </div>
+
+    <!-- MOVE -->
+    <sc-if value="{{isMove}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="background: #24314f; color: #ffffff; border-radius: 26px; padding: 18px; display: flex; gap: 18px; align-items: center">
+          <span style="position: relative; width: 112px; height: 112px; flex: none">
+            <svg width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="5,420 of 7,000 steps"><circle cx="56" cy="56" r="46" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="12"/><circle cx="56" cy="56" r="46" fill="none" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{stepDash}}" transform="rotate(-90 56 56)"/><circle cx="56" cy="56" r="30" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="10"/><circle cx="56" cy="56" r="30" fill="none" stroke="#7dd3fc" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{actDash}}" transform="rotate(-90 56 56)"/></svg>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 10px">
+            <span style="display: flex; flex-direction: column"><span style="display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #5eead4"><span style="width: 8px; height: 8px; border-radius: 999px; background: #2dd4bf"></span>Steps</span><span style="font: 700 22px/26px Figtree, sans-serif; font-variant-numeric: tabular-nums">5,420 <span style="font: 500 13px Figtree, sans-serif; color: #e8ecf3">of 7,000</span></span></span>
+            <span style="display: flex; flex-direction: column"><span style="display: inline-flex; gap: 6px; align-items: center; font: 600 12px Figtree, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #7dd3fc"><span style="width: 8px; height: 8px; border-radius: 999px; background: #7dd3fc"></span>Active minutes</span><span style="font: 700 22px/26px Figtree, sans-serif; font-variant-numeric: tabular-nums">22 <span style="font: 500 13px Figtree, sans-serif; color: #e8ecf3">of 30</span></span></span>
+          </span>
+        </div>
+
+        <div style="background: #151d30; border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font: 600 16px Figtree, sans-serif">Active minutes this week</span><span style="font: 600 13px Figtree, sans-serif; color: #5eead4">132 of 150</span></span>
+          <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 96px">
+            <sc-for list="{{bars}}" as="b" hint-placeholder-count="7">
+              <span style="display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: flex-end; height: 96px">
+                <span style="width: 100%; height: {{b.h}}px; border-radius: 8px; background: {{b.bg}}"></span>
+                <span style="font: {{b.w}} 11px Figtree, sans-serif; color: #a9b2c7">{{b.l}}</span>
+              </span>
+            </sc-for>
+          </div>
+          <span style="font: 400 13px/18px Figtree, sans-serif; color: #a9b2c7">150 minutes a week of brisk walking is the goal your team set.</span>
+        </div>
+
+        <span style="font: 600 18px/24px Figtree, sans-serif">Today's movement</span>
+        <div style="background: #151d30; border-radius: 22px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #222c42">
+            <span style="width: 38px; height: 38px; border-radius: 999px; background: rgba(45,212,191,.18); color: #5eead4; display: grid; place-items: center"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="m7 22 3-7 3 3v4"/><path d="m10 15-1-5 4-2 2 4 3 1"/></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px Figtree, sans-serif">Morning walk</span><span style="font: 400 13px Figtree, sans-serif; color: #a9b2c7">07:00 · 22 min · 2,600 steps</span></span>
+            <span style="width: 26px; height: 26px; border-radius: 999px; background: #e8ecf3; color: #0b1120; display: grid; place-items: center"><svg class="ic" width="13" height="13" viewBox="0 0 24 24" style="stroke-width: 3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px">
+            <span style="width: 38px; height: 38px; border-radius: 999px; background: rgba(99,102,241,.16); color: #a5b4fc; display: grid; place-items: center"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px Figtree, sans-serif">Evening walk, 10 min</span><span style="font: 400 13px Figtree, sans-serif; color: #a9b2c7">Suggested by your care team</span></span>
+            <button type="button" style="height: 36px; padding: 0 14px; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 14px Figtree, sans-serif">Start</button>
+          </div>
+        </div>
+        <section aria-label="Safety while you move" style="border-radius: 22px; background: rgba(245,158,11,.18); box-shadow: inset 0 0 0 1.5px #f5d27a; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; gap: 10px; align-items: center">
+            <span style="width: 36px; height: 36px; border-radius: 999px; background: #fbbf24; color: #ffffff; display: grid; place-items: center; flex: none"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+            <span style="display: flex; flex-direction: column"><span style="font: 600 12px/16px Figtree, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #fbbf24">Safety while you move</span><span style="font: 700 16px/21px Figtree, sans-serif; color: #451a03">Stop at once if you feel any of these</span></span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <span style="display: flex; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 14px; background: #151d30; font: 600 13px/17px Figtree, sans-serif; color: #451a03"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #fbbf24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>Chest pain or tightness</span>
+            <span style="display: flex; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 14px; background: #151d30; font: 600 13px/17px Figtree, sans-serif; color: #451a03"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #fbbf24" aria-hidden="true"><path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/></svg>Very short of breath</span>
+            <span style="display: flex; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 14px; background: #151d30; font: 600 13px/17px Figtree, sans-serif; color: #451a03"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #fbbf24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><path d="M15 3a6 6 0 0 1 0 12"/></svg>Dizzy or about to faint</span>
+            <span style="display: flex; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 14px; background: #151d30; font: 600 13px/17px Figtree, sans-serif; color: #451a03"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" style="color: #fbbf24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Shaky, sweaty or confused</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.6)">
+            <span style="font: 700 13px Figtree, sans-serif; color: #451a03">What to do</span>
+            <span style="font: 500 13px/19px Figtree, sans-serif; color: #451a03">1. Stop and sit down.<br>2. Shaky, sweaty or confused? Eat or drink something sweet now.<br>3. Chest pain or it is not getting better? Get help.</span>
+          </div>
+          <a href="DHelp.dc.html" style="height: 50px; border-radius: 999px; background: #dc2626; color: #ffffff; font: 600 16px Figtree, sans-serif; display: inline-flex; gap: 8px; align-items: center; justify-content: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="19" height="19" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>I feel this now · Get help</a>
+          <span style="font: 500 11px Figtree, sans-serif; color: #fbbf24; text-align: center">Signs and steps illustrative · pending CSO sign-off</span>
+        </section>
+      </div>
+    </sc-if>
+
+    <!-- EAT -->
+    <sc-if value="{{isEat}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="background: #151d30; border-radius: 26px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="display: flex; flex-direction: column"><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">Food today</span><span style="font: 700 26px/30px Figtree, sans-serif; font-variant-numeric: tabular-nums">1,240 <span style="font: 500 14px Figtree, sans-serif; color: #a9b2c7">of 1,800 kcal</span></span></span><span style="font: 600 13px Figtree, sans-serif; color: #5eead4">560 left</span></span>
+          <span style="display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: #222c42"><span style="width: 18%; background: #24314f"></span><span style="width: 34%; background: #296a89; margin-left: 2px"></span><span style="width: 17%; background: #2dd4bf; margin-left: 2px"></span></span>
+          <span style="display: flex; gap: 12px; font: 500 12px Figtree, sans-serif; color: #a9b2c7"><span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: #24314f"></span>Breakfast</span><span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: #296a89"></span>Lunch</span><span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: #2dd4bf"></span>Snack</span></span>
+        </div>
+
+        <div style="background: #151d30; border-radius: 22px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <svg width="82" height="82" viewBox="0 0 82 82" role="img" aria-label="Plate guide: half vegetables, a quarter starch, a quarter protein" style="flex: none"><circle cx="41" cy="41" r="39" fill="#ffffff" stroke="#dde1e9" stroke-width="2"/><path d="M41 41 L41 6 A35 35 0 0 0 41 76 Z" fill="#a7f3e4"/><path d="M41 41 L41 6 A35 35 0 0 1 76 41 Z" fill="#7dd3fc"/><path d="M41 41 L76 41 A35 35 0 0 1 41 76 Z" fill="#c7d2fe"/></svg>
+          <span style="display: flex; flex-direction: column; gap: 4px"><span style="font: 600 15px Figtree, sans-serif">Your plate guide</span><span style="display: inline-flex; gap: 6px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 2px; background: #a7f3e4"></span>Half: greens and vegetables</span><span style="display: inline-flex; gap: 6px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 2px; background: #7dd3fc"></span>Quarter: matooke, posho, rice</span><span style="display: inline-flex; gap: 6px; align-items: center; font: 500 13px Figtree, sans-serif; color: #a9b2c7"><span style="width: 8px; height: 8px; border-radius: 2px; background: #c7d2fe"></span>Quarter: beans, fish, chicken</span></span>
+        </div>
+
+        <span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font: 600 18px/24px Figtree, sans-serif">Meals</span><button type="button" style="height: 34px; padding: 0 12px 0 10px; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif; display: inline-flex; gap: 5px; align-items: center"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>Snap your plate</button></span>
+        <div style="background: #151d30; border-radius: 22px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #222c42"><span style="width: 52px; font: 600 13px Figtree, sans-serif; color: #a9b2c7">07:30</span><span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px Figtree, sans-serif">Breakfast</span><span style="font: 400 13px Figtree, sans-serif; color: #a9b2c7">Tea, no sugar · brown bread · egg</span></span><span style="font: 700 14px Figtree, sans-serif; font-variant-numeric: tabular-nums">320</span></div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #222c42"><span style="width: 52px; font: 600 13px Figtree, sans-serif; color: #a9b2c7">13:10</span><span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px Figtree, sans-serif">Lunch</span><span style="font: 400 13px Figtree, sans-serif; color: #a9b2c7">Matooke · beans · dodo greens</span></span><span style="font: 700 14px Figtree, sans-serif; font-variant-numeric: tabular-nums">610</span></div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #222c42"><span style="width: 52px; font: 600 13px Figtree, sans-serif; color: #a9b2c7">16:00</span><span style="flex: 1; display: flex; flex-direction: column"><span style="font: 600 15px Figtree, sans-serif">Snack</span><span style="font: 400 13px Figtree, sans-serif; color: #a9b2c7">Groundnuts · an orange</span></span><span style="font: 700 14px Figtree, sans-serif; font-variant-numeric: tabular-nums">310</span></div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px"><span style="width: 52px; font: 600 13px Figtree, sans-serif; color: #8f99b3">Later</span><span style="flex: 1; font: 600 15px Figtree, sans-serif; color: #8f99b3">Supper</span><span style="width: 30px; height: 30px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px #3a4562; display: grid; place-items: center; color: #a9b2c7"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></span></div>
+        </div>
+
+        <div style="background: #151d30; border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+          <span style="display: flex; justify-content: space-between"><span style="font: 600 15px Figtree, sans-serif">Water</span><span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">{{water}} of 8 glasses</span></span>
+          <div style="display: flex; gap: 6px">
+            <sc-for list="{{glasses}}" as="g" hint-placeholder-count="8">
+              <button type="button" onClick="{{g.tap}}" aria-label="{{g.aria}}" style="flex: 1; height: 40px; border-radius: 10px 10px 14px 14px; background: {{g.bg}}; box-shadow: inset 0 0 0 1.5px {{g.edge}}"></button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Illustrative. Goals set by your care team and dietitian.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'move', water: 5 };
+  }
+  renderVals() {
+    var self = this;
+    var t = this.state.tab, w = this.state.water;
+    var on = { bg: '#e8ecf3', fg: '#151d30', ring: 'none' };
+    var off = { bg: '#151d30', fg: '#e8ecf3', ring: '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)' };
+    var a = t === 'move' ? on : off, b = t === 'eat' ? on : off;
+    var C1 = 2 * Math.PI * 46, C2 = 2 * Math.PI * 30;
+    var mins = [12, 25, 30, 18, 0, 25, 22], L = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    return {
+      isMove: t === 'move', isEat: t === 'eat',
+      moveBg: a.bg, moveFg: a.fg, moveRing: a.ring, movePressed: t === 'move' ? 'true' : 'false',
+      eatBg: b.bg, eatFg: b.fg, eatRing: b.ring, eatPressed: t === 'eat' ? 'true' : 'false',
+      showMove: function () { self.setState({ tab: 'move' }); },
+      showEat: function () { self.setState({ tab: 'eat' }); },
+      stepDash: (5420 / 7000 * C1).toFixed(1) + ' ' + C1.toFixed(1),
+      actDash: (22 / 30 * C2).toFixed(1) + ' ' + C2.toFixed(1),
+      bars: mins.map(function (m, i) { return { h: Math.max(4, Math.round(m / 30 * 76)), bg: i === 6 ? '#2dd4bf' : (m >= 30 ? '#e8ecf3' : '#7dd3fc'), l: L[i], w: i === 6 ? '700' : '500' }; }),
+      water: w,
+      glasses: [0, 1, 2, 3, 4, 5, 6, 7].map(function (i) {
+        var full = i < w;
+        return { bg: full ? '#7dd3fc' : '#151d30', edge: full ? '#7dd3fc' : '#3a4562', aria: 'Glass ' + (i + 1) + (full ? ', drunk' : ''), tap: function () { self.setState({ water: i < w ? i : i + 1 }); } };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

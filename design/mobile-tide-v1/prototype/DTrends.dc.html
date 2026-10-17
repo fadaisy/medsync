@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Health trends</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button,a{font:inherit;border:0;margin:0;cursor:pointer;text-decoration:none}
+[data-scroll]>*,[data-scroll]>sc-if>*,[data-scroll]>sc-for>*{flex-shrink:0}
+/* MedSync Tide motion */
+@keyframes msPageIn{0%{opacity:0;scale:.985;translate:0 10px}100%{opacity:1;scale:1;translate:0 0}}
+@keyframes msUp{0%{opacity:0;translate:0 16px}100%{opacity:1;translate:0 0}}
+@keyframes msCard{0%{opacity:0;translate:0 26px;scale:.97}100%{opacity:1;translate:0 0;scale:1}}
+@keyframes msNav{0%{opacity:0;translate:0 40px}100%{opacity:1;translate:0 0}}
+[data-screen]{animation:msPageIn .5s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*,[data-scroll]>sc-if>*{animation:msUp .55s cubic-bezier(.16,1,.3,1) both}
+[data-scroll]>*:nth-child(1){animation-delay:.04s}[data-scroll]>*:nth-child(2){animation-delay:.08s}[data-scroll]>*:nth-child(3){animation-delay:.12s}[data-scroll]>*:nth-child(4){animation-delay:.16s}[data-scroll]>*:nth-child(5){animation-delay:.2s}[data-scroll]>*:nth-child(6){animation-delay:.24s}[data-scroll]>*:nth-child(7){animation-delay:.28s}[data-scroll]>*:nth-child(8){animation-delay:.32s}[data-scroll]>*:nth-child(n+9){animation-delay:.36s}
+[data-cascade]>*{animation:msCard .6s cubic-bezier(.16,1,.3,1) both}
+[data-cascade]>*:nth-child(1){animation-delay:.18s}[data-cascade]>*:nth-child(2){animation-delay:.28s}[data-cascade]>*:nth-child(3){animation-delay:.38s}[data-cascade]>*:nth-child(n+4){animation-delay:.48s}
+[data-navwrap]{animation:msNav .6s cubic-bezier(.34,1.4,.64,1) .2s both}
+button,a,[role=switch]{transition:scale .16s ease,filter .2s ease,background-color .25s ease,box-shadow .25s ease,color .2s ease}
+button:active,a:active{scale:.96}
+button:hover,a:hover{filter:brightness(1.04)}
+input,textarea{transition:box-shadow .2s ease,background-color .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div data-screen data-theme="dark" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0b1120; color: #e8ecf3; font-family: Figtree, sans-serif">
+
+  <div style="padding: 54px 20px 0 10px; display: flex; align-items: center; justify-content: space-between">
+    <a href="DCare.dc.html" aria-label="Back to Care" style="height: 44px; padding: 0 10px; border-radius: 12px; display: inline-flex; gap: 2px; align-items: center; color: #e8ecf3; font: 600 15px Figtree, sans-serif"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Care</a>
+    <span style="display: flex; gap: 8px">
+      <a href="DReading.dc.html" aria-label="Log a reading" style="width: 44px; height: 44px; border-radius: 999px; background: #2dd4bf; color: #1b2540; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(45,212,191,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2.3" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></a>
+      <a href="DHelp.dc.html" aria-label="Help, emergency" style="width: 44px; height: 44px; border-radius: 999px; background: #dc2626; color: #ffffff; display: grid; place-items: center; box-shadow: 0 6px 16px -6px rgba(220,38,38,.6)"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+    </span>
+  </div>
+
+  <div data-scroll style="position: absolute; top: 104px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 40px; display: flex; flex-direction: column; gap: 14px">
+    <h1 style="margin: 0; font: 500 32px/36px Figtree, sans-serif; letter-spacing: -0.03em">Health trends</h1>
+
+    <div role="group" aria-label="Measure" style="display: flex; gap: 6px; flex-wrap: wrap">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+        <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="height: 38px; padding: 0 14px; border-radius: 999px; background: {{t.bg}}; color: {{t.fg}}; font: 600 14px Figtree, sans-serif; box-shadow: {{t.ring}}">{{t.name}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isSugar}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">When was it measured?</span>
+        <div role="group" aria-label="When was it measured" style="display: flex; gap: 6px; flex-shrink: 0; overflow-x: auto; padding-bottom: 2px">
+          <sc-for list="{{ctxTabs}}" as="c" hint-placeholder-count="5">
+            <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="height: 34px; padding: 0 12px; border-radius: 999px; white-space: nowrap; background: {{c.bg}}; color: {{c.fg}}; font: 600 13px Figtree, sans-serif; box-shadow: {{c.ring}}">{{c.name}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="background: #151d30; border-radius: 24px; padding: 16px 14px 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 0 4px">
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font: 600 13px Figtree, sans-serif; color: #a9b2c7">{{label}} · this week</span>
+          <span style="display: flex; align-items: baseline; gap: 5px"><span style="font: 700 32px/36px Figtree, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">{{latest}}</span><span style="font: 500 14px Figtree, sans-serif; color: #a9b2c7">{{unit}}</span></span>
+        </span>
+        <span style="height: 28px; padding: 0 11px 0 9px; border-radius: 999px; background: {{stBg}}; color: {{stFg}}; display: inline-flex; gap: 5px; align-items: center; font: 600 13px Figtree, sans-serif"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" style="stroke-width: 2.2" aria-hidden="true"><path d="{{stIcon}}"/></svg>{{stWord}}</span>
+      </div>
+      <svg width="322" height="170" viewBox="0 0 322 170" role="img" aria-label="{{chartLabel}}" style="display: block">
+        <rect x="30" y="{{bandY}}" width="286" height="{{bandH}}" rx="6" fill="#ccfbf1" opacity=".55"/>
+        <text x="312" y="{{bandLabelY}}" text-anchor="end" font-family="Figtree" font-size="10" font-weight="600" fill="#0f766e">Your target</text>
+        <sc-for list="{{grid}}" as="g" hint-placeholder-count="3">
+          <line x1="30" x2="316" y1="{{g.y}}" y2="{{g.y}}" stroke="#2c3650" stroke-width="1"/>
+          <text x="24" y="{{g.ty}}" text-anchor="end" font-family="Figtree" font-size="10" fill="#5f6987">{{g.v}}</text>
+        </sc-for>
+        <path d="{{path2}}" fill="none" stroke="#296a89" stroke-width="2" stroke-dasharray="{{dash2}}" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="{{path}}" fill="none" stroke="#1b2540" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <sc-for list="{{pts}}" as="p" hint-placeholder-count="7">
+          <circle cx="{{p.x}}" cy="{{p.y}}" r="{{p.r}}" fill="{{p.fill}}" stroke="#ffffff" stroke-width="2"/>
+        </sc-for>
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+          <text x="{{d.x}}" y="166" text-anchor="middle" font-family="Figtree" font-size="11" font-weight="{{d.w}}" fill="#4a5574">{{d.l}}</text>
+        </sc-for>
+      </svg>
+      <div style="display: flex; gap: 14px; padding: 0 4px; font: 500 12px Figtree, sans-serif; color: #a9b2c7">
+        <span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 14px; height: 3px; border-radius: 2px; background: #24314f"></span>{{l1}}</span>
+        <sc-if value="{{hasSecond}}" hint-placeholder-val="{{true}}"><span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 14px; height: 3px; border-radius: 2px; background: #296a89"></span>{{l2}}</span></sc-if>
+        <span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: #d97706"></span>Above target</span>
+      </div>
+    </div>
+
+    <sc-if value="{{isSugar}}" hint-placeholder-val="{{false}}">
+      <div style="background: #151d30; border-radius: 22px; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+        <span style="display: flex; flex-direction: column; padding: 0 4px"><span style="font: 600 16px Figtree, sans-serif">Your sugar diary</span><span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">Every reading this week, by time of day</span></span>
+        <div style="display: grid; grid-template-columns: 38px repeat(6, minmax(0, 1fr)); gap: 4px; align-items: center">
+          <span></span>
+          <sc-for list="{{slotHeads}}" as="h" hint-placeholder-count="6"><span style="font: 600 9.5px/11px Figtree, sans-serif; color: #a9b2c7; text-align: center">{{h.t}}</span></sc-for>
+          <sc-for list="{{diary}}" as="d" hint-placeholder-count="49">
+            <span style="height: 30px; border-radius: 8px; display: grid; place-items: center; background: {{d.bg}}; color: {{d.fg}}; font: {{d.w}} 12px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{d.t}}</span>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 0 4px; font: 500 11px Figtree, sans-serif; color: #a9b2c7">
+          <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(34,197,94,.16)"></span>In target</span>
+          <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(245,158,11,.18)"></span>High</span>
+          <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: #fee2e2"></span>Too low</span>
+          <span style="display: inline-flex; gap: 5px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: #0b1120; box-shadow: inset 0 0 0 1px #2c3650"></span>Not measured</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="background: #24314f; color: #ffffff; border-radius: 22px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start">
+      <span style="width: 34px; height: 34px; border-radius: 999px; background: rgba(255,255,255,.14); display: grid; place-items: center; flex: none"><svg class="ic" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 3px"><span style="font: 600 15px/20px Figtree, sans-serif">{{insight}}</span><span style="font: 400 13px/18px Figtree, sans-serif; color: #e8ecf3">Your care team sees the same chart.</span></span>
+    </div>
+
+    <span style="font: 600 18px/24px Figtree, sans-serif">Readings</span>
+    <div style="background: #151d30; border-radius: 22px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #222c42">
+          <span style="width: 48px; font: 600 13px/16px Figtree, sans-serif; color: #a9b2c7">{{r.day}}<br><span style="font-weight: 500">{{r.time}}</span></span>
+          <span style="flex: 1; font: 700 17px Figtree, sans-serif; font-variant-numeric: tabular-nums">{{r.v}} <span style="font: 500 12px Figtree, sans-serif; color: #a9b2c7">{{unit}}</span></span>
+          <span style="height: 26px; padding: 0 10px; border-radius: 999px; background: {{r.bg}}; color: {{r.fg}}; font: 600 12px/26px Figtree, sans-serif">{{r.word}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <span style="font: 500 12px Figtree, sans-serif; color: #8f99b3; text-align: center">Illustrative values. Targets set per patient by the clinician.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { metric: 'bp', ctx: 'fasting' };
+  }
+  renderVals() {
+    var self = this;
+    var M = {
+      bp: { name: 'Pressure', label: 'Blood pressure', unit: 'mmHg', a: [148, 142, 139, 145, 136, 138, 134], b: [92, 88, 86, 90, 84, 86, 82], lo: 70, hi: 160, tLo: 70, tHi: 140, grid: [80, 120, 160], l1: 'Top number', l2: 'Bottom number', limit2: 90,
+        insight: 'Your top number came down 14 points since last Sunday.' },
+      sugar: { name: 'Sugar', label: 'Fasting sugar', unit: 'mmol/L', a: [8.4, 7.9, 8.8, 7.2, 7.6, 6.9, 7.1], lo: 4, hi: 10, tLo: 4.4, tHi: 7.2, grid: [5, 7.5, 10], l1: 'Before breakfast',
+        insight: 'Three mornings in your target this week, up from one.' },
+      weight: { name: 'Weight', label: 'Weight', unit: 'kg', a: [86.4, 86.2, 86.3, 85.9, 85.8, 85.6, 85.5], lo: 84, hi: 87.5, tLo: 84, tHi: 85.5, grid: [84, 86, 87.5], l1: 'Morning weight',
+        insight: 'Down 0.9 kg this week. Slow and steady is right.' },
+      pulse: { name: 'Pulse', label: 'Pulse', unit: 'bpm', a: [78, 76, 80, 75, 77, 73, 74], lo: 50, hi: 110, tLo: 60, tHi: 100, grid: [60, 80, 100], l1: 'Resting pulse',
+        insight: 'Steady and in range all week.' }
+    };
+    var key = this.state.metric, m = M[key];
+    var ctxKey = this.state.ctx;
+    var CTX = {
+      fasting: { name: 'Before breakfast', a: [8.4, 7.9, 8.8, 7.2, 7.6, 6.9, 7.1], tLo: 4.4, tHi: 7.2, insight: '3 of 7 mornings in target this week, up from 1.' },
+      premeal: { name: 'Before lunch or supper', a: [7.8, 8.1, 7.4, 6.8, 7.0, 6.6, 7.2], tLo: 4.4, tHi: 7.2, insight: 'Before-meal readings are settling into your target.' },
+      postmeal: { name: '2 hours after a meal', a: [11.6, 10.8, 12.4, 9.6, 10.2, 9.1, 9.4], tLo: 4.4, tHi: 10, insight: 'After-meal sugar is highest after lunch. Your dietitian may adjust lunch.' },
+      bedtime: { name: 'Bedtime', a: [8.9, 8.2, 9.4, 7.9, 8.1, 7.6, 7.8], tLo: 5, tHi: 8.3, insight: 'Bedtime readings came down 1.1 this week.' },
+      random: { name: 'Any other time', a: [9.2, 8.4, 3.8, 8.0, 7.7, 8.6, 7.9], tLo: 4, tHi: 10, insight: 'One low reading on Tuesday (3.8). Tell your team if you felt shaky.' }
+    };
+    if (key === 'sugar') {
+      var cx = CTX[ctxKey];
+      m = Object.assign({}, m, { a: cx.a, tLo: cx.tLo, tHi: cx.tHi, lo: 3, hi: 13, grid: [4, 8, 12], l1: cx.name, label: 'Blood sugar · ' + cx.name.toLowerCase(), insight: cx.insight });
+    }
+    var X0 = 40, X1 = 306, Y0 = 10, Y1 = 146;
+    function y(v) { return Math.round((Y0 + (1 - (v - m.lo) / (m.hi - m.lo)) * (Y1 - Y0)) * 10) / 10; }
+    function x(i) { return Math.round((X0 + i * (X1 - X0) / 6) * 10) / 10; }
+    function path(arr) { return arr.map(function (v, i) { return (i ? 'L' : 'M') + x(i) + ' ' + y(v); }).join(' '); }
+    var over = function (v) { return v > m.tHi; };
+    var pts = m.a.map(function (v, i) { var o = over(v); return { x: x(i), y: y(v), r: i === 6 ? 6 : 4.5, fill: o ? '#d97706' : (i === 6 ? '#2dd4bf' : '#e8ecf3') }; });
+    if (m.b) m.b.forEach(function (v, i) { pts.push({ x: x(i), y: y(v), r: 3.5, fill: v >= m.limit2 ? '#d97706' : '#296a89' }); });
+    var dayL = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var dayN = [11, 12, 13, 14, 15, 16, 17];
+    var rows = [];
+    for (var i = 6; i >= 3; i--) {
+      var v = m.a[i], o = over(v) || (m.b && m.b[i] >= m.limit2);
+      rows.push({ day: dayL[i] + ' ' + dayN[i], time: '07:' + (40 - i * 3), v: m.b ? (v + '/' + m.b[i]) : String(v), bg: o ? 'rgba(245,158,11,.18)' : 'rgba(34,197,94,.16)', fg: o ? '#fbbf24' : '#4ade80', word: o ? 'Above target' : 'In range' });
+    }
+    var last = m.a[6], lastOver = over(last) || (m.b && m.b[6] >= m.limit2);
+    var bandTop = y(Math.min(m.tHi, m.hi)), bandBot = y(Math.max(m.tLo, m.lo));
+    return {
+      tabs: ['bp', 'sugar', 'weight', 'pulse'].map(function (k) {
+        var on = k === key;
+        return { name: M[k].name, pressed: on ? 'true' : 'false', bg: on ? '#e8ecf3' : '#151d30', fg: on ? '#151d30' : '#e8ecf3', ring: on ? 'none' : '0 1px 2px rgba(0,0,0,0.10), 0 10px 24px -14px rgba(0,0,0,0.35)', pick: function () { self.setState({ metric: k }); } };
+      }),
+      label: m.label, unit: m.unit,
+      latest: m.b ? (last + '/' + m.b[6]) : String(last),
+      stBg: lastOver ? 'rgba(245,158,11,.18)' : 'rgba(34,197,94,.16)', stFg: lastOver ? '#fbbf24' : '#4ade80', stWord: lastOver ? 'Above target' : 'In your range',
+      stIcon: lastOver ? 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z M12 11.5v1' : 'M20 6 9 17l-5-5',
+      chartLabel: m.label + ' over the last seven days',
+      bandY: bandTop, bandH: Math.max(4, bandBot - bandTop), bandLabelY: bandTop + 12,
+      grid: m.grid.map(function (g) { return { y: y(g), ty: y(g) + 3, v: g }; }),
+      path: path(m.a), path2: m.b ? path(m.b) : '', dash2: m.b ? 'none' : '0',
+      pts: pts,
+      days: dayL.map(function (l, i) { return { x: x(i), l: i === 6 ? 'Today' : l, w: i === 6 ? '700' : '500' }; }),
+      l1: m.l1, l2: m.l2 || '', hasSecond: !!m.b,
+      insight: m.insight,
+      isSugar: key === 'sugar',
+      ctxTabs: Object.keys(CTX).map(function (k) {
+        var on = k === ctxKey;
+        return { name: CTX[k].name, pressed: on ? 'true' : 'false', bg: on ? 'rgba(14,165,233,.16)' : '#151d30', fg: on ? '#075985' : '#e8ecf3', ring: on ? 'inset 0 0 0 1.5px #7dd3fc' : 'inset 0 0 0 1px #2c3650', pick: function () { self.setState({ ctx: k }); } };
+      }),
+      slotHeads: ['Before bfast', 'After bfast', 'Before lunch', 'After lunch', 'Before supper', 'Bed-time'].map(function (t) { return { t: t }; }),
+      diary: (function () {
+        var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        var vals = [
+          [8.4, 11.2, null, 11.6, 7.8, 8.9], [7.9, null, 8.1, 10.8, null, 8.2], [8.8, 10.6, 3.8, 12.4, 7.4, 9.4], [7.2, null, 6.8, 9.6, null, 7.9],
+          [7.6, 9.8, 7.0, 10.2, 7.1, 8.1], [6.9, null, 6.6, 9.1, null, 7.6], [7.1, 9.4, null, null, null, null]
+        ];
+        var hiAt = [7.2, 10, 7.2, 10, 7.2, 8.3];
+        var out = [];
+        days.forEach(function (d, i) {
+          out.push({ t: d, bg: 'transparent', fg: i === 6 ? '#e8ecf3' : '#a9b2c7', w: i === 6 ? '700' : '600' });
+          vals[i].forEach(function (v, j) {
+            if (v === null) { out.push({ t: '', bg: '#0b1120', fg: '#e8ecf3', w: '500' }); return; }
+            var low = v < 4, high = v > hiAt[j];
+            out.push({ t: String(v), bg: low ? '#fee2e2' : (high ? 'rgba(245,158,11,.18)' : 'rgba(34,197,94,.16)'), fg: low ? '#b91c1c' : (high ? '#fbbf24' : '#4ade80'), w: low ? '700' : '600' });
+          });
+        });
+        return out;
+      })(),
+      rows: rows
+    };
+  }
+}
+</script>
+</body>
+</html>
