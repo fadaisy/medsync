@@ -2,6 +2,7 @@ import type { PermissionMap } from "@/lib/workspace-access/access";
 
 import V1 from "@/data/lab/permission-map.v1.json";
 import V2 from "@/data/lab/permission-map.v2.json";
+import V3 from "@/data/lab/permission-map.v3.json";
 import { cadrePermissions, mapProblems as problemsOf } from "@/lib/workspace-access/access";
 
 /**
@@ -27,6 +28,12 @@ export const LAB_PERMISSIONS = [
   "lab.eqa.manage",
   "lab.hmis.check",
   "poct.assess",
+  // Lab Phase 4 (gate-a-proposal §4). The data protection and IPC leads are designations, not permissions
+  // (hospital_designations).
+  "lab.refer",
+  "lab.refer.result",
+  "lab.match.resolve",
+  "lab.exchange.manage",
 ] as const;
 export type LabPermission = (typeof LAB_PERMISSIONS)[number];
 
@@ -36,10 +43,15 @@ const FROM_HEADSHIP = [
   "lab.qc.override",
   "lab.eqa.manage",
   "lab.hmis.check",
+  "lab.exchange.manage",
 ] as const satisfies readonly LabPermission[];
 
-/** The signed map in force: 2.0.0 (Phase 3's lab.stock.manage and poct.assess) once the CSO signs it, else 1.0.0. */
-const PERMISSION_MAP: PermissionMap = V2.status === "signed" ? V2 : V1;
+/**
+ * The signed map in force: 3.0.0 (Phase 4's referral and matching permissions) once the CSO signs it, else 2.0.0
+ * (Phase 3's lab.stock.manage and poct.assess) once signed, else 1.0.0.
+ */
+const PERMISSION_MAP: PermissionMap =
+  V3.status === "signed" ? V3 : V2.status === "signed" ? V2 : V1;
 export const PERMISSION_MAP_VERSION = PERMISSION_MAP.version;
 
 /** The cadres the signed map names. A cadre not in the map holds no lab permission. */

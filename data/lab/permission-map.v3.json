@@ -1,0 +1,58 @@
+{
+  "map": "medsync.lab-permission-map",
+  "version": "3.0.0",
+  "status": "draft",
+  "signedBy": null,
+  "signedOn": null,
+  "basis": "Lab Phase 4 GATE A (docs/lab/phase-4/gate-a-proposal.md §4): 2.0.0 plus lab.refer, lab.refer.result and lab.match.resolve; supersedes 2.0.0 once the CSO signs it. Until then the map in force grants none of them to any cadre.",
+  "notes": [
+    "Cadre codes are the AHPC lab cadres seeded in 0009. A cadre not listed here holds no lab permission.",
+    "lab.manage is never granted by cadre: it comes only from an open department_heads row for the LABORATORY department (whole lab) or one of its sections (that section).",
+    "lab.qc.override, lab.eqa.manage and lab.hmis.check are never granted by cadre: they come with lab.manage, from an open department_heads row (substantive or acting) for LABORATORY or one of its sections.",
+    "lab.exchange.manage is never granted by cadre: it comes with lab.manage, from an open department_heads row for LABORATORY or one of its sections.",
+    "lab.refer.result goes to every cadre that holds lab.result.enter (prompt §7)."
+  ],
+  "permissions": [
+    "lab.view",
+    "lab.collect",
+    "lab.receive",
+    "lab.result.enter",
+    "lab.result.release",
+    "lab.manage",
+    "lab.qc.override",
+    "lab.stock.manage",
+    "lab.eqa.manage",
+    "lab.hmis.check",
+    "poct.assess",
+    "lab.refer",
+    "lab.refer.result",
+    "lab.match.resolve",
+    "lab.exchange.manage"
+  ],
+  "cadres": {
+    "LAB_TECH": [
+      "lab.view",
+      "lab.collect",
+      "lab.receive",
+      "lab.result.enter",
+      "lab.result.release",
+      "lab.stock.manage",
+      "poct.assess",
+      "lab.refer",
+      "lab.refer.result",
+      "lab.match.resolve"
+    ],
+    "LAB_TECHNOLOGIST": [
+      "lab.view",
+      "lab.collect",
+      "lab.receive",
+      "lab.result.enter",
+      "lab.result.release",
+      "lab.stock.manage",
+      "poct.assess",
+      "lab.refer",
+      "lab.refer.result",
+      "lab.match.resolve"
+    ]
+  }
+}

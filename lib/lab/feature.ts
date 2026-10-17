@@ -2,6 +2,7 @@ import { CRITICAL_FLAGGING_NOTICE } from "@/content/lab";
 import { CRITICALS_COPY_STATUS } from "@/content/lab-criticals";
 import { LAB2_COPY_STATUS } from "@/content/lab-phase-2";
 import { LAB3_COPY_STATUS } from "@/content/lab-phase-3";
+import { LAB4_COPY_STATUS } from "@/content/lab-phase-4";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -90,3 +91,19 @@ export const labPoctQualityLiveFor = (h: string) =>
   labStockLiveFor(h);
 export const labHmisLiveFor = (h: string) => phase3(process.env.LAB_HMIS, "lab_hmis", h);
 export const labReportsLiveFor = (h: string) => phase3(process.env.LAB_REPORTS, "lab_reports", h);
+
+/**
+ * Lab Phase 4 (connect outward; gate-a-proposal §2 A16, D-LAB4-26): per-hospital flags, off by default, each off
+ * in production while the Phase 4 copy is a draft. `labReferral` needs the one menu (To refer), the high-risk mark
+ * (RF-7) and units and ranges (RB-3); `labExchange` needs `labReferral`. The analyser bridge and the national
+ * connections have no flag yet: Steps 10 and 11 are gap reports (STOP 0). With both off, behaviour is Phase 3's.
+ */
+const phase4 = (v: string | undefined, tag: string, h: string) =>
+  workspaceLiveFor(v, h, [LAB4_COPY_STATUS], tag) && labWorkspaceLiveFor(h);
+export const labReferralLiveFor = (h: string) =>
+  phase4(process.env.LAB_REFERRAL, "lab_referral", h) &&
+  labOneMenuLiveFor(h) &&
+  labHighRiskLiveFor(h) &&
+  labUnitsRangesLiveFor(h);
+export const labExchangeLiveFor = (h: string) =>
+  phase4(process.env.LAB_EXCHANGE, "lab_exchange", h) && labReferralLiveFor(h);
