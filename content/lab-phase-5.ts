@@ -7,9 +7,9 @@
 import type { SignedCopy } from "@/content/signed-copy";
 
 export const LAB5_COPY_STATUS: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-17",
 };
 
 /** Each line's comment is who reads it. */
