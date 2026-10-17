@@ -1,22 +1,19 @@
 import type { SignupNotice } from "@/data/signup";
-import type { PinAnchor } from "@/features/auth/map-pin";
 import type { SignupDraft, Step } from "@/features/auth/rules";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Alert } from "react-native";
 
 import { Button, Note, Screen, TextLink } from "@/components/tide";
+import { addPlace, OFF_WORDS } from "@/data/places";
 import {
   fetchSignupNotice,
-  saveHomePin,
   signInWithPassword,
   signupFromAppOn,
   submitSignup,
 } from "@/data/signup";
-import { pinLatLng } from "@/features/auth/map-pin";
 import {
   buildSubmission,
-  HOME_PIN_CONSENT,
   initialDraft,
   signupKey,
   stepOfField,
@@ -42,8 +39,8 @@ import { useNow } from "@/lib/use-now";
  * web action; on success the done screen shows, and "Go to my home" signs in
  * with the same email and password, after which the root gate moves the
  * patient into the app (signing in earlier would drop this screen before
- * "Welcome" could show). Signed in, the home pin is saved if the patient
- * agreed to it (`saveHomePin`).
+ * "Welcome" could show). Signed in, the pin is saved as the home place if
+ * the patient agreed to PLACE_CONSENT (`addPlace`, migration 0171).
  */
 export default function SignUpScreen() {
   const router = useRouter();
@@ -52,7 +49,6 @@ export default function SignUpScreen() {
   const [draft, setDraft] = useState<SignupDraft>(initialDraft);
   // One key per draft, so a retried submit after a lost reply lands once.
   const [key] = useState(() => signupKey());
-  const [anchor, setAnchor] = useState<PinAnchor | null>(null);
   const [notice, setNotice] = useState<SignupNotice | null>(null);
   const [noticeTry, setNoticeTry] = useState(0);
   const [noticeLoading, setNoticeLoading] = useState(signupFromAppOn);
@@ -121,17 +117,21 @@ export default function SignUpScreen() {
       setProblem(out.message);
       return;
     }
-    // The home pin, only with its yes. The screen may already be gone, so a
+    // The home place, only with its yes. The screen may already be gone, so a
     // failure is said in a system alert; it never undoes the account.
-    if (!draft.pinConsent || !draft.pin) return;
-    const at = pinLatLng(draft.pin, anchor);
-    const saved = at ? await saveHomePin(at, HOME_PIN_CONSENT.version, new Date()) : false;
-    if (!saved)
+    const pin = draft.pin;
+    if (!draft.pinConsent || !pin) return;
+    const saved = await addPlace(
+      { kind: "home", customLabel: null, lat: pin.lat, lng: pin.lng, address: pin.address },
+      true,
+      new Date(),
+    );
+    if (saved !== "saved")
       Alert.alert(
-        "Your home pin was not saved",
-        at
-          ? "Your account is ready. We couldn't save the pin, so nothing about your home is kept."
-          : "Your account is ready. The pin needs your phone's location, so nothing about your home is kept.",
+        "Your home place was not saved",
+        saved === "off"
+          ? `Your account is ready. ${OFF_WORDS} You can add it later in Me, under My places.`
+          : "Your account is ready. We couldn't save the pin, so nothing about your home is kept. You can add it later in Me, under My places.",
       );
   };
 
@@ -197,9 +197,7 @@ export default function SignUpScreen() {
       {step === 1 ? (
         <AboutStep key="s1" draft={draft} patch={patch} today={now} onDob={onDob} />
       ) : null}
-      {step === 2 ? (
-        <PlaceStep key="s2" draft={draft} patch={patch} anchor={anchor} onAnchor={setAnchor} />
-      ) : null}
+      {step === 2 ? <PlaceStep key="s2" draft={draft} patch={patch} /> : null}
       {step === 3 ? <SignInStep key="s3" draft={draft} patch={patch} /> : null}
       {step === 4 ? (
         <ConsentStep

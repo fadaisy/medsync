@@ -23,6 +23,7 @@ import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
 import { useReadings, whenWords } from "@/data/readings";
 import { Doctors } from "@/features/home/doctors";
+import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
 import { flag } from "@/lib/flags";
 import { checkReading, readingValueText } from "@/lib/readings";
@@ -55,6 +56,7 @@ export default function HomeScreen() {
   const med = useMedicines(now);
   const { readings, loading: readingsLoading, error: readingsError, retry } = useReadings();
   const { unread } = useNotifications();
+  const shareShown = useShareBannerShown();
   const [toast, setToast] = useState<{ text: string; undo?: () => void } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -135,6 +137,8 @@ export default function HomeScreen() {
           </View>
         }
       >
+        {shareShown ? <ActiveShareBanner /> : null}
+
         <Segments
           tone="accent"
           options={[

@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient places on a real map, and live location shares — 2026-10-18
+
+[ADR 0343](docs/adr/0343-patient-places-and-live-location-shares.md) adds the following:
+
+- **A real map.** The phone uses a free map (Apple Maps on iPhone, Google Maps on Android) with "Use my location". The phone's own geocoder fills in sign-up's district search and village.
+- **Labelled places.** A patient can save several places, labelled Home, Work or their own word, with one chosen as home. They manage them under Me → My places.
+- **Time-limited live location share.** "Share my live location" lasts 15 minutes, 1 hour or until stopped (at most 8 hours). It can start from Help or from an upcoming visit. Only the latest position is kept.
+- **A private family link.** The patient can send `/share/location/<token>` to family. The page shows the position while the share is live and reveals nothing after it ends.
+- **Migration 0171 (owner-applied).** It adds `patient_places`, `location_shares` and `location_share_view()`. It also copies 0170's single home pin in as a home place.
+
 ### Changed — Patient phone app on real data — 2026-10-17
 
 The phone's health screens now read and write the patient's own log, its records come from shared visit summaries, and its notifications from `notification_dispatches` ([ADR 0342](docs/adr/0342-patient-phone-reads-its-own-records.md)).

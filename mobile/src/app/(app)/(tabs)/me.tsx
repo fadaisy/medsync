@@ -19,6 +19,7 @@ import {
   useMePrefs,
 } from "@/data/me";
 import { useMedicines } from "@/data/medicines";
+import { placesSummary, usePlaces } from "@/data/places";
 import {
   AVATAR_PICKER_OPTIONS,
   fetchHousehold,
@@ -56,6 +57,7 @@ export default function MeTab() {
   const id = useCardIdentity(session?.user.id ?? null, name);
   const now = useNow();
   const meds = useMedicines(now);
+  const places = usePlaces();
   // A+ applies to this screen's rows (board: zoom 1.12).
   const z = (n: number) => Math.round(n * (prefs.big ? 1.12 : 1));
 
@@ -258,6 +260,25 @@ export default function MeTab() {
         >
           Their readings, medicines and visits are kept separate.
         </Text>
+      </Group>
+
+      <Label text="My places" z={z} />
+      <Group>
+        <Row
+          z={z}
+          first
+          icon="mapPin"
+          color={t.ink2}
+          title="Home, work and others"
+          sub={
+            places.off
+              ? "Saving places is not switched on yet"
+              : places.loading
+                ? "Loading…"
+                : `${placesSummary(places.places)} · only you can see them`
+          }
+          onPress={() => router.push("/places")}
+        />
       </Group>
 
       <Label text="Privacy and sharing" z={z} />

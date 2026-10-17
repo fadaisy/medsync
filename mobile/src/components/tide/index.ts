@@ -6,6 +6,7 @@ export * from "@/components/tide/health-card";
 export * from "@/components/tide/icon";
 export * from "@/components/tide/keyboard";
 export * from "@/components/tide/mood-face";
+export * from "@/components/tide/place-map";
 export * from "@/components/tide/press";
 export * from "@/components/tide/primitives";
 export * from "@/components/tide/screen";

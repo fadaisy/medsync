@@ -131,7 +131,7 @@ describe("consent (law L9)", () => {
       email: "Sarah@Example.com",
       password: "my mango tree 2026",
       consent: true,
-      pin: { x: 10, y: 20 },
+      pin: { lat: 0.35, lng: 32.58, address: "Bombo Road" },
       pinConsent: true,
     };
     const input = buildSubmission(draft, notice, sms);

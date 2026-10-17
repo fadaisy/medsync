@@ -24,6 +24,8 @@ import {
 import { cardNumber, metaName, sexLetter, useCardIdentity } from "@/data/me";
 import { useMedicines } from "@/data/medicines";
 import { useSavedReadings } from "@/data/readings";
+import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
+import { ShareLocationSheet } from "@/features/location-share/share-sheet";
 import { EMERGENCY_NUMBERS, SOS_COUNTDOWN_S, SOS_DIAL, SYMPTOMS } from "@/features/safety/config";
 import { formatLatLng, useGrantedLocation } from "@/features/safety/location";
 import { useSos } from "@/features/safety/use-sos";
@@ -68,6 +70,8 @@ function HelpBody() {
   const now = useNow(1000);
   const here = useGrantedLocation();
   const [syms, setSyms] = useState<SymptomKey[]>([]);
+  const [sharing, setSharing] = useState(false);
+  const shareShown = useShareBannerShown();
   const name = metaName(session?.user.user_metadata);
   const id = useCardIdentity(signedIn ? (session?.user.id ?? null) : null, name);
   const { sheet } = useEmergencySheet(null);
@@ -289,6 +293,8 @@ function HelpBody() {
           {hero}
         </View>
 
+        {shareShown ? <ActiveShareBanner /> : null}
+
         {sos.phase === "calling" ? (
           <>
             <Card radius={tRadius.panel}>
@@ -474,6 +480,16 @@ function HelpBody() {
               onPress={nearest?.facility.emergencyPhone ? callNearest : undefined}
             />
             {signedIn ? (
+              <LinkRow
+                icon="locate"
+                tint={t.accentTint}
+                color={t.accentText}
+                title="Share my live location"
+                sub="A private link for family, for a time you choose"
+                onPress={() => setSharing(true)}
+              />
+            ) : null}
+            {signedIn ? (
               <>
                 <LinkRow
                   icon="phone"
@@ -517,6 +533,11 @@ function HelpBody() {
             </Text>
           </>
         )}
+        <ShareLocationSheet
+          visible={sharing}
+          onClose={() => setSharing(false)}
+          purpose="emergency"
+        />
       </Screen>
       {/* White status-bar text on the red band; mounted after <Screen> so it wins. */}
       <StatusBar style="light" />

@@ -32,6 +32,8 @@ const PUBLIC_PREFIXES = [
   // The Emergency Pathway (ADR 0098 ruling 7): a patient mid-emergency is
   // never locked behind sign-in. E1–E3, crisis and sexual-violence routes.
   "/emergency",
+  // A patient's live location link for family (ADR 0343): read by token alone, no sign-in.
+  "/share",
 ];
 
 const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);

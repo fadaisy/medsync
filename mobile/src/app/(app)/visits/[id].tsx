@@ -22,6 +22,7 @@ import {
   TextField,
 } from "@/components/tide";
 import { loadVisit, moveOptions, visitActions } from "@/data/visits";
+import { ShareLocationSheet } from "@/features/location-share/share-sheet";
 import { dayKeyOf, dayNumberOf, shortDayOf, weekdayOf } from "@/features/visits/logic";
 import { HONEST } from "@/features/visits/parts";
 import {
@@ -73,6 +74,7 @@ export default function VisitScreen() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -372,7 +374,18 @@ export default function VisitScreen() {
             ? `Show code ${visit.bookingCode} at the desk when you arrive.`
             : "Show your MedSync number at the desk when you arrive."}
         </Text>
+        {/* Upcoming and not yet arrived: family can follow the trip with a private link (ADR 0343). */}
+        {mine && RESCHEDULABLE.has(visit.status) ? (
+          <Button
+            label="Share my location while I travel"
+            variant="outline"
+            icon="locate"
+            onPress={() => setSharing(true)}
+          />
+        ) : null}
       </View>
+
+      <ShareLocationSheet visible={sharing} onClose={() => setSharing(false)} purpose="visit" />
 
       <Sheet
         visible={mode === "move"}

@@ -1,28 +1,31 @@
+import type { GeoWords } from "@/data/places";
 import type { PlaceOption, SignupNotice } from "@/data/signup";
-import type { PinAnchor } from "@/features/auth/map-pin";
 import type { SignupDraft, Step } from "@/features/auth/rules";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import {
+  Button,
   Card,
   Chip,
   ChipRow,
   FieldError,
   FieldLabel,
+  findMe,
   Icon,
   IconDisc,
   Note,
   PhoneField,
+  PlaceMap,
   Press,
   TextField,
   TextLink,
+  wordsFor,
 } from "@/components/tide";
+import { PLACE_CONSENT } from "@/data/places";
 import { searchPlaces, signupFromAppOn } from "@/data/signup";
-import { MapPin } from "@/features/auth/map-pin";
 import {
   checkDob,
-  HOME_PIN_CONSENT,
   isEmail,
   MINOR_NOTE,
   NAME_MAX,
@@ -33,7 +36,6 @@ import {
   STEP_NAMES,
   VILLAGE_MAX,
 } from "@/features/auth/rules";
-import { flag } from "@/lib/flags";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -182,20 +184,48 @@ export function AboutStep({
 
 /* ─── Step 2 · Where you live ────────────────────────────────────────── */
 
-export function PlaceStep({
-  draft,
-  patch,
-  anchor,
-  onAnchor,
-}: {
-  draft: SignupDraft;
-  patch: Patch;
-  anchor: PinAnchor | null;
-  onAnchor: (a: PinAnchor) => void;
-}) {
+/**
+ * "Use my location" or "Pin it on a map" (ADR 0343): the phone geocoder's
+ * area name pre-fills the place search, so the patient still picks the
+ * official UBOS entry, and its street words pre-fill "Village or address"
+ * unless the patient typed their own. The pin itself is saved as the home
+ * place after sign-in, and only with the PLACE_CONSENT yes.
+ */
+export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }) {
   const t = useTide();
   const [q, setQ] = useState("");
   const [found, setFound] = useState<{ q: string; places: PlaceOption[] } | null>(null);
+  const [mapOpen, setMapOpen] = useState(draft.pin !== null);
+  const [finding, setFinding] = useState(false);
+  const [locNote, setLocNote] = useState<string | null>(null);
+  // The village words we filled in: a later pin may replace them, never what the patient typed.
+  const [autoVillage, setAutoVillage] = useState<string | null>(null);
+
+  const fill = (geo: GeoWords) => {
+    if (!draft.place && geo.query) setQ(geo.query);
+    if (geo.village && (draft.village === "" || draft.village === autoVillage)) {
+      const village = geo.village.slice(0, VILLAGE_MAX);
+      patch({ village });
+      setAutoVillage(village);
+    }
+  };
+
+  const locateMe = async () => {
+    setFinding(true);
+    setLocNote(null);
+    const at = await findMe();
+    setFinding(false);
+    setMapOpen(true);
+    if ("problem" in at) {
+      setLocNote(at.problem);
+      return;
+    }
+    patch({ pin: { ...at, address: null } });
+    const geo = await wordsFor(at.lat, at.lng);
+    if (!geo) return;
+    patch({ pin: { ...at, address: geo.address } });
+    fill(geo);
+  };
 
   // Ask the web's place search a moment after typing stops. The answer is
   // keyed by its query so a slow reply for "ka" cannot overwrite "kawe".
@@ -214,11 +244,54 @@ export function PlaceStep({
   }, [q]);
 
   const results = found && found.q === q && q.trim().length >= 2 ? found.places : null;
-  const showPin = flag("mobileMapPin");
 
   return (
     <View style={{ gap: tSpace[4] }}>
       <StepHeading title="Where you live" sub="So we can show clinics near you." />
+      {mapOpen ? (
+        <View style={{ gap: tSpace[2] }}>
+          <PlaceMap
+            value={draft.pin}
+            onPick={(pick) => {
+              patch({ pin: { lat: pick.lat, lng: pick.lng, address: pick.geo?.address ?? null } });
+              if (pick.geo) fill(pick.geo);
+            }}
+          />
+          {draft.pin ? (
+            <CheckRow
+              checked={draft.pinConsent}
+              onToggle={() => patch({ pinConsent: !draft.pinConsent })}
+              title="Save this pin as my home place"
+              sub={PLACE_CONSENT.words}
+            />
+          ) : null}
+        </View>
+      ) : (
+        <View style={{ flexDirection: "row", gap: tSpace[2] }}>
+          <Button
+            label="Use my location"
+            icon="locate"
+            variant="soft"
+            size="md"
+            busy={finding}
+            onPress={() => void locateMe()}
+            style={{ flex: 1 }}
+          />
+          <Button
+            label="Pin it on a map"
+            icon="mapPin"
+            variant="soft"
+            size="md"
+            onPress={() => setMapOpen(true)}
+            style={{ flex: 1 }}
+          />
+        </View>
+      )}
+      {locNote ? (
+        <Text accessibilityLiveRegion="polite" style={[tType.bodyS, { color: t.ink2 }]}>
+          {locNote}
+        </Text>
+      ) : null}
       <View style={{ gap: tSpace[1.5] }}>
         <FieldLabel>District or subcounty</FieldLabel>
         {draft.place ? (
@@ -312,35 +385,6 @@ export function PlaceStep({
           {draft.village.length}/{VILLAGE_MAX}
         </Text>
       </View>
-      {showPin ? (
-        <View style={{ gap: tSpace[2] }}>
-          <FieldLabel optional>Pin your home</FieldLabel>
-          <CheckRow
-            checked={draft.pinConsent}
-            onToggle={() =>
-              // Declining takes the pin away with it: nothing is kept without the yes.
-              patch(draft.pinConsent ? { pinConsent: false, pin: null } : { pinConsent: true })
-            }
-            title={HOME_PIN_CONSENT.title}
-            sub={HOME_PIN_CONSENT.words}
-          />
-          {draft.pinConsent ? (
-            <>
-              <MapPin
-                pin={draft.pin}
-                onPin={(pin) => patch({ pin })}
-                anchor={anchor}
-                onAnchor={onAnchor}
-              />
-              <Text style={[tType.bodyS, { fontSize: 12, lineHeight: 16, color: t.ink3 }]}>
-                {
-                  'Tap "Use my location" first, then tap the map to move the pin. Without your location the pin is not saved.'
-                }
-              </Text>
-            </>
-          ) : null}
-        </View>
-      ) : null}
     </View>
   );
 }
