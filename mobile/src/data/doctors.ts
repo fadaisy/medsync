@@ -111,18 +111,16 @@ export function toDoctorCards(
   const cards = new Map<string, DoctorCard>();
   for (const c of clinicians) {
     const home = c.hospitalId === homeHospitalId;
-    const { fee, feeLabel } = feeFor(
-      linesByHospital.get(c.hospitalId) ?? [],
-      c.departmentId,
-      c.cadreId,
-    );
+    const hospitalLines = linesByHospital.get(c.hospitalId);
+    const { fee, feeLabel } = feeFor(hospitalLines ?? [], c.departmentId, c.cadreId);
     const place: DoctorPlace = {
       hospitalId: c.hospitalId,
       hospitalName: c.hospitalName,
       departmentId: c.departmentId,
       departmentName: c.departmentName,
       nextDayKey: Object.keys(c.slotsByDate).sort()[0] ?? null,
-      feeWords: feeLabel ?? feeText(fee),
+      // A price list that did not load is not "No fee": say so rather than guess.
+      feeWords: hospitalLines ? (feeLabel ?? feeText(fee)) : FEE_UNKNOWN,
       walkInToday: home && openNow.has(c.departmentId),
       home,
     };
@@ -157,6 +155,9 @@ export function toDoctorCards(
     return { ...card, places, nextDayKey: days[0] ?? null };
   });
 }
+
+/** When a hospital's price list could not be read. */
+export const FEE_UNKNOWN = "Fee shown when you ask";
 
 /** The walk-in chip's words. */
 export const WALK_IN_FILTER = "Walk-ins today";
@@ -202,11 +203,12 @@ export async function loadDoctors(): Promise<void> {
       Promise.all(
         hospitalIds.map((hospitalId) =>
           fetchServiceLines({ hospitalId }).then(
-            (l) => [hospitalId, l] as const,
-            () => [hospitalId, [] as ServiceLine[]] as const,
+            (l) => [[hospitalId, l] as const],
+            // Left out, so its cards say the fee is unknown rather than "No fee".
+            () => [],
           ),
         ),
-      ),
+      ).then((pairs) => pairs.flat()),
       // Walk-in hours only decide "Come today", which joins the line at the patient's own hospital.
       home ? fetchWalkInDepartments(home).catch(() => [] as WalkInDepartment[]) : [],
     ]);

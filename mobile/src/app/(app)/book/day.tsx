@@ -9,6 +9,7 @@ import {
   Card,
   FieldError,
   Icon,
+  IconDisc,
   Note,
   Press,
   Screen,
@@ -50,6 +51,7 @@ const REASONS = new Set<string>(APPOINTMENT_REASONS.map((r) => r.value));
 
 export default function BookDayScreen() {
   const t = useTide();
+  const router = useRouter();
   const { session: auth } = useSession();
   const params = useLocalSearchParams<{
     day?: string;
@@ -95,7 +97,9 @@ export default function BookDayScreen() {
       (d) => {
         if (live) setDays(d);
       },
-      () => {
+      (e: unknown) => {
+        // The reason, for whoever is running the app in development; the patient sees plain words.
+        if (__DEV__) console.warn("[book/day] loading open days failed:", e);
         if (live) setFailed(true);
       },
     );
@@ -110,17 +114,30 @@ export default function BookDayScreen() {
     return (
       <Screen back={{ label: "Book a visit" }} title="Ask for a day" helpSource="book-day">
         {failed ? (
-          <View style={{ gap: tSpace[3] }}>
-            <Note tone="plain">
-              {"Couldn't load the clinic days. Check your connection and try again."}
-            </Note>
+          <View style={{ gap: tSpace[4] }}>
+            <View style={{ alignItems: "center", gap: tSpace[3], paddingVertical: tSpace[6] }}>
+              <IconDisc name="calendar" size={56} color={t.area.visits} bg={t.surface2} />
+              <Text
+                accessibilityRole="header"
+                style={[tType.heading, { color: t.ink, textAlign: "center" }]}
+              >
+                {"We couldn't load the open days"}
+              </Text>
+              <Text style={[tType.bodyM, { color: t.ink2, textAlign: "center" }]}>
+                Your phone may be offline, or the clinic list is busy. Nothing was booked.
+              </Text>
+            </View>
             <Button
               label="Try again"
-              variant="outline"
               onPress={() => {
                 setFailed(false);
                 setAttempt((n) => n + 1);
               }}
+            />
+            <Button
+              label="Back to doctors"
+              variant="outline"
+              onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
             />
           </View>
         ) : (

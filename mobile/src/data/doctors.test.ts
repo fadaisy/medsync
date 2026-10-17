@@ -3,6 +3,7 @@ import type { ClinicianOption } from "@/lib/booking";
 import {
   availabilityWords,
   doctorFilters,
+  FEE_UNKNOWN,
   initialsOf,
   matchesFilter,
   ratingWords,
@@ -74,7 +75,7 @@ describe("doctor cards from the server's clinicians", () => {
   });
 
   it("falls back to the cadre, no open day, no walk-ins and No fee", () => {
-    const [card] = toDoctorCards([clinician({})], lines([]), [], null);
+    const [card] = toDoctorCards([clinician({})], lines([["h1", []]]), [], null);
     expect(card.role).toBe("Medical Officer");
     expect(card.nextDayKey).toBeNull();
     expect(card.places[0]).toMatchObject({ walkInToday: false, feeWords: "No fee", home: false });
@@ -108,6 +109,11 @@ describe("doctor cards from the server's clinicians", () => {
     expect(cards[0].places.map((p) => p.hospitalName)).toEqual(["Hospital A", "Hospital B"]);
     // The soonest open day anywhere, not only at the first hospital listed.
     expect(cards[0].nextDayKey).toBe("2026-10-19");
+  });
+
+  it("a price list that did not load says so, never No fee", () => {
+    const [card] = toDoctorCards([clinician({})], lines([]), [], null);
+    expect(card.places[0].feeWords).toBe(FEE_UNKNOWN);
   });
 
   it("walk-ins only at the patient's own hospital", () => {

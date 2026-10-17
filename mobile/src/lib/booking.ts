@@ -819,10 +819,15 @@ interface ServiceLineRow {
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
+/**
+ * The department is named by its foreign key: `service_lines` points at
+ * `hospital_departments` twice (`department_id`, and the services hub's
+ * `unit_id`), and an unnamed embed is refused as ambiguous (PGRST201).
+ */
 const LINE_SELECT =
   "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, confidential, " +
   "payment_posture, fee_ugx, service_line_fees(cadre_id, fee_ugx, cadres(name)), " +
-  "hospital_departments(name), hospitals(name, emergency_phone)";
+  "hospital_departments!service_lines_department_id_fkey(name), hospitals(name, emergency_phone)";
 
 function toLine(r: ServiceLineRow): ServiceLine {
   const hospital = embedded(r.hospitals);
