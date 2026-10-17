@@ -347,3 +347,12 @@ sender ID (Q11; PS-7). The sender ID in the signed template is recorded, but the
 deployment's `AFRICASTALKING_SENDER_ID`; a per-hospital sender needs the provider registration first. Redeploy
 `system-ussd-act` for the STOP change. **Gap:** the language for the message is English until the patient's language
 setting offers only signed languages.
+
+## STOP 9 and STOP 10: gap reports (17 Oct 2026)
+
+- **Step 9, autoverification:** `autoverify-gap.md`. No analyser is live on a bridge (Phase 4 Step 10 was itself a
+  gap), and delta checks are not yet live anywhere, so nothing is built and no result is ever released without a
+  person. The report maps each AV-2 check to what is already live and what is missing, and sets out the build and the
+  order to resume it.
+- **Step 10, microbiology feed:** `micro-gap.md`. There is no microbiology module. Organism and phenotype alert entries
+  can be signed today and wait; the WHONET export, GLASS de-duplication, origin and HAI views need isolates first.
