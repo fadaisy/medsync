@@ -4,6 +4,7 @@ export * from "@/components/tide/charts";
 export * from "@/components/tide/field";
 export * from "@/components/tide/health-card";
 export * from "@/components/tide/icon";
+export * from "@/components/tide/keyboard";
 export * from "@/components/tide/mood-face";
 export * from "@/components/tide/press";
 export * from "@/components/tide/primitives";

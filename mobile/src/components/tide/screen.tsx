@@ -8,6 +8,7 @@ import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/tide/icon";
+import { KeyboardFrame, useKeyboardAware } from "@/components/tide/keyboard";
 import { Press } from "@/components/tide/press";
 import { DemoRibbon } from "@/components/tide/primitives";
 import { track } from "@/lib/analytics";
@@ -216,6 +217,7 @@ export function Screen({
   const t = useTide();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
+  const { scrollRef, keyboardShown } = useKeyboardAware();
   const bg = background ?? t.bg;
 
   const headerRow = (
@@ -284,31 +286,38 @@ export function Screen({
       <StatusBar style={t.scheme === "dark" ? "light" : "dark"} />
       {topBand}
       {headerRow}
-      {scroll ? (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={[padding, contentStyle]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {body}
-        </ScrollView>
-      ) : (
-        <View style={[{ flex: 1 }, padding, contentStyle]}>{body}</View>
-      )}
-      {footer ? (
-        <View
-          style={{
-            paddingHorizontal: tSpace[5],
-            paddingTop: tSpace[3],
-            paddingBottom: Math.max(insets.bottom, tSpace[4]) + tSpace[2],
-            backgroundColor: bg,
-            gap: tSpace[2],
-          }}
-        >
-          {footer}
-        </View>
-      ) : null}
+      <KeyboardFrame>
+        {scroll ? (
+          <ScrollView
+            ref={scrollRef}
+            style={{ flex: 1 }}
+            contentContainerStyle={[padding, contentStyle]}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            showsVerticalScrollIndicator={false}
+          >
+            {body}
+          </ScrollView>
+        ) : (
+          <View style={[{ flex: 1 }, padding, contentStyle]}>{body}</View>
+        )}
+        {footer ? (
+          <View
+            style={{
+              paddingHorizontal: tSpace[5],
+              paddingTop: tSpace[3],
+              // On top of the keyboard there is no home indicator to clear.
+              paddingBottom: keyboardShown
+                ? tSpace[3]
+                : Math.max(insets.bottom, tSpace[4]) + tSpace[2],
+              backgroundColor: bg,
+              gap: tSpace[2],
+            }}
+          >
+            {footer}
+          </View>
+        ) : null}
+      </KeyboardFrame>
     </Animated.View>
   );
 }
