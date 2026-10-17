@@ -15,6 +15,7 @@ import { placeOrders } from "@/lib/emr/write/orders";
 import { collectSpecimen, receiveSpecimen } from "@/lib/emr/write/specimens";
 import { encrypt, generateKey } from "@/lib/encryption";
 import { saveConfigDraft, signConfig } from "@/lib/lab/catalogue-v2";
+import { countMonth } from "@/lib/lab/hmis-store";
 import { saveMeasure } from "@/lib/lab/measures-setup";
 import {
   attachScan,
@@ -673,6 +674,70 @@ describe.skipIf(!laneOn)("Lab Phase 4 referrals and results back (Steps 4–7)",
         )
       ).n,
     ).toBe(1);
+  });
+
+  it("S28 HM-14, HM-16 10.4 comes from referral records from the month the lab lead declares", async () => {
+    const r = await received();
+    const m = await send(r.specimenId);
+    await tx((t) => sealManifest(t, lab(), { manifestId: m, packages: 1 }, now()));
+    await tx((t) =>
+      recordHandover(t, lab(), { manifestId: m, handedTo: "Test rider", handedAt: now() }, now()),
+    );
+    const month = new Date(Date.now() + 3 * 3_600_000).toISOString().slice(0, 7);
+    const mapping = {
+      rows: [{ code: "VS02", sources: [{ testCode: TEST }] }],
+      visits: {},
+      specimenColumns: {},
+      rejection: {},
+      reasons: {},
+      hivTests: [],
+      kits: {},
+      kitItems: {},
+      purposes: {},
+      tracers: {},
+      excluded: [],
+    };
+    // Before the declaration: 10.4 stays as typed by hand.
+    const before = await tx((t) =>
+      countMonth(t, h, month, mapping, { "VS02|No. of Specimen Referred": 99 }),
+    );
+    expect(before.cells["VS02|No. of Specimen Referred"]).toEqual({
+      value: 99,
+      sources: [],
+      manual: true,
+    });
+    const ops = await tx((t) =>
+      saveConfigDraft(
+        t,
+        { userId: a.lead!.userId, hospitalId: h },
+        {
+          kind: "referral_ops",
+          key: "settings",
+          payload: {
+            presenceMinutes: 30,
+            stopSendingDaysAfterReview: 30,
+            hmis104RecordsFrom: month,
+          },
+        },
+        now(),
+      ),
+    );
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.lead2!.userId, hospitalId: h, as: "lead" },
+        { configId: ops, exceptionNote: null },
+        now(),
+      ),
+    );
+    const after = await tx((t) =>
+      countMonth(t, h, month, mapping, { "VS02|No. of Specimen Referred": 99 }),
+    );
+    const referred = after.cells["VS02|No. of Specimen Referred"]!;
+    expect(referred.manual).toBeUndefined();
+    expect(referred.sources).toContain((await referralOf(r.specimenId)).id);
+    expect(after.manualIgnored).toContain("VS02|No. of Specimen Referred");
+    expect(after.cells["VS02|No. of Pending Results/Feedback"]!.value).toBeGreaterThanOrEqual(1);
   });
 
   describe("results back on paper (S20–S26)", () => {

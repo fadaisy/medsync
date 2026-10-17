@@ -491,6 +491,8 @@ export interface ReviewItem {
   downtimeTag?: string;
   /** Lab Phase 2 (§5.8): measured at the bedside, with its device, lot and operator. */
   bedside?: { device: string; lot: string; operator: string; glucose: boolean };
+  /** Lab Phase 4 (§5.5, RB-8): done at a reference lab; where, how it reached the record, and its scan. */
+  referred?: { partner: string; lines: string[]; hasScan: boolean };
 }
 
 export const reviewWords = (i: Pick<ReviewItem, "state">): string =>

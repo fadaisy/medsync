@@ -301,3 +301,77 @@ lead reviews it against the test file; until then it is "prepared by Claude".
 hospital number agrees. So a result whose name and date of birth agree but whose hospital number plainly differs
 still files. That could be two patients with the same name and date of birth. The engine follows the signed rule
 exactly; a stricter variant (a differing hospital number always waits) is a one-line change if you want it.
+
+## STOP 4–7: Partners, send-out, tracking, results back (17 Oct 2026)
+
+Built as one slice behind `labReferral` (each step's screens depend on the previous step's store). Committed in
+two parts: the store layer (`6b710211`), then the screens.
+
+### What is built
+
+| Step | Screens (route)                                                                                                                                                                          | Store / actions                                                                                                                                                                                                                                                                |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 4    | Partners (`/lab/exchange/partners`, artboard 10); **referral governance desk** (`/referral-governance`)                                                                                  | `savePartner`; partner tests, packing and settings drafts and signatures (lab lead); legal record, field list, high-risk wording (designated leads); designations (hospital admin)                                                                                             |
+| 5    | To refer with the send panel (`/lab/refer`, artboard 1); manifest print (`/lab/refer/manifests/[id]/print`, artboard 2)                                                                  | `addToManifest` (RF-1, RF-2, RF-6, RF-7, PT-5, D-LAB4-22 server-side), seal, print (copies), handover, receipt (discrepancy → nonconformity), outbreak referral, aliquot                                                                                                       |
+| 6    | Referrals (`/lab/referrals`, artboard 3); the doctor's order line and "Sent out, waiting" (artboard 5)                                                                                   | updates with who said so (EX-7), call notes, cancel (RF-8), lost (RF-10 → nonconformity)                                                                                                                                                                                       |
+| 7    | Result back on paper (`/lab/referrals/[id]/result`, artboard 4); the doctor's provenance block and "Open the original report"; Waiting for a match (`/lab/exchange/matches`, artboard 7) | identity check (RB-2 → reconciliation item), scan upload (signed URL, server re-check and hash), release through `enterReferredResult` on the original order, snapshots, check task, critical flow (RB-5), HMIS 10.4 from records (HM-14..HM-17), match decisions (MA-6, MA-7) |
+
+### Scenario results (PGlite lane, `tests/emr-db/lab-referral.test.ts`, 14 pass; engines in `tests/lab/phase-4`)
+
+| S   | Result                      | Where proven                                                                                                                                                                                                                                                           |
+| --- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1  | Pass                        | Partner tests signed by the lab lead; unmapped test "Map before sending" (`partners.test.ts`, the send panel)                                                                                                                                                          |
+| S2  | Pass                        | Field list has no diagnosis, phone or address key; legal record and field list signed only by the designated data protection lead (lane)                                                                                                                               |
+| S3  | Pass                        | Abroad refused without consent; allowed with it (lane, `partners.test.ts`)                                                                                                                                                                                             |
+| S4  | **Partly**                  | Review date passed shows amber on Partners and the desk, and electronic sending stops after the operational days (`partners.test.ts`). **"Both leads notified" is not built**: MedSync has no generic notification to a named person (STOP 0 recon); recorded as a gap |
+| S5  | Pass                        | Add to manifest refused with the Appendix A reason until every identifier and packing item is done; seals; prints (lane)                                                                                                                                               |
+| S6  | Pass                        | No patient field can reach the sheet (type-level test); Code 128 number; reprint "Copy" (lane, `manifest.test.ts`)                                                                                                                                                     |
+| S7  | Pass                        | Handover moves every referral to handed over with the rider's name; a handover dated before the seal is refused; the doctor's order line reads "Sent to …" (overlay in `loadEncounterOrders`)                                                                          |
+| S8  | Pass                        | Aliquot with its own `L` number and parent; two referrals (lane)                                                                                                                                                                                                       |
+| S9  | Pass                        | High-risk refused on a routine manifest (store and the database trigger); outbreak referral needs who was told; shows "Handed to the outbreak team"                                                                                                                    |
+| S10 | Pass                        | A restricted test prints as the partner's code and "Restricted", never its name (A18). On screen the lab sees the Restricted mark (Phase 1 Law 12 as built)                                                                                                            |
+| S11 | Pass                        | Broken tube → discrepancy and a nonconformity (lane)                                                                                                                                                                                                                   |
+| S12 | Pass                        | 2 days from Monday 10:00 → Wednesday 10:00; Thursday 11:00 "Overdue 1 day" (`referral.test.ts`); amber on Referrals and the doctor's line                                                                                                                              |
+| S13 | Pass                        | No stated turnaround → "Not stated", never overdue                                                                                                                                                                                                                     |
+| S14 | Pass                        | Each update records the person and the document (lane)                                                                                                                                                                                                                 |
+| S15 | Pass                        | A status dated earlier than the last applied is kept, shown "arrived late, not applied", not applied (lane, engine)                                                                                                                                                    |
+| S16 | Pass                        | Rejected needs a reason code; terminal; Recollect needs a new specimen (engine); the doctor's line reads Appendix A "Rejected by reference lab"                                                                                                                        |
+| S17 | Pass                        | Cancel after handover is a request; a result that still comes back carries "Cancelled by the doctor after sending"                                                                                                                                                     |
+| S18 | Pass                        | Lost needs a call note and a specimen that left; nonconformity opened (lane)                                                                                                                                                                                           |
+| S19 | Pass (screen)               | Every tile is a link to its rows; an empty month shows "No data"                                                                                                                                                                                                       |
+| S20 | Pass                        | On the original order, performer external, transcribed, trust 4 with a checker; snapshot in our unit by the registry with the printed value, unit and range kept; no new order (lane)                                                                                  |
+| S21 | Pass                        | A different name keeps a reconciliation item (values never stored in it), nothing filed (lane)                                                                                                                                                                         |
+| S22 | Pass                        | Unknown unit blocks release with the Appendix A words (lane)                                                                                                                                                                                                           |
+| S23 | Pass                        | No printed range: no flag, "No range printed" (lane)                                                                                                                                                                                                                   |
+| S24 | **Wired, not lane-tested**  | The snapshot holds the value in our unit and `alertAfterRelease` runs Phase 1's critical flow on release; a lane test needs signed critical limits in the fixture (added at Step 12)                                                                                   |
+| S25 | Pass                        | Alone → "Entered by one person", trust 3, a check task; the next shift's check (another person, scan confirmed) closes it (lane)                                                                                                                                       |
+| S26 | **Path exists, not tested** | A corrected report goes through `amendResults`; the referral and provenance carry forward on the new version; scans are append-only. Step 12 adds the test                                                                                                             |
+| S27 | Pass (same path)            | A dashboard printout is a paper result from a partner whose results come back "portal_print", with the printout as the scan                                                                                                                                            |
+| S28 | Pass                        | 10.4 counted from records from the declared month; hand-entered 10.4 cells retired then (lane)                                                                                                                                                                         |
+
+### Decisions made while building (within GATE A)
+
+1. **A referral is created at Add to manifest**, not before: the RF-6 check and the referral are one server
+   transaction, so no half-sent referral exists.
+2. **To refer keeps a tube until it leaves**: once handed over it is tracked under Referrals.
+3. **The governance desk** (`/referral-governance`): the data protection and IPC leads are rarely lab staff, so
+   they sign at their own desk (as Phase 3's In-Charge does at `/hmis`), gated by AAL2 and the designation.
+4. **The doctor's order line and "Sent out, waiting"** read referral ids through the clinician's own RLS and the
+   partner's name on the server's connection: the partner register is not a clinician's row (§7 RLS table).
+5. **Waiting for a match is shown with `labReferral`**, not only `labExchange`: paper mismatches land there too.
+6. **"File after confirming" on a paper mismatch** records the confirmation (method, who was spoken to, a second
+   lab person); the entry then goes ahead and the doctor sees "Filed by hand after a mismatch".
+7. **HM-16** comes from the lab lead's signed `referral_ops.hmis104RecordsFrom`, because the repo keeps no flag
+   history.
+
+### Gaps (stated, not hidden)
+
+- No notification to named people (the lab lead, the DP lead, the doctor on lost or rejected): the information is
+  on their screens; push and SMS need a notification module MedSync does not have.
+- Screenshots against artboards 1–5, 7 and 10, the manifest print at 100 % and the timed trials (ten specimens to
+  a sealed manifest; a five-component paper result) are done with the harness at Step 12; the timed trials need
+  real lab users (owner action).
+- The analyser half of the matches page (Receive then file, mapping) arrives with Step 10, which is a gap report.
+
+Checks: typecheck clean; lint clean on every new file; lab, design and EMR suites pass (5,195), PGlite lanes
+(referral 14, Phase 4 data 13, HMIS 10, parity 298) pass.

@@ -3,7 +3,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { EmrTx } from "@/lib/emr/db";
 import type { ActionResult } from "@/lib/emr/write/context";
-import { sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { secondFactorFresh } from "@/lib/auth-fresh";
@@ -40,13 +39,13 @@ import { PAYLOADS } from "./signed-config";
  * Referrals, partners and results back (Lab Phase 4 §8; Steps 4–7). The house contract: Zod with a client key →
  * the lab actor (AAL2) → `labReferral` → permission → one transaction as the clinical writer, hospital-scoped
  * (audited by trigger) → `{ id, serverTime }`. Sending, tracking and manifests need `lab.refer`; results back
- * `lab.refer.result` (or result entry); partners' tests and packing `lab.manage`; the legal record and field list
- * the data protection lead, and the high-risk wording the IPC lead (designations, checked again by signConfig).
- * Signing needs a fresh second factor.
+ * `lab.refer.result` (or result entry); partners' tests and packing `lab.manage`. The legal record, field list and
+ * high-risk wording are signed at the referral governance desk (lib/lab/governance-actions.ts). Signing needs a
+ * fresh second factor.
  */
 
 type A = { userId: string; hospitalId: string; cadreCode: string | null; canRefer: boolean };
-type Need = "refer" | "result" | "manage" | "dp_lead" | "ipc_lead";
+type Need = "refer" | "result" | "manage";
 const uuid = z.uuid();
 const key = z.string().min(8).max(120);
 const words = (max: number) => z.string().trim().min(1).max(max);
@@ -60,16 +59,6 @@ const reauth: ActionResult = {
   code: "forbidden",
   error: "reauth: enter your authenticator code to sign.",
 };
-
-async function designated(tx: EmrTx, a: { userId: string; hospitalId: string }, role: string) {
-  const r =
-    (await tx.execute(sql`SELECT 1 FROM hospital_designations WHERE hospital_id = ${a.hospitalId}
-    AND user_id = ${a.userId} AND role = ${role} AND starts_on <= (now() AT TIME ZONE 'Africa/Kampala')::date
-    AND (ends_on IS NULL OR ends_on >= (now() AT TIME ZONE 'Africa/Kampala')::date) LIMIT 1`)) as unknown as
-      | unknown[]
-      | { rows: unknown[] };
-  return (Array.isArray(r) ? r : r.rows).length > 0;
-}
 
 async function run(
   need: Need,
@@ -92,19 +81,7 @@ async function run(
       throw new EmrWriteError("forbidden", "You do not enter results.");
     if (need === "manage" && !p.has("lab.manage"))
       throw new EmrWriteError("forbidden", "Only the laboratory lead does this.");
-    const r = await asClinicalWriter(a, async (tx) => {
-      if (
-        (need === "dp_lead" || need === "ipc_lead") &&
-        !(await designated(tx, a, need === "dp_lead" ? "data_protection_lead" : "ipc_lead"))
-      )
-        throw new EmrWriteError(
-          "forbidden",
-          need === "dp_lead"
-            ? "Only the data protection lead does this."
-            : "Only the infection prevention lead does this.",
-        );
-      return fn(tx, a, new Date());
-    });
+    const r = await asClinicalWriter(a, (tx) => fn(tx, a, new Date()));
     return {
       ok: true,
       id: typeof r === "string" ? r : a.hospitalId,
@@ -150,47 +127,40 @@ export async function savePartnerAction(raw: unknown): Promise<ActionResult> {
   return run("manage", (tx, a, now) => savePartner(tx, a, p.data, now));
 }
 
-const DRAFT_SIGNER = {
-  partner_tests: "manage",
-  partner_packing: "manage",
-  referral_ops: "manage",
-  partner_legal: "dp_lead",
-  partner_fields: "dp_lead",
-  referral_wording: "ipc_lead",
-} as const satisfies Record<string, Need>;
-type PartnerKind = keyof typeof DRAFT_SIGNER;
-const PartnerKind = z.enum(Object.keys(DRAFT_SIGNER) as [PartnerKind, ...PartnerKind[]]);
+const LeadKind = z.enum(["partner_tests", "partner_packing", "referral_ops"]);
 
-/** A draft of a partner's signed configuration; key = partner id (`{partnerId}:{category}` for packing). */
+/**
+ * A draft of the laboratory lead's partner configuration; key = partner id (`{partnerId}:{category}` for packing,
+ * `settings` for the operational settings). The legal record, field list and high-risk wording belong to the
+ * designated leads, at the referral governance desk (lib/lab/governance-actions.ts).
+ */
 export async function savePartnerConfigAction(raw: unknown): Promise<ActionResult> {
   const p = z
-    .object({ kind: PartnerKind, key: z.string().min(1).max(80), payload: z.unknown() })
+    .object({ kind: LeadKind, key: z.string().min(1).max(80), payload: z.unknown() })
     .safeParse(raw);
   if (!p.success) return bad(p.error);
   const payload = PAYLOADS[p.data.kind].safeParse(p.data.payload);
   if (!payload.success) return bad(payload.error);
-  return run(DRAFT_SIGNER[p.data.kind], (tx, a, now) =>
+  return run("manage", (tx, a, now) =>
     saveConfigDraft(tx, a, { kind: p.data.kind, key: p.data.key, payload: payload.data }, now),
   );
 }
 
-/** Signed by the one person the kind names (D-LAB1-12 carried over), with a fresh second factor. */
+/** Signed by a laboratory lead other than the author (D-LAB1-12 carried over), with a fresh second factor. */
 export async function signPartnerConfigAction(raw: unknown): Promise<ActionResult> {
   const p = z
     .object({
-      kind: PartnerKind,
+      kind: LeadKind,
       configId: uuid,
       exceptionNote: z.string().trim().max(500).nullable(),
     })
     .safeParse(raw);
   if (!p.success) return bad(p.error);
   if (!(await secondFactorFresh())) return reauth;
-  const need = DRAFT_SIGNER[p.data.kind];
-  const as = need === "manage" ? "lead" : need;
-  return run(need, async (tx, a, now) => {
+  return run("manage", async (tx, a, now) => {
     await signConfig(
       tx,
-      { ...a, as },
+      { ...a, as: "lead" },
       { configId: p.data.configId, exceptionNote: p.data.exceptionNote },
       now,
     );

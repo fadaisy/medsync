@@ -34,7 +34,12 @@ export type LabNavId =
   | "bedside_quality"
   | "register"
   | "hmis"
-  | "reports";
+  | "reports"
+  | "referrals"
+  | "partners"
+  | "connections"
+  | "matches"
+  | "analysers";
 
 /** Lab Phase 1 flags the registry needs (§5.10: an item appears only when its flag is on). */
 export interface LabNavFlags {
@@ -63,6 +68,9 @@ export interface LabNavFlags {
   hmis?: boolean;
   /** Lab Phase 3 (§5.13): labReports, Lab reports in the Reports group. */
   reports?: boolean;
+  /** Lab Phase 4 (§5): labReferral (Referrals, Partners) and labExchange (Connections, matches, analysers). */
+  referral?: boolean;
+  exchange?: boolean;
 }
 
 export type LabNavItem = NavItem<LabNavId, LabPermission, LabNavFlags>;
@@ -276,6 +284,52 @@ export const LAB_NAV: readonly LabNavItem[] = [
     exact: false,
     group: "reports",
     visibleFor: (p, f) => !!f.reports && p.has("lab.view"),
+  },
+  // Lab Phase 4 (§5): Referrals beside To refer; the Exchange group (Partners with labReferral, the rest with
+  // labExchange).
+  {
+    id: "referrals",
+    label: "Referrals",
+    href: "/lab/referrals",
+    order: 2.6,
+    exact: false,
+    visibleFor: (p, f) => !!f.referral && p.has("lab.view"),
+  },
+  {
+    id: "connections",
+    label: "Connections",
+    href: "/lab/exchange",
+    order: 7.1,
+    exact: true,
+    group: "exchange",
+    visibleFor: (p, f) => !!f.exchange && p.has("lab.view"),
+  },
+  {
+    id: "matches",
+    label: "Waiting for a match",
+    href: "/lab/exchange/matches",
+    order: 7.2,
+    exact: false,
+    group: "exchange",
+    visibleFor: (p, f) => !!f.referral && p.has("lab.view"),
+  },
+  {
+    id: "analysers",
+    label: "Analysers",
+    href: "/lab/exchange/analysers",
+    order: 7.3,
+    exact: false,
+    group: "exchange",
+    visibleFor: (p, f) => !!f.exchange && p.has("lab.view"),
+  },
+  {
+    id: "partners",
+    label: "Partners",
+    href: "/lab/exchange/partners",
+    order: 7.4,
+    exact: false,
+    group: "exchange",
+    visibleFor: (p, f) => !!f.referral && p.has("lab.view"),
   },
 ];
 

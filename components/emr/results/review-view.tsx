@@ -1,6 +1,7 @@
 import type { AckAction, AckDraft, ReviewItem, StaffOption } from "./model";
 import Link from "next/link";
 
+import { Tag } from "@/components/medsync/tag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LAB2 } from "@/content/lab-phase-2";
@@ -168,6 +169,7 @@ export function ReviewView({
                 <span className="font-medium">{i.test}</span>
                 {i.restricted ? <RestrictedMark /> : null}
                 {i.bedside ? <BedsideTag /> : null}
+                {i.referred ? <Tag hue="sky">Referred</Tag> : null}
                 {i.downtimeTag ? <StatusWord>{i.downtimeTag}</StatusWord> : null}
                 <StatusWord tone="caution">{reviewWords(i)}</StatusWord>
                 <span className="text-muted-foreground">
@@ -182,6 +184,23 @@ export function ReviewView({
                   </span>
                   {i.bedside.glucose ? <span>{LAB2.bedside.doctorLine}</span> : null}
                 </p>
+              ) : null}
+              {i.referred ? (
+                <div className="border-sky-edge bg-sky-tint text-sky-text text-body-s flex flex-col gap-1 rounded-md border px-3 py-2">
+                  {i.referred.lines.map((l) => (
+                    <span key={l}>{l}</span>
+                  ))}
+                  {i.referred.hasScan ? (
+                    <a
+                      href={`/api/lab/report-scan/${i.reportId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-body-s w-fit font-medium text-teal-700 underline underline-offset-4"
+                    >
+                      Open the original report
+                    </a>
+                  ) : null}
+                </div>
               ) : null}
               {i.values.length ? (
                 <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-[minmax(8rem,auto)_1fr]">

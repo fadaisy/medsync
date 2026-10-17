@@ -48,9 +48,11 @@ import {
   labBedsideLiveFor,
   labCatalogueV2LiveFor,
   labDowntimeLiveFor,
+  labReferralLiveFor,
   labUnitsRangesLiveFor,
 } from "@/lib/lab/feature";
 import { ANALYSER_MODELS } from "@/lib/lab/profiles";
+import { referredProvenance } from "@/lib/lab/referral-provenance";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 
 /**
@@ -663,6 +665,13 @@ export async function loadResultsToReview(
         ).map((b) => [b.id, b]),
       )
     : null;
+  // Lab Phase 4 (§5.5, RB-8): a referred report's provenance in Appendix A's words, and whether its scan exists.
+  const referred = labReferralLiveFor(actor.hospitalId)
+    ? await referredProvenance(
+        conn,
+        rows.map((x) => x.id),
+      )
+    : null;
   const hhmm = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -685,7 +694,9 @@ export async function loadResultsToReview(
     );
     const critical = x.critical || vals.some((v) => v.critical);
     const bs = shown ? bedside?.get(x.id) : undefined;
+    const ref = shown ? referred?.get(x.id) : undefined;
     items.push({
+      ...(ref ? { referred: ref } : {}),
       ...(bs
         ? {
             bedside: {

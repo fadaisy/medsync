@@ -15,15 +15,18 @@ import {
   labDowntimeLiveFor,
   labEqaLiveFor,
   labEquipmentLiveFor,
+  labExchangeLiveFor,
   labHmisLiveFor,
   labOneMenuLiveFor,
   labPoctQualityLiveFor,
   labQcLiveFor,
+  labReferralLiveFor,
   labReportsLiveFor,
   labSettingsLiveFor,
   labStockLiveFor,
   labUnitsRangesLiveFor,
 } from "@/lib/lab/feature";
+import { countMatchesWaiting } from "@/lib/lab/match-read";
 import { navFor } from "@/lib/lab/nav";
 import { labWorklistFor, rejectedFor, releasedTodayFor } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
@@ -48,6 +51,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
   const criticals = emr && (await criticalsLive(scope.hospitalId));
   const downtime = emr && labDowntimeLiveFor(scope.hospitalId);
   const formsWaiting = downtime ? await countFormsWaiting(scope.hospitalId) : null;
+  const referral = emr && labReferralLiveFor(scope.hospitalId);
+  const matchesWaiting = referral ? await countMatchesWaiting(scope.hospitalId) : null;
   const [open, released, rejected, criticalsOpen] = emr
     ? await Promise.all([
         labWorklistFor(scope.hospitalId).then((w) => w.inputs.length),
@@ -80,6 +85,11 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     register: null,
     hmis: null,
     reports: null,
+    referrals: null,
+    partners: null,
+    connections: null,
+    matches: matchesWaiting,
+    analysers: null,
     downtime: formsWaiting,
   };
   const words = {
@@ -106,6 +116,11 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     register: "",
     hmis: "",
     reports: "",
+    referrals: "",
+    partners: "",
+    connections: "",
+    matches: `${matchesWaiting ?? 0} waiting for a match`,
+    analysers: "",
     downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
@@ -124,6 +139,8 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     poctQuality: emr && labPoctQualityLiveFor(scope.hospitalId),
     hmis: emr && labHmisLiveFor(scope.hospitalId),
     reports: emr && labReportsLiveFor(scope.hospitalId),
+    referral: referral,
+    exchange: emr && labExchangeLiveFor(scope.hospitalId),
   }).map((i) => ({
     id: i.id,
     label: i.label,

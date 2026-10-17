@@ -30,6 +30,7 @@ import { contentHash } from "@/lib/exchange/outbox";
 import { fromCanonical, toCanonical } from "@/lib/units";
 import { unitsRangesLive } from "./criticals/readiness";
 import { alertAfterRelease } from "./criticals/store";
+import { confirmedPaperMismatch, markFiled } from "./match-store";
 import {
   compareIdentity,
   componentEntry,
@@ -291,9 +292,13 @@ export async function releasePaperResult(
     !r.cancelRequested
   )
     throw new EmrWriteError("conflict", "This referral is not waiting for a result.");
-  // RB-2: a disagreement is not an error to roll back: the reconciliation item must stay. Nothing else is written.
-  const identity = await checkPaperIdentity(tx, a, i, now);
-  if (!identity.agrees) return { waitingItemId: identity.itemId };
+  // RB-2: a disagreement is not an error to roll back: the reconciliation item must stay. Nothing else is written,
+  // unless the mismatch was already confirmed with the reference lab and a second person (MA-6).
+  const confirmed = await confirmedPaperMismatch(tx, a.hospitalId, r.id);
+  if (!confirmed) {
+    const identity = await checkPaperIdentity(tx, a, i, now);
+    if (!identity.agrees) return { waitingItemId: identity.itemId };
+  }
   const [scan] = await tx
     .select({ id: labResultAttachments.id })
     .from(labResultAttachments)
@@ -352,6 +357,13 @@ export async function releasePaperResult(
     checkedBy: oneEntrant ? null : i.checkedByUserId,
     oneEntrant,
     cancelledAfterSending: r.cancelRequested || r.state === "cancelled",
+    filedAfterMismatch: confirmed
+      ? {
+          method: confirmed.method === "phone_call" ? "a phone call" : "a corrected report",
+          by: confirmed.by,
+          second: confirmed.second,
+        }
+      : null,
   });
   const values: ResultValueInput[] = entries.map(({ conceptId, e }) => ({
     conceptId,
@@ -405,6 +417,7 @@ export async function releasePaperResult(
           at: now,
         },
   );
+  if (confirmed) await markFiled(tx, confirmed.itemId, report.id, now);
   await appendEvent(
     tx,
     a,
