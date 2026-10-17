@@ -14,7 +14,16 @@ import { collectSpecimen, receiveSpecimen } from "@/lib/emr/write/specimens";
 import { encrypt, generateKey } from "@/lib/encryption";
 import { saveConfigDraft, signConfig } from "@/lib/lab/catalogue-v2";
 import { labFeedFor } from "@/lib/ncd/lab-feed-read";
-import { bootLane, clinician, department, encounter, hospital, intake, laneOn, patient } from "./_pglite";
+import {
+  bootLane,
+  clinician,
+  department,
+  encounter,
+  hospital,
+  intake,
+  laneOn,
+  patient,
+} from "./_pglite";
 
 const HBA1C = "f05a6f3e-5793-584a-a6d2-c357de241001";
 const key = () => `k-${randomUUID()}`;
@@ -28,21 +37,45 @@ describe.skipIf(!laneOn)("Lab Phase 2 NCD feed (Step 9)", () => {
   let enc: string;
   let personId: string;
   const env = { ...process.env };
-  const tx = <T>(fn: (t: Parameters<Parameters<Lane["db"]["transaction"]>[0]>[0]) => Promise<T>) => lane.db.transaction(fn);
-  const as = <T>(x: EmrActor, fn: (ctx: Parameters<Parameters<typeof withPatientWrite>[2]>[0]) => Promise<T>) =>
-    withPatientWrite(x, p, fn, { database: lane.db });
+  const tx = <T>(fn: (t: Parameters<Parameters<Lane["db"]["transaction"]>[0]>[0]) => Promise<T>) =>
+    lane.db.transaction(fn);
+  const as = <T>(
+    x: EmrActor,
+    fn: (ctx: Parameters<Parameters<typeof withPatientWrite>[2]>[0]) => Promise<T>,
+  ) => withPatientWrite(x, p, fn, { database: lane.db });
   const feed = () => labFeedFor(h, personId, new Date(), lane.db as never);
 
   async function releasedHba1c(value: string) {
     const o = await as(a.doctor!, (ctx) =>
-      placeOrders(ctx, { patientUserId: p, encounterId: enc, orders: [{ clientKey: key(), testId: HBA1C, priority: "routine", reasonText: "Fixture" }] }),
+      placeOrders(ctx, {
+        patientUserId: p,
+        encounterId: enc,
+        orders: [{ clientKey: key(), testId: HBA1C, priority: "routine", reasonText: "Fixture" }],
+      }),
     );
-    const sp = await as(a.nurse!, (ctx) => collectSpecimen(ctx, { patientUserId: p, orderId: o.id, identifiersConfirmed: true, clientKey: key() }));
-    await as(a.lab!, (ctx) => receiveSpecimen(ctx, { patientUserId: p, specimenId: sp.id, clientKey: key() }));
+    const sp = await as(a.nurse!, (ctx) =>
+      collectSpecimen(ctx, {
+        patientUserId: p,
+        orderId: o.id,
+        identifiersConfirmed: true,
+        clientKey: key(),
+      }),
+    );
+    await as(a.lab!, (ctx) =>
+      receiveSpecimen(ctx, { patientUserId: p, specimenId: sp.id, clientKey: key() }),
+    );
     const pre = await as(a.lab!, (ctx) =>
-      enterResults(ctx, { patientUserId: p, orderId: o.id, status: "preliminary", values: [{ conceptId: "obs.hba1c", value, unit: "%" }], clientKey: key() }),
+      enterResults(ctx, {
+        patientUserId: p,
+        orderId: o.id,
+        status: "preliminary",
+        values: [{ conceptId: "obs.hba1c", value, unit: "%" }],
+        clientKey: key(),
+      }),
     );
-    return as(a.lab!, (ctx) => releaseResults(ctx, { patientUserId: p, reportId: pre.id, clientKey: key() }));
+    return as(a.lab!, (ctx) =>
+      releaseResults(ctx, { patientUserId: p, reportId: pre.id, clientKey: key() }),
+    );
   }
 
   beforeAll(async () => {
@@ -52,7 +85,11 @@ describe.skipIf(!laneOn)("Lab Phase 2 NCD feed (Step 9)", () => {
     h = await hospital(pg, "NCD feed");
     const ward = await department(pg, h, "Diabetes clinic");
     const lab = await department(pg, h, "Laboratory");
-    const make = async (d: string, cadreCode: string, surface: EmrActor["surface"]): Promise<EmrActor> => ({
+    const make = async (
+      d: string,
+      cadreCode: string,
+      surface: EmrActor["surface"],
+    ): Promise<EmrActor> => ({
       ...(await clinician(pg, { hospitalId: h, departmentId: d, cadre: cadreCode })),
       fullName: null,
       hospitalId: h,
@@ -72,20 +109,25 @@ describe.skipIf(!laneOn)("Lab Phase 2 NCD feed (Step 9)", () => {
       [p, encrypt("Fixture"), encrypt("Patient"), encrypt("0700000000")],
     );
     await intake(pg, { hospitalId: h, patientUserId: p });
-    enc = await encounter(pg, { hospitalId: h, patientUserId: p, clinicianUserId: a.doctor.userId, departmentId: ward });
+    enc = await encounter(pg, {
+      hospitalId: h,
+      patientUserId: p,
+      clinicianUserId: a.doctor.userId,
+      departmentId: ward,
+    });
     // The registry goes live for patient data only after its go-live is approved (0093 §8.3).
-    await pg.query(`INSERT INTO ncd_staff_role (facility_id, user_id, ncd_role) VALUES ($1, $2, 'clinical_safety_officer')`, [
-      h,
-      a.cso.userId,
-    ]);
+    await pg.query(
+      `INSERT INTO ncd_staff_role (facility_id, user_id, ncd_role) VALUES ($1, $2, 'clinical_safety_officer')`,
+      [h, a.cso.userId],
+    );
     const gl = await pg.query<{ id: string }>(
       `INSERT INTO ncd_go_live_request (facility_id, requested_by) VALUES ($1, $2) RETURNING id`,
       [h, a.doctor.userId],
     );
-    await pg.query(`UPDATE ncd_go_live_request SET status = 'approved', decided_by = $2, decided_at = now() WHERE id = $1`, [
-      gl.rows[0]!.id,
-      a.cso.userId,
-    ]);
+    await pg.query(
+      `UPDATE ncd_go_live_request SET status = 'approved', decided_by = $2, decided_at = now() WHERE id = $1`,
+      [gl.rows[0]!.id, a.cso.userId],
+    );
     personId = (
       await pg.query<{ id: string }>(
         `INSERT INTO ncd_person (facility_id, registry_number, given_name_ciphertext, family_name_ciphertext, sex, birth_year,
@@ -109,12 +151,38 @@ describe.skipIf(!laneOn)("Lab Phase 2 NCD feed (Step 9)", () => {
   it("S55 (G7 green), NF-2: once the mapping is signed, the released HbA1c fills the field with its source", async () => {
     const actor = { userId: a.doctor!.userId, hospitalId: h };
     const id = await tx((t) =>
-      saveConfigDraft(t, actor, { kind: "ncd_mapping", key: "hba1c", payload: { concept: "obs.hba1c", unit: "%", methods: ["lab"], windowDays: 90 } }, new Date()),
+      saveConfigDraft(
+        t,
+        actor,
+        {
+          kind: "ncd_mapping",
+          key: "hba1c",
+          payload: { concept: "obs.hba1c", unit: "%", methods: ["lab"], windowDays: 90 },
+        },
+        new Date(),
+      ),
     );
-    await tx((t) => signConfig(t, { userId: a.nurse!.userId, hospitalId: h, as: "lead" }, { configId: id, exceptionNote: null }, new Date()));
-    await tx((t) => signConfig(t, { userId: a.cso!.userId, hospitalId: h, as: "cso" }, { configId: id, exceptionNote: null }, new Date()));
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.nurse!.userId, hospitalId: h, as: "lead" },
+        { configId: id, exceptionNote: null },
+        new Date(),
+      ),
+    );
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.cso!.userId, hospitalId: h, as: "cso" },
+        { configId: id, exceptionNote: null },
+        new Date(),
+      ),
+    );
     const v = await feed();
-    expect(v.fields.hba1c).toMatchObject({ kind: "filled", result: { value: "7.9", unit: "%", method: "lab", amended: false } });
+    expect(v.fields.hba1c).toMatchObject({
+      kind: "filled",
+      result: { value: "7.9", unit: "%", method: "lab", amended: false },
+    });
   });
 
   it("S56, NF-3: the lab amends it; the field shows the amended value, and the old version is not used", async () => {
@@ -130,17 +198,45 @@ describe.skipIf(!laneOn)("Lab Phase 2 NCD feed (Step 9)", () => {
         clientKey: key(),
       }),
     );
-    expect((await feed()).fields.hba1c).toMatchObject({ kind: "filled", result: { value: "8.4", amended: true } });
+    expect((await feed()).fields.hba1c).toMatchObject({
+      kind: "filled",
+      result: { value: "8.4", amended: true },
+    });
   });
 
   it("S60, NF-2: a result in another unit is listed as not usable, never dropped", async () => {
-    await pg.query(`UPDATE lab_signed_configs SET status = 'superseded', superseded_at = now() WHERE key = 'hba1c' AND status = 'signed'`);
+    await pg.query(
+      `UPDATE lab_signed_configs SET status = 'superseded', superseded_at = now() WHERE key = 'hba1c' AND status = 'signed'`,
+    );
     const actor = { userId: a.doctor!.userId, hospitalId: h };
     const id = await tx((t) =>
-      saveConfigDraft(t, actor, { kind: "ncd_mapping", key: "hba1c", payload: { concept: "obs.hba1c", unit: "mmol/mol", methods: ["lab"], windowDays: 90 } }, new Date()),
+      saveConfigDraft(
+        t,
+        actor,
+        {
+          kind: "ncd_mapping",
+          key: "hba1c",
+          payload: { concept: "obs.hba1c", unit: "mmol/mol", methods: ["lab"], windowDays: 90 },
+        },
+        new Date(),
+      ),
     );
-    await tx((t) => signConfig(t, { userId: a.nurse!.userId, hospitalId: h, as: "lead" }, { configId: id, exceptionNote: null }, new Date()));
-    await tx((t) => signConfig(t, { userId: a.cso!.userId, hospitalId: h, as: "cso" }, { configId: id, exceptionNote: null }, new Date()));
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.nurse!.userId, hospitalId: h, as: "lead" },
+        { configId: id, exceptionNote: null },
+        new Date(),
+      ),
+    );
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.cso!.userId, hospitalId: h, as: "cso" },
+        { configId: id, exceptionNote: null },
+        new Date(),
+      ),
+    );
     const v = await feed();
     expect(v.fields.hba1c).toMatchObject({ kind: "none", reason: "unit_differs" });
     expect(v.fields.hba1c?.kind === "none" && v.fields.hba1c.unusable.length).toBeGreaterThan(0);
@@ -149,10 +245,33 @@ describe.skipIf(!laneOn)("Lab Phase 2 NCD feed (Step 9)", () => {
   it("S59, NF-2: nothing inside the window reads as none in window", async () => {
     const actor = { userId: a.doctor!.userId, hospitalId: h };
     const id = await tx((t) =>
-      saveConfigDraft(t, actor, { kind: "ncd_mapping", key: "uacr", payload: { concept: "obs.uacr", unit: "mg/mmol", methods: ["lab"], windowDays: 365 } }, new Date()),
+      saveConfigDraft(
+        t,
+        actor,
+        {
+          kind: "ncd_mapping",
+          key: "uacr",
+          payload: { concept: "obs.uacr", unit: "mg/mmol", methods: ["lab"], windowDays: 365 },
+        },
+        new Date(),
+      ),
     );
-    await tx((t) => signConfig(t, { userId: a.nurse!.userId, hospitalId: h, as: "lead" }, { configId: id, exceptionNote: null }, new Date()));
-    await tx((t) => signConfig(t, { userId: a.cso!.userId, hospitalId: h, as: "cso" }, { configId: id, exceptionNote: null }, new Date()));
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.nurse!.userId, hospitalId: h, as: "lead" },
+        { configId: id, exceptionNote: null },
+        new Date(),
+      ),
+    );
+    await tx((t) =>
+      signConfig(
+        t,
+        { userId: a.cso!.userId, hospitalId: h, as: "cso" },
+        { configId: id, exceptionNote: null },
+        new Date(),
+      ),
+    );
     expect((await feed()).fields.uacr).toMatchObject({ kind: "none", reason: "none_in_window" });
   });
 

@@ -16,14 +16,14 @@ The owner asked for everything to work in Expo. The app now runs on real data (A
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| mobile `tsc` | 0 errors |
-| mobile `eslint` | clean |
-| mobile `jest` | 25 suites, 356 tests pass |
-| web `tsc` (full) | 0 errors |
-| web `vitest` (new route) | 4 of 4 pass |
-| iOS bundle | builds |
+| Check                                | Result                                |
+| ------------------------------------ | ------------------------------------- |
+| mobile `tsc`                         | 0 errors                              |
+| mobile `eslint`                      | clean                                 |
+| mobile `jest`                        | 25 suites, 356 tests pass             |
+| web `tsc` (full)                     | 0 errors                              |
+| web `vitest` (new route)             | 4 of 4 pass                           |
+| iOS bundle                           | builds                                |
 | Sign-up route over the local network | answers, with the live consent notice |
 
 **The owner must apply migration 0170** before mood, pulse, water, walking, the home pin and "N ahead of you" work:
@@ -42,14 +42,14 @@ Until then, those saves show "Couldn't save that. Try again later."
 
 ## Checks (run in `mobile/`)
 
-| Check | Result |
-|---|---|
-| `npx tsc --noEmit` | 0 errors |
-| `npx eslint src --max-warnings=0` | 0 problems |
-| `npx jest` | 16 suites, 270 tests, all pass |
-| Prettier (repo config) | clean on all changed files |
-| `npx expo export --platform ios` | bundles cleanly (Hermes, 5.9 MB) |
-| Device or simulator | **not run**: no Xcode or Android SDK on this machine |
+| Check                             | Result                                               |
+| --------------------------------- | ---------------------------------------------------- |
+| `npx tsc --noEmit`                | 0 errors                                             |
+| `npx eslint src --max-warnings=0` | 0 problems                                           |
+| `npx jest`                        | 16 suites, 270 tests, all pass                       |
+| Prettier (repo config)            | clean on all changed files                           |
+| `npx expo export --platform ios`  | bundles cleanly (Hermes, 5.9 MB)                     |
+| Device or simulator               | **not run**: no Xcode or Android SDK on this machine |
 
 The law tests:
 
@@ -61,34 +61,34 @@ The law tests:
 
 ## Features
 
-| F | Status | Seam / note |
-|---|---|---|
-| F-01 Splash | done | the pill says "Made for Ugandan hospitals" (no hospital is known before sign-in) |
-| F-02 Sign in | done (password); seam (phone code `mobilePhoneOtp`, card `mobileQrSignIn`) | the phone code needs an SMS provider; card sign-in needs a server exchange (Q2) |
-| F-03 Create account | done | needs `EXPO_PUBLIC_WEB_ORIGIN` in the app build; the home pin is kept on the phone only (needs a migration, below); place goes down to subcounty |
-| F-04 Home | done (demo) | "people ahead" per doctor is a fixture |
-| F-05 Plus | done (demo) | voice "say it" is out of scope (shown as "coming later") |
-| F-06 Notifications | done (demo) | delivery choice links to Me; push delivery is out of scope |
-| F-07 Mood | done (demo) | — |
-| F-08 Week, Visit | done (live visits, demo plan rows) | no clinic phone number in the data, so no Call button |
-| F-09 Book | done (live) | coming today for a household member is off: no queue place can be saved for someone else |
-| F-10 Come today | done (live intake) | the count ahead needs a server read (below) |
-| F-11 Ask for a day | done (live) | — |
-| F-12 Tickets | done (live, offline cache) | payment simulated: "Demo payment · no money moved" |
-| F-13–F-19 Care | done (demo) | camera, attachments, voice notes and calls show "Not available yet" |
-| F-20 Me | done (live identity, demo health) | age needs `date_of_birth` in `fetchPatientProfile` |
-| F-21 Help | done | dials 112; 912 pending MoH/CSO; crisis, sexual-violence and hospital lines linked |
-| F-22 Danger | done | thresholds pending CSO |
-| F-23 Foundation | done | — |
+| F                   | Status                                                                     | Seam / note                                                                                                                                      |
+| ------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| F-01 Splash         | done                                                                       | the pill says "Made for Ugandan hospitals" (no hospital is known before sign-in)                                                                 |
+| F-02 Sign in        | done (password); seam (phone code `mobilePhoneOtp`, card `mobileQrSignIn`) | the phone code needs an SMS provider; card sign-in needs a server exchange (Q2)                                                                  |
+| F-03 Create account | done                                                                       | needs `EXPO_PUBLIC_WEB_ORIGIN` in the app build; the home pin is kept on the phone only (needs a migration, below); place goes down to subcounty |
+| F-04 Home           | done (demo)                                                                | "people ahead" per doctor is a fixture                                                                                                           |
+| F-05 Plus           | done (demo)                                                                | voice "say it" is out of scope (shown as "coming later")                                                                                         |
+| F-06 Notifications  | done (demo)                                                                | delivery choice links to Me; push delivery is out of scope                                                                                       |
+| F-07 Mood           | done (demo)                                                                | —                                                                                                                                                |
+| F-08 Week, Visit    | done (live visits, demo plan rows)                                         | no clinic phone number in the data, so no Call button                                                                                            |
+| F-09 Book           | done (live)                                                                | coming today for a household member is off: no queue place can be saved for someone else                                                         |
+| F-10 Come today     | done (live intake)                                                         | the count ahead needs a server read (below)                                                                                                      |
+| F-11 Ask for a day  | done (live)                                                                | —                                                                                                                                                |
+| F-12 Tickets        | done (live, offline cache)                                                 | payment simulated: "Demo payment · no money moved"                                                                                               |
+| F-13–F-19 Care      | done (demo)                                                                | camera, attachments, voice notes and calls show "Not available yet"                                                                              |
+| F-20 Me             | done (live identity, demo health)                                          | age needs `date_of_birth` in `fetchPatientProfile`                                                                                               |
+| F-21 Help           | done                                                                       | dials 112; 912 pending MoH/CSO; crisis, sexual-violence and hospital lines linked                                                                |
+| F-22 Danger         | done                                                                       | thresholds pending CSO                                                                                                                           |
+| F-23 Foundation     | done                                                                       | —                                                                                                                                                |
 
 ## Metrics
 
-| PRD metric | Measured |
-|---|---|
-| Taps to log a reading | 3 from Home (plus, Log a reading, Save); 2 from the plus. `reading_saved` records `entry` and `taps` |
-| Help on every screen | 33 of 33 routes (crawl) |
+| PRD metric                     | Measured                                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Taps to log a reading          | 3 from Home (plus, Log a reading, Save); 2 from the plus. `reading_saved` records `entry` and `taps`            |
+| Help on every screen           | 33 of 33 routes (crawl)                                                                                         |
 | Cold start / Home first render | **not measured**: no device. `home_rendered` fires with `ms` since bundle start, ready for the first device run |
-| 60 fps, no dropped frames | **not measured**: no device |
+| 60 fps, no dropped frames      | **not measured**: no device                                                                                     |
 
 Analytics events carry no PHI: `track()` payloads hold kinds, counts, steps and hashed ids, never values, names or free text.
 

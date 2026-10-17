@@ -536,7 +536,12 @@ function RowAction({
         {highRisk !== undefined ? (
           <span className="bg-status-caution-bg border-status-caution-fg dark:text-status-caution-fg text-body-s flex max-w-xs flex-col gap-1.5 rounded-md border-2 px-3 py-2 text-left text-amber-800">
             {highRisk && /^https?:\/\//.test(highRisk) ? (
-              <a href={highRisk} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              <a
+                href={highRisk}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
                 {highRisk}
               </a>
             ) : (

@@ -19,6 +19,7 @@ Two sources already exist, and the web already shows both to the patient:
    - mood, pulse, water and minutes walked, as new kinds in migration 0170.
 
    The dose derivation is the web's own `lib/patient/doses.ts`, imported, not copied.
+
 2. **The phone shows shared visit summaries** through one authenticated route, `app/api/mobile/visit-summaries`. The route checks the caller's Supabase token, then uses the web's `listVisitSummaries` / `getVisitSummary`, so the key never leaves the server.
    - Lab results show the tests ordered and the summary's own sentence about results. No value is invented.
    - Medicines show names and "As your clinician prescribed", never an amount (law L5).

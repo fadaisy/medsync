@@ -32,9 +32,9 @@ Claude session) built the foundation and will integrate, review and screenshot e
      `src/data/store.ts`, `src/data/medicines.ts`, `src/data/readings.ts`, `src/data/doctors.ts`,
      `src/offline/outbox.ts`.
    - `/dev/tide` (`src/app/dev/tide.tsx`) shows every primitive in use.
-   If a primitive is missing or wrong for your screen, build a local component in
-   `src/features/<your-area>/` and say so in your report. Do not edit shared files unless your
-   brief lists them.
+     If a primitive is missing or wrong for your screen, build a local component in
+     `src/features/<your-area>/` and say so in your report. Do not edit shared files unless your
+     brief lists them.
 
 ## Rules
 
