@@ -58,6 +58,7 @@ export default function SignInScreen() {
         background={t.band}
         stagger={false}
         growLast
+        bounce={false}
         gap={0}
         contentStyle={{ flexGrow: 1, paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 }}
       >

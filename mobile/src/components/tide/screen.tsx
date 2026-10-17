@@ -189,6 +189,7 @@ export function Screen({
   background,
   topBand,
   growLast = false,
+  bounce = true,
 }: {
   children: ReactNode;
   back?: { label?: string; onPress?: () => void; icon?: "back" | "close" };
@@ -216,6 +217,8 @@ export function Screen({
   topBand?: ReactNode;
   /** The last child stretches to the bottom of the screen (a sheet-style card under a band, Sign in). */
   growLast?: boolean;
+  /** Off where stretching past the end would show the wrong colour (a white card over a navy page). */
+  bounce?: boolean;
 }) {
   const t = useTide();
   const insets = useSafeAreaInsets();
@@ -300,6 +303,8 @@ export function Screen({
             contentContainerStyle={[padding, contentStyle]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
+            bounces={bounce}
+            overScrollMode={bounce ? "auto" : "never"}
             showsVerticalScrollIndicator={false}
           >
             {body}
