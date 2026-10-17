@@ -5,6 +5,8 @@ import { env } from "@/lib/env";
 import { escalateIpcAlerts } from "@/lib/ipc/store";
 import { deliverAfterCommit, runEscalations } from "@/lib/lab/criticals/store";
 import { logger } from "@/lib/logger";
+import { createAfricasTalkingSender } from "@/lib/notifications/africastalking";
+import { enqueueResultsReady, sendResultsReady } from "@/lib/notify/results-ready-store";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +37,25 @@ async function run(request: Request) {
     const { failed } = await deliverAfterCommit(database, jobs);
     // Lab Phase 5 (IC-7): IPC alerts with no action within the window escalate (the same minute's tick).
     const ipcEscalated = await db.transaction((tx) => escalateIpcAlerts(tx as never, new Date()));
-    return NextResponse.json({ escalated, delivered: jobs.length - failed, failed, ipcEscalated });
+    // Lab Phase 5 (PS-6): results-ready SMS, after and apart from every release; a failure here never throws back.
+    let resultsReady: unknown = null;
+    try {
+      const now = new Date();
+      const { queued } = await enqueueResultsReady(now);
+      const sender = createAfricasTalkingSender();
+      resultsReady = { queued, ...(sender ? await sendResultsReady(now, sender) : { sent: 0 }) };
+    } catch (e) {
+      logger.error("cron.lab-escalations.results_ready_failed", {
+        message: e instanceof Error ? e.message : String(e),
+      });
+    }
+    return NextResponse.json({
+      escalated,
+      delivered: jobs.length - failed,
+      failed,
+      ipcEscalated,
+      resultsReady,
+    });
   } catch (e) {
     logger.error("cron.lab-escalations.failed", {
       message: e instanceof Error ? e.message : String(e),

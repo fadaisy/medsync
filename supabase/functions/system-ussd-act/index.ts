@@ -107,7 +107,8 @@ Deno.serve(async (request: Request) => {
         .from("consent_records")
         .update({ revoked_at: now })
         .eq("user_id", h.id)
-        .eq("consent_type", "sms_communication")
+        // Lab Phase 5 (PS-4): STOP also ends results-ready messages.
+        .in("consent_type", ["sms_communication", "results_sms"])
         .is("revoked_at", null);
       try {
         await recordSaAudit({
@@ -119,7 +120,11 @@ Deno.serve(async (request: Request) => {
           requestId,
           ipAddress,
           userAgent,
-          afterData: { sms_communication: "revoked", channel: input.channel },
+          afterData: {
+            sms_communication: "revoked",
+            results_sms: "revoked",
+            channel: input.channel,
+          },
         });
       } catch (e) {
         log.warn("sa_audit failed (opt-out already recorded)", { requestId, reason: String(e) });

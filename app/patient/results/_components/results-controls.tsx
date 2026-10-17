@@ -11,10 +11,12 @@ export function ResultsConsentSwitch({
   on,
   subject,
   label,
+  type = "results_in_app",
 }: {
   on: boolean;
   subject: string;
   label: string;
+  type?: "results_in_app" | "results_sms";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -28,7 +30,7 @@ export function ResultsConsentSwitch({
         disabled={pending}
         onClick={() =>
           start(async () => {
-            const r = await setResultsConsentAction({ on: !on, subject });
+            const r = await setResultsConsentAction({ on: !on, subject, type });
             setError(r.ok ? null : r.error);
             router.refresh();
           })

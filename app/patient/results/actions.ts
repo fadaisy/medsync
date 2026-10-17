@@ -16,21 +16,30 @@ type Result = { ok: true } | { ok: false; error: string };
  * guardian makes it for a linked child. Withdrawal hides results at once (the gate reads it on every request).
  */
 export async function setResultsConsentAction(raw: unknown): Promise<Result> {
-  const p = z.object({ on: z.boolean(), subject: z.uuid() }).safeParse(raw);
+  const p = z
+    .object({
+      on: z.boolean(),
+      subject: z.uuid(),
+      // PS-2: "Text me when results are ready" is its own consent, recorded the same way.
+      type: z.enum(["results_in_app", "results_sms"]).default("results_in_app"),
+    })
+    .safeParse(raw);
   if (!p.success) return { ok: false, error: "Invalid input." };
   const scope = await requirePatientScope();
   if (!(await viewerKind({ userId: scope.userId, subjectUserId: p.data.subject })))
     return { ok: false, error: "That record is not yours to change." };
-  const version = await fetchSmsConsentVersion("results_in_app");
+  // The SMS goes to whoever holds the switch: the patient, or the guardian for a child (PS-5).
+  const holder = p.data.type === "results_sms" ? scope.userId : p.data.subject;
+  const version = await fetchSmsConsentVersion(p.data.type);
   if (!version) return { ok: false, error: "Results in the app are not available yet." };
   const h = await headers();
   try {
     await setSmsConsent(
-      p.data.subject,
+      holder,
       p.data.on,
       version,
       { ip: null, userAgent: h.get("user-agent") },
-      "results_in_app",
+      p.data.type,
     );
   } catch (e) {
     logger.error("patient.results.consent.failed", { reason: String(e) });

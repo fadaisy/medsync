@@ -13,6 +13,8 @@ export const SmsTemplatePayload = z.object({
   senderId: z.string().trim().min(3).max(11),
 });
 
+export type SmsTemplate = z.infer<typeof SmsTemplatePayload>;
+
 /** Words that reveal a test, a value or a condition-specific clinic, refused in the template and the sender ID. */
 const REVEALING =
   /\b(hiv|art|arv|tb|tuberculosis|pregnan\w*|viral load|cd4|syphilis|hepatitis|psychiatr\w*|mental|cancer|biopsy|clinic|positive|negative|result of|test for|\d)/i;
@@ -26,6 +28,9 @@ export function templateErrors(t: { text: string; senderId: string }): string[] 
   if (/https?:\/\/|www\./i.test(t.text)) e.push("link_not_allowed");
   if (!/\bSTOP\b/.test(t.text)) e.push("stop_route_missing");
   if (REVEALING.test(t.senderId)) e.push("sender_reveals_condition");
+  // One GSM-7 part (lib/notifications/sink.ts refuses more), with room for a hospital name of 40 characters.
+  if (withoutHospital.length + 40 > 160 || !/^[\x20-\x7E\n{}]*$/.test(t.text))
+    e.push("too_long_or_not_gsm");
   return e;
 }
 

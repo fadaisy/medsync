@@ -310,3 +310,40 @@ need clearing). "Your doctor has seen this and will talk with you on {date}" nee
 results loader does not read yet. Explanations are English until a language setting offers only signed languages
 (PR-17; the loader takes the language). The records-requests page is reachable by its address; it has no link in the
 hospital-admin navigation yet. Calculated values (eGFR) show only as their own component lines.
+
+## STOP 8: Results-ready SMS (17 Oct 2026)
+
+Built behind `PATIENT_RESULTS_SMS` (which needs `PATIENT_RESULTS`):
+
+- **Its own sender on the lab's every-minute tick** (`lib/notify/results-ready-store.ts`, called from
+  `/api/cron/lab-escalations`, which pg_cron already drives every minute; 0106). The booking dispatcher is push-first
+  and gated on booking consent, so `results_ready` rows are excluded from it and handled here, on the same SMS
+  transport (`deliverSms`, Africa's Talking). Nothing runs inside a release transaction (PS-6).
+- **Enqueue** (PS-2, PS-3, PS-5): for each patient with recent results at a hospital where the SMS is live, the
+  results now visible through the one gate (`resultsFor`), in a group whose signed rule allows SMS, not yet
+  announced; for a child, the linked guardian is the viewer and the recipient. One row per recipient per 60-minute
+  window; later results in the window join it; a window already sent opens the next slot. The scheduled time is the
+  next 06:00 to 19:00 Kampala moment.
+- **Send** (PS-1, PS-4, PS-6): due rows only inside the hours (otherwise held to 06:00); the recipient's
+  `results_sms` consent and the phone's STOP are checked at send; only the hospital's signed template for the
+  language, re-checked (no test, value, clinic, link; STOP present; now also one GSM-7 part with room for the hospital
+  name). The row keeps the provider id and cost, never the body; a failure goes back to the queue 5, 10, 15 … minutes
+  later, and after five attempts stops as failed.
+- **STOP** (PS-4): the existing inbound webhook already puts the phone on `sms_opt_outs`; `system-ussd-act` now
+  revokes `results_sms` with `sms_communication`, and audits both.
+- **Patient settings** (§5.3): "Text me when results are ready" with the number masked ("ending 001"), shown under
+  the in-app switch; it records against the published `results_sms` consent version.
+
+| Scenario | Result | Evidence (`tests/emr-db/lab-results-sms.test.ts`, fake transport)                                                                                          |
+| -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S39      | Pass   | Three visible results queue one row with all three ids and send one message, exactly the signed template; a rerun sends nothing more                       |
+| S40      | Pass   | Visible at 21:00: scheduled for 06:00 next day; nothing goes at 21:00; one message at 06:00                                                                |
+| S41      | Pass   | An HIV result between two routine ones: the row holds only the two routine ids, at the same time; the HIV id appears nowhere                               |
+| S42      | Pass   | With the phone on `sms_opt_outs`, the due row is cancelled as `sms_opted_out` and nothing is sent                                                          |
+| S43      | Pass   | Provider down: back to the queue with attempt 1 and five minutes later; the report stays final; the retry sends; no dispatch row contains the message text |
+
+**Owner actions:** the delivered message on a test handset needs the Africa's Talking credentials and the registered
+sender ID (Q11; PS-7). The sender ID in the signed template is recorded, but the transport still sends with the
+deployment's `AFRICASTALKING_SENDER_ID`; a per-hospital sender needs the provider registration first. Redeploy
+`system-ussd-act` for the STOP change. **Gap:** the language for the message is English until the patient's language
+setting offers only signed languages.

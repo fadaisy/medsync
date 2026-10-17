@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { fill, LAB5 } from "@/content/lab-phase-5";
-import { patientResultsLiveFor } from "@/lib/lab/feature";
+import { patientResultsLiveFor, patientResultsSmsLiveFor } from "@/lib/lab/feature";
 import { myChildren, resultsFor } from "@/lib/lab/patient-results";
 import { hasSmsConsent } from "@/lib/notifications/consent";
 import { requirePatientScope } from "@/lib/patient/scope";
@@ -32,11 +32,14 @@ export default async function PatientResultsPage({
   if (!scope.primaryHospitalId || !patientResultsLiveFor(scope.primaryHospitalId)) notFound();
   const subject = (await searchParams).for ?? scope.userId;
   const now = new Date();
-  const [res, children, consent, who] = await Promise.all([
+  const sms = patientResultsSmsLiveFor(scope.primaryHospitalId);
+  const [res, children, consent, who, smsOn, mine] = await Promise.all([
     resultsFor({ userId: scope.userId, subjectUserId: subject }, now),
     myChildren(scope.userId),
     hasSmsConsent(subject, "results_in_app"),
     identifiers(subject),
+    sms ? hasSmsConsent(scope.userId, "results_sms") : Promise.resolve(false),
+    sms ? identifiers(scope.userId) : Promise.resolve(null),
   ]);
   if (!res) notFound();
   const forChild = res.kind === "guardian";
@@ -149,6 +152,14 @@ export default async function PatientResultsPage({
         </h2>
         {consent ? (
           <ResultsConsentSwitch on={consent} subject={subject} label={LAB5.consent} />
+        ) : null}
+        {sms && consent ? (
+          <ResultsConsentSwitch
+            on={smsOn}
+            subject={subject}
+            type="results_sms"
+            label={`Text me when results are ready${mine?.phone ? ` (${mine.phone})` : ""}`}
+          />
         ) : null}
         <p className="text-body-s">
           Who else can see these results: links for parents and guardians are made at the hospital,

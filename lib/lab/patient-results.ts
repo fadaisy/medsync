@@ -13,7 +13,7 @@ import { rowsOf } from "@/lib/exchange/store";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { loadConfigs } from "./catalogue-v2";
 import { patientResultsLiveFor } from "./feature";
-import { neverShown, pickLanguage, statusWord, visibleToPatient } from "./patient-release";
+import { groupOf, neverShown, pickLanguage, statusWord, visibleToPatient } from "./patient-release";
 import { releaseContext, resultFacts } from "./patient-release-store";
 import { expectedBy } from "./referral";
 
@@ -48,6 +48,8 @@ export interface ReadyCard {
   note: string | null;
   bedside: boolean;
   partner: string | null;
+  /** PS-2: the signed release table lets this result's group send a results-ready SMS. */
+  sms: boolean;
 }
 export interface NotReady {
   key: string;
@@ -270,6 +272,7 @@ export async function resultsFor(v: Viewer, now: Date, database?: EmrDb) {
         note: notes.get(r.id) ?? null,
         bedside: f.snapshot.bedside,
         partner: r.partner,
+        sms: !!ctxs.get(r.hospital)?.rules?.groups[groupOf(f.snapshot)].sms,
       }));
     const notReady: NotReady[] = shown
       .filter((x) => ["not_reviewed", "not_told", "held"].includes(x.d.reason))
