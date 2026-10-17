@@ -59,6 +59,8 @@ export default function BookDayScreen() {
     /** Home's "Ask for a day": the clinician's user id and their department. */
     doctor?: string;
     department?: string;
+    /** The doctor's hospital, which may not be the patient's own (ADR 0086). */
+    hospital?: string;
   }>();
   const reason = (
     params.reason && REASONS.has(params.reason) ? params.reason : "follow_up"
@@ -83,10 +85,13 @@ export default function BookDayScreen() {
   const all = useTickets();
   const ticket = ticketId ? (all.find((x) => x.id === ticketId) ?? null) : null;
 
-  const { doctor, department } = params;
+  const { doctor, department, hospital } = params;
   useEffect(() => {
     let live = true;
-    loadDays(reason, doctor ? { userId: doctor, departmentId: department } : null).then(
+    loadDays(
+      reason,
+      doctor ? { userId: doctor, departmentId: department, hospitalId: hospital } : null,
+    ).then(
       (d) => {
         if (live) setDays(d);
       },
@@ -97,7 +102,7 @@ export default function BookDayScreen() {
     return () => {
       live = false;
     };
-  }, [reason, doctor, department, attempt]);
+  }, [reason, doctor, department, hospital, attempt]);
 
   if (ticket) return <Sent ticket={ticket} />;
 

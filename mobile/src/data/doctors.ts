@@ -10,37 +10,48 @@ import {
 } from "@/lib/booking";
 
 /**
- * "See a doctor" on Home: the real clinicians at the patient's own hospital,
- * from `pt-bookable-clinicians` (the server's slot engine) and the hospital's
- * price list (`service_lines`, ADR 0092). Nothing is invented: no placeholder
- * doctor, no rating (ratings stay off, PRD Q3), and no count of people in any
- * line (ADR 0084 §6). A fee shows only where the clinic priced one.
+ * "See a doctor" on Home: the real clinicians at every active hospital, from
+ * `pt-bookable-clinicians` (with no hospital it returns them all: a patient
+ * may book at any hospital, ADR 0086), one card per clinician listing each
+ * hospital they work at, with that hospital's price list (`service_lines`,
+ * ADR 0092). Nothing is invented: no placeholder doctor, no rating (ratings
+ * stay off, PRD Q3), no count of people in any line (ADR 0084 §6).
  */
+export interface DoctorPlace {
+  hospitalId: string;
+  hospitalName: string;
+  departmentId: string;
+  departmentName: string;
+  /** The first day with an open slot here ("YYYY-MM-DD"), or null within the 14-day horizon. */
+  nextDayKey: string | null;
+  /** "UGX 30,000", a range in words, or "No fee". */
+  feeWords: string;
+  /** This clinic takes walk-ins right now. Known only at the patient's own hospital. */
+  walkInToday: boolean;
+  /** The patient's own hospital. */
+  home: boolean;
+}
+
 export interface DoctorCard {
-  /** User id and department: one clinician may work in two. */
+  /** The clinician's user id: one card per clinician, however many hospitals. */
   key: string;
   userId: string;
   name: string;
   /** Specialty, else the cadre ("Medical Officer"). */
   role: string;
-  departmentId: string;
-  place: string;
   initials: string;
   photoUrl: string | null;
-  /** The first day with an open slot ("YYYY-MM-DD"), or null within the 14-day horizon. */
+  /** Home hospital first, then the soonest open day. */
+  places: DoctorPlace[];
+  /** The soonest open day anywhere, or null. */
   nextDayKey: string | null;
-  /** Their clinic takes walk-ins right now. A yes or no, never a queue length. */
-  walkInToday: boolean;
-  /** "UGX 30,000", a range in words, or "No fee". */
-  feeWords: string;
 }
 
-export type DoctorsStatus = "loading" | "ready" | "error" | "no-hospital";
+export type DoctorsStatus = "loading" | "ready" | "error";
 
 export interface DoctorsState {
   status: DoctorsStatus;
   doctors: DoctorCard[];
-  hospitalName: string | null;
 }
 
 /** "Dr Jane Doe" → "JD". Initials stand in where the clinician gave no photo. */
@@ -57,28 +68,68 @@ export function initialsOf(name: string): string {
   );
 }
 
-/** One card per clinician and department, in the server's order (open days first, soonest first). */
+const byPlace = (a: DoctorPlace, b: DoctorPlace) =>
+  Number(b.home) - Number(a.home) ||
+  (a.nextDayKey ?? "9999").localeCompare(b.nextDayKey ?? "9999") ||
+  a.hospitalName.localeCompare(b.hospitalName);
+
+/**
+ * One card per clinician, in the server's order (open days first, soonest
+ * first), each listing every hospital and department they book at.
+ */
 export function toDoctorCards(
   clinicians: readonly ClinicianOption[],
-  lines: readonly Pick<ServiceLine, "departmentId" | "fee">[],
-  departments: readonly WalkInDepartment[],
+  linesByHospital: ReadonlyMap<string, readonly Pick<ServiceLine, "departmentId" | "fee">[]>,
+  homeWalkIns: readonly WalkInDepartment[],
+  homeHospitalId: string | null,
 ): DoctorCard[] {
-  const openNow = new Set(departments.filter((d) => d.openNow).map((d) => d.id));
-  return clinicians.map((c) => {
-    const { fee, feeLabel } = feeFor(lines, c.departmentId, c.cadreId);
-    return {
-      key: `${c.userId}:${c.departmentId}`,
-      userId: c.userId,
-      name: c.fullName,
-      role: c.specialty ?? c.cadre,
+  const openNow = new Set(homeWalkIns.filter((d) => d.openNow).map((d) => d.id));
+  const cards = new Map<string, DoctorCard>();
+  for (const c of clinicians) {
+    const home = c.hospitalId === homeHospitalId;
+    const { fee, feeLabel } = feeFor(
+      linesByHospital.get(c.hospitalId) ?? [],
+      c.departmentId,
+      c.cadreId,
+    );
+    const place: DoctorPlace = {
+      hospitalId: c.hospitalId,
+      hospitalName: c.hospitalName,
       departmentId: c.departmentId,
-      place: c.departmentName,
-      initials: initialsOf(c.fullName),
-      photoUrl: c.photoUrl,
+      departmentName: c.departmentName,
       nextDayKey: Object.keys(c.slotsByDate).sort()[0] ?? null,
-      walkInToday: openNow.has(c.departmentId),
       feeWords: feeLabel ?? feeText(fee),
+      walkInToday: home && openNow.has(c.departmentId),
+      home,
     };
+    const card = cards.get(c.userId);
+    if (card) {
+      if (
+        !card.places.some(
+          (p) => p.hospitalId === place.hospitalId && p.departmentId === place.departmentId,
+        )
+      )
+        card.places.push(place);
+    } else {
+      cards.set(c.userId, {
+        key: c.userId,
+        userId: c.userId,
+        name: c.fullName,
+        role: c.specialty ?? c.cadre,
+        initials: initialsOf(c.fullName),
+        photoUrl: c.photoUrl,
+        places: [place],
+        nextDayKey: null,
+      });
+    }
+  }
+  return [...cards.values()].map((card) => {
+    const places = [...card.places].sort(byPlace);
+    const days = places
+      .map((p) => p.nextDayKey)
+      .filter((d): d is string => d !== null)
+      .sort();
+    return { ...card, places, nextDayKey: days[0] ?? null };
   });
 }
 
@@ -86,46 +137,57 @@ export function toDoctorCards(
 export const WALK_IN_FILTER = "Walk-ins today";
 
 /**
- * The filter chips the data can answer: walk-ins when some clinics take them
- * today and some do not, and each department when there are two or more. No
- * chip for a facet the cards do not carry.
+ * The filter chips the data can answer: walk-ins when some cards have them
+ * today and some do not, then each hospital when there are two or more, else
+ * each department when there are two or more. No chip for a facet the cards
+ * do not carry.
  */
 export function doctorFilters(cards: readonly DoctorCard[]): string[] {
   const out: string[] = [];
-  const walkIns = cards.filter((c) => c.walkInToday).length;
+  const walkIns = cards.filter((c) => c.places.some((p) => p.walkInToday)).length;
   if (walkIns > 0 && walkIns < cards.length) out.push(WALK_IN_FILTER);
-  const places = [...new Set(cards.map((c) => c.place))];
-  if (places.length > 1) out.push(...places.sort());
+  const hospitals = [...new Set(cards.flatMap((c) => c.places.map((p) => p.hospitalName)))];
+  if (hospitals.length > 1) out.push(...hospitals.sort());
+  else {
+    const depts = [...new Set(cards.flatMap((c) => c.places.map((p) => p.departmentName)))];
+    if (depts.length > 1) out.push(...depts.sort());
+  }
   return out;
 }
 
 export function matchesFilter(card: DoctorCard, filter: string | null): boolean {
   if (!filter) return true;
-  return filter === WALK_IN_FILTER ? card.walkInToday : card.place === filter;
+  if (filter === WALK_IN_FILTER) return card.places.some((p) => p.walkInToday);
+  return card.places.some((p) => p.hospitalName === filter || p.departmentName === filter);
 }
 
-const store = createStore<DoctorsState>({ status: "loading", doctors: [], hospitalName: null });
+const store = createStore<DoctorsState>({ status: "loading", doctors: [] });
 
 /** Read the doctors again (Home calls this on focus). A failure keeps a list already shown. */
 export async function loadDoctors(): Promise<void> {
   if (store.get().status !== "ready") store.set((s) => ({ ...s, status: "loading" }));
   try {
-    const profile = await fetchPatientProfile();
-    const hospitalId = profile?.hospitalId;
-    if (!hospitalId) {
-      store.set({ status: "no-hospital", doctors: [], hospitalName: null });
-      return;
-    }
-    const [clinicians, lines, departments] = await Promise.all([
-      fetchBookableClinicians(hospitalId),
-      fetchServiceLines({ hospitalId }),
-      // Walk-in hours only decide "Come today"; without them that button stays away.
-      fetchWalkInDepartments(hospitalId).catch(() => [] as WalkInDepartment[]),
+    const [profile, clinicians] = await Promise.all([
+      fetchPatientProfile().catch(() => null),
+      fetchBookableClinicians(),
+    ]);
+    const home = profile?.hospitalId ?? null;
+    const hospitalIds = [...new Set(clinicians.map((c) => c.hospitalId))];
+    const [lines, walkIns] = await Promise.all([
+      Promise.all(
+        hospitalIds.map((hospitalId) =>
+          fetchServiceLines({ hospitalId }).then(
+            (l) => [hospitalId, l] as const,
+            () => [hospitalId, [] as ServiceLine[]] as const,
+          ),
+        ),
+      ),
+      // Walk-in hours only decide "Come today", which joins the line at the patient's own hospital.
+      home ? fetchWalkInDepartments(home).catch(() => [] as WalkInDepartment[]) : [],
     ]);
     store.set({
       status: "ready",
-      doctors: toDoctorCards(clinicians, lines, departments),
-      hospitalName: profile.hospitalName,
+      doctors: toDoctorCards(clinicians, new Map(lines), walkIns, home),
     });
   } catch {
     store.set((s) => (s.status === "ready" ? s : { ...s, status: "error" }));

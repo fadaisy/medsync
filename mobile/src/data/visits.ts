@@ -422,9 +422,29 @@ export function slotDays(
  */
 export async function loadDays(
   reason: AppointmentReason,
-  doctor: { userId: string; departmentId?: string } | null,
+  doctor: { userId: string; departmentId?: string; hospitalId?: string } | null,
 ): Promise<Days> {
   const profile = await fetchPatientProfile();
+  // A doctor's own hospital may be another one: a patient may book at any (ADR 0086).
+  if (doctor?.hospitalId) {
+    const [clinicians, lines] = await Promise.all([
+      fetchBookableClinicians(doctor.hospitalId),
+      fetchServiceLines({ hospitalId: doctor.hospitalId }),
+    ]);
+    const c = clinicians.find(
+      (x) =>
+        x.userId === doctor.userId &&
+        (!doctor.departmentId || x.departmentId === doctor.departmentId),
+    );
+    if (c)
+      return {
+        hospitalId: doctor.hospitalId,
+        hospitalName: c.hospitalName,
+        patientCode: profile?.patientCode ?? null,
+        doctorName: c.fullName,
+        days: slotDays(c, lines, reason),
+      };
+  }
   if (!profile?.hospitalId)
     return { hospitalId: null, hospitalName: "", patientCode: null, doctorName: null, days: [] };
   const base = {

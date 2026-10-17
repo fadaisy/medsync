@@ -1,4 +1,4 @@
-import type { DoctorCard } from "@/data/doctors";
+import type { DoctorCard, DoctorPlace } from "@/data/doctors";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
@@ -8,8 +8,9 @@ import {
   Button,
   Chip,
   ChipRow,
+  Icon,
   Note,
-  Pill,
+  Press,
   SectionHead,
   TextLink,
 } from "@/components/tide";
@@ -19,10 +20,12 @@ import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
- * "See a doctor": the real clinicians at the patient's hospital (contract in
- * `data/doctors.ts`), each with their next open day, their fee or "No fee",
- * "Ask for a day", and "Come today" when their clinic takes walk-ins now.
- * No count of people anywhere (ADR 0084 §6), no rating, no placeholder doctor.
+ * "See a doctor": the real clinicians at every hospital (contract in
+ * `data/doctors.ts`), no hospital to choose first. Each card lists where the
+ * doctor works, each hospital with its clinic, next open day and fee; tapping
+ * one asks for a day there. "Come today" shows where their clinic at the
+ * patient's own hospital takes walk-ins now. No count of people anywhere
+ * (ADR 0084 §6), no rating, no placeholder doctor.
  */
 export function Doctors() {
   const router = useRouter();
@@ -42,23 +45,13 @@ export function Doctors() {
   const body =
     status === "loading" ? (
       <ActivityIndicator color={t.ink} accessibilityLabel="Loading the doctors" />
-    ) : status === "no-hospital" ? (
-      <View style={{ gap: tSpace[2] }}>
-        <Note tone="plain">Choose your hospital to see its doctors and open days.</Note>
-        <Button
-          size="md"
-          variant="outline"
-          label="Choose my hospital"
-          onPress={() => router.push("/book")}
-        />
-      </View>
     ) : status === "error" ? (
       <View style={{ gap: tSpace[2] }}>
         <Note tone="plain">{"Couldn't load the doctors. Check your connection."}</Note>
         <TextLink label="Try again" onPress={() => void loadDoctors()} />
       </View>
     ) : doctors.length === 0 ? (
-      <Note tone="plain">No doctor at your hospital takes bookings on MedSync yet.</Note>
+      <Note tone="plain">No doctor takes bookings on MedSync yet.</Note>
     ) : (
       <>
         {filters.length > 0 ? (
@@ -99,17 +92,29 @@ export function Doctors() {
   );
 }
 
+/** How many hospitals a card lists before "and N more". */
+const PLACES_SHOWN = 2;
+
 function DoctorTile({ d }: { d: DoctorCard }) {
   const t = useTide();
   const router = useRouter();
+  const ask = (p: DoctorPlace) =>
+    router.push({
+      pathname: "/book/day",
+      params: { doctor: d.userId, department: p.departmentId, hospital: p.hospitalId },
+    });
+  const firstOpen = d.places.find((p) => p.nextDayKey !== null) ?? null;
+  const walkIn = d.places.find((p) => p.walkInToday) ?? null;
+  const shown = d.places.slice(0, PLACES_SHOWN);
+  const more = d.places.length - shown.length;
   return (
     <View
       style={{
-        width: 252,
+        width: 280,
         borderRadius: tRadius.cardLg,
         padding: tSpace[4],
         backgroundColor: t.surface,
-        gap: tSpace[2.5],
+        gap: tSpace[3],
         boxShadow: t.shadow.card,
       }}
     >
@@ -128,47 +133,87 @@ function DoctorTile({ d }: { d: DoctorCard }) {
             {d.name}
           </Text>
           <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]} numberOfLines={1}>
-            {d.role} · {d.place}
+            {d.role}
           </Text>
         </View>
       </View>
-      <Text style={[tType.labelS, { fontSize: 13, color: t.ink2 }]} numberOfLines={2}>
-        {d.feeWords}
-      </Text>
-      <View style={{ gap: 2 }}>
-        {d.walkInToday ? (
-          <Pill label="Takes walk-ins today" bg={t.accentTint} fg={t.accentText} />
-        ) : null}
-        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
-          {d.nextDayKey
-            ? `Next open day: ${shortDayOf(d.nextDayKey)}`
-            : "No open day in the next two weeks"}
+
+      <View style={{ gap: tSpace[1.5] }}>
+        <Text style={[tType.overline, { color: t.ink3 }]}>
+          {d.places.length === 1 ? "Works at" : `Works at ${d.places.length} hospitals`}
         </Text>
+        {shown.map((p) => (
+          <PlaceRow key={`${p.hospitalId}:${p.departmentId}`} place={p} onAsk={() => ask(p)} />
+        ))}
+        {more > 0 ? (
+          <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3 }]}>
+            and {more} more {more === 1 ? "hospital" : "hospitals"}
+          </Text>
+        ) : null}
       </View>
-      {d.walkInToday ? (
+
+      {walkIn ? (
         <Button
           size="md"
           label="Come today"
-          accessibilityLabel={`Come today to ${d.place}`}
+          accessibilityLabel={`Come today to ${walkIn.departmentName}, ${walkIn.hospitalName}`}
           onPress={() =>
-            router.push({ pathname: "/book/today", params: { clinic: d.departmentId } })
+            router.push({ pathname: "/book/today", params: { clinic: walkIn.departmentId } })
           }
         />
       ) : null}
-      {d.nextDayKey ? (
+      {firstOpen ? (
         <Button
           size="md"
-          variant="outline"
+          variant={walkIn ? "outline" : "primary"}
           label="Ask for a day"
-          accessibilityLabel={`Ask ${d.name} for a day`}
-          onPress={() =>
-            router.push({
-              pathname: "/book/day",
-              params: { doctor: d.userId, department: d.departmentId },
-            })
-          }
+          accessibilityLabel={`Ask ${d.name} for a day at ${firstOpen.hospitalName}`}
+          onPress={() => ask(firstOpen)}
         />
-      ) : null}
+      ) : (
+        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
+          No open day in the next two weeks
+        </Text>
+      )}
     </View>
+  );
+}
+
+/** One hospital on a card: its name, the clinic, the next open day and the fee. Tap to ask there. */
+function PlaceRow({ place, onAsk }: { place: DoctorPlace; onAsk: () => void }) {
+  const t = useTide();
+  const when = place.nextDayKey ? `Next ${shortDayOf(place.nextDayKey)}` : "No open day yet";
+  return (
+    <Press
+      onPress={onAsk}
+      disabled={!place.nextDayKey}
+      accessibilityLabel={`${place.hospitalName}, ${place.departmentName}. ${when}. ${place.feeWords}.${
+        place.nextDayKey ? " Ask for a day here." : ""
+      }`}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: tSpace[2.5],
+        minHeight: 52,
+        paddingVertical: tSpace[2],
+        paddingHorizontal: tSpace[3],
+        borderRadius: tRadius.md,
+        backgroundColor: t.surface2,
+      }}
+    >
+      <Icon name="building" size={18} color={t.area.visits} />
+      <View style={{ flex: 1, gap: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
+          <Text style={[tType.labelS, { flexShrink: 1, color: t.ink }]} numberOfLines={1}>
+            {place.hospitalName}
+          </Text>
+          {place.home ? <Text style={[tType.micro, { color: t.accentText }]}>Yours</Text> : null}
+        </View>
+        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]} numberOfLines={1}>
+          {place.departmentName} · {when} · {place.feeWords}
+        </Text>
+      </View>
+      {place.nextDayKey ? <Icon name="forward" size={16} color={t.ink3} /> : null}
+    </Press>
   );
 }
