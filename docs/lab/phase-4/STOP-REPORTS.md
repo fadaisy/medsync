@@ -437,3 +437,15 @@ Checks: typecheck clean; lint clean on every new file; lab, design and EMR suite
 
 Checks: typecheck clean; lint clean; lab, design and EMR suites pass (3,922 + PGlite-only files skipped in that
 run); PGlite lanes exchange 13, referral 14 and Phase 4 data 13 pass.
+
+## STOP 9–11: Conditional steps (17 Oct 2026)
+
+None of the conditions holds (STOP 0, "Inputs in hand"). Each step is a gap report, and no code is added for it.
+
+| Step | Report            | Condition missing                                                | Built and waiting                                                          |
+| ---- | ----------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 9    | `partner-gap.md`  | A partner's interface document, test environment, agreement (Q6) | The FHIR adapter and exchange core; S37 and S38 against the simulator only |
+| 10   | `analyser-gap.md` | The maker's LIS document for the model on site (Q7, Q8)          | Bridge-facing endpoints; Analysers page reads "Waiting for …"              |
+| 11   | `national-gap.md` | All four GATE N items for any system; letter not yet sent (Q5)   | Connections shows each national line "Not connected"                       |
+
+Paper and typed entry remain the path for every partner, analyser and national system.
