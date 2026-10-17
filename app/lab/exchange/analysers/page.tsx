@@ -13,7 +13,7 @@ import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadConnections } from "@/lib/lab/exchange-read";
 import { labExchangeLiveFor } from "@/lib/lab/feature";
-import { dateWords } from "../../_lib/days";
+import { dateWords, timeWords } from "../../_lib/days";
 
 export const metadata: Metadata = { title: "Analysers · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
@@ -54,7 +54,7 @@ export default async function AnalysersPage() {
         {bridges.length === 0 ? (
           <p className="text-muted-foreground">
             No bridge is paired. Pair one on{" "}
-            <Link href="/lab/exchange" className="text-primary underline-offset-4 hover:underline">
+            <Link href="/lab/exchange" className="text-primary underline underline-offset-4">
               Connections
             </Link>{" "}
             once an analyser has its maker&apos;s interface document.
@@ -69,11 +69,13 @@ export default async function AnalysersPage() {
                 <StatusWord tone="caution">
                   {fill(LAB4.bridgeNotHeard, {
                     name: b.name,
-                    time: b.lastHeardAt ? dateWords(new Date(b.lastHeardAt)) : "it was enabled",
+                    time: b.lastHeardAt
+                      ? `${dateWords(new Date(b.lastHeardAt))} ${timeWords(new Date(b.lastHeardAt))}`
+                      : "it was enabled",
                   })}
                 </StatusWord>
               ) : (
-                `Connected${b.lastHeardAt ? ` · last heard ${dateWords(new Date(b.lastHeardAt))}` : ""}`
+                `Connected${b.lastHeardAt ? ` · last heard ${`${dateWords(new Date(b.lastHeardAt))} ${timeWords(new Date(b.lastHeardAt))}`}` : ""}`
               )}
             </p>
           ))
@@ -84,13 +86,13 @@ export default async function AnalysersPage() {
         {analysers.length === 0 ? (
           <p className="text-muted-foreground">
             No analyser is on the{" "}
-            <Link href="/lab/equipment" className="text-primary underline-offset-4 hover:underline">
+            <Link href="/lab/equipment" className="text-primary underline underline-offset-4">
               equipment register
             </Link>
             .
           </p>
         ) : (
-          <div className="overflow-auto">
+          <div className="overflow-auto" tabIndex={0} role="region" aria-label="Analysers">
             <table className="w-full border-collapse text-left">
               <caption className="sr-only">Analysers</caption>
               <thead>

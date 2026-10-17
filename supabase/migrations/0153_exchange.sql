@@ -266,3 +266,29 @@ GRANT SELECT (id, hospital_id, kind, partner_id, name, state, key_fingerprint, s
 DROP POLICY IF EXISTS lab_read ON public.exchange_senders;
 CREATE POLICY lab_read ON public.exchange_senders FOR SELECT TO medsync_clinical_reader
   USING (hospital_id = (SELECT private.current_hospital_id()) AND (SELECT private.lab_reader()));
+
+-- ─── The exchange worker's schedule (the 0106 pattern) ────────────────────
+-- The owner runs it once per environment, with the deployed URL, after CRON_SECRET is in Vault as
+-- 'medsync_cron_secret':  SELECT private.schedule_exchange_outbox('https://{host}/api/cron/exchange-outbox');
+CREATE OR REPLACE FUNCTION private.schedule_exchange_outbox(p_url text) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+BEGIN
+  IF p_url IS NULL OR p_url !~ '^https://[^ ]+/api/cron/exchange-outbox$' THEN
+    RAISE EXCEPTION 'schedule_exchange_outbox: give the https URL of /api/cron/exchange-outbox';
+  END IF;
+  IF to_regnamespace('cron') IS NULL OR to_regnamespace('net') IS NULL OR to_regnamespace('vault') IS NULL THEN
+    RAISE EXCEPTION 'schedule_exchange_outbox: pg_cron, pg_net and Vault are required';
+  END IF;
+  EXECUTE format($sql$
+    SELECT cron.schedule('medsync-exchange-outbox', '* * * * *', %L)
+  $sql$, format($job$
+    SELECT net.http_post(
+      url := %L,
+      headers := jsonb_build_object('Authorization', 'Bearer ' ||
+        (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'medsync_cron_secret')),
+      body := '{}'::jsonb)
+  $job$, p_url));
+  RETURN 'scheduled every minute: ' || p_url;
+END;
+$$;
+REVOKE ALL ON FUNCTION private.schedule_exchange_outbox(text) FROM PUBLIC;

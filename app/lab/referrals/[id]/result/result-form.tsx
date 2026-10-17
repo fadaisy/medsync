@@ -315,7 +315,7 @@ export function ResultForm({
             type="file"
             accept={fileTypes.join(",")}
             onChange={(e) => upload(e.target.files?.[0])}
-            className="text-body-s"
+            className="text-body-s file:border-border file:bg-card file:text-foreground hover:file:bg-muted file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:px-3 file:font-medium sm:file:min-h-8"
           />
         </label>
         <div className="grid gap-3 sm:grid-cols-2">

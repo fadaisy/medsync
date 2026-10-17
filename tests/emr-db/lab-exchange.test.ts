@@ -506,6 +506,33 @@ describe.skipIf(!laneOn)("Lab Phase 4 exchange core and the partner simulator (S
 
   it("D-LAB4-15 tokens: a signed assertion gets a ≤5-minute token; wrong audience, replay, no signature and a stranger's key do not", async () => {
     expect(await token()).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    // S-4: a valid token is refused for another hospital, another sender or a scope it was not given.
+    const good = await token();
+    const auth = (o: { hospitalId?: string; senderId?: string; scope?: string }) =>
+      tx((x) =>
+        authenticate(x, {
+          token: good,
+          scope: o.scope ?? SCOPE.inbound,
+          senderId: o.senderId ?? senderId,
+          hospitalId: o.hospitalId ?? h,
+          now: now(),
+        }),
+      );
+    expect(await auth({})).not.toBeNull();
+    expect(await auth({ hospitalId: randomUUID() })).toBeNull();
+    expect(await auth({ senderId: randomUUID() })).toBeNull();
+    expect(await auth({ scope: "system/Everything.write" })).toBeNull();
+    expect(
+      await tx((x) =>
+        authenticate(x, {
+          token: good,
+          scope: SCOPE.inbound,
+          senderId,
+          hospitalId: h,
+          now: new Date(Date.now() + 301_000),
+        }),
+      ),
+    ).toBeNull();
     const issue = (assertion: string) =>
       tx((t) => issueToken(t, { senderId, assertion, audience: AUD, scope: null, now: now() }));
     expect(await issue(sim.assertion(senderId, { aud: "https://elsewhere.test/token" }))).toEqual({

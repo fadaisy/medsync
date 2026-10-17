@@ -86,7 +86,7 @@ export function PartnerDialog({ initial }: { initial?: PartnerFormValue }) {
     }, "Saved.");
   return (
     <Pop
-      label={initial ? "Edit" : "Add a partner"}
+      label={initial ? "Edit partner" : "Add a partner"}
       sr={initial?.name}
       variant={initial ? "ghost" : "secondary"}
       title={initial ? initial.name : "Add a partner"}

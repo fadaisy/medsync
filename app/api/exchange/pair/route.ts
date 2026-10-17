@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const Body = z.object({
   senderId: z.uuid(),
-  code: z.string().trim().min(6).max(20),
+  code: z.string().trim().min(6).max(40),
   jwk: z.object({
     kid: z.string().min(4).max(100),
     kty: z.enum(["EC", "RSA"]),

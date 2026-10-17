@@ -5,7 +5,7 @@
  *
  * Accepted algorithms: ES384 and RS384 (the SMART pair). No `none`, no HMAC, no algorithm taken from the key.
  */
-import { createHash, createPublicKey, randomBytes, verify } from "node:crypto";
+import { createHash, createPublicKey, randomBytes, timingSafeEqual, verify } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
 
 export const ALGORITHMS = ["ES384", "RS384"] as const;
@@ -112,12 +112,18 @@ export function keyFingerprint(jwk: Jwk): string {
     .toUpperCase();
 }
 
-/** A one-time pairing code (operational length), and its hash (only the hash is stored). */
-export function pairingCode(length = 10): { code: string; hash: string } {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I
-  const bytes = randomBytes(length);
-  const code = [...bytes].map((b) => alphabet[b % alphabet.length]).join("");
-  return { code, hash: createHash("sha256").update(code).digest("hex") };
+/**
+ * A one-time pairing code: 20 characters of a 32-letter alphabet (100 bits, bridge-and-security §2.3), shown in
+ * groups of five for typing. Only its hash is stored.
+ */
+export function pairingCode(length = 20): { code: string; hash: string } {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I; 256 % 32 = 0, so no bias
+  const raw = [...randomBytes(length)].map((b) => alphabet[b % alphabet.length]).join("");
+  return { code: raw.match(/.{1,5}/g)!.join("-"), hash: codeHash(raw) };
 }
+/** Spaces, dashes and case do not matter when the code is typed back. */
 export const codeHash = (code: string) =>
-  createHash("sha256").update(code.trim().toUpperCase()).digest("hex");
+  createHash("sha256").update(code.replace(/[\s-]/g, "").toUpperCase()).digest("hex");
+/** Constant-time comparison of two hex hashes. */
+export const sameHash = (a: string, b: string) =>
+  a.length === b.length && timingSafeEqual(Buffer.from(a, "hex"), Buffer.from(b, "hex"));

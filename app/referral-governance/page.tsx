@@ -81,7 +81,7 @@ export default async function ReferralGovernancePage() {
   const open = designations.filter((d) => d.startsOn <= today && (!d.endsOn || d.endsOn >= today));
   const wording = settings.wording.payload as { highRisk: string; procedureRef: string } | null;
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6">
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6">
       <PageHeader place={who.hospitalName} title="Referral governance" />
       <section className={card}>
         <h2 className="text-heading-s">Who is named</h2>
@@ -193,6 +193,6 @@ export default async function ReferralGovernancePage() {
           ) : null}
         </section>
       ) : null}
-    </div>
+    </main>
   );
 }

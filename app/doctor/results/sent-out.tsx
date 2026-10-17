@@ -24,7 +24,7 @@ export function SentOut({
   return (
     <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
       <h2 className="text-heading-s">Sent out, waiting</h2>
-      <div className="overflow-auto">
+      <div className="overflow-auto" tabIndex={0} role="region" aria-label="Sent out, waiting">
         <table className="w-full border-collapse text-left">
           <caption className="sr-only">Tests sent to a reference lab</caption>
           <thead>

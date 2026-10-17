@@ -24,7 +24,8 @@ import { labExchangeLiveFor } from "./feature";
 /**
  * Connections (Lab Phase 4 §5.6; EX-4, EX-9, AB-6, B3, RB-10). The house contract: Zod → the lab actor (AAL2) →
  * `labExchange` → permission → one transaction as the clinical writer. Pairing, enabling, revoking, retrying and
- * the raw view need `lab.exchange.manage`; enabling a machine also needs a fresh second factor. Filing a partner's
+ * the raw view need `lab.exchange.manage`; making a pairing code and
+ * enabling a machine also need a fresh second factor. Filing a partner's
  * result needs result entry, exactly as paper.
  */
 
@@ -66,6 +67,12 @@ export async function createPairingCodeAction(
   if (!p.success) return bad(p.error);
   if (p.data.kind === "partner" && !p.data.partnerId)
     return { ok: false, code: "invalid", error: "Choose the partner." };
+  if (!(await secondFactorFresh()))
+    return {
+      ok: false,
+      code: "forbidden",
+      error: "reauth: enter your authenticator code to make a code.",
+    };
   try {
     const code = pairingCode();
     const id = await manage((tx, a, now) => createSender(tx, a, { ...p.data, code }, now));

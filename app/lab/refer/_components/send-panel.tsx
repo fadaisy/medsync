@@ -163,7 +163,7 @@ export function SendPanel({
                       ) : null}
                     </td>
                     <td className="text-body-s px-3 py-2">
-                      <span className="font-mono">{r.labNumber ?? "Not collected"}</span>
+                      <span className="font-mono">{r.labNumber ?? "No lab number"}</span>
                       <br />
                       <span className="text-muted-foreground text-caption">{r.specimen}</span>
                     </td>
@@ -194,7 +194,7 @@ export function SendPanel({
                         r.whyWords
                       )}
                     </td>
-                    <td className="text-body-s px-3 py-2 font-mono tabular-nums">
+                    <td className="text-body-s px-3 py-2 font-mono whitespace-nowrap tabular-nums">
                       {waited(r.waitingSince)}
                     </td>
                     <td className="text-body-s px-3 py-2">

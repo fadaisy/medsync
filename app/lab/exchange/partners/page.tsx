@@ -12,6 +12,7 @@ import { db } from "@/db";
 import { labSignedConfigs, testCatalogue } from "@/db/schema";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
+import { loadConnections } from "@/lib/lab/exchange-read";
 import { labReferralLiveFor } from "@/lib/lab/feature";
 import { loadPartners, loadReferralSettings } from "@/lib/lab/referral-read";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,7 @@ export default async function PartnersPage({
     notFound();
   const { p } = await searchParams;
   const lead = scope.access.permissions.has("lab.manage");
+  const machines = await loadConnections(scope.hospitalId);
   const [partners, settings, menu, authors] = await db.transaction(
     async (tx) =>
       [
@@ -185,12 +187,26 @@ export default async function PartnersPage({
                   </td>
                   <td className="text-body-s px-3 py-2">{x.leavesUganda ? "Yes" : "No"}</td>
                   <td className="text-body-s px-3 py-2">
-                    <StatusWord>Not connected</StatusWord>
-                    <span className="text-caption text-muted-foreground block max-w-xs">
-                      {x.kind === "national_reference"
-                        ? LAB4.notConnectedCphl
-                        : "Paper and results typed by hand. No partner interface is in hand (Step 9)."}
-                    </span>
+                    {(() => {
+                      const m = machines.find((c) => c.partner === x.name && c.state !== "revoked");
+                      if (m?.state === "active")
+                        return m.retryingSince ? (
+                          <StatusWord tone="caution">Connected · retrying</StatusWord>
+                        ) : (
+                          <StatusWord>Connected</StatusWord>
+                        );
+                      if (m) return <StatusWord>Pairing</StatusWord>;
+                      return (
+                        <>
+                          <StatusWord>Not connected</StatusWord>
+                          <span className="text-caption text-muted-foreground block max-w-xs">
+                            {x.kind === "national_reference"
+                              ? LAB4.notConnectedCphl
+                              : "Results come on their report and are entered by hand."}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}

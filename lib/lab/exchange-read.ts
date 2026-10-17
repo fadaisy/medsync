@@ -65,9 +65,9 @@ export async function loadExchangeTiles(hospitalId: string, dayStart: Date) {
   }>(
     await db.execute(sql`SELECT
         (SELECT count(*)::int FROM exchange_messages m WHERE m.hospital_id = ${hospitalId} AND m.direction = 'in'
-           AND m.received_at >= ${dayStart}) AS "inToday",
+           AND m.received_at >= ${dayStart.toISOString()}::timestamptz) AS "inToday",
         (SELECT count(*)::int FROM exchange_outbox o WHERE o.hospital_id = ${hospitalId} AND o.state = 'delivered'
-           AND o.updated_at >= ${dayStart}) AS "outToday",
+           AND o.updated_at >= ${dayStart.toISOString()}::timestamptz) AS "outToday",
         (SELECT count(*)::int FROM exchange_outbox o WHERE o.hospital_id = ${hospitalId} AND o.state = 'retrying') AS retrying,
         (SELECT min(o.updated_at) FROM exchange_outbox o WHERE o.hospital_id = ${hospitalId} AND o.state = 'retrying') AS "oldestRetry",
         (SELECT count(*)::int FROM exchange_outbox o WHERE o.hospital_id = ${hospitalId} AND o.state = 'dead')
@@ -85,7 +85,7 @@ export async function loadMessages(
 ): Promise<MessageRow[]> {
   const where =
     view === "today"
-      ? sql`m.received_at >= ${dayStart}`
+      ? sql`m.received_at >= ${dayStart.toISOString()}::timestamptz`
       : sql`((m.direction = 'out' AND o.state IN ('pending','retrying','sending','dead'))
             OR (m.direction = 'in' AND ${LAST} IN ('unreadable','received')))`;
   return rowsOf<MessageRow>(

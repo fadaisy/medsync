@@ -37,6 +37,7 @@ import {
   codeHash,
   keyFingerprint,
   mintToken,
+  sameHash,
   TOKEN_SECONDS,
   tokenHash,
   verifyAssertion,
@@ -735,7 +736,7 @@ export async function pairSender(
   if (!s || s.state !== "pairing" || !s.pairingHash) return { error: "not_pairing" };
   if (s.pairingFailures >= PAIRING.failures) return { error: "locked" };
   if (!s.pairingExpiresAt || s.pairingExpiresAt <= i.now) return { error: "expired" };
-  if (codeHash(i.code) !== s.pairingHash) {
+  if (!sameHash(codeHash(i.code), s.pairingHash)) {
     await tx
       .update(exchangeSenders)
       .set({ pairingFailures: s.pairingFailures + 1 })

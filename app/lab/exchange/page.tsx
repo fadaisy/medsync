@@ -135,13 +135,13 @@ export default async function ConnectionsPage({
                     <StatusWord tone="caution">
                       {fill(LAB4.bridgeNotHeard, {
                         name: c.name,
-                        time: heard ? dateWords(heard) : "pairing",
+                        time: heard ? `${dateWords(heard)} ${timeWords(heard)}` : "pairing",
                       })}
                     </StatusWord>
                   ) : c.retryingSince ? (
                     <StatusWord tone="caution">{`Connected · retrying since ${timeWords(new Date(c.retryingSince))}`}</StatusWord>
                   ) : (
-                    `Connected${heard ? ` · last heard ${dateWords(heard)}` : ""}`
+                    `Connected${heard ? ` · last heard ${`${dateWords(heard)} ${timeWords(heard)}`}` : ""}`
                   )}
                 </p>
                 {manage && c.state !== "revoked" ? (
@@ -190,7 +190,7 @@ export default async function ConnectionsPage({
                 <p>
                   <Link
                     href={`/lab/referrals?r=${b.referralId}`}
-                    className="text-primary underline-offset-4 hover:underline"
+                    className="text-primary underline underline-offset-4"
                   >
                     {b.number}
                   </Link>{" "}
@@ -231,20 +231,22 @@ export default async function ConnectionsPage({
             {view === "open" ? "Everything has been delivered." : "No messages today."}
           </p>
         ) : (
-          <div className="overflow-auto">
+          <div className="overflow-auto" tabIndex={0} role="region" aria-label="Messages table">
             <table className="w-full border-collapse text-left">
               <caption className="sr-only">Messages</caption>
               <thead>
                 <tr className="bg-muted">
-                  {["Message", "Way", "Partner", "About", "State", "Last try", ""].map((x, i) => (
-                    <th
-                      key={i}
-                      scope="col"
-                      className="text-ink-600 text-caption border-border h-[34px] border-b px-3 font-medium"
-                    >
-                      {x}
-                    </th>
-                  ))}
+                  {["Message", "Way", "Partner", "About", "State", "Last try", "Actions"].map(
+                    (x, i) => (
+                      <th
+                        key={i}
+                        scope="col"
+                        className="text-ink-600 text-caption border-border h-[34px] border-b px-3 font-medium"
+                      >
+                        {x}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>

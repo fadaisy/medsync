@@ -96,7 +96,7 @@ export default async function MatchesPage({
       <p role="note" className="border-border bg-muted text-body-s max-w-4xl rounded-md border p-3">
         {LAB4.matchingRule}
       </p>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <div className={cn("grid gap-5", sel && "lg:grid-cols-[minmax(0,1fr)_400px]")}>
         <div className="flex min-w-0 flex-col gap-3">
           {items.length === 0 ? (
             <p className="border-border text-body-s text-muted-foreground rounded-lg border border-dashed p-8 text-center">

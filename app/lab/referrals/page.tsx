@@ -175,7 +175,7 @@ export default async function ReferralsPage({
         )}
         {tile("rejected", "Rejected by the reference lab", String(sets.rejected.length))}
       </div>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className={cn("grid gap-5", sel && "lg:grid-cols-[minmax(0,1fr)_380px]")}>
         <div className="flex min-w-0 flex-col gap-3">
           {shown.length === 0 ? (
             <p className="border-border text-body-s text-muted-foreground rounded-lg border border-dashed p-8 text-center">

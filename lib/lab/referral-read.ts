@@ -195,6 +195,8 @@ export interface ReferralRow {
   completedAt: Date | null;
   expected: Date | null;
   overdueDays: number | null;
+  /** The reference lab's reason, when it rejected the specimen (RF-9). */
+  reasonCode: string | null;
   createdAt: Date;
 }
 
@@ -251,6 +253,22 @@ export async function loadReferrals(
     .orderBy(desc(labReferrals.createdAt));
   const configs = await loadConfigs(tx, hospitalId);
   const byId = new Map(configs.map((c) => [c.id, c]));
+  const rejected = rows.filter(({ r }) => r.state === "rejected").map(({ r }) => r.id);
+  const reasons = new Map(
+    rejected.length
+      ? (
+          await tx
+            .select({ id: labReferralEvents.referralId, code: labReferralEvents.reasonCode })
+            .from(labReferralEvents)
+            .where(
+              and(
+                inArray(labReferralEvents.referralId, rejected),
+                eq(labReferralEvents.kind, "rejected"),
+              ),
+            )
+        ).map((e) => [e.id, e.code] as const)
+      : [],
+  );
   return rows.map(({ r, partner, test, testCode, sensitivity }) => {
     const tests = (
       r.partnerTestsConfigId ? byId.get(r.partnerTestsConfigId)?.payload : null
@@ -276,6 +294,7 @@ export async function loadReferrals(
       completedAt: r.completedAt,
       expected,
       overdueDays: late.overdue ? late.days : null,
+      reasonCode: reasons.get(r.id) ?? null,
       createdAt: r.createdAt,
     };
   });

@@ -20,8 +20,9 @@ import { Field, Said, useAct } from "../../setup/criticals/_components/setup-for
 
 /** A one-time pairing code, shown once in this pop-up and never again. */
 export function PairDialog({ partners }: { partners: { id: string; name: string }[] }) {
-  const { pending, message, act } = useAct();
+  const { pending, message, act, setMessage } = useAct();
   const [open, setOpen] = useState(false);
+  const [fresh, setFresh] = useState(false);
   const [f, setF] = useState({ kind: "partner", partnerId: "", name: "" });
   const [code, setCode] = useState<string | null>(null);
   const save = () =>
@@ -31,6 +32,10 @@ export function PairDialog({ partners }: { partners: { id: string; name: string 
         partnerId: f.kind === "partner" ? f.partnerId || null : null,
         name: f.name,
       });
+      if (needsFreshFactor(r)) {
+        setFresh(true);
+        return { ok: false, error: "Enter your authenticator code to make a code." };
+      }
       if (r.ok && r.data) setCode(r.data.code);
       return r;
     }, "Give this code to the person setting up the machine. It is shown once and expires in 30 minutes.");
@@ -45,13 +50,23 @@ export function PairDialog({ partners }: { partners: { id: string; name: string 
         if (!o) setCode(null);
       }}
       action={
-        code ? null : (
+        code || fresh ? null : (
           <Button type="button" onClick={save} disabled={pending}>
             Make the code
           </Button>
         )
       }
     >
+      {fresh ? (
+        <FreshFactor
+          onCancel={() => setFresh(false)}
+          onConfirmed={() => {
+            setFresh(false);
+            setMessage(null);
+            save();
+          }}
+        />
+      ) : null}
       {code ? (
         <p className="text-heading-m font-mono tracking-widest" aria-label="Pairing code">
           {code}

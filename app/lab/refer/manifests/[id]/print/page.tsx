@@ -50,9 +50,9 @@ export default async function ManifestPrintPage({ params }: { params: Promise<{ 
       <article className="flex min-h-[277mm] flex-col gap-3 bg-white p-[12mm] text-[12px] leading-snug text-black print:min-h-0 print:p-[10mm]">
         <header className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <p className="text-[20px] font-semibold">
+            <h1 className="text-[20px] font-semibold">
               Specimen referral manifest{m.printed ? " · Copy" : ""}
-            </p>
+            </h1>
             <p>{scope.hospitalName} · Laboratory</p>
             <p>
               Printed {dateWords(now)} · {time(now)}
