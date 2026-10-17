@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 ### Changed — Patient phone app on real data — 2026-10-17
 
 The phone's health screens now read and write the patient's own log, its records come from shared visit summaries, and its notifications from `notification_dispatches` ([ADR 0342](docs/adr/0342-patient-phone-reads-its-own-records.md)).
+
 - Queue counts follow ADR 0084 §6.
 - Chat is behind the `mobileChat` switch.
 - Migration 0170 (owner-applied) adds the log kinds pulse, mood, water and activity, the home pin, and `patient_intake_ahead()`.

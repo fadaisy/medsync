@@ -160,7 +160,9 @@ export function registryConcepts(src: SeedSources) {
       c.answers = [...(c.answers ?? []), ...answers.filter((x) => !(c.answers ?? []).includes(x))];
     }
     // F-2: a unit an addendum changes (D-dimer to FEU); old results keep the unit they were written in.
-    for (const [id, unit] of Object.entries((add.canonicalUnitChanges ?? {}) as Record<string, string>)) {
+    for (const [id, unit] of Object.entries(
+      (add.canonicalUnitChanges ?? {}) as Record<string, string>,
+    )) {
       const c = base.find((x) => x.id === id);
       if (!c) throw new Error(`${a.key} changes the unit of unknown concept ${id}`);
       c.canonicalUnit = unit;

@@ -16,7 +16,9 @@ const files = (dir: string): string[] =>
 
 describe("SIDEBAR_CLASS on the server", () => {
   it("lives in a plain module, and every shell imports it from there", () => {
-    expect(readFileSync("components/medsync/sidebar-class.ts", "utf8")).not.toMatch(/^["']use client["']/m);
+    expect(readFileSync("components/medsync/sidebar-class.ts", "utf8")).not.toMatch(
+      /^["']use client["']/m,
+    );
     expect(readFileSync("components/medsync/sidebar-nav.tsx", "utf8")).not.toMatch(/SIDEBAR_CLASS/);
     const users = ["app", "components"]
       .flatMap(files)

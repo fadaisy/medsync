@@ -16,7 +16,9 @@ describe("Lab Phase 1 baseline — defects reproduced at Step 0", () => {
     // entry calls it, and an amendment opens the correction alert. Behaviour: tests/emr-db/lab-criticals.test.ts S1.
     const store = read("lib/lab/criticals/store.ts");
     // Lab Phase 2 (PC-9) shares the tail with bedside results: release → alertAfterRelease → the alert.
-    expect(store).toMatch(/export async function releaseWithCriticalMark[\s\S]*alertAfterRelease\(/);
+    expect(store).toMatch(
+      /export async function releaseWithCriticalMark[\s\S]*alertAfterRelease\(/,
+    );
     expect(store).toMatch(/export async function alertAfterRelease[\s\S]*createAlertOnRelease\(/);
     expect(read("app/lab/results/[orderId]/_components/lab-result-entry.tsx")).toMatch(
       /releaseWithCriticalMarkAction/,
