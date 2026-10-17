@@ -14,8 +14,10 @@ import {
  * `pt-bookable-clinicians` (with no hospital it returns them all: a patient
  * may book at any hospital, ADR 0086), one card per clinician listing each
  * hospital they work at, with that hospital's price list (`service_lines`,
- * ADR 0092). Nothing is invented: no placeholder doctor, no rating (ratings
- * stay off, PRD Q3), no count of people in any line (ADR 0084 §6).
+ * ADR 0092). The rating is the server's summary of real patients' visit
+ * ratings (ADR 0085 §2), shown since the owner asked for it (18 Oct 2026);
+ * none yet reads "No ratings yet". Nothing is invented: no placeholder
+ * doctor, no count of people in any line or of slots left (ADR 0084 §6).
  */
 export interface DoctorPlace {
   hospitalId: string;
@@ -45,6 +47,28 @@ export interface DoctorCard {
   places: DoctorPlace[];
   /** The soonest open day anywhere, or null. */
   nextDayKey: string | null;
+  /** Real patients' ratings only; null until someone has rated them. */
+  rating: { average: number; count: number } | null;
+}
+
+/** "4.8 (12 ratings)", or "No ratings yet". */
+export function ratingWords(rating: DoctorCard["rating"]): string {
+  if (!rating || rating.count === 0) return "No ratings yet";
+  return `${rating.average.toFixed(1)} (${rating.count} ${rating.count === 1 ? "rating" : "ratings"})`;
+}
+
+/**
+ * The card's availability line: "Available today" when a slot is open today
+ * anywhere they work, else "Next open: Tue 20 Oct", else none in two weeks.
+ */
+export function availabilityWords(
+  nextDayKey: string | null,
+  todayKey: string,
+  dayWords: (key: string) => string,
+): { text: string; today: boolean } {
+  if (!nextDayKey) return { text: "No open day in the next two weeks", today: false };
+  if (nextDayKey === todayKey) return { text: "Available today", today: true };
+  return { text: `Next open: ${dayWords(nextDayKey)}`, today: false };
 }
 
 export type DoctorsStatus = "loading" | "ready" | "error";
@@ -120,6 +144,7 @@ export function toDoctorCards(
         photoUrl: c.photoUrl,
         places: [place],
         nextDayKey: null,
+        rating: c.rating,
       });
     }
   }

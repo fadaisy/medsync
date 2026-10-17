@@ -1,9 +1,11 @@
 import type { ClinicianOption } from "@/lib/booking";
 
 import {
+  availabilityWords,
   doctorFilters,
   initialsOf,
   matchesFilter,
+  ratingWords,
   toDoctorCards,
   WALK_IN_FILTER,
 } from "@/data/doctors";
@@ -169,5 +171,27 @@ describe("filters only for facets the data has", () => {
   it("initials skip the title", () => {
     expect(initialsOf("Dr Jane Doe")).toBe("JD");
     expect(initialsOf("")).toBe("DR");
+  });
+});
+
+describe("card words", () => {
+  it("rating in words, never a made-up one", () => {
+    expect(ratingWords({ average: 4.84, count: 12 })).toBe("4.8 (12 ratings)");
+    expect(ratingWords({ average: 5, count: 1 })).toBe("5.0 (1 rating)");
+    expect(ratingWords(null)).toBe("No ratings yet");
+    expect(ratingWords({ average: 0, count: 0 })).toBe("No ratings yet");
+  });
+  it("availability: today, the next day, or none", () => {
+    const words = (k: string) => `day ${k}`;
+    expect(availabilityWords("2026-10-18", "2026-10-18", words)).toEqual({
+      text: "Available today",
+      today: true,
+    });
+    expect(availabilityWords("2026-10-20", "2026-10-18", words).text).toBe(
+      "Next open: day 2026-10-20",
+    );
+    expect(availabilityWords(null, "2026-10-18", words).text).toBe(
+      "No open day in the next two weeks",
+    );
   });
 });

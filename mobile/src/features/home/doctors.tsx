@@ -14,8 +14,17 @@ import {
   SectionHead,
   TextLink,
 } from "@/components/tide";
-import { doctorFilters, loadDoctors, matchesFilter, useDoctors } from "@/data/doctors";
+import {
+  availabilityWords,
+  doctorFilters,
+  loadDoctors,
+  matchesFilter,
+  ratingWords,
+  useDoctors,
+} from "@/data/doctors";
 import { shortDayOf } from "@/features/visits/logic";
+import { dateKey } from "@/lib/booking";
+import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -103,7 +112,11 @@ function DoctorTile({ d }: { d: DoctorCard }) {
       pathname: "/book/day",
       params: { doctor: d.userId, department: p.departmentId, hospital: p.hospitalId },
     });
+  const now = useNow();
   const firstOpen = d.places.find((p) => p.nextDayKey !== null) ?? null;
+  const available = availabilityWords(d.nextDayKey, dateKey(now), shortDayOf);
+  // The fee where they would book first; each hospital's own fee is on its row.
+  const cost = (firstOpen ?? d.places[0]).feeWords;
   const walkIn = d.places.find((p) => p.walkInToday) ?? null;
   const shown = d.places.slice(0, PLACES_SHOWN);
   const more = d.places.length - shown.length;
@@ -135,7 +148,27 @@ function DoctorTile({ d }: { d: DoctorCard }) {
           <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]} numberOfLines={1}>
             {d.role}
           </Text>
+          <View
+            accessible
+            accessibilityLabel={`Rating: ${ratingWords(d.rating)}`}
+            style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}
+          >
+            <Icon name="star" size={13} color={d.rating ? t.ink : t.ink4} />
+            <Text style={[tType.bodyS, { fontSize: 12, color: d.rating ? t.ink : t.ink3 }]}>
+              {ratingWords(d.rating)}
+            </Text>
+          </View>
         </View>
+      </View>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[1.5] }}>
+        <Fact
+          icon="calendar"
+          text={available.text}
+          strong={available.today}
+          label={`Availability: ${available.text}`}
+        />
+        <Fact icon="wallet" text={cost} label={`Cost: ${cost}`} />
       </View>
 
       <View style={{ gap: tSpace[1.5] }}>
@@ -175,6 +208,39 @@ function DoctorTile({ d }: { d: DoctorCard }) {
           No open day in the next two weeks
         </Text>
       )}
+    </View>
+  );
+}
+
+/** A short fact on the card: availability or cost, an icon and words, never colour alone. */
+function Fact({
+  icon,
+  text,
+  label,
+  strong = false,
+}: {
+  icon: "calendar" | "wallet";
+  text: string;
+  label: string;
+  strong?: boolean;
+}) {
+  const t = useTide();
+  return (
+    <View
+      accessible
+      accessibilityLabel={label}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 5,
+        minHeight: 28,
+        paddingHorizontal: 10,
+        borderRadius: tRadius.pill,
+        backgroundColor: strong ? t.accentTint : t.surface2,
+      }}
+    >
+      <Icon name={icon} size={13} color={strong ? t.accentText : t.ink2} />
+      <Text style={[tType.caption, { color: strong ? t.accentText : t.ink }]}>{text}</Text>
     </View>
   );
 }
