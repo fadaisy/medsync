@@ -34,7 +34,12 @@ import { conceptDef, hasMinorRule, sensitivityFor } from "@/lib/facts/project/sh
 import { METER_RANGE, withHivOutcome } from "@/lib/lab/bedside";
 import { componentsFor, loadConfigs } from "@/lib/lab/catalogue-v2";
 import { unitsRangesLive } from "@/lib/lab/criticals/readiness";
-import { labDeltaChecksLiveFor, labQcHoldLiveFor, labQcLiveFor } from "@/lib/lab/feature";
+import {
+  ipcLabFeedLiveFor,
+  labDeltaChecksLiveFor,
+  labQcHoldLiveFor,
+  labQcLiveFor,
+} from "@/lib/lab/feature";
 import { qcReleasePlan, qcStatusFor } from "@/lib/lab/qc";
 import { analyteName, joinLookBackOnOverride, qcRowsFor } from "@/lib/lab/qc-store";
 import { inForce } from "@/lib/lab/signed-config";
@@ -639,6 +644,29 @@ async function writeReportVersion(
       entry.source === "lab"
     )
       throw new EmrWriteError("conflict", DELTA_DECISION_NEEDED);
+  }
+  // Lab Phase 5 (IC-2): a released laboratory result that matches the signed alert list reaches infection
+  // prevention in the same transaction; an amendment that removes the answer closes it (S19).
+  if (
+    kind === "lab" &&
+    status !== "preliminary" &&
+    status !== "cancelled" &&
+    ipcLabFeedLiveFor(actor.hospitalId)
+  ) {
+    const { raiseIpcAlerts } = await import("@/lib/ipc/store");
+    await raiseIpcAlerts(tx, {
+      hospitalId: actor.hospitalId,
+      patientUserId: spec.patientUserId,
+      reportId: id,
+      logicalId: prior?.logicalId ?? id,
+      encounterId: order.encounterId,
+      testCode: spec.test?.code ?? null,
+      restrictedClass: spec.test?.restrictedClass ?? null,
+      components: rows.map((r) => ({ concept: r.conceptId ?? "", answer: r.valueCode ?? null })),
+      specimenAt: specimen?.collectedAt ?? null,
+      releasedAt: now,
+      amended: status === "amended" || status === "corrected",
+    });
   }
   // QH-4: each result released past the hold joins the look-back, with the override recorded.
   for (const r of rows)

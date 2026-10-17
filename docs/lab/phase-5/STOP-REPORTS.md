@@ -183,3 +183,38 @@ Baseline (a) flipped to a plain `it` (fixed).
 holds only in-house lab releases, because the referred result form (Phase 4) has no decision step yet. Their flags
 show on the order. **Gaps:** the "Last time" column of artboard 6 is the panel's Previous line; the rules page cannot
 tell the author of a draft, so the exception note is not offered (the server still refuses the author).
+
+## STOP 5: The infection prevention feed (17 Oct 2026)
+
+Built behind `IPC_LAB_FEED`, without microbiology:
+
+- **Raised in the same transaction** as the release (`raiseIpcAlerts` in the shared result writer) or the outbreak
+  referral (`raiseForOutbreakReferral` in `recordOutbreakReferral`), from the signed alert list; one alert per
+  patient per condition per episode (the open admission, else the visit); a later result attaches; an amendment that
+  removes the answer closes it with "Result corrected".
+- **Readmission and moves (IC-9)** by trigger on `admissions` and `bed_assignments` (0156), because admissions are
+  written in SQL; the first bed of an admission is not a move.
+- **Workspace `/ipc`** (A13): Lab alerts (Open · Closed this week · Flagged patients; the minimum dataset in a centred
+  dialog; actions; flag clearing with a reason), Alert list (IPC lead signs, a laboratory lead countersigns, the
+  surveillance focal person checks the IDSR route; "Test not on this menu"; microbiology entries "Waiting for the
+  microbiology module"), Surveillance (this week's tiles, IDSR counts by item, the Monday deadline, "Needs
+  microbiology", print the digest). Scope by designation, ward in-charge (their ward) or laboratory lead (the list).
+- **Escalation (IC-7)** on the every-minute lab escalation tick; **the flag (IC-8)** on the bed board for every
+  viewer who sees the patient.
+
+| Scenario | Result | Evidence (`tests/emr-db/lab-ipc.test.ts`)                                                                                                                             |
+| -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S11      | Pass   | RR-TB raises one alert in the release's transaction with the weekly route and the `tb` mark; the table has no value column                                            |
+| S12      | Pass   | Replay: an unlisted answer raises nothing, a listed one exactly one                                                                                                   |
+| S13      | Pass   | With no clinical basis of their own, the IPC nurse reads the alert, not the TB report; a view is recorded                                                             |
+| S14      | Pass   | No action within the window escalates once                                                                                                                            |
+| S15, S16 | Pass   | Precautions started (type and place required) set the flag; admission of the flagged patient raises a readmission alert; only IPC clears, with a reason; history kept |
+| S17      | Pass   | A screening entry labels its alert "Screening result: confirm"                                                                                                        |
+| S18      | Pass   | An outbreak referral raises the VHF alert at referral, notify-now route                                                                                               |
+| S19      | Pass   | An amendment that removes the answer records "Result corrected"                                                                                                       |
+| S20      | Pass   | IDSR counts for the epi-week equal the hand count                                                                                                                     |
+
+Baseline (b) flipped (fixed). **Gaps:** "live" is a page refresh, not a broadcast (A21: the realtime channel for
+IPC needs its own authorisation); the optional SMS to the on-duty link nurse is not sent (no roster); the flag shows on
+the bed board only, not yet on registration and triage screens; Q15–Q17 (named people, the 2025 guideline chapters)
+remain owner actions.

@@ -153,3 +153,46 @@ CREATE POLICY ipc_read ON public.ipc_list_checks FOR SELECT TO medsync_clinical_
   USING (hospital_id = (SELECT private.current_hospital_id())
          AND ((SELECT private.ipc_reader()) OR (SELECT private.lab_reader())
               OR (SELECT private.designated('surveillance_focal_person'))));
+
+-- ─── IC-9: a flagged patient admitted or moved raises an alert ───────────
+-- Admissions are written by public.admit_from_encounter and bed moves by direct inserts, so the alert is raised by
+-- trigger, in the same transaction. The first bed of an admission is not a move.
+CREATE OR REPLACE FUNCTION private.ipc_flag_on_move() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE
+  f record;
+  v_hospital uuid;
+  v_bed uuid;
+  v_key text;
+  v_cfg uuid;
+BEGIN
+  IF TG_TABLE_NAME = 'admissions' THEN
+    v_hospital := NEW.hospital_id; v_bed := NULL; v_key := 'admitted:' || NEW.id;
+  ELSE
+    IF NOT EXISTS (SELECT 1 FROM public.bed_assignments b WHERE b.patient_user_id = NEW.patient_user_id
+                    AND b.id <> NEW.id AND b.admission_id IS NOT DISTINCT FROM NEW.admission_id) THEN
+      RETURN NEW;
+    END IF;
+    v_hospital := NEW.hospital_id; v_bed := NEW.bed_id; v_key := 'moved:' || NEW.id;
+  END IF;
+  FOR f IN SELECT DISTINCT ON (e.entry_key) e.entry_key, e.kind FROM public.patient_ipc_flag_events e
+            WHERE e.patient_user_id = NEW.patient_user_id AND e.hospital_id = v_hospital
+            ORDER BY e.entry_key, e.id DESC LOOP
+    CONTINUE WHEN f.kind <> 'set';
+    SELECT c.id INTO v_cfg FROM public.lab_signed_configs c WHERE c.hospital_id = v_hospital
+       AND c.kind = 'ipc_alert_entry' AND c.key = f.entry_key AND c.status = 'signed' LIMIT 1;
+    CONTINUE WHEN v_cfg IS NULL;
+    INSERT INTO public.ipc_alerts (hospital_id, patient_user_id, entry_key, entry_config_id, trigger, episode_key,
+                                   ward_id, bed_id, route)
+    VALUES (v_hospital, NEW.patient_user_id, f.entry_key, v_cfg, 'readmission', v_key, NEW.ward_id, v_bed, 'none');
+  END LOOP;
+  RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION private.ipc_flag_on_move() FROM PUBLIC;
+DROP TRIGGER IF EXISTS admissions_ipc_flag ON public.admissions;
+CREATE TRIGGER admissions_ipc_flag AFTER INSERT ON public.admissions
+  FOR EACH ROW EXECUTE FUNCTION private.ipc_flag_on_move();
+DROP TRIGGER IF EXISTS bed_assignments_ipc_flag ON public.bed_assignments;
+CREATE TRIGGER bed_assignments_ipc_flag AFTER INSERT ON public.bed_assignments
+  FOR EACH ROW EXECUTE FUNCTION private.ipc_flag_on_move();

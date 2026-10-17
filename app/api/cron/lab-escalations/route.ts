@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import { env } from "@/lib/env";
+import { escalateIpcAlerts } from "@/lib/ipc/store";
 import { deliverAfterCommit, runEscalations } from "@/lib/lab/criticals/store";
 import { logger } from "@/lib/logger";
 
@@ -32,7 +33,9 @@ async function run(request: Request) {
       source: "scheduler",
     });
     const { failed } = await deliverAfterCommit(database, jobs);
-    return NextResponse.json({ escalated, delivered: jobs.length - failed, failed });
+    // Lab Phase 5 (IC-7): IPC alerts with no action within the window escalate (the same minute's tick).
+    const ipcEscalated = await db.transaction((tx) => escalateIpcAlerts(tx as never, new Date()));
+    return NextResponse.json({ escalated, delivered: jobs.length - failed, failed, ipcEscalated });
   } catch (e) {
     logger.error("cron.lab-escalations.failed", {
       message: e instanceof Error ? e.message : String(e),
