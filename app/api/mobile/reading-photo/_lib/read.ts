@@ -10,23 +10,42 @@ export type PhotoKind = "bp" | "sugar" | "weight";
 
 export const PHOTO_KINDS: readonly PhotoKind[] = ["bp", "sugar", "weight"];
 
-const WHAT: Record<PhotoKind, string> = {
+const WHAT: Record<"bp" | "sugar", string> = {
   bp: 'a blood pressure monitor. Reply {"top": systolic, "bottom": diastolic, "pulse": pulse or null}',
   sugar:
     'a blood glucose meter. Reply {"value": the reading, "unit": "mmol/L" or "mg/dL" as shown, or null if no unit is shown}',
-  weight: 'a bathroom scale. Reply {"value": the reading, "unit": "kg" or "lb" as shown, or null}',
 };
+
+const TAIL = [
+  "Use null for any number you cannot read clearly.",
+  'If the photo does not show such a screen, reply {"unreadable": true}.',
+  "Reply with that one JSON object and nothing else.",
+];
 
 /** The words Claude reads with the photo: read what is there, guess nothing. */
 export function promptFor(kind: PhotoKind): string {
+  if (kind === "weight")
+    // A bathroom scale may be a dial (owner, 18 Oct 2026): the needle is read, kg first.
+    return [
+      "This photo should show a bathroom scale: a digital screen, or a dial with a needle.",
+      'Reply {"value": the weight, "unit": "kg" or "lb"}.',
+      "On a screen, read only the number shown; do not guess or correct it.",
+      "On a dial, find the needle, then read where it crosses the scale from the marks on each side;",
+      "if the dial has both a kg and a lb scale, read the kg one, to the nearest half kilogram.",
+      ...TAIL,
+    ].join(" ");
   return [
     `This photo should show the screen of ${WHAT[kind]}.`,
     "Read only the numbers the screen shows. Do not guess or correct them.",
-    "Use null for any number you cannot read clearly.",
-    'If the photo does not show such a screen, reply {"unreadable": true}.',
-    "Reply with that one JSON object and nothing else.",
+    ...TAIL,
   ].join(" ");
 }
+
+/**
+ * A dial needs thinking to read (four runs on a dial photo: 43–43.5 kg with it,
+ * 42.5–45 without); a digital screen does not. About $0.0003 more a weight photo.
+ */
+export const thinksFor = (kind: PhotoKind) => kind === "weight";
 
 const int = (min: number, max: number) => z.number().int().min(min).max(max).nullable();
 

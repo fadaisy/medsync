@@ -5,7 +5,7 @@ import { patientFromBearer } from "@/app/api/mobile/visit-summaries/_lib/caller"
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { allow } from "@/lib/onboarding/rate-limit";
-import { PHOTO_KINDS, promptFor, readReply } from "./_lib/read";
+import { PHOTO_KINDS, promptFor, readReply, thinksFor } from "./_lib/read";
 
 export const dynamic = "force-dynamic";
 
@@ -53,10 +53,9 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: MODEL,
-        // Haiku 5.5 thinks by default and spent the whole budget on it, so no
-        // answer came back. Reading a few digits needs no thinking.
-        thinking: { type: "disabled" },
-        max_tokens: 200,
+        // Haiku 5.5 thinks by default. A digital screen needs none (with a small
+        // budget the thinking ate it and no answer came back); a dial does.
+        ...(thinksFor(kind) ? { max_tokens: 3000 } : { thinking: { type: "disabled" }, max_tokens: 200 }),
         messages: [
           {
             role: "user",

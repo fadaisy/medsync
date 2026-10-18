@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { promptFor, readReply } from "@/app/api/mobile/reading-photo/_lib/read";
+import { promptFor, readReply, thinksFor } from "@/app/api/mobile/reading-photo/_lib/read";
 
 describe("reading a photo of a home device (ADR 0352)", () => {
   it("asks for what is shown and nothing guessed", () => {
     expect(promptFor("bp")).toMatch(/Do not guess/);
     expect(promptFor("sugar")).toMatch(/mg\/dL/);
+    // A bathroom scale may be a dial: the needle is read, kg first, and only then is thinking on.
+    expect(promptFor("weight")).toMatch(/needle/);
+    expect(thinksFor("weight")).toBe(true);
+    expect(thinksFor("bp")).toBe(false);
   });
 
   it("fills blood pressure and pulse from the screen", () => {
