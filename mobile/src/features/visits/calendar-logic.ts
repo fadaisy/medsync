@@ -44,3 +44,14 @@ export function timeGroup(iso: string): TimeGroup {
   const hour = Number(clockOf(iso).slice(0, 2));
   return hour < 12 ? "Morning" : hour < 17 ? "Afternoon" : "Evening";
 }
+
+/** The month's cells in weeks of seven, the last week padded with blanks. */
+export function weeksOf<T>(cells: readonly (T | null)[]): (T | null)[][] {
+  const weeks: (T | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    const week = cells.slice(i, i + 7);
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
+  }
+  return weeks;
+}

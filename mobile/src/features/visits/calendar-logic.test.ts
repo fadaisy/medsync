@@ -1,4 +1,5 @@
-import { canShift, dayState, firstOpenDay, timeGroup, windowEnd } from "./calendar-logic";
+import { canShift, dayState, firstOpenDay, timeGroup, weeksOf, windowEnd } from "./calendar-logic";
+import { monthGrid } from "./logic";
 
 const today = "2026-10-18";
 const open = new Set(["2026-10-10", "2026-10-21", "2026-11-03", "2027-01-05"]);
@@ -36,5 +37,16 @@ describe("the booking calendar", () => {
     expect(timeGroup("2026-10-21T09:00:00Z")).toBe("Afternoon"); // 12:00
     expect(timeGroup("2026-10-21T13:59:00Z")).toBe("Afternoon"); // 16:59
     expect(timeGroup("2026-10-21T14:00:00Z")).toBe("Evening"); // 17:00
+  });
+});
+
+describe("weeksOf", () => {
+  it("puts each date under its own weekday, seven to a row", () => {
+    const weeks = weeksOf(monthGrid("2026-10-17"));
+    expect(weeks.every((w) => w.length === 7)).toBe(true);
+    // October 2026 starts on a Thursday; the 4th is a Sunday, the last cell of the first row.
+    expect(weeks[0]?.[3]).toBe("2026-10-01");
+    expect(weeks[0]?.[6]).toBe("2026-10-04");
+    expect(weeks[1]?.[0]).toBe("2026-10-05");
   });
 });

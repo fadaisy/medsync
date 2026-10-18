@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { Card, Icon, Press } from "@/components/tide";
-import { canShift, dayState, firstOpenDay } from "@/features/visits/calendar-logic";
+import { canShift, dayState, firstOpenDay, weeksOf } from "@/features/visits/calendar-logic";
 import { monthGrid, monthTitleOf, shiftMonth, shortDayOf } from "@/features/visits/logic";
 import { Dot } from "@/features/visits/parts";
 import { useTide } from "@/theme/theme";
@@ -82,63 +82,67 @@ export function BookingCalendar({
           </Text>
         ))}
       </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-        {monthGrid(shown).map((key, i) => {
-          if (!key) return <View key={`b${i}`} style={{ width: `${100 / 7}%`, height: 48 }} />;
-          const state = dayState(key, today, open);
-          const on = key === selected && state === "open";
-          const isToday = key === today;
-          const label = [
-            shortDayOf(key),
-            isToday ? "today" : null,
-            state === "open" ? "open" : state === "closed" ? "no open times" : "cannot be booked",
-          ]
-            .filter(Boolean)
-            .join(", ");
-          return (
-            <Press
-              key={key}
-              onPress={() => onSelect(key)}
-              disabled={state !== "open"}
-              accessibilityLabel={label}
-              accessibilityState={{ selected: on, disabled: state !== "open" }}
-              haptic={false}
-              style={{
-                width: `${100 / 7}%`,
-                height: 48,
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                opacity: state === "out" ? 0.45 : 1,
-              }}
-            >
-              <View
+      {/* One row per week, seven equal cells. A wrapped grid of 1/7 widths rounded to six a row
+          on iPhone, which put the 4th of October 2026 (a Sunday) under Monday. */}
+      {weeksOf(monthGrid(shown)).map((week, w) => (
+        <View key={`w${w}`} style={{ flexDirection: "row" }}>
+          {week.map((key, i) => {
+            if (!key) return <View key={`b${w}-${i}`} style={{ flex: 1, height: 48 }} />;
+            const state = dayState(key, today, open);
+            const on = key === selected && state === "open";
+            const isToday = key === today;
+            const label = [
+              shortDayOf(key),
+              isToday ? "today" : null,
+              state === "open" ? "open" : state === "closed" ? "no open times" : "cannot be booked",
+            ]
+              .filter(Boolean)
+              .join(", ");
+            return (
+              <Press
+                key={key}
+                onPress={() => onSelect(key)}
+                disabled={state !== "open"}
+                accessibilityLabel={label}
+                accessibilityState={{ selected: on, disabled: state !== "open" }}
+                haptic={false}
                 style={{
-                  width: 36,
-                  height: 32,
-                  borderRadius: tRadius.pill,
+                  flex: 1,
+                  height: 48,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: on ? t.primary : "transparent",
-                  borderWidth: isToday && !on ? 1.5 : 0,
-                  borderColor: t.ink2,
+                  gap: 2,
+                  opacity: state === "out" ? 0.45 : 1,
                 }}
               >
-                <Text
+                <View
                   style={{
-                    fontFamily: state === "open" ? tFont.bold : tFont.medium,
-                    fontSize: 15,
-                    color: on ? t.onPrimary : state === "open" ? t.ink : t.ink4,
+                    width: 36,
+                    height: 32,
+                    borderRadius: tRadius.pill,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: on ? t.primary : "transparent",
+                    borderWidth: isToday && !on ? 1.5 : 0,
+                    borderColor: t.ink2,
                   }}
                 >
-                  {Number(key.slice(8))}
-                </Text>
-              </View>
-              <Dot color={state === "open" && !on ? t.accentText : "transparent"} size={5} />
-            </Press>
-          );
-        })}
-      </View>
+                  <Text
+                    style={{
+                      fontFamily: state === "open" ? tFont.bold : tFont.medium,
+                      fontSize: 15,
+                      color: on ? t.onPrimary : state === "open" ? t.ink : t.ink4,
+                    }}
+                  >
+                    {Number(key.slice(8))}
+                  </Text>
+                </View>
+                <Dot color={state === "open" && !on ? t.accentText : "transparent"} size={5} />
+              </Press>
+            );
+          })}
+        </View>
+      ))}
       <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5], padding: 4 }}>
         <Dot color={t.accentText} size={6} />
         <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}>
