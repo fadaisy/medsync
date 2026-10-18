@@ -19,11 +19,14 @@ import {
   Toast,
 } from "@/components/tide";
 import { DAY_GOAL, useActivity } from "@/data/activity";
+import { STEP_AIM, stepsOn } from "@/data/exercise";
+import { useHealthLog } from "@/data/health-log";
 import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
 import { useReadings, whenWords } from "@/data/readings";
 import { takeFreshSignup } from "@/data/signup";
+import { usePhoneSteps } from "@/features/care-more/use-steps";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
@@ -46,7 +49,7 @@ const KIND_WORDS = { bp: "Blood pressure", sugar: "Blood sugar", weight: "Weight
 /**
  * Home, your day (F-02). The greeting, today's mood, the day cascade built
  * from the patient's own log (doses taken today, the latest reading, the dose
- * due now on top, today's Move minutes against the daily goal) and "See a doctor". A patient with nothing logged yet gets
+ * due now on top, today's steps and Move minutes against their common goals) and "See a doctor". A patient with nothing logged yet gets
  * one calm card that starts them off. Home also starts the outbox, so saves
  * made offline send once the phone is back.
  */
@@ -57,6 +60,9 @@ export default function HomeScreen() {
   const { session } = useSession();
   const med = useMedicines(now);
   const act = useActivity(now);
+  const log = useHealthLog();
+  // ponytail: a second counter while Move and eat is open too; each writes only a day's growth, so at worst an extra row.
+  const phoneSteps = usePhoneSteps(log.rows, now);
   const { readings, loading: readingsLoading, error: readingsError, retry } = useReadings();
   const { unread } = useNotifications();
   const shareShown = useShareBannerShown();
@@ -97,6 +103,14 @@ export default function HomeScreen() {
   const firstRun =
     !loading && !failed && !med.medicines.length && !readings.length && !act.minutesToday;
   const moved = act.minutesToday;
+  // As on Move: the phone's count, or the day's saved total if that is higher.
+  const stepsToday =
+    phoneSteps.status === "on" ? Math.max(phoneSteps.today, stepsOn(log.rows, [now])[0]) : null;
+  const minutesLine = !moved
+    ? "No active minutes logged yet today"
+    : moved >= DAY_GOAL
+      ? "Today's active minutes goal reached"
+      : `${moved} of ${DAY_GOAL} active minutes today`;
 
   const steps = [
     ...takenToday.slice(-2).map((d) => ({
@@ -122,13 +136,19 @@ export default function HomeScreen() {
     {
       key: "move",
       icon: "walk" as const,
-      title: `Move · ${moved} of ${DAY_GOAL} minutes`,
-      line: !moved
-        ? "Nothing logged yet today"
-        : moved >= DAY_GOAL
-          ? "Today's goal reached"
-          : `${DAY_GOAL - moved} minutes to go today`,
-      done: moved >= DAY_GOAL,
+      title:
+        stepsToday !== null
+          ? `Move · ${stepsToday.toLocaleString("en-GB")} of ${STEP_AIM.toLocaleString("en-GB")} steps`
+          : `Move · ${moved} of ${DAY_GOAL} minutes`,
+      line:
+        stepsToday !== null
+          ? minutesLine
+          : !moved
+            ? "Nothing logged yet today"
+            : moved >= DAY_GOAL
+              ? "Today's goal reached"
+              : `${DAY_GOAL - moved} minutes to go today`,
+      done: stepsToday !== null ? stepsToday >= STEP_AIM || moved >= DAY_GOAL : moved >= DAY_GOAL,
       href: "/care/activity" as const,
     },
   ];
