@@ -20,10 +20,19 @@ import {
   Screen,
   Sheet,
   TextField,
+  Ticket,
 } from "@/components/tide";
-import { loadVisit, moveOptions, visitActions } from "@/data/visits";
+import { loadVisit, moveOptions, payments, useTickets, visitActions } from "@/data/visits";
 import { ShareLocationSheet } from "@/features/location-share/share-sheet";
-import { dayKeyOf, dayNumberOf, shortDayOf, weekdayOf } from "@/features/visits/logic";
+import {
+  clockOf,
+  dayKeyOf,
+  dayNumberOf,
+  monthShortOf,
+  partOf,
+  shortDayOf,
+  weekdayOf,
+} from "@/features/visits/logic";
 import { HONEST } from "@/features/visits/parts";
 import {
   APPOINTMENT_REASONS,
@@ -75,6 +84,9 @@ export default function VisitScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [sharing, setSharing] = useState(false);
+  const [paying, setPaying] = useState(false);
+  // The ticket this phone issued for the visit, if it did: its fee, payment and patient line.
+  const tickets = useTickets();
 
   useEffect(() => {
     let live = true;
@@ -132,6 +144,10 @@ export default function VisitScreen() {
     .filter(Boolean)
     .join(" · ");
   const reasonShort = reason.trim().length < MIN_REASON_CHARS;
+  // A doctor's slot has a time (ADR 0344); a place in a clinic day has a part of the day only.
+  const slot = visit.sessionId === null;
+  const issued = tickets.find((x) => x.id === visit.id) ?? null;
+  const live = !ended && visit.status !== "completed" && visit.status !== "no_show";
 
   const closeSheet = () => {
     setMode("idle");
@@ -292,7 +308,9 @@ export default function VisitScreen() {
           <Text
             style={[tType.bodyM, { fontFamily: tFont.regular, fontSize: 14, color: t.onBand2 }]}
           >
-            {HONEST}
+            {slot
+              ? "Please arrive a little early. The doctor may see you later than your time."
+              : HONEST}
           </Text>
         </View>
         {/* the day tile, pulled out of the right edge */}
@@ -350,6 +368,53 @@ export default function VisitScreen() {
           </Press>
         ) : null}
       </Card>
+
+      {/* The ticket in the hand (ADR 0348): it leans, turns over and shares. */}
+      {live ? (
+        <Ticket
+          kind="day"
+          hospitalName={visit.hospitalName}
+          day={dayNumberOf(key)}
+          dayLine={`${weekdayOf(key)} · ${monthShortOf(key)}`.toUpperCase()}
+          sessionLine={
+            slot
+              ? clockOf(visit.startsAtIso)
+              : issued?.doors
+                ? `${partOf(visit.startsAtIso)} · doors ${issued.doors}`
+                : partOf(visit.startsAtIso)
+          }
+          status={STATUS_LABEL[visit.status]}
+          details={[
+            { label: "Clinic", value: visit.departmentName },
+            { label: "See", value: visit.clinicianName },
+            {
+              label: "Time",
+              value: slot
+                ? `${clockOf(visit.startsAtIso)} · arrive a little early`
+                : "Not promised",
+            },
+            ...(issued ? [{ label: "Patient", value: issued.patient }] : []),
+          ]}
+          // Only what this phone knows: no strip at all rather than a guessed fee.
+          fee={issued ? issued.fee : undefined}
+          feeLabel={issued?.feeLabel}
+          paid={issued?.paid ?? false}
+          demoPayment={issued?.demoPayment}
+          paying={paying}
+          onPayNow={
+            issued && mine
+              ? () => {
+                  setPaying(true);
+                  void payments.payTicket(issued).then((r) => {
+                    setPaying(false);
+                    if (!r.ok) setError(r.error);
+                  });
+                }
+              : undefined
+          }
+          code={visit.bookingCode ?? issued?.code ?? "Ask at the desk"}
+        />
+      ) : null}
 
       {notice ? (
         <Note tone="info" icon="check">

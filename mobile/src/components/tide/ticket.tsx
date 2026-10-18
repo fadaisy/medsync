@@ -64,7 +64,8 @@ function TicketFront({
   sessionLine?: string;
   status?: string;
   details: { label: string; value: string }[];
-  fee: number | null;
+  /** UGX, null for no fee, or left out when this phone does not know it: then no payment strip. */
+  fee?: number | null;
   feeLabel?: string | null;
   paid: boolean;
   demoPayment?: boolean;
@@ -75,9 +76,9 @@ function TicketFront({
   ground?: string;
 }) {
   const t = useTide();
-  const look = payLook(fee, paid);
-  const money = feeLabel ?? feeText(fee);
-  const strip = {
+  const look = fee === undefined ? null : payLook(fee, paid);
+  const money = feeLabel ?? feeText(fee ?? null);
+  const strips = {
     paid: {
       bg: t.accentTint,
       ring: undefined,
@@ -108,7 +109,8 @@ function TicketFront({
       line: "This visit is free at this hospital",
       fg: t.ink,
     },
-  }[look];
+  };
+  const strip = look ? strips[look] : null;
   const label =
     kind === "queue"
       ? `Queue ticket, ${stage ?? ""}${aheadLine ? `, ${aheadLine}` : ""}. Code ${code.split("").join(" ")}`
@@ -310,45 +312,47 @@ function TicketFront({
           ))}
         </View>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: tSpace[2.5],
-            padding: tSpace[2.5],
-            paddingHorizontal: tSpace[3],
-            borderRadius: tRadius.md,
-            backgroundColor: strip.bg,
-            borderWidth: strip.ring ? 2 : 0,
-            borderColor: strip.ring,
-          }}
-        >
+        {strip ? (
           <View
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: strip.disc,
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              gap: tSpace[2.5],
+              padding: tSpace[2.5],
+              paddingHorizontal: tSpace[3],
+              borderRadius: tRadius.md,
+              backgroundColor: strip.bg,
+              borderWidth: strip.ring ? 2 : 0,
+              borderColor: strip.ring,
             }}
           >
-            <Text style={{ fontFamily: tFont.extrabold, fontSize: 13, color: t.surface }}>
-              {strip.mark}
-            </Text>
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: strip.disc,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontFamily: tFont.extrabold, fontSize: 13, color: t.surface }}>
+                {strip.mark}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[tType.labelS, { fontFamily: tFont.bold, color: strip.fg }]}>
+                {strip.title}
+              </Text>
+              <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}>
+                {strip.line}
+              </Text>
+            </View>
+            {look === "owed" && onPayNow ? (
+              <Button label="Pay now" size="sm" onPress={onPayNow} busy={paying} />
+            ) : null}
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[tType.labelS, { fontFamily: tFont.bold, color: strip.fg }]}>
-              {strip.title}
-            </Text>
-            <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}>
-              {strip.line}
-            </Text>
-          </View>
-          {look === "owed" && onPayNow ? (
-            <Button label="Pay now" size="sm" onPress={onPayNow} busy={paying} />
-          ) : null}
-        </View>
+        ) : null}
 
         <View style={{ alignItems: "center", gap: tSpace[1.5], paddingTop: tSpace[1] }}>
           <Text selectable style={[tType.code, { color: t.ink }]}>
