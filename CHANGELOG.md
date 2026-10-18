@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — The patient's own conditions, allergies and family history, on the phone and the desk — 2026-10-18
+
+[ADR 0355](docs/adr/0355-patient-reported-history-on-the-phone-and-the-desk.md) adds the following:
+
+- **Picked from the clinician's lists.** Me → My conditions, Allergies and Family history use the signed clerking catalogue's own conditions, allergy picks, reactions, severity and relations. A condition takes a year and "still have it / resolved". "No known allergies" is one tap. Anything else can go in the patient's own words.
+- **Pre-filled on the desk, never confirmed on its own.** The v2 clerking desk shows the rows as "Patient-reported, not yet confirmed" in Conditions, Allergies and Family history. Confirm puts them in the note, or on the allergy record with the patient as source. Dismiss hides them for the visit.
+- **Migration 0175 (owner-applied).** It adds `patient_reported_history`: the patient's own rows, append-only (an edit supersedes, a removal retires), audited, and read by the care team.
+- **A real back for the health card.** It shows the number large, allergies, conditions (only when shown, never private ones), the next of kin on file, and who to call if found. It turns like the visit ticket, so the back is no longer the front mirrored.
+- **Every Me row works.** Language shows the saved preferred language, text size follows the phone, and the privacy row says who sees what.
+
 ### Added — Staff see and play what a patient sent with a booking — 2026-10-18
 
 [ADR 0347](docs/adr/0347-staff-see-booking-attachments.md) adds the following:
