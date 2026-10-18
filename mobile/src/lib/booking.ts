@@ -1020,7 +1020,7 @@ export const APPOINTMENT_REASONS: readonly {
   },
   {
     value: "new_concern",
-    title: "New or worsening problem",
+    title: "General check-up for a new complaint",
     hint: "Something you want looked at fresh.",
   },
   { value: "refill", title: "Medicine refill", hint: "You need more, or need it reviewed." },
