@@ -13,8 +13,18 @@ import { useNow } from "@/lib/use-now";
  * do?" over the current screen (`/add`). Help is never in the nav; it is the
  * red button in every screen's header (law L6).
  */
-const ROUTE_FOR: Record<NavPlace, string> = { home: "index", visits: "visits", care: "care", me: "me" };
-const PLACE_FOR: Record<string, NavPlace> = { index: "home", visits: "visits", care: "care", me: "me" };
+const ROUTE_FOR: Record<NavPlace, string> = {
+  home: "index",
+  visits: "visits",
+  care: "care",
+  me: "me",
+};
+const PLACE_FOR: Record<string, NavPlace> = {
+  index: "home",
+  visits: "visits",
+  care: "care",
+  me: "me",
+};
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -24,7 +34,8 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{ headerShown: false, animation: "fade" }}
+      // No cross-fade between tabs: a scene caught mid-fade could stay transparent (white).
+      screenOptions={{ headerShown: false, animation: "none" }}
       tabBar={({ state, navigation }) => {
         const current = PLACE_FOR[state.routes[state.index]?.name ?? "index"] ?? "home";
         return (

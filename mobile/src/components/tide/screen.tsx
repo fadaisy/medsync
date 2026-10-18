@@ -289,7 +289,7 @@ export function Screen({
     <Animated.View
       key={isValidElement(child) && child.key != null ? String(child.key) : `i${i}`}
       style={[
-        stagger ? motion.staggerUp(i, reduced) : undefined,
+        stagger && !underNav ? motion.staggerUp(i, reduced) : undefined,
         growLast && i === items.length - 1 ? { flexGrow: 1 } : undefined,
       ]}
     >
@@ -309,7 +309,11 @@ export function Screen({
   };
 
   return (
-    <Animated.View style={[{ flex: 1, backgroundColor: bg }, motion.pageIn(reduced)]}>
+    // A tab page (underNav) appears at once: an entrance starting from transparent could stall
+    // while the tab navigator swaps scenes and leave the page white (owner report, 18 Oct 2026).
+    <Animated.View
+      style={[{ flex: 1, backgroundColor: bg }, underNav ? undefined : motion.pageIn(reduced)]}
+    >
       <StatusBar style={t.scheme === "dark" ? "light" : "dark"} />
       {topBand}
       {headerRow}
