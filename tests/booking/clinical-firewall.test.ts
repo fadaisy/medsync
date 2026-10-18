@@ -141,6 +141,10 @@ const BOOKING_PATHS = [
   // ADR 0095: the selectors and the screens that mount them.
   "app/patient/book/_components",
   "mobile/src/components/patient",
+  // ADR 0345: Ask for a day's catalogue note and what it sends.
+  "mobile/src/features/visits/symptom-note.tsx",
+  "mobile/src/features/visits/symptom-note-logic.ts",
+  "mobile/src/data/attachments.ts",
   "mobile/src/app/(app)/doctor",
   "mobile/src/app/(app)/clinic",
   // ADR 0098: the catalog, the Emergency Pathway and the desk's catalog. The
@@ -291,6 +295,8 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
     "mobile/src/components/patient/symptom-picker.tsx",
     "mobile/src/app/(app)/clinic/[id].tsx",
     "mobile/src/app/(app)/doctor/[id].tsx",
+    "mobile/src/features/visits/symptom-note.tsx",
+    "mobile/src/app/(app)/book/day.tsx",
   ];
 
   /**
@@ -352,6 +358,7 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
       ["app/patient/_components/symptom-quick-pick.tsx", "@/supabase/functions/_shared/symptoms"],
       ["mobile/src/components/patient/symptom-quick-pick.tsx", "@shared/symptoms"],
       ["mobile/src/components/patient/symptom-picker.tsx", "@shared/symptoms"],
+      ["mobile/src/features/visits/symptom-note.tsx", "@shared/symptoms"],
     ] as const) {
       const src = stripComments(readRequired(path));
       expect(src, `${path} does not import SYMPTOMS_NOTE from ${module}`).toMatch(

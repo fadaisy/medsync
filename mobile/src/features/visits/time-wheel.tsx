@@ -6,6 +6,7 @@ import { ScrollView, Text, View } from "react-native";
 import { Press } from "@/components/tide";
 import { clearOf } from "@/components/tide/screen";
 import { countdownOf } from "@/features/visits/logic";
+import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -106,10 +107,15 @@ export function TimeWheel({
   );
 }
 
-/** "Your visit is in 1 day 03 hrs 20 min", in a muted card beside the wheel. */
-export function Countdown({ now, iso, whenLine }: { now: Date; iso: string; whenLine: string }) {
+/**
+ * "Your visit is in 1 day 03 hrs 20 min 05 sec", in a muted card beside the
+ * wheel. It keeps its own one-second clock so only this card redraws each tick;
+ * a screen reader hears it to the minute, not every second.
+ */
+export function Countdown({ iso, whenLine }: { iso: string; whenLine: string }) {
   const t = useTide();
-  const { days, hours, minutes } = countdownOf(now, iso);
+  const now = useNow(1000);
+  const { days, hours, minutes, seconds } = countdownOf(now, iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   const units: [string, string][] = [
     ...(days > 0 ? [[String(days), days === 1 ? "day" : "days"] as [string, string]] : []),
@@ -117,6 +123,7 @@ export function Countdown({ now, iso, whenLine }: { now: Date; iso: string; when
     [pad(minutes), "min"],
   ];
   const spoken = units.map(([n, u]) => `${Number(n)} ${u}`).join(" ");
+  units.push([pad(seconds), "sec"]);
   return (
     <View
       accessible
@@ -135,8 +142,8 @@ export function Countdown({ now, iso, whenLine }: { now: Date; iso: string; when
       </Text>
       <View style={{ flexDirection: "row", gap: tSpace[1.5] }}>
         {units.map(([n, u]) => (
-          <View key={u} style={{ alignItems: "center", minWidth: 38 }}>
-            <Text style={{ fontFamily: tFont.monoSemibold, fontSize: 24, color: t.ink }}>{n}</Text>
+          <View key={u} style={{ alignItems: "center", minWidth: 34 }}>
+            <Text style={{ fontFamily: tFont.monoSemibold, fontSize: 22, color: t.ink }}>{n}</Text>
             <Text style={[tType.micro, { fontFamily: tFont.semibold, color: t.ink3 }]}>{u}</Text>
           </View>
         ))}

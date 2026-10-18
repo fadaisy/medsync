@@ -1,6 +1,9 @@
+import type { Attachment } from "@/data/attachments";
 import type { DayOption, Days, SessionOption, Ticket as TicketData } from "@/data/visits";
+import type { NoteSelection } from "@/features/visits/symptom-note-logic";
 import type { AppointmentReason } from "@/lib/booking";
 import { useEffect, useState } from "react";
+import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, Text, View } from "react-native";
 
@@ -16,7 +19,9 @@ import {
   TextField,
   Ticket,
 } from "@/components/tide";
+import { sendAttachments } from "@/data/attachments";
 import { loadDays, payments, requestDay, useTickets } from "@/data/visits";
+import { AttachmentTools } from "@/features/visits/attachments";
 import { BookingCalendar } from "@/features/visits/calendar";
 import { dayState, firstOpenDay } from "@/features/visits/calendar-logic";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
@@ -31,10 +36,13 @@ import {
   weekdayOf,
 } from "@/features/visits/logic";
 import { HonestNote, pickStyle, StepTitle } from "@/features/visits/parts";
+import { SymptomNote } from "@/features/visits/symptom-note";
+import { bookingSymptoms, EMPTY_NOTE } from "@/features/visits/symptom-note-logic";
 import { Countdown, TimeWheel } from "@/features/visits/time-wheel";
 import { APPOINTMENT_REASONS, newIdempotencyKey } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { useSession } from "@/lib/session";
+import { useCatalogMode } from "@/lib/symptoms";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -91,6 +99,10 @@ export default function BookDayScreen() {
   const [whoId, setWhoId] = useState<string | null>(null);
   const [pay, setPay] = useState<"momo" | "later">("momo");
   const [note, setNote] = useState("");
+  const [symptoms, setSymptoms] = useState<NoteSelection>(EMPTY_NOTE);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [unsent, setUnsent] = useState(0);
+  const catalog = useCatalogMode();
   const [key, setKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +132,7 @@ export default function BookDayScreen() {
     };
   }, [reason, doctor, department, hospital, attempt]);
 
-  if (ticket) return <Sent ticket={ticket} />;
+  if (ticket) return <Sent ticket={ticket} unsent={unsent} />;
 
   if (!days) {
     return (
@@ -245,12 +257,17 @@ export default function BookDayScreen() {
       payNow: pay === "momo",
       idempotencyKey: k,
       now: new Date(),
+      symptoms: bookingSymptoms(symptoms, CATALOG),
     });
-    setBusy(false);
     if (!res.ok) {
+      setBusy(false);
       setError(res.error);
       return;
     }
+    // The request stands whatever happens to the files; the ticket says if any did not go.
+    const sent = await sendAttachments(res.ticket.id, attachments);
+    setBusy(false);
+    setUnsent(sent.failed);
     setKey(null);
     setTicketId(res.ticket.id);
   };
@@ -312,7 +329,6 @@ export default function BookDayScreen() {
           {slotSession?.slot ? (
             <Card padding={tSpace[3]} style={{ flexDirection: "row", gap: tSpace[3] }}>
               <Countdown
-                now={now}
                 iso={slotSession.slot.startsAtIso}
                 whenLine={`${shortDayOf(day.key)} at ${clockOf(slotSession.slot.startsAtIso)}`}
               />
@@ -432,6 +448,40 @@ export default function BookDayScreen() {
               );
             })}
           </View>
+        </View>
+      ) : null}
+
+      {catalog && catalog !== "off" ? (
+        <SymptomNote
+          mode={catalog}
+          // ponytail: the adult list, also when booking for a household member; ask who it is for if children book here.
+          audience="adult"
+          value={symptoms}
+          onChange={(v) => {
+            setSymptoms(v);
+            reset();
+          }}
+        />
+      ) : null}
+      <View style={{ gap: tSpace[2] }}>
+        <TextField
+          label={catalog && catalog !== "off" ? undefined : "Anything the doctor should know?"}
+          optional={!catalog || catalog === "off"}
+          accessibilityLabel="Anything else, in your own words"
+          value={note}
+          onChangeText={(v) => {
+            setNote(v);
+            reset();
+          }}
+          placeholder="Anything else, in your own words"
+          maxLength={500}
+          multiline
+        />
+        <AttachmentTools value={attachments} onChange={setAttachments} />
+      </View>
+
+      {session && fee ? (
+        <View style={{ gap: tSpace[2] }}>
           {fee ? (
             <View style={{ flexDirection: "row", gap: tSpace[2] }}>
               {(
@@ -467,19 +517,6 @@ export default function BookDayScreen() {
         </View>
       ) : null}
 
-      <TextField
-        label="Anything the doctor should know?"
-        optional
-        value={note}
-        onChangeText={(v) => {
-          setNote(v);
-          reset();
-        }}
-        placeholder="Type here"
-        maxLength={500}
-        multiline
-      />
-
       {error ? <FieldError>{error}</FieldError> : null}
       <View style={{ gap: tSpace[2] }}>
         <Button label={send} busy={busy} disabled={!session} onPress={() => void onSend()} />
@@ -494,7 +531,7 @@ export default function BookDayScreen() {
 }
 
 /** The day ticket and what happens next. */
-function Sent({ ticket: tk }: { ticket: TicketData }) {
+function Sent({ ticket: tk, unsent }: { ticket: TicketData; unsent: number }) {
   const t = useTide();
   const router = useRouter();
   const [paying, setPaying] = useState(false);
@@ -548,6 +585,11 @@ function Sent({ ticket: tk }: { ticket: TicketData }) {
         code={tk.code}
       />
       {err ? <FieldError>{err}</FieldError> : null}
+      {unsent ? (
+        <Note tone="plain" icon="info">
+          {`${unsent === 1 ? "One file" : `${unsent} files`} you added did not send. Your request is made; show ${unsent === 1 ? "it" : "them"} at the desk.`}
+        </Note>
+      ) : null}
       <Card>
         <Text accessibilityRole="header" style={[tType.label, { fontSize: 15, color: t.ink }]}>
           What happens next

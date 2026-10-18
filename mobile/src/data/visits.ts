@@ -9,6 +9,7 @@ import type {
   PatientProfile,
   ServiceLine,
 } from "@/lib/booking";
+import type { BookingSymptom } from "@shared/symptoms";
 import { feeRange } from "@shared/fees";
 
 import { createStore, useStore } from "@/data/store";
@@ -501,6 +502,8 @@ export async function requestDay(input: {
   payNow: boolean;
   idempotencyKey: string;
   now: Date;
+  /** What the patient chose from the symptom catalogue, as words (ADR 0095, 0098). */
+  symptoms?: BookingSymptom[];
 }): Promise<IssueResult> {
   const { days, session } = input;
   const res = await requestAppointment({
@@ -508,6 +511,7 @@ export async function requestDay(input: {
     reason: input.reason,
     reasonNote: input.note.trim() || null,
     idempotencyKey: input.idempotencyKey,
+    ...(input.symptoms?.length ? { symptoms: input.symptoms } : {}),
     ...(input.forProvisionalId ? { forProvisionalId: input.forProvisionalId } : {}),
     ...(session.slot ? { slot: session.slot } : { session: { sessionId: session.id } }),
   });

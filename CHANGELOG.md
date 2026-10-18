@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Ask for a day: a time wheel, the symptom catalogue, and photos, videos and voice notes — 2026-10-18
+
+[ADR 0345](docs/adr/0345-ask-for-a-day-says-it-or-shows-it.md) changes the following:
+
+- **A time wheel and a countdown.** A doctor's open times are on a scroll wheel. A card beside it counts down to the chosen time, to the second.
+- **The note comes before payment.** "Anything the doctor should know?" uses the symptom catalogue v0.1, by area or by search, in a list about four rows tall that scrolls. Choices go to the clinic as words. A danger sign points to Help, and a "be seen today" item points to today's options.
+- **Photos, videos and voice notes.** A patient can add a voice note, photos from the phone, or a photo or video taken there and then. They send after the request is made. To type by talking, the patient uses the keyboard's microphone.
+- **Migration 0172 (owner-applied).** It adds the private `appointment-attachments` bucket and the append-only `appointment_attachments` table.
+
 ### Added — Patient places on a real map, and live location shares — 2026-10-18
 
 [ADR 0343](docs/adr/0343-patient-places-and-live-location-shares.md) adds the following:

@@ -41,9 +41,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "MedSync uses your photo on your patient profile.",
-          "cameraPermission": "MedSync uses your photo on your patient profile.",
-          "microphonePermission": false
+          "photosPermission": "MedSync uses your photos for your profile picture, and to send to your doctor when you ask for a visit.",
+          "cameraPermission": "MedSync uses the camera for your profile picture, and for photos or videos you send to your doctor.",
+          "microphonePermission": "MedSync records sound with a video you send to your doctor."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "MedSync records a voice note when you choose to send one to your doctor."
         }
       ],
       [

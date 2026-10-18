@@ -110,11 +110,26 @@ describe("words and grids", () => {
 
 describe("countdownOf", () => {
   const now = new Date("2026-10-18T06:30:00Z");
-  it("splits the time left into days, hours and minutes", () => {
-    expect(countdownOf(now, "2026-10-19T09:50:00Z")).toEqual({ days: 1, hours: 3, minutes: 20 });
-    expect(countdownOf(now, "2026-10-18T07:15:30Z")).toEqual({ days: 0, hours: 0, minutes: 45 });
+  it("splits the time left into days, hours, minutes and seconds", () => {
+    expect(countdownOf(now, "2026-10-19T09:50:00Z")).toEqual({
+      days: 1,
+      hours: 3,
+      minutes: 20,
+      seconds: 0,
+    });
+    expect(countdownOf(now, "2026-10-18T07:15:30Z")).toEqual({
+      days: 0,
+      hours: 0,
+      minutes: 45,
+      seconds: 30,
+    });
   });
   it("stops at zero once the time has passed", () => {
-    expect(countdownOf(now, "2026-10-18T06:00:00Z")).toEqual({ days: 0, hours: 0, minutes: 0 });
+    expect(countdownOf(now, "2026-10-18T06:00:00Z")).toEqual({
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    });
   });
 });
