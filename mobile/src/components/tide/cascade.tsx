@@ -1,5 +1,5 @@
 import type { IconName } from "@/components/tide/icon";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Children } from "react";
 import { Text, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
@@ -56,11 +56,6 @@ export function CascadeStep({
   done = false,
   onPress,
   last = false,
-  onLongPress,
-  delayLongPress,
-  accessibilityHint,
-  accessibilityActions,
-  onAccessibilityAction,
 }: {
   step: 0 | 1 | 2;
   icon: IconName;
@@ -70,24 +65,12 @@ export function CascadeStep({
   onPress?: () => void;
   /** The bottom card shows its own bottom corners and needs no tuck room. */
   last?: boolean;
-} & Pick<
-  PressProps,
-  | "onLongPress"
-  | "delayLongPress"
-  | "accessibilityHint"
-  | "accessibilityActions"
-  | "onAccessibilityAction"
->) {
+}) {
   const t = useTide();
   const bg = t.cascade[step];
   return (
     <Press
       onPress={onPress}
-      onLongPress={onLongPress}
-      delayLongPress={delayLongPress}
-      accessibilityHint={accessibilityHint}
-      accessibilityActions={accessibilityActions}
-      onAccessibilityAction={onAccessibilityAction}
       accessibilityLabel={`${title}. ${line}`}
       style={{
         flexDirection: "row",
@@ -138,5 +121,3 @@ export function CascadeStep({
     </Press>
   );
 }
-
-type PressProps = ComponentProps<typeof Press>;
