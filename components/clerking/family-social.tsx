@@ -21,8 +21,10 @@ import {
 } from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
 import { occupationByLabel, OCCUPATIONS } from "@/lib/clerking/pick-lists";
+import { openFamily, withReportedFamily } from "@/lib/clerking/reported";
 import { cn } from "@/lib/utils";
 import { Chip, PANEL, PANEL_HEAD, YesNoRow } from "./controls";
+import { PatientReported } from "./patient-reported";
 import { PickAllDialog } from "./pick-all-dialog";
 
 /**
@@ -43,14 +45,33 @@ function Lock() {
 
 /* ─── [05] Family ───────────────────────────────────────────────── */
 
-export function FamilyBody({ cat, history, onHistory, editable }: HistoryBodyProps) {
+export function FamilyBody({ cat, history, onHistory, editable, reported }: HistoryBodyProps) {
   const list = cat.data.family_history.conditions;
   const rel = cat.data.option_sets[cat.data.family_history.relations_ref] ?? [];
   const put = (fn: (f: History["family"]) => History["family"]) =>
     onHistory((h) => ({ ...h, family: fn(h.family) }));
   const yes = list.filter((c) => history.family[c.id]?.answer === "yes");
+  const relWord = (id: string) => rel.find((o) => o.id === id)?.label.toLowerCase() ?? id;
   return (
     <div className="flex flex-col gap-4 max-sm:gap-3">
+      <PatientReported
+        editable={editable}
+        onHistory={onHistory}
+        confirmLabel="Confirm: yes"
+        rows={openFamily(reported, history).map((r) => {
+          const id = r.itemId;
+          const c = id ? list.find((x) => x.id === id) : undefined;
+          return {
+            key: r.ids[0]!,
+            ids: r.ids,
+            label: r.label,
+            line: r.relations.length ? `In: ${r.relations.map(relWord).join(", ")}` : null,
+            sensitive: isRestricted(c?.sensitivity),
+            onConfirm:
+              id && c ? () => onHistory((h) => withReportedFamily(h, id, r.relations)) : undefined,
+          };
+        })}
+      />
       <section aria-labelledby="clerking-fh-head" className={cn(PANEL, "max-sm:gap-1")}>
         <h3 id="clerking-fh-head" className={cn("text-label text-foreground", PANEL_HEAD)}>
           In a parent, sibling or child

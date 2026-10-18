@@ -71,6 +71,7 @@ export const HistorySchema = z.object({
     medicinesNone: z.boolean().optional(),
   }),
   family: z.record(id, z.object({ answer: yn, relations: z.array(id).max(6).optional() })),
+  reportedDismissed: z.array(z.string().uuid()).max(500).optional(),
   social: z.object({
     tobacco: id.optional(),
     perDay: z.number().int().min(0).max(999).optional(),

@@ -3,6 +3,7 @@
 import type { History, HistoryHeader } from "@/lib/clerking/answers";
 import type { Catalogue, PatientSex } from "@/lib/clerking/catalogue";
 import type { Badge } from "@/lib/clerking/flags";
+import type { ReportedItem } from "@/lib/patient/reported-history";
 import { useMemo, useState } from "react";
 import { ChevronRightIcon, LayoutGridIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 
@@ -57,6 +58,8 @@ export interface HistoryBodyProps {
   onOpenComplaint?: (key: string) => void;
   /** The desk's merged badges, for the phone's badges on rows (D-CM-04). */
   badges?: readonly Badge[];
+  /** What the patient reported on their phone, not yet confirmed (ADR 0355). */
+  reported?: readonly ReportedItem[];
 }
 
 const INPUT =

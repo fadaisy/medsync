@@ -15,6 +15,7 @@ import {
   pregnancyEpisodes,
 } from "@/db/schema/emr";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
+import { patientReportedHistory } from "@/db/schema/patient-self-tracking";
 import { STAGE_RESULT_CONCEPTS } from "@/lib/clerking/impression/stage-inputs";
 import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
@@ -22,6 +23,7 @@ import { conceptForToken } from "@/lib/emr/write/notes";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { labHighRiskLiveFor } from "@/lib/lab/feature";
 import { PACK_RESULT_CONCEPTS } from "@/lib/ncd/pack/from-clerking";
+import { fromRow } from "@/lib/patient/reported-history";
 import { RESULT_CONCEPTS } from "./exam/context";
 import { EXAM_CATALOGUE, EXAM_SIGNOFF } from "./exam/load";
 import { DX_CATALOGUE, DX_SIGNOFF } from "./impression/load";
@@ -324,6 +326,42 @@ export async function clerkingData(i: {
     )
     .limit(1);
 
+  // What the patient reported on their phone (ADR 0355), read under RLS as the clinician (0175).
+  // Before 0175 is applied, or on any failure, the desk simply shows none.
+  const patientReported = await asClinicalReader(
+    i.scope,
+    (tx) =>
+      tx
+        .select()
+        .from(patientReportedHistory)
+        .where(
+          and(
+            eq(patientReportedHistory.patientUserId, i.patientUserId),
+            eq(patientReportedHistory.state, "active"),
+          ),
+        )
+        .orderBy(patientReportedHistory.createdAt),
+    i.database,
+  )
+    .then((rows) =>
+      rows.flatMap(
+        (r) =>
+          fromRow({
+            id: r.id,
+            kind: r.kind,
+            item_id: r.itemId,
+            other_text: r.otherText,
+            onset_year: r.onsetYear,
+            resolved: r.resolved,
+            relation: r.relation,
+            reactions: r.reactions,
+            severity: r.severity,
+            created_at: r.createdAt,
+          }) ?? [],
+      ),
+    )
+    .catch(() => undefined);
+
   const outbreakMode = await asClinicalReader(
     i.scope,
     (tx) => readOutbreakMode(tx, i.scope.hospitalId),
@@ -401,6 +439,7 @@ export async function clerkingData(i: {
     outbreakMode,
     labHighRisk: labHighRiskLiveFor(i.scope.hospitalId),
     canSeeRestricted: true, // the treating clinician, with an access basis (the desk's gate)
+    ...(patientReported ? { patientReported } : {}),
     dx: {
       catalogueUrl: `/api/clerking/dx-catalogue?v=${DX_SIGNOFF.catalogueSha256.slice(0, 16)}`,
       catalogueVersion: DX_CATALOGUE.version,
