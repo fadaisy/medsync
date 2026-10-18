@@ -15,6 +15,7 @@ import {
 } from "@expo-google-fonts/geist-mono";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { SessionProvider, useSession } from "@/lib/session";
 import { ThemeProvider, useTheme } from "@/theme/theme";
@@ -63,9 +64,12 @@ export default function RootLayout() {
   // download, instead of three independent waits running back to back on the
   // slowest connection.
   return (
-    <ThemeProvider>
-      <SessionProvider>{fontsLoaded || fontError ? <RootNavigator /> : null}</SessionProvider>
-    </ThemeProvider>
+    // Gestures need this root, or they do nothing with no error (Home's drag to reorder).
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <SessionProvider>{fontsLoaded || fontError ? <RootNavigator /> : null}</SessionProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 

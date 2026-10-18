@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type {
   AccessibilityRole,
+  PressableProps,
   AccessibilityState,
   Insets,
   StyleProp,
@@ -33,6 +34,10 @@ export function Press({
   hitSlop,
   haptic = true,
   testID,
+  onLongPress,
+  delayLongPress,
+  accessibilityActions,
+  onAccessibilityAction,
 }: {
   onPress?: () => void;
   children: ReactNode;
@@ -45,6 +50,11 @@ export function Press({
   hitSlop?: number | Insets;
   haptic?: boolean;
   testID?: string;
+  /** Given, a long hold no longer ends in `onPress` (a card picked up to drag). */
+  onLongPress?: () => void;
+  delayLongPress?: number;
+  accessibilityActions?: PressableProps["accessibilityActions"];
+  onAccessibilityAction?: PressableProps["onAccessibilityAction"];
 }) {
   const reduced = useReducedMotion();
   const [held, setHeld] = useState(false);
@@ -56,6 +66,10 @@ export function Press({
       style={outer}
       testID={testID}
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={delayLongPress}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       disabled={disabled}
       hitSlop={hitSlop}
       accessibilityRole={accessibilityRole}

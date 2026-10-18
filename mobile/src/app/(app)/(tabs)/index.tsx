@@ -7,7 +7,6 @@ import { Text, View } from "react-native";
 import {
   Avatar,
   Button,
-  Cascade,
   CascadeStep,
   Icon,
   MoodFace,
@@ -17,6 +16,8 @@ import {
   SectionHead,
   Segments,
   SkeletonCard,
+  LIFT_MS,
+  ReorderCascade,
   Toast,
 } from "@/components/tide";
 import { DAY_GOAL, useActivity } from "@/data/activity";
@@ -29,6 +30,7 @@ import { useNotifications } from "@/data/notifications";
 import { useReadings, whenWords } from "@/data/readings";
 import { takeFreshSignup } from "@/data/signup";
 import { usePhoneSteps } from "@/features/care-more/use-steps";
+import { sortByOrder, orderFrom, useDayOrder } from "@/features/home/day-order";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
@@ -121,9 +123,12 @@ export default function HomeScreen() {
       ? "Today's active minutes goal reached"
       : `${moved} of ${DAY_GOAL} active minutes today`;
 
-  const steps = [
+  const [dayOrder, setDayOrder] = useDayOrder(session?.user.id ?? null);
+  const [dragging, setDragging] = useState(false);
+  const unsorted = [
     ...takenToday.slice(-2).map((d) => ({
       key: d.id,
+      group: "medicine" as const,
       icon: "pill" as const,
       title: `${SLOT_WORDS[d.slot]} medicine · ${d.medicine}`,
       line: `${d.takenAt} · taken`,
@@ -134,6 +139,7 @@ export default function HomeScreen() {
       ? [
           {
             key: latest.id,
+            group: "reading" as const,
             icon: "activity" as const,
             title: `${KIND_WORDS[latest.input.kind]} · ${readingValueText(latest.input)}`,
             line: `${whenWords(latest.at, now)} · ${readingWord(latest.input)}`,
@@ -144,6 +150,7 @@ export default function HomeScreen() {
       : []),
     {
       key: "move",
+      group: "move" as const,
       icon: "walk" as const,
       title:
         stepsToday !== null
@@ -162,6 +169,7 @@ export default function HomeScreen() {
     },
     {
       key: "eat",
+      group: "eat" as const,
       icon: "utensils" as const,
       title: meals.length ? `Eat · ${eaten.kcal} kcal today` : "Eat · nothing logged yet",
       line: meals.length
@@ -172,9 +180,10 @@ export default function HomeScreen() {
       href: { pathname: "/care/activity", params: { tab: "eat" } } as const,
     },
   ];
+  // In the order the patient dragged them into (on this phone).
+  const steps = sortByOrder(unsorted, dayOrder);
   // Only Move and Eat: nothing taken or read yet today.
   const quietDay = !takenToday.length && !latest;
-  const tail = due || next || quietDay;
 
   const take = async (id: string) => {
     const result: SaveResult = await medicinesRepo.take(id, now);
@@ -188,6 +197,7 @@ export default function HomeScreen() {
     <View style={{ flex: 1 }}>
       <Screen
         underNav
+        scrollEnabled={!dragging}
         help="pill"
         helpSource="home"
         bell={unread || true}
@@ -246,20 +256,42 @@ export default function HomeScreen() {
               onReading={() => router.push("/care/reading")}
             />
           ) : (
-            <Cascade>
-              {steps.map((s, i) => (
-                <CascadeStep
-                  key={s.key}
-                  step={Math.min(i, 2) as 0 | 1 | 2}
-                  icon={s.icon}
-                  title={s.title}
-                  line={s.line}
-                  done={s.done}
-                  onPress={() => router.push(s.href)}
-                  last={i === steps.length - 1 && !tail}
-                />
-              ))}
-              {due ? (
+            <ReorderCascade
+              onDragging={setDragging}
+              onReorder={(keys) =>
+                setDayOrder(
+                  orderFrom(
+                    keys.map((k) => steps.find((x) => x.key === k)!.group),
+                    dayOrder,
+                  ),
+                )
+              }
+              items={steps.map((s) => ({
+                key: s.key,
+                render: ({ index, last, move }) => (
+                  <CascadeStep
+                    step={Math.min(index, 2) as 0 | 1 | 2}
+                    icon={s.icon}
+                    title={s.title}
+                    line={s.line}
+                    done={s.done}
+                    onPress={() => router.push(s.href)}
+                    onLongPress={() => {}}
+                    delayLongPress={LIFT_MS}
+                    accessibilityHint="Hold and drag to move it"
+                    accessibilityActions={[
+                      { name: "moveUp", label: "Move up" },
+                      { name: "moveDown", label: "Move down" },
+                    ]}
+                    onAccessibilityAction={(e) =>
+                      move(e.nativeEvent.actionName === "moveUp" ? -1 : 1)
+                    }
+                    last={last}
+                  />
+                ),
+              }))}
+              tail={
+                due ? (
                 <NowCard
                   time={due.time}
                   title={`${SLOT_WORDS[due.slot]} medicine`}
@@ -283,8 +315,9 @@ export default function HomeScreen() {
                   title="Nothing due right now"
                   line="Log a reading from the plus below"
                 />
-              ) : null}
-            </Cascade>
+              ) : null
+              }
+            />
           )}
         </View>
 

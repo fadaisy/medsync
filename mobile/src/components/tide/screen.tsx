@@ -205,6 +205,7 @@ export function Screen({
   topBand,
   growLast = false,
   bounce = true,
+  scrollEnabled = true,
 }: {
   children: ReactNode;
   back?: { label?: string; onPress?: () => void; icon?: "back" | "close" };
@@ -234,6 +235,8 @@ export function Screen({
   growLast?: boolean;
   /** Off where stretching past the end would show the wrong colour (a white card over a navy page). */
   bounce?: boolean;
+  /** Off while a card is dragged, so the page holds still under the finger. */
+  scrollEnabled?: boolean;
 }) {
   const t = useTide();
   const insets = useSafeAreaInsets();
@@ -327,6 +330,7 @@ export function Screen({
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
               bounces={bounce}
+              scrollEnabled={scrollEnabled}
               overScrollMode={bounce ? "auto" : "never"}
               showsVerticalScrollIndicator={false}
               scrollEventThrottle={32}

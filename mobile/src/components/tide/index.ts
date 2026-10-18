@@ -9,6 +9,7 @@ export * from "@/components/tide/mood-face";
 export * from "@/components/tide/place-map";
 export * from "@/components/tide/press";
 export * from "@/components/tide/primitives";
+export * from "@/components/tide/reorder-cascade";
 export * from "@/components/tide/screen";
 export * from "@/components/tide/sheet";
 export * from "@/components/tide/skeleton";
