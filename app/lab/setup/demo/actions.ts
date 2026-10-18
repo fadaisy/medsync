@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { isDemoHospital, loadLabDemoDay } from "@/lib/lab/demo";
+import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
@@ -38,6 +39,14 @@ export async function loadDemoDayAction(): Promise<ActionResult> {
     revalidatePath("/lab", "layout");
     return { ok: true, id: loadId, serverTime: new Date().toISOString() };
   } catch (e) {
-    return actionError(e);
+    if (e instanceof EmrWriteError) return actionError(e);
+    // Anything else (an account that could not be made, a database refusal) is said on the page, never a crash.
+    const message = e instanceof Error ? e.message : String(e);
+    logger.error("lab.demo.load_failed", { message: message.slice(0, 300) });
+    return {
+      ok: false,
+      code: "config",
+      error: `The demo load stopped: ${message.slice(0, 200)}. See Loads below.`,
+    };
   }
 }
