@@ -1,6 +1,6 @@
 import type { IconName } from "@/components/tide/icon";
 import type { Attachment } from "@/data/attachments";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
@@ -16,9 +16,16 @@ import { ScrollView, Text, View } from "react-native";
 
 import { FieldError, Icon, Press } from "@/components/tide";
 import { MAX_MEDIA, MAX_VOICE, storedMime } from "@/data/attachments";
+import { bars, levelOf } from "@/features/visits/waveform";
 import { requestId } from "@/lib/edge";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+
+/** Loudness readings on, for the waveform. A constant: the recorder is made once. */
+const RECORDING = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true };
+const BARS = 36;
+/** Playback leaves record mode, so the sound comes from the speaker, also with the phone on silent. */
+const PLAYBACK = { allowsRecording: false, playsInSilentMode: true } as const;
 
 const clock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -42,9 +49,20 @@ export function AttachmentTools({
   onChange: (next: Attachment[]) => void;
 }) {
   const t = useTide();
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorder = useAudioRecorder(RECORDING);
   const rec = useAudioRecorderState(recorder, 250);
   const [error, setError] = useState<string | null>(null);
+  const [levels, setLevels] = useState<number[]>([]);
+
+  // Read the loudness ten times a second while recording: the live waveform, then the note's.
+  useEffect(() => {
+    if (!rec.isRecording) return;
+    const id = setInterval(() => {
+      const db = recorder.getStatus().metering;
+      if (db !== undefined) setLevels((l) => [...l, levelOf(db)]);
+    }, 100);
+    return () => clearInterval(id);
+  }, [rec.isRecording, recorder]);
   const voices = value.filter((a) => a.kind === "voice");
   const media = value.filter((a) => a.kind !== "voice");
 
@@ -57,9 +75,10 @@ export function AttachmentTools({
       if (rec.isRecording) {
         const ms = rec.durationMillis;
         await recorder.stop();
-        await setAudioModeAsync({ allowsRecording: false });
+        await setAudioModeAsync(PLAYBACK);
         const uri = recorder.uri;
-        if (uri) add([{ id: requestId(), kind: "voice", uri, mime: "audio/mp4", durationMs: ms }]);
+        if (uri)
+          add([{ id: requestId(), kind: "voice", uri, mime: "audio/mp4", durationMs: ms, levels }]);
         return;
       }
       if (voices.length >= MAX_VOICE) return setError(`Up to ${MAX_VOICE} voice notes.`);
@@ -67,6 +86,7 @@ export function AttachmentTools({
       if (!perm.granted) return setError("Allow the microphone in Settings, or type instead.");
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
+      setLevels([]);
       recorder.record();
     } catch {
       setError("The voice note didn't record. Try again.");
@@ -151,6 +171,28 @@ export function AttachmentTools({
       </Text>
       {error ? <FieldError>{error}</FieldError> : null}
 
+      {rec.isRecording ? (
+        <View
+          accessibilityLabel={`Recording, ${clock(rec.durationMillis)}`}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[2.5],
+            padding: tSpace[3],
+            borderRadius: tRadius.field,
+            backgroundColor: t.surface,
+            boxShadow: t.shadow.card,
+          }}
+        >
+          <Icon name="mic" size={18} color={t.ink} />
+          {/* The newest readings, so the bars move with the voice. */}
+          <Waveform heights={bars(levels.slice(-BARS), BARS)} played={1} />
+          <Text style={[tType.labelS, { color: t.ink, fontVariant: ["tabular-nums"] }]}>
+            {clock(rec.durationMillis)}
+          </Text>
+        </View>
+      ) : null}
+
       {voices.map((v, i) => (
         <VoiceRow key={v.id} note={v} n={i + 1} onRemove={() => remove(v.id)} />
       ))}
@@ -214,15 +256,43 @@ export function AttachmentTools({
   );
 }
 
-/** One voice note: play it back, or take it out. */
+/** Bars for loudness; the part already played is in the action colour. */
+function Waveform({ heights, played }: { heights: number[]; played: number }) {
+  const t = useTide();
+  return (
+    <View
+      accessible={false}
+      style={{ flex: 1, height: 28, flexDirection: "row", alignItems: "center", gap: 2 }}
+    >
+      {heights.map((h, i) => (
+        <View
+          key={i}
+          style={{
+            flex: 1,
+            height: Math.max(3, h * 28),
+            borderRadius: 2,
+            backgroundColor: (i + 0.5) / heights.length <= played ? t.primary : t.lineStrong,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+/** One voice note: play it back with its waveform, or take it out. */
 function VoiceRow({ note, n, onRemove }: { note: Attachment; n: number; onRemove: () => void }) {
   const t = useTide();
-  const player = useAudioPlayer(note.uri);
+  const player = useAudioPlayer(note.uri, { updateInterval: 100 });
   const status = useAudioPlayerStatus(player);
   const playing = status.playing;
-  const toggle = () => {
+  const total = status.duration > 0 ? status.duration : (note.durationMs ?? 0) / 1000;
+  const at = status.didJustFinish ? 0 : status.currentTime;
+  const toggle = async () => {
     if (playing) return player.pause();
-    if (status.didJustFinish || status.currentTime >= status.duration) void player.seekTo(0);
+    await setAudioModeAsync(PLAYBACK);
+    if (status.didJustFinish || (total > 0 && status.currentTime >= total - 0.05)) {
+      await player.seekTo(0);
+    }
     player.play();
   };
   return (
@@ -239,7 +309,7 @@ function VoiceRow({ note, n, onRemove }: { note: Attachment; n: number; onRemove
       }}
     >
       <Press
-        onPress={toggle}
+        onPress={() => void toggle()}
         accessibilityLabel={playing ? `Pause voice note ${n}` : `Play voice note ${n}`}
         style={{
           width: 36,
@@ -252,8 +322,15 @@ function VoiceRow({ note, n, onRemove }: { note: Attachment; n: number; onRemove
       >
         <Icon name={playing ? "stop" : "play"} size={16} color={t.onPrimary} />
       </Press>
-      <Text style={[tType.labelS, { flex: 1, color: t.ink }]}>
-        {`Voice note ${n} · ${clock(note.durationMs ?? 0)}`}
+      <Waveform heights={bars(note.levels ?? [], BARS)} played={total ? at / total : 0} />
+      <Text
+        accessibilityLabel={`Voice note ${n}, ${clock(total * 1000)} long`}
+        style={[
+          tType.caption,
+          { fontFamily: tFont.semibold, color: t.ink2, fontVariant: ["tabular-nums"] },
+        ]}
+      >
+        {playing || at > 0 ? clock(at * 1000) : clock(total * 1000)}
       </Text>
       <Press
         onPress={onRemove}

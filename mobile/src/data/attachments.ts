@@ -16,6 +16,8 @@ export interface Attachment {
   uri: string;
   mime: string;
   durationMs: number | null;
+  /** A voice note's loudness, 0–1, read while recording: its waveform. Local only. */
+  levels?: number[];
 }
 
 export const MAX_MEDIA = 6;
