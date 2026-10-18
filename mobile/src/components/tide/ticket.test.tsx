@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Ticket } from "@/components/tide/ticket";
@@ -72,16 +72,30 @@ describe("ticket payment looks", () => {
   });
 });
 
-describe("ticket in the hand (ADR 0348, 0349)", () => {
-  it("turns by touch, with no turn-over button, and shares the whole ticket", async () => {
+describe("ticket turns over with a tap (ADR 0350)", () => {
+  it("has no share or turn button, and a tap shows the back", async () => {
     await show(null, false);
+    expect(screen.queryByText("Share ticket")).toBeNull();
     expect(screen.queryByText("Turn over")).toBeNull();
-    expect(screen.getByText("Share ticket")).toBeTruthy();
-    expect(screen.getByText(/Drag it sideways to turn it over/)).toBeTruthy();
-    // The back is there to turn to (hidden from screen readers until turned): the code and the steps.
-    const hidden = { includeHiddenElements: true };
-    expect(screen.getByText("YOUR CODE", hidden)).toBeTruthy();
-    expect(screen.getByText("Go to the reception desk when you arrive.", hidden)).toBeTruthy();
+    // The back waits, hidden from screen readers, until the ticket is tapped.
+    expect(screen.queryByText("YOUR CODE")).toBeNull();
+    await fireEvent.press(screen.getByText("[Hospital name]"));
+    expect(screen.getByText("YOUR CODE")).toBeTruthy();
+    expect(screen.getByText("Go to the reception desk when you arrive.")).toBeTruthy();
+    expect(screen.getByText("Tap the ticket to see the front")).toBeTruthy();
+  });
+
+  it("pressing Pay now pays and does not turn the ticket", async () => {
+    const pay = jest.fn();
+    await render(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <ThemeProvider>
+          <Ticket {...base} fee={30000} paid={false} onPayNow={pay} />
+        </ThemeProvider>
+      </SafeAreaProvider>,
+    );
+    await fireEvent.press(screen.getByText("Pay now"));
+    expect(pay).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("YOUR CODE")).toBeNull();
   });
 });
