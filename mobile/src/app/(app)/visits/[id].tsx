@@ -11,8 +11,6 @@ import {
   BackLink,
   Button,
   Card,
-  Chip,
-  ChipRow,
   FieldError,
   Icon,
   Note,
@@ -24,16 +22,19 @@ import {
 } from "@/components/tide";
 import { loadVisit, moveOptions, payments, useTickets, visitActions } from "@/data/visits";
 import { ShareLocationSheet } from "@/features/location-share/share-sheet";
+import { BookingCalendar } from "@/features/visits/calendar";
 import {
   clockOf,
   dayKeyOf,
   dayNumberOf,
+  longDayOf,
   monthShortOf,
   partOf,
   shortDayOf,
   weekdayOf,
 } from "@/features/visits/logic";
 import { HONEST } from "@/features/visits/parts";
+import { Countdown, TimeWheel } from "@/features/visits/time-wheel";
 import {
   APPOINTMENT_REASONS,
   canArrive,
@@ -44,6 +45,7 @@ import {
 } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { confirmationPending } from "@/lib/notifications";
+import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -78,6 +80,8 @@ export default function VisitScreen() {
   const [mode, setMode] = useState<Mode>("idle");
   const [options, setOptions] = useState<MoveOption[] | null>(null);
   const [chosen, setChosen] = useState<MoveOption | null>(null);
+  const [moveDay, setMoveDay] = useState<string | null>(null);
+  const now = useNow(60_000);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +156,7 @@ export default function VisitScreen() {
   const closeSheet = () => {
     setMode("idle");
     setChosen(null);
+    setMoveDay(null);
     setReason("");
     setError(null);
   };
@@ -195,16 +200,23 @@ export default function VisitScreen() {
           return res;
         }, "Thank you. The clinic expects you.");
 
+  // Move it: the calendar picks a day with open time, the wheel a time on it (as Ask for a day).
+  const openDays = new Set((options ?? []).map((o) => o.dayKey));
+  const moveDayKey = moveDay && openDays.has(moveDay) ? moveDay : (options?.[0]?.dayKey ?? null);
+  const dayOptions = (options ?? []).filter((o) => o.dayKey === moveDayKey);
+  const pick = (chosen && chosen.dayKey === moveDayKey ? chosen : dayOptions[0]) ?? null;
+
   const submitMove = async () => {
-    if (!chosen) return;
+    const to = pick;
+    if (!to) return;
     const ok = await run(async () => {
-      const res = await visitActions.move(visit, chosen, reason);
+      const res = await visitActions.move(visit, to, reason);
       if (res.ok)
         setVisit({
           ...visit,
           id: res.data.new_appointment_id,
-          startsAtIso: chosen.startsAtIso,
-          endsAtIso: chosen.endsAtIso,
+          startsAtIso: to.startsAtIso,
+          endsAtIso: to.endsAtIso,
           status: res.data.new_status,
         });
       return res;
@@ -456,7 +468,7 @@ export default function VisitScreen() {
         visible={mode === "move"}
         onClose={closeSheet}
         overline="Move it"
-        title="Pick another day"
+        title="Pick another day and time"
       >
         {options === null ? (
           <ActivityIndicator
@@ -466,24 +478,42 @@ export default function VisitScreen() {
         ) : options.length === 0 ? (
           <Note tone="plain">No other day is open with this clinician on MedSync yet.</Note>
         ) : (
-          <ChipRow>
-            {options.map((o) => (
-              <Chip
-                key={o.startsAtIso}
-                label={`${shortDayOf(o.dayKey)} · ${o.part}`}
-                selected={chosen?.startsAtIso === o.startsAtIso}
-                onPress={() => setChosen(o)}
-              />
-            ))}
-          </ChipRow>
+          <>
+            <BookingCalendar
+              today={dayKeyOf(now)}
+              open={openDays}
+              selected={moveDayKey}
+              onSelect={(k) => {
+                setMoveDay(k);
+                setChosen(null);
+              }}
+            />
+            {pick && moveDayKey ? (
+              <Card padding={tSpace[3]} style={{ flexDirection: "row", gap: tSpace[3] }}>
+                <Countdown
+                  iso={pick.startsAtIso}
+                  whenLine={`${shortDayOf(pick.dayKey)} at ${clockOf(pick.startsAtIso)}`}
+                />
+                <TimeWheel
+                  key={moveDayKey}
+                  label={`Times on ${longDayOf(moveDayKey)}`}
+                  times={dayOptions.map((o) => clockOf(o.startsAtIso))}
+                  index={dayOptions.indexOf(pick)}
+                  onChange={(k) => setChosen(dayOptions[k] ?? null)}
+                />
+              </Card>
+            ) : null}
+          </>
         )}
-        <Text style={[tType.bodyS, { color: t.ink2 }]}>{HONEST}</Text>
+        <Text style={[tType.bodyS, { color: t.ink2 }]}>
+          Please arrive a little early. The doctor may see you later than your time.
+        </Text>
         <ReasonField value={reason} onChange={setReason} />
         {error ? <FieldError>{error}</FieldError> : null}
         <Button
           label="Move my visit"
           busy={busy}
-          disabled={!chosen || reasonShort}
+          disabled={!pick || reasonShort}
           onPress={() => void submitMove()}
         />
         <Button label="Keep it" variant="soft" onPress={closeSheet} />

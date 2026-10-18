@@ -163,8 +163,9 @@ export interface MoveOption {
 
 /**
  * Where a visit can move: this clinician's open slots in this department,
- * from the server's own grid. Shown as a day and a part of the day, never as
- * a clock time (law L8), so each day-part offers its earliest slot.
+ * from the server's own grid, every one of them. A doctor's slot has a time
+ * (ADR 0344), so "Move it" offers the same calendar and time wheel as Ask for
+ * a day; `part` stays for the words.
  */
 export async function moveOptions(visit: AppointmentRow): Promise<MoveOption[]> {
   const clinicians = await fetchBookableClinicians(visit.hospitalId);
@@ -177,9 +178,12 @@ export async function moveOptions(visit: AppointmentRow): Promise<MoveOption[]> 
   for (const dayKey of Object.keys(mine.slotsByDate).sort()) {
     for (const s of mine.slotsByDate[dayKey] ?? []) {
       if (new Date(s.startsAtIso).getTime() === current) continue;
-      const part = partOf(s.startsAtIso);
-      if (out.some((o) => o.dayKey === dayKey && o.part === part)) continue;
-      out.push({ dayKey, part, startsAtIso: s.startsAtIso, endsAtIso: s.endsAtIso });
+      out.push({
+        dayKey,
+        part: partOf(s.startsAtIso),
+        startsAtIso: s.startsAtIso,
+        endsAtIso: s.endsAtIso,
+      });
     }
   }
   return out;
