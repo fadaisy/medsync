@@ -39,7 +39,7 @@ export function TimeWheel({
     if (k !== index) onChange(k);
   };
   return (
-    <View style={{ width: 120, height: HEIGHT }} accessibilityLabel={label}>
+    <View style={{ width: 96, height: HEIGHT }} accessibilityLabel={label}>
       <View
         pointerEvents="none"
         style={{
@@ -122,7 +122,6 @@ export function Countdown({ now, iso, whenLine }: { now: Date; iso: string; when
       accessible
       accessibilityLabel={`Your visit is in ${spoken}, ${whenLine}`}
       style={{
-        flex: 1,
         backgroundColor: t.surface2,
         borderRadius: tRadius.card,
         padding: tSpace[3],
