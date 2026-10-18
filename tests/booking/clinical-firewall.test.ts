@@ -141,12 +141,12 @@ const BOOKING_PATHS = [
   // ADR 0095: the selectors and the screens that mount them.
   "app/patient/book/_components",
   "mobile/src/components/patient",
-  // ADR 0345: Ask for a day's catalogue note and what it sends.
-  "mobile/src/features/visits/symptom-note.tsx",
-  "mobile/src/features/visits/symptom-note-logic.ts",
+  // Tide v1 (ADR 0340): the doors are Book (who, why, today or a day) and its data layer.
+  "mobile/src/app/(app)/book",
+  "mobile/src/data/visits.ts",
+  "mobile/src/features/visits",
+  // ADR 0345: what Ask for a day sends besides words.
   "mobile/src/data/attachments.ts",
-  "mobile/src/app/(app)/doctor",
-  "mobile/src/app/(app)/clinic",
   // ADR 0098: the catalog, the Emergency Pathway and the desk's catalog. The
   // ONE sanctioned display join — lib/emergency/labels.ts reading a
   // discriminator's LABEL — lives under lib/emergency, outside this list.
@@ -291,10 +291,10 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
     "app/reception/book/_components/desk-booking.tsx",
     // ADR 0096 §5: the home's shortlist is a selector too.
     "app/patient/_components/symptom-quick-pick.tsx",
-    "mobile/src/components/patient/symptom-quick-pick.tsx",
     "mobile/src/components/patient/symptom-picker.tsx",
-    "mobile/src/app/(app)/clinic/[id].tsx",
-    "mobile/src/app/(app)/doctor/[id].tsx",
+    // Tide v1 (ADR 0340) retired the phone's home shortlist and the doctor and clinic screens.
+    "mobile/src/app/(app)/book/index.tsx",
+    "mobile/src/app/(app)/book/today.tsx",
     "mobile/src/features/visits/symptom-note.tsx",
     "mobile/src/app/(app)/book/day.tsx",
   ];
@@ -335,8 +335,7 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
   it("the free-text note still asks for logistics, and its example says so", () => {
     for (const path of [
       "app/patient/book/_components/booking-wizard.tsx",
-      "mobile/src/app/(app)/clinic/[id].tsx",
-      "mobile/src/app/(app)/doctor/[id].tsx",
+      "mobile/src/app/(app)/book/day.tsx",
     ]) {
       const src = read(path);
       expect(src, `${path} lost its note field`).toContain("note");
@@ -356,7 +355,6 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
     for (const [path, module] of [
       ["app/patient/book/_components/symptom-picker.tsx", "@/supabase/functions/_shared/symptoms"],
       ["app/patient/_components/symptom-quick-pick.tsx", "@/supabase/functions/_shared/symptoms"],
-      ["mobile/src/components/patient/symptom-quick-pick.tsx", "@shared/symptoms"],
       ["mobile/src/components/patient/symptom-picker.tsx", "@shared/symptoms"],
       ["mobile/src/features/visits/symptom-note.tsx", "@shared/symptoms"],
     ] as const) {
@@ -465,7 +463,8 @@ describe("ADR 0098 — advisory tiering: a pure classifier over signed content, 
     "mobile/src/app/(app)/symptoms.tsx",
     "mobile/src/app/(app)/emergency",
     "mobile/src/app/emergency.tsx",
-    "mobile/src/app/(app)/(tabs)/emergency.tsx",
+    // Tide v1 (ADR 0340): Help is E1's door now that the Emergency tab is gone.
+    "mobile/src/app/help.tsx",
   ];
   /** Words the app never says to a patient (PRD §2 non-goals, §5.1 principle 5). */
   const REASSURANCE =
@@ -531,8 +530,9 @@ describe("ADR 0098 — advisory tiering: a pure classifier over signed content, 
       "app/emergency",
       "components/emergency",
       "mobile/src/components/emergency",
-      "mobile/src/app/(app)/(tabs)/emergency.tsx",
+      "mobile/src/app/(app)/emergency",
       "mobile/src/app/emergency.tsx",
+      "mobile/src/app/help.tsx",
     ]) {
       for (const [path, src] of sourcesAt(target)) {
         // A bare word too (`<p>Dial 999</p>`), the phone test's own regex.
@@ -578,19 +578,18 @@ describe("PRD §3.6 — a clinic day with no clinician is never offered as booka
         /placesLeft\s*>\s*0(?![^;]*clinicianUserId)/,
       );
     }
-    // Phone: the same predicate in the data layer, used by the home and the clinic screen.
+    // Phone: the same predicate in the data layer. Tide v1 (ADR 0340): `data/visits.ts` uses it
+    // for the open days, and `loadDays` drops a clinic day with no clinician before Book's day
+    // screen sees it, so that screen's places-left test runs over gated sessions only.
     expect(read("mobile/src/lib/booking.ts")).toContain(
       "return s.placesLeft > 0 && s.clinicianUserId !== null;",
     );
-    for (const file of [
-      "mobile/src/app/(app)/(tabs)/index.tsx",
-      "mobile/src/app/(app)/clinic/[id].tsx",
-    ]) {
-      const src = stripComments(read(file));
-      expect(src, file).toContain("sessionTakeable(");
-      expect(src, `${file} tests placesLeft without the clinician gate`).not.toMatch(
-        /placesLeft\s*>\s*0(?![^;]*clinicianUserId)/,
-      );
-    }
+    const visits = stripComments(read("mobile/src/data/visits.ts"));
+    expect(visits).toContain(".filter(sessionTakeable)");
+    expect(visits).toContain("s.clinicianUserId === null) continue;");
+    expect(visits, "data/visits.ts tests placesLeft without the clinician gate").not.toMatch(
+      /placesLeft\s*>\s*0(?![^;]*clinicianUserId)/,
+    );
+    expect(stripComments(read("mobile/src/app/(app)/book/day.tsx"))).toMatch(/\bloadDays\(/);
   });
 });

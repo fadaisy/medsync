@@ -21,7 +21,13 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
 import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
 import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
-import { labBenchLiveFor, labHighRiskLiveFor, labQcLiveFor } from "@/lib/lab/feature";
+import { flagsForOrder } from "@/lib/lab/delta-read";
+import {
+  labBenchLiveFor,
+  labDeltaChecksLiveFor,
+  labHighRiskLiveFor,
+  labQcLiveFor,
+} from "@/lib/lab/feature";
 import { flaggingActiveFor } from "@/lib/lab/limits";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { holdFor } from "@/lib/lab/qc-read";
@@ -33,6 +39,7 @@ import { RejectSpecimen } from "../../_components/reject-specimen";
 import { AlertCell, Caution } from "../../criticals/_components/alert-bits";
 import { QUALITY } from "../../quality/_lib/copy";
 import { ClinicalQuestion } from "./_components/clinical-question";
+import { DeltaPanel } from "./_components/delta-panel";
 import { LabResultEntry } from "./_components/lab-result-entry";
 import { QcHoldActions } from "./_components/qc-hold";
 
@@ -111,7 +118,7 @@ export default async function LabResultEntryPage({
   const blocked = (qc?.components ?? []).filter(
     (c) => c.blocked && (!withFixed.report?.released || qcHeld.has(c.conceptId)),
   );
-  const data = qc
+  const base = qc
     ? {
         ...withFixed,
         components: withFixed.components.map((c) => {
@@ -120,6 +127,17 @@ export default async function LabResultEntryPage({
         }),
       }
     : withFixed;
+  // Lab Phase 5 (§5.6, DL-6): delta checks on this order; Release waits for a decision on each.
+  const delta =
+    workspace && labDeltaChecksLiveFor(scope.hospitalId)
+      ? await db.transaction((tx) => flagsForOrder(tx, scope.hospitalId, orderId))
+      : [];
+  const data = {
+    ...base,
+    releaseBlocked: delta.some((f) => !f.outcome)
+      ? "Release waits for a decision on each delta check above."
+      : null,
+  };
   // Lab Phase 1 (§5.2): the mark panel on a result not yet released, and the alert's status after.
   const criticals = workspace && data.mode === "direct" && (await criticalsLive(scope.hospitalId));
   const now = requestNow();
@@ -193,6 +211,10 @@ export default async function LabResultEntryPage({
         </section>
       ))}
       {highRisk ? <HighRiskBlock {...highRisk} /> : null}
+      <DeltaPanel
+        flags={delta}
+        component={Object.fromEntries(data.components.map((c) => [c.conceptId, c.display]))}
+      />
       {qc && blocked.length ? (
         <div
           role="alert"

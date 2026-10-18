@@ -41,7 +41,7 @@ export const consentRecords = pgTable(
   (t) => [
     check(
       "consent_records_type_check",
-      sql`${t.consentType} IN ('data_processing', 'sms_communication', 'research_use', 'third_party_share')`,
+      sql`${t.consentType} IN ('data_processing', 'sms_communication', 'research_use', 'third_party_share', 'results_in_app', 'results_sms')`,
     ),
     index("consent_records_user_type_idx").on(t.userId, t.consentType),
     uniqueIndex("consent_records_unique_version").on(t.userId, t.consentType, t.version),

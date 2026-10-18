@@ -7,12 +7,14 @@ import { requireDoctorScope } from "@/lib/doctor/scope";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { clinicianOptions, identitiesFor, loadResultsToReview } from "@/lib/emr/read/results";
 import { reportsWithOpenAlert } from "@/lib/lab/criticals/read";
-import { labReferralLiveFor } from "@/lib/lab/feature";
+import { labReferralLiveFor, patientResultsLiveFor } from "@/lib/lab/feature";
+import { releaseForClinician } from "@/lib/lab/patient-release-read";
 import { loadSentOutForClinician } from "@/lib/lab/referral-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PinnedCriticals } from "../_components/critical-alerts";
 import { PageHeader } from "../_components/page-header";
 import { myCriticals } from "../_lib/criticals";
+import { PatientRelease } from "./patient-release";
 import { SentOut } from "./sent-out";
 
 export const metadata: Metadata = { title: "Results to review · Doctor · MedSync" };
@@ -26,17 +28,27 @@ export const dynamic = "force-dynamic";
 export default async function ResultsToReviewPage() {
   const scope = await requireDoctorScope();
   if (!emrV1LiveFor(scope.hospitalId)) notFound();
-  const [items, staff, criticals, sentOut] = await Promise.all([
+  const [items, staff, criticals, sentOut, release] = await Promise.all([
     loadResultsToReview(scope),
     clinicianOptions(scope.hospitalId),
     myCriticals(scope.userId, scope.hospitalId),
     labReferralLiveFor(scope.hospitalId) ? loadSentOutForClinician(scope) : Promise.resolve([]),
+    patientResultsLiveFor(scope.hospitalId)
+      ? releaseForClinician(scope, new Date())
+      : Promise.resolve(null),
   ]);
   const sentIds = await identitiesFor(
     scope,
     sentOut.map((r) => r.patientUserId),
     "doctor_sent_out",
   );
+  const releaseIds = release
+    ? await identitiesFor(
+        scope,
+        release.rows.map((r) => r.patientUserId),
+        "doctor_patient_release",
+      )
+    : new Map();
   // CA-12: a report with an open critical alert is acknowledged through its alert, never in a batch.
   const alerted = criticals
     ? await reportsWithOpenAlert(
@@ -66,6 +78,18 @@ export default async function ResultsToReviewPage() {
         />
       ) : null}
       <SentOut rows={sentOut} ids={sentIds} />
+      {release ? (
+        <PatientRelease
+          rows={release.rows.map((r) => ({
+            ...r,
+            name: releaseIds.get(r.patientUserId)?.name ?? "Name withheld",
+            mrn: releaseIds.get(r.patientUserId)?.mrn ?? "",
+          }))}
+          aged={release.aged}
+          holdMaxDays={release.holdMaxDays}
+          agedWindowDays={release.agedWindowDays}
+        />
+      ) : null}
       <ReviewList
         // An open critical alert first (CA-12): the baseline left it fourth of four.
         items={[...sortReview(items)].sort(

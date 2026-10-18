@@ -6,7 +6,7 @@ import { and, eq, gte, isNull, lte, or } from "drizzle-orm";
 import { db } from "@/db";
 import { hospitalDesignations, hospitals, userRoles } from "@/db/schema";
 import { getAuthState } from "@/lib/auth";
-import { labReferralLiveFor } from "./feature";
+import { labReferralLiveFor, patientResultsLiveFor } from "./feature";
 
 export type GovernanceRole = "data_protection_lead" | "ipc_lead";
 
@@ -51,7 +51,9 @@ export async function governanceWho(redirectTo: string | null): Promise<{
       .where(and(eq(userRoles.userId, userId), eq(userRoles.role, "hospital_admin"))),
   ]);
   const hospitalId = designations[0]?.hospitalId ?? admins.find((a) => a.hospitalId)?.hospitalId;
-  if (!hospitalId || !labReferralLiveFor(hospitalId)) return null;
+  // The desk serves referrals (Phase 4) and the results consent wording (Phase 5, ADR 0339).
+  if (!hospitalId || !(labReferralLiveFor(hospitalId) || patientResultsLiveFor(hospitalId)))
+    return null;
   const [h] = await db
     .select({ name: hospitals.name })
     .from(hospitals)

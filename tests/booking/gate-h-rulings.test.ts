@@ -273,12 +273,19 @@ describe("ruling (f) — consent re-acceptance on next sign-in", () => {
     expect(layout).toContain("<Stack.Protected guard={gated}>");
     expect(layout).toContain('<Stack.Screen name="consent" />');
     expect(layout).toContain("<Stack.Protected guard={!gated}>");
-    // Every route file under (app) is named in the layout, so none escapes the guard.
+    // Every route file under (app) is named inside the !gated pair, so none escapes the guard
+    // (with or without options: Tide's `add` and `danger` carry their presentation).
+    const open = layout.slice(layout.indexOf("<Stack.Protected guard={!gated}>"));
+    const opened = open.slice(0, open.indexOf("</Stack.Protected>"));
     const routes = walk(resolve(ROOT, "mobile/src/app/(app)"))
       .map((p) => p.slice(resolve(ROOT, "mobile/src/app/(app)").length + 1).replace(/\.tsx$/, ""))
       .filter((r) => !r.endsWith("_layout") && r !== "consent")
       .map((r) => (r.startsWith("(tabs)/") ? "(tabs)" : r));
-    for (const r of new Set(routes)) expect(layout, r).toContain(`<Stack.Screen name="${r}" />`);
+    for (const r of new Set(routes)) {
+      expect(opened, r).toMatch(
+        new RegExp(`<Stack\\.Screen\\s+name="${r.replace(/[[\]()]/g, "\\$&")}"`),
+      );
+    }
 
     const screen = stripComments(read("mobile/src/app/(app)/consent.tsx"));
     expect(screen).toContain("acceptConsent(due)");

@@ -6,7 +6,11 @@
  */
 import type { SignedCopy } from "@/content/signed-copy";
 
-export const LAB2_COPY_STATUS: SignedCopy = { status: "signed", signedBy: "Fadhul (CSO)", signedOn: "2026-10-13" };
+export const LAB2_COPY_STATUS: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-13",
+};
 
 export const LAB2 = {
   availability: {

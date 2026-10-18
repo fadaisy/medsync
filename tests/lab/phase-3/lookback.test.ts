@@ -177,6 +177,8 @@ describe("nonconformities (§6.8)", () => {
       // Lab Phase 4 (RF-10, MF-3): a referred specimen lost, a manifest received with a discrepancy.
       "referral",
       "manifest",
+      // Lab Phase 5 (DL-6): a delta outcome of "mislabelled".
+      "delta",
     ]);
     expect(openAutomatic("referral", "lead-1").testingHalted).toBe(false);
     expect(openAutomatic("qc_reject", "lead-1")).toEqual({

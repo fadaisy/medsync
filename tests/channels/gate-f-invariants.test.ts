@@ -119,7 +119,10 @@ describe("the system-* functions: service role only, never a user JWT", () => {
     // STOP: opt-out by phone, consent revoked for account holders, audited.
     expect(src).toContain('.from("sms_opt_outs")');
     expect(src).toContain('action: "sms_stop"');
-    expect(src).toMatch(/\.eq\("consent_type", "sms_communication"\)\s*\.is\("revoked_at", null\)/);
+    // Lab Phase 5 (PS-4): STOP revokes the results-ready consent with the booking one.
+    expect(src).toMatch(
+      /\.in\("consent_type", \["sms_communication", "results_sms"\]\)\s*\.is\("revoked_at", null\)/,
+    );
     // The cancel path is cancel-appointment's: release + reap + waitlist.
     expect(src).toContain('rpc("release_session_position"');
     expect(src).toContain("await releaseCapacity(sb, appt.id, log, requestId)");

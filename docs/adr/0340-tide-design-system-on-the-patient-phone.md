@@ -20,6 +20,7 @@ The owner commissioned the Tide v1 design pack for the patient app: prototype bo
    - never colour alone.
 
    `src/theme/colour-laws.test.ts` scans the Tide code for raw colours and stray red. `src/features/safety/help-crawl.test.ts` holds Help on every route (L6).
+
 4. **Motion is livelier than Chroma's.**
    - The nav and the plus use springs, and the active tab pops.
    - Every animation still marks a change of state or place.

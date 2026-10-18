@@ -62,6 +62,7 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // The referral governance desk (Lab Phase 4): the data protection lead, the IPC lead and the hospital admin.
   // The designation resolves in lib/lab/governance-scope.ts (governanceScope).
   "/referral-governance",
+  "/ipc",
   // Patient workspace — requires auth. Patients are MFA-optional
   // (per kickoff), so the MFA branches in proxy.ts don't fire for
   // pure patients; a clinician-also-patient still gets MFA.

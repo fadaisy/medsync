@@ -8,7 +8,6 @@ import { asClinicalWriter } from "@/lib/emr/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import { METER_RANGE } from "./bedside";
-import { deliverAfterCommit } from "./criticals/store";
 import {
   addLot,
   recordBedsideResult,
@@ -16,6 +15,7 @@ import {
   setDeviceState,
   setOperator,
 } from "./bedside-store";
+import { deliverAfterCommit } from "./criticals/store";
 import { labBedsideLiveFor } from "./feature";
 
 /**

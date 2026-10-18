@@ -17,7 +17,7 @@ const stripComments = (src: string) =>
 
 const C = "mobile/src/components/symptoms";
 const SCREEN = "mobile/src/app/(app)/symptoms.tsx";
-const HOME = "mobile/src/app/(app)/(tabs)/index.tsx";
+const BOOK = "mobile/src/app/(app)/book/index.tsx";
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -118,9 +118,9 @@ describe("the emergency interrupt (PRD §5.4)", () => {
     // PRD §5.5: a crisis_route item interrupts calmly — no haptic, the crisis screen.
     expect(src).toMatch(/const calm = item\?\.flags\?\.includes\("crisis_route"\)/);
     expect(src).toMatch(/if \(!calm\)\s*void Haptics\.notificationAsync/);
-    // "Get help now" leads to the Emergency sheet with what was ticked.
+    // "Get help now" leads to the Emergency sheet with what was ticked (Tide v1: the lines screen).
     expect(stripComments(read(SCREEN))).toMatch(
-      /pathname: "\/\(app\)\/\(tabs\)\/emergency",\s*params: \{\s*from: "catalog"/,
+      /pathname: "\/\(app\)\/emergency\/lines",\s*params: \{\s*from: "catalog"/,
     );
   });
 });
@@ -152,13 +152,18 @@ describe("Gate CS on the phone (ADR 0098 ruling 2)", () => {
     expect(read(`${C}/watermark.tsx`)).toMatch(/Unsigned clinical content/);
   });
 
-  it("the home reads the render mode and keeps the shortlist when off", () => {
-    const src = stripComments(read(HOME));
-    expect(src).toMatch(/import \{ useCatalogMode \} from "@\/lib\/symptoms"/);
-    expect(src).toMatch(/catalogMode === "off" && catalog\.length > 0 \? \(\s*<SymptomQuickPick/);
-    expect(src).toMatch(/<DangerStrip/);
-    expect(src).toMatch(/label="What's wrong\? Tell us"/);
-    expect(src).toMatch(/catalogMode === "draft_watermarked" \? <Watermark \/>/);
+  // Tide v1 (ADR 0340) moved the door from the home to Book's "Something new": the catalog screen
+  // reads the render mode itself; off, it shows no catalog and says so; a draft is watermarked.
+  it("the catalog screen reads the render mode: off shows no catalog, a draft is watermarked", () => {
+    expect(stripComments(read(BOOK))).toMatch(/why === "new" \? router\.push\("\/symptoms"\)/);
+    const src = stripComments(read(SCREEN));
+    expect(src).toMatch(/\buseCatalogMode \} from "@\/lib\/symptoms"/);
+    expect(src).toMatch(/const mode = useCatalogMode\(\);/);
+    const off = src.slice(src.indexOf('if (mode === "off")'));
+    expect(off.slice(0, off.indexOf("}\n"))).toMatch(/This is not available yet\./);
+    expect(off.slice(0, off.indexOf("}\n"))).not.toMatch(/<SymptomCatalog\b/);
+    expect(src).toMatch(/mode === "draft_watermarked" \? <Watermark \/>/);
+    expect(stripComments(read(`${C}/catalog.tsx`))).toMatch(/<DangerStrip\b/);
   });
 
   it("the screen is permanently light (Law 3)", () => {
@@ -167,19 +172,14 @@ describe("Gate CS on the phone (ADR 0098 ruling 2)", () => {
 });
 
 describe("the report reaches the doors (ADR 0098 ruling 3)", () => {
-  it("doctor and clinic send symptom_submission_id and no symptoms when a draft exists", () => {
-    for (const file of [
-      "mobile/src/app/(app)/doctor/[id].tsx",
-      "mobile/src/app/(app)/clinic/[id].tsx",
-    ]) {
-      const src = stripComments(read(file));
-      expect(src, file).toMatch(/const report = draft\?\.submissionId \? draft : null;/);
-      expect(src, file).toMatch(/symptoms: report \? null : symptomsReady,/);
-      expect(src, file).toMatch(/symptomSubmissionId: report\?\.submissionId,/);
-      expect(src, file).toMatch(/clearPendingCatalogDraft\(\);/);
-      expect(src, file).toMatch(
-        /label: "Change", onPress: \(\) => router\.push\("\/\(app\)\/symptoms"\)/,
-      );
+  // Tide v1 (ADR 0340): the doors are the day request and the line, in mobile/src/data/visits.ts.
+  it("the day request, the line and today's queue send symptom_submission_id and clear the draft", () => {
+    const visits = stripComments(read("mobile/src/data/visits.ts"));
+    for (const door of ["export async function requestDay", "export async function joinLine"]) {
+      const body = visits.slice(visits.indexOf(door));
+      const fn = body.slice(0, body.indexOf("\n}\n"));
+      expect(fn, door).toMatch(/symptomSubmissionId: getPendingCatalogDraft\(\)\?\.submissionId,/);
+      expect(fn, door).toMatch(/clearPendingCatalogDraft\(\);/);
     }
     const booking = stripComments(read("mobile/src/lib/booking.ts"));
     expect(booking).toMatch(/symptom_submission_id: input\.symptomSubmissionId/);

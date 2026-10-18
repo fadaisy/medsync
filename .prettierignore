@@ -64,3 +64,20 @@ docs/ncd/NCDREG-v0.1-DRAFT.md
 docs/ncd/CONDITION-MODULES.md
 docs/ncd/INDICATORS.md
 docs/ncd/DATA-INVENTORY.md
+# Lab catalogue research as delivered for sign-off: the JSON is imported by its hash (lib/lab/research-import.ts)
+docs/lab/catalogue-research/lab-catalogue-research.v1.json
+docs/lab/catalogue-research/RESEARCH-NOTES.md
+docs/lab/phase-2/PROMPT-LAB-PHASE-2-ONE-MENU.md
+# NCD diabetes pack: the pack and its research, review and verify trail, the review rounds, the UCG
+# verbatim-quote evidence, the signed GATE A and sign-off records, and the generated merge diff.
+docs/ncd/diabetes/pack-0.3.0-draft/
+docs/ncd/diabetes/phase-1/
+docs/ncd/diabetes/ucg/
+docs/ncd/diabetes/gate-a.md
+docs/ncd/diabetes/gate-a-signoff.json
+docs/ncd/diabetes/ug2026-signoff.json
+docs/ncd/diabetes/phase-5/stop5-signoff.json
+docs/ncd/diabetes/phase-5/amend-diff.md
+# Mobile Tide v1: the design pack (prototype + Tide DS) and the build prompt as handed over
+design/mobile-tide-v1/
+docs/mobile-tide/PROMPT-MOBILE-TIDE-V1.md

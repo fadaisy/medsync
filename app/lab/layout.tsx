@@ -3,15 +3,18 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist as loadLegacyWorklist } from "@/lib/lab-tech/worklist";
 import { countOpenCriticals } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { isDemoHospital } from "@/lib/lab/demo";
 import { countFormsWaiting } from "@/lib/lab/downtime-read";
 import {
   labCatalogueV2LiveFor,
   labCriticalsLiveFor,
+  labDeltaChecksLiveFor,
   labDowntimeLiveFor,
   labEqaLiveFor,
   labEquipmentLiveFor,
@@ -25,6 +28,7 @@ import {
   labSettingsLiveFor,
   labStockLiveFor,
   labUnitsRangesLiveFor,
+  patientResultsLiveFor,
 } from "@/lib/lab/feature";
 import { countMatchesWaiting } from "@/lib/lab/match-read";
 import { navFor } from "@/lib/lab/nav";
@@ -69,6 +73,9 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     setup_catalogue: null,
     setup_ranges: null,
     setup_limits: null,
+    setup_delta: null,
+    setup_patient_release: null,
+    setup_demo: null,
     setup_criticals: null,
     setup_profiles: null,
     setup_drafts: null,
@@ -121,6 +128,9 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     connections: "",
     matches: `${matchesWaiting ?? 0} waiting for a match`,
     analysers: "",
+    setup_delta: "",
+    setup_patient_release: "",
+    setup_demo: "",
     downtime: `${formsWaiting} printed ${formsWaiting === 1 ? "form" : "forms"} to enter`,
   };
   const nav: LabNavEntry[] = navFor(scope.access.permissions, {
@@ -141,6 +151,9 @@ export default async function LabLayout({ children }: { children: ReactNode }) {
     reports: emr && labReportsLiveFor(scope.hospitalId),
     referral: referral,
     exchange: emr && labExchangeLiveFor(scope.hospitalId),
+    deltaChecks: emr && labDeltaChecksLiveFor(scope.hospitalId),
+    patientResults: emr && patientResultsLiveFor(scope.hospitalId),
+    demo: emr && (await isDemoHospital(db as never, scope.hospitalId)),
   }).map((i) => ({
     id: i.id,
     label: i.label,

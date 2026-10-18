@@ -512,10 +512,14 @@ export async function requestDay(input: {
     reasonNote: input.note.trim() || null,
     idempotencyKey: input.idempotencyKey,
     ...(input.symptoms?.length ? { symptoms: input.symptoms } : {}),
+    // ADR 0098 ruling 3: a catalog report filed before this door rides with the booking.
+    // ponytail: when one rides, the server keeps the report's symptoms over the ones chosen here.
+    symptomSubmissionId: getPendingCatalogDraft()?.submissionId,
     ...(input.forProvisionalId ? { forProvisionalId: input.forProvisionalId } : {}),
     ...(session.slot ? { slot: session.slot } : { session: { sessionId: session.id } }),
   });
   if (!res.ok) return { ok: false, error: res.error };
+  clearPendingCatalogDraft();
   const { paid, demoPayment } = await payIfAsked(session.fee, input.payNow);
   const ticket = await issue({
     id: res.data.appointment_id,

@@ -6,10 +6,11 @@ import type { ActionResult } from "@/lib/emr/write/context";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { hospitalDesignations } from "@/db/schema";
+import { hospitalDesignations, labSignedConfigs } from "@/db/schema";
 import { secondFactorFresh } from "@/lib/auth-fresh";
 import { asClinicalWriter } from "@/lib/emr/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
+import { publishConsentVersion } from "@/lib/notifications/consent";
 import { saveConfigDraft, signConfig } from "./catalogue-v2";
 import { governanceWho } from "./governance-scope";
 import { PAYLOADS } from "./signed-config";
@@ -66,8 +67,15 @@ const KIND_ROLE = {
   partner_legal: "data_protection_lead",
   partner_fields: "data_protection_lead",
   referral_wording: "ipc_lead",
+  // Lab Phase 5 (PR-12, A5): the wording a patient agrees to before results show in the app or by SMS.
+  results_consent_notice: "data_protection_lead",
 } as const;
-const Kind = z.enum(["partner_legal", "partner_fields", "referral_wording"]);
+const Kind = z.enum([
+  "partner_legal",
+  "partner_fields",
+  "referral_wording",
+  "results_consent_notice",
+]);
 
 /** A draft; key = the partner id (legal record, field list) or `high_risk` (the wording). */
 export async function saveGovernanceConfigAction(raw: unknown): Promise<ActionResult> {
@@ -90,15 +98,31 @@ export async function signGovernanceConfigAction(raw: unknown): Promise<ActionRe
   if (!p.success) return bad(p.error);
   if (!(await secondFactorFresh())) return reauth;
   const role = KIND_ROLE[p.data.kind];
-  return run(role, async (tx, who, now) => {
+  let notice: unknown = null;
+  const r = await run(role, async (tx, who, now) => {
     await signConfig(
       tx,
       { ...who, as: role === "ipc_lead" ? "ipc_lead" : "dp_lead" },
       { configId: p.data.configId, exceptionNote: p.data.exceptionNote },
       now,
     );
+    if (p.data.kind === "results_consent_notice") {
+      const [row] = await tx
+        .select({ payload: labSignedConfigs.payload })
+        .from(labSignedConfigs)
+        .where(eq(labSignedConfigs.id, p.data.configId));
+      notice = row?.payload ?? null;
+    }
     return p.data.configId;
   });
+  // ponytail: published after the signing transaction (consent_versions is not the clinical writer's); the
+  // insert is idempotent, so a failed publish is repaired by the next sign of a new version.
+  if (r.ok && notice) {
+    const n = notice as { version: string; inApp: string; sms: string };
+    await publishConsentVersion("results_in_app", n.version, n.inApp);
+    await publishConsentVersion("results_sms", n.version, n.sms);
+  }
+  return r;
 }
 
 export async function setDesignationAction(raw: unknown): Promise<ActionResult> {

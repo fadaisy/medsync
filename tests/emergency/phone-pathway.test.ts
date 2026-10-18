@@ -21,15 +21,17 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+// Tide v1 (ADR 0340) retired the Emergency tab: the red Help (law L6) opens /help, whose
+// signed-in "All emergency lines" is the sheet at (app)/emergency/lines.
 const E1_FILES = [
   "mobile/src/components/emergency/emergency-sheet.tsx",
-  "mobile/src/app/(app)/(tabs)/emergency.tsx",
+  "mobile/src/app/(app)/emergency/lines.tsx",
   "mobile/src/app/emergency.tsx",
+  "mobile/src/app/help.tsx",
 ];
 const PATHWAY_FILES = [
   ...walk(resolve(ROOT, "mobile/src/components/emergency")),
   ...walk(resolve(ROOT, "mobile/src/app/(app)/emergency")),
-  resolve(ROOT, "mobile/src/app/(app)/(tabs)/emergency.tsx"),
   resolve(ROOT, "mobile/src/app/emergency.tsx"),
 ].map((p) => relative(ROOT, p));
 
@@ -37,21 +39,32 @@ const RED =
   /critical(?:Bg|Fg)\b|status\.critical|["']critical["']|#(?:fee2e2|fecaca|f87171|ef4444|dc2626|b91c1c|fca5a5|450a0a)\b/i;
 
 describe("the pill — the red disc reaches the sheet signed out (ruling 7)", () => {
-  it('the welcome and sign-in screens mount <EmergencyButton href="/emergency">', () => {
+  it("the welcome and sign-in screens carry Tide's red Help, and Help is outside the sign-in gate", () => {
     for (const p of ["mobile/src/app/index.tsx", "mobile/src/app/sign-in.tsx"]) {
-      expect(read(p), p).toMatch(/<EmergencyButton href="\/emergency" \/>/);
+      const src = stripComments(read(p));
+      expect(src, p).toMatch(/<Screen\b/); // <Screen> renders <HelpButton> by default
+      expect(src, p).not.toMatch(/help="none"/);
     }
+    const layout = stripComments(read("mobile/src/app/_layout.tsx"));
+    const signedInOnly = layout.slice(
+      layout.indexOf("<Stack.Protected guard={signedIn}>"),
+      layout.indexOf("</Stack.Protected>", layout.indexOf("<Stack.Protected guard={signedIn}>")),
+    );
+    expect(layout).toMatch(/<Stack\.Screen name="help"/);
+    expect(signedInOnly).not.toMatch(/name="help"/);
+    // Signed out, Help's "All emergency lines" is the root sheet.
+    expect(stripComments(read("mobile/src/app/help.tsx"))).toMatch(/router\.push\("\/emergency"\)/);
   });
 
-  it("EmergencyButton keeps the tab as its default target and stays red with its label", () => {
+  it("EmergencyButton opens Help by default and stays red with its label", () => {
     const src = read("mobile/src/components/patient/emergency-button.tsx");
-    expect(src).toMatch(/href = "\/\(app\)\/\(tabs\)\/emergency"/);
+    expect(src).toMatch(/href = "\/help"/);
     expect(src).toMatch(/tone="critical"/);
     expect(src).toMatch(/label="Emergency"/);
   });
 
-  it("the tab screen and the root screen are the same sheet", () => {
-    expect(read("mobile/src/app/(app)/(tabs)/emergency.tsx")).toMatch(/<EmergencySheet\b/);
+  it("the signed-in lines screen and the root screen are the same sheet", () => {
+    expect(read("mobile/src/app/(app)/emergency/lines.tsx")).toMatch(/<EmergencySheet\b/);
     expect(read("mobile/src/app/emergency.tsx")).toMatch(/<EmergencySheet\b/);
     // The pre-auth sheet never shows a draft number.
     expect(read("mobile/src/app/emergency.tsx")).toMatch(/showDrafts=\{false\}/);
@@ -73,7 +86,7 @@ describe("E1 — the primary call is a tel: tap, and numbers come from data (rul
   });
 
   it("no pathway file carries a literal emergency number", () => {
-    for (const p of PATHWAY_FILES) {
+    for (const p of [...PATHWAY_FILES, "mobile/src/app/help.tsx"]) {
       expect(stripComments(read(p)), p).not.toMatch(/\b(?:112|999|912)\b/);
     }
   });
@@ -170,13 +183,61 @@ describe("E3 — status (PRD §8.4)", () => {
   });
 });
 
-describe("location — asked from the pre-alert only (ruling 9)", () => {
+// Ruling 9 as narrowed by the Tide v1 build prompt (law L9, owner, ADR 0340): the pre-alert asks;
+// a place map asks only when the patient taps "Use my location", and a live share only when the patient starts
+// one (ADR 0343); a home place is saved only with its own declinable consent. Help reads a position the patient
+// already allowed and never asks in the middle of an emergency.
+describe("location — asked only when the patient acts for it (ruling 9, L9; ADR 0343)", () => {
   const importers = walk(resolve(ROOT, "mobile/src"))
     .map((p) => relative(ROOT, p))
     .filter((p) => /from "expo-location"/.test(stripComments(read(p))));
 
-  it("expo-location is imported by the pre-alert form and nothing else", () => {
-    expect(importers).toEqual(["mobile/src/components/emergency/pre-alert-form.tsx"]);
+  it("expo-location is imported by the pre-alert, the place map, live shares, places and Help's granted-only read", () => {
+    expect([...importers].sort()).toEqual([
+      "mobile/src/components/emergency/pre-alert-form.tsx",
+      "mobile/src/components/tide/place-map.tsx",
+      "mobile/src/data/location-share.ts",
+      // A type only: the geocoder's address shape.
+      "mobile/src/data/places.ts",
+      "mobile/src/features/safety/location.ts",
+    ]);
+    expect(stripComments(read("mobile/src/data/places.ts"))).toMatch(
+      /import type \{[^}]*\} from "expo-location"/,
+    );
+  });
+
+  /** The body of `export async function <name>(…) {…}`, by brace depth. */
+  function body(src: string, name: string): string {
+    const start = src.indexOf(`export async function ${name}(`);
+    expect(start, name).toBeGreaterThan(-1);
+    let depth = 0;
+    // The body's brace ends its line; a return type's braces do not.
+    let i = src.indexOf("{\n", start);
+    const from = i;
+    do {
+      if (src[i] === "{") depth++;
+      else if (src[i] === "}") depth--;
+      i++;
+    } while (depth > 0 && i < src.length);
+    return src.slice(from, i);
+  }
+
+  it("Help's read never asks; the map and the share ask only from the patient's own tap", () => {
+    const granted = stripComments(read("mobile/src/features/safety/location.ts"));
+    expect(granted).toMatch(/getForegroundPermissionsAsync\(\)/);
+    expect(granted).not.toMatch(/request\w*PermissionsAsync/);
+    for (const [file, fn] of [
+      ["mobile/src/components/tide/place-map.tsx", "findMe"],
+      ["mobile/src/data/location-share.ts", "startShare"],
+    ] as const) {
+      const src = stripComments(read(file));
+      const asks = src.match(/request\w*PermissionsAsync/g) ?? [];
+      expect(asks.length, `${file} asks outside ${fn}`).toBe(1);
+      expect(body(src, fn), `${file}: ${fn} is where it asks`).toMatch(/request\w*PermissionsAsync/);
+    }
+    const steps = stripComments(read("mobile/src/features/auth/steps.tsx"));
+    expect(steps).toMatch(/\{mapOpen \? \(\s*<>\s*<PlaceMap\b/);
+    expect(steps).toMatch(/patch\(\{ pinConsent: !draft\.pinConsent \}\)/);
   });
 
   it("E1 never asks for a location", () => {

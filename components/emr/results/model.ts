@@ -447,6 +447,8 @@ export interface ResultEntryData {
   } | null;
   /** Where the lab records a critical-result call (a released critical result only). */
   communicate: CommTarget | null;
+  /** Lab Phase 5 (DL-6): why Release stays disabled (delta checks waiting for a decision). */
+  releaseBlocked?: string | null;
 }
 
 export const MODE_WORDS = {
