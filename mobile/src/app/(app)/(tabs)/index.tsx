@@ -8,6 +8,7 @@ import {
   Avatar,
   Button,
   CascadeStep,
+  cascadeTone,
   Icon,
   LIFT_MS,
   MoodFace,
@@ -284,7 +285,7 @@ export default function HomeScreen() {
                 key: s.key,
                 render: ({ index, last, move }) => (
                   <CascadeStep
-                    step={Math.min(index, 2) as 0 | 1 | 2}
+                    step={cascadeTone(index)}
                     icon={s.icon}
                     title={s.title}
                     line={s.line}

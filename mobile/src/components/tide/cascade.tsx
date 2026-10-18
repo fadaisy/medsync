@@ -37,6 +37,14 @@ export function Cascade({ children }: { children: ReactNode }) {
 }
 
 /**
+ * The tone of the card at `index`: navy, ocean, sea, then ocean and sea in
+ * turn, so no two cards next to each other share a tone (there are three).
+ */
+export function cascadeTone(index: number): 0 | 1 | 2 {
+  return index < 3 ? (index as 0 | 1 | 2) : index % 2 ? 1 : 2;
+}
+
+/**
  * One done or past step: a navy-toned card with an icon disc, a title, a
  * line, and a ✓ (done) or › (go). `step` picks the tone, 0 earliest.
  */
@@ -64,7 +72,11 @@ export function CascadeStep({
   last?: boolean;
 } & Pick<
   PressProps,
-  "onLongPress" | "delayLongPress" | "accessibilityHint" | "accessibilityActions" | "onAccessibilityAction"
+  | "onLongPress"
+  | "delayLongPress"
+  | "accessibilityHint"
+  | "accessibilityActions"
+  | "onAccessibilityAction"
 >) {
   const t = useTide();
   const bg = t.cascade[step];

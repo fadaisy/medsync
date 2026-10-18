@@ -1,3 +1,4 @@
+import { cascadeTone } from "@/components/tide/cascade";
 import { dropIndex, moved, travel } from "@/components/tide/reorder-cascade";
 import { DEFAULT_ORDER, fromSaved, orderFrom, sortByOrder } from "@/features/home/day-order";
 
@@ -38,6 +39,12 @@ describe("day order", () => {
     expect(fromSaved(["eat", "eat"])).toBeNull();
     expect(fromSaved(["eat", "nope"])).toBeNull();
     expect(fromSaved("eat")).toBeNull();
+  });
+});
+
+describe("cascade tones", () => {
+  it("goes navy, ocean, sea, then alternates so neighbours differ", () => {
+    expect([0, 1, 2, 3, 4, 5].map(cascadeTone)).toEqual([0, 1, 2, 1, 2, 1]);
   });
 });
 
