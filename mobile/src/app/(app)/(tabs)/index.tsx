@@ -16,6 +16,7 @@ import {
   Screen,
   SectionHead,
   Segments,
+  SkeletonCard,
   Toast,
 } from "@/components/tide";
 import { DAY_GOAL, useActivity } from "@/data/activity";
@@ -221,7 +222,11 @@ export default function HomeScreen() {
         <View style={{ gap: tSpace[3] }}>
           <SectionHead title="Here is your day" />
           {loading ? (
-            <Text style={[tType.bodyM, { color: t.ink2 }]}>Loading your day…</Text>
+            <View style={{ gap: tSpace[2.5] }}>
+              <SkeletonCard label="Loading your day" lines={1} />
+              <SkeletonCard label="" lines={1} />
+              <SkeletonCard label="" lines={1} />
+            </View>
           ) : failed ? (
             <View style={{ gap: tSpace[2], alignItems: "flex-start" }}>
               <Text style={[tType.bodyM, { color: t.ink2 }]}>Couldn&apos;t load your day.</Text>

@@ -14,6 +14,8 @@ import {
   Ring,
   Screen,
   SectionHead,
+  Skeleton,
+  SkeletonCard,
 } from "@/components/tide";
 import { DAY_GOAL, GLASSES, useActivity } from "@/data/activity";
 import { useChatPreview } from "@/data/chat";
@@ -72,56 +74,60 @@ export default function CareTab() {
         </View>
       }
     >
-      <Press
-        onPress={go("/care/medicines")}
-        accessibilityLabel={`Medicines this week: ${weekTaken} of ${weekTotal} doses taken. Open medicines.`}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: tSpace[4],
-          padding: tSpace[4],
-          borderRadius: 26,
-          backgroundColor: t.band,
-        }}
-      >
-        <Ring
-          value={weekTotal ? weekTaken / weekTotal : 0}
-          size={84}
-          stroke={10}
-          color={t.accent}
-          track={t.bandGlass}
+      {med.loading && !med.medicines.length ? (
+        <SkeletonCard label="Loading your medicines" lines={2} height={132} />
+      ) : (
+        <Press
+          onPress={go("/care/medicines")}
+          accessibilityLabel={`Medicines this week: ${weekTaken} of ${weekTotal} doses taken. Open medicines.`}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[4],
+            padding: tSpace[4],
+            borderRadius: 26,
+            backgroundColor: t.band,
+          }}
         >
-          <Text style={{ fontFamily: tFont.bold, fontSize: 20, color: t.onBand }}>
-            {Math.round((weekTaken / Math.max(1, weekTotal)) * 100)}%
-          </Text>
-        </Ring>
-        <View style={{ flex: 1, gap: tSpace[1.5] }}>
-          <Text style={[tType.overline, { color: t.onBandAccent }]}>Medicines this week</Text>
-          <Text style={[tType.heading, { fontSize: 18, lineHeight: 23, color: t.onBand }]}>
-            {weekTotal ? `${weekTaken} of ${weekTotal} doses taken` : "No doses on your list yet"}
-          </Text>
-          <View style={{ flexDirection: "row", gap: tSpace[1] }}>
-            {med.week.map((count, i) => (
-              <View key={i} style={{ alignItems: "center", gap: 3 }}>
-                <View
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 6,
-                    backgroundColor: count === 0 ? t.bandGlass : t.accent,
-                    opacity: count === 0 || count >= med.weekTotals[i] ? 1 : 0.45,
-                    borderWidth: i === 6 ? 2 : 0,
-                    borderColor: t.onBand,
-                  }}
-                />
-                <Text style={{ fontFamily: tFont.semibold, fontSize: 10, color: t.onBand2 }}>
-                  {days[i].letter}
-                </Text>
-              </View>
-            ))}
+          <Ring
+            value={weekTotal ? weekTaken / weekTotal : 0}
+            size={84}
+            stroke={10}
+            color={t.accent}
+            track={t.bandGlass}
+          >
+            <Text style={{ fontFamily: tFont.bold, fontSize: 20, color: t.onBand }}>
+              {Math.round((weekTaken / Math.max(1, weekTotal)) * 100)}%
+            </Text>
+          </Ring>
+          <View style={{ flex: 1, gap: tSpace[1.5] }}>
+            <Text style={[tType.overline, { color: t.onBandAccent }]}>Medicines this week</Text>
+            <Text style={[tType.heading, { fontSize: 18, lineHeight: 23, color: t.onBand }]}>
+              {weekTotal ? `${weekTaken} of ${weekTotal} doses taken` : "No doses on your list yet"}
+            </Text>
+            <View style={{ flexDirection: "row", gap: tSpace[1] }}>
+              {med.week.map((count, i) => (
+                <View key={i} style={{ alignItems: "center", gap: 3 }}>
+                  <View
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 6,
+                      backgroundColor: count === 0 ? t.bandGlass : t.accent,
+                      opacity: count === 0 || count >= med.weekTotals[i] ? 1 : 0.45,
+                      borderWidth: i === 6 ? 2 : 0,
+                      borderColor: t.onBand,
+                    }}
+                  />
+                  <Text style={{ fontFamily: tFont.semibold, fontSize: 10, color: t.onBand2 }}>
+                    {days[i].letter}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      </Press>
+        </Press>
+      )}
 
       <Card
         onPress={go("/care/medicines")}
@@ -181,7 +187,10 @@ export default function CareTab() {
         <IconDisc name="flask" color={t.area.medicines} bg={t.surface2} size={36} />
         <View style={{ flex: 1, gap: 2 }}>
           {labs.status === "loading" ? (
-            <Text style={[tType.bodyS, { color: t.ink2 }]}>Loading your tests…</Text>
+            <View accessible accessibilityLabel="Loading your tests" style={{ gap: tSpace[1.5] }}>
+              <Skeleton width="70%" height={14} />
+              <Skeleton width="40%" height={11} />
+            </View>
           ) : labs.latest ? (
             <>
               <Text style={[tType.labelS, { color: t.ink }]}>

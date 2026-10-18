@@ -11,5 +11,6 @@ export * from "@/components/tide/press";
 export * from "@/components/tide/primitives";
 export * from "@/components/tide/screen";
 export * from "@/components/tide/sheet";
+export * from "@/components/tide/skeleton";
 export * from "@/components/tide/tide-nav";
 export * from "@/components/tide/ticket";

@@ -248,6 +248,24 @@ export const motion = {
     };
   },
 
+  /**
+   * A loading placeholder breathing while its content is on the way: the one
+   * loop that means "still loading". Still under reduce motion.
+   */
+  skeletonPulse(reduced: boolean): Anim {
+    if (reduced) return STILL;
+    return {
+      animationName: {
+        "0%": { opacity: 1 },
+        "50%": { opacity: 0.55 },
+        "100%": { opacity: 1 },
+      },
+      animationDuration: 1400,
+      animationIterationCount: "infinite",
+      animationTimingFunction: "ease-in-out",
+    };
+  },
+
   /** The Now card's floating pill drawings. Still under reduce motion. */
   bob(duration: number, delay: number, reduced: boolean): Anim {
     if (reduced) return STILL;
