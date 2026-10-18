@@ -10,6 +10,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 import {
   Button,
   Card,
+  Chip,
   FieldError,
   Icon,
   IconDisc,
@@ -82,9 +83,11 @@ export default function BookDayScreen() {
     /** The doctor's hospital, which may not be the patient's own (ADR 0086). */
     hospital?: string;
   }>();
-  const reason = (
-    params.reason && REASONS.has(params.reason) ? params.reason : "follow_up"
-  ) as AppointmentReason;
+  // What the visit is for: given by Book a visit, else the patient says it here.
+  // It used to fall back to "Routine follow-up", which named visits wrongly (owner, 18 Oct 2026).
+  const [reason, setReason] = useState<AppointmentReason | null>(
+    params.reason && REASONS.has(params.reason) ? (params.reason as AppointmentReason) : null,
+  );
   const fullName = auth?.user.user_metadata?.full_name;
   const patient =
     params.memberName ??
@@ -113,6 +116,7 @@ export default function BookDayScreen() {
 
   const { doctor, department, hospital } = params;
   useEffect(() => {
+    if (!reason) return;
     let live = true;
     loadDays(
       reason,
@@ -133,6 +137,30 @@ export default function BookDayScreen() {
   }, [reason, doctor, department, hospital, attempt]);
 
   if (ticket) return <Sent ticket={ticket} unsent={unsent} />;
+
+  // The reason sets the fee and which clinic days take the visit, so it comes first.
+  const reasonPicker = (
+    <ReasonPicker
+      value={reason}
+      onPick={(r) => {
+        if (r === reason) return;
+        setReason(r);
+        setDays(null);
+        setFailed(false);
+        setSlotId(null);
+        setPart(null);
+        setWhoId(null);
+        setKey(null);
+      }}
+    />
+  );
+  if (!reason) {
+    return (
+      <Screen back={{ label: "Book a visit" }} title="Ask for a day" helpSource="book-day">
+        {reasonPicker}
+      </Screen>
+    );
+  }
 
   if (!days) {
     return (
@@ -165,7 +193,10 @@ export default function BookDayScreen() {
             />
           </View>
         ) : (
-          <ActivityIndicator color={t.ink} accessibilityLabel="Loading the clinic days" />
+          <View style={{ gap: tSpace[4] }}>
+            {reasonPicker}
+            <ActivityIndicator color={t.ink} accessibilityLabel="Loading the clinic days" />
+          </View>
         )}
       </Screen>
     );
@@ -310,6 +341,8 @@ export default function BookDayScreen() {
 
   return (
     <Screen {...header}>
+      {reasonPicker}
+
       <BookingCalendar
         today={today}
         open={openKeys}
@@ -642,5 +675,40 @@ function Sent({ ticket: tk, unsent }: { ticket: TicketData; unsent: number }) {
         />
       </View>
     </Screen>
+  );
+}
+
+/**
+ * "What is the visit for?": Appendix A's reasons, administrative words only
+ * (PRD §5.4; the clinical firewall holds the list). The hint under the chosen
+ * one says what kind of visit it is, never what is wrong.
+ */
+function ReasonPicker({
+  value,
+  onPick,
+}: {
+  value: AppointmentReason | null;
+  onPick: (reason: AppointmentReason) => void;
+}) {
+  const t = useTide();
+  const chosen = APPOINTMENT_REASONS.find((r) => r.value === value);
+  return (
+    <View style={{ gap: tSpace[2] }}>
+      <StepTitle>What is the visit for?</StepTitle>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[1.5] }}>
+        {APPOINTMENT_REASONS.map((r) => (
+          <Chip
+            key={r.value}
+            size="sm"
+            label={r.title}
+            selected={r.value === value}
+            onPress={() => onPick(r.value)}
+          />
+        ))}
+      </View>
+      <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
+        {chosen ? chosen.hint : "Choose one. The clinic sees it with your request."}
+      </Text>
+    </View>
   );
 }
