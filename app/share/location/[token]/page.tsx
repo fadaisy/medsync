@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { env } from "@/lib/env";
 import { AutoRefresh } from "./_components/auto-refresh";
-import { agoWords, googleMapsUrl, isShareToken, osmEmbedUrl, ugandaClock } from "./_lib/share";
+import { agoWords, googleMapsUrl, isShareToken, satelliteEmbedUrl, ugandaClock } from "./_lib/share";
 
 export const metadata: Metadata = {
   title: "Live location",
@@ -77,8 +77,8 @@ export default async function LiveLocationPage({
       {hasFix ? (
         <>
           <iframe
-            title="Map of the shared position"
-            src={osmEmbedUrl(lat, lng)}
+            title="Satellite map of the shared position"
+            src={satelliteEmbedUrl(lat, lng)}
             referrerPolicy="no-referrer"
             loading="lazy"
             className="border-border aspect-square w-full rounded-xl border sm:aspect-[4/3]"

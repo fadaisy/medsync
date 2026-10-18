@@ -26,10 +26,13 @@ export function ugandaClock(at: Date): string {
   }).format(at);
 }
 
-/** OpenStreetMap's free embed (no key), a few streets around the pin. */
-export function osmEmbedUrl(lat: number, lng: number): string {
-  const bbox = [lng - 0.008, lat - 0.005, lng + 0.008, lat + 0.005].map((n) => n.toFixed(6));
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox.join("%2C")}&layer=mapnik&marker=${lat}%2C${lng}`;
+/**
+ * Google Maps' free embed (no key) in satellite with road names (`t=h`), close
+ * enough to see the buildings around the pin (owner, 18 Oct 2026). The page
+ * sends no Referer, so the token never reaches Google.
+ */
+export function satelliteEmbedUrl(lat: number, lng: number): string {
+  return `https://maps.google.com/maps?q=${lat}%2C${lng}&t=h&z=18&output=embed`;
 }
 
 /** Google Maps' free search link (no key): opens the app on a phone. */

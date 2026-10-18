@@ -81,6 +81,8 @@ interface Share {
   token: string;
   endsAt: string;
   lastSentAt: string | null;
+  /** The last position sent, for the sheet's satellite preview; kept on this phone only. */
+  lastPos?: { lat: number; lng: number } | null;
 }
 
 const store = createStore<Share | null>(null);
@@ -118,11 +120,13 @@ async function follow(share: Share) {
       if (store.get()?.id !== share.id || !shouldWrite(lastWriteMs, nowMs)) return;
       lastWriteMs = nowMs;
       const at = new Date(pos.timestamp || nowMs).toISOString();
+      const lat = Number(pos.coords.latitude.toFixed(6));
+      const lng = Number(pos.coords.longitude.toFixed(6));
       void client
         .from("location_shares")
         .update({
-          lat: Number(pos.coords.latitude.toFixed(6)),
-          lng: Number(pos.coords.longitude.toFixed(6)),
+          lat,
+          lng,
           accuracy_m:
             pos.coords.accuracy === null ? null : Math.round(pos.coords.accuracy * 10) / 10,
           position_at: at,
@@ -130,7 +134,8 @@ async function follow(share: Share) {
         .eq("id", share.id)
         .then(({ error }) => {
           const now = store.get();
-          if (!error && now?.id === share.id) store.set({ ...now, lastSentAt: at });
+          if (!error && now?.id === share.id)
+            store.set({ ...now, lastSentAt: at, lastPos: { lat, lng } });
         });
     },
   );
@@ -254,6 +259,8 @@ export interface ActiveShare {
   endsAt: Date | null;
   link: string | null;
   lastSentAt: Date | null;
+  /** Where the family link shows the phone now, once a position has been sent. */
+  position: { lat: number; lng: number } | null;
   stop: () => Promise<string | null>;
 }
 
@@ -265,6 +272,7 @@ export function useActiveShare(): ActiveShare {
     endsAt: share ? new Date(share.endsAt) : null,
     link: share ? shareLink(share.token) : null,
     lastSentAt: share?.lastSentAt ? new Date(share.lastSentAt) : null,
+    position: share?.lastPos ?? null,
     stop: stopShare,
   };
 }

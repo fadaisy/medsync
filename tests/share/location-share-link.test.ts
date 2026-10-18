@@ -4,7 +4,7 @@ import {
   agoWords,
   googleMapsUrl,
   isShareToken,
-  osmEmbedUrl,
+  satelliteEmbedUrl,
   ugandaClock,
 } from "@/app/share/location/[token]/_lib/share";
 
@@ -30,8 +30,8 @@ describe("the family location link (ADR 0343)", () => {
   });
 
   it("builds keyless map links around the pin", () => {
-    expect(osmEmbedUrl(0.3476, 32.5825)).toBe(
-      "https://www.openstreetmap.org/export/embed.html?bbox=32.574500%2C0.342600%2C32.590500%2C0.352600&layer=mapnik&marker=0.3476%2C32.5825",
+    expect(satelliteEmbedUrl(0.3476, 32.5825)).toBe(
+      "https://maps.google.com/maps?q=0.3476%2C32.5825&t=h&z=18&output=embed",
     );
     expect(googleMapsUrl(0.3476, 32.5825)).toBe(
       "https://www.google.com/maps/search/?api=1&query=0.3476%2C32.5825",

@@ -158,22 +158,7 @@ export function PlaceMap({
             }}
           />
         </View>
-        {/* The fixed pin: its tip on the map's centre. Navy with a teal centre, never red. */}
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            marginLeft: -16,
-            marginTop: -44,
-          }}
-        >
-          <Svg width={32} height={44} viewBox="0 0 32 44">
-            <Path d="M16 43c0 0 14-14.5 14-27A14 14 0 0 0 2 16c0 12.5 14 27 14 27z" fill={t.band} />
-            <Circle cx={16} cy={16} r={6} fill={t.accent} />
-          </Svg>
-        </View>
+        <PinMark />
         <Press
           onPress={() => setSatellite((v) => !v)}
           accessibilityLabel={satellite ? "Show the street map" : "Show the satellite view"}
@@ -263,4 +248,75 @@ export async function wordsFor(lat: number, lng: number): Promise<GeoWords | nul
   } catch {
     return null;
   }
+}
+
+/** The fixed pin: its tip on the map's centre. Navy with a teal centre, never red. */
+function PinMark() {
+  const t = useTide();
+  return (
+    <View
+      pointerEvents="none"
+      style={{ position: "absolute", left: "50%", top: "50%", marginLeft: -16, marginTop: -44 }}
+    >
+      <Svg width={32} height={44} viewBox="0 0 32 44">
+        <Path d="M16 43c0 0 14-14.5 14-27A14 14 0 0 0 2 16c0 12.5 14 27 14 27z" fill={t.band} />
+        <Circle cx={16} cy={16} r={6} fill={t.accent} />
+      </Svg>
+    </View>
+  );
+}
+
+/**
+ * A satellite picture of one position, to look at, not to move: the live
+ * share's preview of what the family link shows (owner, 18 Oct 2026). It
+ * follows the position as new ones are sent. Satellite with road names, the
+ * same free map as `PlaceMap`.
+ */
+export function SatellitePreview({
+  lat,
+  lng,
+  height = 180,
+  label,
+}: {
+  lat: number;
+  lng: number;
+  height?: number;
+  label: string;
+}) {
+  const t = useTide();
+  const Maps = loadMaps();
+  if (!Maps) return null;
+  const MapView = Maps.default;
+  return (
+    <View
+      accessible
+      accessibilityLabel={label}
+      style={{
+        height,
+        borderRadius: tRadius.card,
+        overflow: "hidden",
+        boxShadow: `inset 0px 0px 0px 1px ${t.line}, ${t.shadow.card}`,
+      }}
+    >
+      <MapView
+        style={{ flex: 1 }}
+        region={{
+          latitude: lat,
+          longitude: lng,
+          latitudeDelta: CLOSE / 2,
+          longitudeDelta: CLOSE / 2,
+        }}
+        mapType="hybrid"
+        userInterfaceStyle={t.scheme}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        rotateEnabled={false}
+        pitchEnabled={false}
+        toolbarEnabled={false}
+        showsMyLocationButton={false}
+        pointerEvents="none"
+      />
+      <PinMark />
+    </View>
+  );
 }

@@ -2,7 +2,7 @@ import type { ShareLength, SharePurpose } from "@/data/location-share";
 import { useState } from "react";
 import { Share, Text } from "react-native";
 
-import { Button, Chip, ChipRow, Note, Sheet } from "@/components/tide";
+import { Button, Chip, ChipRow, Note, SatellitePreview, Sheet } from "@/components/tide";
 import {
   clockWords,
   leftWords,
@@ -77,9 +77,16 @@ export function ShareLocationSheet({
           <Text style={[tType.bodyM, { color: t.ink }]} accessibilityLiveRegion="polite">
             {`Sharing until ${clockWords(share.endsAt)} · ${leftWords(share.endsAt, now)}`}
           </Text>
+          {share.position ? (
+            <SatellitePreview
+              lat={share.position.lat}
+              lng={share.position.lng}
+              label="Satellite map of the position your family sees"
+            />
+          ) : null}
           <Text style={[tType.bodyS, { color: t.ink2 }]}>
             {share.lastSentAt
-              ? `Last sent at ${clockWords(share.lastSentAt)}.`
+              ? `Last sent at ${clockWords(share.lastSentAt)}. This is what your family sees.`
               : "Waiting for the first position."}
           </Text>
           <Note tone="info">{SHARE_OPEN_ONLY}</Note>
