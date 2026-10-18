@@ -26,6 +26,7 @@ export function Sheet({
   title,
   children,
   label,
+  help = true,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -35,6 +36,11 @@ export function Sheet({
   children: ReactNode;
   /** Screen-reader name for the sheet; defaults to the title. */
   label?: string;
+  /**
+   * Help above the scrim (law L6). Off only where the owner chose it, for a calm
+   * task sheet whose screen keeps Help one tap away (Move it, 18 Oct 2026).
+   */
+  help?: boolean;
 }) {
   const t = useTide();
   const insets = useSafeAreaInsets();
@@ -56,9 +62,11 @@ export function Sheet({
           style={{ position: "absolute", inset: 0, backgroundColor: t.scrim }}
         />
       </Animated.View>
-      <View style={{ position: "absolute", top: insets.top + 6, right: tSpace[5] }}>
-        <HelpButton source="sheet" />
-      </View>
+      {help ? (
+        <View style={{ position: "absolute", top: insets.top + 6, right: tSpace[5] }}>
+          <HelpButton source="sheet" />
+        </View>
+      ) : null}
       {/* Sits above the keyboard: the sheet rises with it, and the focused field is scrolled clear. */}
       <KeyboardAvoidingView
         behavior={KEYBOARD_BEHAVIOR}

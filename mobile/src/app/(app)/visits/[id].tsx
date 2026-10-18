@@ -467,6 +467,7 @@ export default function VisitScreen() {
       <Sheet
         visible={mode === "move"}
         onClose={closeSheet}
+        help={false}
         overline="Move it"
         title="Pick another day and time"
       >
