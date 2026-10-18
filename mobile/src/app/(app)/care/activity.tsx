@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";
 
 import { Screen, Segments } from "@/components/tide";
@@ -24,7 +25,9 @@ const TABS = [
 export default function ActivityScreen() {
   const t = useTide();
   const now = useNow();
-  const [tab, setTab] = useState<"move" | "eat">("move");
+  // Home's Eat step opens straight on Eat.
+  const { tab: start } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<"move" | "eat">(start === "eat" ? "eat" : "move");
   const { toast, show } = useToast();
   return (
     <View style={{ flex: 1 }}>

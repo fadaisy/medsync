@@ -21,6 +21,7 @@ import {
 import { DAY_GOAL, useActivity } from "@/data/activity";
 import { STEP_AIM, stepsOn } from "@/data/exercise";
 import { useHealthLog } from "@/data/health-log";
+import { dayTotals, mealsOn } from "@/data/meals";
 import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
@@ -49,7 +50,7 @@ const KIND_WORDS = { bp: "Blood pressure", sugar: "Blood sugar", weight: "Weight
 /**
  * Home, your day (F-02). The greeting, today's mood, the day cascade built
  * from the patient's own log (doses taken today, the latest reading, the dose
- * due now on top, today's steps and Move minutes against their common goals) and "See a doctor". A patient with nothing logged yet gets
+ * due now on top, today's steps and Move minutes against their common goals, today's meals) and "See a doctor". A patient with nothing logged yet gets
  * one calm card that starts them off. Home also starts the outbox, so saves
  * made offline send once the phone is back.
  */
@@ -100,8 +101,15 @@ export default function HomeScreen() {
   const latest = readings[0];
   const loading = (med.loading || readingsLoading || act.loading) && !doses.length && !latest;
   const failed = (med.error || readingsError) && !doses.length && !latest;
+  const meals = mealsOn(log.rows, now);
+  const eaten = dayTotals(meals);
   const firstRun =
-    !loading && !failed && !med.medicines.length && !readings.length && !act.minutesToday;
+    !loading &&
+    !failed &&
+    !med.medicines.length &&
+    !readings.length &&
+    !act.minutesToday &&
+    !meals.length;
   const moved = act.minutesToday;
   // As on Move: the phone's count, or the day's saved total if that is higher.
   const stepsToday =
@@ -151,9 +159,20 @@ export default function HomeScreen() {
       done: stepsToday !== null ? stepsToday >= STEP_AIM || moved >= DAY_GOAL : moved >= DAY_GOAL,
       href: "/care/activity" as const,
     },
+    {
+      key: "eat",
+      icon: "utensils" as const,
+      title: meals.length ? `Eat · ${eaten.kcal} kcal today` : "Eat · nothing logged yet",
+      line: meals.length
+        ? `${meals.length} ${meals.length === 1 ? "food" : "foods"} · ${Math.round(eaten.carbsG)} g carbs`
+        : "Tap to add what you eat",
+      // No calorie goal is set for anyone, so a day of meals is never "done".
+      done: false,
+      href: { pathname: "/care/activity", params: { tab: "eat" } } as const,
+    },
   ];
-  // Only the Move step: nothing taken or read yet today.
-  const quietDay = steps.length === 1;
+  // Only Move and Eat: nothing taken or read yet today.
+  const quietDay = !takenToday.length && !latest;
   const tail = due || next || quietDay;
 
   const take = async (id: string) => {
