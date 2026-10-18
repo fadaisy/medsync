@@ -13,6 +13,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **The note comes before payment.** "Anything the doctor should know?" uses the symptom catalogue v0.1, by area or by search, in a list about four rows tall that scrolls. Choices go to the clinic as words. A danger sign points to Help, and a "be seen today" item points to today's options.
 - **Photos, videos and voice notes.** A patient can add a voice note, photos from the phone, or a photo or video taken there and then. They send after the request is made. To type by talking, the patient uses the keyboard's microphone.
 - **Migration 0172 (owner-applied).** It adds the private `appointment-attachments` bucket and the append-only `appointment_attachments` table.
+- **Voice notes become words, on the phone** ([ADR 0346](docs/adr/0346-voice-notes-become-words-on-the-phone.md)). In a development build, the on-device recogniser records the note and writes what is said into the note box. Expo Go keeps the keyboard's microphone. `npm start` opens Expo Go, and `npm run start:dev` serves a development build. Migration 0173 lets the bucket take wav.
+- **Voice notes play from the speaker, with a waveform** that moves while recording and fills as the note plays.
 
 ### Added — Patient places on a real map, and live location shares — 2026-10-18
 

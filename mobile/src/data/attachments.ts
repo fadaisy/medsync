@@ -37,6 +37,8 @@ const EXT: Record<string, string> = {
   "audio/aac": "aac",
   "audio/mpeg": "mp3",
   "audio/webm": "webm",
+  "audio/wav": "wav",
+  "audio/x-wav": "wav",
 };
 
 /** The type the bucket takes for this file, or null for one it refuses (0172's list). */

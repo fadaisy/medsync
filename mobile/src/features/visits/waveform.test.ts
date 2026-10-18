@@ -1,10 +1,13 @@
-import { bars, levelOf } from "@/features/visits/waveform";
+import { bars, levelOf, volumeLevel } from "@/features/visits/waveform";
 
 describe("voice note waveform", () => {
   it("maps loudness to 0–1 with a visible floor", () => {
     expect(levelOf(0)).toBe(1);
     expect(levelOf(-25)).toBe(0.5);
     expect(levelOf(-160)).toBe(0.08);
+    expect(volumeLevel(10)).toBe(1);
+    expect(volumeLevel(4)).toBe(0.5);
+    expect(volumeLevel(-2)).toBe(0.08);
   });
 
   it("always draws n bars, averaging or stretching the readings", () => {

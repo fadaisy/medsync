@@ -1,31 +1,20 @@
 import type { IconName } from "@/components/tide/icon";
 import type { Attachment } from "@/data/attachments";
-import { useEffect, useState } from "react";
-import {
-  RecordingPresets,
-  requestRecordingPermissionsAsync,
-  setAudioModeAsync,
-  useAudioPlayer,
-  useAudioPlayerStatus,
-  useAudioRecorder,
-  useAudioRecorderState,
-} from "expo-audio";
+import { useState } from "react";
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { ScrollView, Text, View } from "react-native";
 
 import { FieldError, Icon, Press } from "@/components/tide";
 import { MAX_MEDIA, MAX_VOICE, storedMime } from "@/data/attachments";
-import { bars, levelOf } from "@/features/visits/waveform";
+import { PLAYBACK, useVoiceNote } from "@/features/visits/voice";
+import { bars } from "@/features/visits/waveform";
 import { requestId } from "@/lib/edge";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
-/** Loudness readings on, for the waveform. A constant: the recorder is made once. */
-const RECORDING = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true };
 const BARS = 36;
-/** Playback leaves record mode, so the sound comes from the speaker, also with the phone on silent. */
-const PLAYBACK = { allowsRecording: false, playsInSilentMode: true } as const;
 
 const clock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -37,57 +26,42 @@ const clock = (ms: number) => {
  * 2026): a voice note, photos from the phone, or a photo or video taken now.
  * Nothing leaves the phone until the request is made (`sendAttachments`).
  *
- * Speech to text: Expo Go has no speech recogniser of its own, so the words
- * come from the keyboard's own microphone into the note box, and the voice
- * note is kept as sound for the clinic.
+ * Speech to text (ADR 0346): in a development or release build the on-device
+ * recogniser writes the words into the note box as the patient speaks
+ * (`onText`). Expo Go has none, so there the keyboard's microphone does it,
+ * and the voice note is kept as sound for the clinic either way.
  */
 export function AttachmentTools({
   value,
-  onChange,
+  onAdd,
+  onRemove,
+  onText,
 }: {
   value: Attachment[];
-  onChange: (next: Attachment[]) => void;
+  onAdd: (list: Attachment[]) => void;
+  onRemove: (id: string) => void;
+  onText: (text: string) => void;
 }) {
   const t = useTide();
-  const recorder = useAudioRecorder(RECORDING);
-  const rec = useAudioRecorderState(recorder, 250);
   const [error, setError] = useState<string | null>(null);
-  const [levels, setLevels] = useState<number[]>([]);
-
-  // Read the loudness ten times a second while recording: the live waveform, then the note's.
-  useEffect(() => {
-    if (!rec.isRecording) return;
-    const id = setInterval(() => {
-      const db = recorder.getStatus().metering;
-      if (db !== undefined) setLevels((l) => [...l, levelOf(db)]);
-    }, 100);
-    return () => clearInterval(id);
-  }, [rec.isRecording, recorder]);
+  const voice = useVoiceNote({
+    onNote: (note) => onAdd([note]),
+    onText,
+    onError: setError,
+  });
   const voices = value.filter((a) => a.kind === "voice");
   const media = value.filter((a) => a.kind !== "voice");
 
-  const add = (list: Attachment[]) => onChange([...value, ...list]);
-  const remove = (id: string) => onChange(value.filter((a) => a.id !== id));
+  const add = onAdd;
+  const remove = onRemove;
 
   const toggleVoice = async () => {
     setError(null);
     try {
-      if (rec.isRecording) {
-        const ms = rec.durationMillis;
-        await recorder.stop();
-        await setAudioModeAsync(PLAYBACK);
-        const uri = recorder.uri;
-        if (uri)
-          add([{ id: requestId(), kind: "voice", uri, mime: "audio/mp4", durationMs: ms, levels }]);
-        return;
-      }
+      if (voice.recording) return await voice.stop();
       if (voices.length >= MAX_VOICE) return setError(`Up to ${MAX_VOICE} voice notes.`);
-      const perm = await requestRecordingPermissionsAsync();
-      if (!perm.granted) return setError("Allow the microphone in Settings, or type instead.");
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await recorder.prepareToRecordAsync();
-      setLevels([]);
-      recorder.record();
+      const problem = await voice.start();
+      if (problem) setError(problem);
     } catch {
       setError("The voice note didn't record. Try again.");
     }
@@ -158,22 +132,26 @@ export function AttachmentTools({
   return (
     <View style={{ gap: tSpace[2] }}>
       <View style={{ flexDirection: "row", gap: tSpace[2] }}>
-        {rec.isRecording
-          ? tool("stop", `Stop · ${clock(rec.durationMillis)}`, () => void toggleVoice(), true)
+        {voice.recording
+          ? tool("stop", `Stop · ${clock(voice.durationMs)}`, () => void toggleVoice(), true)
           : tool("mic", "Voice note", () => void toggleVoice())}
         {tool("image", "Add photo", () => void fromPhone())}
         {tool("camera", "Camera", () => void fromCamera())}
       </View>
       <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-        {rec.isRecording
-          ? "Recording. Tap Stop when you are done."
-          : "To type by talking, tap the microphone on your keyboard."}
+        {voice.recording
+          ? voice.transcribes
+            ? "Recording. What you say is written into the box above."
+            : "Recording. Tap Stop when you are done."
+          : voice.transcribes
+            ? "A voice note is written into the box as you speak, on this phone only."
+            : "To type by talking, tap the microphone on your keyboard."}
       </Text>
       {error ? <FieldError>{error}</FieldError> : null}
 
-      {rec.isRecording ? (
+      {voice.recording ? (
         <View
-          accessibilityLabel={`Recording, ${clock(rec.durationMillis)}`}
+          accessibilityLabel={`Recording, ${clock(voice.durationMs)}`}
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -186,9 +164,9 @@ export function AttachmentTools({
         >
           <Icon name="mic" size={18} color={t.ink} />
           {/* The newest readings, so the bars move with the voice. */}
-          <Waveform heights={bars(levels.slice(-BARS), BARS)} played={1} />
+          <Waveform heights={bars(voice.levels.slice(-BARS), BARS)} played={1} />
           <Text style={[tType.labelS, { color: t.ink, fontVariant: ["tabular-nums"] }]}>
-            {clock(rec.durationMillis)}
+            {clock(voice.durationMs)}
           </Text>
         </View>
       ) : null}

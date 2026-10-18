@@ -47,6 +47,13 @@
         }
       ],
       [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "MedSync records a voice note when you choose to send one to your doctor.",
+          "speechRecognitionPermission": "MedSync turns your voice note into words on this phone, so your doctor can read it."
+        }
+      ],
+      [
         "expo-audio",
         {
           "microphonePermission": "MedSync records a voice note when you choose to send one to your doctor."

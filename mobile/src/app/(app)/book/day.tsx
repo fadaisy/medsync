@@ -477,7 +477,15 @@ export default function BookDayScreen() {
           maxLength={500}
           multiline
         />
-        <AttachmentTools value={attachments} onChange={setAttachments} />
+        <AttachmentTools
+          value={attachments}
+          onAdd={(list) => setAttachments((a) => [...a, ...list])}
+          onRemove={(id) => setAttachments((a) => a.filter((x) => x.id !== id))}
+          onText={(words) => {
+            setNote((n) => (n.trim() ? `${n.trimEnd()} ${words}` : words).slice(0, 500));
+            reset();
+          }}
+        />
       </View>
 
       {session && fee ? (

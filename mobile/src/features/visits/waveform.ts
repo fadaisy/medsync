@@ -9,6 +9,11 @@ export function levelOf(db: number): number {
   return Math.min(1, Math.max(0.08, (db + 50) / 50));
 }
 
+/** The on-device recogniser's volume (-2 quiet to 10 loud) as 0–1, with the same floor. */
+export function volumeLevel(value: number): number {
+  return Math.min(1, Math.max(0.08, (value + 2) / 12));
+}
+
 /** Exactly `n` bars: readings averaged into even buckets, or flat bars when there are none. */
 export function bars(levels: readonly number[], n: number): number[] {
   if (!levels.length) return Array.from({ length: n }, () => 0.08);
