@@ -5,6 +5,7 @@ import {
   countdownOf,
   feeFor,
   feeText,
+  mapsUrl,
   monthGrid,
   partOf,
   payLook,
@@ -131,5 +132,22 @@ describe("countdownOf", () => {
       minutes: 0,
       seconds: 0,
     });
+  });
+});
+
+describe("mapsUrl", () => {
+  const pin = { lat: 0.3381, lng: 32.5761 };
+  it("gives directions to the pin when the hospital set one", () => {
+    expect(mapsUrl("ios", "Mulago", pin)).toBe(
+      "https://maps.apple.com/?daddr=0.3381,32.5761&q=Mulago",
+    );
+    expect(mapsUrl("android", "Mulago", pin)).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=0.3381%2C32.5761",
+    );
+  });
+  it("searches the name when it has not", () => {
+    expect(mapsUrl("android", "Test Hospital-1", null)).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Test%20Hospital-1%2C%20Uganda",
+    );
   });
 });

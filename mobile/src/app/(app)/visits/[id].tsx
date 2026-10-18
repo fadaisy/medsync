@@ -3,7 +3,7 @@ import type { AppointmentRow } from "@/lib/booking";
 import { useEffect, useState } from "react";
 import { cancellationSentence } from "@shared/cancel-reasons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -15,6 +15,7 @@ import {
   Icon,
   Note,
   Press,
+  SatellitePreview,
   Screen,
   Sheet,
   TextField,
@@ -28,6 +29,7 @@ import {
   dayKeyOf,
   dayNumberOf,
   longDayOf,
+  mapsUrl,
   monthShortOf,
   partOf,
   shortDayOf,
@@ -451,6 +453,28 @@ export default function VisitScreen() {
             ? `Show code ${visit.bookingCode} at the desk when you arrive.`
             : "Show your MedSync number at the desk when you arrive."}
         </Text>
+        {/* The plain street map to the hospital, when its admin has set where it is. */}
+        {visit.hospitalPin ? (
+          <SatellitePreview
+            satellite={false}
+            lat={visit.hospitalPin.lat}
+            lng={visit.hospitalPin.lng}
+            height={170}
+            label={`Map showing where ${visit.hospitalName} is`}
+          />
+        ) : (
+          <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
+            {`${visit.hospitalName} has not put its place on the map yet. Your map app can search for it.`}
+          </Text>
+        )}
+        <Button
+          label={visit.hospitalPin ? "Directions in Maps" : "Search in Maps"}
+          variant="soft"
+          icon="navigation"
+          onPress={() =>
+            void Linking.openURL(mapsUrl(Platform.OS, visit.hospitalName, visit.hospitalPin))
+          }
+        />
         {/* Upcoming and not yet arrived: family can follow the trip with a private link (ADR 0343). */}
         {mine && RESCHEDULABLE.has(visit.status) ? (
           <Button

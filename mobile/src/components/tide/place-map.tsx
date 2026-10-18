@@ -277,11 +277,14 @@ export function SatellitePreview({
   lng,
   height = 180,
   label,
+  satellite = true,
 }: {
   lat: number;
   lng: number;
   height?: number;
   label: string;
+  /** Off: the plain street map (the way to a hospital, owner 18 Oct 2026). */
+  satellite?: boolean;
 }) {
   const t = useTide();
   const Maps = loadMaps();
@@ -306,7 +309,7 @@ export function SatellitePreview({
           latitudeDelta: CLOSE / 2,
           longitudeDelta: CLOSE / 2,
         }}
-        mapType="hybrid"
+        mapType={satellite ? "hybrid" : "standard"}
         userInterfaceStyle={t.scheme}
         scrollEnabled={false}
         zoomEnabled={false}

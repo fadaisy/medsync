@@ -170,3 +170,23 @@ export function countdownOf(
     seconds: secs % 60,
   };
 }
+
+/**
+ * "Open in Maps" for a hospital: directions to its pin when its admin set one,
+ * else the phone's map app searching its name (the app's own answer, not ours).
+ * Apple Maps on iPhone, Google Maps elsewhere; both need no key.
+ */
+export function mapsUrl(
+  os: "ios" | "android" | string,
+  name: string,
+  pin: { lat: number; lng: number } | null,
+): string {
+  const place = encodeURIComponent(`${name}, Uganda`);
+  if (os === "ios")
+    return pin
+      ? `https://maps.apple.com/?daddr=${pin.lat},${pin.lng}&q=${encodeURIComponent(name)}`
+      : `https://maps.apple.com/?q=${place}`;
+  return pin
+    ? `https://www.google.com/maps/dir/?api=1&destination=${pin.lat}%2C${pin.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${place}`;
+}

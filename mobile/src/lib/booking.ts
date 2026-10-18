@@ -350,6 +350,8 @@ export interface AppointmentRow {
   clinicianPhotoUrl: string | null;
   departmentName: string;
   hospitalName: string;
+  /** Where the hospital is, when its admin has set it (Profile); null until then. */
+  hospitalPin: { lat: number; lng: number } | null;
   /** Carried because rescheduling has to rebuild this clinician's grid. */
   hospitalId: string;
   departmentId: string;
@@ -382,6 +384,15 @@ export interface AppointmentRow {
   quotedFeeLabel: string | null;
 }
 
+/** A hospital's map pin, only when both numbers are there. */
+function pinOf(
+  h: { latitude: number | null; longitude: number | null } | null | undefined,
+): { lat: number; lng: number } | null {
+  return h && h.latitude !== null && h.longitude !== null
+    ? { lat: h.latitude, lng: h.longitude }
+    : null;
+}
+
 interface AppointmentQueryRow {
   id: string;
   provisional_patient_id: string | null;
@@ -405,7 +416,7 @@ interface AppointmentQueryRow {
   quoted_fee_ugx: number | null;
   quoted_fee_label: string | null;
   hospital_departments: Embed<{ name: string }>;
-  hospitals: Embed<{ name: string }>;
+  hospitals: Embed<{ name: string; latitude: number | null; longitude: number | null }>;
 }
 
 /**
@@ -448,7 +459,7 @@ export async function fetchAppointments(
       "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
         "reason, reason_note, symptoms, booking_code, session_id, position_number, " +
         "arrival_window_start, arrival_window_end, confirmed_by_patient_at, cancelled_reason, " +
-        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name)",
+        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name, latitude, longitude)",
     )
     .or(`${own}${members}`);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
@@ -482,6 +493,7 @@ export async function fetchAppointments(
       clinicianPhotoUrl: clinicians.get(r.clinician_user_id)?.photoUrl ?? null,
       departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
       hospitalName: embedded(r.hospitals)?.name ?? "Your hospital",
+      hospitalPin: pinOf(embedded(r.hospitals)),
       hospitalId: r.hospital_id,
       departmentId: r.department_id,
       clinicianUserId: r.clinician_user_id,
