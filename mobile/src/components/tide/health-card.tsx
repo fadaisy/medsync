@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
-import Animated, { useReducedMotion } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 
 import { Press } from "@/components/tide/press";
 import { CARD_ART } from "@/data/card-art";
-import { transition } from "@/motion/presets";
+import { EASE_OUT_FN } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -22,14 +27,24 @@ export interface HealthCardData {
   age: string | null;
   /** Null when the patient keeps them off the card (the default, PRD Q6). */
   conditions: string | null;
+  /** The patient's own allergy list, "No known allergies", or "None listed". */
   allergies: string;
+  /** "On file at Mulago" or "None given" (the number is encrypted, never on the phone); null: unknown. */
+  nextOfKin: string | null;
+  /** "If found, call Mulago on 0414 …", or return to the home facility when no number is set. */
+  ifFound: string;
 }
 
 /**
- * The health card (§8.6): a bank-card-sized navy front and a light back,
- * turned over by a tap (`transition.cardFlip`, backface hidden). Under reduce
- * motion it cross-fades instead of turning. Everything it shows comes in as
- * props, so the screen can draw it from the phone's cache with no network.
+ * The health card (§8.6): a bank-card-sized navy front and a light back for
+ * whoever finds the card or treats the holder (ADR 0355): the number large,
+ * allergies, conditions (only when the holder shows them), whether a next of
+ * kin is on file, and who to call. Tap to turn, as the visit ticket does
+ * (ADR 0350): each face turns on its own, half a turn apart, so the face
+ * turned away is hidden (a turned parent showed the front mirrored). Under
+ * reduce motion it cross-fades. Everything comes in as props, so the screen
+ * can draw it from the phone's cache with no network. No blood group: the
+ * record does not hold one.
  *
  * No QR: a code that encodes nothing would invite a scan that fails, and the
  * patient code alone is not an authenticator (PRD Q2). The desk reads the
@@ -39,6 +54,20 @@ export function HealthCard({ data }: { data: HealthCardData }) {
   const t = useTide();
   const reduced = useReducedMotion();
   const [flipped, setFlipped] = useState(false);
+  const turn = useSharedValue(0);
+  const flip = () => {
+    const next = !flipped;
+    setFlipped(next);
+    turn.value = withTiming(next ? 1 : 0, { duration: reduced ? 150 : 450, easing: EASE_OUT_FN });
+  };
+  const frontStyle = useAnimatedStyle(() => ({
+    opacity: reduced ? 1 - turn.value : 1,
+    transform: [{ perspective: 1100 }, { rotateY: `${reduced ? 0 : turn.value * 180}deg` }],
+  }));
+  const backStyle = useAnimatedStyle(() => ({
+    opacity: reduced ? turn.value : 1,
+    transform: [{ perspective: 1100 }, { rotateY: `${reduced ? 0 : turn.value * 180 + 180}deg` }],
+  }));
   const label = (s: string) => (
     <Text
       style={[
@@ -63,6 +92,7 @@ export function HealthCard({ data }: { data: HealthCardData }) {
     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: tSpace[2.5] }}>
       <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>{k}</Text>
       <Text
+        numberOfLines={1}
         style={[
           tType.caption,
           { fontFamily: tFont.bold, color: t.ink, textAlign: "right", flexShrink: 1 },
@@ -77,11 +107,7 @@ export function HealthCard({ data }: { data: HealthCardData }) {
     <Animated.View
       accessibilityElementsHidden={flipped}
       importantForAccessibility={flipped ? "no-hide-descendants" : "auto"}
-      style={[
-        face,
-        { backgroundColor: t.band, boxShadow: t.shadow.float },
-        reduced ? { opacity: flipped ? 0 : 1, ...transition.cardFlip(true) } : null,
-      ]}
+      style={[face, { backgroundColor: t.band, boxShadow: t.shadow.float }, frontStyle]}
     >
       <Svg
         width="100%"
@@ -208,25 +234,24 @@ export function HealthCard({ data }: { data: HealthCardData }) {
           borderColor: t.line,
           boxShadow: t.shadow.float,
         },
-        reduced
-          ? { opacity: flipped ? 1 : 0, ...transition.cardFlip(true) }
-          : { transform: [{ rotateY: "180deg" }] },
+        backStyle,
       ]}
     >
-      <View style={{ height: 34, marginTop: tSpace[4], backgroundColor: t.band }} />
       <View
         style={{
-          flexDirection: "row",
-          gap: tSpace[3],
-          paddingHorizontal: tSpace[4],
+          flex: 1,
           paddingTop: tSpace[3],
+          paddingBottom: tSpace[2.5],
+          paddingHorizontal: tSpace[4],
+          gap: tSpace[1.5],
         }}
       >
-        <View style={{ flex: 1, gap: tSpace[1.5] }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2] }}>
           <Text
             style={[
               tType.micro,
               {
+                flex: 1,
                 fontFamily: tFont.bold,
                 fontSize: 10,
                 letterSpacing: 1.2,
@@ -237,54 +262,64 @@ export function HealthCard({ data }: { data: HealthCardData }) {
           >
             In an emergency
           </Text>
-          {row("Conditions", data.conditions ?? "Hidden")}
-          {row("Allergies", data.allergies)}
-          {row("MedSync number", data.number)}
+          <Text style={{ fontFamily: tFont.extrabold, fontSize: 12, color: t.ink }}>
+            Med<Text style={{ color: t.accentText }}>Sync</Text>
+          </Text>
         </View>
+        <View
+          style={{
+            paddingVertical: tSpace[1.5],
+            paddingHorizontal: tSpace[2.5],
+            borderRadius: tRadius.sm,
+            backgroundColor: t.surface2,
+          }}
+        >
+          <Text style={[tType.micro, { fontSize: 9, letterSpacing: 1.1, color: t.ink3 }]}>
+            MEDSYNC NUMBER
+          </Text>
+          <Text
+            accessibilityLabel={`MedSync number ${data.number}`}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            style={
+              /\d/.test(data.number)
+                ? { fontFamily: tFont.monoSemibold, fontSize: 22, letterSpacing: 2.4, color: t.ink }
+                : { fontFamily: tFont.semibold, fontSize: 14, color: t.ink2 }
+            }
+          >
+            {data.number}
+          </Text>
+        </View>
+        {row("Allergies", data.allergies)}
+        {row("Conditions", data.conditions ?? "Hidden by the card holder")}
+        {data.nextOfKin ? row("Next of kin", data.nextOfKin) : null}
+        <View style={{ flex: 1 }} />
+        <Text
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          style={[tType.caption, { fontFamily: tFont.semibold, color: t.ink }]}
+        >
+          {data.ifFound}
+        </Text>
+        <Text numberOfLines={1} style={[tType.micro, { fontSize: 9, color: t.ink3 }]}>
+          Written by the card holder · not confirmed by a clinician
+        </Text>
       </View>
-      <Text
-        numberOfLines={1}
-        style={[
-          tType.micro,
-          {
-            fontSize: 10,
-            color: t.ink3,
-            position: "absolute",
-            left: tSpace[4],
-            right: tSpace[4],
-            bottom: tSpace[2.5],
-          },
-        ]}
-      >
-        If found, return to {data.facility ?? "any hospital"}
-      </Text>
     </Animated.View>
   );
 
   return (
     <Press
-      onPress={() => setFlipped((f) => !f)}
+      onPress={flip}
       accessibilityLabel={
-        flipped ? "Health card, back. Tap to flip" : "Health card, front. Tap to flip"
+        flipped ? "Health card, back. Tap to turn over" : "Health card, front. Tap to turn over"
       }
       accessibilityState={{ expanded: flipped }}
       haptic
       style={{ width: "100%", aspectRatio: CARD_RATIO }}
     >
-      <Animated.View
-        style={[
-          { flex: 1 },
-          reduced
-            ? null
-            : {
-                transform: [{ perspective: 1100 }, { rotateY: flipped ? "180deg" : "0deg" }],
-                ...transition.cardFlip(false),
-              },
-        ]}
-      >
-        {front}
-        {back}
-      </Animated.View>
+      {front}
+      {back}
     </Press>
   );
 }

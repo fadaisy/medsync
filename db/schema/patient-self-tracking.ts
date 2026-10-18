@@ -1,5 +1,7 @@
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -23,9 +25,13 @@ import { authUsers } from "./_auth";
  *   - self_medications           the patient's own med list
  *   - self_medication_takes      confirmed-taken events; adherence
  *
- * RLS: patient SELECT/INSERT/UPDATE/DELETE on own rows. No clinician
- * access — that's a separate `clinical_observations` table when the
- * clinical module ships.
+ * RLS: patient SELECT/INSERT/UPDATE/DELETE on own rows; since 0174 the
+ * care team (public.has_clinical_relationship) reads the active log rows.
+ *
+ * 0175 adds patient_reported_history (ADR 0355): the patient's own
+ * conditions, allergies and family history in the clerking catalogue's
+ * ids, append-only (insert, or retire state active → removed), read by
+ * the care team and shown on the desk as patient-reported, unconfirmed.
  */
 
 /* ─── personal_health_logs ───────────────────────────────────────── */
@@ -137,3 +143,54 @@ export const selfMedicationTakes = pgTable(
 
 export type SelfMedicationTake = typeof selfMedicationTakes.$inferSelect;
 export type NewSelfMedicationTake = typeof selfMedicationTakes.$inferInsert;
+
+/* ─── patient_reported_history (0175) ────────────────────────────── */
+export const patientReportedHistory = pgTable(
+  "patient_reported_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    /** condition | allergy | family | no_known_allergies */
+    kind: text("kind").notNull(),
+    /** A clerking catalogue id (MS-EMR-CLERK-CAT-001), or 'other' with other_text. */
+    itemId: text("item_id"),
+    otherText: text("other_text"),
+    onsetYear: smallint("onset_year"),
+    /** Conditions: the patient no longer has it. */
+    resolved: boolean("resolved"),
+    /** Family: option_sets.relations id. */
+    relation: text("relation"),
+    /** Allergies: allergies.reactions ids. */
+    reactions: text("reactions")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    severity: text("severity"),
+    supersedesId: uuid("supersedes_id").references((): AnyPgColumn => patientReportedHistory.id),
+    state: text("state").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    removedAt: timestamp("removed_at", { withTimezone: true }),
+  },
+  (t) => [
+    check(
+      "patient_reported_history_kind_check",
+      sql`${t.kind} IN ('condition','allergy','family','no_known_allergies')`,
+    ),
+    check("patient_reported_history_state_check", sql`${t.state} IN ('active','removed')`),
+    check(
+      "patient_reported_history_relation_check",
+      sql`${t.relation} IS NULL OR ${t.relation} IN ('mother','father','sibling','child','grandparent','other_relative')`,
+    ),
+    check(
+      "patient_reported_history_severity_check",
+      sql`${t.severity} IS NULL OR ${t.severity} IN ('mild','moderate','severe')`,
+    ),
+    index("patient_reported_history_active_idx")
+      .on(t.patientUserId, t.kind)
+      .where(sql`${t.state} = 'active'`),
+  ],
+);
+
+export type PatientReportedHistory = typeof patientReportedHistory.$inferSelect;

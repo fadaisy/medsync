@@ -9,6 +9,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Image, Linking, Switch, Text, View } from "react-native";
 
 import { Avatar, Button, HealthCard, Icon, Press, Screen, TextLink } from "@/components/tide";
+import { useHistory } from "@/data/history";
 import {
   ageWords,
   cardNumber,
@@ -20,6 +21,8 @@ import {
 } from "@/data/me";
 import { useMedicines } from "@/data/medicines";
 import { placesSummary, usePlaces } from "@/data/places";
+import { detailsFromAppOn, loadDetails } from "@/data/profile-details";
+import { cardLines } from "@/features/history/logic";
 import {
   AVATAR_PICKER_OPTIONS,
   fetchHousehold,
@@ -38,15 +41,16 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * Me (board TMe/DMe, §8.6, F-20): the health card, my health, the people I
  * book for, privacy, and the phone's settings.
  *
- * All real: name (auth metadata), patient code, home facility, sex, age and
- * the conditions the patient wrote on their profile (cached for the offline
- * card), their medicines list, the household, photo, SMS consent, push
- * permission, theme and sign out. Allergies are not the patient's to read on
- * the phone yet, so the row says to tell the nurse. No primary doctor,
- * emergency contact, record openings or payment method is shown: the phone
- * holds none of them truthfully. Language and text size stay on this phone.
+ * All real: name (auth metadata), patient code, home facility, sex and age
+ * (cached for the offline card); the conditions, allergies and family history
+ * the patient reports from the clerking desk's catalogue (ADR 0355, cached
+ * too), which the desk shows as patient-reported for a clinician to confirm;
+ * their medicines list, the household, photo, SMS consent, push permission,
+ * theme and sign out. The card's back says whether a next of kin is on file
+ * (the number is encrypted server-side) and who to call if it is found. No
+ * primary doctor, blood group or payment method is shown: the phone holds
+ * none of them truthfully. Language and text size stay on this phone.
  */
-const ALLERGY_WORDS = "Tell your nurse about any allergy";
 export default function MeTab() {
   const t = useTide();
   const router = useRouter();
@@ -58,6 +62,8 @@ export default function MeTab() {
   const now = useNow();
   const meds = useMedicines(now);
   const places = usePlaces();
+  const history = useHistory();
+  const [nokOnFile, setNokOnFile] = useState<boolean | null>(null);
   // A+ applies to this screen's rows (board: zoom 1.12).
   const z = (n: number) => Math.round(n * (prefs.big ? 1.12 : 1));
 
@@ -78,6 +84,11 @@ export default function MeTab() {
       void fetchHousehold().then(setHousehold, () => {});
       void fetchMyAvatarUrl().then(setAvatarUrl, () => {});
       void fetchSmsConsent().then(setSmsOn, () => {});
+      if (detailsFromAppOn)
+        void loadDetails().then(
+          (r) => (r.ok ? setNokOnFile(r.onFile.nokOnFile) : null),
+          () => {},
+        );
       void Notifications.getPermissionsAsync().then(
         (p) =>
           setPush(
@@ -136,8 +147,12 @@ export default function MeTab() {
   };
 
   const sex = sexLetter(id.sex);
-  const conditions = id.conditions.length ? id.conditions.join(" · ") : null;
+  const card = cardLines(history, id.conditions);
   const medCount = meds.medicines.length;
+  const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const historySub = (n: number, one: string, many: string, none: string) =>
+    history.off ? "Not switched on yet" : n ? `${count(n, one, many)} · not yet confirmed` : none;
+  const facilityName = id.facility ?? "any hospital";
 
   return (
     <Screen title="Me" underNav helpSource="me" gap={tSpace[2.5]}>
@@ -147,8 +162,18 @@ export default function MeTab() {
           number: cardNumber(id.code),
           facility: id.facility,
           age: ageWords(id.dob, now),
-          conditions: prefs.showConditionsOnCard ? (conditions ?? "None added") : null,
-          allergies: "Tell your nurse",
+          conditions: prefs.showConditionsOnCard ? card.conditions : null,
+          allergies: card.allergies,
+          nextOfKin:
+            nokOnFile === null
+              ? null
+              : nokOnFile
+                ? `On file${id.facility ? ` at ${id.facility}` : ""}`
+                : "None given",
+          ifFound:
+            id.emergencyPhone && id.facility
+              ? `If found, call ${id.facility} on ${id.emergencyPhone}`
+              : `If found, please return it to ${facilityName}`,
         }}
       />
       <View
@@ -161,7 +186,7 @@ export default function MeTab() {
         <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
           <Icon name="replay" size={13} color={t.ink3} />
           <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-            Tap the card to flip · works offline
+            Tap the card to turn it over · works offline
           </Text>
         </View>
         {sex ? (
@@ -177,9 +202,34 @@ export default function MeTab() {
           icon="heart"
           color={t.area.readings}
           title="My conditions"
-          sub={conditions ?? "None added to your profile"}
+          sub={historySub(history.conditions.length, "condition", "conditions", "None added yet")}
+          onPress={() => router.push("/history?section=conditions")}
         />
-        <Row z={z} icon="alert" color={t.ink2} title="Allergies" sub={ALLERGY_WORDS} />
+        <Row
+          z={z}
+          icon="alert"
+          color={t.ink2}
+          title="Allergies"
+          sub={
+            !history.allergies.length && history.noKnownAllergies
+              ? "No known allergies"
+              : historySub(history.allergies.length, "allergy", "allergies", "None added yet")
+          }
+          onPress={() => router.push("/history?section=allergies")}
+        />
+        <Row
+          z={z}
+          icon="users"
+          color={t.area.team}
+          title="Family history"
+          sub={historySub(
+            history.family.length,
+            "family condition",
+            "family conditions",
+            "Conditions that run in your family",
+          )}
+          onPress={() => router.push("/history?section=family")}
+        />
         <Row
           z={z}
           icon="pill"
@@ -304,7 +354,7 @@ export default function MeTab() {
           title="Show conditions on my card"
           sub={
             prefs.showConditionsOnCard
-              ? "Shown on the back of the card"
+              ? "Shown on the back of the card. Private ones never are."
               : "Hidden on the back of the card"
           }
           right={
@@ -319,8 +369,8 @@ export default function MeTab() {
           z={z}
           icon="eye"
           color={t.accentText}
-          title="Readings and doses you log"
-          sub="Only you can see them. Bring them to your visit."
+          title="Who sees what you log"
+          sub="Your care team sees your readings and what you add under My health. Your medicines and doses stay on your account only."
         />
       </Group>
 

@@ -12,10 +12,12 @@ import { fetchPatientProfile } from "@/lib/booking";
  * patient wrote on their own profile). Cached on the phone per account so the
  * health card and Help's medic card draw with no network.
  *
- * Not shown, because the phone cannot read it truthfully: allergies (the
- * clinical record is not the patient's to read yet, ADR 0342; Me says "Tell
- * your nurse about any allergy"), a primary doctor (no such record), the
- * emergency contact (encrypted server-side), blood group (not recorded).
+ * The patient's own conditions, allergies and family history live in
+ * `@/data/history` (ADR 0355). Not shown, because the phone cannot read it
+ * truthfully: the clinical record's allergies (not the patient's to read yet,
+ * ADR 0342), a primary doctor (no such record), the emergency contact's
+ * number (encrypted server-side; only *that* one is on file), blood group
+ * (not recorded).
  */
 
 /* ── Phone settings (stored on this phone only) ─────────────────────── */
@@ -65,10 +67,12 @@ export interface CardIdentity {
   /** `patient_profiles.patient_code`, the DB-issued code reception matches at the desk. */
   code: string | null;
   facility: string | null;
+  /** The home facility's activated emergency number, or null (never guessed). */
+  emergencyPhone: string | null;
   sex: string | null;
   /** `patient_profiles.date_of_birth`, "YYYY-MM-DD". */
   dob: string | null;
-  /** The patient's own `known_conditions`. Shown on the card only when they switch it on. */
+  /** The patient's older free-text `known_conditions` (from the web profile), before ADR 0355. */
   conditions: string[];
 }
 
@@ -76,6 +80,7 @@ const EMPTY: CardIdentity = {
   name: null,
   code: null,
   facility: null,
+  emergencyPhone: null,
   sex: null,
   dob: null,
   conditions: [],
@@ -107,6 +112,7 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
           name: null,
           code: p.patientCode,
           facility: p.hospitalName,
+          emergencyPhone: p.emergencyPhone,
           sex: p.sex,
           dob: p.dateOfBirth,
           conditions: p.knownConditions,

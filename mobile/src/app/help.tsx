@@ -21,9 +21,11 @@ import {
   Ring,
   Screen,
 } from "@/components/tide";
+import { useHistory } from "@/data/history";
 import { cardNumber, metaName, sexLetter, useCardIdentity } from "@/data/me";
 import { useMedicines } from "@/data/medicines";
 import { useSavedReadings } from "@/data/readings";
+import { cardLines } from "@/features/history/logic";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { ShareLocationSheet } from "@/features/location-share/share-sheet";
 import { EMERGENCY_NUMBERS, SOS_COUNTDOWN_S, SOS_DIAL, SYMPTOMS } from "@/features/safety/config";
@@ -623,13 +625,14 @@ function LinkRow({
 function MedicLines({ conditions }: { conditions: string[] }) {
   const t = useTide();
   const now = useNow();
+  const own = cardLines(useHistory(), conditions);
   const { doses } = useMedicines(now);
   const bp = useSavedReadings().find((r) => r.input.kind === "bp");
   const names = [...new Set(doses.map((d) => d.medicine))];
   const lines = [
-    conditions.length ? conditions.join(" · ") : "No conditions recorded",
+    own.conditions === "None listed" ? "No conditions recorded" : own.conditions,
     names.length ? `Medicines: ${names.join(", ")}` : "No medicines on their list",
-    `Allergies: ask the patient${bp ? ` · Last BP ${readingValueText(bp.input)}` : ""}`,
+    `Allergies: ${own.allergies === "None listed" ? "ask the patient" : `${own.allergies} (their own words)`}${bp ? ` · Last BP ${readingValueText(bp.input)}` : ""}`,
   ];
   return <Text style={[tType.bodyS, { color: t.onBand2 }]}>{lines.join("\n")}</Text>;
 }
