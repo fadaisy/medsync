@@ -1604,3 +1604,15 @@ export async function fetchHospitalStaffNames(hospitalId: string) {
     );
   return rows.sort((a, b) => a.name.localeCompare(b.name));
 }
+
+/** The next `days` days from tomorrow on the Expected board's own counts: reception's "Coming days" (ADR 0351). */
+export async function fetchReceptionComingDays(args: {
+  hospitalId: string;
+  days: number;
+}): Promise<ExpectedDayCounts[]> {
+  return fetchExpectedCountsByDay({
+    hospitalId: args.hospitalId,
+    from: new Date(Date.now() + DAY_MS),
+    days: args.days,
+  });
+}
