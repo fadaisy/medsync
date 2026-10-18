@@ -1,27 +1,16 @@
 import { Text, View } from "react-native";
 
-import { Button, Card, Press } from "@/components/tide";
+import { Card, Press } from "@/components/tide";
 import { activityRepo, GLASSES, PLATE_ART, useActivity } from "@/data/activity";
+import { MealsSection } from "@/features/care-more/meal-parts";
 import { PlateGuide } from "@/features/care-more/plate-guide";
 import { savedLine } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tSpace, tType } from "@/theme/tide";
 
-function Heading({ children }: { children: string }) {
-  const t = useTide();
-  return (
-    <Text
-      accessibilityRole="header"
-      style={[tType.heading, { fontSize: 18, lineHeight: 24, color: t.ink }]}
-    >
-      {children}
-    </Text>
-  );
-}
-
 /* ─── Eat ────────────────────────────────────────────────────────────── */
 
-/** The plate guide (education), water from the patient's own log, and meals not yet available. */
+/** The plate guide (education), the day's meals (ADR 0356) and water, from the patient's own log. */
 export function EatPanel({ now, onToast }: { now: Date; onToast: (text: string) => void }) {
   const t = useTide();
   const act = useActivity(now);
@@ -55,19 +44,7 @@ export function EatPanel({ now, onToast }: { now: Date; onToast: (text: string) 
         </View>
       </Card>
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Heading>Meals</Heading>
-        <Button
-          label="Snap your plate"
-          variant="accent"
-          size="sm"
-          icon="camera"
-          onPress={() => onToast("Not available yet")}
-        />
-      </View>
-      <Text style={[tType.bodyM, { color: t.ink2 }]}>
-        Writing down your meals is not available yet.
-      </Text>
+      <MealsSection now={now} onToast={onToast} />
 
       <Card padding={tSpace[4]}>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>

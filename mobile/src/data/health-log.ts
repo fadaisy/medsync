@@ -2,11 +2,11 @@ import type { Row, SaveResult } from "@/offline/outbox";
 import { useEffect } from "react";
 
 import { createStore, useStore } from "@/data/store";
-import { currentUserId, db, insertOrQueue, newId, readOutbox } from "@/offline/outbox";
+import { currentUserId, db, insertOrQueue, newId, readOutbox, unqueue } from "@/offline/outbox";
 
 /**
  * The patient's own log, `personal_health_logs` (migration 0029, kinds widened
- * by 0170, ADR 0342). Readings, mood, water and minutes walked all live in
+ * by 0170, 0174 and 0176, ADRs 0342, 0354, 0356). Readings, mood, water and minutes walked all live in
  * this one table, so one store loads it once and every repository reads its
  * own kinds from it. RLS gives the patient their own rows and nobody else's;
  * no clinician can read this table, which is why no screen says they can.
@@ -24,6 +24,7 @@ export type LogKind =
   | "activity"
   | "steps"
   | "exercise"
+  | "meal"
   | "symptom"
   | "note"
   | "spo2"
@@ -203,6 +204,29 @@ export async function addLog(entry: NewLog, at: Date = new Date()): Promise<Save
   if (result === "failed")
     store.set((s) => ({ ...s, rows: s.rows.filter((r) => r.id !== view.id) }));
   return result;
+}
+
+/**
+ * Take one row back. A row still in the outbox just leaves it; a sent one is
+ * marked deleted (the patient's own update, migration 0029), never removed.
+ * Offline, a sent row cannot be taken back yet, so it comes back on screen.
+ */
+export async function removeLog(id: string): Promise<SaveResult> {
+  const row = store.get().rows.find((r) => r.id === id);
+  if (!row) return "failed";
+  store.set((s) => ({ ...s, rows: s.rows.filter((r) => r.id !== id) }));
+  if (await unqueue(id)) return "sent";
+  try {
+    const { error } = await (await db())
+      .from("personal_health_logs")
+      .update({ state: "deleted" })
+      .eq("id", id);
+    if (!error) return "sent";
+  } catch {
+    // Offline: falls through to put the row back.
+  }
+  store.set((s) => ({ ...s, rows: mergeRows([row], s.rows) }));
+  return "failed";
 }
 
 /* ─── Calendar helpers, shared by the views ──────────────────────────── */

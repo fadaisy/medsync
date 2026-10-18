@@ -12,9 +12,10 @@ import { addLog, dayKey, lastDays, latestByDay, useHealthLog } from "@/data/heal
  *              web shows "5 glasses" for it.
  * - activity → kind 'activity', unit 'min': one row per walk the patient
  *              logs, summed per day.
- * The phone has no step counter and no meal log, so neither is shown.
+ * Meals are their own kind, in `meals.ts` (ADR 0356).
  */
-export const ACTIVITY_NOTE = "Only you can see what you log here.";
+/** The care team reads what the patient logs (migration 0174, ADR 0354). */
+export const ACTIVITY_NOTE = "You and your care team can see what you log here.";
 
 /** Illustration colours for the plate guide and the water glasses: art, not UI. */
 export const PLATE_ART = {

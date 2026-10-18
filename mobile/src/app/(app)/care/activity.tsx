@@ -19,7 +19,7 @@ const TABS = [
  * Move and eat (F-18, board TActivity). Minutes walked and glasses of water
  * are the patient's own log (ADR 0342); the plate guide is education. The
  * amber safety card carries its words and the one red "Get help" (laws L3,
- * L4). Steps, food and meal photos have no source yet, so they are not shown.
+ * L4). Meals are logged from the built-in food list (ADRs 0353, 0356).
  */
 export default function ActivityScreen() {
   const t = useTide();

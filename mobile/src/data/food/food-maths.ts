@@ -38,21 +38,27 @@ export function forGrams(food: Food, grams: number): Amounts {
   };
 }
 
-/** A combo's totals: the sum of its parts. Loads add up; any unknown part makes the load unknown. */
-export function comboAmounts(combo: Combo, foods: Food[]): Amounts {
-  const parts = combo.parts.map(({ foodId, grams }) => {
-    const food = foods.find((f) => f.id === foodId);
-    if (!food) throw new Error(`combo ${combo.id}: no food ${foodId}`);
-    return forGrams(food, grams);
-  });
+/** Totals of several amounts. Loads add up; any unknown one makes the total unknown. */
+export function addAmounts(list: Amounts[]): Amounts {
   const sum = (pick: (a: Amounts) => number | null) =>
-    parts.some((a) => pick(a) === null) ? null : r1(parts.reduce((t, a) => t + (pick(a) ?? 0), 0));
+    list.some((a) => pick(a) === null) ? null : r1(list.reduce((t, a) => t + (pick(a) ?? 0), 0));
   return {
-    kcal: parts.reduce((t, a) => t + a.kcal, 0),
+    kcal: list.reduce((t, a) => t + a.kcal, 0),
     carbsG: sum((a) => a.carbsG) ?? 0,
     proteinG: sum((a) => a.proteinG),
     fatG: sum((a) => a.fatG),
     fibreG: sum((a) => a.fibreG),
     glycemicLoad: sum((a) => a.glycemicLoad),
   };
+}
+
+/** A combo's totals: the sum of its parts. */
+export function comboAmounts(combo: Combo, foods: Food[]): Amounts {
+  return addAmounts(
+    combo.parts.map(({ foodId, grams }) => {
+      const food = foods.find((f) => f.id === foodId);
+      if (!food) throw new Error(`combo ${combo.id}: no food ${foodId}`);
+      return forGrams(food, grams);
+    }),
+  );
 }
