@@ -53,7 +53,10 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 120,
+        // Haiku 5.5 thinks by default and spent the whole budget on it, so no
+        // answer came back. Reading a few digits needs no thinking.
+        thinking: { type: "disabled" },
+        max_tokens: 200,
         messages: [
           {
             role: "user",
