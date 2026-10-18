@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
-import * as Notifications from "expo-notifications";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Image, Linking, Switch, Text, View } from "react-native";
 
@@ -32,7 +31,7 @@ import {
 } from "@/lib/booking";
 import { SMS_CONSENT_COPY } from "@/lib/consent-copy";
 import { fetchSmsConsent, setSmsConsent } from "@/lib/notifications";
-import { registerPushToken } from "@/lib/push";
+import { pushPermission, registerPushToken } from "@/lib/push";
 import { useSession } from "@/lib/session";
 import { useNow } from "@/lib/use-now";
 import { useTheme, useTide } from "@/theme/theme";
@@ -95,13 +94,8 @@ export default function MeTab() {
           },
           () => {},
         );
-      void Notifications.getPermissionsAsync().then(
-        (p) =>
-          setPush(
-            p.status === "granted" ? "granted" : p.status === "denied" ? "denied" : "undetermined",
-          ),
-        () => {},
-      );
+      // Null where push is not available (Expo Go on Android): the row hides.
+      void pushPermission().then(setPush, () => {});
     }, []),
   );
 
@@ -122,8 +116,7 @@ export default function MeTab() {
       return;
     }
     const token = await registerPushToken();
-    const status = token ? "granted" : (await Notifications.getPermissionsAsync()).status;
-    setPush(status === "granted" ? "granted" : status === "denied" ? "denied" : "undetermined");
+    setPush(token ? "granted" : await pushPermission());
   };
 
   const onChangePhoto = async () => {
