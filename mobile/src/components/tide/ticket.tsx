@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -7,7 +7,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import Svg, { Defs, Pattern, Rect } from "react-native-svg";
 
 import { Icon } from "@/components/tide/icon";
 import { Button } from "@/components/tide/primitives";
@@ -64,12 +63,15 @@ export interface TicketProps {
 }
 
 const NOTCH = 28;
-const STRIPES = 44;
 
 export function Ticket(props: TicketProps) {
   const t = useTide();
   const reduced = useReducedMotion();
   const [back, setBack] = useState(false);
+  // Both faces take the taller one's height, so neither spills out when turned.
+  // ponytail: heights only grow while mounted; a face that shrinks keeps the old height until remount.
+  const [frontH, setFrontH] = useState(0);
+  const [backH, setBackH] = useState(0);
   const turn = useSharedValue(0);
 
   const flip = () => {
@@ -103,7 +105,8 @@ export function Ticket(props: TicketProps) {
         {/* A tap anywhere turns it; a nested button ("Pay now") keeps its own press. */}
         <Pressable accessible={false} onPress={flip}>
           <Animated.View
-            style={frontStyle}
+            style={[{ minHeight: backH }, frontStyle]}
+            onLayout={(e) => setFrontH(Math.max(frontH, Math.ceil(e.nativeEvent.layout.height)))}
             pointerEvents={back ? "none" : "auto"}
             accessibilityElementsHidden={back}
             importantForAccessibility={back ? "no-hide-descendants" : "auto"}
@@ -111,7 +114,11 @@ export function Ticket(props: TicketProps) {
             <TicketFront {...props} turnOver={turnOver} />
           </Animated.View>
           <Animated.View
-            style={[{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }, backStyle]}
+            style={[
+              { position: "absolute", top: 0, left: 0, right: 0, minHeight: frontH },
+              backStyle,
+            ]}
+            onLayout={(e) => setBackH(Math.max(backH, Math.ceil(e.nativeEvent.layout.height)))}
             pointerEvents={back ? "auto" : "none"}
             accessibilityElementsHidden={!back}
             importantForAccessibility={back ? "auto" : "no-hide-descendants"}
@@ -134,7 +141,7 @@ type TurnOver = {
   onAccessibilityAction: () => void;
 };
 
-/** The striped band, the white card and, when given, the perforation and stub. */
+/** The white card and, when given, the perforation and stub. */
 function Shell({
   children,
   stub,
@@ -144,12 +151,10 @@ function Shell({
   children: ReactNode;
   stub?: ReactNode;
   ground?: string;
-  /** The back fills the front's height. */
+  /** Stretch to the face's height, so front and back are the same size. */
   fill?: boolean;
 }) {
   const t = useTide();
-  // Two tickets on a screen (front and back) each need their own pattern id; SVG ids take no colons.
-  const pattern = `stripes${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
     <View
       style={{
@@ -159,31 +164,6 @@ function Shell({
         boxShadow: t.shadow.card,
       }}
     >
-      <View
-        style={{
-          height: STRIPES,
-          overflow: "hidden",
-          borderTopLeftRadius: tRadius.panel,
-          borderTopRightRadius: tRadius.panel,
-        }}
-      >
-        <Svg width="100%" height={STRIPES}>
-          <Defs>
-            <Pattern
-              id={pattern}
-              patternUnits="userSpaceOnUse"
-              width={26}
-              height={26}
-              patternTransform="rotate(45)"
-            >
-              <Rect x={0} y={0} width={13} height={26} fill={t.area.visits} />
-            </Pattern>
-          </Defs>
-          <Rect x={0} y={0} width="100%" height="100%" fill={t.band} />
-          <Rect x={0} y={0} width="100%" height="100%" fill={"url(#" + pattern + ")"} />
-        </Svg>
-      </View>
-
       <View
         style={{
           flex: fill ? 1 : undefined,
@@ -328,6 +308,7 @@ function TicketFront({
 
   return (
     <Shell
+      fill
       ground={ground}
       stub={
         <>
@@ -564,8 +545,8 @@ function TicketBack({
       <View
         style={{
           alignItems: "center",
-          gap: tSpace[1.5],
-          paddingVertical: tSpace[5],
+          gap: tSpace[1],
+          paddingVertical: tSpace[3.5],
           borderRadius: tRadius.md,
           backgroundColor: t.surface2,
         }}
@@ -579,9 +560,9 @@ function TicketBack({
           selectable
           style={{
             fontFamily: tFont.monoBold,
-            fontSize: 40,
-            lineHeight: 46,
-            letterSpacing: 6,
+            fontSize: 34,
+            lineHeight: 40,
+            letterSpacing: 5,
             color: t.ink,
           }}
         >
