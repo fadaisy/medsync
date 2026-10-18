@@ -54,6 +54,12 @@
         }
       ],
       [
+        "expo-sensors",
+        {
+          "motionPermission": "MedSync counts your steps so you and your care team can see how active you are."
+        }
+      ],
+      [
         "expo-audio",
         {
           "microphonePermission": "MedSync records a voice note when you choose to send one to your doctor."

@@ -55,7 +55,7 @@ export const personalHealthLogs = pgTable(
   (t) => [
     check(
       "personal_health_logs_kind_check",
-      sql`${t.kind} IN ('glucose','bp','weight','spo2','temperature','symptom','note','other','pulse','mood','water','activity')`,
+      sql`${t.kind} IN ('glucose','bp','weight','spo2','temperature','symptom','note','other','pulse','mood','water','activity','steps','exercise')`,
     ),
     check("personal_health_logs_state_check", sql`${t.state} IN ('active','deleted')`),
     check(

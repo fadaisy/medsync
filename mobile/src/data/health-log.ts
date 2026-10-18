@@ -22,6 +22,8 @@ export type LogKind =
   | "mood"
   | "water"
   | "activity"
+  | "steps"
+  | "exercise"
   | "symptom"
   | "note"
   | "spo2"

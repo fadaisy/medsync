@@ -3,7 +3,8 @@ import { Text, View } from "react-native";
 
 import { Screen, Segments } from "@/components/tide";
 import { ACTIVITY_NOTE } from "@/data/activity";
-import { EatPanel, MovePanel } from "@/features/care-more/activity-parts";
+import { EatPanel } from "@/features/care-more/activity-parts";
+import { MovePanel } from "@/features/care-more/move-panel";
 import { useToast } from "@/features/care-more/use-toast";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
