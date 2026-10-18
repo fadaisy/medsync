@@ -1,10 +1,19 @@
+import { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
-import Animated, { useReducedMotion } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 import { Icon } from "@/components/tide/icon";
 import { Button } from "@/components/tide/primitives";
+import { clearOf } from "@/components/tide/screen";
+import { TicketShareSheet } from "@/components/tide/ticket-share";
 import { feeText, payLook } from "@/features/visits/logic";
-import { motion } from "@/motion/presets";
+import { EASE_OUT_FN, motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -21,7 +30,7 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  */
 const NOTCH = 28;
 
-export function Ticket({
+function TicketFront({
   kind,
   hospitalName,
   stage,
@@ -66,7 +75,6 @@ export function Ticket({
   ground?: string;
 }) {
   const t = useTide();
-  const reduced = useReducedMotion();
   const look = payLook(fee, paid);
   const money = feeLabel ?? feeText(fee);
   const strip = {
@@ -107,7 +115,7 @@ export function Ticket({
       : `Visit ticket, ${dayLine ?? ""} ${day ?? ""}, ${sessionLine ?? ""}. Code ${code.split("").join(" ")}`;
 
   return (
-    <Animated.View style={[{ alignSelf: "stretch" }, motion.ticketPop(reduced)]}>
+    <View style={{ alignSelf: "stretch" }}>
       {/* top band */}
       <View
         accessibilityRole="summary"
@@ -354,6 +362,248 @@ export function Ticket({
           </View>
         </View>
       </View>
-    </Animated.View>
+    </View>
+  );
+}
+
+type TicketProps = Parameters<typeof TicketFront>[0];
+
+/** How far the ticket leans under a finger, in degrees: enough to feel, not enough to read wrong. */
+const TILT = 7;
+
+/**
+ * The ticket as a thing in the hand (owner, 18 Oct 2026; ADR 0348): it leans
+ * toward the finger in 3D and settles back when let go, turns over to a back
+ * with the code large and what to do at the desk, and can be shared as a
+ * picture (Snapchat, WhatsApp, Instagram) through the phone's share sheet.
+ * The shared picture leaves off the name, the code, the clinic and the fee.
+ *
+ * Touches are only listened to, never claimed, so the page still scrolls
+ * from the ticket and "Pay now" still presses. Under reduce motion there is
+ * no lean and turning over is a cut.
+ */
+export function Ticket(props: TicketProps) {
+  const t = useTide();
+  const reduced = useReducedMotion();
+  const [back, setBack] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const size = useSharedValue({ w: 1, h: 1 });
+  const leanX = useSharedValue(0);
+  const leanY = useSharedValue(0);
+  const turn = useSharedValue(0);
+
+  const lean = (x: number, y: number, ms: number) => {
+    if (reduced) return;
+    const { w, h } = size.value;
+    leanY.value = withTiming(((x - w / 2) / (w / 2)) * TILT, { duration: ms });
+    leanX.value = withTiming(-((y - h / 2) / (h / 2)) * TILT, { duration: ms });
+  };
+  const settle = () => {
+    leanX.value = withTiming(0, { duration: 400, easing: EASE_OUT_FN });
+    leanY.value = withTiming(0, { duration: 400, easing: EASE_OUT_FN });
+  };
+  const flip = () => {
+    const next = !back;
+    setBack(next);
+    turn.value = reduced
+      ? next
+        ? 1
+        : 0
+      : withTiming(next ? 1 : 0, { duration: 450, easing: EASE_OUT_FN });
+  };
+
+  // One face's turn and lean; the back starts half a turn round, so each hides when it faces away.
+  const faceOf = (isBack: boolean) => {
+    "worklet";
+    const turned = turn.value * 180 + (isBack ? 180 : 0);
+    return {
+      backfaceVisibility: "hidden" as const,
+      opacity: reduced ? (isBack ? turn.value : 1 - turn.value) : 1,
+      transform: [
+        { perspective: 1200 },
+        { rotateX: `${leanX.value}deg` },
+        { rotateY: `${(reduced ? 0 : turned) + leanY.value}deg` },
+        { scale: 1 + (Math.abs(leanX.value) + Math.abs(leanY.value)) * 0.0012 },
+      ],
+    };
+  };
+  const frontStyle = useAnimatedStyle(() => faceOf(false));
+  const backStyle = useAnimatedStyle(() => faceOf(true));
+  const glare = useAnimatedStyle(() => ({
+    opacity: (Math.abs(leanX.value) + Math.abs(leanY.value)) / (TILT * 4),
+    transform: [{ translateX: leanY.value * 6 }, { translateY: -leanX.value * 6 }],
+  }));
+
+  return (
+    <View style={{ alignSelf: "stretch", gap: tSpace[3] }}>
+      <Animated.View
+        style={motion.ticketPop(reduced)}
+        onLayout={(e) => {
+          size.value = { w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height };
+        }}
+        onTouchStart={(e) => lean(e.nativeEvent.locationX, e.nativeEvent.locationY, 140)}
+        onTouchMove={(e) => lean(e.nativeEvent.locationX, e.nativeEvent.locationY, 60)}
+        onTouchEnd={settle}
+        onTouchCancel={settle}
+      >
+        <Animated.View
+          style={frontStyle}
+          pointerEvents={back ? "none" : "auto"}
+          accessibilityElementsHidden={back}
+          importantForAccessibility={back ? "no-hide-descendants" : "auto"}
+        >
+          <TicketFront {...props} />
+          <Animated.View
+            pointerEvents="none"
+            style={[{ position: "absolute", top: 0, left: 0, right: 0, height: "45%" }, glare]}
+          >
+            <LinearGradient
+              colors={[t.surface, clearOf(t.surface)]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                flex: 1,
+                borderTopLeftRadius: tRadius.panel,
+                borderTopRightRadius: tRadius.panel,
+              }}
+            />
+          </Animated.View>
+        </Animated.View>
+        <Animated.View
+          style={[{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }, backStyle]}
+          pointerEvents={back ? "auto" : "none"}
+          accessibilityElementsHidden={!back}
+          importantForAccessibility={back ? "auto" : "no-hide-descendants"}
+        >
+          <TicketBack {...props} />
+        </Animated.View>
+      </Animated.View>
+
+      <View style={{ flexDirection: "row", gap: tSpace[2] }}>
+        <Button
+          label={back ? "Show the front" : "Turn over"}
+          icon="replay"
+          variant="soft"
+          size="sm"
+          style={{ flex: 1 }}
+          onPress={flip}
+        />
+        <Button
+          label="Share"
+          icon="send"
+          variant="soft"
+          size="sm"
+          style={{ flex: 1 }}
+          onPress={() => setSharing(true)}
+        />
+      </View>
+      <TicketShareSheet visible={sharing} onClose={() => setSharing(false)} ticket={props} />
+    </View>
+  );
+}
+
+/** The back: the code large for the desk, and what to do there. Words only, nothing clinical. */
+function TicketBack({
+  kind,
+  hospitalName,
+  day,
+  dayLine,
+  sessionLine,
+  stage,
+  details,
+  code,
+}: TicketProps) {
+  const t = useTide();
+  const time = details.find((d) => d.label === "Time")?.value;
+  const when =
+    kind === "day"
+      ? [dayLine, day].filter(Boolean).join(" ") + (sessionLine ? ` · ${sessionLine}` : "")
+      : (stage ?? "");
+  const steps = [
+    "Go to the reception desk when you arrive.",
+    "Show this code, or tell them the letters.",
+    kind === "day" && time && time !== "Not promised"
+      ? "Arrive a little early. The doctor may see you later than your time."
+      : "You are seen in the order people arrive with a code.",
+  ];
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: t.surface,
+        borderRadius: tRadius.panel,
+        boxShadow: t.shadow.card,
+        padding: tSpace[4.5],
+        gap: tSpace[4],
+      }}
+    >
+      <View style={{ gap: 2 }}>
+        <Text
+          style={[tType.micro, { fontFamily: tFont.semibold, letterSpacing: 0.9, color: t.ink3 }]}
+        >
+          AT THE HOSPITAL
+        </Text>
+        <Text style={[tType.label, { color: t.ink }]} numberOfLines={2}>
+          {hospitalName}
+        </Text>
+        <Text style={[tType.bodyS, { color: t.ink2 }]}>{when}</Text>
+      </View>
+
+      <View
+        style={{
+          alignItems: "center",
+          gap: tSpace[1.5],
+          paddingVertical: tSpace[5],
+          borderRadius: tRadius.md,
+          backgroundColor: t.surface2,
+        }}
+      >
+        <Text
+          style={[tType.micro, { fontFamily: tFont.semibold, letterSpacing: 0.9, color: t.ink3 }]}
+        >
+          YOUR CODE
+        </Text>
+        <Text
+          selectable
+          style={{
+            fontFamily: tFont.monoBold,
+            fontSize: 40,
+            lineHeight: 46,
+            letterSpacing: 6,
+            color: t.ink,
+          }}
+        >
+          {code}
+        </Text>
+        <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.accentText }]}>
+          Works with no internet
+        </Text>
+      </View>
+
+      <View style={{ gap: tSpace[2.5] }}>
+        {steps.map((line, i) => (
+          <View
+            key={line}
+            style={{ flexDirection: "row", gap: tSpace[2.5], alignItems: "flex-start" }}
+          >
+            <View
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 12,
+                backgroundColor: t.primary,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontFamily: tFont.bold, fontSize: 12, color: t.onPrimary }}>
+                {i + 1}
+              </Text>
+            </View>
+            <Text style={[tType.bodyM, { flex: 1, color: t.ink }]}>{line}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
