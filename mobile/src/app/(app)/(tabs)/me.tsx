@@ -3,6 +3,7 @@ import type { HouseholdMember } from "@/lib/booking";
 import type { ThemePreference } from "@/theme/theme";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
+import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -49,7 +50,9 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * theme and sign out. The card's back says whether a next of kin is on file
  * (the number is encrypted server-side) and who to call if it is found. No
  * primary doctor, blood group or payment method is shown: the phone holds
- * none of them truthfully. Language and text size stay on this phone.
+ * none of them truthfully. Language is the preferred language saved on the
+ * profile (Profile details edits it); the app's own words are English, and
+ * text size follows the phone's setting, so neither is a switch here.
  */
 export default function MeTab() {
   const t = useTide();
@@ -64,8 +67,7 @@ export default function MeTab() {
   const places = usePlaces();
   const history = useHistory();
   const [nokOnFile, setNokOnFile] = useState<boolean | null>(null);
-  // A+ applies to this screen's rows (board: zoom 1.12).
-  const z = (n: number) => Math.round(n * (prefs.big ? 1.12 : 1));
+  const [language, setLanguage] = useState<string | null>(null);
 
   const [household, setHousehold] = useState<HouseholdMember[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -86,7 +88,11 @@ export default function MeTab() {
       void fetchSmsConsent().then(setSmsOn, () => {});
       if (detailsFromAppOn)
         void loadDetails().then(
-          (r) => (r.ok ? setNokOnFile(r.onFile.nokOnFile) : null),
+          (r) => {
+            if (!r.ok) return;
+            setNokOnFile(r.onFile.nokOnFile);
+            setLanguage(r.onFile.preferredLanguage?.trim() || null);
+          },
           () => {},
         );
       void Notifications.getPermissionsAsync().then(
@@ -194,10 +200,9 @@ export default function MeTab() {
         ) : null}
       </View>
 
-      <Label text="My health" z={z} />
+      <Label text="My health" />
       <Group>
         <Row
-          z={z}
           first
           icon="heart"
           color={t.area.readings}
@@ -206,7 +211,6 @@ export default function MeTab() {
           onPress={() => router.push("/history?section=conditions")}
         />
         <Row
-          z={z}
           icon="alert"
           color={t.ink2}
           title="Allergies"
@@ -218,7 +222,6 @@ export default function MeTab() {
           onPress={() => router.push("/history?section=allergies")}
         />
         <Row
-          z={z}
           icon="users"
           color={t.area.team}
           title="Family history"
@@ -231,7 +234,6 @@ export default function MeTab() {
           onPress={() => router.push("/history?section=family")}
         />
         <Row
-          z={z}
           icon="pill"
           color={t.area.medicines}
           title="My medicines"
@@ -243,7 +245,6 @@ export default function MeTab() {
           onPress={() => router.push("/care/medicines")}
         />
         <Row
-          z={z}
           icon="file"
           color={t.area.team}
           title="Visits and documents"
@@ -252,7 +253,7 @@ export default function MeTab() {
         />
       </Group>
 
-      <Label text="People I care for" z={z} />
+      <Label text="People I care for" />
       <Group>
         <View
           style={{
@@ -300,8 +301,8 @@ export default function MeTab() {
             tType.caption,
             {
               fontFamily: tFont.medium,
-              fontSize: z(12),
-              lineHeight: z(17),
+              fontSize: 12,
+              lineHeight: 17,
               color: t.ink2,
               padding: tSpace[3.5],
               paddingTop: tSpace[2],
@@ -312,10 +313,9 @@ export default function MeTab() {
         </Text>
       </Group>
 
-      <Label text="My places" z={z} />
+      <Label text="My places" />
       <Group>
         <Row
-          z={z}
           first
           icon="mapPin"
           color={t.ink2}
@@ -331,10 +331,9 @@ export default function MeTab() {
         />
       </Group>
 
-      <Label text="My details" z={z} />
+      <Label text="My details" />
       <Group>
         <Row
-          z={z}
           first
           icon="user"
           color={t.ink2}
@@ -344,10 +343,9 @@ export default function MeTab() {
         />
       </Group>
 
-      <Label text="Privacy and sharing" z={z} />
+      <Label text="Privacy and sharing" />
       <Group>
         <Row
-          z={z}
           first
           icon="card"
           color={t.ink2}
@@ -366,7 +364,6 @@ export default function MeTab() {
           }
         />
         <Row
-          z={z}
           icon="eye"
           color={t.accentText}
           title="Who sees what you log"
@@ -374,10 +371,9 @@ export default function MeTab() {
         />
       </Group>
 
-      <Label text="App" z={z} />
+      <Label text="App" />
       <Group>
         <Row
-          z={z}
           first
           icon="bell"
           color={t.accentText}
@@ -387,7 +383,6 @@ export default function MeTab() {
         />
         {push !== null ? (
           <Row
-            z={z}
             icon="smartphone"
             color={t.ink2}
             title={`Notifications on this phone · ${push === "granted" ? "On" : "Off"}`}
@@ -410,7 +405,6 @@ export default function MeTab() {
         ) : null}
         {smsOn !== null ? (
           <Row
-            z={z}
             icon="message"
             color={t.ink2}
             title={`${SMS_CONSENT_COPY.label} · ${smsOn ? "On" : "Off"}`}
@@ -431,43 +425,23 @@ export default function MeTab() {
           />
         ) : null}
         <Row
-          z={z}
           icon="globe"
           color={t.area.readings}
           title="Language"
-          sub={prefs.lang === "en" ? "English · voice calls too" : "Luganda · voice calls too"}
-          right={
-            <MiniSeg
-              label="Language"
-              value={prefs.lang}
-              onChange={(lang) => setPrefs({ lang })}
-              options={[
-                { key: "en", label: "English" },
-                { key: "lg", label: "Luganda" },
-              ]}
-            />
+          sub={
+            language
+              ? `${language} · the language staff use with you`
+              : "Tell staff which language you prefer"
           }
+          onPress={() => router.push("/profile/details")}
         />
         <Row
-          z={z}
           icon="type"
           color={t.ink2}
           title="Text size"
-          sub={prefs.big ? "Larger · easier to read" : "Standard"}
-          right={
-            <MiniSeg
-              label="Text size"
-              value={prefs.big ? "big" : "std"}
-              onChange={(k) => setPrefs({ big: k === "big" })}
-              options={[
-                { key: "std", label: "A" },
-                { key: "big", label: "A+" },
-              ]}
-            />
-          }
+          sub="Follows your phone. Make text larger in your phone's Settings, under Display."
         />
         <Row
-          z={z}
           icon={t.scheme === "dark" ? "moon" : "sun"}
           color={t.ink2}
           title="Theme"
@@ -486,7 +460,6 @@ export default function MeTab() {
           }
         />
         <Row
-          z={z}
           icon="camera"
           color={t.ink2}
           title="Profile photo"
@@ -511,13 +484,13 @@ export default function MeTab() {
       <Text
         style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3, textAlign: "center" }]}
       >
-        MedSync 3.0
+        {`MedSync ${Constants.expoConfig?.version ?? ""}`.trim()}
       </Text>
     </Screen>
   );
 }
 
-function Label({ text, z }: { text: string; z: (n: number) => number }) {
+function Label({ text }: { text: string }) {
   const t = useTide();
   return (
     <Text
@@ -525,8 +498,8 @@ function Label({ text, z }: { text: string; z: (n: number) => number }) {
       style={[
         tType.labelS,
         {
-          fontSize: z(13),
-          lineHeight: z(18),
+          fontSize: 13,
+          lineHeight: 18,
           color: t.ink3,
           paddingTop: tSpace[1.5],
           paddingHorizontal: tSpace[1],
@@ -564,7 +537,6 @@ function Row({
   onPress,
   right,
   first = false,
-  z,
 }: {
   icon: IconName;
   color: string;
@@ -574,7 +546,6 @@ function Row({
   onPress?: () => void;
   right?: ReactNode;
   first?: boolean;
-  z: (n: number) => number;
 }) {
   const t = useTide();
   const body = (
@@ -592,13 +563,11 @@ function Row({
         <Icon name={icon} size={18} color={color} />
       </View>
       <View style={{ flex: 1, gap: 1 }}>
-        <Text style={[tType.labelS, { fontSize: z(14), lineHeight: z(19), color: t.ink }]}>
-          {title}
-        </Text>
+        <Text style={[tType.labelS, { fontSize: 14, lineHeight: 19, color: t.ink }]}>{title}</Text>
         <Text
           style={[
             tType.caption,
-            { fontFamily: tFont.medium, fontSize: z(12), lineHeight: z(17), color: t.ink2 },
+            { fontFamily: tFont.medium, fontSize: 12, lineHeight: 17, color: t.ink2 },
           ]}
         >
           {sub}
@@ -606,7 +575,7 @@ function Row({
         {note ? (
           <Text
             accessibilityLiveRegion="polite"
-            style={[tType.caption, { fontSize: z(12), lineHeight: z(17), color: t.ink }]}
+            style={[tType.caption, { fontSize: 12, lineHeight: 17, color: t.ink }]}
           >
             {note}
           </Text>

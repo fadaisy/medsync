@@ -23,17 +23,12 @@ import { fetchPatientProfile } from "@/lib/booking";
 /* ── Phone settings (stored on this phone only) ─────────────────────── */
 
 export interface MePrefs {
-  lang: "en" | "lg";
-  /** Text size A+ (larger). */
-  big: boolean;
   /** PRD Q6, owner decision: conditions on the card's back are hidden until the patient shows them. */
   showConditionsOnCard: boolean;
 }
 
 const PREFS_KEY = "medsync:me-prefs";
 const DEFAULT_PREFS: MePrefs = {
-  lang: "en",
-  big: false,
   showConditionsOnCard: false,
 };
 
