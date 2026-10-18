@@ -5,7 +5,7 @@ import type { EmrActor } from "@/lib/emr/actor";
 import type { EmrDb } from "@/lib/emr/db";
 import { sql } from "drizzle-orm";
 
-import { withPatientWrite } from "@/lib/emr/write/context";
+import { EmrWriteError, withPatientWrite } from "@/lib/emr/write/context";
 import { enterResults, releaseResults } from "@/lib/emr/write/results";
 import { encrypt } from "@/lib/encryption";
 import { rowsOf } from "@/lib/exchange/store";
@@ -104,23 +104,28 @@ export async function loadLabDemoDay(
     await db.execute(sql`SELECT 1 AS ok FROM lab_demo_hospitals WHERE hospital_id = ${h}`),
   );
   if (!demo)
-    throw new Error(
+    throw new EmrWriteError(
+      "forbidden",
       "This hospital is not a demo hospital. Demo data goes only into a demo hospital.",
     );
   const [doctor] = rowsOf<{ id: string; dept: string; cadre: string }>(
     await db.execute(sql`SELECT a.user_id AS id, a.department_id AS dept, c.code AS cadre
       FROM staff_affiliations a JOIN cadres c ON c.id = a.cadre_id
      WHERE a.hospital_id = ${h} AND a.state IN ('active','approved') AND a.department_id IS NOT NULL
-       AND c.code IN ('MEDICAL_OFFICER','CONSULTANT','INTERN_DOCTOR','CLINICAL_OFFICER','SENIOR_HOUSE_OFFICER','REGISTRAR')
+       AND c.code IN ('MEDICAL_OFFICER','MEDICAL_OFFICER_SG','CONSULTANT','SENIOR_CONSULTANT','INTERN_DOCTOR','CLINICAL_OFFICER')
      ORDER BY a.approved_at NULLS LAST LIMIT 1`),
   );
   if (!doctor)
-    throw new Error(
+    throw new EmrWriteError(
+      "config",
       "Add a doctor to the demo hospital first: demo orders need someone who ordered them.",
     );
   const tests = await demoTests(db, h);
   if (!tests.length)
-    throw new Error("Set up at least one numeric test (units) in the demo hospital's lab first.");
+    throw new EmrWriteError(
+      "config",
+      "Set up at least one numeric test with its unit (Test catalogue) in this lab first.",
+    );
   const [district] = rowsOf<{ id: string }>(
     await db.execute(sql`SELECT id FROM districts LIMIT 1`),
   );
