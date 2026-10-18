@@ -1,5 +1,6 @@
 import type { Item, MealEntry, MealSlot } from "@/data/meals";
 import type { FoodGroup } from "@/data/food/types";
+import type { ProductDraft } from "@/data/products";
 import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
@@ -10,6 +11,7 @@ import {
   ChipRow,
   Icon,
   IconDisc,
+  Note,
   Press,
   Sheet,
   Stepper,
@@ -32,6 +34,14 @@ import {
   slotFor,
   SLOTS,
 } from "@/data/meals";
+import {
+  lookupBarcode,
+  productFood,
+  saveProduct,
+  savedByBarcode,
+  useProducts,
+} from "@/data/products";
+import { BarcodeScan, ProductForm } from "@/features/care-more/product-parts";
 import { savedLine } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -46,8 +56,9 @@ const fmt = (n: number | null, unit: string) => (n === null ? "—" : `${n} ${un
 export function MealsSection({ now, onToast }: { now: Date; onToast: (text: string) => void }) {
   const t = useTide();
   const log = useHealthLog();
+  const products = useProducts();
   const [adding, setAdding] = useState(false);
-  const entries = mealsOn(log.rows, now);
+  const entries = mealsOn(log.rows, now, products);
   const total = dayTotals(entries);
 
   const remove = async (e: MealEntry) => {
@@ -149,6 +160,7 @@ export function MealsSection({ now, onToast }: { now: Date; onToast: (text: stri
       <AddFoodSheet
         visible={adding}
         now={now}
+        products={products}
         onClose={() => setAdding(false)}
         onSaved={(text) => {
           setAdding(false);
@@ -189,11 +201,13 @@ function Total({ label, value, unit }: { label: string; value: string; unit?: st
 function AddFoodSheet({
   visible,
   now,
+  products,
   onClose,
   onSaved,
 }: {
   visible: boolean;
   now: Date;
+  products: Parameters<typeof searchItems>[2];
   onClose: () => void;
   onSaved: (text: string) => void;
 }) {
@@ -206,12 +220,25 @@ function AddFoodSheet({
   const [grams, setGrams] = useState("100");
   const [slot, setSlot] = useState<MealSlot>(slotFor(now));
   const [busy, setBusy] = useState(false);
-  const results = useMemo(() => searchItems(query, group), [query, group]);
+  // A packaged food: the camera, then its label if Open Food Facts does not know it.
+  const [mode, setMode] = useState<"search" | "scan" | "form">("search");
+  const [barcode, setBarcode] = useState<string | null>(null);
+  const [intro, setIntro] = useState("");
+  const [looking, setLooking] = useState(false);
+  // A product not saved yet: kept with the meal it is first logged with.
+  const [draft, setDraft] = useState<ProductDraft | null>(null);
+  const results = useMemo(
+    () => searchItems(query, group, products),
+    [query, group, products],
+  );
 
   const reset = () => {
     setQuery("");
     setGroup(null);
     setItem(null);
+    setMode("search");
+    setDraft(null);
+    setBarcode(null);
   };
   const close = () => {
     reset();
@@ -232,10 +259,39 @@ function AddFoodSheet({
       : parseFloat(grams) || 0;
   const amounts = item && eaten > 0 ? amountsFor(item, eaten) : null;
 
+  const takeDraft = (d: ProductDraft) => {
+    setDraft(d);
+    pick({ kind: "food", food: productFood({ ...d, id: "draft" }) });
+  };
+  const onCode = async (code: string) => {
+    setBarcode(code);
+    const saved = savedByBarcode(code);
+    if (saved) return pick({ kind: "food", food: productFood(saved) });
+    setLooking(true);
+    const r = await lookupBarcode(code);
+    setLooking(false);
+    if (r.kind === "found") return takeDraft(r.draft);
+    setIntro(
+      r.kind === "missing"
+        ? "This barcode is not in Open Food Facts yet. Photograph the nutrition label, or type it in."
+        : "Can't look the barcode up without a connection. Type it in from the nutrition label.",
+    );
+    setMode("form");
+  };
+
   const save = async () => {
     if (!item || eaten <= 0) return;
     setBusy(true);
-    const r = await mealRepo.log(item, eaten, slot);
+    let logged = item;
+    if (draft) {
+      const kept = await saveProduct(draft);
+      if (!kept.product) {
+        setBusy(false);
+        return onSaved(savedLine("failed"));
+      }
+      logged = { kind: "food", food: productFood(kept.product) };
+    }
+    const r = await mealRepo.log(logged, eaten, slot);
     setBusy(false);
     const name = itemName(item);
     reset();
@@ -246,11 +302,53 @@ function AddFoodSheet({
     <Sheet
       visible={visible}
       onClose={close}
-      overline={item ? "How much" : "Add food"}
-      title={item ? itemName(item) : "What did you eat?"}
+      overline={item ? "How much" : mode === "search" ? "Add food" : "Packaged food"}
+      title={
+        item
+          ? itemName(item)
+          : mode === "scan"
+            ? "Scan the barcode"
+            : mode === "form"
+              ? "From the label"
+              : "What did you eat?"
+      }
     >
-      {!item ? (
+      {!item && mode === "scan" ? (
         <>
+          <TextLink label="Back to search" onPress={() => setMode("search")} />
+          {looking ? (
+            <Text style={[tType.bodyM, { color: t.ink2 }]}>Looking it up…</Text>
+          ) : (
+            <BarcodeScan onCode={(code) => void onCode(code)} />
+          )}
+          <Text style={[tType.micro, { color: t.ink3, textAlign: "center" }]}>
+            Products are looked up in Open Food Facts, an open database.
+          </Text>
+        </>
+      ) : !item && mode === "form" ? (
+        <>
+          <TextLink label="Back to search" onPress={() => setMode("search")} />
+          <ProductForm barcode={barcode} intro={intro} onDone={takeDraft} />
+        </>
+      ) : !item ? (
+        <>
+          <View style={{ flexDirection: "row", gap: tSpace[2], alignItems: "center" }}>
+            <Button
+              label="Scan a barcode"
+              icon="scan"
+              variant="soft"
+              size="sm"
+              onPress={() => setMode("scan")}
+            />
+            <TextLink
+              label="Type a packaged food"
+              onPress={() => {
+                setBarcode(null);
+                setIntro("Type it in from the nutrition label, per 100 g.");
+                setMode("form");
+              }}
+            />
+          </View>
           <TextField
             value={query}
             onChangeText={setQuery}
@@ -323,7 +421,18 @@ function AddFoodSheet({
         </>
       ) : (
         <>
-          <TextLink label="Change food" onPress={() => setItem(null)} />
+          <TextLink
+            label="Change food"
+            onPress={() => {
+              setItem(null);
+              setDraft(null);
+            }}
+          />
+          {draft?.source === "open_food_facts" ? (
+            <Note tone="info">
+              From Open Food Facts, typed in by volunteers from the label. Check it against the pack.
+            </Note>
+          ) : null}
           <ChipRow>
             {portions.map((p, i) => (
               <Chip

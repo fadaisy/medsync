@@ -194,3 +194,41 @@ export const patientReportedHistory = pgTable(
 );
 
 export type PatientReportedHistory = typeof patientReportedHistory.$inferSelect;
+
+/* ─── patient_food_products (0177) ───────────────────────────────── */
+/** Packaged foods the patient logged from a barcode or a label (ADR 0357): values per 100 g. */
+export const patientFoodProducts = pgTable(
+  "patient_food_products",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    barcode: text("barcode"),
+    name: text("name").notNull(),
+    brand: text("brand"),
+    kcal100g: numeric("kcal_100g").notNull(),
+    carbs100g: numeric("carbs_100g").notNull(),
+    protein100g: numeric("protein_100g"),
+    fat100g: numeric("fat_100g"),
+    fibre100g: numeric("fibre_100g"),
+    servingG: numeric("serving_g"),
+    /** open_food_facts | label_photo | typed */
+    source: text("source").notNull(),
+    state: text("state").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      "patient_food_products_source_check",
+      sql`${t.source} IN ('open_food_facts','label_photo','typed')`,
+    ),
+    check("patient_food_products_state_check", sql`${t.state} IN ('active','deleted')`),
+    index("patient_food_products_patient_idx")
+      .on(t.patientUserId, t.barcode)
+      .where(sql`${t.state} = 'active'`),
+  ],
+);
+
+export type PatientFoodProduct = typeof patientFoodProducts.$inferSelect;

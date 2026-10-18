@@ -12,6 +12,7 @@ import {
   slotFor,
 } from "@/data/meals";
 
+const i_id = (i: ReturnType<typeof itemById>) => (i && i.kind === "food" ? i.food.id : "");
 const at = (h: number, d = 18) => new Date(2026, 9, d, h, 0);
 let n = 0;
 const meal = (unit: string, grams: number, when: Date, note = "lunch"): LogRow => ({
@@ -33,6 +34,17 @@ describe("meals", () => {
     expect(searchItems("rolex")[0]?.kind).toBe("combo");
     expect(searchItems("", "fruits").every((i) => i.kind === "food" && i.food.group === "fruits")).toBe(true);
     expect(searchItems("zzzz")).toEqual([]);
+  });
+
+  it("lists Ugandan foods before USDA's, and USDA only once something is typed", () => {
+    const ids = searchItems("apple").map((i) => (i.kind === "food" ? i.food.id : i.combo.id));
+    expect(ids[0]).toBe("apple");
+    expect(ids.some((id) => id.startsWith("usda:"))).toBe(true);
+    expect(ids.findIndex((id) => id.startsWith("usda:"))).toBeGreaterThan(ids.indexOf("apple"));
+    expect(searchItems("").some((i) => i.kind === "food" && i.food.id.startsWith("usda:"))).toBe(false);
+    const usda = searchItems("apple").find((i) => i.kind === "food" && i.food.id.startsWith("usda:"))!;
+    expect(itemById(i_id(usda))).toEqual(usda);
+    expect(giLine(usda)).toBe("GI not known");
   });
 
   it("guesses the meal from the time of day", () => {

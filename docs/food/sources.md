@@ -12,6 +12,14 @@ Every number in `mobile/src/data/food/foods.ts` names its source in the food's `
 
 The two African tables report **available** carbohydrate directly. USDA reports carbohydrate by difference, which includes fibre, so for USDA foods `carbsG` = carbohydrate by difference − total dietary fibre (both as published). Values in square brackets in the source tables (less precise values) are used as given; "tr" (trace) is stored as 0.
 
+## The wider catalogue and packaged foods (ADR 0357)
+
+| Source                                                                                            | Used for                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| USDA FoodData Central SR Legacy, April 2018 (same download as above)                              | The USDA catalogue in `mobile/src/data/food/usda.json`: 7,283 foods, built by `build/usda_catalog.py`, available carbohydrate as above, up to three household portions each. No GI.             |
+| Open Food Facts, https://world.openfoodfacts.org (database under the Open Database Licence, ODbL) | Barcode lookups from the phone: a product's energy, carbohydrate, protein, fat and fibre per 100 g, as volunteers typed them from the label. Saved per patient as `source = 'open_food_facts'`. |
+| The pack's own nutrition label                                                                    | Read from the patient's photo (`/api/mobile/food-label`) or typed in, checked by the patient. Saved as `label_photo` or `typed`.                                                                |
+
 ## Glycemic index
 
 | Key          | Source                                                                                                                                                                                                                                                                                                                                                                 | Used for                                                                                                                                                                                                                                                                                                 |

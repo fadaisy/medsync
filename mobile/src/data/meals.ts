@@ -1,17 +1,21 @@
 import type { Amounts } from "@/data/food/food-maths";
 import type { Combo, Food, FoodGroup, Portion } from "@/data/food/types";
 import type { LogRow } from "@/data/health-log";
+import type { Product } from "@/data/products";
 import type { SaveResult } from "@/offline/outbox";
 
 import { addAmounts, comboAmounts, forGrams } from "@/data/food/food-maths";
 import { COMBOS, FOODS } from "@/data/food/foods";
+import { usdaFoods } from "@/data/food/usda";
 import { addLog, dayKey, removeLog } from "@/data/health-log";
+import { productFood } from "@/data/products";
 
 /**
  * Meals, from the patient's own log (migration 0176, ADR 0356): one row per
  * food eaten, kind 'meal'. numeric_value_1 = grams, numeric_value_2 = kcal at
  * the time (so the web and the care team can read it without the food list),
- * unit = the food or combo id from the built-in list (ADR 0353), note = the
+ * unit = the food or combo id from the built-in list (ADR 0353), `usda:<fdc>`
+ * for a USDA food or `product:<id>` for a packaged one (ADR 0357), note = the
  * meal (breakfast, lunch, supper, snack). Carbohydrate and glycemic load are
  * worked out again from the list, never stored.
  */
@@ -47,11 +51,15 @@ export function slotFor(at: Date): MealSlot {
 /** Something the patient can log: one food, or a dish of several (a rolex). */
 export type Item = { kind: "food"; food: Food } | { kind: "combo"; combo: Combo };
 
-const ITEMS: Item[] = [
+/** The Ugandan list and its dishes: always searched first (owner, 18 Oct 2026). */
+const LOCAL: Item[] = [
   ...FOODS.map((food): Item => ({ kind: "food", food })),
   ...COMBOS.map((combo): Item => ({ kind: "combo", combo })),
 ];
-const BY_ID = new Map(ITEMS.map((i) => [itemId(i), i]));
+const BY_ID = new Map(LOCAL.map((i) => [itemId(i), i]));
+let usda: Map<string, Item> | null = null;
+const usdaItems = () =>
+  (usda ??= new Map(usdaFoods().map((food) => [food.id, { kind: "food", food } as Item])));
 
 export function itemId(i: Item): string {
   return i.kind === "food" ? i.food.id : i.combo.id;
@@ -59,7 +67,13 @@ export function itemId(i: Item): string {
 export function itemName(i: Item): string {
   return i.kind === "food" ? i.food.name : i.combo.name;
 }
-export function itemById(id: string): Item | null {
+/** The item a meal row names: a Ugandan food or dish, a USDA food, or one of the patient's products. */
+export function itemById(id: string, products: Product[] = []): Item | null {
+  if (id.startsWith("usda:")) return usdaItems().get(id) ?? null;
+  if (id.startsWith("product:")) {
+    const p = products.find((x) => `product:${x.id}` === id);
+    return p ? { kind: "food", food: productFood(p) } : null;
+  }
   return BY_ID.get(id) ?? null;
 }
 
@@ -93,22 +107,39 @@ const fold = (s: string) =>
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "");
 
+const hayOf = (i: Item) => {
+  const names = i.kind === "food" ? i.food.localNames : i.combo.localNames;
+  return fold([itemName(i), ...names.map((n) => n.name)].join(" "));
+};
+const hays = new WeakMap<Item, string>();
+const hay = (i: Item) => {
+  let h = hays.get(i);
+  if (h === undefined) hays.set(i, (h = hayOf(i)));
+  return h;
+};
+
 /**
  * Foods whose name or local names hold every word typed, in a group or all.
- * Names that start with the first word come first; otherwise the list's order.
+ * The Ugandan list comes first, then the patient's own packaged foods, then
+ * USDA's; within each, names that start with the first word lead.
  */
-export function searchItems(query: string, group: FoodGroup | null = null): Item[] {
+export function searchItems(
+  query: string,
+  group: FoodGroup | null = null,
+  products: Product[] = [],
+): Item[] {
   const words = fold(query).split(/\s+/).filter(Boolean);
-  const hits = ITEMS.filter((i) => {
-    const g = i.kind === "food" ? i.food.group : i.combo.group;
-    if (group && g !== group) return false;
-    const names = i.kind === "food" ? i.food.localNames : i.combo.localNames;
-    const hay = fold([itemName(i), ...names.map((n) => n.name)].join(" "));
-    return words.every((w) => hay.includes(w));
-  });
-  if (!words.length) return hits;
-  const starts = (i: Item) => fold(itemName(i)).startsWith(words[0]);
-  return [...hits.filter(starts), ...hits.filter((i) => !starts(i))];
+  const groupOf = (i: Item) => (i.kind === "food" ? i.food.group : i.combo.group);
+  const match = (i: Item) => (!group || groupOf(i) === group) && words.every((w) => hay(i).includes(w));
+  const rank = (list: Item[]) => {
+    const hits = list.filter(match);
+    if (!words.length) return hits;
+    const starts = (i: Item) => fold(itemName(i)).startsWith(words[0]);
+    return [...hits.filter(starts), ...hits.filter((i) => !starts(i))];
+  };
+  const mine = products.map((p): Item => ({ kind: "food", food: productFood(p) }));
+  // With nothing typed, the Ugandan list alone: USDA's 7,000 come in when asked for.
+  return [...rank(LOCAL), ...rank(mine), ...(words.length ? rank([...usdaItems().values()]) : [])];
 }
 
 export type MealEntry = {
@@ -123,13 +154,13 @@ export type MealEntry = {
 const isSlot = (s: string | null): s is MealSlot => SLOTS.some((x) => x.key === s);
 
 /** The day's meals, oldest first. A row naming a food no longer in the list is left out. */
-export function mealsOn(rows: LogRow[], day: Date): MealEntry[] {
+export function mealsOn(rows: LogRow[], day: Date, products: Product[] = []): MealEntry[] {
   const key = dayKey(day);
   const out: MealEntry[] = [];
   for (const r of rows) {
     if (r.kind !== "meal" || r.v1 === null || !r.unit) continue;
     if (dayKey(new Date(r.recordedAt)) !== key) continue;
-    const item = itemById(r.unit);
+    const item = itemById(r.unit, products);
     if (!item) continue;
     out.push({
       id: r.id,

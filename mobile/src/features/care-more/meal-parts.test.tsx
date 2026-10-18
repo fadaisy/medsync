@@ -8,6 +8,15 @@ import { ThemeProvider } from "@/theme/theme";
 const mockRows: LogRow[] = [];
 const mockAdd = jest.fn(async () => "sent" as const);
 const mockRemove = jest.fn(async () => "sent" as const);
+const mockSaveProduct = jest.fn(async (draft: object) => ({
+  result: "sent" as const,
+  product: { ...draft, id: "p1" },
+}));
+jest.mock("@/data/products", () => ({
+  ...jest.requireActual("@/data/products"),
+  useProducts: () => [],
+  saveProduct: (d: object) => mockSaveProduct(d),
+}));
 jest.mock("@/data/health-log", () => ({
   ...jest.requireActual("@/data/health-log"),
   useHealthLog: () => ({ rows: mockRows, loading: false, error: false, retry: () => {} }),
@@ -51,6 +60,30 @@ describe("meals section", () => {
       v1: 150,
       v2: 222,
       unit: "posho",
+      note: "lunch",
+    });
+  });
+
+  it("takes a packaged food typed from its label and logs it with the meal", async () => {
+    await show();
+    await fireEvent.press(screen.getByText("Add food"));
+    await fireEvent.press(screen.getByText("Type a packaged food"));
+    await fireEvent.changeText(screen.getByLabelText("Name"), "Mango juice");
+    await fireEvent.changeText(screen.getByLabelText("Energy (kcal per 100 g)"), "50");
+    await fireEvent.changeText(screen.getByLabelText("Carbohydrate (g per 100 g)"), "12");
+    await fireEvent.changeText(screen.getByLabelText("One serving (g)"), "300");
+    await fireEvent.press(screen.getByText("Continue"));
+    expect(screen.getByText("GI not known · glycemic load not known")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Save"));
+    await waitFor(() => expect(mockAdd).toHaveBeenCalled());
+    expect(mockSaveProduct).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Mango juice", kcal: 50, carbsG: 12, source: "typed" }),
+    );
+    expect(mockAdd).toHaveBeenCalledWith({
+      kind: "meal",
+      v1: 300,
+      v2: 150,
+      unit: "product:p1",
       note: "lunch",
     });
   });
