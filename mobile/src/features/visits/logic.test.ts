@@ -2,6 +2,7 @@ import type { FeeInputs } from "@shared/fees";
 
 import {
   aheadWords,
+  countdownOf,
   feeFor,
   feeText,
   monthGrid,
@@ -104,5 +105,16 @@ describe("words and grids", () => {
   it("splits the day at Kampala noon", () => {
     expect(partOf("2026-10-20T05:00:00Z")).toBe("Morning"); // 08:00 EAT
     expect(partOf("2026-10-20T10:00:00Z")).toBe("Afternoon"); // 13:00 EAT
+  });
+});
+
+describe("countdownOf", () => {
+  const now = new Date("2026-10-18T06:30:00Z");
+  it("splits the time left into days, hours and minutes", () => {
+    expect(countdownOf(now, "2026-10-19T09:50:00Z")).toEqual({ days: 1, hours: 3, minutes: 20 });
+    expect(countdownOf(now, "2026-10-18T07:15:30Z")).toEqual({ days: 0, hours: 0, minutes: 45 });
+  });
+  it("stops at zero once the time has passed", () => {
+    expect(countdownOf(now, "2026-10-18T06:00:00Z")).toEqual({ days: 0, hours: 0, minutes: 0 });
   });
 });

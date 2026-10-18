@@ -156,3 +156,16 @@ export function monthGrid(key: string): (string | null)[] {
   while (cells.length % 7) cells.push(null);
   return cells;
 }
+
+/** Days, hours and minutes from `now` until `iso`, never below zero: the countdown beside the time wheel. */
+export function countdownOf(
+  now: Date,
+  iso: string,
+): { days: number; hours: number; minutes: number } {
+  const mins = Math.max(0, Math.floor((new Date(iso).getTime() - now.getTime()) / 60_000));
+  return {
+    days: Math.floor(mins / 1440),
+    hours: Math.floor((mins % 1440) / 60),
+    minutes: mins % 60,
+  };
+}

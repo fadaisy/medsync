@@ -7,7 +7,6 @@ import { ActivityIndicator, Text, View } from "react-native";
 import {
   Button,
   Card,
-  Chip,
   FieldError,
   Icon,
   IconDisc,
@@ -19,7 +18,7 @@ import {
 } from "@/components/tide";
 import { loadDays, payments, requestDay, useTickets } from "@/data/visits";
 import { BookingCalendar } from "@/features/visits/calendar";
-import { dayState, firstOpenDay, TIME_GROUPS, timeGroup } from "@/features/visits/calendar-logic";
+import { dayState, firstOpenDay } from "@/features/visits/calendar-logic";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
 import {
   clockOf,
@@ -32,6 +31,7 @@ import {
   weekdayOf,
 } from "@/features/visits/logic";
 import { HonestNote, pickStyle, StepTitle } from "@/features/visits/parts";
+import { Countdown, TimeWheel } from "@/features/visits/time-wheel";
 import { APPOINTMENT_REASONS, newIdempotencyKey } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { useSession } from "@/lib/session";
@@ -51,8 +51,9 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * The days sit on a month calendar reaching `PATIENT_BOOKING_HORIZON_DAYS`
  * ahead; a day with no open time cannot be chosen. A clinic day shows morning
  * or afternoon as when doors open, never as your hour (law L8). A named
- * doctor's day shows each open time to pick, with the owner's plain words that
- * the doctor may see you later (18 Oct 2026). No count of what is left is ever
+ * doctor's day shows its open times on a scroll wheel beside a countdown to
+ * the chosen one, with the owner's plain words that the doctor may see you
+ * later (18 Oct 2026). No count of what is left is ever
  * shown (ADR 0084). Payment is simulated (`payments`). With no hospital chosen the patient
  * chooses one first; nothing is shown in its place.
  */
@@ -184,7 +185,8 @@ export default function BookDayScreen() {
 
   // A named doctor: every open time of the day, and the patient picks one.
   const slots = doctorName ? (day?.sessions ?? []).filter((s) => s.slot) : [];
-  const slotSession = slots.find((s) => s.id === slotId) ?? null;
+  // The wheel always has a time in its band, so the first open time stands until another is chosen.
+  const slotSession = slots.find((s) => s.id === slotId) ?? slots[0] ?? null;
 
   // A clinic day: morning or afternoon, and who to see.
   const inPart = (p: "Morning" | "Afternoon") => (day?.sessions ?? []).filter((s) => s.part === p);
@@ -307,30 +309,25 @@ export default function BookDayScreen() {
       {day && doctorName ? (
         <View style={{ gap: tSpace[3] }}>
           <StepTitle>{`Choose a time on ${longDayOf(day.key)}`}</StepTitle>
-          {TIME_GROUPS.map((g) => {
-            const inGroup = slots.filter((s) => s.slot && timeGroup(s.slot.startsAtIso) === g);
-            if (!inGroup.length) return null;
-            return (
-              <View key={g} style={{ gap: tSpace[1.5] }}>
-                <Text style={[tType.caption, { fontFamily: tFont.semibold, color: t.ink2 }]}>
-                  {g}
-                </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
-                  {inGroup.map((s) => (
-                    <Chip
-                      key={s.id}
-                      label={s.slot ? clockOf(s.slot.startsAtIso) : ""}
-                      selected={s.id === slotSession?.id}
-                      onPress={() => {
-                        setSlotId(s.id);
-                        reset();
-                      }}
-                    />
-                  ))}
-                </View>
-              </View>
-            );
-          })}
+          {slotSession?.slot ? (
+            <Card padding={tSpace[3]} style={{ flexDirection: "row", gap: tSpace[3] }}>
+              <Countdown
+                now={now}
+                iso={slotSession.slot.startsAtIso}
+                whenLine={`${shortDayOf(day.key)} at ${clockOf(slotSession.slot.startsAtIso)}`}
+              />
+              <TimeWheel
+                key={day.key}
+                label={`Times on ${longDayOf(day.key)}`}
+                times={slots.map((s) => (s.slot ? clockOf(s.slot.startsAtIso) : ""))}
+                index={slots.indexOf(slotSession)}
+                onChange={(k) => {
+                  setSlotId(slots[k]?.id ?? null);
+                  reset();
+                }}
+              />
+            </Card>
+          ) : null}
           {slotSession ? (
             <Note tone="plain" icon="clock">
               Please arrive a little early. The doctor may see you later than this time.

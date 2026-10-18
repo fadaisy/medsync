@@ -30,7 +30,7 @@ const NAV_BOTTOM = 14;
  * The page colour with no opacity, for the end of the fade. A plain
  * "transparent" is clear black and greys the middle of the fade on iOS.
  */
-function clearOf(color: string): string {
+export function clearOf(color: string): string {
   return /^#[0-9a-f]{6}$/i.test(color) ? `${color}00` : "transparent";
 }
 
