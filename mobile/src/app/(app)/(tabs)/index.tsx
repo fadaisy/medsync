@@ -9,18 +9,18 @@ import {
   Button,
   CascadeStep,
   Icon,
+  LIFT_MS,
   MoodFace,
   Pill,
   Press,
+  ReorderCascade,
   Screen,
   SectionHead,
   Segments,
   SkeletonCard,
-  LIFT_MS,
-  ReorderCascade,
   Toast,
 } from "@/components/tide";
-import { DAY_GOAL, useActivity } from "@/data/activity";
+import { DAY_GOAL, GLASSES, useActivity } from "@/data/activity";
 import { STEP_AIM, stepsOn } from "@/data/exercise";
 import { useHealthLog } from "@/data/health-log";
 import { dayTotals, mealsOn } from "@/data/meals";
@@ -30,7 +30,7 @@ import { useNotifications } from "@/data/notifications";
 import { useReadings, whenWords } from "@/data/readings";
 import { takeFreshSignup } from "@/data/signup";
 import { usePhoneSteps } from "@/features/care-more/use-steps";
-import { sortByOrder, orderFrom, useDayOrder } from "@/features/home/day-order";
+import { orderFrom, sortByOrder, useDayOrder } from "@/features/home/day-order";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
@@ -112,6 +112,7 @@ export default function HomeScreen() {
     !med.medicines.length &&
     !readings.length &&
     !act.minutesToday &&
+    !act.water &&
     !meals.length;
   const moved = act.minutesToday;
   // As on Move: the phone's count, or the day's saved total if that is higher.
@@ -179,10 +180,23 @@ export default function HomeScreen() {
       done: false,
       href: { pathname: "/care/activity", params: { tab: "eat" } } as const,
     },
+    {
+      key: "water",
+      group: "water" as const,
+      icon: "droplet" as const,
+      title: `Water · ${act.water} of ${GLASSES} glasses`,
+      line: !act.water
+        ? "Tap to log a glass"
+        : act.water >= GLASSES
+          ? "Today's glasses done"
+          : `${GLASSES - act.water} more to go today`,
+      done: act.water >= GLASSES,
+      href: { pathname: "/care/activity", params: { tab: "eat" } } as const,
+    },
   ];
   // In the order the patient dragged them into (on this phone).
   const steps = sortByOrder(unsorted, dayOrder);
-  // Only Move and Eat: nothing taken or read yet today.
+  // Only Move, Eat and Water: nothing taken or read yet today.
   const quietDay = !takenToday.length && !latest;
 
   const take = async (id: string) => {
@@ -292,30 +306,30 @@ export default function HomeScreen() {
               }))}
               tail={
                 due ? (
-                <NowCard
-                  time={due.time}
-                  title={`${SLOT_WORDS[due.slot]} medicine`}
-                  line={`${due.medicine}, as your clinician prescribed`}
-                  snoozed={due.snoozedUntil}
-                  onTake={() => void take(due.id)}
-                  onLater={() => {
-                    medicinesRepo.snooze(due.id, now);
-                    showToast({ text: "Snoozed for 15 minutes" });
-                  }}
-                />
-              ) : next ? (
-                <DoneCard
-                  upcoming
-                  title={`${SLOT_WORDS[next.slot]} medicine`}
-                  line={`Next · ${next.time} · ${next.medicine}`}
-                />
-              ) : quietDay ? (
-                <DoneCard
-                  upcoming
-                  title="Nothing due right now"
-                  line="Log a reading from the plus below"
-                />
-              ) : null
+                  <NowCard
+                    time={due.time}
+                    title={`${SLOT_WORDS[due.slot]} medicine`}
+                    line={`${due.medicine}, as your clinician prescribed`}
+                    snoozed={due.snoozedUntil}
+                    onTake={() => void take(due.id)}
+                    onLater={() => {
+                      medicinesRepo.snooze(due.id, now);
+                      showToast({ text: "Snoozed for 15 minutes" });
+                    }}
+                  />
+                ) : next ? (
+                  <DoneCard
+                    upcoming
+                    title={`${SLOT_WORDS[next.slot]} medicine`}
+                    line={`Next · ${next.time} · ${next.medicine}`}
+                  />
+                ) : quietDay ? (
+                  <DoneCard
+                    upcoming
+                    title="Nothing due right now"
+                    line="Log a reading from the plus below"
+                  />
+                ) : null
               }
             />
           )}

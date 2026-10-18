@@ -6,9 +6,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  * Kept by kind of card, not by card, since doses and readings change daily.
  * On this phone only, per account: a layout choice, not a record.
  */
-export type DayGroup = "medicine" | "reading" | "move" | "eat";
+export type DayGroup = "medicine" | "reading" | "move" | "eat" | "water";
 
-export const DEFAULT_ORDER: DayGroup[] = ["medicine", "reading", "move", "eat"];
+export const DEFAULT_ORDER: DayGroup[] = ["medicine", "reading", "move", "eat", "water"];
 
 const KEY = (userId: string) => `home.day-order.v1.${userId}`;
 
@@ -30,10 +30,13 @@ export function orderFrom(shown: DayGroup[], previous: DayGroup[]): DayGroup[] {
   return [...seen, ...previous.filter((g) => !seen.includes(g))];
 }
 
-const valid = (v: unknown): v is DayGroup[] =>
-  Array.isArray(v) &&
-  v.length === DEFAULT_ORDER.length &&
-  DEFAULT_ORDER.every((g) => v.includes(g));
+/** A saved order, with any group added since it was saved at the end; null if it is not one. */
+export function fromSaved(v: unknown): DayGroup[] | null {
+  if (!Array.isArray(v) || !v.length) return null;
+  const known = DEFAULT_ORDER.filter((g) => v.includes(g));
+  if (known.length !== v.length) return null;
+  return [...(v as DayGroup[]), ...DEFAULT_ORDER.filter((g) => !v.includes(g))];
+}
 
 export function useDayOrder(userId: string | null): [DayGroup[], (next: DayGroup[]) => void] {
   // Held with the account it belongs to, so a new sign-in starts from the default.
@@ -46,8 +49,8 @@ export function useDayOrder(userId: string | null): [DayGroup[], (next: DayGroup
     let live = true;
     AsyncStorage.getItem(KEY(userId))
       .then((raw) => {
-        const v: unknown = raw ? JSON.parse(raw) : null;
-        if (live && valid(v)) setHeld({ userId, order: v });
+        const order = fromSaved(raw ? JSON.parse(raw) : null);
+        if (live && order) setHeld({ userId, order });
       })
       .catch(() => {});
     return () => {

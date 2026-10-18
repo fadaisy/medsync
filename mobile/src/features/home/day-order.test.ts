@@ -1,5 +1,5 @@
 import { dropIndex, moved, travel } from "@/components/tide/reorder-cascade";
-import { DEFAULT_ORDER, orderFrom, sortByOrder } from "@/features/home/day-order";
+import { DEFAULT_ORDER, fromSaved, orderFrom, sortByOrder } from "@/features/home/day-order";
 
 describe("day order", () => {
   it("sorts cards by their group, keeping each group's own order", () => {
@@ -23,7 +23,21 @@ describe("day order", () => {
       "medicine",
       "move",
       "reading",
+      "water",
     ]);
+  });
+
+  it("keeps a saved order and adds groups that came later at the end", () => {
+    expect(fromSaved(["eat", "move", "medicine", "reading"])).toEqual([
+      "eat",
+      "move",
+      "medicine",
+      "reading",
+      "water",
+    ]);
+    expect(fromSaved(["eat", "eat"])).toBeNull();
+    expect(fromSaved(["eat", "nope"])).toBeNull();
+    expect(fromSaved("eat")).toBeNull();
   });
 });
 
