@@ -310,10 +310,7 @@ export default function BookDayScreen() {
         <View style={{ gap: tSpace[3] }}>
           <StepTitle>{`Choose a time on ${longDayOf(day.key)}`}</StepTitle>
           {slotSession?.slot ? (
-            <Card
-              padding={tSpace[3]}
-              style={{ flexDirection: "row", gap: tSpace[3], alignSelf: "flex-start" }}
-            >
+            <Card padding={tSpace[3]} style={{ flexDirection: "row", gap: tSpace[3] }}>
               <Countdown
                 now={now}
                 iso={slotSession.slot.startsAtIso}

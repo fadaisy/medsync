@@ -9,8 +9,8 @@ import { countdownOf } from "@/features/visits/logic";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
-const ROW = 44;
-const VISIBLE = 4; // rows: two above, the chosen one, one-and-a-bit below
+const ROW = 40;
+const VISIBLE = 3; // rows: one above, the chosen one, one below
 const HEIGHT = ROW * VISIBLE;
 const PAD = (HEIGHT - ROW) / 2;
 
@@ -39,7 +39,7 @@ export function TimeWheel({
     if (k !== index) onChange(k);
   };
   return (
-    <View style={{ width: 96, height: HEIGHT }} accessibilityLabel={label}>
+    <View style={{ width: 120, height: HEIGHT }} accessibilityLabel={label}>
       <View
         pointerEvents="none"
         style={{
@@ -81,7 +81,7 @@ export function TimeWheel({
               <Text
                 style={{
                   fontFamily: tFont.monoSemibold,
-                  fontSize: on ? 22 : near ? 17 : 15,
+                  fontSize: on ? 21 : near ? 16 : 15,
                   color: on ? t.onPrimary : near ? t.ink2 : t.ink4,
                 }}
               >
@@ -122,11 +122,12 @@ export function Countdown({ now, iso, whenLine }: { now: Date; iso: string; when
       accessible
       accessibilityLabel={`Your visit is in ${spoken}, ${whenLine}`}
       style={{
+        flex: 1,
         backgroundColor: t.surface2,
         borderRadius: tRadius.card,
         padding: tSpace[3],
         justifyContent: "center",
-        gap: tSpace[2.5],
+        gap: tSpace[1.5],
       }}
     >
       <Text style={[tType.micro, { fontFamily: tFont.bold, letterSpacing: 0.6, color: t.ink3 }]}>
