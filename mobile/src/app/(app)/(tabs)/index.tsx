@@ -18,6 +18,7 @@ import {
   Segments,
   Toast,
 } from "@/components/tide";
+import { DAY_GOAL, useActivity } from "@/data/activity";
 import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
@@ -45,7 +46,7 @@ const KIND_WORDS = { bp: "Blood pressure", sugar: "Blood sugar", weight: "Weight
 /**
  * Home, your day (F-02). The greeting, today's mood, the day cascade built
  * from the patient's own log (doses taken today, the latest reading, the dose
- * due now on top) and "See a doctor". A patient with nothing logged yet gets
+ * due now on top, today's Move minutes against the daily goal) and "See a doctor". A patient with nothing logged yet gets
  * one calm card that starts them off. Home also starts the outbox, so saves
  * made offline send once the phone is back.
  */
@@ -55,6 +56,7 @@ export default function HomeScreen() {
   const now = useNow();
   const { session } = useSession();
   const med = useMedicines(now);
+  const act = useActivity(now);
   const { readings, loading: readingsLoading, error: readingsError, retry } = useReadings();
   const { unread } = useNotifications();
   const shareShown = useShareBannerShown();
@@ -90,9 +92,11 @@ export default function HomeScreen() {
   const takenToday = doses.filter((d) => d.status === "taken");
   const next = doses.find((d) => d.status === "later");
   const latest = readings[0];
-  const loading = (med.loading || readingsLoading) && !doses.length && !latest;
+  const loading = (med.loading || readingsLoading || act.loading) && !doses.length && !latest;
   const failed = (med.error || readingsError) && !doses.length && !latest;
-  const firstRun = !loading && !failed && !med.medicines.length && !readings.length;
+  const firstRun =
+    !loading && !failed && !med.medicines.length && !readings.length && !act.minutesToday;
+  const moved = act.minutesToday;
 
   const steps = [
     ...takenToday.slice(-2).map((d) => ({
@@ -115,8 +119,22 @@ export default function HomeScreen() {
           },
         ]
       : []),
+    {
+      key: "move",
+      icon: "walk" as const,
+      title: `Move · ${moved} of ${DAY_GOAL} minutes`,
+      line: !moved
+        ? "Nothing logged yet today"
+        : moved >= DAY_GOAL
+          ? "Today's goal reached"
+          : `${DAY_GOAL - moved} minutes to go today`,
+      done: moved >= DAY_GOAL,
+      href: "/care/activity" as const,
+    },
   ];
-  const tail = due || next;
+  // Only the Move step: nothing taken or read yet today.
+  const quietDay = steps.length === 1;
+  const tail = due || next || quietDay;
 
   const take = async (id: string) => {
     const result: SaveResult = await medicinesRepo.take(id, now);
@@ -215,7 +233,7 @@ export default function HomeScreen() {
                   title={`${SLOT_WORDS[next.slot]} medicine`}
                   line={`Next · ${next.time} · ${next.medicine}`}
                 />
-              ) : !steps.length ? (
+              ) : quietDay ? (
                 <DoneCard
                   upcoming
                   title="Nothing due right now"
