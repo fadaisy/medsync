@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { UserRoundIcon } from "lucide-react";
 
+import type { BookingAttachment } from "@/components/medsync/booking-attachments";
+import { BookingAttachments } from "@/components/medsync/booking-attachments";
 import { sexLabel } from "@/lib/patient/sex";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +29,13 @@ export interface PatientIdentity {
   ageYears: number | null;
   sex: string | null;
   complaint: string | null;
+  /**
+   * Photos, videos and voice notes the patient sent with the booking
+   * (ADR 0345, 0347): signed, expiring URLs minted server-side, and only
+   * where the identity reveal was audited — a photo or a voice identifies a
+   * person as surely as a name. Absent or empty: nothing was sent.
+   */
+  attachments?: BookingAttachment[];
 }
 
 /**
@@ -124,11 +133,14 @@ export function PatientIdentityCard({
   density = "row",
   trailing,
   className,
+  attachments = "button",
 }: {
   patient: PatientIdentity;
   density?: "row" | "card";
   trailing?: ReactNode;
   className?: string;
+  /** `text` where the card sits inside a button (a list row): the summary only, nothing to press. */
+  attachments?: "button" | "text";
 }) {
   const title = patient.displayName ?? patient.patientCode ?? "Patient";
   const meta = demographicsLine(patient);
@@ -166,6 +178,9 @@ export function PatientIdentityCard({
           >
             {patient.complaint}
           </span>
+        ) : null}
+        {patient.attachments?.length ? (
+          <BookingAttachments items={patient.attachments} interactive={attachments === "button"} />
         ) : null}
       </div>
       {trailing ? <div className="flex shrink-0 items-center gap-1.5">{trailing}</div> : null}

@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Staff see and play what a patient sent with a booking — 2026-10-18
+
+[ADR 0347](docs/adr/0347-staff-see-booking-attachments.md) adds the following:
+
+- **On the patient card.** Reception's Expected page, the doctor's pending and queue rails and the clinician's schedule detail show "Sent 2 photos · 1 voice note · View". The link opens the photos, videos and voice notes in the centred dialog, with links signed for one hour.
+- **Only with the audited name.** The files show only where the patient's name came through the audited reveal, the same rule as the name and photo.
+
 ### Changed — Ask for a day: a time wheel, the symptom catalogue, and photos, videos and voice notes — 2026-10-18
 
 [ADR 0345](docs/adr/0345-ask-for-a-day-says-it-or-shows-it.md) changes the following:

@@ -23,6 +23,7 @@ import { decrypt } from "@/lib/encryption";
 import { declaredLast, presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
 import { appointmentBookedVia, byBookedAt, intakeBookedVia } from "@/lib/reception/booked-via";
+import { loadBookingAttachments } from "@/lib/scheduling/attachments";
 import { maskPhone, matchBasis } from "@/lib/reception/reconcile-basis";
 import { admittedLabel } from "@/lib/workspace/words";
 import {
@@ -505,9 +506,15 @@ export async function fetchExpectedArrivals(args: {
     patientUserIds: revealedPatients.map((r) => r.patientUserId!),
   });
   if (audited) {
-    const urls = await signAvatars(rows.map((r) => r.avatarPath));
+    const [urls, sent] = await Promise.all([
+      signAvatars(rows.map((r) => r.avatarPath)),
+      // What a patient sent with the booking: only with the audited name, like the photo (ADR 0347).
+      loadBookingAttachments(rows.filter((r, i) => r.patientUserId && out[i]!.identity.displayName).map((r) => r.id)),
+    ]);
     rows.forEach((r, i) => {
       if (r.avatarPath) out[i]!.identity.photoUrl = urls.get(r.avatarPath) ?? null;
+      const files = sent.get(r.id);
+      if (files?.length) out[i]!.identity.attachments = files;
     });
   } else {
     for (const r of out) if (r.patientUserId) r.identity.displayName = null;

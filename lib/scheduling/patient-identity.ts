@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { BookingAttachment } from "@/components/medsync/booking-attachments";
 import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import type { BookingSymptom } from "@/supabase/functions/_shared/symptoms";
 
@@ -125,7 +126,12 @@ export async function revealPatientIdentities(args: {
   return out;
 }
 
-/** Pure: the card's shape from a row's code, its reveal and what the patient said is bothering them. */
+/**
+ * Pure: the card's shape from a row's code, its reveal and what the patient
+ * said is bothering them. What they sent with the booking rides only when
+ * the name came through the audited reveal: a photo or a voice identifies a
+ * person as surely as a name, so it fails closed with it (ADR 0347).
+ */
 export function toPatientIdentity(
   row: {
     patientUserId: string | null;
@@ -134,8 +140,10 @@ export function toPatientIdentity(
     reasonNote?: string | null;
   },
   revealed: ReadonlyMap<string, RevealedPatient>,
+  attachments?: BookingAttachment[],
 ): PatientIdentity {
   const who = row.patientUserId ? revealed.get(row.patientUserId) : undefined;
+  const sent = who?.displayName && attachments?.length ? attachments : undefined;
   return {
     patientCode: row.patientCode,
     displayName: who?.displayName ?? null,
@@ -143,5 +151,6 @@ export function toPatientIdentity(
     ageYears: who?.ageYears ?? null,
     sex: who?.sex ?? null,
     complaint: complaintLine(normaliseSymptoms(row.symptoms), row.reasonNote),
+    ...(sent ? { attachments: sent } : {}),
   };
 }

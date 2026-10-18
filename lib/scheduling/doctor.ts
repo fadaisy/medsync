@@ -13,6 +13,7 @@ import {
   queueEntries,
 } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
+import { loadBookingAttachments } from "@/lib/scheduling/attachments";
 import { revealPatientIdentities, toPatientIdentity } from "@/lib/scheduling/patient-identity";
 import { ACUITY_TIERS } from "@/lib/triage/constants";
 import {
@@ -140,14 +141,17 @@ export async function fetchPendingApprovals(args: {
     .orderBy(asc(appointments.startsAt))
     .limit(args.limit ?? 20);
 
-  const revealed = await revealPatientIdentities({
-    viewer: { userId: args.clinicianUserId, hospitalId: args.hospitalId },
-    surface: "doctor_pending_rail",
-    patients: rows,
-  });
+  const [revealed, sent] = await Promise.all([
+    revealPatientIdentities({
+      viewer: { userId: args.clinicianUserId, hospitalId: args.hospitalId },
+      surface: "doctor_pending_rail",
+      patients: rows,
+    }),
+    loadBookingAttachments(rows.map((r) => r.id)),
+  ]);
 
   return rows.map((r) => {
-    const identity = toPatientIdentity(r, revealed);
+    const identity = toPatientIdentity(r, revealed, sent.get(r.id));
     return {
       id: r.id,
       startsAtIso: r.startsAt.toISOString(),
@@ -240,11 +244,14 @@ export async function fetchDepartmentQueueToday(args: {
     // ones a nurse has actually assessed.
     .orderBy(sql`${queueEntries.priorityOrder} ASC NULLS LAST`, asc(queueEntries.sequenceNumber));
 
-  const revealed = await revealPatientIdentities({
-    viewer: args.viewer,
-    surface: "doctor_queue_rail",
-    patients: rows,
-  });
+  const [revealed, sent] = await Promise.all([
+    revealPatientIdentities({
+      viewer: args.viewer,
+      surface: "doctor_queue_rail",
+      patients: rows,
+    }),
+    loadBookingAttachments(rows.map((r) => r.appointmentId)),
+  ]);
 
   return rows.map((r) => ({
     id: r.id,
@@ -256,7 +263,11 @@ export async function fetchDepartmentQueueToday(args: {
     priorityLabel: acuityLabel(r.priorityOrder),
     patientUserId: r.patientUserId,
     patientCode: r.patientCode,
-    identity: toPatientIdentity(r, revealed),
+    identity: toPatientIdentity(
+      r,
+      revealed,
+      r.appointmentId ? sent.get(r.appointmentId) : undefined,
+    ),
     appointmentId: r.appointmentId,
     encounterId: r.encounterId,
     notes: r.notes,
