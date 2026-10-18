@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Sharing from "expo-sharing";
 import { Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -7,11 +8,12 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { captureRef } from "react-native-view-shot";
 
+import { FieldError } from "@/components/tide/field";
 import { Icon } from "@/components/tide/icon";
 import { Button } from "@/components/tide/primitives";
 import { clearOf } from "@/components/tide/screen";
-import { TicketShareSheet } from "@/components/tide/ticket-share";
 import { feeText, payLook } from "@/features/visits/logic";
 import { EASE_OUT_FN, motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
@@ -374,59 +376,134 @@ type TicketProps = Parameters<typeof TicketFront>[0];
 
 /** How far the ticket leans under a finger, in degrees: enough to feel, not enough to read wrong. */
 const TILT = 7;
+/** How much of a drag the ticket follows as movement: it moves with the hand, a little. */
+const FOLLOW = 0.14;
 
 /**
- * The ticket as a thing in the hand (owner, 18 Oct 2026; ADR 0348): it leans
- * toward the finger in 3D and settles back when let go, turns over to a back
- * with the code large and what to do at the desk, and can be shared as a
- * picture (Snapchat, WhatsApp, Instagram) through the phone's share sheet.
- * The shared picture leaves off the name, the code, the clinic and the fee.
+ * The ticket as a thing in the hand (owner, 18 Oct 2026; ADR 0348, 0349).
  *
- * Touches are only listened to, never claimed, so the page still scrolls
- * from the ticket and "Pay now" still presses. Under reduce motion there is
- * no lean and turning over is a cut.
+ * - Touch it and it leans toward the finger in 3D, then settles when let go.
+ * - Drag it sideways and it turns with the finger and moves a little with the
+ *   hand; let go and it lands on whichever face is nearer, the front or the
+ *   back (the code large and the steps at the desk). A quick flick turns it.
+ * - "Share" sends the whole front as a picture through the phone's share
+ *   sheet (Snapchat, WhatsApp, Instagram), name and code included, as the
+ *   owner asked; the line under the button says so.
+ *
+ * Only a sideways drag is claimed, so the page still scrolls from the ticket
+ * and "Pay now" still presses. A screen reader turns it with the "Turn over"
+ * action. Under reduce motion there is no lean or movement, and a swipe
+ * turns it with a fade.
  */
 export function Ticket(props: TicketProps) {
   const t = useTide();
   const reduced = useReducedMotion();
   const [back, setBack] = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const front = useRef<View>(null);
   const size = useSharedValue({ w: 1, h: 1 });
   const leanX = useSharedValue(0);
   const leanY = useSharedValue(0);
-  const turn = useSharedValue(0);
+  /** The turn in degrees: 0, 180, 360… at rest; between them while dragged. */
+  const spin = useSharedValue(0);
+  const moveX = useSharedValue(0);
+  const moveY = useSharedValue(0);
+  // Where the turn rests and whether a drag is on, for the touch handlers.
+  const rest = useSharedValue(0);
+  const dragging = useSharedValue(false);
+  const start = useSharedValue({ x: 0, y: 0 });
 
   const lean = (x: number, y: number, ms: number) => {
-    if (reduced) return;
+    if (reduced || dragging.value) return;
     const { w, h } = size.value;
     leanY.value = withTiming(((x - w / 2) / (w / 2)) * TILT, { duration: ms });
     leanX.value = withTiming(-((y - h / 2) / (h / 2)) * TILT, { duration: ms });
   };
   const settle = () => {
-    leanX.value = withTiming(0, { duration: 400, easing: EASE_OUT_FN });
-    leanY.value = withTiming(0, { duration: 400, easing: EASE_OUT_FN });
+    if (dragging.value) return;
+    const ease = { duration: 400, easing: EASE_OUT_FN };
+    leanX.value = withTiming(0, ease);
+    leanY.value = withTiming(0, ease);
+    moveX.value = withTiming(0, ease);
+    moveY.value = withTiming(0, ease);
   };
-  const flip = () => {
-    const next = !back;
-    setBack(next);
-    turn.value = reduced
-      ? next
-        ? 1
-        : 0
-      : withTiming(next ? 1 : 0, { duration: 450, easing: EASE_OUT_FN });
+  /** Land on the nearer face; `toward` +1/-1 forces a half turn that way. */
+  const land = (to: number) => {
+    rest.value = to;
+    setBack(Math.abs(Math.round(to / 180)) % 2 === 1);
+    spin.value = reduced ? to : withTiming(to, { duration: 450, easing: EASE_OUT_FN });
   };
 
-  // One face's turn and lean; the back starts half a turn round, so each hides when it faces away.
+  const touch = (n: { pageX: number; pageY: number; locationX: number; locationY: number }) => {
+    start.value = { x: n.pageX, y: n.pageY };
+    lean(n.locationX, n.locationY, 140);
+  };
+  const grab = () => {
+    dragging.value = true;
+  };
+  /** The ticket turns with the finger and moves a little with the hand. */
+  const follow = (pageX: number, pageY: number) => {
+    if (reduced) return;
+    const { w, h } = size.value;
+    const dx = pageX - start.value.x;
+    const dy = pageY - start.value.y;
+    spin.value = rest.value + (dx / w) * 180;
+    moveX.value = dx * FOLLOW;
+    moveY.value = dy * FOLLOW;
+    leanX.value = Math.max(-TILT, Math.min(TILT, (-dy / h) * TILT * 2));
+  };
+  const finish = (dx: number) => {
+    dragging.value = false;
+    const from = rest.value;
+    if (reduced) {
+      // A swipe is a turn; nothing follows the finger.
+      if (Math.abs(dx) > 40) land(from + (dx > 0 ? 180 : -180));
+    } else {
+      // Where the finger left it; a drag past a quarter of the width turns it, as a flick would.
+      const at = from + (dx / size.value.w) * 180;
+      const nearest = Math.round(at / 180) * 180;
+      land(
+        nearest === from && Math.abs(dx) > size.value.w / 4 ? from + Math.sign(dx) * 180 : nearest,
+      );
+    }
+    settle();
+  };
+
+  const share = async () => {
+    setShareError(null);
+    setBusy(true);
+    try {
+      if (!(await Sharing.isAvailableAsync())) {
+        setShareError("Sharing isn't available on this phone.");
+        return;
+      }
+      const uri = await captureRef(front, { format: "png", quality: 1, result: "tmpfile" });
+      await Sharing.shareAsync(uri, {
+        mimeType: "image/png",
+        UTI: "public.png",
+        dialogTitle: "Share your ticket",
+      });
+    } catch {
+      setShareError("The ticket didn't share. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // One face's turn, lean and movement; the back starts half a turn round, so each hides when it faces away.
   const faceOf = (isBack: boolean) => {
     "worklet";
-    const turned = turn.value * 180 + (isBack ? 180 : 0);
+    const facingBack = Math.abs(Math.round(spin.value / 180)) % 2 === 1;
     return {
       backfaceVisibility: "hidden" as const,
-      opacity: reduced ? (isBack ? turn.value : 1 - turn.value) : 1,
+      opacity: reduced ? (isBack === facingBack ? 1 : 0) : 1,
       transform: [
         { perspective: 1200 },
+        { translateX: moveX.value },
+        { translateY: moveY.value },
         { rotateX: `${leanX.value}deg` },
-        { rotateY: `${(reduced ? 0 : turned) + leanY.value}deg` },
+        { rotateY: `${(reduced ? 0 : spin.value + (isBack ? 180 : 0)) + leanY.value}deg` },
         { scale: 1 + (Math.abs(leanX.value) + Math.abs(leanY.value)) * 0.0012 },
       ],
     };
@@ -441,11 +518,25 @@ export function Ticket(props: TicketProps) {
   return (
     <View style={{ alignSelf: "stretch", gap: tSpace[3] }}>
       <Animated.View
+        // Sideways only: an upright drag stays the page's scroll, and a tap stays "Pay now".
+        onMoveShouldSetResponder={(e) => {
+          const dx = e.nativeEvent.pageX - start.value.x;
+          const dy = e.nativeEvent.pageY - start.value.y;
+          return Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2;
+        }}
+        onResponderTerminationRequest={() => false}
+        onResponderGrant={grab}
+        onResponderMove={(e) => follow(e.nativeEvent.pageX, e.nativeEvent.pageY)}
+        onResponderRelease={(e) => finish(e.nativeEvent.pageX - start.value.x)}
+        onResponderTerminate={(e) => finish(e.nativeEvent.pageX - start.value.x)}
         style={motion.ticketPop(reduced)}
+        accessibilityActions={[{ name: "activate", label: "Turn over" }]}
+        onAccessibilityAction={() => land(rest.value + 180)}
+        accessibilityHint="Drag sideways to turn the ticket over."
         onLayout={(e) => {
           size.value = { w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height };
         }}
-        onTouchStart={(e) => lean(e.nativeEvent.locationX, e.nativeEvent.locationY, 140)}
+        onTouchStart={(e) => touch(e.nativeEvent)}
         onTouchMove={(e) => lean(e.nativeEvent.locationX, e.nativeEvent.locationY, 60)}
         onTouchEnd={settle}
         onTouchCancel={settle}
@@ -456,7 +547,10 @@ export function Ticket(props: TicketProps) {
           accessibilityElementsHidden={back}
           importantForAccessibility={back ? "no-hide-descendants" : "auto"}
         >
-          <TicketFront {...props} />
+          {/* What "Share" captures: the whole front, flat, without the light on it. */}
+          <View ref={front} collapsable={false} style={{ backgroundColor: t.bg }}>
+            <TicketFront {...props} />
+          </View>
           <Animated.View
             pointerEvents="none"
             style={[{ position: "absolute", top: 0, left: 0, right: 0, height: "45%" }, glare]}
@@ -483,25 +577,22 @@ export function Ticket(props: TicketProps) {
         </Animated.View>
       </Animated.View>
 
-      <View style={{ flexDirection: "row", gap: tSpace[2] }}>
+      <View style={{ gap: tSpace[1.5] }}>
         <Button
-          label={back ? "Show the front" : "Turn over"}
-          icon="replay"
-          variant="soft"
-          size="sm"
-          style={{ flex: 1 }}
-          onPress={flip}
-        />
-        <Button
-          label="Share"
+          label="Share ticket"
           icon="send"
           variant="soft"
           size="sm"
-          style={{ flex: 1 }}
-          onPress={() => setSharing(true)}
+          busy={busy}
+          onPress={() => void share()}
         />
+        <Text
+          style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3, textAlign: "center" }]}
+        >
+          Drag it sideways to turn it over. Sharing sends the whole ticket, with your name and code.
+        </Text>
+        {shareError ? <FieldError>{shareError}</FieldError> : null}
       </View>
-      <TicketShareSheet visible={sharing} onClose={() => setSharing(false)} ticket={props} />
     </View>
   );
 }

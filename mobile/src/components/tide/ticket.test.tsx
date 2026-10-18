@@ -1,8 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Ticket } from "@/components/tide/ticket";
-import { TicketShareSheet } from "@/components/tide/ticket-share";
 import { ThemeProvider } from "@/theme/theme";
 
 const METRICS = {
@@ -73,44 +72,16 @@ describe("ticket payment looks", () => {
   });
 });
 
-describe("ticket in the hand (ADR 0348)", () => {
-  it("turns over to the back: the code for the desk and what to do there", async () => {
+describe("ticket in the hand (ADR 0348, 0349)", () => {
+  it("turns by touch, with no turn-over button, and shares the whole ticket", async () => {
     await show(null, false);
-    await fireEvent.press(screen.getByText("Turn over"));
-    expect(screen.getByText("Show the front")).toBeTruthy();
-    expect(screen.getByText("YOUR CODE")).toBeTruthy();
-    expect(screen.getByText("Go to the reception desk when you arrive.")).toBeTruthy();
-  });
-
-  it("shares a picture with the hospital and the day, never the name, code, clinic or fee", async () => {
-    await render(
-      <SafeAreaProvider initialMetrics={METRICS}>
-        <ThemeProvider>
-          <TicketShareSheet
-            visible
-            onClose={() => {}}
-            ticket={{
-              kind: "day",
-              hospitalName: "[Hospital name]",
-              day: "19",
-              dayLine: "MON · OCT",
-              sessionLine: "Morning",
-              details: [
-                { label: "Clinic", value: "[Clinic]" },
-                { label: "Patient", value: "[First name] [Surname]" },
-              ],
-              fee: 50000,
-              paid: false,
-              code: "SMTC5N",
-            }}
-          />
-        </ThemeProvider>
-      </SafeAreaProvider>,
-    );
-    expect(screen.getByText("[Hospital name]")).toBeTruthy();
-    expect(screen.getByText("19")).toBeTruthy();
-    for (const hidden of ["SMTC5N", "[Clinic]", "[First name] [Surname]", /50,000/]) {
-      expect(screen.queryByText(hidden)).toBeNull();
-    }
+    expect(screen.queryByText("Turn over")).toBeNull();
+    expect(screen.getByText("Share ticket")).toBeTruthy();
+    expect(screen.getByText(/Drag it sideways to turn it over/)).toBeTruthy();
+    // The back is there to turn to (hidden from screen readers until turned): the code and the steps.
+    const hidden = { includeHiddenElements: true };
+    expect(screen.getByText("YOUR CODE", hidden)).toBeTruthy();
+    expect(screen.getByText("Go to the reception desk when you arrive.", hidden)).toBeTruthy();
+    expect(screen.queryByText("YOUR CODE")).toBeNull();
   });
 });
