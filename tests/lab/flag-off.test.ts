@@ -12,16 +12,20 @@ const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 describe("LAB_WORKSPACE off", () => {
   it("the layout returns the original top bar", () => {
     const layout = read("app/lab/layout.tsx");
+    // Lab Workspace v2 (ADR 0349): the six-place shell only where the workspace (and the record) is on.
+    expect(layout).toMatch(/const v2 = scope\.workspaceLive \? await labV2\(\) : null;/);
     expect(layout).toMatch(
-      /if \(!scope\.workspaceLive\) return <LegacyLabLayout scope=\{scope\}>\{children\}<\/LegacyLabLayout>;/,
+      /return <LegacyLabLayout scope=\{scope\}>\{children\}<\/LegacyLabLayout>;/,
     );
   });
 
   it("the worklist page returns the EMR worklist or the old list, as before", () => {
     const page = read("app/lab/page.tsx");
-    // EMR on: the EMR worklist unless the workspace is on; EMR off: the old list with no note.
+    // Workspace and EMR on: the role landing (v2). EMR on without the workspace: the EMR worklist; EMR off: the
+    // old list with no note.
+    expect(page).toMatch(/if \(v2\.live\)\s*redirect\(/);
     expect(page).toMatch(
-      /return scope\.workspaceLive \? \(\s*<SectionWorklist[\s\S]*?\) : \(\s*<EmrLabWorklist scope=\{scope\} \/>/,
+      /if \(emrV1LiveFor\(scope\.hospitalId\)\) return <EmrLabWorklist scope=\{scope\} \/>;/,
     );
     expect(page).toMatch(/note=\{scope\.workspaceLive \? LAB\.worklist\.legacy : undefined\}/);
   });
@@ -38,7 +42,7 @@ describe("LAB_WORKSPACE off", () => {
       /const flagging = workspace\s*\?[\s\S]*?!criticalFlaggingActive\(scope\.hospitalId\)\s*\?\s*"notice"/,
     );
     expect(load).toMatch(/workspace && !data\.report\?\.released/);
-    expect(read("app/lab/results/[orderId]/page.tsx")).toMatch(
+    expect(read("app/lab/bench/[orderId]/page.tsx")).toMatch(
       /flagging === "notice" \?\s*\(?\s*<FlaggingNotice \/>/,
     );
   });

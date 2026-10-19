@@ -25,11 +25,20 @@ describe("Scan or search", () => {
       today: [],
       bench: [],
       send_outs: [],
-      quality: [{ place: "quality" as const, key: "stock", href: "/lab/quality?tab=stock", from: [] }],
+      quality: [
+        { place: "quality" as const, key: "stock", href: "/lab/quality?tab=stock", from: [] },
+      ],
       reports: [],
       setup: [],
     };
-    const go = goEntries(tabs, () => "Stock and lots", () => "Quality", "stock");
-    expect(go).toEqual([{ label: "Quality · Stock and lots", place: "quality", href: "/lab/quality?tab=stock" }]);
+    const go = goEntries(
+      tabs,
+      () => "Stock and lots",
+      () => "Quality",
+      "stock",
+    );
+    expect(go).toEqual([
+      { label: "Quality · Stock and lots", place: "quality", href: "/lab/quality?tab=stock" },
+    ]);
   });
 });

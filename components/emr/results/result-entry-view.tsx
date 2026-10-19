@@ -9,7 +9,7 @@ import type {
 } from "./model";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useContext } from "react";
 import { CheckIcon, EyeOffIcon, LockIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { ChoiceChips } from "../orders/choice-chips";
 import { PRIORITY_WORD } from "../orders/model";
 import { CriticalPill, StatusWord } from "../status-word";
+import { EntryHeadingLevel } from "./heading-level";
 import {
   autoCritical,
   checkLine,
@@ -93,12 +94,13 @@ export function ResultEntryView({
     phase === "released"
       ? []
       : entryIssues(data.kind, data.components, state, { amending: phase === "amend" });
+  const Heading = useContext(EntryHeadingLevel) === 2 ? "h2" : "h1";
   const quantities = data.components.filter((c) => c.valueType === "quantity");
   const coded = data.components.filter((c) => c.valueType !== "quantity");
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-heading-s">
+        <Heading className="text-heading-s">
           {phase === "amend"
             ? "Amend result"
             : phase === "released"
@@ -109,7 +111,7 @@ export function ResultEntryView({
                 ? "Enter report"
                 : "Enter results"}
           <span className="text-muted-foreground"> — {data.test}</span>
-        </h1>
+        </Heading>
         <p className="text-body-s flex flex-wrap gap-x-4">
           <span className="font-medium">{data.identity.name}</span>
           <span className="text-muted-foreground font-mono tabular-nums">{data.identity.mrn}</span>

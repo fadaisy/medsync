@@ -25,7 +25,6 @@ import {
   labSettingsLiveFor,
   labStockLiveFor,
   labUnitsRangesLiveFor,
-  labWorkspaceV2LiveFor,
   patientResultsLiveFor,
 } from "@/lib/lab/feature";
 import { placesFor } from "@/lib/lab/places";
@@ -63,10 +62,8 @@ export const labNavFlagsFor = cache(async (hospitalId: string): Promise<LabNavFl
 /** Lab Workspace v2 context for a page: scope, the v2 flag, and the viewer's places and tabs. */
 export const labV2 = cache(async () => {
   const scope = await labScope();
-  const live =
-    scope.workspaceLive &&
-    emrV1LiveFor(scope.hospitalId) &&
-    labWorkspaceV2LiveFor(scope.hospitalId);
+  // ADR 0349: no separate flag after Step 11; the workspace and the record decide.
+  const live = scope.workspaceLive && emrV1LiveFor(scope.hospitalId);
   const flags = await labNavFlagsFor(scope.hospitalId);
   return { scope, live, flags, ...placesFor(scope.access.permissions, flags) };
 });

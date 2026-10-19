@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/medsync/page-header";
+import { sentenceCase } from "@/components/medsync/workspace-shell";
 import { LAB } from "@/content/lab";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { LAB_TIME_ZONE, rejectedFor } from "@/lib/lab/page-data";
-import { sentenceCase } from "../../_components/lab-shell";
 import { PatientNameMrn, RecordList } from "../../_components/record-list";
 
 const reasonWords = (code: string | null) => {

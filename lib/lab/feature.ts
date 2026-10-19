@@ -4,7 +4,6 @@ import { LAB2_COPY_STATUS } from "@/content/lab-phase-2";
 import { LAB3_COPY_STATUS } from "@/content/lab-phase-3";
 import { LAB4_COPY_STATUS } from "@/content/lab-phase-4";
 import { LAB5_COPY_STATUS } from "@/content/lab-phase-5";
-import { LABWS2_COPY_STATUS } from "@/content/lab-workspace-v2";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -128,12 +127,3 @@ export const patientResultsLiveFor = (h: string) =>
   phase5(process.env.PATIENT_RESULTS, "patient_results", h);
 export const patientResultsSmsLiveFor = (h: string) =>
   phase5(process.env.PATIENT_RESULTS_SMS, "patient_results_sms", h) && patientResultsLiveFor(h);
-
-/**
- * Lab Workspace v2 (docs/lab/workspace-v2, Law 11, D-UI-09): the six-place interface. "1" or hospital ids, off
- * by default, inside the lab workspace, and off in production while its copy (content/lab-workspace-v2.ts) is a
- * draft (CF-3). Off: the Phase 0–5 interface, unchanged.
- */
-export const labWorkspaceV2LiveFor = (h: string) =>
-  workspaceLiveFor(process.env.LAB_WORKSPACE_V2, h, [LABWS2_COPY_STATUS], "lab_workspace_v2") &&
-  labWorkspaceLiveFor(h);

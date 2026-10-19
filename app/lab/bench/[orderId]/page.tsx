@@ -6,6 +6,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { TriangleAlertIcon } from "lucide-react";
 
 import { CriticalComm } from "@/components/emr/results/critical-comm";
+import { EntryHeadingAs } from "@/components/emr/results/heading-level";
 import { ResultEntry } from "@/components/emr/results/result-entry";
 import { CriticalPill, StatusWord } from "@/components/emr/status-word";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
@@ -80,13 +81,15 @@ export default async function BenchResultPage({
     specimenId,
     flagging,
   } = screen;
-  const [benchData, worklist, label] = await Promise.all([
+  // The queue opens on the order's own stage unless the link says otherwise.
+  const worklist = await labWorklistFor(scope.hospitalId);
+  const open = worklist.inputs.find((i) => i.orderId === orderId);
+  const [benchData, label] = await Promise.all([
     loadBench(v2, {
-      stage: one(sp.stage) ?? undefined,
+      stage: one(sp.stage) ?? open?.stage,
       section: one(sp.section),
       patient: undefined,
     }),
-    labWorklistFor(scope.hospitalId),
     db
       .select({ labelNo: labLabels.labelNo })
       .from(labLabels)
@@ -100,7 +103,6 @@ export default async function BenchResultPage({
       .orderBy(desc(labLabels.labelNo))
       .limit(1),
   ]);
-  const open = worklist.inputs.find((i) => i.orderId === orderId);
   const fmt = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -329,28 +331,33 @@ export default async function BenchResultPage({
         />
       ) : null}
       <Panel>
-        {preview ? (
-          <LabResultEntry
-            data={data}
-            preview={{
-              level0: preview.level0,
-              next: preview.next
-                ? {
-                    people: preview.next.people,
-                    at: preview.next.at ? fmt.format(preview.next.at) : null,
-                  }
-                : null,
-              emptyLevels: preview.emptyLevels,
-              reachedNobody: preview.reachedNobody,
-              timesSigned: preview.times !== null,
-              smsLive: preview.smsLive,
-              secondCheck: preview.secondCheck,
-              labUsers: preview.labUsers,
-            }}
-          />
-        ) : (
-          <ResultEntry data={data} surface="lab" />
-        )}
+        <EntryHeadingAs level={2}>
+          {/* The grid scrolls inside its card on a narrow screen, never the page (5.1). */}
+          <div className="-mx-1 min-w-0 overflow-x-auto px-1">
+            {preview ? (
+              <LabResultEntry
+                data={data}
+                preview={{
+                  level0: preview.level0,
+                  next: preview.next
+                    ? {
+                        people: preview.next.people,
+                        at: preview.next.at ? fmt.format(preview.next.at) : null,
+                      }
+                    : null,
+                  emptyLevels: preview.emptyLevels,
+                  reachedNobody: preview.reachedNobody,
+                  timesSigned: preview.times !== null,
+                  smsLive: preview.smsLive,
+                  secondCheck: preview.secondCheck,
+                  labUsers: preview.labUsers,
+                }}
+              />
+            ) : (
+              <ResultEntry data={data} surface="lab" />
+            )}
+          </div>
+        </EntryHeadingAs>
       </Panel>
       {specimenId && scope.access.permissions.has("lab.receive") ? (
         <RejectSpecimen

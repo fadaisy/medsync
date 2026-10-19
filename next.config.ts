@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 
+import { LAB_REDIRECTS } from "./lib/lab/redirects";
+
 const nextConfig: NextConfig = {
   // Vercel Analytics is loaded via @vercel/analytics in app/layout.tsx (0.8).
   experimental: {
@@ -27,12 +29,16 @@ const nextConfig: NextConfig = {
   },
   // Landing v4 route audit: one route family. The old /onboarding/* doors
   // became /signup/*; keep the old links (and search results) working.
+  // Lab Workspace v2 (ADR 0349): every old lab route answers 308 to its new home, ids and query kept.
   async redirects() {
-    return ["patient", "clinical", "hospital"].map((door) => ({
-      source: `/onboarding/${door}`,
-      destination: `/signup/${door}`,
-      permanent: true,
-    }));
+    return [
+      ...["patient", "clinical", "hospital"].map((door) => ({
+        source: `/onboarding/${door}`,
+        destination: `/signup/${door}`,
+        permanent: true,
+      })),
+      ...LAB_REDIRECTS,
+    ];
   },
 
   async rewrites() {

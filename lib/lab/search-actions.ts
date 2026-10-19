@@ -10,7 +10,7 @@ import { asClinicalReader } from "@/lib/emr/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { findSpecimens } from "./bench-store";
-import { labWorkspaceV2LiveFor } from "./feature";
+import { labWorkspaceLiveFor } from "./feature";
 import { labWorklistFor } from "./page-data";
 import { classify, SEARCH_CAP } from "./search";
 
@@ -42,8 +42,8 @@ export async function labSearchAction(raw: unknown): Promise<ActionResult<Search
     const actor = await requireEmrActor("lab");
     if (!actor.labPermissions?.includes("lab.view"))
       throw new EmrWriteError("forbidden", "Only laboratory staff can search the lab.");
-    if (!labWorkspaceV2LiveFor(actor.hospitalId))
-      throw new EmrWriteError("config", "Lab search is not switched on here.");
+    if (!labWorkspaceLiveFor(actor.hospitalId))
+      throw new EmrWriteError("config", "The lab workspace is not switched on here.");
     const q = p.data.q;
     const kind = classify(q);
     const scope = { userId: actor.userId, hospitalId: actor.hospitalId };

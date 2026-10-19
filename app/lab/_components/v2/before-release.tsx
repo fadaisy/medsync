@@ -43,7 +43,6 @@ export function BeforeRelease({ gates }: { gates: readonly Gate[] }) {
           return (
             <li
               key={g.key}
-              role={g.state === "wait" ? "status" : undefined}
               className={cn(
                 "rounded-tide-row flex flex-col gap-2 px-3 py-2.5",
                 g.state === "wait"
@@ -51,7 +50,10 @@ export function BeforeRelease({ gates }: { gates: readonly Gate[] }) {
                   : "bg-muted/70",
               )}
             >
-              <div className="flex items-start gap-2.5">
+              <div
+                className="flex items-start gap-2.5"
+                role={g.state === "wait" ? "status" : undefined}
+              >
                 <Icon
                   aria-hidden
                   className={cn(

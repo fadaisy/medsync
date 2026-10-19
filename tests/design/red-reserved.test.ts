@@ -337,6 +337,31 @@ describe("red is reserved — the laboratory workspace", () => {
   });
 });
 
+// ─── Lab Workspace v2 (ADR 0344): red only for criticals and the Emergency button ────────────────
+
+describe("red is reserved — Lab Workspace v2", () => {
+  it("the lab's top-bar Emergency is red, stands the floating pill down, and is the only red in components/lab", () => {
+    const inline = stripComments(
+      readFileSync(resolve(ROOT, "components/lab/emergency-inline.tsx"), "utf8"),
+    );
+    expect(inline).toMatch(/buttonVariants\(\{ variant: "emergency"/);
+    expect(inline).toMatch(/data-emergency-inline/);
+    expect(inline).toMatch(/href="\/emergency"/);
+    for (const [path, src] of tree("components/lab"))
+      if (path !== "components/lab/emergency-inline.tsx")
+        expect(WEB_RED_FILL.exec(src), path).toBeNull();
+  });
+
+  it("no green anywhere in the lab: passed is a neutral pill with a check (Law 8)", () => {
+    for (const [path, src] of tree("app/lab", "components/lab")) {
+      expect(src, path).not.toMatch(
+        /\b(?:text|bg|border|ring|fill|stroke)-(?:green|emerald|lime|mint)-\d/,
+      );
+      expect(src, path).not.toMatch(/status-stable|tone="(?:ok|stable|success)"/);
+    }
+  });
+});
+
 describe("red is reserved — the pharmacy workspace", () => {
   // Every /pharmacy route, the pharmacy engines and copy, and the shared workspace pieces the
   // pharmacy draws with (Pharmacy Phase 0 Law 10: this slice adds no red, and nothing is green).
@@ -756,13 +781,13 @@ describe("red is reserved — Lab Phase 3 surfaces", () => {
   it("S51: every Phase 3 route and component is scanned", () => {
     const scanned = new Set(PHASE3.map(([p]) => p));
     for (const f of [
-      "app/lab/reports/page.tsx",
+      "app/lab/reports/_views/indicators.tsx",
       "app/lab/reports/records/page.tsx",
-      "app/lab/quality/page.tsx",
-      "app/lab/stock/page.tsx",
-      "app/lab/equipment/page.tsx",
-      "app/lab/hmis/page.tsx",
-      "app/lab/register/page.tsx",
+      "app/lab/quality/_views/today.tsx",
+      "app/lab/quality/_views/stock.tsx",
+      "app/lab/quality/_views/equipment.tsx",
+      "app/lab/reports/_views/hmis.tsx",
+      "app/lab/reports/_views/register.tsx",
       "app/hmis/page.tsx",
       "app/nurse/bedside/devices/page.tsx",
     ])

@@ -45,25 +45,24 @@ export async function loadToday(o: {
     loadLabSections(h),
     db.transaction(async (t) => {
       const tx = t as never;
-      const [targets, out, qc] = await Promise.all([
-        statedTargets(tx, h),
-        db
-          .select({ id: labReferrals.id })
-          .from(labReferrals)
-          .where(
-            and(
-              eq(labReferrals.hospitalId, h),
-              isNotNull(labReferrals.sentAt),
-              notInArray(labReferrals.state, TERMINAL),
-            ),
+      // One connection: every query here runs on the transaction, in turn.
+      const targets = await statedTargets(tx, h);
+      const out = await t
+        .select({ id: labReferrals.id })
+        .from(labReferrals)
+        .where(
+          and(
+            eq(labReferrals.hospitalId, h),
+            isNotNull(labReferrals.sentAt),
+            notInArray(labReferrals.state, TERMINAL),
           ),
-        o.qc ? loadQcPlans(tx, h, now).then((p) => p.rows) : Promise.resolve([]),
-      ]);
+        );
+      const qc = o.qc ? (await loadQcPlans(tx, h, now)).rows : [];
       const deviceIds = [...new Set(qc.map((r) => r.deviceId))];
       const sectionOf = new Map(
         deviceIds.length
           ? (
-              await db
+              await t
                 .select({ id: devices.id, sectionId: devices.sectionId })
                 .from(devices)
                 .where(inArray(devices.id, deviceIds))

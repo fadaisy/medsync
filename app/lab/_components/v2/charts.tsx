@@ -299,8 +299,9 @@ export function Histogram({
             strokeDasharray="3 3"
           />
           <text
-            x={P.l + medianIndex * bw + bw / 2 + 4}
-            y={P.t - 4}
+            x={W - P.r}
+            y={12}
+            textAnchor="end"
             fontSize={10}
             fontWeight={600}
             fill="var(--color-ink-900)"

@@ -1,4 +1,4 @@
-import type { SP } from "../../_lib/v2-redirect";
+import type { SP } from "@/lib/lab/redirects";
 import { notFound } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 

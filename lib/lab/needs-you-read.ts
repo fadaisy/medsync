@@ -2,7 +2,19 @@ import "server-only";
 
 import type { NeedsYouItem } from "./needs-you";
 import type { EmrDb } from "@/lib/emr/db";
-import { and, asc, eq, inArray, isNotNull, isNull, ne, notExists, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  ne,
+  notExists,
+  sql,
+} from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -278,7 +290,8 @@ export async function loadNeedsYouWeek(
       .where(
         and(
           eq(criticalAlerts.hospitalId, hospitalId),
-          sql`${criticalAlerts.sentAt} between ${from} and ${now}`,
+          gte(criticalAlerts.sentAt, from),
+          lte(criticalAlerts.sentAt, now),
         ),
       ),
     conn
@@ -290,7 +303,8 @@ export async function loadNeedsYouWeek(
       .where(
         and(
           eq(deltaFlags.hospitalId, hospitalId),
-          sql`${deltaFlags.createdAt} between ${from} and ${now}`,
+          gte(deltaFlags.createdAt, from),
+          lte(deltaFlags.createdAt, now),
         ),
       ),
     conn
@@ -303,7 +317,8 @@ export async function loadNeedsYouWeek(
         and(
           eq(labMatchItems.hospitalId, hospitalId),
           isNotNull(labMatchItems.reason),
-          sql`${labMatchItems.createdAt} between ${from} and ${now}`,
+          gte(labMatchItems.createdAt, from),
+          lte(labMatchItems.createdAt, now),
         ),
       ),
   ]);

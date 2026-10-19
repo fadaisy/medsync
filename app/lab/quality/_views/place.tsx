@@ -1,5 +1,5 @@
 import type { labV2 } from "../../_lib/places";
-import type { SP } from "../../_lib/v2-redirect";
+import type { SP } from "@/lib/lab/redirects";
 
 import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import { labEquipmentLiveFor, labStockLiveFor } from "@/lib/lab/feature";

@@ -183,7 +183,7 @@ describe.skipIf(!laneOn)("Lab Phase 1 one result path (S45–S48)", () => {
     for (const a of actions)
       expect(a).toMatch(/if \(!\(await legacyWritesOpen\(scope\.hospitalId\)\)\)/);
     // The older list reads encounter_results, which is untouched.
-    expect(readFileSync(resolve(process.cwd(), "app/lab/older/page.tsx"), "utf8")).toMatch(
+    expect(readFileSync(resolve(process.cwd(), "app/lab/bench/_views/older.tsx"), "utf8")).toMatch(
       /encounterResults/,
     );
   });

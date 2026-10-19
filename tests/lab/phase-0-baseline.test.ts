@@ -37,7 +37,7 @@ describe("Lab Phase 0 baseline — defects reproduced at Step 0", () => {
     expect(read("app/lab/results/[orderId]/_lib/load.ts")).toMatch(
       /!criticalFlaggingActive\(scope\.hospitalId\)\s*\?\s*"notice"/,
     );
-    expect(read("app/lab/results/[orderId]/page.tsx")).toMatch(
+    expect(read("app/lab/bench/[orderId]/page.tsx")).toMatch(
       /flagging === "notice" \?\s*\(?\s*<FlaggingNotice \/>/,
     );
   });

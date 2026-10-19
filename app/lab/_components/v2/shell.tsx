@@ -19,7 +19,7 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { EmergencyInline } from "@/components/emergency/emergency-pill";
+import { EmergencyInline } from "@/components/lab/emergency-inline";
 import { RestrictedMark } from "@/components/emr/chips";
 import { LabLive } from "@/components/lab/lab-live";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";

@@ -91,22 +91,11 @@ describe("redirect map (S5)", () => {
     }
   });
 
-  it("each old page still in the tree answers the same target while the flag is on", () => {
+  it("next.config.ts serves the map, and no old page is left behind it", () => {
+    expect(readFileSync(resolve(ROOT, "next.config.ts"), "utf8")).toMatch(/\.\.\.LAB_REDIRECTS/);
     for (const r of LAB_REDIRECTS) {
       const file = resolve(ROOT, `app${r.source.replace(/:(\w+)/g, "[$1]")}/page.tsx`);
-      if (!existsSync(file)) continue; // removed at Step 11: next.config.ts answers
-      const src = readFileSync(file, "utf8");
-      const target = r.destination.replace(/:(\w+)/g, "${$1}");
-      const flat = src.replace(/\s+/g, "");
-      const exact =
-        flat.includes(`redirectIfV2(\`${target}\``) || flat.includes(`redirectIfV2("${target}"`);
-      // A target built from the old query (HMIS keeps its form section as `part`): same path, same tab.
-      const [path, q = ""] = target.split("?");
-      const built =
-        flat.includes("redirectIfV2(") &&
-        flat.includes(path!) &&
-        [...new URLSearchParams(q).values()].every((v) => flat.includes(v));
-      expect(exact || built, r.source).toBe(true);
+      expect(existsSync(file), r.source).toBe(false);
     }
   });
 
