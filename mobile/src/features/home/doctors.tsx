@@ -91,7 +91,7 @@ export function Doctors() {
 
 /** The badge: a portrait card, photo over a navy band with a curved shoulder. */
 const BADGE_W = 236;
-const PHOTO_H = 216;
+const PHOTO_H = 268;
 const CURVE_H = 40;
 
 /**
@@ -266,50 +266,54 @@ function DoctorTile({ d }: { d: DoctorCard }) {
         </Svg>
       </View>
 
+      {/* The band stays small so the photo carries the badge. */}
       <View
         style={{
           flex: 1,
-          paddingHorizontal: tSpace[4],
-          paddingBottom: tSpace[4],
-          gap: tSpace[1],
+          paddingHorizontal: tSpace[3.5],
+          paddingBottom: tSpace[3.5],
+          gap: 2,
         }}
       >
         <Text
           style={{
             fontFamily: tFont.semibold,
-            fontSize: 22,
-            lineHeight: 26,
-            letterSpacing: -0.3,
+            fontSize: 19,
+            lineHeight: 23,
+            letterSpacing: -0.2,
             color: t.onBand,
           }}
-          numberOfLines={2}
+          numberOfLines={1}
         >
           {d.name}
         </Text>
-        <Text style={[tType.bodyS, { color: t.onBand2 }]} numberOfLines={1}>
-          {d.role}
+        <Text style={[tType.caption, { color: t.onBand2 }]} numberOfLines={1}>
+          {d.role} · {placeWords}
         </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 }}>
-          <Icon name="building" size={12} color={t.onBand2} />
-          <Text style={[tType.caption, { flexShrink: 1, color: t.onBand2 }]} numberOfLines={1}>
-            {placeWords}
-          </Text>
-        </View>
 
         {/* The foot, pinned to the bottom so every badge in the row lines up. */}
-        <View style={{ marginTop: "auto", paddingTop: tSpace[3], gap: tSpace[3] }}>
-          <View style={{ height: 1, backgroundColor: t.bandGlass }} />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
+        <View style={{ marginTop: "auto", paddingTop: tSpace[2.5], gap: tSpace[2] }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="wallet" size={13} color={t.onBand2} />
             <Text style={[tType.caption, { flex: 1, color: t.onBand }]} numberOfLines={1}>
               {where.feeWords}
             </Text>
+            {firstOpen && !walkIn ? (
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: t.bandGlass,
+                }}
+              >
+                <Icon name="arrowRight" size={15} color={t.onBand} />
+              </View>
+            ) : null}
           </View>
           {walkIn ? (
             <Button
@@ -321,23 +325,6 @@ function DoctorTile({ d }: { d: DoctorCard }) {
                 router.push({ pathname: "/book/today", params: { clinic: walkIn.departmentId } })
               }
             />
-          ) : firstOpen ? (
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={{
-                minHeight: 36,
-                borderRadius: tRadius.pill,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                backgroundColor: t.bandGlass,
-              }}
-            >
-              <Text style={[tType.labelS, { color: t.onBand }]}>Ask for a day</Text>
-              <Icon name="arrowRight" size={14} color={t.onBand} />
-            </View>
           ) : null}
         </View>
       </View>
