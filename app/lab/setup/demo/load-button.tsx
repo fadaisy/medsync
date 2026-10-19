@@ -12,9 +12,9 @@ export function LoadDemoDay() {
         type="button"
         className="w-fit"
         disabled={pending}
-        onClick={() => act(loadDemoDayAction, "Loaded. The worklist now has a demo day.")}
+        onClick={() => act(loadDemoDayAction, "Loaded. Every lab page now has demo data.")}
       >
-        {pending ? "Loading…" : "Load a demo lab day"}
+        {pending ? "Loading the demo lab… (up to a minute)" : "Load a demo lab"}
       </Button>
       <Said message={message} />
     </div>

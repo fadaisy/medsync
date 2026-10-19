@@ -6,11 +6,13 @@ import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
-import { DEMO_PATIENTS, demoLoads, isDemoHospital } from "@/lib/lab/demo";
+import { demoLoads, isDemoHospital } from "@/lib/lab/demo";
 import { LoadDemoDay } from "./load-button";
 
 export const metadata: Metadata = { title: "Demo lab day · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
+// One load writes a whole demo lab through the real stores (about 30 accounts and several hundred rows).
+export const maxDuration = 60;
 
 const when = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -41,14 +43,21 @@ export default async function DemoPage() {
       />
       <section className="border-border bg-card text-body-s flex flex-col gap-3 rounded-lg border p-4">
         <p>
-          This is a demo hospital. A demo lab day adds {DEMO_PATIENTS} patients named &ldquo;Demo
-          patient 01&rdquo; to &ldquo;Demo patient {String(DEMO_PATIENTS).padStart(2, "0")}&rdquo;,
-          with tests waiting to be collected, received, resulted and released, and two released.
+          This is a demo hospital. Loading a demo lab fills every lab page: about twenty patients
+          named &ldquo;Demo patient NN&rdquo; at every stage of the worklist, released and reviewed
+          results, rejected specimens, two critical alerts (one acknowledged by phone), a delta
+          check waiting for a decision, infection prevention alerts, a referral on a sealed
+          manifest, QC runs with a warning and a rejected run, stock and lots, equipment (one item
+          down), an EQA round, a bedside meter with its daily check, a downtime period, and results
+          patients can see.
         </p>
         <p className="text-muted-foreground">
-          Results sit in the middle of this hospital&apos;s own signed ranges. A test without a
-          signed range is received and left for a person. Demo patients cannot sign in. Demo records
-          stay in this hospital and never reach a real one.
+          Units, decimals and LOINC codes come from the catalogue research, and reference ranges
+          from its published Ugandan studies, with their citations. Values without a published
+          source (response times, QC targets, delta limits, control ranges) are derived from those
+          ranges and labelled Demo. Settings are signed by demo staff (&ldquo;Demo lab lead&rdquo;,
+          &ldquo;Demo CSO&rdquo; and others) in this hospital only. Nobody can sign in as a demo
+          patient or demo staff member, and demo records never reach a real hospital.
         </p>
         <LoadDemoDay />
       </section>
@@ -61,9 +70,10 @@ export default async function DemoPage() {
             {loads.map((l) => (
               <li key={l.id}>
                 <span className="font-mono">{when.format(new Date(l.startedAt))}</span> ·{" "}
-                {l.error
-                  ? `Stopped: ${l.error}`
-                  : `${l.counts.patients ?? 0} patients, ${l.counts.orders ?? 0} tests, ${l.counts.released ?? 0} released`}
+                {`${l.counts.patients ?? 0} patients, ${l.counts.orders ?? 0} tests, ${l.counts.released ?? 0} released, ${l.counts["signed settings"] ?? 0} settings signed`}
+                {l.error ? (
+                  <span className="text-muted-foreground"> · Stopped: {l.error}</span>
+                ) : null}
               </li>
             ))}
           </ul>

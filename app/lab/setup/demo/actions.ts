@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
-import { isDemoHospital, loadLabDemoDay } from "@/lib/lab/demo";
+import { isDemoHospital, loadLabDemo } from "@/lib/lab/demo";
 import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -24,7 +24,7 @@ export async function loadDemoDayAction(): Promise<ActionResult> {
     if (!(await isDemoHospital(database, actor.hospitalId)))
       throw new EmrWriteError("forbidden", "Demo data goes only into a demo hospital.");
     const admin = createServiceClient().auth.admin;
-    const { loadId } = await loadLabDemoDay(database, actor, {
+    const { loadId, notes } = await loadLabDemo(database, actor, {
       makePatientUser: async (label) => {
         const { data, error } = await admin.createUser({
           email: `lab-demo-${crypto.randomUUID()}@demo.medsync.invalid`,
@@ -37,7 +37,15 @@ export async function loadDemoDayAction(): Promise<ActionResult> {
       },
     });
     revalidatePath("/lab", "layout");
-    return { ok: true, id: loadId, serverTime: new Date().toISOString() };
+    const stopped = Object.keys(notes);
+    return {
+      ok: true,
+      id: loadId,
+      serverTime: new Date().toISOString(),
+      ...(stopped.length
+        ? { warnings: [`Some sections stopped: ${stopped.join(", ")}. See Loads below.`] }
+        : {}),
+    };
   } catch (e) {
     if (e instanceof EmrWriteError) return actionError(e);
     // Anything else (an account that could not be made, a database refusal) is said on the page, never a crash.
