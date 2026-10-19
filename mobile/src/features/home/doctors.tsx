@@ -2,18 +2,9 @@ import type { DoctorCard, DoctorPlace } from "@/data/doctors";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
-import {
-  Avatar,
-  Button,
-  Chip,
-  ChipRow,
-  Icon,
-  Note,
-  Press,
-  SectionHead,
-  TextLink,
-} from "@/components/tide";
+import { Button, Chip, ChipRow, Icon, Note, Press, SectionHead, TextLink } from "@/components/tide";
 import {
   availabilityWords,
   doctorFilters,
@@ -26,14 +17,11 @@ import { shortDayOf } from "@/features/visits/logic";
 import { dateKey } from "@/lib/booking";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
-import { tRadius, tSpace, tType } from "@/theme/tide";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * "See a doctor": the real clinicians at every hospital (contract in
- * `data/doctors.ts`), no hospital to choose first. Each card lists where the
- * doctor works, each hospital with its clinic, next open day and fee; tapping
- * one asks for a day there. "Come today" shows where their clinic at the
- * patient's own hospital takes walk-ins now. No count of people anywhere
+ * `data/doctors.ts`), no hospital to choose first, one ID badge each. No count of people anywhere
  * (ADR 0084 §6), no rating, no placeholder doctor.
  */
 export function Doctors() {
@@ -101,9 +89,18 @@ export function Doctors() {
   );
 }
 
-/** How many hospitals a card lists before "and N more". */
-const PLACES_SHOWN = 2;
+/** The badge: a portrait card, photo over a navy band with a curved shoulder. */
+const BADGE_W = 236;
+const PHOTO_H = 220;
+const CURVE_H = 34;
 
+/**
+ * One doctor as an ID badge (owner, 19 Oct 2026): the photo (or their
+ * initials) on top, a navy band rising over it in a curve, the name and
+ * role in it, and along the foot the next open day and the fee. Tapping the
+ * badge asks for a day where they are open first; "Come today" shows when
+ * their clinic at the patient's hospital takes walk-ins now.
+ */
 function DoctorTile({ d }: { d: DoctorCard }) {
   const t = useTide();
   const router = useRouter();
@@ -115,171 +112,139 @@ function DoctorTile({ d }: { d: DoctorCard }) {
   const now = useNow();
   const firstOpen = d.places.find((p) => p.nextDayKey !== null) ?? null;
   const available = availabilityWords(d.nextDayKey, dateKey(now), shortDayOf);
-  // The fee where they would book first; each hospital's own fee is on its row.
-  const cost = (firstOpen ?? d.places[0]).feeWords;
+  // The fee where they would book first.
+  const where = firstOpen ?? d.places[0];
   const walkIn = d.places.find((p) => p.walkInToday) ?? null;
-  const shown = d.places.slice(0, PLACES_SHOWN);
-  const more = d.places.length - shown.length;
+  const placeWords =
+    d.places.length === 1
+      ? `${where.departmentName} · ${where.hospitalName}`
+      : `${where.hospitalName} and ${d.places.length - 1} more`;
+
   return (
-    <View
+    <Press
+      onPress={firstOpen ? () => ask(firstOpen) : undefined}
+      disabled={!firstOpen}
+      accessibilityLabel={`${d.name}, ${d.role}. ${placeWords}. ${available.text}. ${where.feeWords}. ${ratingWords(d.rating)}.${
+        firstOpen ? " Ask for a day." : ""
+      }`}
       style={{
-        width: 280,
+        width: BADGE_W,
         borderRadius: tRadius.cardLg,
-        padding: tSpace[4],
-        backgroundColor: t.surface,
-        gap: tSpace[3],
+        overflow: "hidden",
+        backgroundColor: t.band,
         boxShadow: t.shadow.card,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
+      <View style={{ height: PHOTO_H, backgroundColor: t.surface2 }}>
         {d.photoUrl ? (
           <Image
             source={{ uri: d.photoUrl }}
             accessibilityIgnoresInvertColors
-            style={{ width: 44, height: 44, borderRadius: 22 }}
+            resizeMode="cover"
+            style={{ width: "100%", height: "100%" }}
           />
         ) : (
-          <Avatar initials={d.initials} size={44} />
-        )}
-        <View style={{ flex: 1 }}>
-          <Text style={[tType.label, { color: t.ink }]} numberOfLines={1}>
-            {d.name}
-          </Text>
-          <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]} numberOfLines={1}>
-            {d.role}
-          </Text>
           <View
-            accessible
-            accessibilityLabel={`Rating: ${ratingWords(d.rating)}`}
-            style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingBottom: CURVE_H,
+              backgroundColor: t.info.tint,
+            }}
           >
-            <Icon name="star" size={13} color={d.rating ? t.ink : t.ink4} />
-            <Text style={[tType.bodyS, { fontSize: 12, color: d.rating ? t.ink : t.ink3 }]}>
-              {ratingWords(d.rating)}
+            <Text style={{ fontFamily: tFont.semibold, fontSize: 56, color: t.info.text }}>
+              {d.initials}
             </Text>
           </View>
-        </View>
+        )}
+        {walkIn ? (
+          <View
+            style={{
+              position: "absolute",
+              top: tSpace[3],
+              left: tSpace[3],
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 5,
+              minHeight: 26,
+              paddingHorizontal: 10,
+              borderRadius: tRadius.pill,
+              backgroundColor: t.band,
+            }}
+          >
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent }} />
+            <Text style={[tType.caption, { color: t.onBandAccent }]}>Walk-ins today</Text>
+          </View>
+        ) : null}
+        {/* The band's shoulder: high on the left, curving down to the right. */}
+        <Svg
+          width={BADGE_W}
+          height={CURVE_H}
+          viewBox={`0 0 ${BADGE_W} ${CURVE_H}`}
+          style={{ position: "absolute", left: 0, bottom: 0 }}
+        >
+          <Path
+            d={`M0 0 H${BADGE_W * 0.52} C${BADGE_W * 0.66} 0 ${BADGE_W * 0.66} ${CURVE_H * 0.8} ${BADGE_W * 0.8} ${CURVE_H * 0.8} H${BADGE_W} V${CURVE_H} H0 Z`}
+            fill={t.band}
+          />
+        </Svg>
       </View>
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[1.5] }}>
-        <Fact
-          icon="calendar"
-          text={available.text}
-          strong={available.today}
-          label={`Availability: ${available.text}`}
-        />
-        <Fact icon="wallet" text={cost} label={`Cost: ${cost}`} />
-      </View>
-
-      <View style={{ gap: tSpace[1.5] }}>
-        <Text style={[tType.overline, { color: t.ink3 }]}>
-          {d.places.length === 1 ? "Works at" : `Works at ${d.places.length} hospitals`}
+      <View style={{ paddingHorizontal: tSpace[4], paddingBottom: tSpace[4], gap: tSpace[1.5] }}>
+        <Text
+          style={{ fontFamily: tFont.semibold, fontSize: 21, lineHeight: 25, color: t.onBand }}
+          numberOfLines={2}
+        >
+          {d.name}
         </Text>
-        {shown.map((p) => (
-          <PlaceRow key={`${p.hospitalId}:${p.departmentId}`} place={p} onAsk={() => ask(p)} />
-        ))}
-        {more > 0 ? (
-          <Text style={[tType.bodyS, { fontSize: 12, color: t.ink3 }]}>
-            and {more} more {more === 1 ? "hospital" : "hospitals"}
+        <Text style={[tType.bodyS, { color: t.onBand2 }]} numberOfLines={1}>
+          {d.role}
+        </Text>
+        <Text style={[tType.caption, { color: t.onBand2 }]} numberOfLines={1}>
+          {placeWords}
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Icon name="star" size={12} color={t.onBand2} />
+          <Text style={[tType.caption, { color: t.onBand2 }]}>{ratingWords(d.rating)}</Text>
+        </View>
+
+        <View
+          style={{
+            marginTop: tSpace[3],
+            flexDirection: "row",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: tSpace[2],
+          }}
+        >
+          <Text
+            style={[
+              tType.labelS,
+              { flexShrink: 1, color: available.today ? t.onBandAccent : t.onBand },
+            ]}
+            numberOfLines={2}
+          >
+            {available.text}
           </Text>
+          <Text style={[tType.caption, { color: t.onBand2 }]} numberOfLines={1}>
+            {where.feeWords}
+          </Text>
+        </View>
+
+        {walkIn ? (
+          <Button
+            size="sm"
+            variant="accent"
+            label="Come today"
+            accessibilityLabel={`Come today to ${walkIn.departmentName}, ${walkIn.hospitalName}`}
+            onPress={() =>
+              router.push({ pathname: "/book/today", params: { clinic: walkIn.departmentId } })
+            }
+            style={{ marginTop: tSpace[2] }}
+          />
         ) : null}
       </View>
-
-      {walkIn ? (
-        <Button
-          size="md"
-          label="Come today"
-          accessibilityLabel={`Come today to ${walkIn.departmentName}, ${walkIn.hospitalName}`}
-          onPress={() =>
-            router.push({ pathname: "/book/today", params: { clinic: walkIn.departmentId } })
-          }
-        />
-      ) : null}
-      {firstOpen ? (
-        <Button
-          size="md"
-          variant={walkIn ? "outline" : "primary"}
-          label="Ask for a day"
-          accessibilityLabel={`Ask ${d.name} for a day at ${firstOpen.hospitalName}`}
-          onPress={() => ask(firstOpen)}
-        />
-      ) : (
-        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
-          No open day in the next two weeks
-        </Text>
-      )}
-    </View>
-  );
-}
-
-/** A short fact on the card: availability or cost, an icon and words, never colour alone. */
-function Fact({
-  icon,
-  text,
-  label,
-  strong = false,
-}: {
-  icon: "calendar" | "wallet";
-  text: string;
-  label: string;
-  strong?: boolean;
-}) {
-  const t = useTide();
-  return (
-    <View
-      accessible
-      accessibilityLabel={label}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 5,
-        minHeight: 28,
-        paddingHorizontal: 10,
-        borderRadius: tRadius.pill,
-        backgroundColor: strong ? t.accentTint : t.surface2,
-      }}
-    >
-      <Icon name={icon} size={13} color={strong ? t.accentText : t.ink2} />
-      <Text style={[tType.caption, { color: strong ? t.accentText : t.ink }]}>{text}</Text>
-    </View>
-  );
-}
-
-/** One hospital on a card: its name, the clinic, the next open day and the fee. Tap to ask there. */
-function PlaceRow({ place, onAsk }: { place: DoctorPlace; onAsk: () => void }) {
-  const t = useTide();
-  const when = place.nextDayKey ? `Next ${shortDayOf(place.nextDayKey)}` : "No open day yet";
-  return (
-    <Press
-      onPress={onAsk}
-      disabled={!place.nextDayKey}
-      accessibilityLabel={`${place.hospitalName}, ${place.departmentName}. ${when}. ${place.feeWords}.${
-        place.nextDayKey ? " Ask for a day here." : ""
-      }`}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: tSpace[2.5],
-        minHeight: 52,
-        paddingVertical: tSpace[2],
-        paddingHorizontal: tSpace[3],
-        borderRadius: tRadius.md,
-        backgroundColor: t.surface2,
-      }}
-    >
-      <Icon name="building" size={18} color={t.area.visits} />
-      <View style={{ flex: 1, gap: 1 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
-          <Text style={[tType.labelS, { flexShrink: 1, color: t.ink }]} numberOfLines={1}>
-            {place.hospitalName}
-          </Text>
-          {place.home ? <Text style={[tType.micro, { color: t.accentText }]}>Yours</Text> : null}
-        </View>
-        <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]} numberOfLines={1}>
-          {place.departmentName} · {when} · {place.feeWords}
-        </Text>
-      </View>
-      {place.nextDayKey ? <Icon name="forward" size={16} color={t.ink3} /> : null}
     </Press>
   );
 }
