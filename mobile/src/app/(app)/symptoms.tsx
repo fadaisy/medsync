@@ -76,7 +76,14 @@ export default function SymptomsScreen() {
 function Body() {
   const t = useTide();
   const router = useRouter();
-  const params = useLocalSearchParams<{ item?: string; area?: string }>();
+  const params = useLocalSearchParams<{
+    item?: string;
+    area?: string;
+    /** Ask for a day with a doctor (Home): the day request goes back to them. */
+    doctor?: string;
+    department?: string;
+    hospital?: string;
+  }>();
   const mode = useCatalogMode();
   const [profile, setProfile] = useState<PatientProfile | null | undefined>();
 
@@ -301,7 +308,12 @@ function Body() {
         tier: sub.tier,
         catalogVersion: CATALOG.version,
       });
-      router.push({ pathname, params: { reason: "new_concern" } });
+      const { doctor, department, hospital } = params;
+      const withDoctor =
+        pathname === "/book/day" && doctor
+          ? { doctor, ...(department ? { department } : {}), ...(hospital ? { hospital } : {}) }
+          : {};
+      router.push({ pathname, params: { reason: "new_concern", ...withDoctor } });
     });
 
   if (done) {

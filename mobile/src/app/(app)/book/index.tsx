@@ -1,20 +1,18 @@
 import type { BookGlance } from "@/data/visits";
+import type { Door } from "@/features/visits/why-coming";
 import type { AppointmentReason, HouseholdMember } from "@/lib/booking";
 import { useCallback, useState } from "react";
-import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
-import { t as sayCatalog, visibleCategories } from "@shared/symptom-catalog/classify";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
-import { Avatar, Button, Card, Icon, IconDisc, Press, Screen } from "@/components/tide";
+import { Avatar, Icon, Press, Screen } from "@/components/tide";
 import { loadBookGlance } from "@/data/visits";
-import { PLANNED_GROUPS } from "@/features/visits/book-reasons";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
 import { shortDayOf } from "@/features/visits/logic";
 import { HONEST, StepTitle } from "@/features/visits/parts";
+import { WhyComing } from "@/features/visits/why-coming";
 import { fetchHousehold } from "@/lib/booking";
 import { useSession } from "@/lib/session";
-import { useCatalogMode } from "@/lib/symptoms";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -32,7 +30,6 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * day, with the real glance on each door. No count of people in line
  * (ADR 0084 §5). Without a hospital the patient chooses one first, here.
  */
-type Door = "wrong" | "planned";
 
 export default function BookScreen() {
   const t = useTide();
@@ -44,7 +41,6 @@ export default function BookScreen() {
   const [who, setWho] = useState<HouseholdMember | null>(null);
   const [door, setDoor] = useState<Door>("planned");
   const [reason, setReason] = useState<AppointmentReason>("follow_up");
-  const catalog = useCatalogMode();
   const [household, setHousehold] = useState<HouseholdMember[]>([]);
   const [glance, setGlance] = useState<BookGlance | null>(null);
 
@@ -64,7 +60,6 @@ export default function BookScreen() {
   // Joining today's line is for the account holder only: the intake has no
   // "on behalf of" (pt-declare-intake), unlike asking for a day.
   const todayOff = who !== null;
-  const areas = visibleCategories(CATALOG, "adult");
   const helpInPage = door === "wrong";
 
   const whoChip = (
@@ -139,223 +134,16 @@ export default function BookScreen() {
         </View>
       </View>
 
-      <View style={{ gap: tSpace[2.5] }}>
-        <StepTitle n={2}>Why are you coming?</StepTitle>
-        <View style={{ flexDirection: "row", gap: tSpace[2.5] }}>
-          {(
-            [
-              [
-                "wrong",
-                "Something is wrong",
-                "I feel unwell, or something is new or worse",
-                "activity",
-              ],
-              [
-                "planned",
-                "Planned care",
-                "A check, a refill, results, pregnancy, a child",
-                "calendar",
-              ],
-            ] as const
-          ).map(([key, label, sub, icon]) => {
-            const on = door === key;
-            return (
-              <Press
-                key={key}
-                onPress={() => setDoor(key)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on }}
-                accessibilityLabel={`${label}. ${sub}`}
-                style={{
-                  flex: 1,
-                  minHeight: 164,
-                  padding: tSpace[3.5],
-                  borderRadius: tRadius.panel,
-                  justifyContent: "space-between",
-                  gap: tSpace[3],
-                  backgroundColor: on ? t.primary : t.surface,
-                  borderWidth: 2,
-                  borderColor: on ? t.primary : t.line,
-                  boxShadow: on ? t.shadow.float : undefined,
-                }}
-              >
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <IconDisc
-                    name={icon}
-                    size={44}
-                    color={on ? t.onBandAccent : t.ink}
-                    bg={on ? t.bandGlass : t.surface3}
-                  />
-                  {on ? (
-                    <View
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: 11,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: t.onBandAccent,
-                      }}
-                    >
-                      <Icon name="check" size={13} color={t.primary} strokeWidth={3} />
-                    </View>
-                  ) : null}
-                </View>
-                <View style={{ gap: 4 }}>
-                  <Text
-                    style={[
-                      tType.label,
-                      { fontSize: 17, lineHeight: 21, color: on ? t.onPrimary : t.ink },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                  <Text
-                    style={[
-                      tType.caption,
-                      { fontFamily: tFont.medium, color: on ? t.onBand2 : t.ink2 },
-                    ]}
-                  >
-                    {sub}
-                  </Text>
-                </View>
-              </Press>
-            );
-          })}
-        </View>
-
-        {door === "wrong" ? (
-          <Card padding={tSpace[4]} style={{ gap: tSpace[3] }}>
-            <View style={{ gap: 2 }}>
-              <Text style={[tType.label, { fontSize: 16, color: t.ink }]}>
-                Where do you feel it?
-              </Text>
-              <Text style={[tType.bodyS, { color: t.ink2 }]}>
-                Pick an area. We ask a few questions, then suggest the right door.
-              </Text>
-            </View>
-            {catalog && catalog !== "off" ? (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
-                {areas.map((c) => (
-                  <Press
-                    key={c.key}
-                    onPress={() => router.push({ pathname: "/symptoms", params: { area: c.key } })}
-                    accessibilityLabel={sayCatalog(CATALOG, c.labelKey)}
-                    style={{
-                      flexBasis: "48%",
-                      flexGrow: 1,
-                      minHeight: 48,
-                      paddingHorizontal: tSpace[3],
-                      paddingVertical: tSpace[2],
-                      borderRadius: tRadius.field,
-                      justifyContent: "center",
-                      backgroundColor: t.surface2,
-                    }}
-                  >
-                    <Text style={[tType.labelS, { color: t.ink }]}>
-                      {sayCatalog(CATALOG, c.labelKey)}
-                    </Text>
-                  </Press>
-                ))}
-              </View>
-            ) : null}
-            <Button
-              label={catalog && catalog !== "off" ? "Something else" : "Tell us what is wrong"}
-              variant="soft"
-              onPress={() => router.push("/symptoms")}
-            />
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: tSpace[2.5],
-                padding: tSpace[2.5],
-                borderRadius: tRadius.md,
-                backgroundColor: t.surface2,
-              }}
-            >
-              <Text style={[tType.bodyS, { flex: 1, color: t.ink }]}>
-                Very unwell right now? Do not book.
-              </Text>
-              <Button
-                label="Help"
-                icon="phone"
-                variant="danger"
-                size="sm"
-                onPress={() => router.push("/help")}
-              />
-            </View>
-          </Card>
-        ) : (
-          PLANNED_GROUPS.map((g) => (
-            <View key={g.title} style={{ gap: tSpace[1.5] }}>
-              <Text
-                style={[
-                  tType.micro,
-                  { fontFamily: tFont.bold, letterSpacing: 0.8, color: t.ink3, paddingLeft: 4 },
-                ]}
-              >
-                {g.title.toUpperCase()}
-              </Text>
-              <Card padding={0} radius={tRadius.card} style={{ gap: 0, overflow: "hidden" }}>
-                {g.reasons.map((r, i) => {
-                  const on = reason === r.reason;
-                  return (
-                    <Press
-                      key={r.reason}
-                      haptic={false}
-                      onPress={() => setReason(r.reason)}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: on }}
-                      accessibilityLabel={r.label}
-                      style={{
-                        minHeight: 60,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: tSpace[3],
-                        paddingHorizontal: tSpace[3.5],
-                        paddingVertical: tSpace[2.5],
-                        backgroundColor: on ? t.accentTint : t.surface,
-                        borderTopWidth: i ? 1 : 0,
-                        borderTopColor: t.line,
-                      }}
-                    >
-                      <IconDisc
-                        name={r.icon}
-                        size={36}
-                        color={on ? t.onBandAccent : t.ink}
-                        bg={on ? t.primary : t.surface3}
-                      />
-                      <View style={{ flex: 1, gap: 2 }}>
-                        <Text style={[tType.labelS, { fontSize: 15, color: t.ink }]}>
-                          {r.label}
-                        </Text>
-                        {on ? (
-                          <Text
-                            style={[tType.caption, { fontFamily: tFont.medium, color: t.ink2 }]}
-                          >
-                            {r.hint}
-                          </Text>
-                        ) : null}
-                      </View>
-                      <View
-                        style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: 11,
-                          borderWidth: on ? 7 : 2,
-                          borderColor: on ? t.primary : t.lineStrong,
-                          backgroundColor: t.surface,
-                        }}
-                      />
-                    </Press>
-                  );
-                })}
-              </Card>
-            </View>
-          ))
-        )}
-      </View>
+      <WhyComing
+        n={2}
+        door={door}
+        onDoor={setDoor}
+        reason={reason}
+        onReason={setReason}
+        onSymptoms={(area) =>
+          router.push(area ? { pathname: "/symptoms", params: { area } } : "/symptoms")
+        }
+      />
 
       {door === "planned" ? (
         <View style={{ gap: tSpace[2] }}>

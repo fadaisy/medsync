@@ -33,7 +33,11 @@ export function helpViolation(file: string, src: string): string | null {
   const optsOut = /help=["{]["']?none/.test(src);
   if (optsOut && !isHelp) return 'opts out with help="none"; only Help may';
   const swaps = /help=\{helpInPage \? "none"/.test(src);
-  if (swaps && !(/variant="danger"/.test(src) && /push\("\/help"\)/.test(src)))
+  // `WhyComing` draws that button itself (features/visits/why-coming.tsx).
+  if (
+    swaps &&
+    !((/variant="danger"/.test(src) && /push\("\/help"\)/.test(src)) || /<WhyComing\b/.test(src))
+  )
     return "hides the header Help without a red Help of its own on the page";
   if (isHelp) return null;
   // The emergency routes are Help's own family: the lines, crisis and SV
