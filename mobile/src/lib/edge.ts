@@ -42,20 +42,25 @@ export type EdgeResult<T> =
 const FUNCTIONS_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1`;
 
 /**
- * A correlation id for support: the same string appears in this app's request
- * and in the function's log line, so "it failed at about two o'clock" becomes
- * one grep. The `mob-` prefix says which client sent it.
+ * A correlation id for support, sent as `x-request-id`: the same string
+ * appears in this app's request and in the function's log line.
  *
- * ponytail: not a UUID. Hermes ships no `crypto.randomUUID` and the only fixes
- * are a new dependency or a polyfill, for a value that is a log key and never
- * a secret — time plus 40 bits of randomness cannot realistically collide
- * inside one hospital's logs. Ceiling: two requests in the same millisecond
- * from the same device drawing the same random suffix. Upgrade path: if
- * `expo-crypto` ever arrives for another reason, swap the body for
- * `Crypto.randomUUID()` and nothing else moves.
+ * A version-4 UUID, because the functions write it to `sa_audit_log.request_id`
+ * (a uuid column): the old `mob-…` string was refused there, the audit write
+ * failed, and the function rightly refused to cancel or move a visit without
+ * it (owner report, 19 Oct 2026). Hermes has no `crypto.randomUUID`, so the
+ * 122 random bits come from `crypto.getRandomValues` where the runtime has it,
+ * else `Math.random`: a log key and an idempotency key, never a secret.
  */
 export function requestId(): string {
-  return `mob-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  const bytes = new Uint8Array(16);
+  const c = (globalThis as { crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array } }).crypto;
+  if (c?.getRandomValues) c.getRandomValues(bytes);
+  else for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80; // variant 10
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 /**
