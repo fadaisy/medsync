@@ -230,6 +230,22 @@ export const testCatalogue = pgTable(
     restrictedClass: text("restricted_class"),
     /** 0154 (Lab Phase 5 PR-3): tissue or cytology joins the never-shown floor. */
     patientGroup: text("patient_group"),
+    /** 0171 (TM-2): catalogue facts every hospital inherits; changed only through a signed addendum. */
+    section: text("section"),
+    aliases: text("aliases")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    specimen: text("specimen"),
+    tube: text("tube"),
+    orderLoinc: text("order_loinc"),
+    minLevel: text("min_level"),
+    levelBasis: jsonb("level_basis"),
+    usualRoute: text("usual_route"),
+    referTo: text("refer_to"),
+    kitDependentRanges: boolean("kit_dependent_ranges").notNull().default(false),
+    advisory: text("advisory"),
+    offerByDefault: boolean("offer_by_default").notNull().default(true),
     createdAt: timestamp("created_at", tz).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
   },

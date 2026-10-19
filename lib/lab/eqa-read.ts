@@ -2,7 +2,7 @@ import "server-only";
 
 import type { StoredSample } from "./eqa-store";
 import type { EmrTx } from "@/lib/emr/db";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import {
   cadres,
@@ -11,7 +11,6 @@ import {
   labEqaRounds,
   labEqaSchemes,
   labNonconformities,
-  labTestServices,
   staffAffiliations,
   testCatalogue,
   users,
@@ -25,21 +24,18 @@ import { addDays, dayOf } from "./stock";
 
 /** The orderable in-house tests here (hub provision `in_house`), with their names (EA-5's list). */
 export async function inHouseTests(tx: EmrTx, hospitalId: string) {
+  // Lab test menu v2 (TM-3): the offering's code is the test's own code.
   return tx
-    .select({ code: labTestServices.testCode, display: testCatalogue.display })
-    .from(labTestServices)
+    .select({ code: testCatalogue.code, display: testCatalogue.display })
+    .from(diagnosticOfferings)
     .innerJoin(
-      diagnosticOfferings,
-      and(
-        eq(diagnosticOfferings.hospitalId, labTestServices.hospitalId),
-        eq(diagnosticOfferings.kind, "lab"),
-        eq(diagnosticOfferings.code, labTestServices.offeringCode),
-      ),
+      testCatalogue,
+      and(eq(testCatalogue.code, diagnosticOfferings.code), isNull(testCatalogue.hospitalId)),
     )
-    .innerJoin(testCatalogue, eq(testCatalogue.code, labTestServices.testCode))
     .where(
       and(
-        eq(labTestServices.hospitalId, hospitalId),
+        eq(diagnosticOfferings.hospitalId, hospitalId),
+        eq(diagnosticOfferings.kind, "lab"),
         eq(diagnosticOfferings.provision, "in_house"),
       ),
     )

@@ -41,17 +41,21 @@ const RESTRICTED = Object.keys(CONCEPTS).filter((c) => def(c).sensitivity === "r
 
 describe("sensitivity (C9)", () => {
   // 13 in v1 and v1.1, 8 in v1.2 (history), 4 in v1.3 (examination); 6 more by SR-PREG-MINOR.
-  it("the catalogue restricts 42 concepts (6 more by SR-PREG-MINOR; v1.5 adds hist.prior_gdm, D-DM-30; v1.6 adds 16 lab results, CD-08)", () =>
-    expect(RESTRICTED).toHaveLength(42));
+  it("the catalogue restricts 89 concepts (6 more by SR-PREG-MINOR; v1.5 adds hist.prior_gdm, D-DM-30; v1.6 adds 16 lab results, CD-08; v1.7 adds 47 results only restricted tests report, TM-1)", () =>
+    expect(RESTRICTED).toHaveLength(89));
 
-  it.each(RESTRICTED)("%s is restricted even when the row says standard", (concept) => {
-    const kind = def(concept).kind;
-    const out =
-      kind === "condition"
-        ? projectCondition(conditionRow({ conceptId: concept, sensitivity: "standard" }))
-        : projectObservation(cfcRowFor(concept, undefined, { sensitivity: "standard" }));
-    expect(out.facts[0]!.sensitivity).toBe("restricted");
-  });
+  // A free-text result (as typed) is never a fact, so it has no fact to restrict (A4).
+  it.each(RESTRICTED.filter((c) => def(c).valueType !== "as_typed"))(
+    "%s is restricted even when the row says standard",
+    (concept) => {
+      const kind = def(concept).kind;
+      const out =
+        kind === "condition"
+          ? projectCondition(conditionRow({ conceptId: concept, sensitivity: "standard" }))
+          : projectObservation(cfcRowFor(concept, undefined, { sensitivity: "standard" }));
+      expect(out.facts[0]!.sensitivity).toBe("restricted");
+    },
+  );
 
   it("a restricted concept marked standard fails the contract", () => {
     const fact = projectCondition(conditionRow({ conceptId: "cond.hiv" })).facts[0]!;

@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { RegisterConfig, RegisterLine } from "./register";
+import type { SectionKey } from "./test-menu";
 import type { PatientIdentity } from "@/components/emr/orders/model";
 import type { EmrTx } from "@/lib/emr/db";
 import { and, desc, eq, gte, inArray, isNull, lt, or } from "drizzle-orm";
@@ -19,7 +20,6 @@ import {
   labLabels,
   labRegisterPrints,
   labSignedConfigs,
-  labTestServices,
   specimenEvents,
   specimens,
   testCatalogue,
@@ -33,6 +33,7 @@ import { analyteName } from "./qc-store";
 import { printEvent } from "./register";
 import { inForce } from "./signed-config";
 import { addDays, endOfDay } from "./stock";
+import { sectionFor, sectionOfUnit } from "./test-menu";
 
 /**
  * The daily register on the database (Lab Phase 3 Step 9, §6.10 DR-1..DR-5; GATE A §3.1 `register_config`,
@@ -199,6 +200,8 @@ export async function loadRegisterDay(
         test: testCatalogue.display,
         restrictedClass: testCatalogue.restrictedClass,
         sectionId: diagnosticOfferings.sectionId,
+        sectionOverride: diagnosticOfferings.sectionOverride,
+        section: testCatalogue.section,
         encounterType: encounters.encounterType,
         department: hospitalDepartments.name,
       })
@@ -206,18 +209,13 @@ export async function loadRegisterDay(
       .innerJoin(testCatalogue, eq(testCatalogue.id, encounterOrders.testId))
       .innerJoin(encounters, eq(encounters.id, encounterOrders.encounterId))
       .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, encounters.departmentId))
-      .leftJoin(
-        labTestServices,
-        and(
-          eq(labTestServices.hospitalId, encounterOrders.hospitalId),
-          eq(labTestServices.testCode, testCatalogue.code),
-        ),
-      )
+      // Lab test menu v2 (TM-3): the offering is keyed by the test itself.
       .leftJoin(
         diagnosticOfferings,
         and(
-          eq(diagnosticOfferings.hospitalId, labTestServices.hospitalId),
-          eq(diagnosticOfferings.code, labTestServices.offeringCode),
+          eq(diagnosticOfferings.hospitalId, encounterOrders.hospitalId),
+          eq(diagnosticOfferings.kind, "lab"),
+          eq(diagnosticOfferings.code, testCatalogue.code),
         ),
       )
       .where(
@@ -333,12 +331,28 @@ export async function loadRegisterDay(
     };
   };
 
+  // TM-4: a legacy row's own unit, else the test's effective section matched to this unit's A.3 code.
+  const [unit] = await tx
+    .select({ code: hospitalDepartments.catalogueCode })
+    .from(hospitalDepartments)
+    .where(eq(hospitalDepartments.id, input.sectionId));
+  const key = sectionOfUnit(unit?.code ?? null);
+  const inSection = (o: (typeof orders)[number]) =>
+    o.sectionId
+      ? o.sectionId === input.sectionId
+      : !!key &&
+        sectionFor(
+          { sectionOverride: o.sectionOverride as SectionKey | null },
+          {
+            section: o.section as SectionKey | null,
+          },
+        ) === key;
   const orderOf = new Map(orders.map((o) => [o.id, o]));
   const labelOf = new Map(labels.map((l) => [l.orderId, l.labelNo]));
   const lines: RawLine[] = [];
   for (const sp of specimenRows) {
     const o = orderOf.get(sp.orderId);
-    if (!o || !o.sectionId || o.sectionId !== input.sectionId) continue;
+    if (!o || !inSection(o)) continue;
     const mine = events.filter((e) => e.specimenId === sp.id);
     const received = mine
       .filter((e) => e.kind === "received")

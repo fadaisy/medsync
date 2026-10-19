@@ -1,0 +1,191 @@
+{
+ "base": "http://localhost:4016",
+ "outDir": "/Users/airm1/Desktop/tm2-harness/shots/tm",
+ "axePath": "/Users/airm1/Desktop/tm2-harness/app/node_modules/axe-core/axe.min.js",
+ "port": 9346,
+ "jobs": [
+  {
+   "name": "b13-menu-1440",
+   "path": "/lab/setup/menu",
+   "w": 1440,
+   "h": 900,
+   "dark": false,
+   "reducedMotion": true,
+   "settle": 3000,
+   "blockActions": true,
+   "cookies": [
+    {
+     "name": "hx",
+     "value": "d8ae4832-0bcf-404c-8988-36380901527b"
+    }
+   ],
+   "steps": [
+    {
+     "axe": true,
+     "as": "axe"
+    },
+    {
+     "measure": "document.documentElement.scrollWidth > innerWidth",
+     "as": "hscroll"
+    },
+    {
+     "shot": true,
+     "full": true
+    }
+   ]
+  },
+  {
+   "name": "b13-menu-1280",
+   "path": "/lab/setup/menu",
+   "w": 1280,
+   "h": 900,
+   "dark": false,
+   "reducedMotion": true,
+   "settle": 3000,
+   "blockActions": true,
+   "cookies": [
+    {
+     "name": "hx",
+     "value": "d8ae4832-0bcf-404c-8988-36380901527b"
+    }
+   ],
+   "steps": [
+    {
+     "axe": true,
+     "as": "axe"
+    },
+    {
+     "measure": "document.documentElement.scrollWidth > innerWidth",
+     "as": "hscroll"
+    },
+    {
+     "shot": true,
+     "full": true
+    }
+   ]
+  },
+  {
+   "name": "b16-detail-1440",
+   "path": "/lab/setup/menu",
+   "w": 1440,
+   "h": 900,
+   "dark": false,
+   "reducedMotion": true,
+   "settle": 3000,
+   "blockActions": true,
+   "cookies": [
+    {
+     "name": "hx",
+     "value": "d8ae4832-0bcf-404c-8988-36380901527b"
+    }
+   ],
+   "steps": [
+    {
+     "click": "Full blood count"
+    },
+    {
+     "wait": 800
+    },
+    {
+     "axe": true,
+     "as": "axe"
+    },
+    {
+     "shot": true
+    }
+   ]
+  },
+  {
+   "name": "b15-add-1440",
+   "path": "/lab/setup/menu",
+   "w": 1440,
+   "h": 900,
+   "dark": false,
+   "reducedMotion": true,
+   "settle": 3000,
+   "blockActions": true,
+   "cookies": [
+    {
+     "name": "hx",
+     "value": "d8ae4832-0bcf-404c-8988-36380901527b"
+    }
+   ],
+   "steps": [
+    {
+     "click": "Add tests"
+    },
+    {
+     "wait": 800
+    },
+    {
+     "axe": true,
+     "as": "axe"
+    },
+    {
+     "shot": true
+    }
+   ]
+  },
+  {
+   "name": "b14-level-1440",
+   "path": "/lab/setup/menu",
+   "w": 1440,
+   "h": 900,
+   "dark": false,
+   "reducedMotion": true,
+   "settle": 3000,
+   "blockActions": true,
+   "cookies": [
+    {
+     "name": "hx",
+     "value": "d8ae4832-0bcf-404c-8988-36380901527b"
+    }
+   ],
+   "steps": [
+    {
+     "click": "Start from your level"
+    },
+    {
+     "wait": 800
+    },
+    {
+     "axe": true,
+     "as": "axe"
+    },
+    {
+     "shot": true
+    }
+   ]
+  },
+  {
+   "name": "b17-profiles-1440",
+   "path": "/lab/setup/menu?tab=profiles",
+   "w": 1440,
+   "h": 900,
+   "dark": false,
+   "reducedMotion": true,
+   "settle": 3000,
+   "blockActions": true,
+   "cookies": [
+    {
+     "name": "hx",
+     "value": "d8ae4832-0bcf-404c-8988-36380901527b"
+    }
+   ],
+   "steps": [
+    {
+     "axe": true,
+     "as": "axe"
+    },
+    {
+     "measure": "document.documentElement.scrollWidth > innerWidth",
+     "as": "hscroll"
+    },
+    {
+     "shot": true,
+     "full": true
+    }
+   ]
+  }
+ ]
+}

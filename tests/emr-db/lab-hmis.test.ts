@@ -306,11 +306,7 @@ describe.skipIf(!laneOn)("Lab Phase 3 registers and HMIS 105 (Step 9)", () => {
       await pg.query(
         `INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, hours, stated_tat, confirmed_at, section_id)
          VALUES ($1, 'lab', $2, 'in_house', '24h', 'fixture 2 h', now(), $3)`,
-        [h, `fx-${code}`, section],
-      );
-      await pg.query(
-        `INSERT INTO lab_test_services (hospital_id, test_code, offering_code, set_by) VALUES ($1, $2, $3, $4)`,
-        [h, code, `fx-${code}`, actor.lead.userId],
+        [h, code, section],
       );
     }
     kitItem = (

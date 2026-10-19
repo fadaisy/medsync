@@ -8,12 +8,12 @@ import type {
   Offering,
   OpenProblem,
 } from "@/supabase/functions/_shared/services-hub";
-import { and, asc, desc, eq, gte, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
-import { loincCodes } from "@/db/schema/clinical-codes";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
+import { testCatalogue } from "@/db/schema/emr";
 import { hospitalApplications } from "@/db/schema/hospital-applications";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitalWards } from "@/db/schema/hospital-wards";
@@ -34,6 +34,7 @@ import {
   serviceClosures,
 } from "@/db/schema/services-hub";
 import { users } from "@/db/schema/users";
+import { sectionName } from "@/lib/lab/test-menu";
 import { loadPointsForCapability } from "@/lib/pharmacy/dispensing-points";
 import {
   CAPABILITY_KEYS,
@@ -521,12 +522,33 @@ export async function loadOfferings(hospitalId: string): Promise<OfferingRow[]> 
   }));
 }
 
-/** The ordering catalogue the test menu overlays (0041's LOINC tests). */
+/**
+ * The catalogue tests a hub row names (Lab test menu v2, DX-1, ADR 0350): code = the test id, category = its
+ * catalogue section. `loinc_codes` is a code reference, never a menu (ADR 0355). The hub's viewers have no access
+ * to restricted names, so those read "Restricted test" (Law 6).
+ */
 export async function loadTestCatalogue() {
-  return db
-    .select({ code: loincCodes.code, name: loincCodes.display, category: loincCodes.category })
-    .from(loincCodes)
-    .orderBy(asc(loincCodes.category), asc(loincCodes.display));
+  const rows = await db
+    .select({
+      code: testCatalogue.code,
+      name: testCatalogue.display,
+      section: testCatalogue.section,
+      restricted: testCatalogue.restrictedClass,
+    })
+    .from(testCatalogue)
+    .where(
+      and(
+        isNull(testCatalogue.hospitalId),
+        eq(testCatalogue.kind, "lab"),
+        isNotNull(testCatalogue.section),
+      ),
+    )
+    .orderBy(asc(testCatalogue.section), asc(testCatalogue.display));
+  return rows.map((r) => ({
+    code: r.code,
+    name: r.restricted ? "Restricted test" : r.name,
+    category: sectionName(r.section),
+  }));
 }
 
 /* ─── availability ──────────────────────────────────────────────────── */

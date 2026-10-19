@@ -196,6 +196,7 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
           <OrderSheetView
             identity={load.identity}
             menu={load.menu}
+            profiles={load.profiles}
             reasons={load.reasons}
             draft={draft}
             query={query}

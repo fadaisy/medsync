@@ -23,7 +23,7 @@ import { saveItem } from "@/lib/lab/stock-store";
 import { bootLane, clinician, department, encounter, hospital, laneOn, patient } from "./_pglite";
 
 const FBC = "test.fbc";
-const OFFERING = "718-7";
+const OFFERING = FBC; // Lab test menu v2 (TM-3): the hub row is keyed by the test
 /** FIXTURE fridge range (never a default). */
 const FX_RANGE = { min: 2, max: 8, readingsPerDay: 2 };
 const FLAGS = ["LAB_WORKSPACE", "LAB_EQUIPMENT", "LAB_STOCK", "LAB_ONE_MENU"];
@@ -133,10 +133,6 @@ describe.skipIf(!laneOn)("Lab Phase 3 equipment and temperature (Step 5)", () =>
       `INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, hours, stated_tat, confirmed_at)
        VALUES ($1, 'lab', $2, 'in_house', '24h', 'fixture 2 h', now())`,
       [h, OFFERING],
-    );
-    await pg.query(
-      `INSERT INTO lab_test_services (hospital_id, test_code, offering_code, set_by) VALUES ($1, $2, $3, $4)`,
-      [h, FBC, OFFERING, lead.userId],
     );
     analyser = await tx((t) =>
       saveEquipment(

@@ -9,13 +9,15 @@
  * --conditions=react-server` resolves Next's own `server-only` to its no-op build, so the scripts
  * can reuse lib/encryption.ts and lib/emr/read/allergies.ts unchanged.
  */
-import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { dirname } from "node:path";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import * as schema from "@/db/schema";
+import { envFiles } from "../migrate";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -38,7 +40,18 @@ export async function runCli(
     process.exit(1);
   }
 
-  for (const f of [".env", ".env.local"]) if (existsSync(f)) process.loadEnvFile(f);
+  // A worktree has no env file of its own: the main checkout's, as `npm run db:migrate` reads it.
+  let common: string | null = null;
+  try {
+    common = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {}
+  const files = envFiles(process.cwd(), common ? dirname(common) : null);
+  for (const f of files) process.loadEnvFile(f);
+  if (files.some((f) => !f.startsWith(process.cwd())))
+    console.log(`Env read from ${dirname(files[0]!)}`);
   const url = process.env.DATABASE_URL;
   if (!url) {
     console.error("DATABASE_URL is not set: refusing to run.");

@@ -105,7 +105,7 @@ describe("Set-up hub status words", () => {
       ranges: [],
       limits: [],
       response: [],
-      menu: { tests: 0, unlinked: 0 },
+      menu: { tests: 0 },
       noUnit: 0,
       profiles: { inUse: 0, drafts: 0 },
       analysers: 2,

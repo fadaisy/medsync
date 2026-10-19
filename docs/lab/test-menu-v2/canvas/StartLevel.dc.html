@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Start from your level</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1140px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Test menu</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row"><nav class="seg" aria-label="Tests"><a class="on" href="#" aria-current="page">Test menu</a><a href="#">Hospital profiles</a><a href="#">Test catalogue</a><a href="#">Analyser profiles</a></nav></div><section class="card"><div class="card__b"><div class="empty" style="padding: 40px 10px"><b>No tests on your menu yet</b><span>Start from your level to get a full menu in one step, or add tests one at a time. Each test arrives with its section, specimen and tube already set.</span></div></div></section><div class="dim" aria-hidden="true"></div><div class="dlg" role="dialog" aria-label="Start from your level"><div class="dlg__h"><div><h2>Start from your level</h2><p>Every test arrives with its recommended section, specimen and tube, and where a hospital at your level usually does it. You change only what is different here.</p></div><span class="sp"></span><a class="btn btn--t btn--s" href="#" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a></div><div class="dlg__b"><div class="fld"><span class="lbl">Your level</span><div class="lvl"><a href="#">Health centre III<span>33 in-house · 69 referred</span></a><a href="#">Health centre IV<span>61 in-house · 83 referred</span></a><a href="#">General hospital<span>110 in-house · 69 referred</span></a><a class="on" href="#">Regional referral<span>151 in-house · 64 referred</span></a><a href="#">National referral<span>197 in-house · 88 referred</span></a><a href="#">Private laboratory<span>Choose a level, then adjust</span></a></div><span class="help">From your hospital profile: Regional referral hospital. Levels follow the National Standard Test Menu (MoH, 2017); tests it does not list follow MedSync's guide.</span></div><table class="tb"><thead><tr><th></th><th>Section</th><th>In-house</th><th>Referred</th></tr></thead><tbody><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Haematology</b><div class="small">CD4 count, Erythrocyte sedimentation rate, Full blood count…</div></td><td class="mono">19</td><td class="mono">6</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Blood transfusion</b><div class="small">Blood group (ABO and RhD), Group and crossmatch (GXM), Direct antiglobulin test (direct Coombs)…</div></td><td class="mono">6</td><td class="mono">0</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Clinical chemistry</b><div class="small">Creatinine (with eGFR), Fasting blood glucose, Liver function tests (LFTs)…</div></td><td class="mono">63</td><td class="mono">19</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Immunology and serology</b><div class="small">HIV rapid test (national algorithm), Hepatitis B surface antigen (HBsAg), Syphilis rapid test (treponemal)…</div></td><td class="mono">22</td><td class="mono">14</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Microbiology</b><div class="small">Sputum AFB smear (ZN), Blood culture and sensitivity, AFB fluorescence (LED) microscopy…</div></td><td class="mono">19</td><td class="mono">5</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Parasitology</b><div class="small">Malaria rapid diagnostic test (mRDT), Malaria blood smear (B/S for MPs), Urinalysis (dipstick)…</div></td><td class="mono">16</td><td class="mono">2</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Molecular</b><div class="small">GeneXpert MTB/RIF Ultra, HIV-1 viral load, Hepatitis B viral load (HBV DNA)…</div></td><td class="mono">5</td><td class="mono">12</td></tr><tr><td><span class="cb on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><b>Histopathology and cytology</b><div class="small">Pap smear (conventional cervical cytology), Body fluid cytology (malignant cells), Bone marrow trephine biopsy (histology)…</div></td><td class="mono">1</td><td class="mono">6</td></tr></tbody></table><div class="form" style="grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)"><div class="fld"><span class="lbl">Hours for in-house tests</span><div class="quick"><a class="on" href="#">24 h</a><a href="#">Working hours</a><a href="#">Set later</a></div><span class="help">One choice for all; change any section afterwards</span></div><div class="fld"><span class="lbl">Referred tests go to</span><div class="in"><select><option>Choose per test later</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div><span class="help">National tests (viral load, EID, TB culture) are pre-set to the hub</span></div></div></div><div class="dlg__f"><span class="small">Stated turnaround starts empty. It is your lab's own figure, never a clinical target.</span><span class="sp"></span><a class="btn btn--s" href="#">Cancel</a><a class="btn btn--p" href="TestMenu.dc.html">Add 215 tests</a></div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1140}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

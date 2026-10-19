@@ -1,12 +1,17 @@
 "use client";
 
+import type { TestMenuData } from "@/lib/lab/test-menu-read";
 import type { OfferingRow } from "@/lib/services/data";
 import type { Comparison, OpenProblem } from "@/supabase/functions/_shared/services-hub";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PlusIcon } from "lucide-react";
 
+import { PillTabs } from "@/app/lab/_components/v2/space";
+import { HospitalProfiles } from "@/components/lab/test-menu/profiles";
+import { TestMenu } from "@/components/lab/test-menu/test-menu";
 import { Button } from "@/components/ui/button";
+import { LAB_TEST_MENU } from "@/content/lab-test-menu";
 import { cn } from "@/lib/utils";
 import { IMAGING_ITEMS, LAB_SECTIONS } from "@/supabase/functions/_shared/services-hub";
 import {
@@ -21,7 +26,6 @@ import {
 } from "./hub-ui";
 
 type Section = { id: string; name: string; code: string | null };
-type Test = { code: string; name: string; category: string | null };
 type Kind = "lab" | "imaging";
 
 const WHERE = [
@@ -68,10 +72,10 @@ function Now({
 
 export function DiagnosticsView(props: {
   sub: "lab" | "imaging";
-  focusTest: string | null;
+  tab: "menu" | "profiles";
   lab: { id: string; live: boolean } | null;
   sections: Section[];
-  tests: Test[];
+  menu: TestMenuData;
   offerings: OfferingRow[];
   problems: OpenProblem[];
   imagingComparison: Comparison | null;
@@ -107,41 +111,9 @@ export function DiagnosticsView(props: {
 
 /* ─── Laboratory ────────────────────────────────────────────────────── */
 
-function Laboratory({
-  lab,
-  sections,
-  tests,
-  offerings,
-  problems,
-  focusTest,
-}: Parameters<typeof DiagnosticsView>[0]) {
+function Laboratory({ lab, sections, menu, tab }: Parameters<typeof DiagnosticsView>[0]) {
   const hub = useHub();
-  const [q, setQ] = useState("");
-  const [fSection, setFSection] = useState("");
-  const [fWhere, setFWhere] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [editing, setEditing] = useState<string | null>(focusTest);
-  const [bulk, setBulk] = useState(false);
   const [section, setSection] = useState("");
-
-  const byCode = useMemo(
-    () => new Map(offerings.filter((o) => o.kind === "lab").map((o) => [o.code, o])),
-    [offerings],
-  );
-  const rows = tests.filter((t) => {
-    const o = byCode.get(t.code);
-    if (q && !`${t.name} ${t.code}`.toLowerCase().includes(q.toLowerCase())) return false;
-    if (fSection && o?.sectionId !== fSection) return false;
-    if (fWhere && (o?.provision ?? "unset") !== fWhere) return false;
-    return true;
-  });
-  const inHouse = offerings.filter(
-    (o) => o.kind === "lab" && o.provision === "in_house" && o.confirmedAt,
-  ).length;
-  const referred = offerings.filter(
-    (o) => o.kind === "lab" && o.provision === "referred" && o.confirmedAt,
-  ).length;
-  const sectionName = (id: string | null) => sections.find((s) => s.id === id)?.name ?? "—";
 
   if (!lab) {
     return (
@@ -162,21 +134,9 @@ function Laboratory({
     );
   }
 
-  const edit = tests.find((t) => t.code === editing) ?? null;
   return (
     <section className="flex flex-col gap-3">
-      <p className="text-muted-foreground text-body-s">
-        Laboratory ·{" "}
-        <span className="text-foreground font-mono tabular-nums">{sections.length}</span> sections ·{" "}
-        <span className="text-foreground font-mono tabular-nums">{inHouse}</span> in-house ·{" "}
-        <span className="text-foreground font-mono tabular-nums">{referred}</span> referred
-      </p>
-      <p className="text-muted-foreground text-caption">
-        The comparison with the national standard test menu arrives when the Ministry&apos;s list is
-        imported. The tests below are the ones MedSync can order today.
-      </p>
-
-      {/* Sections */}
+      {/* Sections: the hub units staff are assigned to; the menu's sections come from the catalogue (TM-5). */}
       <div className="flex flex-wrap items-center gap-2">
         {sections.map((s) => (
           <span key={s.id} className="border-border text-body-s rounded border px-2 py-0.5">
@@ -213,156 +173,24 @@ function Laboratory({
         </Link>
       </div>
       <ErrorLine error={hub.error} />
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-end gap-2">
-        <Select
-          aria-label="Filter by section"
-          className="w-48"
-          value={fSection}
-          onChange={setFSection}
-          placeholder="All sections"
-          options={sections.map((s) => ({ value: s.id, label: s.name }))}
-        />
-        <Select
-          aria-label="Filter by where it is done"
-          className="w-44"
-          value={fWhere}
-          onChange={setFWhere}
-          placeholder="Everywhere"
-          options={[...WHERE, { value: "unset", label: "Not set" }]}
-        />
-        <input
-          className={cn(inputClass, "w-56")}
-          placeholder="Search tests"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Search tests"
-        />
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={selected.size === 0}
-          onClick={() => setBulk(true)}
-          className="ml-auto"
-        >
-          Bulk edit{selected.size ? ` (${selected.size})` : ""}
-        </Button>
-      </div>
-
-      <div className="border-border overflow-x-auto rounded-xl border">
-        <table className="w-full min-w-[720px] border-collapse">
-          <caption className="sr-only">Laboratory test menu</caption>
-          <thead className="bg-muted/40">
-            <tr className="text-muted-foreground text-left font-mono text-[10.5px] tracking-[0.12em] uppercase">
-              <th className="w-10 px-3 py-2">
-                <input
-                  type="checkbox"
-                  aria-label="Select all shown"
-                  className="size-4 accent-teal-700"
-                  checked={rows.length > 0 && rows.every((r) => selected.has(r.code))}
-                  onChange={(e) =>
-                    setSelected(e.target.checked ? new Set(rows.map((r) => r.code)) : new Set())
-                  }
-                />
-              </th>
-              <th className="px-3 py-2 font-medium">Test</th>
-              <th className="px-3 py-2 font-medium">Section</th>
-              <th className="px-3 py-2 font-medium">Where</th>
-              <th className="px-3 py-2 font-medium">Hours</th>
-              <th className="px-3 py-2 font-medium">Stated TAT</th>
-              <th className="px-3 py-2 font-medium">Now</th>
-            </tr>
-          </thead>
-          <tbody className="divide-border divide-y">
-            {rows.map((t) => {
-              const o = byCode.get(t.code);
-              return (
-                <tr key={t.code} className="text-body-s hover:bg-gray-50">
-                  <td className="px-3 py-2">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${t.name}`}
-                      className="size-4 accent-teal-700"
-                      checked={selected.has(t.code)}
-                      onChange={() =>
-                        setSelected((s) => {
-                          const n = new Set(s);
-                          if (n.has(t.code)) n.delete(t.code);
-                          else n.add(t.code);
-                          return n;
-                        })
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditing(t.code)}
-                      className="text-foreground text-left font-medium hover:underline"
-                    >
-                      {t.name}
-                    </button>
-                    <span className="text-muted-foreground block font-mono text-[11px]">
-                      LOINC {t.code}
-                    </span>
-                  </td>
-                  <td className="text-muted-foreground px-3 py-2">
-                    {sectionName(o?.sectionId ?? null)}
-                  </td>
-                  <td className="px-3 py-2">
-                    {o && !o.confirmedAt ? (
-                      <StatusChip status="planned" />
-                    ) : (
-                      <span className={cn(!o && "text-muted-foreground")}>{whereLabel(o)}</span>
-                    )}
-                  </td>
-                  <td className="text-muted-foreground px-3 py-2">
-                    {o?.provision === "in_house"
-                      ? o.hours === "24h"
-                        ? "24 h"
-                        : (o.hoursNote ?? "—")
-                      : "—"}
-                  </td>
-                  <td className="text-muted-foreground px-3 py-2 font-mono text-[12px]">
-                    {o?.statedTat ?? "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <Now
-                      offering={o}
-                      problem={problems.find(
-                        (p) => p.subjectKind === "test" && p.subjectRef === t.code,
-                      )}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {edit ? (
-        <OfferingPanel
-          kind="lab"
-          code={edit.code}
-          name={edit.name}
-          offering={byCode.get(edit.code)}
-          sections={sections}
-          onClose={() => setEditing(null)}
-        />
-      ) : null}
-      {bulk ? (
-        <BulkPanel
-          codes={[...selected]}
-          sections={sections}
-          existing={byCode}
-          onClose={() => {
-            setBulk(false);
-            setSelected(new Set());
-          }}
-        />
-      ) : null}
+      {/* Lab test menu v2 (board 13, 17): the same component as the lab's Set-up → Tests (TM-U6). */}
+      <PillTabs
+        label={LAB_TEST_MENU.hubTitle}
+        current={tab}
+        tabs={[
+          {
+            key: "menu",
+            label: LAB_TEST_MENU.tabs.menu,
+            href: "/hospital-admin/departments/diagnostics",
+          },
+          {
+            key: "profiles",
+            label: LAB_TEST_MENU.tabs.profiles,
+            href: "/hospital-admin/departments/diagnostics?tab=profiles",
+          },
+        ]}
+      />
+      {tab === "profiles" ? <HospitalProfiles data={menu} /> : <TestMenu data={menu} />}
     </section>
   );
 }
@@ -525,7 +353,7 @@ function OfferingPanel({
       open
       onClose={onClose}
       title={name}
-      description={kind === "lab" ? `LOINC ${code}` : "Imaging & other tests"}
+      description="Imaging & other tests"
       footer={
         <div className="flex w-full flex-col gap-2">
           <ErrorLine error={hub.error} />
@@ -627,86 +455,6 @@ function OfferingPanel({
             onChange={(e) => set("stated_tat", e.target.value)}
             maxLength={40}
             placeholder="2 h, 1 day…"
-          />
-        </Field>
-      ) : null}
-    </HubPanel>
-  );
-}
-
-function BulkPanel({
-  codes,
-  sections,
-  existing,
-  onClose,
-}: {
-  codes: string[];
-  sections: Section[];
-  existing: Map<string, OfferingRow>;
-  onClose: () => void;
-}) {
-  const hub = useHub();
-  const [provision, setProvision] = useState("in_house");
-  const [hours, setHours] = useState("");
-  const [section, setSection] = useState("");
-  const apply = () =>
-    hub.run(
-      {
-        op: "upsert_offerings",
-        items: codes.map((code) => {
-          const o = existing.get(code);
-          return {
-            kind: "lab",
-            code,
-            provision,
-            section_id: section || o?.sectionId || null,
-            hours: provision === "in_house" ? hours || o?.hours || null : null,
-            hours_note: provision === "in_house" ? (o?.hoursNote ?? null) : null,
-            stated_tat: o?.statedTat ?? null,
-            referred_to: provision === "referred" ? (o?.referredTo ?? null) : null,
-          };
-        }),
-      },
-      onClose,
-    );
-  return (
-    <HubPanel
-      open
-      onClose={onClose}
-      title={`Bulk edit ${codes.length} test${codes.length === 1 ? "" : "s"}`}
-      description="For example: mark every Haematology test 24 hours."
-      footer={
-        <div className="flex w-full flex-col gap-2">
-          <ErrorLine error={hub.error} />
-          <Button className="self-start" disabled={hub.pending} onClick={apply}>
-            {hub.pending ? "Saving…" : `Apply to ${codes.length}`}
-          </Button>
-        </div>
-      }
-    >
-      <Field label="Where">
-        <Select value={provision} onChange={setProvision} options={WHERE} />
-      </Field>
-      {provision === "in_house" ? (
-        <Field label="Hours">
-          <Select
-            value={hours}
-            onChange={setHours}
-            placeholder="Keep each test's hours"
-            options={[
-              { value: "24h", label: "24 hours" },
-              { value: "scheduled", label: "Scheduled" },
-            ]}
-          />
-        </Field>
-      ) : null}
-      {sections.length ? (
-        <Field label="Section">
-          <Select
-            value={section}
-            onChange={setSection}
-            placeholder="Keep each test's section"
-            options={sections.map((s) => ({ value: s.id, label: s.name }))}
           />
         </Field>
       ) : null}

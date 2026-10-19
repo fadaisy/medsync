@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { loadTestMenuData } from "@/lib/lab/test-menu-read";
 import {
   loadDepartments,
   loadOfferings,
   loadOpenProblems,
-  loadTestCatalogue,
   standardsComparison,
 } from "@/lib/services/data";
 import { DiagnosticsView } from "../_components/diagnostics-view";
@@ -14,9 +15,9 @@ import { DiagnosticsView } from "../_components/diagnostics-view";
 export const dynamic = "force-dynamic";
 
 /**
- * Diagnostics (§5.6): the lab test menu is a per-hospital overlay on the ordering catalogue
- * (`loinc_codes`, DX-1); imaging is the A.4 catalogue. The national-menu comparison waits for MoH's
- * list (unobtainable 26 Sep 2026) — the page says so rather than showing a number (Law 5).
+ * Diagnostics (§5.6): the laboratory's menu is one row per catalogue test (Lab test menu v2, DX-1, ADR 0350), the
+ * same component and store as the lab's Set-up → Tests; imaging is the A.4 catalogue. `loinc_codes` is a code
+ * reference, never a menu (ADR 0355). The hospital admin sees "Restricted test" for restricted classes (Law 6).
  */
 export default async function DiagnosticsPage({
   searchParams,
@@ -24,14 +25,23 @@ export default async function DiagnosticsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+  // Step 10: the old per-LOINC focus (?test=<LOINC>) opens the new menu; its other filters carry over.
+  if (typeof sp.test === "string") {
+    const keep = new URLSearchParams(
+      Object.entries(sp).flatMap(([k, v]) =>
+        k !== "test" && typeof v === "string" ? [[k, v]] : [],
+      ),
+    );
+    redirect(`/hospital-admin/departments/diagnostics${keep.size ? `?${keep}` : ""}`);
+  }
   const scope = await requireHospitalAdminScope();
   const h = scope.hospitalId;
-  const [departments, tests, offerings, problems, comparison] = await Promise.all([
+  const [departments, offerings, problems, comparison, menu] = await Promise.all([
     loadDepartments(h),
-    loadTestCatalogue(),
     loadOfferings(h),
     loadOpenProblems(h),
     standardsComparison(h),
+    loadTestMenuData(h, "hub", false),
   ]);
   const lab =
     departments.find(
@@ -52,7 +62,7 @@ export default async function DiagnosticsPage({
       ) : null}
       <DiagnosticsView
         sub={sp.sub === "imaging" ? "imaging" : "lab"}
-        focusTest={typeof sp.test === "string" ? sp.test : null}
+        tab={sp.tab === "profiles" ? "profiles" : "menu"}
         lab={lab ? { id: lab.id, live: lab.live } : null}
         sections={
           lab
@@ -61,7 +71,7 @@ export default async function DiagnosticsPage({
                 .map((d) => ({ id: d.id, name: d.name, code: d.catalogueCode }))
             : []
         }
-        tests={tests.map((t) => ({ code: t.code, name: t.name, category: t.category }))}
+        menu={menu}
         offerings={offerings}
         problems={problems.filter(
           (p) =>

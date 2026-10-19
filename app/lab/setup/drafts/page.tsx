@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LAB } from "@/content/lab";
 import { LAB2 } from "@/content/lab-phase-2";
+import { LAB_TEST_MENU } from "@/content/lab-test-menu";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
@@ -56,6 +57,15 @@ export default async function ResearchDraftsPage() {
           <AddendumState config={d.addendum.config} />
           <div className="mt-auto">
             <AddendumDialog addendum={d.addendum} />
+          </div>
+        </section>
+        <section aria-labelledby="card-menu-addendum" className={card}>
+          <h2 id="card-menu-addendum" className="text-heading-s font-medium">
+            {LAB_TEST_MENU.addendum.card(d.menuAddendum.tests.length)}
+          </h2>
+          <AddendumState config={d.menuAddendum.config} />
+          <div className="mt-auto">
+            <AddendumDialog addendum={d.menuAddendum} title={LAB_TEST_MENU.addendum.title} />
           </div>
         </section>
         <section aria-labelledby="card-drafts" className={card}>

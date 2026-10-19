@@ -1,20 +1,32 @@
 import "server-only";
 
 import type { Availability } from "./one-menu";
+import type { SectionKey } from "./test-menu";
 import type { EmrDb } from "@/lib/emr/db";
 import type { AvailabilityEvent, OpenProblem } from "@/supabase/functions/_shared/services-hub";
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, isNull } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { LAB2 } from "@/content/lab-phase-2";
-import { availabilityEvents, diagnosticOfferings, hospitals, labTestServices } from "@/db/schema";
+import {
+  availabilityEvents,
+  diagnosticOfferings,
+  hospitalDepartments,
+  hospitals,
+  testCatalogue,
+} from "@/db/schema";
 import { projectAvailability } from "@/supabase/functions/_shared/services-hub";
 import { availabilityFor, orderable } from "./one-menu";
+import { hubSectionCode, sectionFor } from "./test-menu";
 
 /**
  * One menu (Lab Phase 2 §5.1, §6.6; OM-1..OM-6; E-LAB2-01): what each test is at this hospital today, read
  * from the hub at query time and never copied into the catalogue. One read per menu, then a pure lookup per
  * test (OM-8). A hub that cannot be read makes every test "Not known today" and orderable (OM-3).
+ * Lab test menu v2 (TM-3): the offering is keyed by the test itself, so `offering_code` is the test id and no
+ * linking step remains; a test with no row is not on this hospital's menu.
  */
+const parent = alias(hospitalDepartments, "parent");
 
 export interface Today extends Availability {
   orderable: boolean;
@@ -53,10 +65,29 @@ export async function menuToday(
   hospitalId: string,
   now = new Date(),
 ): Promise<(testCode: string) => Today> {
-  const [links, offerings, [h]] = await Promise.all([
-    tx.select().from(labTestServices).where(eq(labTestServices.hospitalId, hospitalId)),
-    tx.select().from(diagnosticOfferings).where(eq(diagnosticOfferings.hospitalId, hospitalId)),
+  const [offerings, [h], tests, units] = await Promise.all([
+    tx
+      .select()
+      .from(diagnosticOfferings)
+      .where(
+        and(eq(diagnosticOfferings.hospitalId, hospitalId), eq(diagnosticOfferings.kind, "lab")),
+      ),
     tx.select({ name: hospitals.name }).from(hospitals).where(eq(hospitals.id, hospitalId)),
+    tx
+      .select({ code: testCatalogue.code, section: testCatalogue.section })
+      .from(testCatalogue)
+      .where(and(isNull(testCatalogue.hospitalId), eq(testCatalogue.kind, "lab"))),
+    tx
+      .select({ id: hospitalDepartments.id, code: hospitalDepartments.catalogueCode })
+      .from(hospitalDepartments)
+      .innerJoin(parent, eq(parent.id, hospitalDepartments.parentId))
+      .where(
+        and(
+          eq(hospitalDepartments.hospitalId, hospitalId),
+          eq(parent.catalogueCode, "LABORATORY"),
+          isNull(hospitalDepartments.archivedAt),
+        ),
+      ),
   ]);
   let problems: OpenProblem[] | null;
   try {
@@ -88,10 +119,17 @@ export async function menuToday(
   } catch {
     problems = null; // OM-3, Law 8: fail loud, never "available"
   }
-  const link = new Map(links.map((l) => [l.testCode, l.offeringCode]));
+  const sectionOf = new Map(tests.map((t) => [t.code, t.section as SectionKey | null]));
+  const byCode = new Map(offerings.map((o) => [o.code, o]));
   return (testCode) => {
-    const code = link.get(testCode) ?? null;
-    const o = code ? offerings.find((x) => x.code === code) : undefined;
+    const o = byCode.get(testCode);
+    const code = o ? testCode : null;
+    // TM-4: the hub unit for the test's effective section, so a section outage reaches it (LW-3 for legacy rows).
+    const section = sectionFor(
+      o ? { sectionOverride: o.sectionOverride as SectionKey | null } : null,
+      { section: sectionOf.get(testCode) ?? null },
+    );
+    const unit = section ? units.find((u) => u.code === hubSectionCode(section))?.id : undefined;
     const a = availabilityFor({
       offeringCode: code,
       offering: o
@@ -104,7 +142,7 @@ export async function menuToday(
             statedTat: o.statedTat,
             referredTo: o.referredTo,
             confirmedAt: o.confirmedAt?.toISOString() ?? null,
-            sectionId: o.sectionId,
+            sectionId: o.sectionId ?? unit ?? null,
           }
         : null,
       problems,
