@@ -12,6 +12,7 @@ import { labCriticalsLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { saveLimitsDraft, signLimitsVersion } from "./limits";
 import { unitDisplay } from "./measures-read";
 import { saveMeasure, saveRangeDraft, signRangeVersion } from "./measures-setup";
+import { fillMeasuresFromResearch } from "./research-measures";
 
 /**
  * Test catalogue and reference-range set-up actions (Lab Phase 1 §5.6, §5.7). The laboratory lead
@@ -101,6 +102,24 @@ export async function saveMeasureAction(
     return {
       ...(ok(p.data.testId) as { ok: true; id: string; serverTime: string }),
       data: { version: out.kind === "same" ? null : out.version },
+    };
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+/**
+ * "Fill from the catalogue research": units, decimals and verified LOINC codes for every component that has no
+ * measure yet (lib/lab/research-measures.ts). Existing measures are never changed.
+ */
+export async function fillCatalogueFromResearchAction(): Promise<
+  ActionResult<Awaited<ReturnType<typeof fillMeasuresFromResearch>>>
+> {
+  try {
+    const report = await asManager((tx, a) => fillMeasuresFromResearch(tx, a, new Date()));
+    return {
+      ...(ok("research") as { ok: true; id: string; serverTime: string }),
+      data: report,
     };
   } catch (e) {
     return actionError(e);

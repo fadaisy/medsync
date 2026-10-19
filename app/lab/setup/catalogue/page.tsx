@@ -11,6 +11,7 @@ import { testsWithoutUnit } from "@/lib/lab/criticals/readiness";
 import { labCatalogueV2LiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { loadMeasuresSetup } from "@/lib/lab/measures-setup";
 import { SetupHeader } from "../_components/setup-header";
+import { FillFromResearch } from "./_components/fill-from-research";
 import { MeasureForm } from "./_components/measure-form";
 
 export const metadata: Metadata = { title: "Test catalogue · Laboratory · MedSync" };
@@ -60,6 +61,7 @@ export default async function CatalogueSetupPage({
           )
         }
       />
+      {editing ? null : <FillFromResearch />}
       {editing ? (
         <MeasureForm
           key={edit}
