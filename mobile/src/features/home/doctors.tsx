@@ -91,7 +91,9 @@ export function Doctors() {
 
 /** The badge: a portrait card, photo over a navy band with a curved shoulder. */
 const BADGE_W = 236;
-const PHOTO_H = 268;
+/** The text band is about 40% of the badge (owner, 19 Oct 2026). */
+const BADGE_H = 420;
+const PHOTO_H = 252;
 const CURVE_H = 40;
 
 /**
@@ -129,6 +131,7 @@ function DoctorTile({ d }: { d: DoctorCard }) {
       }`}
       style={{
         width: BADGE_W,
+        height: BADGE_H,
         borderRadius: tRadius.cardLg,
         overflow: "hidden",
         backgroundColor: t.band,
@@ -270,25 +273,28 @@ function DoctorTile({ d }: { d: DoctorCard }) {
       <View
         style={{
           flex: 1,
-          paddingHorizontal: tSpace[3.5],
-          paddingBottom: tSpace[3.5],
-          gap: 2,
+          paddingHorizontal: tSpace[4],
+          paddingBottom: tSpace[4],
+          gap: tSpace[1],
         }}
       >
         <Text
           style={{
             fontFamily: tFont.semibold,
-            fontSize: 19,
-            lineHeight: 23,
-            letterSpacing: -0.2,
+            fontSize: 21,
+            lineHeight: 25,
+            letterSpacing: -0.3,
             color: t.onBand,
           }}
-          numberOfLines={1}
+          numberOfLines={2}
         >
           {d.name}
         </Text>
+        <Text style={[tType.bodyS, { color: t.onBand2 }]} numberOfLines={1}>
+          {d.role}
+        </Text>
         <Text style={[tType.caption, { color: t.onBand2 }]} numberOfLines={1}>
-          {d.role} · {placeWords}
+          {placeWords}
         </Text>
 
         {/* The foot, pinned to the bottom so every badge in the row lines up. */}
