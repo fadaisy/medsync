@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveMeasureAction } from "@/lib/lab/measures-actions";
 import { METHOD_WORDS } from "../_lib/methods";
+import { LabButton } from "../../../_components/v2/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =
@@ -118,7 +118,7 @@ export function MeasureForm({
                 value={decimals}
                 onChange={(e) => setDecimals(e.target.value)}
                 inputMode="numeric"
-                className="min-h-11 w-24 font-mono tabular-nums sm:min-h-9"
+                className="min-h-11 w-24 tabular-nums sm:min-h-9"
               />
             </Field>
           </>
@@ -178,7 +178,7 @@ export function MeasureForm({
               value={low}
               onChange={(e) => setLow(e.target.value)}
               inputMode="decimal"
-              className="min-h-11 w-28 text-right font-mono tabular-nums sm:min-h-9"
+              className="min-h-11 w-28 text-right tabular-nums sm:min-h-9"
             />
             <span aria-hidden>–</span>
             <Input
@@ -187,7 +187,7 @@ export function MeasureForm({
               value={high}
               onChange={(e) => setHigh(e.target.value)}
               inputMode="decimal"
-              className="min-h-11 w-28 text-right font-mono tabular-nums sm:min-h-9"
+              className="min-h-11 w-28 text-right tabular-nums sm:min-h-9"
             />
           </div>
         </fieldset>
@@ -198,9 +198,9 @@ export function MeasureForm({
           : "Not set yet: this component cannot be resulted until it has a unit."}
       </p>
       <div>
-        <Button type="button" onClick={save} disabled={pending}>
+        <LabButton type="button" onClick={save} variant="primary" busy={pending}>
           Save
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </section>

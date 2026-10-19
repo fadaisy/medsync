@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { demoLoads, isDemoHospital } from "@/lib/lab/demo";
+import { SetupHeader } from "../_components/setup-header";
 import { LoadDemoDay } from "./load-button";
 
 export const metadata: Metadata = { title: "Demo lab day · Laboratory · MedSync" };
@@ -36,7 +36,7 @@ export default async function DemoPage() {
   const loads = await demoLoads(db as never, scope.hospitalId);
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="Demo lab day"
@@ -69,7 +69,7 @@ export default async function DemoPage() {
           <ul className="flex flex-col gap-1">
             {loads.map((l) => (
               <li key={l.id}>
-                <span className="font-mono">{when.format(new Date(l.startedAt))}</span> ·{" "}
+                <span>{when.format(new Date(l.startedAt))}</span> ·{" "}
                 {`${l.counts.patients ?? 0} patients, ${l.counts.orders ?? 0} tests, ${l.counts.released ?? 0} released, ${l.counts["signed settings"] ?? 0} settings signed`}
                 {l.error ? (
                   <span className="text-muted-foreground"> · Stopped: {l.error}</span>

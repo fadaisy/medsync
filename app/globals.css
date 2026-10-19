@@ -326,6 +326,36 @@
   --shadow-control: var(--shadow-control-value);
   --shadow-primary: var(--shadow-primary-value);
 
+  /* ─── Lab workspace v2: MedSync Tide at desk density (ADR 0344) ─────────
+     Values live in the `:root:has([data-lab-tide])` block below, so they exist only while the lab shell
+     is on the page (dialogs and popovers portal to <body> and still inherit them). */
+  --color-tide-lagoon: var(--tide-lagoon);
+  --color-tide-lagoon-pressed: var(--tide-lagoon-pressed);
+  --color-tide-on-lagoon: var(--tide-on-lagoon);
+  --color-tide-lagoon-tint: var(--tide-lagoon-tint);
+  --color-tide-ink-3: var(--tide-ink-3);
+  --color-tide-sunken: var(--tide-sunken);
+  --color-tide-navy-950: var(--tide-navy-950);
+  --color-tide-navy-900: var(--tide-navy-900);
+  --color-tide-navy-800: var(--tide-navy-800);
+  --color-tide-navy-700: var(--tide-navy-700);
+  --color-tide-navy-600: var(--tide-navy-600);
+  --color-tide-on-band: var(--tide-on-band);
+  --color-tide-on-band-2: var(--tide-on-band-2);
+  --color-tide-cascade-2: var(--tide-cascade-2);
+  --color-tide-cascade-3: var(--tide-cascade-3);
+  --color-tide-cascade-next: var(--tide-cascade-next);
+  --color-tide-caution-edge: var(--tide-caution-edge);
+  --color-tide-area-lab: var(--tide-area-lab);
+  --shadow-tide-card: var(--tide-shadow-card);
+  --shadow-tide-float: var(--tide-shadow-float);
+  --shadow-tide-emergency: var(--tide-shadow-emergency);
+  --radius-tide-field: 10px;
+  --radius-tide-row: 12px;
+  --radius-tide-tile: 16px;
+  --radius-tide-card: 18px;
+  --radius-tide-rail: 28px;
+
   /* ─── Easing & duration ───────────────────────────────────────────────── */
   --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-symmetric: cubic-bezier(0.45, 0, 0.55, 1);
@@ -1309,4 +1339,95 @@ select:not([multiple]):not([size]):not(.appearance-none) {
   background-position: right 0.625rem center;
   background-size: 1rem 1rem;
   padding-right: 2.25rem;
+}
+
+/* ─── Lab workspace v2: MedSync Tide at desk density (ADR 0344, D-UI-02) ─────────────────────────────
+   Applies only while the lab shell (`data-lab-tide`) is on the page. It re-pins the ink ramp to Tide's
+   navy-tinted greys and the semantic roles to Tide's ground, so every shared component inside the lab
+   takes the Tide look without a fork. The lab ships light (D-UI-11): this block wins over `.dark`.
+   Primary stays teal-700, which is Tide's `accent-text`: links and text-primary keep 5.5:1. The lagoon
+   fill is a separate token (`bg-tide-lagoon` with `text-tide-on-lagoon`), one per region. */
+:root:has([data-lab-tide]) {
+  color-scheme: light;
+  --ink-0: #ffffff;
+  --ink-25: #fafbfc;
+  --ink-50: #f6f7f9;
+  --ink-100: #eef0f4;
+  --ink-150: #e8ebf0;
+  --ink-200: #dde1e9;
+  --ink-300: #c5cbd8;
+  --ink-400: #98a0b4;
+  --ink-500: #5f6987;
+  --ink-600: #4a5574;
+  --ink-700: #36415f;
+  --ink-800: #24304f;
+  --ink-900: #1b2540;
+  --ink-950: #121a2c;
+  --background: #f6f7f9;
+  --foreground: #1b2540;
+  --card: #ffffff;
+  --card-foreground: #1b2540;
+  --popover: #ffffff;
+  --popover-foreground: #1b2540;
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+  --primary-hover: #115e59;
+  --primary-active: #134e4a;
+  --secondary: #ffffff;
+  --secondary-foreground: #1b2540;
+  --muted: #eef0f4;
+  --muted-foreground: #4a5574;
+  --accent: #ccfbf1;
+  --accent-foreground: #0f766e;
+  --border: #dde1e9;
+  --input: #c5cbd8;
+  --ring: #0d9488;
+  --status-pending-bg: #e4e7ee;
+  --status-pending-fg: #4a5574;
+  --status-caution-fg: #92400e;
+  --status-critical-fg: #b91c1c;
+  --font-medsync-sans: var(--font-medsync-lab);
+  --tide-lagoon: #2dd4bf;
+  --tide-lagoon-pressed: #14b8a6;
+  --tide-on-lagoon: #1b2540;
+  --tide-lagoon-tint: #ccfbf1;
+  --tide-ink-3: #5f6987;
+  --tide-sunken: #e4e7ee;
+  --tide-navy-950: #121a2c;
+  --tide-navy-900: #1b2540;
+  --tide-navy-800: #24304f;
+  --tide-navy-700: #2f3d5f;
+  --tide-navy-600: #3f4f74;
+  --tide-on-band: #ffffff;
+  --tide-on-band-2: #e8ecf3;
+  --tide-cascade-2: #2f4a6d;
+  --tide-cascade-3: #296a89;
+  --tide-cascade-next: #a7f3e4;
+  --tide-caution-edge: #f59e0b;
+  --tide-area-lab: var(--grape-solid);
+  --tide-shadow-card: 0 1px 2px rgba(27, 37, 64, 0.06), 0 10px 24px -14px rgba(27, 37, 64, 0.22);
+  --tide-shadow-float: 0 2px 6px rgba(27, 37, 64, 0.08), 0 16px 36px -12px rgba(27, 37, 64, 0.32);
+  --tide-shadow-emergency: 0 6px 16px -6px rgba(220, 38, 38, 0.6);
+  --shadow-card-value: var(--tide-shadow-card);
+  --shadow-popover-value: var(--tide-shadow-float);
+}
+
+/* D-UI-11: the dark values are written now and not used; the lab ships light until its own contrast pass.
+   To try them, put `data-lab-tide-dark` beside `data-lab-tide`. */
+:root:has([data-lab-tide][data-lab-tide-dark]) {
+  color-scheme: dark;
+  --background: #0b1120;
+  --foreground: #e8ecf3;
+  --card: #121a2c;
+  --card-foreground: #e8ecf3;
+  --popover: #121a2c;
+  --popover-foreground: #e8ecf3;
+  --muted: #1b2540;
+  --muted-foreground: #b4bcd0;
+  --border: #2f3d5f;
+  --input: #3f4f74;
+  --primary: #5eead4;
+  --primary-foreground: #0b1120;
+  --tide-on-lagoon: #0b1120;
+  --tide-sunken: #1b2540;
 }

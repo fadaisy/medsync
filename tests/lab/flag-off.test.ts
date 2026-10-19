@@ -12,31 +12,39 @@ const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 describe("LAB_WORKSPACE off", () => {
   it("the layout returns the original top bar", () => {
     const layout = read("app/lab/layout.tsx");
+    // Lab Workspace v2 (ADR 0349): the six-place shell only where the workspace (and the record) is on.
+    expect(layout).toMatch(/const v2 = scope\.workspaceLive \? await labV2\(\) : null;/);
     expect(layout).toMatch(
-      /if \(!scope\.workspaceLive\) return <LegacyLabLayout scope=\{scope\}>\{children\}<\/LegacyLabLayout>;/,
+      /return <LegacyLabLayout scope=\{scope\}>\{children\}<\/LegacyLabLayout>;/,
     );
   });
 
   it("the worklist page returns the EMR worklist or the old list, as before", () => {
     const page = read("app/lab/page.tsx");
-    // EMR on: the EMR worklist unless the workspace is on; EMR off: the old list with no note.
+    // Workspace and EMR on: the role landing (v2). EMR on without the workspace: the EMR worklist; EMR off: the
+    // old list with no note.
+    expect(page).toMatch(/if \(v2\.live\)\s*redirect\(/);
     expect(page).toMatch(
-      /return scope\.workspaceLive \? \(\s*<SectionWorklist[\s\S]*?\) : \(\s*<EmrLabWorklist scope=\{scope\} \/>/,
+      /if \(emrV1LiveFor\(scope\.hospitalId\)\) return <EmrLabWorklist scope=\{scope\} \/>;/,
     );
     expect(page).toMatch(/note=\{scope\.workspaceLive \? LAB\.worklist\.legacy : undefined\}/);
   });
 
   it("Released today and Rejected do not exist", () => {
-    for (const p of ["app/lab/released/page.tsx", "app/lab/rejected/page.tsx"])
+    for (const p of ["app/lab/bench/_views/released.tsx", "app/lab/bench/_views/rejected.tsx"])
       expect(read(p), p).toMatch(/if \(!scope\.workspaceLive\) notFound\(\);/);
   });
 
   it("the result screen adds nothing: notice and Reject are behind the flag", () => {
-    const page = read("app/lab/results/[orderId]/page.tsx");
-    expect(page).toMatch(
-      /workspace && !criticalFlaggingActive\(scope\.hospitalId\) \?\s*\(?\s*<FlaggingNotice \/>/,
+    // Lab Workspace v2: the result screen's reads live in one loader shared with the bench work pane.
+    const load = read("app/lab/results/[orderId]/_lib/load.ts");
+    expect(load).toMatch(
+      /const flagging = workspace\s*\?[\s\S]*?!criticalFlaggingActive\(scope\.hospitalId\)\s*\?\s*"notice"/,
     );
-    expect(page).toMatch(/workspace && !data\.report\?\.released/);
+    expect(load).toMatch(/workspace && !data\.report\?\.released/);
+    expect(read("app/lab/bench/[orderId]/page.tsx")).toMatch(
+      /flagging === "notice" \?\s*\(?\s*<FlaggingNotice \/>/,
+    );
   });
 
   it("the scope keeps bouncing a non-lab user to the landing page", () => {

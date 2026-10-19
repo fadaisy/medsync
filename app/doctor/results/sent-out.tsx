@@ -1,6 +1,6 @@
 import type { ReferralRow } from "@/lib/lab/referral-read";
 
-import { NowChip } from "@/app/lab/referrals/_components/now-chip";
+import { NowChip } from "@/components/lab/now-chip";
 import { nowWords } from "@/lib/lab/referral-words";
 
 const day = (d: Date) =>

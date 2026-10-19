@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { releaseResults } from "@/lib/emr/actions/results";
+import { LabButton } from "../../../_components/v2/button";
 import { QUALITY } from "../../../quality/_lib/copy";
 import { Said, useAct } from "../../../setup/criticals/_components/setup-forms";
 
@@ -53,14 +53,15 @@ export function QcHoldActions({
       {completion.length ? (
         <section className="border-border bg-card shadow-card text-body-s flex flex-col gap-2 rounded-lg border p-4">
           <p>{H.releaseHeldLede}</p>
-          <Button
+          <LabButton
             type="button"
             className="min-h-11 w-fit sm:min-h-9"
-            disabled={pending}
             onClick={() => release()}
+            variant="primary"
+            busy={pending}
           >
             {H.releaseHeld(completion.join(", "))}
-          </Button>
+          </LabButton>
         </section>
       ) : null}
       {held.length && canOverride ? (

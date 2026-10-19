@@ -10,12 +10,14 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LAB } from "@/content/lab";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 import {
   findSpecimenAction,
   receiveByLabelAction,
   undoReceiveAction,
 } from "@/lib/lab/bench-actions";
 import { UNDO_WINDOW_MS } from "@/lib/lab/one-menu";
+import { LabButton } from "./v2/button";
 
 const B = LAB.bench;
 const TAP = "min-h-11 sm:min-h-0";
@@ -29,7 +31,7 @@ type Pending = { kind: "procedure_first" | "not_collected"; raw: string; words: 
  * Enter; the field clears and keeps focus after every scan. Outcomes are announced politely; not
  * found, voided and rejected assertively. The last receipt keeps an Undo for five minutes.
  */
-export function ScanReceive() {
+export function ScanReceive({ initial }: { initial?: string } = {}) {
   const router = useRouter();
   const id = useId();
   const field = useRef<HTMLInputElement>(null);
@@ -77,6 +79,15 @@ export function ScanReceive() {
       }
       refocus();
     });
+
+  // Lab Workspace v2: "Receive {label}" from Scan or search arrives here as `?receive=`, and runs once.
+  const ran = useRef(false);
+  useEffect(() => {
+    if (!initial || ran.current) return;
+    ran.current = true;
+    send(initial, {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial]);
 
   const undo = (r: Receipt) =>
     start(async () => {
@@ -130,16 +141,15 @@ export function ScanReceive() {
           {polite}
         </p>
         {receipt ? (
-          <Button
+          <LabButton
             type="button"
             variant="secondary"
-            size="md"
             className={TAP}
-            disabled={busy}
             onClick={() => undo(receipt)}
+            busy={busy}
           >
             {B.undo}
-          </Button>
+          </LabButton>
         ) : null}
       </div>
       <p role="alert" className="text-body-s">
@@ -164,15 +174,16 @@ export function ScanReceive() {
               {B.procedureFollowed}
             </label>
             <span className="flex flex-wrap gap-2">
-              <Button
+              <LabButton
                 type="button"
-                size="md"
                 className={TAP}
-                disabled={!followed || busy}
                 onClick={() => send(pending.raw, { procedureFollowed: true })}
+                variant="primary"
+                busy={busy}
+                disabledReason={!followed ? LABWS2.reasons.tickProcedure : null}
               >
                 {B.receive}
-              </Button>
+              </LabButton>
               <Button
                 type="button"
                 variant="ghost"
@@ -213,14 +224,15 @@ export function ScanReceive() {
             className="h-11 sm:h-[34px]"
           />
           <span className="flex flex-wrap gap-2">
-            <Button
+            <LabButton
               type="submit"
-              size="md"
               className={TAP}
-              disabled={reason.trim().length < 3 || busy}
+              variant="primary"
+              busy={busy}
+              disabledReason={reason.trim().length < 3 ? LABWS2.reasons.reasonAtLeast3 : null}
             >
               {B.receiveAnyway}
-            </Button>
+            </LabButton>
             <Button
               type="button"
               variant="ghost"
@@ -276,9 +288,9 @@ export function FindSpecimen() {
           autoComplete="off"
           className="h-11 w-60 sm:h-[34px]"
         />
-        <Button type="submit" variant="secondary" size="md" className={TAP} disabled={busy}>
+        <LabButton type="submit" variant="secondary" className={TAP} busy={busy}>
           {F.submit}
-        </Button>
+        </LabButton>
       </form>
       <div role="status" className="text-body-s">
         {error ? (

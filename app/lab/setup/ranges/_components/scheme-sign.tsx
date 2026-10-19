@@ -3,9 +3,9 @@
 import { useId, useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signConfigAsLeadAction } from "@/lib/lab/catalogue-v2-actions";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 /**
@@ -63,15 +63,16 @@ export function SchemeSign({
       ) : (
         <div className="flex flex-col gap-1">
           <div>
-            <Button
+            <LabButton
               type="button"
               variant="secondary"
               onClick={sign}
-              disabled={pending || !!blockedReason}
               aria-describedby={blockedReason ? why : undefined}
+              busy={pending}
+              disabledReason={blockedReason || null}
             >
               Sign as laboratory lead
-            </Button>
+            </LabButton>
           </div>
           {blockedReason ? (
             <p id={why} className="text-caption text-muted-foreground">

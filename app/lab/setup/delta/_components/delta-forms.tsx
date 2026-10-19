@@ -8,6 +8,7 @@ import { signConfigAsLeadAction } from "@/lib/lab/catalogue-v2-actions";
 import { rcv, rcvLogNormal } from "@/lib/lab/delta";
 import { saveDeltaRuleAction, trialDeltaRuleAction } from "@/lib/lab/delta-actions";
 import { inputClass, Pop, selectClass } from "../../../_components/pop";
+import { LabButton } from "../../../_components/v2/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "../../drafts/_components/sign-button";
 
@@ -102,9 +103,8 @@ export function DeltaRuleDialog({ concepts }: { concepts: Concept[] }) {
       setOpen={setOpen}
       width="wide"
       action={
-        <Button
+        <LabButton
           type="button"
-          disabled={pending}
           onClick={() =>
             act(async () => {
               const r = await saveDeltaRuleAction({
@@ -116,9 +116,11 @@ export function DeltaRuleDialog({ concepts }: { concepts: Concept[] }) {
               return r;
             }, "Saved as a draft. Sign it to send it to the CSO.")
           }
+          variant="primary"
+          busy={pending}
         >
           Save draft
-        </Button>
+        </LabButton>
       }
     >
       <div className="grid gap-4 sm:grid-cols-3">
@@ -346,9 +348,8 @@ export function PanelRuleDialog({
       open={open}
       setOpen={setOpen}
       action={
-        <Button
+        <LabButton
           type="button"
-          disabled={pending}
           onClick={() =>
             act(async () => {
               const r = await saveDeltaRuleAction({
@@ -366,9 +367,11 @@ export function PanelRuleDialog({
               return r;
             }, "Saved as a draft.")
           }
+          variant="primary"
+          busy={pending}
         >
           Save draft
-        </Button>
+        </LabButton>
       }
     >
       <div className="grid gap-4 sm:grid-cols-3">
@@ -469,9 +472,8 @@ export function PatternRuleDialog({ concepts }: { concepts: Concept[] }) {
       setOpen={setOpen}
       width="wide"
       action={
-        <Button
+        <LabButton
           type="button"
-          disabled={pending}
           onClick={() =>
             act(async () => {
               const r = await saveDeltaRuleAction({
@@ -491,9 +493,11 @@ export function PatternRuleDialog({ concepts }: { concepts: Concept[] }) {
               return r;
             }, "Saved as a draft.")
           }
+          variant="primary"
+          busy={pending}
         >
           Save draft
-        </Button>
+        </LabButton>
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -595,11 +599,10 @@ export function TrialButton({ payload, name }: { payload: unknown; name: string 
   const [busy, setBusy] = useState(false);
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <LabButton
         type="button"
-        variant="ghost"
+        variant="quiet"
         className="min-h-11 w-fit sm:min-h-8"
-        disabled={busy}
         onClick={async () => {
           setBusy(true);
           const r = await trialDeltaRuleAction(payload);
@@ -612,9 +615,10 @@ export function TrialButton({ payload, name }: { payload: unknown; name: string 
                 : r.error,
           );
         }}
+        busy={busy}
       >
         Try it on past results<span className="sr-only"> for {name}</span>
-      </Button>
+      </LabButton>
       <p role="status" className="text-caption text-muted-foreground">
         {out}
       </p>

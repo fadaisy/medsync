@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Navigation map</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1060px; flex-direction: column; padding: 28px 32px">
+<div class="row"><div class="top__where"><span class="ov">Lab workspace v2 · navigation map</span><h1>35 menu items into 6 places</h1></div><span class="row__sp"></span>
+<div class="tiles" style="grid-template-columns: repeat(3, 150px)"><div class="kpi" style="grid-template-columns: 1fr"><span class="kpi__k">Was</span><span class="kpi__v">35</span><span class="kpi__d">items in 5 groups</span></div><div class="kpi" style="grid-template-columns: 1fr"><span class="kpi__k">Now</span><span class="kpi__v">6</span><span class="kpi__d">places in the rail</span></div><div class="kpi" style="grid-template-columns: 1fr"><span class="kpi__k">Plus</span><span class="kpi__v">1</span><span class="kpi__d">inbox, 1 search</span></div></div></div>
+<div class="sg">
+<section class="card"><div class="card__h"><h2>Today</h2><span class="sp"></span><span class="small">New · lead's home</span></div><div class="card__b" style="padding: 0 8px 10px; gap: 0">
+<div class="si"><span class="l">The lab at a glance</span><span class="m">new</span></div>
+<div class="si"><span class="l">Criticals</span><span class="m">→ Needs you</span></div>
+</div></section>
+<section class="card"><div class="card__h"><h2>Bench</h2><span class="sp"></span><span class="small">Technician's home</span></div><div class="card__b" style="padding: 0 8px 10px; gap: 0">
+<div class="si"><span class="l">Worklist</span><span class="m">tabs: To receive · To result · Preliminary</span></div>
+<div class="si"><span class="l">Released today</span><span class="m">tab</span></div>
+<div class="si"><span class="l">Rejected</span><span class="m">tab</span></div>
+<div class="si"><span class="l">Downtime entry</span><span class="m">button on the bench</span></div>
+</div></section>
+<section class="card"><div class="card__h"><h2>Send-outs</h2></div><div class="card__b" style="padding: 0 8px 10px; gap: 0">
+<div class="si"><span class="l">To refer</span><span class="m">board column</span></div>
+<div class="si"><span class="l">Referrals</span><span class="m">board columns</span></div>
+<div class="si"><span class="l">Waiting for a match</span><span class="m">tab · also Needs you</span></div>
+<div class="si"><span class="l">Connections</span><span class="m">tab</span></div>
+<div class="si"><span class="l">Partners</span><span class="m">tab</span></div>
+</div></section>
+<section class="card"><div class="card__h"><h2>Quality</h2></div><div class="card__b" style="padding: 0 8px 10px; gap: 0">
+<div class="si"><span class="l">Quality today</span><span class="m">tab: Today</span></div>
+<div class="si"><span class="l">Quality control</span><span class="m">tabs: QC plans · QC runs</span></div>
+<div class="si"><span class="l">Stock and lots · Equipment</span><span class="m">tabs</span></div>
+<div class="si"><span class="l">External quality · Bedside quality</span><span class="m">tabs</span></div>
+<div class="si"><span class="l">Nonconformities</span><span class="m">tab</span></div>
+</div></section>
+<section class="card"><div class="card__h"><h2>Reports</h2></div><div class="card__b" style="padding: 0 8px 10px; gap: 0">
+<div class="si"><span class="l">Lab reports</span><span class="m">tab: Indicators</span></div>
+<div class="si"><span class="l">Daily register · HMIS 105</span><span class="m">tabs</span></div>
+</div></section>
+<section class="card"><div class="card__h"><h2>Set-up</h2><span class="sp"></span><span class="small">Lab lead only</span></div><div class="card__b" style="padding: 0 8px 10px; gap: 0">
+<div class="si"><span class="l">Test menu · Test catalogue · Analyser profiles</span><span class="m">Tests</span></div>
+<div class="si"><span class="l">Ranges · Critical limits · Response and contacts · Delta checks</span><span class="m">Result safety</span></div>
+<div class="si"><span class="l">Patient release</span><span class="m">Patients</span></div>
+<div class="si"><span class="l">Analysers</span><span class="m">Partners and machines</span></div>
+<div class="si"><span class="l">Lab settings · Research drafts</span><span class="m">This laboratory</span></div>
+<div class="si"><span class="l">Demo lab day</span><span class="m">demo hospitals only</span></div>
+</div></section>
+</div>
+<section class="card"><div class="card__h"><h2>Everywhere</h2></div><div class="card__b" style="padding-top: 0">
+<div class="row"><span class="pill pill--warn">Needs you</span><span class="small">criticals, delta decisions, QC holds, matches, overdue referrals, lots to accept, signatures</span></div>
+<div class="row"><span class="pill pill--line">Ctrl K</span><span class="small">scan a tube or search a patient, lab number, action or page</span></div>
+<div class="row"><span class="pill" style="background: var(--emergency); color: #fff">Emergency</span><span class="small">top right on every screen</span></div>
+</div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

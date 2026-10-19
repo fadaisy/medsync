@@ -1,6 +1,8 @@
 import type { PatientIdentity } from "@/components/emr/orders/model";
 import type { ReactNode } from "react";
 
+import { EmptyState } from "./v2/kit";
+
 /**
  * A read-only lab list (Released today, Rejected; Lab Phase 0 §5.5): the worklist's table look
  * (Chroma RecordTable: sticky 34 px header on muted, ink-150 hairlines) on desktop, one block per
@@ -25,12 +27,7 @@ export function RecordList<T>({
   columns: readonly RecordColumn<T>[];
   empty: string;
 }) {
-  if (rows.length === 0)
-    return (
-      <p className="border-border text-body-s text-muted-foreground rounded-lg border border-dashed p-8 text-center">
-        {empty}
-      </p>
-    );
+  if (rows.length === 0) return <EmptyState title={empty} />;
   return (
     <>
       <div className="border-border bg-card hidden overflow-auto rounded-lg border md:block">

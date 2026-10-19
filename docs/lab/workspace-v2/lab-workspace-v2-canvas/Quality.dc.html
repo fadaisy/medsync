@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quality</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1000px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Quality</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Quality"><a class="on" href="#" aria-current="page">Today</a><a href="#">QC runs</a><a href="#">Stock and lots <span class="n n--warn">2</span></a><a href="#">Equipment <span class="n n--warn">1</span></a><a href="#">External quality</a><a href="#">Bedside</a><a href="#">Nonconformities <span class="n">5</span></a></nav>
+<span class="row__sp"></span><a class="btn btn--p btn--s" href="#">Record a QC run</a>
+</div>
+<div class="tiles" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+<div class="kpi"><span class="kpi__k">QC still to run today</span><span class="kpi__v">1</span><span class="kpi__d">Glucose on BS-240</span></div>
+<div class="kpi kpi--warn"><span class="kpi__k">Results held by QC</span><span class="kpi__v">4</span><span class="kpi__d kpi__d--warn">Creatinine, since 11:05</span></div>
+<div class="kpi"><span class="kpi__k">Lots expiring soon</span><span class="kpi__v" style="font-size: 15px; line-height: 28px">Window not set</span><span class="kpi__d"><a href="Setup.dc.html" style="color: var(--accent-text)">Ask the lab lead to set it</a></span></div>
+<div class="kpi kpi--warn"><span class="kpi__k">Equipment down</span><span class="kpi__v">1</span><span class="kpi__d kpi__d--warn">cobas c 111 · since 08:10</span></div>
+</div>
+<div class="cols" style="grid-template-columns: minmax(0, 1fr) 340px">
+<section class="card">
+<div class="card__h"><h2>QC today, by test and analyser</h2><span class="sp"></span><span class="small">Last 10 runs in SD from the target · dashed lines ±2 SD</span></div>
+<table class="tb">
+<thead><tr><th>Test</th><th>Analyser</th><th>Last run</th><th>Last 10 runs</th><th>Status</th><th>Levels</th></tr></thead>
+<tbody>
+<tr><td><b>Haemoglobin</b></td><td>Dymind DH-615</td><td class="mono">07:55</td><td><svg viewBox="0 0 120 32" width="120" height="32" aria-hidden="true" style="width:120px;height:32px;stroke:none"><line x1="0" x2="120" y1="24.7" y2="24.7" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><line x1="0" x2="120" y1="16.0" y2="16.0" stroke="var(--line)" stroke-width="1"/><line x1="0" x2="120" y1="7.3" y2="7.3" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><polyline points="3.0,15.1 15.7,18.2 28.3,12.5 41.0,15.6 53.7,17.3 66.3,13.4 79.0,11.2 91.7,14.3 104.3,16.9 117.0,14.7" fill="none" stroke="var(--cascade-3)" stroke-width="1.5"/></svg></td><td><span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Passed</span></td><td class="small">2 levels</td></tr>
+<tr><td><b>White cell count</b></td><td>Dymind DH-615</td><td class="mono">07:55</td><td><svg viewBox="0 0 120 32" width="120" height="32" aria-hidden="true" style="width:120px;height:32px;stroke:none"><line x1="0" x2="120" y1="24.7" y2="24.7" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><line x1="0" x2="120" y1="16.0" y2="16.0" stroke="var(--line)" stroke-width="1"/><line x1="0" x2="120" y1="7.3" y2="7.3" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><polyline points="3.0,17.7 15.7,15.6 28.3,14.7 41.0,19.5 53.7,15.1 66.3,13.8 79.0,16.4 91.7,16.0 104.3,14.3 117.0,15.1" fill="none" stroke="var(--cascade-3)" stroke-width="1.5"/></svg></td><td><span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Passed</span></td><td class="small">2 levels</td></tr>
+<tr><td><b>Creatinine</b></td><td>Mindray BS-240</td><td class="mono">11:05</td><td><svg viewBox="0 0 120 32" width="120" height="32" aria-hidden="true" style="width:120px;height:32px;stroke:none"><line x1="0" x2="120" y1="24.7" y2="24.7" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><line x1="0" x2="120" y1="16.0" y2="16.0" stroke="var(--line)" stroke-width="1"/><line x1="0" x2="120" y1="7.3" y2="7.3" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><polyline points="3.0,14.7 15.7,13.4 28.3,11.7 41.0,10.8 53.7,9.5 66.3,7.8 79.0,6.9 91.7,8.6 104.3,5.6 117.0,1.7" fill="none" stroke="var(--cascade-3)" stroke-width="1.5"/><circle cx="79.0" cy="6.9" r="3" fill="var(--caution-edge)"/><circle cx="104.3" cy="5.6" r="3" fill="var(--caution-edge)"/><circle cx="117.0" cy="1.7" r="3" fill="var(--caution-fg)"/></svg></td><td><span class="pill" style="background: var(--caution-fg); color: #fff">Rejected 1-3s · 4 held</span></td><td class="small">Level 2</td></tr>
+<tr><td><b>Potassium</b></td><td>Mindray BS-240</td><td class="mono">07:40</td><td><svg viewBox="0 0 120 32" width="120" height="32" aria-hidden="true" style="width:120px;height:32px;stroke:none"><line x1="0" x2="120" y1="24.7" y2="24.7" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><line x1="0" x2="120" y1="16.0" y2="16.0" stroke="var(--line)" stroke-width="1"/><line x1="0" x2="120" y1="7.3" y2="7.3" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><polyline points="3.0,15.6 15.7,17.7 28.3,13.4 41.0,6.5 53.7,14.7 66.3,16.9 79.0,13.8 91.7,15.6 104.3,18.6 117.0,15.1" fill="none" stroke="var(--cascade-3)" stroke-width="1.5"/><circle cx="41.0" cy="6.5" r="3" fill="var(--caution-edge)"/></svg></td><td><span class="pill pill--warn">Warning 1-2s, accepted</span></td><td class="small">Level 1</td></tr>
+<tr><td><b>Glucose</b></td><td>Mindray BS-240</td><td class="mono">—</td><td><svg viewBox="0 0 120 32" width="120" height="32" aria-hidden="true" style="width:120px;height:32px;stroke:none"><line x1="0" x2="120" y1="24.7" y2="24.7" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><line x1="0" x2="120" y1="16.0" y2="16.0" stroke="var(--line)" stroke-width="1"/><line x1="0" x2="120" y1="7.3" y2="7.3" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/><polyline points="3.0,15.1 15.7,15.6 28.3,17.3 41.0,14.3 53.7,16.0 66.3,18.2 79.0,14.7 91.7,15.1 104.3,15.6 117.0,16.4" fill="none" stroke="var(--cascade-3)" stroke-width="1.5"/></svg></td><td><span class="pill pill--line">Not run today</span></td><td class="small">Due before patients</td></tr>
+</tbody>
+</table>
+<div class="card__f"><span class="small">Creatinine drifted upward over 10 runs before the rejection. The look-back lists every result since the last good run.</span><span class="sp"></span><a class="btn btn--s" href="#">Open look-back</a></div>
+</section>
+<aside class="stack">
+<section class="card">
+<div class="card__h"><h2>Stock below minimum</h2><span class="sp"></span><a class="btn btn--t btn--s" href="#">Stock</a></div>
+<div class="card__b" style="gap: 6px">
+<div class="hb"><span>Malaria RDT</span><span class="hb__t"><span class="hb__f hb__f--warn" style="width: 18%"></span><span class="hb__m" style="left: 25%"></span></span><span class="hb__n">0.7 mo</span></div>
+<div class="hb"><span>EDTA tubes</span><span class="hb__t"><span class="hb__f hb__f--warn" style="width: 22%"></span><span class="hb__m" style="left: 25%"></span></span><span class="hb__n">0.9 mo</span></div>
+<div class="hb"><span>Creatinine reagent</span><span class="hb__t"><span class="hb__f" style="width: 55%"></span><span class="hb__m" style="left: 25%"></span></span><span class="hb__n">2.2 mo</span></div>
+<div class="small">Months of stock at the average use of the last 3 months. Mark: the minimum the lead set.</div>
+</div>
+</section>
+<section class="card">
+<div class="card__h"><h2>Nonconformities needing you</h2><span class="sp"></span><a class="btn btn--t btn--s" href="#">All 5</a></div>
+<div class="ib" style="padding-top: 0">
+<div><span class="ic ic--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg></span><span><b>Creatinine QC rejected</b><br><span class="s">Look-back: 0 of 6 decided</span></span><span class="t">today</span><span></span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span><span><b>Manifest discrepancy</b><br><span class="s">MF-2026-0133 · 1 tube broken on arrival</span></span><span class="t">3 days</span><span></span></div>
+</div>
+</section>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -13,6 +12,7 @@ import { loadCutoffs } from "@/lib/lab/cutoffs-read";
 import { labCatalogueV2LiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { loadMeasuresSetup } from "@/lib/lab/measures-setup";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
+import { SetupHeader } from "../_components/setup-header";
 import { RangeEditor } from "./_components/range-editor";
 import { SchemeSection } from "./_components/scheme-section";
 import { bandFromDays } from "./_lib/ages";
@@ -95,7 +95,7 @@ export default async function RangesSetupPage({
     : [];
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title={v2 ? "Ranges and cut-offs" : "Reference ranges"}

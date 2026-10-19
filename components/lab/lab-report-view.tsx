@@ -35,7 +35,7 @@ const shown = (t: TileId, v: IndicatorValue & { kind: "value" }) =>
       : `${v.value.toLocaleString("en-GB", { maximumFractionDigits: 1 })} %`;
 
 /** The words under a number: what it was divided by, and what else it carries. */
-function basis(t: TileId, v: IndicatorValue & { kind: "value" }, bedside: number) {
+export function basis(t: TileId, v: IndicatorValue & { kind: "value" }, bedside: number) {
   if (t === "workload")
     return bedside ? (
       <span className="bg-sky-tint text-sky-text text-caption w-fit rounded px-1.5 py-0.5">

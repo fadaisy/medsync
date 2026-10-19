@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Field kit</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1160px; flex-direction: column; padding: 28px 32px">
+<div class="top__where"><span class="ov">Lab workspace v2 · field kit</span><h1>Fields, picks and empty states</h1></div>
+<div class="sg" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+
+<section class="card"><div class="card__h"><h2>Date and time</h2></div><div class="card__b">
+<div class="fld"><span class="lbl">Collected</span><div class="in"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg><span>Today, Mon 19 Oct</span><span class="row__sp"></span><span class="mono">08:20</span></div><div class="quick"><a class="on" href="#">Now</a><a href="#">15 min ago</a><a href="#">1 h ago</a><a href="#">Yesterday</a><a href="#">Pick</a></div></div>
+<div class="fld"><span class="lbl">Typed time</span><div class="in in--focus"><span>Fri 16 Oct</span><span class="row__sp"></span><input class="mono" value="0810" style="flex: 0 0 52px; text-align: right"><span class="in__x">→ 08:10</span></div><span class="help">Type 0810, 8.10 or 8:10. Always 24-hour.</span></div>
+<div class="fld"><span class="lbl">Ended</span><div class="in in--err"><span>Fri 16 Oct</span><span class="row__sp"></span><span class="mono">07:40</span></div><span class="err">Ends before it started (08:10)</span></div>
+<span class="small">Replaces the browser's "dd/mm/yyyy, --:--" mask everywhere.</span>
+</div></section>
+
+<section class="card"><div class="card__h"><h2>Pick from a list</h2></div><div class="card__b">
+<div class="fld"><label for="k-t">Test</label><div class="in in--focus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="k-t" value="crea"></div>
+<div class="menu"><div class="opt on">Creatinine<span>µmol/L · Chemistry</span></div><div class="opt">Creatinine, urine<span>mmol/L · Chemistry</span></div><div class="opt">Creatine kinase<span>U/L · Chemistry · referred</span></div></div></div>
+<span class="small">People choose by name and unit. Internal ids such as concept codes never show.</span>
+<div class="fld"><span class="lbl">Few choices: chips, not a dropdown</span><div class="quick"><a class="on" href="#">Network</a><a href="#">Power</a><a href="#">MedSync</a><a href="#">Other</a></div></div>
+</div></section>
+
+<section class="card"><div class="card__h"><h2>Numbers</h2></div><div class="card__b">
+<div class="fld"><label for="k-v">Result</label><div class="row"><input id="k-v" class="val" value="4.4"><span class="unit">mmol/L<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></div><span class="help">Unit fixed by the test, shown with a lock</span></div>
+<div class="fld"><label for="k-n">How many forms</label><div class="row"><button class="btn btn--s" aria-label="Fewer">−</button><div class="in" style="width: 72px"><input id="k-n" class="mono" value="10" style="text-align: center"></div><button class="btn btn--s" aria-label="More">+</button><span class="small">Numbers DT-0418 to DT-0427</span></div></div>
+<div class="fld"><label for="k-r">Out of range on entry</label><div class="row"><input id="k-r" class="val val--out" value="71"><span class="flag flag--out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>Low</span></div></div>
+</div></section>
+
+<section class="card"><div class="card__h"><h2>Buttons</h2></div><div class="card__b">
+<div class="row"><a class="btn btn--p" href="#">Release</a><a class="btn" href="#">Save preliminary</a><a class="btn btn--t" href="#">Cancel</a></div>
+<div class="row"><button class="btn btn--p" disabled aria-disabled="true">Record the downtime</button></div>
+<span class="why"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>A disabled button always says what is missing: "Add when it started"</span>
+<span class="small">One lagoon button per card. Others are outlined or text.</span>
+</div></section>
+
+<section class="card"><div class="card__h"><h2>Numbers in tiles</h2></div><div class="card__b">
+<div class="tiles" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+<div class="kpi" style="grid-template-columns: 1fr"><span class="kpi__k">Held by QC</span><span class="kpi__v">0</span><span class="kpi__d">Nothing held today</span></div>
+<div class="kpi" style="grid-template-columns: 1fr"><span class="kpi__k">Turnaround</span><span class="kpi__v" style="color: var(--ink-3)">No data</span><span class="kpi__d">Nothing released yet</span></div>
+<div class="kpi" style="grid-template-columns: 1fr"><span class="kpi__k">Lots expiring</span><span class="kpi__v" style="font-size: 15px">Not set</span><span class="kpi__d"><a href="#" style="color: var(--accent-text)">Set the window</a></span></div>
+</div>
+<span class="small">0 is a real zero. "No data" means nothing was recorded. "Not set" names who can set it. Numbers use the text face, never code type.</span>
+</div></section>
+
+<section class="card"><div class="card__h"><h2>Empty states</h2></div><div class="card__b">
+<div class="empty"><b>No QC plan yet for this analyser</b><span>QC runs can still be logged. The laboratory lead starts a plan for each test.</span><a class="btn btn--s" href="#">Start a plan</a></div>
+<div class="empty"><b>Nothing to refer today</b><span>Tests the hub marks as referred, or whose analyser is down, appear here when their specimen is received.</span></div>
+<span class="small">Every empty state says why it is empty and what happens next, with the action if you may take it.</span>
+</div></section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1160}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

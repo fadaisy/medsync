@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lab today</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1040px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Today</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Period"><a class="on" href="#" aria-current="page">Today</a><a href="#">7 days</a><a href="#">28 days</a></nav>
+<div class="chips"><a class="chip on" href="#">All sections</a><a class="chip" href="#">Haematology</a><a class="chip" href="#">Chemistry</a><a class="chip" href="#">Parasitology</a><a class="chip" href="#">Serology</a></div>
+<span class="row__sp"></span><span class="small">Mon 19 Oct · 12:13 · compared with Mon 12 Oct at the same time</span>
+</div>
+
+<div class="g12">
+<section class="hero" style="grid-column: span 4">
+<span class="ov">In the lab now</span>
+<div class="hero__v">24 <small>specimens · 9 more out at partners</small></div>
+<div class="stk" role="img" aria-label="4 to receive, 12 to result, 8 preliminary"><i class="s1" style="flex: 4"></i><i class="s2" style="flex: 12"></i><i class="s3" style="flex: 8"></i></div>
+<div class="legend"><span><i style="background: var(--cascade-next)"></i>To receive<b>4</b></span><span><i style="background: var(--accent)"></i>To result<b>12</b></span><span><i style="background: #6fb7d1"></i>Preliminary<b>8</b></span></div>
+<div class="hero__f"><span>Oldest waiting <b>1 h 12</b></span><span class="w">5 late now</span><span>Bench is <b>keeping pace</b> since 10:00</span></div>
+<a class="btn btn--p btn--s" href="Bench.dc.html" style="align-self: flex-start">Open the bench</a>
+</section>
+<div class="kg" style="grid-column: span 8">
+<a href="#"><span class="k">Received so far</span><span class="v">186</span><svg class="sp" viewBox="0 0 92 34" aria-hidden="true"><polyline points="2.0,31.0 16.7,21.7 31.3,15.4 46.0,24.8 60.7,12.3 75.3,12.3 90.0,3.0" fill="none"/><circle cx="90.0" cy="3.0" r="2.75" fill="var(--cascade-3)" stroke="none"/></svg><span class="d"><span class="dl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>12</span> more than last Monday (7 %)</span></a>
+<a href="#"><span class="k">Released</span><span class="v">162</span><svg class="sp" viewBox="0 0 92 34" aria-hidden="true"><polyline points="2.0,31.0 16.7,22.9 31.3,13.8 46.0,23.8 60.7,12.0 75.3,12.9 90.0,3.0" fill="none"/><circle cx="90.0" cy="3.0" r="2.75" fill="var(--cascade-3)" stroke="none"/></svg><span class="d"><span class="dl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>11</span> more than last Monday (7 %)</span></a>
+<a href="#"><span class="k">Turnaround, median</span><span class="v">52 <small>min</small></span><svg class="sp" viewBox="0 0 92 34" aria-hidden="true"><polyline points="2.0,3.0 16.7,12.3 31.3,21.7 46.0,15.4 60.7,24.8 75.3,18.6 90.0,31.0" fill="none"/><circle cx="90.0" cy="31.0" r="2.75" fill="var(--cascade-3)" stroke="none"/></svg><span class="d"><span class="dl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>4 min</span> faster than last Monday</span></a>
+<a href="#"><span class="k">Past their stated time</span><span class="v">14</span><svg class="sp" viewBox="0 0 92 34" aria-hidden="true"><polyline points="2.0,17.0 16.7,26.3 31.3,12.3 46.0,31.0 60.7,21.7 75.3,26.3 90.0,3.0" fill="none"/><circle cx="90.0" cy="3.0" r="2.75" fill="var(--cascade-3)" stroke="none"/></svg><span class="d"><b style="color: var(--caution-fg)">9 % of released</b> · 10 in chemistry</span></a>
+<a href="#"><span class="k">Criticals</span><span class="v">3</span><svg class="sp" viewBox="0 0 92 34" aria-hidden="true"><polyline points="2.0,24.0 16.7,10.0 31.3,31.0 46.0,17.0 60.7,24.0 75.3,3.0 90.0,17.0" fill="none"/><circle cx="90.0" cy="17.0" r="2.75" fill="var(--cascade-3)" stroke="none"/></svg><span class="d">All acknowledged · median 6 min</span></a>
+<a href="#"><span class="k">Rejected</span><span class="v">1.6 <small>%</small></span><svg class="sp" viewBox="0 0 92 34" aria-hidden="true"><polyline points="2.0,10.0 16.7,17.0 31.3,3.0 46.0,31.0 60.7,14.7 75.3,26.3 90.0,21.7" fill="none"/><circle cx="90.0" cy="21.7" r="2.75" fill="var(--cascade-3)" stroke="none"/></svg><span class="d">3 of 186 · 2 haemolysed</span></a>
+</div>
+</div>
+
+<div class="g12">
+<section class="card" style="grid-column: span 8">
+<div class="card__h"><h2>Received and released, per hour</h2><span class="sp"></span><div class="legend"><span><i style="background: var(--cascade-3)"></i>Received</span><span><i style="background: var(--navy-900); height: 3px; vertical-align: 3px"></i>Released</span></div></div>
+<div class="card__b" style="padding-top: 0"><svg class="chart" viewBox="0 0 712 200" role="img" aria-label="Received and released per hour today. Received peaked at 42 at 09:00; released peaked at 40 at 10:00. The lab has caught up since 10:00.">
+<line class="gl" x1="40" x2="700" y1="170.0" y2="170.0"/><text x="32" y="173.0" text-anchor="end">0</text>
+<line class="gl" x1="40" x2="700" y1="138.8" y2="138.8"/><text x="32" y="141.8" text-anchor="end">10</text>
+<line class="gl" x1="40" x2="700" y1="107.6" y2="107.6"/><text x="32" y="110.6" text-anchor="end">20</text>
+<line class="gl" x1="40" x2="700" y1="76.4" y2="76.4"/><text x="32" y="79.4" text-anchor="end">30</text>
+<line class="gl" x1="40" x2="700" y1="45.2" y2="45.2"/><text x="32" y="48.2" text-anchor="end">40</text>
+<line class="gl" x1="40" x2="700" y1="14.0" y2="14.0"/><text x="32" y="17.0" text-anchor="end">50</text>
+<rect class="bar" x="52.5" y="126.3" width="30" height="43.7" rx="4" opacity="1"/>
+<text x="67.5" y="188" text-anchor="middle">07</text>
+<rect class="bar" x="107.5" y="73.3" width="30" height="96.7" rx="4" opacity="1"/>
+<text x="122.5" y="188" text-anchor="middle">08</text>
+<rect class="bar" x="162.5" y="39.0" width="30" height="131.0" rx="4" opacity="1"/>
+<text x="177.5" y="188" text-anchor="middle">09</text>
+<rect class="bar" x="217.5" y="51.4" width="30" height="118.6" rx="4" opacity="1"/>
+<text x="232.5" y="188" text-anchor="middle">10</text>
+<rect class="bar" x="272.5" y="63.9" width="30" height="106.1" rx="4" opacity="1"/>
+<text x="287.5" y="188" text-anchor="middle">11</text>
+<rect class="bar" x="327.5" y="85.8" width="30" height="84.2" rx="4" opacity="0.55"/>
+<text x="342.5" y="188" text-anchor="middle">12</text>
+<text x="397.5" y="188" text-anchor="middle">13</text>
+<text x="452.5" y="188" text-anchor="middle">14</text>
+<text x="507.5" y="188" text-anchor="middle">15</text>
+<text x="562.5" y="188" text-anchor="middle">16</text>
+<text x="617.5" y="188" text-anchor="middle">17</text>
+<text x="672.5" y="188" text-anchor="middle">18</text>
+<polyline points="67.5,160.6 122.5,113.8 177.5,67.0 232.5,45.2 287.5,51.4 342.5,76.4" fill="none" stroke="var(--navy-900)" stroke-width="2"/>
+<circle cx="67.5" cy="160.6" r="4" fill="var(--navy-900)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="122.5" cy="113.8" r="4" fill="var(--navy-900)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="177.5" cy="67.0" r="4" fill="var(--navy-900)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="232.5" cy="45.2" r="4" fill="var(--navy-900)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="287.5" cy="51.4" r="4" fill="var(--navy-900)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="342.5" cy="76.4" r="4" fill="var(--navy-900)" stroke="var(--surface)" stroke-width="2"/>
+<line x1="326.9" x2="326.9" y1="14" y2="170" stroke="var(--accent-pressed)" stroke-width="2" stroke-dasharray="4 3"/><text x="332.9" y="24" style="fill: var(--accent-text); font-weight: 600">now 12:13</text>
+<text x="177.5" y="31.0" text-anchor="middle" style="fill: var(--ink); font-weight: 600">42</text>
+</svg><span class="small">Released has matched received since 10:00, so the queue is no longer growing. The 12:00 bar is the hour so far.</span></div>
+</section>
+<section class="card" style="grid-column: span 4">
+<div class="card__h"><h2>How long results took today</h2></div>
+<div class="card__b" style="padding-top: 0"><svg class="chart" viewBox="0 0 430 186" role="img" aria-label="Turnaround of the 162 results released today, in minutes. Most fell between 30 and 90 minutes; median 52; 8 took over two hours.">
+<line class="gl" x1="30" x2="420" y1="150.0" y2="150.0"/><text x="24" y="153.0" text-anchor="end">0</text>
+<line class="gl" x1="30" x2="420" y1="89.6" y2="89.6"/><text x="24" y="92.6" text-anchor="end">20</text>
+<line class="gl" x1="30" x2="420" y1="29.1" y2="29.1"/><text x="24" y="32.1" text-anchor="end">40</text>
+<rect class="bar" x="32.0" y="125.8" width="44.8" height="24.2" rx="4"/><text x="54.4" y="164" text-anchor="middle"><15</text><text x="54.4" y="120.8" text-anchor="middle" style="fill: var(--ink-2)">8</text>
+<rect class="bar" x="80.8" y="83.5" width="44.8" height="66.5" rx="4"/><text x="103.1" y="164" text-anchor="middle">15–30</text><text x="103.1" y="78.5" text-anchor="middle" style="fill: var(--ink-2)">22</text>
+<rect class="bar" x="129.5" y="56.3" width="44.8" height="93.7" rx="4"/><text x="151.9" y="164" text-anchor="middle">30–45</text><text x="151.9" y="51.3" text-anchor="middle" style="fill: var(--ink-2)">31</text>
+<rect class="bar" x="178.2" y="35.2" width="44.8" height="114.8" rx="4"/><text x="200.6" y="164" text-anchor="middle">45–60</text><text x="200.6" y="30.2" text-anchor="middle" style="fill: var(--ink-2)">38</text>
+<rect class="bar" x="227.0" y="26.1" width="44.8" height="123.9" rx="4"/><text x="249.4" y="164" text-anchor="middle">60–90</text><text x="249.4" y="21.1" text-anchor="middle" style="fill: var(--ink-2)">41</text>
+<rect class="bar" x="275.8" y="107.7" width="44.8" height="42.3" rx="4"/><text x="298.1" y="164" text-anchor="middle">90–120</text><text x="298.1" y="102.7" text-anchor="middle" style="fill: var(--ink-2)">14</text>
+<rect class="bar" x="324.5" y="131.9" width="44.8" height="18.1" rx="4"/><text x="346.9" y="164" text-anchor="middle">120–180</text><text x="346.9" y="126.9" text-anchor="middle" style="fill: var(--ink-2)">6</text>
+<rect class="bar" x="373.2" y="144.0" width="44.8" height="6.0" rx="4"/><text x="395.6" y="164" text-anchor="middle">>180</text><text x="395.6" y="139.0" text-anchor="middle" style="fill: var(--ink-2)">2</text>
+<line x1="199.0" x2="199.0" y1="14" y2="150" stroke="var(--accent-pressed)" stroke-width="2" stroke-dasharray="4 3"/><text x="204.0" y="22" style="fill: var(--accent-text); font-weight: 600">median 52</text>
+<text x="225.0" y="182" text-anchor="middle">minutes from receipt to release</text></svg><span class="small">162 results. Each test is judged against its own stated time; 14 were past it.</span></div>
+</section>
+</div>
+
+<div class="g12">
+<section class="card" style="grid-column: span 8">
+<div class="card__h"><h2>Sections today</h2><span class="sp"></span><span class="small">Bar: median turnaround · mark: the section's stated time · scale 0 to 2 h</span></div>
+<table class="sc">
+<thead><tr><th>Section</th><th class="n">In the lab</th><th class="n">Released</th><th class="n">Late now</th><th>Turnaround</th><th class="n">Rejected</th><th>QC</th></tr></thead>
+<tbody>
+<tr><td><b>Haematology</b></td><td class="n">9</td><td class="n">71</td><td class="n">1</td><td><div class="bulw"><span class="bul"><i style="width: 34%"></i><em style="left: 50%"></em></span><span>41 / 60 min</span></div></td><td class="n">1</td><td><span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Passed</span></td></tr>
+<tr><td><b>Chemistry</b></td><td class="n">10</td><td class="n">48</td><td class="n" style="color: var(--caution-fg); font-weight: 600">4</td><td><div class="bulw"><span class="bul"><i class="w" style="width: 80%"></i><em style="left: 75%"></em></span><span>96 / 90 min</span></div></td><td class="n">2</td><td><span class="pill" style="background: var(--caution-fg); color: #fff">Creatinine held</span></td></tr>
+<tr><td><b>Parasitology</b></td><td class="n">3</td><td class="n">30</td><td class="n">0</td><td><div class="bulw"><span class="bul"><i style="width: 23%"></i><em style="left: 38%"></em></span><span>28 / 45 min</span></div></td><td class="n">0</td><td><span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kit QC passed</span></td></tr>
+<tr><td><b>Serology</b></td><td class="n">2</td><td class="n">13</td><td class="n">0</td><td><div class="bulw"><span class="bul"><i style="width: 18%"></i><em style="left: 38%"></em></span><span>22 / 45 min</span></div></td><td class="n">0</td><td><span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Passed</span></td></tr>
+<tr><td class="small">All sections</td><td class="n"><b>24</b></td><td class="n"><b>162</b></td><td class="n"><b>5</b></td><td class="small">median 52 min</td><td class="n"><b>3</b></td><td class="small">1 analyser down</td></tr>
+</tbody>
+</table>
+</section>
+<section class="card" style="grid-column: span 4">
+<div class="card__h"><h2>Needs you</h2><span class="pill pill--warn">7</span><span class="sp"></span><a class="btn btn--t btn--s" href="NeedsYou.dc.html">See all</a></div>
+<div class="ib" style="padding-top: 0">
+<div><span class="ic ic--crit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><span><b>Critical not acknowledged</b><br><span class="s">Potassium 6.9 · Patient Nine-9</span></span><span class="t">12 min</span><span></span></div>
+<div><span class="ic ic--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span><span><b>2 delta decisions</b><br><span class="s">MCV · creatinine</span></span><span class="t">8 min</span><span></span></div>
+<div><span class="ic ic--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg></span><span><b>4 results held by QC</b><br><span class="s">Creatinine on BS-240</span></span><span class="t">1 h 08</span><span></span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><span><b>2 referrals overdue</b><br><span class="s">CPHL · private lab</span></span><span class="t">10 days</span><span></span></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

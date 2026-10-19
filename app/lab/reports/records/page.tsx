@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { fill, LAB3_REPORTS } from "@/content/lab-phase-3";
+import { LABWS2_REPORTS } from "@/content/lab-workspace-v2-reports";
 import { db } from "@/db";
 import { testCatalogue } from "@/db/schema";
 import { asClinicalReader } from "@/lib/emr/db";
@@ -17,7 +18,9 @@ import { DRILL, drillRows, filtered, reportRows, statedTargets } from "@/lib/lab
 import { formatDuration, releasedTurnaround } from "@/lib/lab/turnaround";
 import { reportParams } from "../_lib/params";
 import { RecordList } from "../../_components/record-list";
+import { ViewHeader } from "../../_components/v2/view-header";
 import { dateWords, timeWords } from "../../_lib/days";
+import { labV2 } from "../../_lib/places";
 import { requireQualityScope } from "../../quality/_lib/scope";
 
 export const metadata: Metadata = { title: "Records counted · Lab reports · Laboratory · MedSync" };
@@ -38,6 +41,7 @@ export default async function LabReportRecordsPage({
   searchParams: Promise<ReportParams>;
 }) {
   const { scope } = await requireQualityScope(labReportsLiveFor);
+  const v2 = (await labV2()).live;
   const sp = await searchParams;
   const tile = sp.tile as DrillId | undefined;
   if (!tile || !(tile in DRILL)) notFound();
@@ -81,24 +85,37 @@ export default async function LabReportRecordsPage({
     breakdown: (r) => `${r.label} · down ${at(r.at)} · back ${at(r.doneAt)}`,
   };
 
+  const back = (
+    <Link href={`/lab/reports?${p.query()}`} className={link}>
+      {v2 ? fill(LABWS2_REPORTS.records.back, { place: LABWS2_REPORTS.tabsLabel }) : R.title}
+    </Link>
+  );
+  const subline = tile === "tat" ? R.turnaround : R.tiles[tile];
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6">
-      <PageHeader
-        place={`${scope.hospitalName} · ${LAB.place}`}
-        placeInTopBar
-        title={R.records}
-        subline={tile === "tat" ? R.turnaround : R.tiles[tile]}
-        right={
-          <Link href={`/lab/reports?${p.query()}`} className={link}>
-            {R.title}
-          </Link>
-        }
-      />
+    <div
+      className={
+        v2
+          ? "flex flex-col gap-4"
+          : "mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6"
+      }
+    >
+      {/* Lab Workspace v2: the shell's top bar holds the h1, so the view's title is an h2. */}
+      {v2 ? (
+        <ViewHeader title={R.records} subline={subline} right={back} />
+      ) : (
+        <PageHeader
+          place={`${scope.hospitalName} · ${LAB.place}`}
+          placeInTopBar
+          title={R.records}
+          subline={subline}
+          right={back}
+        />
+      )}
       <RecordList
         caption={R.records}
         rows={visible}
         rowKey={(r) => r.ref}
-        empty="None."
+        empty={LABWS2_REPORTS.hmis.none}
         columns={[
           {
             id: "patient",

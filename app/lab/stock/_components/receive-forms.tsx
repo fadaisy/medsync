@@ -8,11 +8,15 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
+import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import { acceptanceOutcome, evaluateLotComparison } from "@/lib/lab/acceptance";
 import { acceptLotAction, receiveDeliveryAction, rejectLotAction } from "@/lib/lab/stock-actions";
 import { cn } from "@/lib/utils";
 import { RECEIVE as C, STOCK } from "../_lib/copy";
 import { inputClass, newKey, num, selectClass } from "../../_components/pop";
+import { LabButton } from "../../_components/v2/button";
+import { DateField, DateTimeField } from "../../_components/v2/fields";
+import { ActButton } from "../../quality/_components/act-button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 /* ─── The delivery (§5.6) ──────────────────────────────────────────── */
@@ -101,14 +105,7 @@ export function DeliveryForm({ items }: { items: readonly { id: string; name: st
             className={cn(inputClass, "font-mono")}
           />
         </Field>
-        <Field label={C.receivedAt}>
-          <Input
-            type="datetime-local"
-            value={at}
-            onChange={(e) => setAt(e.target.value)}
-            className={cn(inputClass, "font-mono")}
-          />
-        </Field>
+        <DateTimeField label={C.receivedAt} value={at} onChange={setAt} className="sm:col-span-2" />
       </div>
       <div className="overflow-x-auto">
         <table className="text-body-s w-full border-collapse text-left">
@@ -156,16 +153,16 @@ export function DeliveryForm({ items }: { items: readonly { id: string; name: st
                     min={1}
                     value={l.received}
                     onChange={(e) => patch(i, { received: e.target.value })}
-                    className={cn(inputClass, "w-20 font-mono tabular-nums")}
+                    className={cn(inputClass, "w-20 tabular-nums")}
                   />
                 </td>
                 <td className="py-2 pr-3">
-                  <Input
-                    aria-label={`${C.columns[3]} ${i + 1}`}
-                    type="date"
+                  <DateField
+                    label={`${C.columns[3]} ${i + 1}`}
+                    hideLabel
                     value={l.useBy}
-                    onChange={(e) => patch(i, { useBy: e.target.value })}
-                    className={cn(inputClass, "font-mono")}
+                    onChange={(v) => patch(i, { useBy: v })}
+                    allowFuture
                   />
                 </td>
                 <td className="py-2 pr-3">
@@ -194,7 +191,7 @@ export function DeliveryForm({ items }: { items: readonly { id: string; name: st
                         min={0}
                         value={l.rejected}
                         onChange={(e) => patch(i, { rejected: e.target.value })}
-                        className={cn(inputClass, "w-20 font-mono tabular-nums")}
+                        className={cn(inputClass, "w-20 tabular-nums")}
                       />
                     </Field>
                     <Field label={C.arrivalNote}>
@@ -229,9 +226,9 @@ export function DeliveryForm({ items }: { items: readonly { id: string; name: st
         <Button type="button" variant="ghost" onClick={() => setLines((ls) => [...ls, blank])}>
           {C.addLine}
         </Button>
-        <Button type="button" onClick={save} disabled={pending}>
+        <ActButton variant="primary" type="button" onClick={save} busy={pending}>
           {C.save}
-        </Button>
+        </ActButton>
         <Said message={message} />
       </div>
     </section>
@@ -244,10 +241,13 @@ export function AcceptCard({
   item,
   lot,
   evidence,
+  focused = false,
 }: {
   item: { name: string; plan: Payload<"acceptance_plan"> | null };
   lot: { id: string; lot: string };
   evidence: { id: string; label: string }[];
+  /** Opened from Needs you (`?lot=`): scrolled to and announced. */
+  focused?: boolean;
 }) {
   const { pending, message, act } = useAct();
   const A = C.accept;
@@ -279,9 +279,20 @@ export function AcceptCard({
       certificateAccepted: !!certificate.trim(),
     }).kind === "accepted";
   return (
-    <article className="border-border bg-card grid gap-4 rounded-lg border p-4 lg:grid-cols-[1fr_18rem]">
+    <article
+      id={`lot-${lot.id}`}
+      tabIndex={focused ? -1 : undefined}
+      aria-current={focused ? "true" : undefined}
+      className={cn(
+        "border-border bg-card grid scroll-mt-24 gap-4 rounded-lg border p-4 lg:grid-cols-[1fr_18rem]",
+        focused && "shadow-focus",
+      )}
+    >
       <div className="flex flex-col gap-3">
         <h3 className="text-heading-s">{A.title(lot.lot, item.name)}</h3>
+        {focused ? (
+          <p className="text-caption text-muted-foreground">{LABWS2_QUALITY.stock.focus}</p>
+        ) : null}
         {!plan ? (
           <StatusWord tone="caution" className="w-fit">
             {fill(LAB3.noAcceptancePlan, { Item: item.name })}
@@ -329,7 +340,7 @@ export function AcceptCard({
                           inputMode="decimal"
                           value={r.current}
                           onChange={set("current")}
-                          className={cn(inputClass, "w-24 font-mono tabular-nums")}
+                          className={cn(inputClass, "w-24 tabular-nums")}
                         />
                       </td>
                       <td className="py-2 pr-3">
@@ -338,10 +349,10 @@ export function AcceptCard({
                           inputMode="decimal"
                           value={r.candidate}
                           onChange={set("candidate")}
-                          className={cn(inputClass, "w-24 font-mono tabular-nums")}
+                          className={cn(inputClass, "w-24 tabular-nums")}
                         />
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono tabular-nums">
+                      <td className="py-2 pr-3 text-right tabular-nums">
                         {v ? Math.round(v.difference * 1000) / 1000 : ""}
                       </td>
                       <td className="py-2">
@@ -410,17 +421,19 @@ export function AcceptCard({
           />
         </Field>
         <div className="flex flex-wrap items-center gap-3">
-          <Button
+          <LabButton
             type="button"
-            variant="secondary"
-            disabled={pending || reason.trim().length < 3}
+            busy={pending}
+            disabledReason={reason.trim().length < 3 ? LABWS2_QUALITY.sweep.rejectReason : null}
             onClick={() => act(() => rejectLotAction({ lotId: lot.id, reason, pairs }), A.rejected)}
           >
             {A.reject}
-          </Button>
-          <Button
+          </LabButton>
+          <ActButton
             type="button"
-            disabled={pending || !met}
+            variant="primary"
+            busy={pending}
+            disabledReason={met ? null : LABWS2_QUALITY.sweep.acceptUnmet}
             onClick={() =>
               act(
                 () =>
@@ -435,7 +448,7 @@ export function AcceptCard({
             }
           >
             {A.accept}
-          </Button>
+          </ActButton>
           <Said message={message} />
         </div>
       </div>

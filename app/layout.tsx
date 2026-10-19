@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Figtree, Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
 import { EmergencyPill } from "@/components/emergency/emergency-pill";
@@ -30,6 +30,15 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-medsync-mono",
   display: "swap",
+});
+
+/** Figtree: the lab workspace's text face (ADR 0344, Tide at desk density). Not preloaded: the face is fetched
+ *  only where text uses it, which is inside `/lab` (the `lab-tide` scope in globals.css). */
+const fontLab = Figtree({
+  subsets: ["latin"],
+  variable: "--font-medsync-lab",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -100,7 +109,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable} ${fontLab.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">

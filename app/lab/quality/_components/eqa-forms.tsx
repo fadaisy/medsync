@@ -1,10 +1,12 @@
 "use client";
 
+import type { PickOption } from "../../_components/v2/fields";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
+import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import {
   recordAltAssessmentAction,
   recordEqaResultsAction,
@@ -15,7 +17,9 @@ import {
 } from "@/lib/lab/eqa-actions";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, num, Pop, selectClass } from "../../_components/pop";
+import { DateField, PickField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
+import { ActButton } from "./act-button";
 import { QcChip } from "./qc-chip";
 
 const E = QUALITY.eqa;
@@ -100,9 +104,9 @@ export function SchemeDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {E.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -168,7 +172,13 @@ export function SchemeDialog({
 
 /* ─── EA-2: a panel received ───────────────────────────────────────────── */
 
-export function RoundDialog({ schemes }: { schemes: { id: string; name: string }[] }) {
+export function RoundDialog({
+  schemes,
+  analytes,
+}: {
+  schemes: { id: string; name: string }[];
+  analytes: readonly PickOption[];
+}) {
   const { pending, message, act } = useAct();
   const [open, setOpen] = useState(false);
   const [f, setF] = useState({
@@ -198,9 +208,9 @@ export function RoundDialog({ schemes }: { schemes: { id: string; name: string }
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {E.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-4">
@@ -224,42 +234,46 @@ export function RoundDialog({ schemes }: { schemes: { id: string; name: string }
               className={inputClass}
             />
           </Field>
-          <Field label={E.receivedOn}>
-            <Input
-              type="date"
-              value={f.receivedOn}
-              onChange={(e) => setF({ ...f, receivedOn: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
-          <Field label={E.dueOn}>
-            <Input
-              type="date"
-              value={f.dueOn}
-              onChange={(e) => setF({ ...f, dueOn: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
+          <DateField
+            label={E.receivedOn}
+            value={f.receivedOn}
+            onChange={(v) => setF({ ...f, receivedOn: v })}
+          />
+          <DateField
+            label={E.dueOn}
+            value={f.dueOn}
+            onChange={(v) => setF({ ...f, dueOn: v })}
+            allowFuture
+          />
         </div>
         <fieldset className="flex flex-col gap-2">
           <legend className="text-body-s text-muted-foreground mb-1">{E.samples}</legend>
           {rows.map((x, i) => (
             <div key={i} className="grid gap-3 sm:grid-cols-3">
-              {(["sampleId", "conceptId", "kit"] as const).map((k) => (
-                <Field
-                  key={k}
-                  label={k === "sampleId" ? E.sampleId : k === "conceptId" ? E.analyte : E.kit}
-                >
-                  <Input
-                    value={x[k]}
-                    placeholder={k === "conceptId" ? "obs.potassium" : undefined}
-                    onChange={(e) =>
-                      setRows(rows.map((y, j) => (j === i ? { ...y, [k]: e.target.value } : y)))
+              {(["sampleId", "conceptId", "kit"] as const).map((k) =>
+                k === "conceptId" ? (
+                  <PickField
+                    key={k}
+                    label={LABWS2_QUALITY.sweep.analyte}
+                    options={analytes}
+                    value={x.conceptId}
+                    forceList
+                    onChange={(v) =>
+                      setRows(rows.map((y, j) => (j === i ? { ...y, conceptId: v } : y)))
                     }
-                    className={k === "conceptId" ? `${inputClass} font-mono` : inputClass}
                   />
-                </Field>
-              ))}
+                ) : (
+                  <Field key={k} label={k === "sampleId" ? E.sampleId : E.kit}>
+                    <Input
+                      value={x[k]}
+                      onChange={(e) =>
+                        setRows(rows.map((y, j) => (j === i ? { ...y, [k]: e.target.value } : y)))
+                      }
+                      className={inputClass}
+                    />
+                  </Field>
+                ),
+              )}
             </div>
           ))}
           <Button
@@ -319,9 +333,9 @@ export function ResultsDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {E.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-3 sm:grid-cols-3">
@@ -356,14 +370,7 @@ export function ResultsDialog({
             </label>
           ))}
         </fieldset>
-        <Field label={E.submittedOn}>
-          <Input
-            type="date"
-            value={submittedOn}
-            onChange={(e) => setSubmittedOn(e.target.value)}
-            className={`${inputClass} max-w-48`}
-          />
-        </Field>
+        <DateField label={E.submittedOn} value={submittedOn} onChange={setSubmittedOn} />
       </Pop>
       <Said message={message} />
       {warned.length ? <QcChip tone="amber">{E.testerWarning(warned.join(", "))}</QcChip> : null}
@@ -416,9 +423,9 @@ export function ScoresDialog({ round }: { round: RoundView }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {E.save}
-          </Button>
+          </ActButton>
         }
       >
         {round.samples.map((x) => (
@@ -482,14 +489,11 @@ export function ScoresDialog({ round }: { round: RoundView }) {
           </fieldset>
         ))}
         <div className="grid gap-4 sm:grid-cols-[12rem_1fr]">
-          <Field label={E.scoredOn}>
-            <Input
-              type="date"
-              value={f.scoredOn}
-              onChange={(e) => setF({ ...f, scoredOn: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
+          <DateField
+            label={E.scoredOn}
+            value={f.scoredOn}
+            onChange={(v) => setF({ ...f, scoredOn: v })}
+          />
           <Field label={E.reportPath}>
             <Input
               value={f.reportPath}
@@ -636,9 +640,9 @@ export function AltDialog({ tests }: { tests: Test[] }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {E.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-4">
@@ -668,22 +672,24 @@ export function AltDialog({ tests }: { tests: Test[] }) {
               ))}
             </select>
           </Field>
-          <Field label={E.partner}>
-            <Input
-              value={f.partner}
-              disabled={f.method === "retained_samples"}
-              onChange={(e) => setF({ ...f, partner: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
-          <Field label={E.doneOn}>
-            <Input
-              type="date"
-              value={f.doneOn}
-              onChange={(e) => setF({ ...f, doneOn: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
+          {f.method === "retained_samples" ? (
+            <p className="text-body-s text-muted-foreground self-end">
+              {LABWS2_QUALITY.sweep.partnerRetained}
+            </p>
+          ) : (
+            <Field label={E.partner}>
+              <Input
+                value={f.partner}
+                onChange={(e) => setF({ ...f, partner: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+          )}
+          <DateField
+            label={E.doneOn}
+            value={f.doneOn}
+            onChange={(v) => setF({ ...f, doneOn: v })}
+          />
         </div>
         <Field label={E.altResults}>
           <textarea
@@ -735,9 +741,9 @@ export function EqaSettingsDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {E.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">

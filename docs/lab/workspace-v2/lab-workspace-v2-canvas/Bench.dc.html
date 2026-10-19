@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bench</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 980px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Bench</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Stage"><a href="#">To receive <span class="n">4</span></a><a class="on" href="#" aria-current="page">To result <span class="n">12</span></a><a href="#">Preliminary <span class="n">8</span></a><a href="#">Released today <span class="n">162</span></a><a href="#">Rejected <span class="n">3</span></a></nav>
+<span class="row__sp"></span>
+<div class="chips"><a class="chip on" href="#">All <span class="n">12</span></a><a class="chip" href="#">Haematology <span class="n">5</span></a><a class="chip" href="#">Chemistry <span class="n">4</span></a><a class="chip" href="#">Parasitology <span class="n">2</span></a><a class="chip" href="#">Serology <span class="n">1</span></a></div>
+<a class="btn btn--s" href="#">Downtime entry</a>
+</div>
+
+<div class="cols" style="grid-template-columns: 320px minmax(0, 1fr) 300px">
+<section class="card">
+<div class="card__h"><h2>12 to result</h2><span class="sp"></span><span class="small">Urgent and late first</span></div>
+<div class="q">
+<a class="on" href="#"><span><span class="q__who">Patient Three-3</span> <span class="q__id">MS-2026-00004</span></span><span class="q__t">0 h 28</span><span class="q__what">Full blood count · Ward 4A <span class="pill pill--warn">Delta check</span></span></a>
+<a href="#"><span><span class="q__who">Patient Nine-9</span> <span class="q__id">MS-2026-00009</span></span><span class="q__t q__t--late">Late 25 min</span><span class="q__what">Urea and electrolytes · Emergency <span class="pill pill--line">Immediate</span></span></a>
+<a href="#"><span><span class="q__who">Patient Twelve-12</span> <span class="q__id">MS-2026-00034</span></span><span class="q__t">0 h 40</span><span class="q__what">Creatinine · OPD <span class="pill pill--warn">QC hold</span></span></a>
+<a href="#"><span><span class="q__who">Patient Fifteen-15</span> <span class="q__id">MS-2026-00041</span></span><span class="q__t">0 h 22</span><span class="q__what">Malaria RDT · Paediatrics</span></a>
+<a href="#"><span><span class="q__who">Patient Eight-8</span> <span class="q__id">MS-2026-00015</span></span><span class="q__t">0 h 19</span><span class="q__what">Full blood count · Maternity</span></a>
+<a href="#"><span><span class="q__who">Patient Sixteen-16</span> <span class="q__id">MS-2026-00043</span></span><span class="q__t">0 h 12</span><span class="q__what">ESR · OPD</span></a>
+<a href="#"><span><span class="q__who">Patient Seven-7</span> <span class="q__id">MS-2026-00007</span></span><span class="q__t">0 h 09</span><span class="q__what">Restricted test · OPD <span class="pill pill--lock">Restricted</span></span></a>
+</div>
+</section>
+
+<section class="card">
+<div class="band">
+<span class="band__name">Patient Three-3</span>
+<span class="kv"><span>Hospital no.</span><b>MS-2026-00004</b></span>
+<span class="kv"><span>Age, sex</span><b>67 y · M</b></span>
+<span class="kv"><span>Lab no.</span><b>L-000702</b></span>
+<span class="kv"><span>Ward</span><b>4A · bed 12</b></span>
+<span class="kv"><span>Received</span><b>08:31</b></span>
+</div>
+<p class="ask"><b>Clinical question:</b> anaemia, on treatment? · <a href="#" style="color: var(--accent-text)">Show working diagnosis</a> (logged)</p>
+<table class="rg">
+<thead><tr><th>Component</th><th>Value</th><th>Unit</th><th>Range</th><th>Flag</th><th>Last time</th></tr></thead>
+<tbody>
+<tr><td class="k"><label for="b-wbc">White cell count</label></td><td><input id="b-wbc" class="val" value="6.4"></td><td><span class="unit">×10⁹/L<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></td><td class="r">4.0 – 11.0</td><td><span class="flag">In range</span></td><td class="r">6.1</td></tr>
+<tr><td class="k"><label for="b-hb">Haemoglobin</label></td><td><input id="b-hb" class="val val--out" value="8.4"></td><td><span class="unit">g/dL<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></td><td class="r">13.0 – 17.0</td><td><span class="flag flag--out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>Low</span></td><td class="r">13.9</td></tr>
+<tr class="attn"><td class="k"><label for="b-mcv">Mean cell volume</label></td><td><input id="b-mcv" class="val val--out" value="71"></td><td><span class="unit">fL<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></td><td class="r">80 – 100</td><td><span class="flag flag--out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>Low</span></td><td><span class="pill pill--warn">92 · delta</span></td></tr>
+<tr><td class="k"><label for="b-plt">Platelets</label></td><td><input id="b-plt" class="val" value="204"></td><td><span class="unit">×10⁹/L<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></td><td class="r">150 – 400</td><td><span class="flag">In range</span></td><td class="r">198</td></tr>
+</tbody>
+</table>
+<div class="card__f"><span class="small">Release waits for the delta decision on the right.</span><span class="sp"></span><button class="btn">Reject specimen</button><button class="btn">Save preliminary</button><button class="btn btn--p" disabled aria-disabled="true">Release</button></div>
+</section>
+
+<aside class="stack">
+<section class="card">
+<div class="card__h"><h2>Before release</h2><span class="sp"></span><span class="small">3 of 4</span></div>
+<div class="ck">
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>Units and entry checks</b><span class="s">All values read cleanly</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>QC passed today</b><span class="s">DH-615 · 07:55</span></div>
+<div class="attn"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/></svg></span><b>Delta check: MCV</b><span class="s">92 → 71 fL in 2 days. May be another patient's sample. Check this tube and the last one.</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>No critical value</b><span class="s">Against the signed limits</span></div>
+</div>
+<div class="card__b" style="padding-top: 6px">
+<label class="kv" for="dd"><span>Decision on the delta</span></label>
+<select id="dd" class="val" style="width: 100%; text-align: left; font: 500 13px var(--sans)"><option>Choose a decision</option><option>Recollect</option><option>Confirmed same patient</option><option>Transfusion or dialysis</option></select>
+<button class="btn btn--s" style="align-self: flex-start">Ask the ward</button>
+</div>
+</section>
+<section class="card">
+<div class="card__h"><h2>Haemoglobin, last 30 days</h2></div>
+<div class="card__b" style="padding-top: 0">
+<svg class="chart" viewBox="0 0 268 96" role="img" aria-label="Haemoglobin 14.2 on 21 Sep, 13.9 on 17 Oct, 8.4 today">
+<line class="gl" x1="24" x2="262" y1="18" y2="18"/><line class="gl" x1="24" x2="262" y1="52" y2="52"/><line class="gl" x1="24" x2="262" y1="86" y2="86"/>
+<text x="18" y="21" text-anchor="end">15</text><text x="18" y="55" text-anchor="end">11</text><text x="18" y="89" text-anchor="end">7</text>
+<polyline points="34,24 236,27 256,74" fill="none" stroke="var(--cascade-3)" stroke-width="2"/>
+<circle cx="34" cy="24" r="4" fill="var(--cascade-3)" stroke="var(--surface)" stroke-width="2"/><circle cx="236" cy="27" r="4" fill="var(--cascade-3)" stroke="var(--surface)" stroke-width="2"/><circle cx="256" cy="74" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>
+</svg>
+<div class="small">21 Sep 14.2 · 17 Oct 13.9 · today 8.4 g/dL</div>
+</div>
+</section>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -10,7 +10,9 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_COPY, CRITICALS_UI } from "@/content/lab-criticals";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 import { unitWords } from "@/lib/emr/unit-words";
+import { LabButton } from "../../../_components/v2/button";
 
 const P = CRITICALS_UI.panel;
 const REASONS = Object.entries(CRITICALS_COPY.couldNotCheck) as [CouldNotCheckReason, string][];
@@ -311,15 +313,21 @@ export function MarkPanel({
         {error ? <StatusWord tone="caution">{error}</StatusWord> : null}
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" onClick={onRelease} disabled={pending || problems.length > 0}>
+        <LabButton
+          type="button"
+          onClick={onRelease}
+          variant="primary"
+          busy={pending}
+          disabledReason={problems.length > 0 ? LABWS2.reasons.problemsAbove : null}
+        >
           {pending ? "Releasing…" : P.release}
-        </Button>
-        <Button type="button" variant="secondary" onClick={onEdit} disabled={pending}>
+        </LabButton>
+        <LabButton type="button" variant="secondary" onClick={onEdit} busy={pending}>
           {P.editResults}
-        </Button>
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={pending}>
+        </LabButton>
+        <LabButton type="button" variant="quiet" onClick={onCancel} busy={pending}>
           {P.cancel}
-        </Button>
+        </LabButton>
       </div>
     </section>
   );

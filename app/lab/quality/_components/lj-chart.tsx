@@ -151,7 +151,7 @@ export function LjChart({
           ) : null}
         </svg>
       )}
-      <p aria-live="polite" className="text-body-s min-h-5 font-mono tabular-nums">
+      <p aria-live="polite" className="text-body-s min-h-5 tabular-nums">
         {shown ? label(shown) : null}
       </p>
       <figcaption className="text-caption text-muted-foreground">{R.caption}</figcaption>
@@ -175,8 +175,8 @@ export function LjChart({
               {points.map((p) => (
                 <tr key={p.id} className="border-b">
                   <td className="py-1.5 pr-3">{p.at}</td>
-                  <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{fmt(p.value)}</td>
-                  <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{sdWords(p.z)}</td>
+                  <td className="py-1.5 pr-3 text-right tabular-nums">{fmt(p.value)}</td>
+                  <td className="py-1.5 pr-3 text-right tabular-nums">{sdWords(p.z)}</td>
                   <td className="py-1.5 pr-3">{p.rules.join(" · ") || R.noneBroken}</td>
                   <td className="py-1.5 pr-3">{p.by}</td>
                   <td className="py-1.5 pr-3 font-mono">{p.lot}</td>

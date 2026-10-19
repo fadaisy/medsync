@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
 import { fillCatalogueFromResearchAction } from "@/lib/lab/measures-actions";
+import { LabButton } from "../../../_components/v2/button";
 
 /**
  * Fill every component that has no unit yet from the MedSync catalogue research: the standard UCUM unit, its
@@ -24,10 +24,11 @@ export function FillFromResearch() {
         checked against loinc.org and are active. Components you have already set are not changed.
         Check the result before using it, as you would your own entries.
       </p>
-      <Button
+      <LabButton
         type="button"
+        variant="primary"
         className="w-fit"
-        disabled={pending}
+        busy={pending}
         onClick={() =>
           start(async () => {
             const r = await fillCatalogueFromResearchAction();
@@ -47,7 +48,7 @@ export function FillFromResearch() {
         }
       >
         {pending ? "Filling…" : "Fill missing units and codes"}
-      </Button>
+      </LabButton>
       <p role="status" aria-live="polite" className="text-body-s min-h-5">
         {said}
       </p>

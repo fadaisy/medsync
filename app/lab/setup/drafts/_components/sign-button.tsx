@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 type Result = { ok: true } | { ok: false; error: string };
@@ -18,7 +18,7 @@ export function SignButton({
   okText,
   authoredByMe,
   noteLabel,
-  disabled = false,
+  disabledReason = null,
   describedBy,
   onSign,
 }: {
@@ -26,7 +26,8 @@ export function SignButton({
   okText: string;
   authoredByMe: boolean;
   noteLabel: string;
-  disabled?: boolean;
+  /** Why signing waits; present = the button is disabled and says why. */
+  disabledReason?: string | null;
   describedBy?: string;
   onSign: (exceptionNote: string | null) => Promise<Result>;
 }) {
@@ -44,7 +45,7 @@ export function SignButton({
     }, okText);
   return (
     <div className="flex flex-col gap-2">
-      {authoredByMe && !disabled ? (
+      {authoredByMe && !disabledReason ? (
         <label className="text-body-s flex flex-col gap-1">
           <span className="text-muted-foreground">{noteLabel}</span>
           <Input
@@ -66,15 +67,17 @@ export function SignButton({
         />
       ) : (
         <div>
-          <Button
+          <LabButton
             type="button"
             onClick={sign}
-            disabled={pending || disabled}
             aria-describedby={describedBy}
             className="min-h-11 sm:min-h-8"
+            variant="primary"
+            busy={pending}
+            disabledReason={disabledReason}
           >
             {label}
-          </Button>
+          </LabButton>
         </div>
       )}
       <Said message={message} />

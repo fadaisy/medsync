@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { LAB2 } from "@/content/lab-phase-2";
 import { db } from "@/db";
@@ -17,6 +16,7 @@ import {
 } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { loadBedsideRegister, loadLabSettingsPage } from "@/lib/lab/settings-read";
+import { SetupHeader } from "../_components/setup-header";
 import { AddDevice, DeviceActions, OperatorToggle } from "./_components/bedside-register";
 import {
   EgfrSwitch,
@@ -83,7 +83,7 @@ export default async function LabSettingsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader place={`${scope.hospitalName} · ${LAB.place}`} placeInTopBar title={C.title} />
+      <SetupHeader place={`${scope.hospitalName} · ${LAB.place}`} placeInTopBar title={C.title} />
 
       {labPaymentLiveFor(scope.hospitalId) ? (
         <Section id="payment-heading" title={C.payment.title}>

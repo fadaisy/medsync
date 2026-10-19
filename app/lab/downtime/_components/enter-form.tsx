@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
 import { unitWords } from "@/lib/emr/unit-words";
 import {
   enterDowntimeFormAction,
   findPatientAction,
   testComponentsAction,
 } from "@/lib/lab/downtime-actions";
+import { LabButton } from "../../_components/v2/button";
+import { DateTimeField } from "../../_components/v2/fields";
+import { PAPER_TIMES_START } from "../../bench/downtime/_lib/steps";
 
 const selectClass =
   "border-input bg-card text-body-s focus-visible:shadow-focus min-h-11 rounded-sm border px-2 outline-none sm:min-h-9";
@@ -44,14 +47,14 @@ export function EnterForm({
   const [requester, setRequester] = useState("");
   const [components, setComponents] = useState<FormComponent[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [collected, setCollected] = useState("");
-  const [resulted, setResulted] = useState("");
+  const [collected, setCollected] = useState<string>(PAPER_TIMES_START.collected);
+  const [resulted, setResulted] = useState<string>(PAPER_TIMES_START.resulted);
   const [releasedBy, setReleasedBy] = useState("");
   const [outsideReason, setOutsideReason] = useState("");
   const [critical, setCritical] = useState<Record<string, CheckKind | "">>({});
   const [repeatValues, setRepeatValues] = useState<Record<string, string>>({});
   const [callTo, setCallTo] = useState("");
-  const [callAt, setCallAt] = useState("");
+  const [callAt, setCallAt] = useState<string>(PAPER_TIMES_START.callAt);
   const [readBack, setReadBack] = useState(false);
   const [said, setSaid] = useState<{ ok: boolean; text: string } | null>(null);
   const keyRef = useRef(crypto.randomUUID());
@@ -171,6 +174,11 @@ export function EnterForm({
     });
 
   const anyCritical = Object.values(critical).some(Boolean);
+  const saveWhy = !formNumber
+    ? LABWS2_DOWNTIME.enter.whyForm
+    : !collected || !resulted
+      ? LABWS2_DOWNTIME.enter.timesMissing
+      : null;
   return (
     <section
       aria-labelledby="enter-form"
@@ -207,14 +215,14 @@ export function EnterForm({
               onChange={(e) => setMrn(e.target.value)}
               className="min-h-11 w-48 font-mono sm:min-h-9"
             />
-            <Button
+            <LabButton
               type="button"
-              variant="secondary"
               onClick={find}
-              disabled={pending || mrn.trim().length < 3}
+              busy={pending}
+              disabledReason={mrn.trim().length < 3 ? LABWS2_DOWNTIME.enter.findWhy : null}
             >
               Find
-            </Button>
+            </LabButton>
           </div>
         </div>
       </div>
@@ -285,26 +293,21 @@ export function EnterForm({
             </div>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="text-body-s flex flex-col gap-1">
-              <span className="text-muted-foreground">Collected, from the form</span>
-              <Input
-                type="datetime-local"
-                name="collected"
-                value={collected}
-                onChange={(e) => setCollected(e.target.value)}
-                className="min-h-11 sm:min-h-9"
-              />
-            </label>
-            <label className="text-body-s flex flex-col gap-1">
-              <span className="text-muted-foreground">Result time, from the form</span>
-              <Input
-                type="datetime-local"
-                name="resulted"
-                value={resulted}
-                onChange={(e) => setResulted(e.target.value)}
-                className="min-h-11 sm:min-h-9"
-              />
-            </label>
+            <DateTimeField
+              label="Collected, from the form"
+              name="collected"
+              value={collected}
+              onChange={setCollected}
+              quick={false}
+            />
+            <DateTimeField
+              label="Result time, from the form"
+              name="resulted"
+              value={resulted}
+              onChange={setResulted}
+              quick={false}
+              min={collected || undefined}
+            />
             <label className="text-body-s flex flex-col gap-1">
               <span className="text-muted-foreground">Released on paper by</span>
               <Input
@@ -335,7 +338,7 @@ export function EnterForm({
                           setValues((v) => ({ ...v, [c.conceptId]: e.target.value }))
                         }
                         inputMode="decimal"
-                        className="min-h-11 w-28 text-right font-mono tabular-nums sm:min-h-9"
+                        className="min-h-11 w-28 text-right tabular-nums sm:min-h-9"
                       />
                       <span className="text-body-s text-muted-foreground">
                         {unitWords(c.unit) ?? c.unit}
@@ -380,7 +383,7 @@ export function EnterForm({
                         onChange={(e) =>
                           setRepeatValues((x) => ({ ...x, [c.conceptId]: e.target.value }))
                         }
-                        className="min-h-11 w-24 font-mono tabular-nums sm:min-h-9"
+                        className="min-h-11 w-24 tabular-nums sm:min-h-9"
                       />
                     ) : null}
                   </span>
@@ -407,12 +410,11 @@ export function EnterForm({
                     </option>
                   ))}
                 </select>
-                <Input
-                  type="datetime-local"
-                  aria-label="Time of the call"
+                <DateTimeField
+                  label="Time of the call"
                   value={callAt}
-                  onChange={(e) => setCallAt(e.target.value)}
-                  className="min-h-11 sm:min-h-9"
+                  onChange={setCallAt}
+                  quick={false}
                 />
                 <label className="text-body-s flex min-h-11 items-center gap-2 sm:min-h-0">
                   <input
@@ -438,21 +440,19 @@ export function EnterForm({
             />
           </label>
           <div className="flex flex-wrap gap-3">
-            <Button
+            <LabButton
               type="button"
               onClick={() => save(false)}
-              disabled={pending || !formNumber || !collected || !resulted}
+              busy={pending}
+              disabledReason={saveWhy}
             >
               Save
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => save(true)}
-              disabled={pending || !formNumber || !collected || !resulted}
-            >
-              Save and next form
-            </Button>
+            </LabButton>
+            {saveWhy ? null : (
+              <LabButton type="button" onClick={() => save(true)} busy={pending}>
+                Save and next form
+              </LabButton>
+            )}
           </div>
         </>
       ) : null}

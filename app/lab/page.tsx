@@ -1,161 +1,40 @@
-import type { WorklistPayload } from "./_components/worklist-screen";
 import type { LabTechScope } from "@/lib/lab-tech/scope";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { FlaskConicalIcon } from "lucide-react";
 
 import { LAB } from "@/content/lab";
-import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
-import { identitiesFor } from "@/lib/emr/read/results";
 import { labResultsLive } from "@/lib/encounter/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
-import { labBenchLiveFor } from "@/lib/lab/feature";
-import { LAB_TIME_ZONE, labWorklistFor, requestNow } from "@/lib/lab/page-data";
-import { analyteName, repeatTasks } from "@/lib/lab/qc-store";
+import { landingFor } from "@/lib/lab/places";
+import { withQuery } from "@/lib/lab/redirects";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
-import { RepeatDone } from "./_components/repeat-done";
 import { ResultRowActions } from "./_components/result-row-actions";
-import { WorklistScreen } from "./_components/worklist-screen";
-import { dateWords, timeWords } from "./_lib/days";
-import { ncLiveFor } from "./quality/_lib/scope";
+import { EmptyState } from "./_components/v2/kit";
+import { labV2 } from "./_lib/places";
 
 export const dynamic = "force-dynamic";
 
 type Params = Record<string, string | string[] | undefined>;
-const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : null);
 
 /**
- * The lab worklist. LAB_WORKSPACE on (Lab Phase 0 §5.3): the section worklist with its turnaround
- * clock, or, where EMR v1 is off, the older list with a one-line note (LW-10). LAB_WORKSPACE off:
- * exactly what /lab showed before — the EMR worklist, or the older list.
+ * /lab. With the workspace and the record on, it lands by role (Lab Workspace v2, D-UI-04). Otherwise exactly what
+ * /lab showed before: the EMR worklist, or the older list (with one note where the workspace is on, LW-10).
  */
 export default async function LabWorklistPage({ searchParams }: { searchParams: Promise<Params> }) {
+  // Lab Workspace v2 (D-UI-04): the lead lands on Today, everyone else on the Bench, with the worklist's
+  // section and stage kept. A role decision, so a temporary redirect.
+  const v2 = await labV2();
+  if (v2.live)
+    redirect(withQuery(landingFor(v2.scope.access.permissions, v2.places), await searchParams));
   const scope = await requireLabTechScope();
-  // EMR v1: the record's worklist — the Phase 0 section worklist where LAB_WORKSPACE is on.
-  if (emrV1LiveFor(scope.hospitalId))
-    return scope.workspaceLive ? (
-      <SectionWorklist scope={scope} searchParams={searchParams} />
-    ) : (
-      <EmrLabWorklist scope={scope} />
-    );
+  // EMR v1 without the workspace: the record's worklist, as before (Law 11).
+  if (emrV1LiveFor(scope.hospitalId)) return <EmrLabWorklist scope={scope} />;
   // The older list; with LAB_WORKSPACE on it carries one note (LW-10).
   return (
     <LegacyWorklist scope={scope} note={scope.workspaceLive ? LAB.worklist.legacy : undefined} />
-  );
-}
-
-/** The Phase 0 worklist: every open specimen, identities revealed once, filtered in the browser. */
-async function SectionWorklist({
-  scope,
-  searchParams,
-}: {
-  scope: LabTechScope;
-  searchParams: Promise<Params>;
-}) {
-  const sp = await searchParams;
-  const data = await labWorklistFor(scope.hospitalId);
-  // LB-3 (Lab Phase 3): look-back results to repeat now that QC has passed; none while QC and EQA are off.
-  const repeats = ncLiveFor(scope.hospitalId)
-    ? await db.transaction((t) => repeatTasks(t as never, scope.hospitalId))
-    : [];
-  // LW-11: both identifiers on every row, revealed once per page load (one batched audit insert).
-  const ids = await identitiesFor(
-    scope,
-    [...data.inputs.map((i) => i.patientUserId), ...repeats.map((r) => r.patientUserId)],
-    "lab_worklist",
-  );
-  const payload: WorklistPayload = {
-    hospitalName: scope.hospitalName,
-    inputs: data.inputs.map((i) => ({
-      ...i,
-      collectedAt: i.collectedAt.toISOString(),
-      receivedAt: i.receivedAt?.toISOString() ?? null,
-    })),
-    identities: Object.fromEntries(ids),
-    restricted: [...data.restricted],
-    highRisk: [...data.highRisk],
-    procedure: data.procedure,
-    // Lab Phase 2 §5.5: with LAB_BENCH off the payload, and so the screen, is Phase 1's.
-    ...(labBenchLiveFor(scope.hospitalId)
-      ? { bench: { questions: Object.fromEntries(data.questions) } }
-      : {}),
-    sections: data.sections,
-    viewer: {
-      hospitalId: scope.hospitalId,
-      permissions: [...scope.access.permissions],
-      sectionIds: scope.sectionIds,
-    },
-    serverNowIso: requestNow().toISOString(),
-    timeZone: LAB_TIME_ZONE,
-    initial: {
-      section: one(sp.section),
-      stage: one(sp.stage),
-      dept: one(sp.dept),
-      sort: one(sp.sort),
-    },
-  };
-  return repeats.length ? (
-    <>
-      <RepeatTasks tasks={repeats} ids={ids} />
-      <WorklistScreen payload={payload} />
-    </>
-  ) : (
-    <WorklistScreen payload={payload} />
-  );
-}
-
-/** LB-3: "Repeat when QC passes" decisions whose QC now passes, each with two identifiers (Law 12). */
-function RepeatTasks({
-  tasks,
-  ids,
-}: {
-  tasks: Awaited<ReturnType<typeof repeatTasks>>;
-  ids: Awaited<ReturnType<typeof identitiesFor>>;
-}) {
-  return (
-    <section
-      aria-labelledby="repeats"
-      className="border-border bg-card text-body-s mx-4 mt-4 flex flex-col gap-2 rounded-lg border p-4 sm:mx-6"
-    >
-      <h2 id="repeats" className="text-heading-s font-medium">
-        Repeat when QC passes ({tasks.length})
-      </h2>
-      <ul className="flex flex-col gap-3">
-        {tasks.map((t) => {
-          const who = ids.get(t.patientUserId);
-          const label = `${who?.name ?? "Name withheld"}, ${analyteName(t.conceptId ?? "")}`;
-          return (
-            <li key={t.id} className="flex flex-wrap items-start justify-between gap-3">
-              <span className="flex flex-col">
-                <span>{who?.name ?? "Name withheld"}</span>
-                <span className="text-caption text-muted-foreground font-mono">
-                  {who?.mrn ?? "MRN not found"}
-                </span>
-              </span>
-              <span className="flex flex-col">
-                <span>
-                  {analyteName(t.conceptId ?? "")} {t.value} · {t.number}
-                </span>
-                <span className="text-caption text-muted-foreground">
-                  Released {dateWords(t.releasedAt)} {timeWords(t.releasedAt)}
-                </span>
-              </span>
-              {t.orderId ? (
-                <Link
-                  href={`/lab/results/${t.orderId}`}
-                  className="font-medium text-teal-700 underline-offset-4 hover:underline"
-                >
-                  Open the result<span className="sr-only">: {label}</span>
-                </Link>
-              ) : null}
-              <RepeatDone itemId={t.id} label={label} />
-            </li>
-          );
-        })}
-      </ul>
-    </section>
   );
 }
 
@@ -199,9 +78,10 @@ async function LegacyWorklist({ scope, note }: { scope: LabTechScope; note?: str
       </div>
 
       {items.length === 0 ? (
-        <div className="border-border bg-muted/20 text-muted-foreground text-body-s rounded-xl border border-dashed p-8 text-center">
-          No orders awaiting the lab right now. New orders from clinicians appear here.
-        </div>
+        <EmptyState
+          title="No orders awaiting the lab right now."
+          why="New orders from clinicians appear here."
+        />
       ) : (
         <div className="border-border bg-card overflow-hidden rounded-lg border shadow-sm">
           <table className="w-full border-collapse text-left">

@@ -17,9 +17,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { LAB2 } from "@/content/lab-phase-2";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { recordDraftCheckAction, rejectBandAction } from "@/lib/lab/catalogue-v2-actions";
 import { signRangeAsLeadAction } from "@/lib/lab/measures-actions";
 import { DRAFTS } from "../_lib/copy";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { bandFromDays } from "../../ranges/_lib/ages";
 import { SignButton } from "./sign-button";
@@ -190,7 +192,7 @@ function DraftDialog({
               okText={DRAFTS.send.sent}
               authoredByMe={draft.authoredByMe}
               noteLabel={DRAFTS.send.note}
-              disabled={!!blocked}
+              disabledReason={blocked || null}
               describedBy={blocked ? "send-blocked" : undefined}
               onSign={(exceptionNote) =>
                 signRangeAsLeadAction({ versionId: draft.versionId, exceptionNote })
@@ -240,7 +242,7 @@ function BandCard({ band: b, n, unit }: { band: DraftBand; n: number; unit: stri
         <h3 id={`${id}-h`} className={`text-body-s font-medium ${rejected ? "line-through" : ""}`}>
           <span className="sr-only">Band {n}: </span>
           {B.sex[b.sex] ?? b.sex} · {ageWords(b.ageFromDays, b.ageToDays)} ·{" "}
-          <span className="font-mono tabular-nums">
+          <span className="tabular-nums">
             {b.low ?? "…"}–{b.high ?? "…"} {unit}
           </span>
         </h3>
@@ -313,7 +315,7 @@ function BandCard({ band: b, n, unit }: { band: DraftBand; n: number; unit: stri
                       value={v}
                       onChange={(e) => set(e.target.value)}
                       inputMode="decimal"
-                      className="min-h-11 w-28 text-right font-mono tabular-nums sm:min-h-9"
+                      className="min-h-11 w-28 text-right tabular-nums sm:min-h-9"
                     />
                   </label>
                 ))}
@@ -330,10 +332,9 @@ function BandCard({ band: b, n, unit }: { band: DraftBand; n: number; unit: stri
             />
           </label>
           <div>
-            <Button
+            <LabButton
               type="button"
               variant="secondary"
-              disabled={pending}
               onClick={() =>
                 act(
                   () =>
@@ -348,9 +349,10 @@ function BandCard({ band: b, n, unit }: { band: DraftBand; n: number; unit: stri
                 )
               }
               className="min-h-11 sm:min-h-8"
+              busy={pending}
             >
               {B.record}
-            </Button>
+            </LabButton>
           </div>
         </div>
       ) : null}
@@ -365,17 +367,18 @@ function BandCard({ band: b, n, unit }: { band: DraftBand; n: number; unit: stri
               className="min-h-11 sm:min-h-9"
             />
           </label>
-          <Button
+          <LabButton
             type="button"
-            variant="ghost"
-            disabled={pending || reason.trim().length < 3}
+            variant="quiet"
+            busy={pending}
+            disabledReason={reason.trim().length < 3 ? LABWS2_SETUP.sweep.whyShortReason : null}
             onClick={() =>
               act(() => rejectBandAction({ bandId: b.id, reason: reason.trim() }), B.rejectedOk)
             }
             className="min-h-11 sm:min-h-8"
           >
             {B.reject}
-          </Button>
+          </LabButton>
         </div>
       ) : null}
       <Said message={message} />

@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
 import {
   recordDrillAction,
   recordPeriodAction,
   reserveFormsAction,
 } from "@/lib/lab/downtime-actions";
+import { LabButton } from "../../_components/v2/button";
+import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 const selectClass =
@@ -27,13 +29,12 @@ export function PrintForms() {
             value={count}
             onChange={(e) => setCount(e.target.value)}
             inputMode="numeric"
-            className="min-h-11 w-24 font-mono sm:min-h-9"
+            className="min-h-11 w-24 tabular-nums sm:min-h-9"
           />
         </Field>
-        <Button
+        <LabButton
           type="button"
-          variant="secondary"
-          disabled={pending}
+          busy={pending}
           onClick={() =>
             act(async () => {
               const r = await reserveFormsAction({ count: Number(count) });
@@ -47,7 +48,7 @@ export function PrintForms() {
           }
         >
           Print blank forms
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -64,24 +65,14 @@ export function RecordDowntime() {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid gap-3 sm:grid-cols-4">
-        <Field label="Started">
-          <Input
-            type="datetime-local"
-            name="startsAt"
-            value={startsAt}
-            onChange={(e) => setStartsAt(e.target.value)}
-            className="min-h-11 sm:min-h-9"
-          />
-        </Field>
-        <Field label="Ended">
-          <Input
-            type="datetime-local"
-            name="endsAt"
-            value={endsAt}
-            onChange={(e) => setEndsAt(e.target.value)}
-            className="min-h-11 sm:min-h-9"
-          />
-        </Field>
+        <DateTimeField label="Started" name="startsAt" value={startsAt} onChange={setStartsAt} />
+        <DateTimeField
+          label="Ended"
+          name="endsAt"
+          value={endsAt}
+          onChange={setEndsAt}
+          min={startsAt || undefined}
+        />
         <Field label="Reason">
           <select
             name="reason"
@@ -105,10 +96,16 @@ export function RecordDowntime() {
         </Field>
       </div>
       <div>
-        <Button
+        <LabButton
           type="button"
-          variant="secondary"
-          disabled={pending || !startsAt || !endsAt}
+          busy={pending}
+          disabledReason={
+            !startsAt
+              ? LABWS2_DOWNTIME.record.whyStart
+              : !endsAt
+                ? LABWS2_DOWNTIME.record.whyStillDown
+                : null
+          }
           onClick={() =>
             act(
               () =>
@@ -123,7 +120,7 @@ export function RecordDowntime() {
           }
         >
           Record the downtime
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -140,14 +137,7 @@ export function RecordDrill() {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Held on">
-          <Input
-            type="date"
-            value={heldOn}
-            onChange={(e) => setHeldOn(e.target.value)}
-            className="min-h-11 w-44 sm:min-h-9"
-          />
-        </Field>
+        <DateField label="Held on" value={heldOn} onChange={setHeldOn} />
         <Field label="Who took part">
           <Input
             value={participants}
@@ -174,10 +164,10 @@ export function RecordDrill() {
         </Field>
       </div>
       <div>
-        <Button
+        <LabButton
           type="button"
-          variant="secondary"
-          disabled={pending || !heldOn}
+          busy={pending}
+          disabledReason={!heldOn ? LABWS2_DOWNTIME.drills.whyDay : null}
           onClick={() =>
             act(
               () =>
@@ -192,7 +182,7 @@ export function RecordDrill() {
           }
         >
           Record the drill
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>

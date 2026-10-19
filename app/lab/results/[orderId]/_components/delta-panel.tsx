@@ -5,11 +5,11 @@ import { useState } from "react";
 import { TriangleAlertIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB5 } from "@/content/lab-phase-5";
 import { recordDeltaOutcomeAction } from "@/lib/lab/delta-actions";
 import { inputClass, newKey, Pop, selectClass } from "../../../_components/pop";
+import { LabButton } from "../../../_components/v2/button";
 import { Field, Said, useAct } from "../../../setup/criticals/_components/setup-forms";
 
 /* Delta checks on result entry (Lab Phase 5 §5.6, artboard 6; DL-4..DL-7): each fired rule with both values, the
@@ -127,9 +127,8 @@ function DecideDialog({ flagId, name }: { flagId: string; name: string }) {
       setOpen={setOpen}
       width="wide"
       action={
-        <Button
+        <LabButton
           type="button"
-          disabled={pending}
           onClick={() =>
             act(async () => {
               const r = await recordDeltaOutcomeAction({
@@ -143,9 +142,11 @@ function DecideDialog({ flagId, name }: { flagId: string; name: string }) {
               return r;
             }, "Recorded.")
           }
+          variant="primary"
+          busy={pending}
         >
           Record
-        </Button>
+        </LabButton>
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">

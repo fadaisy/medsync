@@ -3,10 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { Pill } from "@/components/ui/pill";
 import { LAB } from "@/content/lab";
 import { LAB2 } from "@/content/lab-phase-2";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import V16 from "@/data/emr/clinical-fact-concepts.v1.6.json";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -16,6 +16,7 @@ import { labCatalogueV2LiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { loadProfiles } from "@/lib/lab/profile-store";
 import { ANALYSER_MODELS } from "@/lib/lab/profiles";
+import { SetupHeader } from "../_components/setup-header";
 import { AddProfile, ProfileDetail } from "./_components/profile-forms";
 import { blockerWords, PROFILES as C } from "./_lib/copy";
 
@@ -23,7 +24,8 @@ export const metadata: Metadata = { title: "Analyser profiles · Laboratory · M
 export const dynamic = "force-dynamic";
 
 const NEW_CONCEPTS = new Map(V16.concepts.map((c) => [c.id, c.display]));
-const display = (id: string) => conceptDef(id)?.display ?? NEW_CONCEPTS.get(id) ?? id;
+const display = (id: string) =>
+  conceptDef(id)?.display ?? NEW_CONCEPTS.get(id) ?? LABWS2_SETUP.sweep.unknownComponent;
 
 /**
  * Analyser profiles (Lab Phase 2 §5.11, artboard 11; AP-1..AP-5). The cards, and the profile opened from
@@ -62,7 +64,7 @@ export default async function ProfilesSetupPage({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title={C.title}

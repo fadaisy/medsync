@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -11,6 +10,7 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { testsWithoutUnit } from "@/lib/lab/criticals/readiness";
 import { labCatalogueV2LiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { loadMeasuresSetup } from "@/lib/lab/measures-setup";
+import { SetupHeader } from "../_components/setup-header";
 import { FillFromResearch } from "./_components/fill-from-research";
 import { MeasureForm } from "./_components/measure-form";
 
@@ -46,7 +46,7 @@ export default async function CatalogueSetupPage({
   const typeWords = { number: "Number", coded: "Positive or negative", text: "Text" } as const;
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="Test catalogue"
@@ -135,7 +135,7 @@ export default async function CatalogueSetupPage({
                     }
                   </td>
                   <td className="px-3 py-2 font-mono">{m?.unitDisplay ?? "—"}</td>
-                  <td className="px-3 py-2 font-mono tabular-nums">{m?.decimalPlaces ?? "—"}</td>
+                  <td className="px-3 py-2 tabular-nums">{m?.decimalPlaces ?? "—"}</td>
                   <td className="px-3 py-2 font-mono">{m?.loincCode ?? "—"}</td>
                   <td className="px-3 py-2">
                     {ready ? (

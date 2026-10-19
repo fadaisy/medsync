@@ -1,5 +1,6 @@
 "use client";
 
+import type { PickOption } from "../../_components/v2/fields";
 import type { EquipmentRow } from "@/lib/lab/equipment-read";
 import { useState } from "react";
 import { CheckIcon, CircleIcon } from "lucide-react";
@@ -8,6 +9,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
+import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import {
   markBackInServiceAction,
   markDownAction,
@@ -20,7 +22,11 @@ import { quarantineLotAction } from "@/lib/lab/stock-actions";
 import { cn } from "@/lib/utils";
 import { EQUIPMENT as C } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
+import { LabButton } from "../../_components/v2/button";
+import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { dateWords, timeWords } from "../../_lib/days";
+import { ActButton } from "../../quality/_components/act-button";
+import { ConceptMultiPick } from "../../quality/_components/concept-pick";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 type Section = { id: string; name: string };
@@ -41,9 +47,11 @@ const localNow = () => {
 
 export function EquipmentDialog({
   sections,
+  concepts,
   initial,
 }: {
   sections: Section[];
+  concepts: readonly PickOption[];
   initial?: EquipmentRow;
 }) {
   const { pending, message, act } = useAct();
@@ -58,9 +66,9 @@ export function EquipmentDialog({
     provider: d.provider ?? "",
     contact: d.contact ?? "",
     installedOn: d.installedOn ?? "",
-    concepts: initial?.linkedConcepts.join(", ") ?? "",
     tests: initial?.linkedTests.join(", ") ?? "",
   });
+  const [linked, setLinked] = useState<string[]>(initial?.linkedConcepts ?? []);
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) =>
     setF((x) => ({ ...x, [k]: e.target.value }));
   const F = C.form;
@@ -78,7 +86,7 @@ export function EquipmentDialog({
           contact: f.contact.trim() || null,
           installedOn: f.installedOn || null,
         },
-        linkedConcepts: list(f.concepts),
+        linkedConcepts: linked,
         linkedTests: list(f.tests),
       });
       if (r.ok) setOpen(false);
@@ -95,9 +103,9 @@ export function EquipmentDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {F.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -140,14 +148,11 @@ export function EquipmentDialog({
               className={inputClass}
             />
           </Field>
-          <Field label={F.installedOn}>
-            <Input
-              type="date"
-              value={f.installedOn}
-              onChange={set("installedOn")}
-              className={cn(inputClass, "font-mono")}
-            />
-          </Field>
+          <DateField
+            label={F.installedOn}
+            value={f.installedOn}
+            onChange={(v) => setF((x) => ({ ...x, installedOn: v }))}
+          />
           <Field label={F.provider}>
             <Input
               value={f.provider}
@@ -165,13 +170,14 @@ export function EquipmentDialog({
             />
           </Field>
           <span />
-          <Field label={F.concepts}>
-            <Input
-              value={f.concepts}
-              onChange={set("concepts")}
-              className={cn(inputClass, "font-mono")}
+          <div className="sm:col-span-2">
+            <ConceptMultiPick
+              label={LABWS2_QUALITY.sweep.concepts}
+              options={concepts}
+              value={linked}
+              onChange={setLinked}
             />
-          </Field>
+          </div>
           <Field label={F.tests}>
             <Input
               value={f.tests}
@@ -242,9 +248,9 @@ function ScheduleDialog({ row }: { row: EquipmentRow }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {S.save}
-          </Button>
+          </ActButton>
         }
       >
         {tasks.map((t, i) => (
@@ -275,7 +281,7 @@ function ScheduleDialog({ row }: { row: EquipmentRow }) {
                 min={1}
                 value={t.n}
                 onChange={(e) => patch(i, { n: e.target.value })}
-                className={cn(inputClass, "font-mono")}
+                className={cn(inputClass, "tabular-nums")}
               />
             </Field>
             <Field label=" ">
@@ -334,7 +340,7 @@ function ScheduleDialog({ row }: { row: EquipmentRow }) {
                   step="any"
                   value={temp[k]}
                   onChange={(e) => setTemp((x) => ({ ...x, [k]: e.target.value }))}
-                  className={cn(inputClass, "font-mono")}
+                  className={cn(inputClass, "tabular-nums")}
                 />
               </Field>
             ))}
@@ -367,11 +373,13 @@ export function EquipmentPanel({
   row: e,
   can,
   sections,
+  concepts,
   now,
 }: {
   row: EquipmentRow;
   can: Can;
   sections: Section[];
+  concepts: readonly PickOption[];
   now: Date;
 }) {
   const { pending, message, act } = useAct();
@@ -486,19 +494,17 @@ export function EquipmentPanel({
                     className={inputClass}
                   />
                 </Field>
-                <Field label={P.repairAt}>
-                  <Input
-                    type="datetime-local"
-                    value={repair.at}
-                    onChange={(ev) => setRepair((x) => ({ ...x, at: ev.target.value }))}
-                    className={cn(inputClass, "font-mono")}
-                  />
-                </Field>
-                <Button
+                <DateTimeField
+                  label={P.repairAt}
+                  value={repair.at}
+                  onChange={(v) => setRepair((x) => ({ ...x, at: v }))}
+                  now={now.toISOString()}
+                />
+                <ActButton
                   type="button"
                   variant="secondary"
                   className="self-end"
-                  disabled={pending}
+                  busy={pending}
                   onClick={() =>
                     act(
                       () =>
@@ -516,21 +522,22 @@ export function EquipmentPanel({
                   }
                 >
                   {P.repair}
-                </Button>
+                </ActButton>
               </div>
             ) : null}
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-body-s text-muted-foreground font-mono tabular-nums">
+              <span className="text-body-s text-muted-foreground tabular-nums">
                 {P.downFor(Math.max(0, Math.floor((now.getTime() - b.since.getTime()) / 60_000)))}
               </span>
               {can.lead ? (
-                <Button
+                <LabButton
                   type="button"
-                  disabled={pending || !ready}
+                  busy={pending}
+                  disabledReason={ready ? null : LABWS2_QUALITY.sweep.backUnready}
                   onClick={() => act(() => markBackInServiceAction({ deviceId: e.id }), P.backDone)}
                 >
                   {P.back}
-                </Button>
+                </LabButton>
               ) : null}
             </div>
           </section>
@@ -543,14 +550,13 @@ export function EquipmentPanel({
               {P.markDown}
             </h3>
             <div className="grid gap-3 sm:grid-cols-4">
-              <Field label={P.sinceField}>
-                <Input
-                  type="datetime-local"
-                  value={down.since}
-                  onChange={(ev) => setDown((x) => ({ ...x, since: ev.target.value }))}
-                  className={cn(inputClass, "font-mono")}
-                />
-              </Field>
+              <DateTimeField
+                label={P.sinceField}
+                value={down.since}
+                onChange={(v) => setDown((x) => ({ ...x, since: v }))}
+                now={now.toISOString()}
+                className="sm:col-span-4"
+              />
               <Field label={P.causeField}>
                 <Input
                   value={down.cause}
@@ -576,11 +582,11 @@ export function EquipmentPanel({
                 />
               </Field>
             </div>
-            <Button
+            <ActButton
               type="button"
               variant="secondary"
               className="w-fit"
-              disabled={pending}
+              busy={pending}
               onClick={() =>
                 act(
                   () =>
@@ -596,7 +602,7 @@ export function EquipmentPanel({
               }
             >
               {P.markDown}
-            </Button>
+            </ActButton>
           </section>
         ) : null}
 
@@ -625,12 +631,12 @@ export function EquipmentPanel({
                     <span className="text-muted-foreground">{C.lastDone(at(t.lastDone))}</span>
                   ) : null}
                   {can.staff ? (
-                    <Button
+                    <ActButton
                       type="button"
-                      variant="ghost"
+                      variant="quiet"
                       size="sm"
                       className="min-h-11 sm:min-h-7"
-                      disabled={pending}
+                      busy={pending}
                       onClick={() =>
                         act(
                           () =>
@@ -649,7 +655,7 @@ export function EquipmentPanel({
                     >
                       {P.record}
                       <span className="sr-only"> {t.key}</span>
-                    </Button>
+                    </ActButton>
                   ) : null}
                 </li>
               ))}
@@ -671,7 +677,7 @@ export function EquipmentPanel({
                   inputMode="decimal"
                   value={reading.value}
                   onChange={(ev) => setReading((x) => ({ ...x, value: ev.target.value }))}
-                  className={cn(inputClass, "font-mono tabular-nums")}
+                  className={cn(inputClass, "tabular-nums")}
                 />
               </Field>
               <Field label={P.unit}>
@@ -682,17 +688,16 @@ export function EquipmentPanel({
                   className={inputClass}
                 />
               </Field>
-              <Field label={P.readAt}>
-                <Input
-                  type="datetime-local"
-                  value={reading.at}
-                  onChange={(ev) => setReading((x) => ({ ...x, at: ev.target.value }))}
-                  className={cn(inputClass, "font-mono")}
-                />
-              </Field>
-              <Button type="submit" variant="secondary" className="self-end" disabled={pending}>
+              <DateTimeField
+                label={P.readAt}
+                value={reading.at}
+                onChange={(v) => setReading((x) => ({ ...x, at: v }))}
+                now={now.toISOString()}
+                className="sm:col-span-2"
+              />
+              <ActButton type="submit" variant="secondary" className="self-end" busy={pending}>
                 {P.saveReading}
-              </Button>
+              </ActButton>
             </form>
             {lots.length ? (
               <div className="flex flex-col gap-2">
@@ -712,12 +717,12 @@ export function EquipmentPanel({
                     <li key={l.id} className="text-body-s flex items-center gap-2">
                       <span className="font-mono">{l.lot}</span>
                       {can.stock ? (
-                        <Button
+                        <ActButton
                           type="button"
-                          variant="ghost"
+                          variant="quiet"
                           size="sm"
                           className="min-h-11 sm:min-h-7"
-                          disabled={pending}
+                          busy={pending}
                           onClick={() =>
                             act(
                               () =>
@@ -735,7 +740,7 @@ export function EquipmentPanel({
                         >
                           {P.quarantine}
                           <span className="sr-only"> {l.lot}</span>
-                        </Button>
+                        </ActButton>
                       ) : null}
                     </li>
                   ))}
@@ -748,7 +753,7 @@ export function EquipmentPanel({
       </Pop>
       {can.lead ? (
         <>
-          <EquipmentDialog sections={sections} initial={e} />
+          <EquipmentDialog sections={sections} concepts={concepts} initial={e} />
           <ScheduleDialog row={e} />
         </>
       ) : null}

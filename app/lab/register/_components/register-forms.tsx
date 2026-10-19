@@ -12,6 +12,7 @@ import {
   signRegisterConfigAction,
 } from "@/lib/lab/hmis-actions";
 import { Pop } from "../../_components/pop";
+import { LabButton } from "../../_components/v2/button";
 import { Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { SignButton } from "../../setup/drafts/_components/sign-button";
 
@@ -28,9 +29,8 @@ export function PrintRegister(props: {
   const { pending, message, act } = useAct();
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <LabButton
         type="button"
-        disabled={pending}
         className="min-h-11 w-fit sm:min-h-8"
         onClick={() =>
           act(async () => {
@@ -39,9 +39,11 @@ export function PrintRegister(props: {
             return r;
           }, R.printed)
         }
+        variant="primary"
+        busy={pending}
       >
         {R.print}
-      </Button>
+      </LabButton>
       <Said message={message} />
     </div>
   );
@@ -94,9 +96,9 @@ export function RegisterColumns({
       open={open}
       setOpen={setOpen}
       action={
-        <Button type="button" onClick={save} disabled={pending}>
+        <LabButton type="button" onClick={save} variant="primary" busy={pending}>
           {R.saveDraft}
-        </Button>
+        </LabButton>
       }
     >
       <ol className="flex flex-col gap-2">

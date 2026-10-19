@@ -3,15 +3,17 @@ import { notFound } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { LAB5 } from "@/content/lab-phase-5";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { db } from "@/db";
 import { clinicalConcepts, labComponentMeasures, testCatalogue } from "@/db/schema";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { deltaRulesWithReview } from "@/lib/lab/delta-read";
 import { labDeltaChecksLiveFor } from "@/lib/lab/feature";
+import { SetupHeader } from "../_components/setup-header";
+import { EmptyState } from "../../_components/v2/kit";
 import {
   DeltaRuleDialog,
   PanelRuleDialog,
@@ -22,6 +24,8 @@ import {
 
 export const metadata: Metadata = { title: "Delta checks · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
+
+const W = LABWS2_SETUP.sweep;
 
 const TYPE: Record<string, string> = {
   absolute: "absolute change",
@@ -85,7 +89,7 @@ export default async function DeltaRulesPage() {
   }));
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="Delta checks"
@@ -100,10 +104,7 @@ export default async function DeltaRulesPage() {
         <PatternRuleDialog concepts={concepts} />
       </div>
       {rules.length === 0 ? (
-        <p className="border-border text-body-s text-muted-foreground rounded-lg border border-dashed p-8 text-center">
-          No rules yet. Without a signed rule, no result is compared with the patient&apos;s
-          previous one.
-        </p>
+        <EmptyState title={W.deltaTitle} why={W.deltaWhy} />
       ) : (
         <div
           className="border-border bg-card overflow-auto rounded-lg border"
@@ -155,7 +156,7 @@ export default async function DeltaRulesPage() {
                     </td>
                     <td className="px-3 py-2">
                       {r.kind === "delta_rule"
-                        ? (conceptName.get(String(p.concept)) ?? String(p.concept))
+                        ? (conceptName.get(String(p.concept)) ?? W.unknownComponent)
                         : r.kind === "panel_rule"
                           ? `${String(p.k)} of ${(p.components as string[]).length} components`
                           : String(p.name)}
@@ -163,7 +164,7 @@ export default async function DeltaRulesPage() {
                     <td className="px-3 py-2">
                       {r.kind === "delta_rule" ? TYPE[String(p.type)] : "—"}
                     </td>
-                    <td className="px-3 py-2 font-mono tabular-nums">
+                    <td className="px-3 py-2 tabular-nums">
                       {r.kind !== "delta_rule"
                         ? "—"
                         : !limit

@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_UI } from "@/content/lab-criticals";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 import { couldNotReachAction, logCriticalCallAction } from "@/lib/lab/criticals/actions";
+import { LabButton } from "../../_components/v2/button";
 
 const OTHER = "__other__";
 const D = CRITICALS_UI.detail;
@@ -114,12 +115,18 @@ export function CallLog({
         {D.readBack}
       </label>
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" onClick={log} disabled={pending || !ready}>
+        <LabButton
+          type="button"
+          onClick={log}
+          variant="primary"
+          busy={pending}
+          disabledReason={!ready ? LABWS2.reasons.whoAnswered : null}
+        >
           {D.log}
-        </Button>
-        <Button type="button" variant="secondary" onClick={escalate} disabled={pending}>
+        </LabButton>
+        <LabButton type="button" variant="secondary" onClick={escalate} busy={pending}>
           {D.couldNotReach}
-        </Button>
+        </LabButton>
         {lastLevel ? (
           <span className="text-body-s text-muted-foreground">{D.lastLevel}</span>
         ) : null}

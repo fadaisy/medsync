@@ -14,6 +14,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { LABWS2 } from "@/content/lab-workspace-v2";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveConfigDraftAction } from "@/lib/lab/catalogue-v2-actions";
 import { configSignErrors, CONTEXTS, METHODS } from "@/lib/lab/signed-config";
 import {
@@ -23,6 +25,7 @@ import {
   SEX_WORDS,
   signErrorWords,
 } from "../_lib/schemes-copy";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SchemeSign } from "./scheme-sign";
 
@@ -230,7 +233,9 @@ export function SchemeEditor({
                                 className={selectClass}
                               >
                                 {s.categories.some((c) => c.code === b.category) ? null : (
-                                  <option value={b.category}>{b.category} (not in the list)</option>
+                                  <option value={b.category}>
+                                    {LABWS2_SETUP.sweep.unknownCategory}
+                                  </option>
                                 )}
                                 {s.categories.map((c) => (
                                   <option key={c.code} value={c.code}>
@@ -281,9 +286,8 @@ export function SchemeEditor({
         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
           Close
         </Button>
-        <Button
+        <LabButton
           type="button"
-          disabled={pending || unparsable}
           aria-describedby={unparsable ? problemsId : undefined}
           onClick={() =>
             act(
@@ -291,9 +295,12 @@ export function SchemeEditor({
               "Draft saved. It is not used until the laboratory lead and the CSO have both signed it.",
             )
           }
+          variant="primary"
+          busy={pending}
+          disabledReason={unparsable ? LABWS2.reasons.unparsable : null}
         >
           Save draft
-        </Button>
+        </LabButton>
       </SheetFooter>
     </EditorDialog>
   );
@@ -320,7 +327,7 @@ function BoundCells({
           value={value ?? ""}
           onChange={(e) => onValue(e.target.value)}
           inputMode="decimal"
-          className="min-h-11 w-24 text-right font-mono tabular-nums sm:min-h-9"
+          className="min-h-11 w-24 text-right tabular-nums sm:min-h-9"
         />
       </td>
       <td className="px-1 py-1">

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Downtime</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1000px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Downtime entry</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Downtime"><a class="on" href="#" aria-current="page">Enter paper forms <span class="n">6</span></a><a href="#">Record a downtime</a><a href="#">Print blank forms</a><a href="#">Drills</a></nav>
+<span class="row__sp"></span><span class="small">Last downtime: Fri 16 Oct, 08:10–09:40, network · 6 forms not yet entered</span>
+</div>
+<div class="cols" style="grid-template-columns: 340px minmax(0, 1fr) 340px">
+<section class="card">
+<div class="card__h"><h2>Forms from that downtime</h2><span class="sp"></span><span class="small">6 of 9 to enter</span></div>
+<div class="lst">
+<div class="on"><span class="mono">DT-0412</span><span>Full blood count</span><span class="pill pill--warn">To enter</span></div>
+<div><span class="mono">DT-0413</span><span>Malaria RDT</span><span class="pill pill--warn">To enter</span></div>
+<div><span class="mono">DT-0414</span><span>Urea and electrolytes</span><span class="pill pill--warn">To enter</span></div>
+<div><span class="mono">DT-0415</span><span>Blood glucose</span><span class="pill pill--warn">To enter</span></div>
+<div><span class="mono">DT-0416</span><span>Urinalysis</span><span class="pill pill--warn">To enter</span></div>
+<div><span class="mono">DT-0417</span><span>ESR</span><span class="pill pill--warn">To enter</span></div>
+<div><span class="mono">DT-0409</span><span>Full blood count</span><span class="pill">Entered</span></div>
+<div><span class="mono">DT-0410</span><span>Creatinine</span><span class="pill">Entered</span></div>
+<div><span class="mono">DT-0411</span><span class="small">Spoilt, not used</span><span class="pill pill--line">Void</span></div>
+</div>
+</section>
+<section class="card">
+<div class="card__h"><h2>Form DT-0412</h2><span class="sp"></span><span class="small">Step 1 of 3 · find the patient</span></div>
+<div class="card__b">
+<div class="form" style="grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)">
+<div class="fld"><label for="f-no">Form number</label><div class="in in--ro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg><input id="f-no" class="mono" value="DT-0412" readonly></div><span class="help">Scanned from the form, or picked on the left</span></div>
+<div class="fld"><label for="f-mrn">Hospital number written on the form</label><div class="in in--focus"><input id="f-mrn" class="mono" value="MS-2026-00027"></div><span class="help">Or the patient's name and date of birth</span></div>
+</div>
+<div class="empty" style="background: var(--accent-tint)">
+<b>Patient Twenty-Seven-27 · MS-2026-00027</b>
+<span>F · 29 y · Maternity · had a full blood count ordered on Fri 16 Oct 08:05, before the downtime.</span>
+<div class="row"><a class="btn btn--p btn--s" href="#">Use this patient and order</a><a class="btn btn--s" href="#">Not this patient</a></div>
+</div>
+<div class="form" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+<div class="fld"><span class="lbl">Collected, from the form</span><div class="in"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg><span>Fri 16 Oct</span><span class="row__sp"></span><span class="mono">08:20</span></div></div>
+<div class="fld"><span class="lbl">Received</span><div class="in"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg><span>Fri 16 Oct</span><span class="row__sp"></span><span class="mono">08:34</span></div></div>
+<div class="fld"><span class="lbl">Released on paper</span><div class="in"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg><span>Fri 16 Oct</span><span class="row__sp"></span><span class="mono">09:15</span></div></div>
+</div>
+<span class="help small">The form's own times are kept, so turnaround and HMIS counts stay right. Ranges and limits in force on 16 Oct are applied.</span>
+</div>
+<div class="card__f"><span class="why"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Next: type the results from the form</span><span class="sp"></span><a class="btn btn--s" href="#">Skip this form</a><a class="btn btn--p" href="#">Continue to results</a></div>
+</section>
+<aside class="stack">
+<section class="card">
+<div class="card__h"><h2>Record a downtime</h2></div>
+<div class="card__b">
+<div class="fld"><span class="lbl">Started</span><div class="in"><span>Today</span><span class="row__sp"></span><span class="mono">12:02</span></div><div class="quick"><a class="on" href="#">Now</a><a href="#">15 min ago</a><a href="#">1 h ago</a><a href="#">Pick a time</a></div></div>
+<div class="fld"><span class="lbl">Ended</span><div class="in in--ro"><span>Still down</span></div><span class="help">Leave open while the system is down; end it when it returns</span></div>
+<div class="fld"><span class="lbl">Cause</span><div class="quick"><a class="on" href="#">Network</a><a href="#">Power</a><a href="#">MedSync</a><a href="#">Other</a></div></div>
+</div>
+<div class="card__f"><span class="sp"></span><a class="btn btn--p btn--s" href="#">Start the downtime</a></div>
+</section>
+<section class="card">
+<div class="card__h"><h2>Blank forms in stock</h2></div>
+<div class="card__b"><div class="row"><span class="kpi__v">14</span><span class="small">numbered forms printed and unused</span></div><a class="btn btn--s" href="#" style="align-self: flex-start">Print 10 more</a></div>
+</section>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

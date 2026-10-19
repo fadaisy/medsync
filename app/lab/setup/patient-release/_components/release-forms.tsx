@@ -1,15 +1,19 @@
 "use client";
 
+import type { PickOption } from "../../../_components/v2/fields";
 import type { ReleaseGroup } from "@/lib/lab/patient-release";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { RELEASE_GROUPS } from "@/lib/lab/patient-release";
 import { savePatientReleaseDraftAction } from "@/lib/lab/patient-release-actions";
 import { inputClass, Pop, selectClass } from "../../../_components/pop";
+import { LabButton } from "../../../_components/v2/button";
+import { PickField } from "../../../_components/v2/fields";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
+import { MultiPick } from "./multi-pick";
 
 /* What patients see (Lab Phase 5 §5.5): the laboratory lead's drafts. Every setting, window and word is the lead's,
    with its source; MedSync proposes none. Another lead signs, the CSO countersigns. Centred pop-ups only. */
@@ -21,6 +25,7 @@ const NAMES: Record<ReleaseGroup, string> = {
   bedside: "Bedside (point-of-care) results",
   corrected: "Corrected results",
 };
+const W = LABWS2_SETUP.sweep;
 const GROUPS = RELEASE_GROUPS.map((k) => [k, NAMES[k]] as const);
 const list = (s: string) =>
   s
@@ -53,9 +58,8 @@ function DraftPop({
       open={open}
       setOpen={setOpen}
       action={
-        <Button
+        <LabButton
           type="button"
-          disabled={pending}
           onClick={() =>
             act(async () => {
               const r = await savePatientReleaseDraftAction(draft());
@@ -63,9 +67,11 @@ function DraftPop({
               return r;
             }, "Draft saved. Another laboratory lead signs it.")
           }
+          variant="primary"
+          busy={pending}
         >
           Save draft
-        </Button>
+        </LabButton>
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">{children}</div>
@@ -253,8 +259,8 @@ export function SmsTemplateDialog() {
   );
 }
 
-export function FloorAdditionsDialog() {
-  const [codes, setCodes] = useState("");
+export function FloorAdditionsDialog({ tests }: { tests: readonly PickOption[] }) {
+  const [codes, setCodes] = useState<string[]>([]);
   const [reason, setReason] = useState("");
   return (
     <DraftPop
@@ -264,16 +270,16 @@ export function FloorAdditionsDialog() {
       draft={() => ({
         kind: "patient_floor_additions",
         key: "hospital",
-        payload: { testCodes: list(codes), reason },
+        payload: { testCodes: codes, reason },
       })}
     >
-      <Field label="Test codes, one per line (test.…)">
-        <textarea
-          className="border-input min-h-24 rounded-md border px-3 py-2 font-mono"
-          value={codes}
-          onChange={(e) => setCodes(e.target.value)}
-        />
-      </Field>
+      <MultiPick
+        label={W.tests}
+        hint={W.testsHint}
+        options={tests}
+        value={codes}
+        onChange={setCodes}
+      />
       <Field label="Reason">
         <Input className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} />
       </Field>
@@ -281,7 +287,7 @@ export function FloorAdditionsDialog() {
   );
 }
 
-export function PlainWordsDialog() {
+export function PlainWordsDialog({ components }: { components: readonly PickOption[] }) {
   const [f, setF] = useState({
     concept: "",
     language: "en",
@@ -338,9 +344,14 @@ export function PlainWordsDialog() {
         },
       })}
     >
-      <Field label="Component concept (obs.…)">
-        <Input className={inputClass} value={f.concept} onChange={set("concept")} />
-      </Field>
+      <PickField
+        label={W.component}
+        hint={W.componentHint}
+        options={components}
+        value={f.concept}
+        onChange={(concept) => setF({ ...f, concept })}
+        forceList
+      />
       <Field label="Language code">
         <Input className={inputClass} value={f.language} onChange={set("language")} />
       </Field>

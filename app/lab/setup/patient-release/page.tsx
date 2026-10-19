@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { and, eq, isNull, or } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { LAB5 } from "@/content/lab-phase-5";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { db } from "@/db";
+import { testCatalogue } from "@/db/schema";
 import { emrV1LiveFor } from "@/lib/emr/feature";
+import { conceptDef } from "@/lib/facts/project/shared";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadConfigs } from "@/lib/lab/catalogue-v2";
 import { patientResultsLiveFor } from "@/lib/lab/feature";
+import { keyWords } from "@/lib/lab/setup-hub";
+import { SetupHeader } from "../_components/setup-header";
+import { EmptyState } from "../../_components/v2/kit";
 import { SignRule } from "../delta/_components/delta-forms";
 import {
   FloorAdditionsDialog,
@@ -21,6 +27,8 @@ import {
 
 export const metadata: Metadata = { title: "What patients see · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
+
+const W = LABWS2_SETUP.sweep;
 
 const KIND: Record<string, string> = {
   patient_release: "Release table",
@@ -49,9 +57,41 @@ export default async function PatientReleaseSetupPage() {
   const configs = (await db.transaction((tx) => loadConfigs(tx, scope.hospitalId)))
     .filter((c) => c.kind in KIND && c.status !== "superseded")
     .sort((a, b) => a.kind.localeCompare(b.kind) || a.key.localeCompare(b.key));
+  // Pick by name (v2 field kit): the same test codes and result ids the drafts always posted.
+  const menu = await db
+    .select({
+      code: testCatalogue.code,
+      name: testCatalogue.display,
+      components: testCatalogue.components,
+    })
+    .from(testCatalogue)
+    .where(
+      and(
+        eq(testCatalogue.kind, "lab"),
+        eq(testCatalogue.active, true),
+        or(isNull(testCatalogue.hospitalId), eq(testCatalogue.hospitalId, scope.hospitalId)),
+      ),
+    )
+    .orderBy(testCatalogue.display);
+  const tests = [
+    ...new Map(
+      menu.filter((t) => /^test\.[a-z0-9_]+$/.test(t.code)).map((t) => [t.code, t]),
+    ).values(),
+  ];
+  const testOptions = tests.map((t) => ({ value: t.code, label: t.name }));
+  const inTests = new Map<string, string[]>();
+  for (const t of tests)
+    for (const c of t.components ?? [])
+      if (/^obs\.[a-z0-9_]+$/.test(c)) inTests.set(c, [...(inTests.get(c) ?? []), t.name]);
+  const componentOptions = [...inTests]
+    .flatMap(([id, names]) => {
+      const label = conceptDef(id)?.display;
+      return label ? [{ value: id, label, detail: names.join(", ") }] : [];
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="What patients see"
@@ -62,16 +102,13 @@ export default async function PatientReleaseSetupPage() {
       </p>
       <div className="flex flex-wrap gap-2">
         <ReleaseTableDialog />
-        <PlainWordsDialog />
+        <PlainWordsDialog components={componentOptions} />
         <MinorsDialog />
         <SmsTemplateDialog />
-        <FloorAdditionsDialog />
+        <FloorAdditionsDialog tests={testOptions} />
       </div>
       {configs.length === 0 ? (
-        <p className="border-border text-body-s text-muted-foreground rounded-lg border border-dashed p-8 text-center">
-          Nothing drafted yet. Until a release table is signed, no patient sees any result in the
-          app.
-        </p>
+        <EmptyState title={W.nothingYetTitle} why={W.releaseWhy} />
       ) : (
         <div
           className="border-border bg-card overflow-auto rounded-lg border"
@@ -98,8 +135,8 @@ export default async function PatientReleaseSetupPage() {
               {configs.map((c) => (
                 <tr key={c.id} className="border-ink-150 text-body-s border-b last:border-b-0">
                   <td className="px-3 py-2">{KIND[c.kind]}</td>
-                  <td className="px-3 py-2 font-mono">{c.key}</td>
-                  <td className="px-3 py-2 font-mono">v{c.version}</td>
+                  <td className="px-3 py-2">{keyWords(c.key) ?? W.thisHospital}</td>
+                  <td className="px-3 py-2 tabular-nums">v{c.version}</td>
                   <td className="px-3 py-2">
                     <StatusWord>{c.status === "draft" ? "Draft" : "Signed"}</StatusWord>
                   </td>
