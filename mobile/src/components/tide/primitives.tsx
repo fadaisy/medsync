@@ -2,6 +2,7 @@ import type { IconName } from "@/components/tide/icon";
 import type { Tide } from "@/theme/tide";
 import type { ReactNode } from "react";
 import type { StyleProp, TextStyle, ViewStyle } from "react-native";
+import { Image } from "expo-image";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
 
@@ -495,11 +496,14 @@ export function IconDisc({
 /** Initials in a circle. Placeholders only ("AN", "DR"); never a real person's name. */
 export function Avatar({
   initials,
+  photoUrl,
   size = 44,
   bg,
   fg,
 }: {
   initials: string;
+  /** A signed photo URL: shown over the initials, which stay underneath while it loads. */
+  photoUrl?: string | null;
   size?: number;
   bg?: string;
   fg?: string;
@@ -512,6 +516,7 @@ export function Avatar({
         width: size,
         height: size,
         borderRadius: size / 2,
+        overflow: "hidden",
         backgroundColor: bg ?? t.info.tint,
         alignItems: "center",
         justifyContent: "center",
@@ -520,6 +525,13 @@ export function Avatar({
       <Text style={{ fontFamily: tFont.bold, fontSize: size * 0.32, color: fg ?? t.info.text }}>
         {initials}
       </Text>
+      {photoUrl ? (
+        <Image
+          source={{ uri: photoUrl }}
+          contentFit="cover"
+          style={{ position: "absolute", top: 0, left: 0, width: size, height: size }}
+        />
+      ) : null}
     </View>
   );
 }

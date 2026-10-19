@@ -1,7 +1,7 @@
 import type { DayMood } from "@/data/mood";
 import type { SaveResult } from "@/offline/outbox";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
 import {
@@ -33,6 +33,7 @@ import { usePhoneSteps } from "@/features/care-more/use-steps";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
+import { fetchMyAvatarUrl } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { checkReading, readingValueText } from "@/lib/readings";
 import { useSession } from "@/lib/session";
@@ -95,6 +96,13 @@ export default function HomeScreen() {
   const first =
     typeof fullName === "string" && fullName.trim() ? fullName.trim().split(/\s+/)[0] : "there";
   const initials = first === "there" ? "·" : first.slice(0, 2).toUpperCase();
+  // The photo the patient set on Me, read again whenever Home comes back into view.
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      void fetchMyAvatarUrl().then(setAvatarUrl, () => {});
+    }, []),
+  );
 
   const { doses, dueNow } = med;
   const due = dueNow[0];
@@ -209,7 +217,7 @@ export default function HomeScreen() {
         contentStyle={{ paddingTop: tSpace[5] }}
         header={
           <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
-            <Avatar initials={initials} size={44} />
+            <Avatar initials={initials} photoUrl={avatarUrl} size={44} />
             <View>
               <Text style={[tType.bodyS, { color: t.ink2 }]}>Hello,</Text>
               <Text style={[tType.heading, { fontSize: 18, color: t.ink }]}>{first}</Text>
