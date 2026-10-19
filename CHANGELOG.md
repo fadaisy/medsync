@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — "Something is wrong" on the phone, in three steps — 2026-10-19
+
+[ADR 0358](docs/adr/0358-symptom-steps.md) replaces the old symptom catalogue screens with the owner's board D:
+
+- **Tick what fits.** It opens on the body area tapped on Book, and the area chips change it. Emergency signs have their own card and open Help in place, with a call to the hospital. The patient can also write it in their own words.
+- **A few questions.** Each chosen sign's own follow-up questions, then when it started.
+- **What to do.** The catalogue's own tier word, one main door, and what the clinic will see.
+
 ### Added — The patient's own conditions, allergies and family history, on the phone and the desk — 2026-10-18
 
 [ADR 0355](docs/adr/0355-patient-reported-history-on-the-phone-and-the-desk.md) adds the following:

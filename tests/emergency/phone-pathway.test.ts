@@ -98,7 +98,7 @@ describe("E1 — the primary call is a tel: tap, and numbers come from data (rul
   it("the tiles are hidden when the catalog opened the sheet; the ONE haptic is the interrupt's, not E1's", () => {
     expect(sheet).toMatch(/from === "catalog"/);
     expect(sheet).not.toMatch(/expo-haptics|Haptics\./);
-    expect(read("mobile/src/components/symptoms/emergency-interrupt.tsx")).toMatch(
+    expect(read("mobile/src/features/symptoms/danger.tsx")).toMatch(
       /Haptics\.notificationAsync\(Haptics\.NotificationFeedbackType\.Warning\)/,
     );
     expect(sheet).toMatch(/\{!fromCatalog \? \(/);
