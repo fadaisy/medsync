@@ -346,7 +346,7 @@ function Body() {
     step === "review" ? (
       <View style={{ gap: tSpace[2] }}>
         {tier === "E" ? (
-          <>
+          <View style={{ gap: tSpace[2] }}>
             <Button
               label="Get help now"
               icon="phone"
@@ -354,9 +354,9 @@ function Body() {
               onPress={() => toHelp(chosen.find((i) => i.key === shown.reasons[0]) ?? null)}
             />
             {second("Book a visit instead", () => void door("/book/day"))}
-          </>
+          </View>
         ) : tier === "U" ? (
-          <>
+          <View style={{ gap: tSpace[2] }}>
             {noSlot ? (
               <Button
                 label="Join today's line"
@@ -371,12 +371,12 @@ function Body() {
               />
             )}
             {second("Ask for a day instead", () => void door("/book/day"))}
-          </>
+          </View>
         ) : (
-          <>
+          <View style={{ gap: tSpace[2] }}>
             <Button label="Ask for a day" busy={busy} onPress={() => void door("/book/day")} />
             {second("Come today instead", () => void door("/book/today"))}
-          </>
+          </View>
         )}
       </View>
     ) : (
@@ -432,7 +432,7 @@ function Body() {
           watermark={watermark}
         />
       ) : step === "ask" ? (
-        <>
+        <View style={{ gap: tSpace[4] }}>
           {helpPanel}
           <AskStep
             questions={followUps(chosen)}
@@ -444,9 +444,9 @@ function Body() {
               setSince(next);
             }}
           />
-        </>
+        </View>
       ) : (
-        <>
+        <View style={{ gap: tSpace[4] }}>
           <StepHead n={3} words="What to do" />
           {watermark}
           {tier === "E" ? (
@@ -470,7 +470,7 @@ function Body() {
             </Note>
           ) : null}
           <Text style={[tType.caption, { color: t.ink3 }]}>{say(CATALOG, "catalog.note")}</Text>
-        </>
+        </View>
       )}
     </Screen>
   );

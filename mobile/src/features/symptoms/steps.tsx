@@ -82,7 +82,7 @@ export function PickStep({
   const panelElsewhere = helpPanel && !signs.length;
 
   return (
-    <>
+    <View style={{ gap: tSpace[4] }}>
       <StepHead n={1} words="What you feel" />
       {watermark}
       <View style={{ gap: tSpace[1.5] }}>
@@ -214,7 +214,7 @@ export function PickStep({
         maxLength={MAX_FREE_TEXT}
         placeholder="For example: a cough that keeps me up at night"
       />
-    </>
+    </View>
   );
 }
 
@@ -240,7 +240,7 @@ export function AskStep({
     </Card>
   );
   return (
-    <>
+    <View style={{ gap: tSpace[4] }}>
       <StepHead n={2} words="A few questions" />
       <Text accessibilityRole="header" style={[tType.title, { color: t.ink }]}>
         A few quick questions
@@ -273,7 +273,7 @@ export function AskStep({
           />
         )),
       )}
-    </>
+    </View>
   );
 }
 
@@ -288,10 +288,7 @@ export function ResultCard({ tier, lede }: { tier: "U" | "R"; lede: string | nul
           "Come to the hospital today",
           "This should be seen today. We save your place in line, and the clinic sees what you told us.",
         ]
-      : [
-          "Book a visit",
-          "A clinic should see this, but it can wait for a day that suits you.",
-        ];
+      : ["Book a visit", "A clinic should see this, but it can wait for a day that suits you."];
   return (
     <View
       style={{
