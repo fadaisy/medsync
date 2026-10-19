@@ -4,6 +4,7 @@ import type {
   Availability,
   EncounterOrderRow,
   MenuTest,
+  OrderProfile,
   PatientIdentity,
   ReasonOption,
 } from "@/components/emr/orders/model";
@@ -33,7 +34,7 @@ import {
   testCatalogue,
 } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
-import { labLabels, labPaymentEvents } from "@/db/schema/lab-catalogue";
+import { labLabels, labOrderProfiles, labPaymentEvents } from "@/db/schema/lab-catalogue";
 import { labSettings } from "@/db/schema/lab-safety";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
@@ -85,6 +86,8 @@ export interface EncounterOrdersLoad {
   identity: PatientIdentity;
   timeZone: string;
   menu: MenuTest[];
+  /** TM-10, TM-12: hospital profiles over this menu; each expands into one line per test. */
+  profiles?: OrderProfile[];
   reasons: ReasonOption[];
   orders: EncounterOrderRow[];
   /** Transcription screens for the orders that can take a paper or imaging report now. */
@@ -200,6 +203,8 @@ function buildTestMenu(
       ? caps.get(t.capabilityId)
       : "unknown") as Availability,
     restricted: t.components.some((c) => sensitivityFor(c as FactConcept, null) === "restricted"),
+    aliases: t.aliases,
+    advisory: t.advisory,
     needsPurpose: hmis && needsHivPurpose(t.code), // D-LAB3-21
   }));
 }
@@ -500,11 +505,34 @@ export async function loadEncounterOrders(
       : null,
     timeZone: DEFAULT_TIME_ZONE,
     menu,
+    profiles: await loadOrderProfiles(menuDb, actor.hospitalId, menu),
     reasons,
     orders,
     transcribe,
     collectorName: actor.fullName,
   };
+}
+
+/** TM-10: the hospital's active profiles, as the menu tests they hold here (a test not on the menu drops out). */
+async function loadOrderProfiles(
+  database: Pick<EmrDb, "select">,
+  hospitalId: string,
+  menu: readonly MenuTest[],
+): Promise<OrderProfile[]> {
+  const rows = await database
+    .select({
+      id: labOrderProfiles.id,
+      name: labOrderProfiles.name,
+      codes: labOrderProfiles.testCodes,
+    })
+    .from(labOrderProfiles)
+    .where(and(eq(labOrderProfiles.hospitalId, hospitalId), eq(labOrderProfiles.active, true)))
+    .orderBy(labOrderProfiles.name);
+  const byCode = new Map(menu.map((t) => [t.code, t.id]));
+  return rows.flatMap((p) => {
+    const testIds = p.codes.flatMap((c) => (byCode.has(c) ? [byCode.get(c)!] : []));
+    return testIds.length ? [{ id: p.id, name: p.name, testIds }] : [];
+  });
 }
 
 /** The label for one specimen of this encounter (two identifiers, test, container, time). A

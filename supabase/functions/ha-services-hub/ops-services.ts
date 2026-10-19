@@ -295,15 +295,10 @@ const updateClinic: OpHandler = async (ctx, i) => {
 
 const upsertOfferings: OpHandler = async (ctx, i) => {
   const items = i.items as z.infer<typeof offering>[];
-  const labCodes = [...new Set(items.filter((x) => x.kind === "lab").map((x) => x.code))];
-  if (labCodes.length) {
-    const found = must(
-      await ctx.sb.from("loinc_codes").select("code").in("code", labCodes),
-      "loinc",
-    ) as { code: string }[];
-    const missing = labCodes.filter((c) => !found.some((f) => f.code === c));
-    if (missing.length) throw new HubError(`Not in the ordering catalogue: ${missing.join(", ")}`);
-  }
+  // Lab test menu v2 (Step 10, S26): laboratory rows are keyed by catalogue test and written by the test menu
+  // (lib/lab/test-menu-actions.ts); this op writes imaging only, and never a LOINC-keyed row.
+  if (items.some((x) => x.kind === "lab"))
+    throw new HubError("Laboratory tests are set up in the test menu.");
   const badImaging = items.filter((x) => x.kind === "imaging" && !isImagingCode(x.code));
   if (badImaging.length)
     throw new HubError(`Not in the imaging catalogue: ${badImaging.map((x) => x.code).join(", ")}`);
@@ -611,12 +606,19 @@ async function subjectLabel(ctx: Ctx, kind: string, ref: string): Promise<string
     case "clinic":
       return byId("service_lines", "clinic");
     case "test": {
+      // Lab test menu v2 (DX-1, ADR 0350): a test is a catalogue test, keyed by its id; never a LOINC code.
       const t = must(
-        await ctx.sb.from("loinc_codes").select("display").eq("code", ref).maybeSingle(),
+        await ctx.sb
+          .from("test_catalogue")
+          .select("display, restricted_class")
+          .eq("code", ref)
+          .eq("kind", "lab")
+          .is("hospital_id", null)
+          .maybeSingle(),
         "test",
-      ) as { display: string } | null;
+      ) as { display: string; restricted_class: string | null } | null;
       if (!t) throw new HubError("That test isn't in the ordering catalogue.");
-      return t.display.slice(0, 120);
+      return t.restricted_class ? "Restricted test" : t.display.slice(0, 120);
     }
     case "imaging": {
       if (!isImagingCode(ref)) throw new HubError("That imaging service isn't in the catalogue.");

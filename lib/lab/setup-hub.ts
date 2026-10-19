@@ -127,7 +127,7 @@ export interface HubFacts {
   ranges: TallyRow[];
   limits: TallyRow[];
   response: TallyRow[];
-  menu: { tests: number; unlinked: number };
+  menu: { tests: number };
   noUnit: number;
   profiles: { inUse: number; drafts: number };
   analysers: number;
@@ -228,9 +228,7 @@ export function hubGroups(f: HubFacts, visible: ReadonlySet<LabNavId>): HubGroup
         link("menu", v("setup_menu"), L.menu, "/lab/setup/menu", () =>
           f.menu.tests === 0
             ? { text: st.menuNone, tone: "not_set" }
-            : f.menu.unlinked
-              ? { text: fill(st.menu, { n: f.menu.tests, m: f.menu.unlinked }), tone: "draft" }
-              : { text: fill(st.menuAll, { n: f.menu.tests }), tone: "neutral" },
+            : { text: fill(st.menuAll, { n: f.menu.tests }), tone: "neutral" },
         ),
         link("catalogue", v("setup_catalogue"), L.catalogue, "/lab/setup/catalogue", () =>
           f.noUnit

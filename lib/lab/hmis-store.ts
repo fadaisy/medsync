@@ -29,7 +29,6 @@ import {
   labSignedConfigs,
   labStockItems,
   labStockTransactions,
-  labTestServices,
   specimenEvents,
   specimens,
   testCatalogue,
@@ -100,18 +99,16 @@ const splitCells = (cells: Record<string, Cell>) => ({
 /** HM-2, HM-3 (i): in-house lab tests on the hospital's menu (the hub's provision `in_house`). */
 export async function inHouseMenu(tx: EmrTx, hospitalId: string): Promise<string[]> {
   const rows = await tx
-    .selectDistinct({ code: labTestServices.testCode })
-    .from(labTestServices)
+    // Lab test menu v2 (TM-3): the offering is keyed by the catalogue test itself.
+    .selectDistinct({ code: testCatalogue.code })
+    .from(diagnosticOfferings)
     .innerJoin(
-      diagnosticOfferings,
-      and(
-        eq(diagnosticOfferings.hospitalId, labTestServices.hospitalId),
-        eq(diagnosticOfferings.code, labTestServices.offeringCode),
-      ),
+      testCatalogue,
+      and(eq(testCatalogue.code, diagnosticOfferings.code), isNull(testCatalogue.hospitalId)),
     )
     .where(
       and(
-        eq(labTestServices.hospitalId, hospitalId),
+        eq(diagnosticOfferings.hospitalId, hospitalId),
         eq(diagnosticOfferings.kind, "lab"),
         eq(diagnosticOfferings.provision, "in_house"),
       ),

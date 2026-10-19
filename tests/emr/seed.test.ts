@@ -17,7 +17,8 @@ const committed = (rel: string) => readFileSync(join(root, rel), "utf8");
 
 describe("EMR reference seed (0072, 0082, 0083, 0085, 0086 + catalogue.generated.ts)", () => {
   it("regenerating from the data reproduces the committed files byte-for-byte", async () => {
-    const { sql, ts, sql12, sql13, sql85, sql86, sql15, sql95, sql108 } = await generateSeed(root);
+    const out = await generateSeed(root);
+    const { sql, ts, sql12, sql13, sql85, sql86, sql15, sql95, sql108 } = out;
     expect(sql).toBe(committed(SEED_OUTPUTS.sql));
     expect(sql12).toBe(committed(SEED_OUTPUTS.sql12));
     expect(sql13).toBe(committed(SEED_OUTPUTS.sql13));
@@ -27,6 +28,8 @@ describe("EMR reference seed (0072, 0082, 0083, 0085, 0086 + catalogue.generated
     expect(sql95).toBe(committed(SEED_OUTPUTS.sql95));
     expect(sql108).toBe(committed(SEED_OUTPUTS.sql108));
     expect(ts).toBe(committed(SEED_OUTPUTS.ts));
+    expect(out.sql172).toBe(committed(SEED_OUTPUTS.sql172));
+    expect(out.ts17).toBe(committed(SEED_OUTPUTS.ts17));
   });
 
   it("carries the signed counts: v1 145/21/29 plus v1.1 59", () => {
@@ -34,7 +37,7 @@ describe("EMR reference seed (0072, 0082, 0083, 0085, 0086 + catalogue.generated
     expect(src.v1.drugClassTags).toHaveLength(21);
     expect(src.v1.capabilities).toHaveLength(29);
     expect(src.v11.concepts).toHaveLength(59);
-    expect(Object.keys(CONCEPTS)).toHaveLength(145 + 59 + 86 + 165 + 10 + 60); // + v1.2, v1.3, v1.5, v1.6 (0082, 0083, 0092, 0108)
+    expect(Object.keys(CONCEPTS)).toHaveLength(145 + 59 + 86 + 165 + 10 + 60 + 428); // + v1.2, v1.3, v1.5, v1.6, v1.7 (0082, 0083, 0092, 0108, 0172)
     expect(Object.keys(DRUG_CLASS_TAGS)).toHaveLength(21);
     expect(CAPABILITY_IDS).toHaveLength(29);
     const sql = committed(SEED_OUTPUTS.sql);

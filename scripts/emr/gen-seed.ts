@@ -18,6 +18,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import prettier from "prettier";
 
+import { fromLabCatalogueV2, V17_CODE_CHANGES, V17_KEY, V17_SOURCE } from "./cfc-v17";
+
 export const SEED_SOURCES = {
   v1: "docs/emr/clinical-fact-concepts.v1.json",
   v11: "data/emr/clinical-fact-concepts.v1.1.json",
@@ -25,6 +27,7 @@ export const SEED_SOURCES = {
   v13: "data/emr/clinical-fact-concepts.v1.3.json",
   v15: "data/emr/clinical-fact-concepts.v1.5.json",
   v16: "data/emr/clinical-fact-concepts.v1.6.json",
+  v17: V17_SOURCE,
   tests: "data/emr/test-catalogue.v1.json",
   terms: "data/emr/diagnosis-terms.v1.json",
   terms11: "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json",
@@ -40,6 +43,8 @@ export const SEED_OUTPUTS = {
   sql15: "supabase/migrations/0092_cfc_v1_5_ncd_diabetes.sql",
   sql95: "supabase/migrations/0095_ref_dx_terms_v1_2.sql",
   sql108: "supabase/migrations/0108_cfc_v1_6_lab_catalogue.sql",
+  sql172: "supabase/migrations/0172_cfc_v1_7_lab_test_menu.sql",
+  ts17: "lib/lab/catalogue-v17.generated.ts",
   ts: "lib/facts/catalogue.generated.ts",
 } as const;
 
@@ -68,6 +73,12 @@ const ADDENDA = [
     sql: "sql108",
     title: "0108 — CFC v1.6: the lab catalogue (Lab Phase 2, CD-06)",
   },
+  {
+    key: "v17",
+    version: "1.7.0",
+    sql: "sql172",
+    title: "0172 — CFC v1.7: the lab test menu catalogue v2 (Lab test menu v2, TM-1)",
+  },
 ] as const;
 
 // Fixed namespace for the uuid-keyed registries (test_catalogue, diagnosis_terms have no text key column).
@@ -93,7 +104,7 @@ export function uuidV5(name: string): string {
 
 export function readSeedSources(root: string) {
   const read = (rel: string): Json => JSON.parse(readFileSync(join(root, rel), "utf8"));
-  return {
+  const base = {
     v1: read(SEED_SOURCES.v1),
     v11: read(SEED_SOURCES.v11),
     v12: read(SEED_SOURCES.v12),
@@ -105,6 +116,31 @@ export function readSeedSources(root: string) {
     terms11: read(SEED_SOURCES.terms11),
     codes11: read(SEED_SOURCES.codes11),
     terms12: read(SEED_SOURCES.terms12),
+  };
+  // v1.7 is the lab catalogue v2 file read against everything before it (scripts/emr/cfc-v17.ts).
+  const known = new Set<string>(
+    [base.v1, base.v11, base.v12, base.v13, base.v15, base.v16].flatMap((a) =>
+      a.concepts.map((c: Json) => c.id),
+    ),
+  );
+  // An existing test's first list: v1's, or the addendum that added it (v1.5's NCD tests, v1.6's).
+  const v1Lists: Record<string, string[]> = Object.fromEntries(
+    [...base.tests.tests, ...base.v15.testsAdd].map((t: Json) => [t.id, t.panelComponents]),
+  );
+  const existing: Record<string, string[]> = {
+    ...v1Lists,
+    ...Object.fromEntries(base.v16.testsAdd.map((t: Json) => [t.id, t.panelComponents])),
+    ...base.v16.testsV2,
+  };
+  return {
+    ...base,
+    v17: fromLabCatalogueV2(
+      read(SEED_SOURCES.v17),
+      known,
+      existing,
+      v1Lists,
+      new Set(base.v15.testsAdd.map((t: Json) => t.id)),
+    ) as Json,
   };
 }
 export type SeedSources = ReturnType<typeof readSeedSources>;
@@ -417,7 +453,7 @@ function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string
 --   clinical_concepts   ${concepts.length} at ${a.version} (${withCode} carry a symptom_catalog code${ext.length ? `; answers added to ${ext.map(([id]) => id).join(", ")}` : ""})
 --
 -- GATED: owner-applied (\`npm run db:migrate\`), after 0076 (symptom_code references symptom_catalog codes
--- 0076 adds) and after ${a.key === "v12" ? "0072" : a.key === "v13" ? "0082 (v1.3 reuses v1.2 concepts)" : a.key === "v15" ? "0083 and 0085 (v1.5 links terms 0085 seeds)" : "0092 and 0107 (v1.6 uses the units 0107 adds)"}. Until it runs, signing keeps these findings in the note only
+-- 0076 adds) and after ${a.key === "v12" ? "0072" : a.key === "v13" ? "0082 (v1.3 reuses v1.2 concepts)" : a.key === "v15" ? "0083 and 0085 (v1.5 links terms 0085 seeds)" : a.key === "v16" ? "0092 and 0107 (v1.6 uses the units 0107 adds)" : "0108 and 0171 (v1.7's tests use the columns 0171 adds)"}. Until it runs, signing keeps these findings in the note only
 -- (it charts only concepts present in clinical_concepts).
 `;
   const extSql = ext.map(
@@ -566,6 +602,118 @@ function buildV16Extra(src: SeedSources): string {
       )
       .join("\n") + "\n",
   ].join("\n");
+}
+
+// ─── 0172: v1.7's tests (inactive), the facts on existing tests, TM-D12 ─
+const V17_TEST_COLS = [
+  ...TEST_CATALOGUE_COLS,
+  "restricted_class",
+  "section",
+  "aliases",
+  "specimen",
+  "tube",
+  "order_loinc",
+  "min_level",
+  "level_basis",
+  "usual_route",
+  "refer_to",
+  "kit_dependent_ranges",
+  "advisory",
+  "offer_by_default",
+];
+const v17Facts = (t: Json) => [
+  lit(t.section),
+  arr(t.aliases),
+  lit(t.specimen),
+  lit(t.tube),
+  lit(t.orderLoinc),
+  lit(t.minLevel),
+  jsonb(t.levelBasis),
+  lit(t.usualRoute),
+  lit(t.referTo),
+  bool(t.kitDependentRanges),
+  lit(t.advisory),
+  bool(t.offerByDefault),
+];
+const V17_FACT_COLS = V17_TEST_COLS.slice(TEST_CATALOGUE_COLS.length + 1);
+
+/**
+ * The 255 new tests arrive inactive (CC-1): signing the addendum in the product makes them addable and
+ * orderable, and appends the additions to existing tests. The existing tests get their catalogue facts only while
+ * `section` is unset, and a restricted class only where none is set, so a re-run changes nothing and a class the
+ * CSO has since changed is never touched. TM-D12 changes one code only while it is still the TRIAL one.
+ */
+function buildV17Extra(src: SeedSources): string {
+  const v = src.v17;
+  const added = [...v.added].sort(byId((t: Json) => t.id));
+  const updated = [...v.updated].sort(byId((t: Json) => t.id));
+  const rows = added.map((t: Json) => [
+    ...testRow({
+      id: t.id,
+      display: t.display,
+      kind: "lab",
+      panelComponents: t.components,
+      specimenType: null,
+      container: null,
+      fasting_required: false,
+      defaultUnits: {},
+      in_house: true,
+      capability_id: null,
+      turnaround_target_minutes: null,
+      active: false,
+    }),
+    lit(t.restrictedClass),
+    ...v17Facts(t),
+  ]);
+  const set = (t: Json) =>
+    V17_FACT_COLS.map((c, i) => `${c} = ${v17Facts(t)[i]}`).join(",\n      ");
+  return [
+    "-- ─── test_catalogue: new tests (inactive until the addendum is signed) ─",
+    insert("test_catalogue", V17_TEST_COLS, rows),
+    "-- ─── test_catalogue: catalogue facts on the existing tests ──────────",
+    updated
+      .map(
+        (t: Json) =>
+          `UPDATE public.test_catalogue SET\n      ${set(t)}\n  WHERE code = ${lit(t.id)} AND hospital_id IS NULL AND section IS NULL;` +
+          (t.restrictedClass
+            ? `\nUPDATE public.test_catalogue SET restricted_class = ${lit(t.restrictedClass)}\n  WHERE code = ${lit(t.id)} AND hospital_id IS NULL AND restricted_class IS NULL;`
+            : ""),
+      )
+      .join("\n") + "\n",
+    "-- ─── TM-D12: the ACTIVE code for a TRIAL one ─────────────────────────",
+    Object.entries(V17_CODE_CHANGES)
+      .map(
+        ([id, c]) =>
+          `UPDATE public.clinical_concepts\n  SET codes = ${jsonb([{ system: "LOINC", code: c.to, status: "verified" }])}\n  WHERE id = ${lit(id)} AND codes @> ${jsonb([{ system: "LOINC", code: c.from }])};`,
+      )
+      .join("\n") + "\n",
+  ].join("\n");
+}
+
+/** What the app branches on from v1.7: the tests signing activates and the additions it appends. */
+function buildV17Ts(src: SeedSources, root: string): string {
+  const v = src.v17;
+  const hash = createHash("sha256")
+    .update(readFileSync(join(root, SEED_SOURCES.v17), "utf8"))
+    .digest("hex");
+  const sortObj = (o: Record<string, unknown>) =>
+    Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
+  return `// GENERATED — do not edit. Source: ${SEED_SOURCES.v17} (via scripts/emr/cfc-v17.ts).
+// Regenerate with \`npx tsx scripts/emr/gen-seed.ts\`; tests/emr/seed.test.ts fails while it drifts.
+/** CFC v1.7 (Lab test menu v2, TM-1): what signing addendum ${V17_KEY} switches on. */
+
+export const V17_ADDENDUM_KEY = ${JSON.stringify(V17_KEY)};
+/** The addendum's payload: the SHA-256 of the catalogue file (CC-1). */
+export const V17_SOURCE_SHA256 = ${JSON.stringify(hash)};
+/** Tests 0172 inserts inactive; signing activates them (CC-1). */
+export const V17_NEW_TESTS = ${JSON.stringify(v.added.map((t: Json) => t.id).sort())} as const;
+/** Components the catalogue adds to existing tests, appended once signed. Nothing is removed. */
+export const V17_ADDITIONS: Readonly<Record<string, readonly string[]>> = ${JSON.stringify(sortObj(v.additions))};
+export const V17_ABNORMAL_ANSWERS: Readonly<Record<string, readonly string[]>> = ${JSON.stringify(sortObj(v.abnormal))};
+export const V17_OTHER_UNITS: Readonly<
+  Record<string, readonly { unit: string; multiplyBy: number }[]>
+> = ${JSON.stringify(sortObj(v.otherUnits))};
+`;
 }
 
 // ─── 0086: ICD-11 codes for the v1.1 addendum, read on the WHO API and signed ─
@@ -784,6 +932,8 @@ export async function generateSeed(root: string = process.cwd()): Promise<{
   sql15: string;
   sql95: string;
   sql108: string;
+  sql172: string;
+  ts17: string;
 }> {
   const src = readSeedSources(root);
   const tsPath = join(root, SEED_OUTPUTS.ts);
@@ -797,13 +947,19 @@ export async function generateSeed(root: string = process.cwd()): Promise<{
     sql15: buildAddendumSql(src, ADDENDA[2]) + "\n" + buildV15Extra(src),
     sql95: buildTermsV12Sql(src),
     sql108: buildAddendumSql(src, ADDENDA[3]) + "\n" + buildV16Extra(src),
+    sql172: buildAddendumSql(src, ADDENDA[4]) + "\n" + buildV17Extra(src),
+    ts17: await prettier.format(buildV17Ts(src, root), {
+      ...config,
+      filepath: join(root, SEED_OUTPUTS.ts17),
+    }),
     ts: await prettier.format(buildTs(src), { ...config, filepath: tsPath }),
   };
 }
 
 if (process.argv[1]?.endsWith("gen-seed.ts")) {
   const root = process.cwd();
-  generateSeed(root).then(({ sql, ts, sql12, sql13, sql85, sql86, sql15, sql95, sql108 }) => {
+  generateSeed(root).then((out) => {
+    const { sql, ts, sql12, sql13, sql85, sql86, sql15, sql95, sql108, sql172, ts17 } = out;
     writeFileSync(join(root, SEED_OUTPUTS.sql), sql);
     writeFileSync(join(root, SEED_OUTPUTS.sql12), sql12);
     writeFileSync(join(root, SEED_OUTPUTS.sql13), sql13);
@@ -812,6 +968,8 @@ if (process.argv[1]?.endsWith("gen-seed.ts")) {
     writeFileSync(join(root, SEED_OUTPUTS.sql15), sql15);
     writeFileSync(join(root, SEED_OUTPUTS.sql95), sql95);
     writeFileSync(join(root, SEED_OUTPUTS.sql108), sql108);
+    writeFileSync(join(root, SEED_OUTPUTS.sql172), sql172);
+    writeFileSync(join(root, SEED_OUTPUTS.ts17), ts17);
     writeFileSync(join(root, SEED_OUTPUTS.ts), ts);
     console.log(`wrote ${Object.values(SEED_OUTPUTS).join(", ")}`);
   });

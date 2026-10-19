@@ -4,7 +4,7 @@ import type { IndicatorInput, IndicatorValue } from "./indicators";
 import type { EmrTx } from "@/lib/emr/db";
 import { and, eq, sql } from "drizzle-orm";
 
-import { diagnosticOfferings, hospitalDepartments, labTestServices } from "@/db/schema";
+import { diagnosticOfferings, hospitalDepartments } from "@/db/schema";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { computeIndicators, count, NO_DATA, pct } from "./indicators";
 import { addDays, endOfDay } from "./stock";
@@ -134,20 +134,19 @@ export async function reportRows(tx: EmrTx, p: Period): Promise<ReportRow[]> {
 /** The lab's stated turnaround per test, in minutes, where the hub states one unambiguous figure (TA-*). */
 export async function statedTargets(tx: EmrTx, hospitalId: string): Promise<Targets> {
   const rows = await tx
-    .select({ code: labTestServices.testCode, stated: diagnosticOfferings.statedTat })
-    .from(labTestServices)
-    .innerJoin(
-      diagnosticOfferings,
-      and(
-        eq(diagnosticOfferings.hospitalId, labTestServices.hospitalId),
-        eq(diagnosticOfferings.kind, "lab"),
-        eq(diagnosticOfferings.code, labTestServices.offeringCode),
-      ),
-    )
-    .where(eq(labTestServices.hospitalId, hospitalId));
+    // Lab test menu v2 (TM-3): keyed by the test; the minutes the menu stores win over the words.
+    .select({
+      code: diagnosticOfferings.code,
+      stated: diagnosticOfferings.statedTat,
+      minutes: diagnosticOfferings.statedTurnaroundMinutes,
+    })
+    .from(diagnosticOfferings)
+    .where(
+      and(eq(diagnosticOfferings.hospitalId, hospitalId), eq(diagnosticOfferings.kind, "lab")),
+    );
   return Object.fromEntries(
     rows.flatMap((r) => {
-      const m = parseStatedTat(r.stated);
+      const m = r.minutes ?? parseStatedTat(r.stated);
       return m === null ? [] : [[r.code, m]];
     }),
   );

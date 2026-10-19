@@ -7,6 +7,7 @@ import { and, count, desc, eq, inArray, isNull, notExists, notInArray } from "dr
 import { fill, LAB3 } from "@/content/lab-phase-3";
 import {
   devices,
+  diagnosticOfferings,
   diagnosticReports,
   encounterOrders,
   labBreakdowns,
@@ -14,7 +15,6 @@ import {
   labQcRuns,
   labStockItems,
   labStockLots,
-  labTestServices,
   specimenEvents,
   specimens,
   testCatalogue,
@@ -134,8 +134,8 @@ export async function saveSchedule(
 /* ─── Down and back (EQ-2, EQ-3) ───────────────────────────────────── */
 
 /**
- * EQ-2, S11: the hub tests whose only in-service machine is this one, as the hub's subjects (the offering code
- * each test is linked to, Phase 2's lab_test_services). A test with no link has nothing in the hub to set.
+ * EQ-2, S11: the hub tests whose only in-service machine is this one, as the hub's subjects (Lab test menu v2,
+ * TM-3: the offering is keyed by the test itself). A test not on the menu has nothing in the hub to set.
  */
 async function hubSubjects(tx: EmrTx, a: Actor, device: typeof devices.$inferSelect) {
   if (!device.linkedTests.length) return { tests: [] as string[], codes: [] as string[] };
@@ -158,12 +158,13 @@ async function hubSubjects(tx: EmrTx, a: Actor, device: typeof devices.$inferSel
   );
   const links = tests.length
     ? await tx
-        .select({ code: labTestServices.offeringCode })
-        .from(labTestServices)
+        .select({ code: diagnosticOfferings.code })
+        .from(diagnosticOfferings)
         .where(
           and(
-            eq(labTestServices.hospitalId, a.hospitalId),
-            inArray(labTestServices.testCode, tests),
+            eq(diagnosticOfferings.hospitalId, a.hospitalId),
+            eq(diagnosticOfferings.kind, "lab"),
+            inArray(diagnosticOfferings.code, tests),
           ),
         )
     : [];

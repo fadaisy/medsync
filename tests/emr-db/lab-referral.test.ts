@@ -246,14 +246,11 @@ describe.skipIf(!laneOn)("Lab Phase 4 referrals and results back (Steps 4–7)",
       [h, a.dp.userId],
     );
     // The test is referred today (the hub), and has a measure in mmol/L (Phase 1's registry).
+    // Lab test menu v2 (TM-3): the hub row is keyed by the test itself.
     await pg.query(
       `INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, stated_tat, referred_to, confirmed_at)
-       VALUES ($1, 'lab', 'TEST-OFFER', 'referred', 'test', 'Test reference lab', now())`,
-      [h],
-    );
-    await pg.query(
-      `INSERT INTO lab_test_services (hospital_id, test_code, offering_code, set_by) VALUES ($1, $2, 'TEST-OFFER', $3)`,
-      [h, TEST, a.lead.userId],
+       VALUES ($1, 'lab', $2, 'referred', 'test', 'Test reference lab', now())`,
+      [h, TEST],
     );
     await tx((t) =>
       saveMeasure(

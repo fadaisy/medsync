@@ -35,7 +35,13 @@ export function AddendumState({ config }: { config: ResearchDrafts["addendum"]["
 }
 
 /** §5.13 "Review the addendum": every new result and test, then the draft and the lead's signature. */
-export function AddendumDialog({ addendum }: { addendum: ResearchDrafts["addendum"] }) {
+export function AddendumDialog({
+  addendum,
+  title = C.title,
+}: {
+  addendum: ResearchDrafts["addendum"] | ResearchDrafts["menuAddendum"];
+  title?: string;
+}) {
   const [open, setOpen] = useState(false);
   const { pending, message, act } = useAct();
   const config = addendum.config;
@@ -51,7 +57,7 @@ export function AddendumDialog({ addendum }: { addendum: ResearchDrafts["addendu
       </Button>
       <EditorDialog open={open} onOpenChange={setOpen} width="wide">
         <SheetHeader>
-          <SheetTitle>{C.title}</SheetTitle>
+          <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{C.description}</SheetDescription>
         </SheetHeader>
         <SheetBody className="flex flex-col gap-6">
@@ -131,7 +137,12 @@ export function AddendumDialog({ addendum }: { addendum: ResearchDrafts["addendu
               <>
                 <LabButton
                   type="button"
-                  onClick={() => act(() => draftAddendumAction({ hash: addendum.hash }), C.drafted)}
+                  onClick={() =>
+                    act(
+                      () => draftAddendumAction({ hash: addendum.hash, key: addendum.key }),
+                      C.drafted,
+                    )
+                  }
                   className="min-h-11 sm:min-h-8"
                   variant="primary"
                   busy={pending}

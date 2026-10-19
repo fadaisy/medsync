@@ -166,45 +166,45 @@ describe.skipIf(!laneOn)("lab reads (PGlite lane)", () => {
     const two = data.inputs.find((i) => i.orderId === a2.orderId)!;
     expect(two.stage).toBe("to_result");
     expect(two.receivedAt).toBeInstanceOf(Date);
-    expect(data.sections).toEqual([{ id: chem, name: "Clinical chemistry" }]);
+    expect(data.sections).toEqual([{ id: chem, name: "Clinical chemistry", code: "CLIN_CHEM" }]);
   });
 
-  it("LW-3, TA-3: a hub offering gives the section and the stated turnaround; none gives No section", async () => {
-    const withOffering = await specimen("A", { receive: true });
-    const without = await specimen("A", { receive: true });
-    // The EMR never writes loinc_code (finding 2) and the order row is immutable, so the seam is
-    // exercised by setting it as the owner with triggers paused for this one statement.
-    await lane.pg.exec(`SET session_replication_role = replica`);
-    await lane.pg.query(`UPDATE encounter_orders SET loinc_code = '1558-6' WHERE id = $1`, [
-      withOffering.orderId,
-    ]);
-    await lane.pg.exec(`SET session_replication_role = origin`);
+  it("LW-3, TA-3, TM-3: the test's hub offering gives the section and the stated turnaround; none gives No section", async () => {
+    const one = await specimen("A", { receive: true });
+    // Lab test menu v2: the offering is keyed by the test itself (this fixture's unit has no A.3 code, so the
+    // catalogue section maps to no unit and only the offering's own unit places the row).
     await lane.pg.query(
       `INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, section_id, stated_tat)
-       VALUES ($1, 'lab', '1558-6', 'in_house', $2, '1 h') ON CONFLICT DO NOTHING`,
+       VALUES ($1, 'lab', 'test.glucose_fasting', 'in_house', $2, '1 h') ON CONFLICT DO NOTHING`,
       [hA, chem],
     );
+    const viewer = { hospitalId: hA, permissions: new Set(LAB_PERMISSIONS), sectionIds: [chem] };
     const data = await loadLabWorklist(hA, lane.db);
     const w = computeWorklist({
       rows: data.inputs,
       sections: data.sections,
-      viewer: { hospitalId: hA, permissions: new Set(LAB_PERMISSIONS), sectionIds: [chem] },
+      viewer,
       filters: {},
       serverNow: new Date(),
     });
-    const sectioned = w.rows.find((r) => r.orderId === withOffering.orderId);
-    expect(sectioned).toMatchObject({
+    expect(w.rows.find((r) => r.orderId === one.orderId)).toMatchObject({
       sectionId: chem,
       target: { minutes: 60, source: "facility" },
     });
     expect(w.section).toBe(chem);
+    await lane.pg.query(
+      `DELETE FROM diagnostic_offerings WHERE hospital_id = $1 AND code = 'test.glucose_fasting'`,
+      [hA],
+    );
+    const again = await loadLabWorklist(hA, lane.db);
     const everything = computeWorklist({
-      ...{ rows: data.inputs, sections: data.sections },
-      viewer: { hospitalId: hA, permissions: new Set(LAB_PERMISSIONS), sectionIds: [] },
+      rows: again.inputs,
+      sections: again.sections,
+      viewer: { ...viewer, sectionIds: [] },
       filters: {},
       serverNow: new Date(),
     });
-    expect(everything.rows.find((r) => r.orderId === without.orderId)).toMatchObject({
+    expect(everything.rows.find((r) => r.orderId === one.orderId)).toMatchObject({
       sectionId: null,
       target: null,
     });

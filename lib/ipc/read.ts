@@ -268,8 +268,8 @@ export async function alertList(hospitalId: string) {
 /** The menu's test codes (A14: an entry whose test is not here never fires). */
 export async function menuTestCodes(hospitalId: string): Promise<string[]> {
   return rowsOf<{ code: string }>(
-    await db.execute(sql`SELECT DISTINCT t.code FROM lab_test_services s JOIN test_catalogue t ON t.code = s.test_code
-      WHERE s.hospital_id = ${hospitalId}
+    await db.execute(sql`SELECT DISTINCT t.code FROM diagnostic_offerings s JOIN test_catalogue t ON t.code = s.code
+      WHERE s.hospital_id = ${hospitalId} AND s.kind = 'lab'
       UNION SELECT t.code FROM test_catalogue t WHERE t.kind = 'lab' AND t.hospital_id IS NULL AND t.active`),
   ).map((r) => r.code);
 }

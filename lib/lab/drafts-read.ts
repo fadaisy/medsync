@@ -14,8 +14,10 @@ import {
   researchImports,
   testCatalogue,
 } from "@/db/schema";
+import { CONCEPTS } from "@/lib/facts/catalogue.generated";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { ABNORMAL_ANSWERS, ADDENDUM_KEY } from "./catalogue-v2";
+import { V17_ADDENDUM_KEY, V17_NEW_TESTS, V17_SOURCE_SHA256 } from "./catalogue-v17.generated";
 import { rangeSignErrors } from "./ranges";
 import { NOT_IMPORTED, sha256 } from "./research-import";
 import { researchText } from "./research-store";
@@ -80,11 +82,9 @@ const firstAuthor = (c: string) => {
   return s.length > 28 ? `${s.slice(0, 27)}…` : s;
 };
 
-export async function loadResearchDrafts(tx: EmrTx, hospitalId: string, userId: string) {
-  const addendumHash = sha256(readFileSync(join(process.cwd(), ADDENDUM_FILE), "utf8"));
-  const researchHash = sha256(researchText());
-
-  const [addendum] = await tx
+/** CC-1: an addendum's newest row in words for the card, or null when nobody has drafted it. */
+async function addendumConfig(tx: EmrTx, key: string, userId: string) {
+  const [a] = await tx
     .select({
       id: labSignedConfigs.id,
       status: labSignedConfigs.status,
@@ -95,12 +95,39 @@ export async function loadResearchDrafts(tx: EmrTx, hospitalId: string, userId: 
     .where(
       and(
         eq(labSignedConfigs.kind, "addendum"),
-        eq(labSignedConfigs.key, ADDENDUM_KEY),
+        eq(labSignedConfigs.key, key),
         isNull(labSignedConfigs.hospitalId),
       ),
     )
     .orderBy(desc(labSignedConfigs.version))
     .limit(1);
+  return a
+    ? {
+        id: a.id,
+        state: (a.status !== "draft" ? "signed" : a.leadSignedBy ? "cso" : "draft") as
+          | "signed"
+          | "cso"
+          | "draft",
+        authoredByMe: a.authoredBy === userId,
+      }
+    : null;
+}
+
+export async function loadResearchDrafts(tx: EmrTx, hospitalId: string, userId: string) {
+  const addendumHash = sha256(readFileSync(join(process.cwd(), ADDENDUM_FILE), "utf8"));
+  const researchHash = sha256(researchText());
+  const config = await addendumConfig(tx, ADDENDUM_KEY, userId);
+  // Lab test menu v2 (TM-1): catalogue v2 is addendum v1.7, signed the same way.
+  const v17Tests = await tx
+    .select({
+      id: testCatalogue.code,
+      display: testCatalogue.display,
+      components: testCatalogue.components,
+    })
+    .from(testCatalogue)
+    .where(and(isNull(testCatalogue.hospitalId), inArray(testCatalogue.code, [...V17_NEW_TESTS])))
+    .orderBy(testCatalogue.code);
+  const v17Concepts = Object.entries(CONCEPTS).filter(([, c]) => c.phase === "v1.7");
 
   const [imported] = await tx
     .select({ importedAt: researchImports.importedAt, report: researchImports.report })
@@ -224,19 +251,10 @@ export async function loadResearchDrafts(tx: EmrTx, hospitalId: string, userId: 
 
   return {
     addendum: {
+      key: ADDENDUM_KEY,
       hash: addendumHash,
       count: V16.counts.concepts,
-      config: addendum
-        ? {
-            id: addendum.id,
-            state: (addendum.status !== "draft"
-              ? "signed"
-              : addendum.leadSignedBy
-                ? "cso"
-                : "draft") as "signed" | "cso" | "draft",
-            authoredByMe: addendum.authoredBy === userId,
-          }
-        : null,
+      config,
       concepts: V16.concepts.map((c) => ({
         id: c.id,
         display: c.display,
@@ -252,6 +270,23 @@ export async function loadResearchDrafts(tx: EmrTx, hospitalId: string, userId: 
         display: t.display,
         components: t.panelComponents,
       })),
+    },
+    menuAddendum: {
+      key: V17_ADDENDUM_KEY,
+      hash: V17_SOURCE_SHA256,
+      count: v17Concepts.length,
+      config: await addendumConfig(tx, V17_ADDENDUM_KEY, userId),
+      concepts: v17Concepts.map(([id, c]) => ({
+        id,
+        display: c.display,
+        valueType: c.valueType as string,
+        unit: c.canonicalUnit as string | null,
+        answers: ((c.answers ?? []) as readonly string[]).map((a) => ({
+          code: a,
+          abnormal: ABNORMAL_ANSWERS[id]?.includes(a) ?? false,
+        })),
+      })),
+      tests: v17Tests,
     },
     imported: imported
       ? {

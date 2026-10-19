@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hospital profiles</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 860px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Hospital profiles</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row"><nav class="seg" aria-label="Tests"><a href="TestMenu.dc.html">Test menu</a><a class="on" href="#" aria-current="page">Hospital profiles</a><a href="#">Test catalogue</a><a href="#">Analyser profiles</a></nav><span class="row__sp"></span><span class="small">A profile orders several catalogue tests at once. Each test keeps its own section, results and restricted class.</span><a class="btn btn--p btn--s" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>New profile</a></div><div class="sg" style="grid-template-columns: repeat(2, minmax(0, 1fr))"><section class="card"><div class="card__h"><h2>Antenatal profile (first visit)</h2><span class="pill">6 tests</span><span class="sp"></span><a class="btn btn--s" href="#">Edit</a></div><div class="lst prof"><div><span>Haemoglobin (Hb only)</span><span class="small">Haematology</span><span class="small">1 result</span></div><div><span>Blood group (ABO and RhD)</span><span class="small">Blood transfusion</span><span class="small">2 results</span></div><div><span>HIV/syphilis dual rapid test (ANC) <span class="pill pill--lock">Restricted</span></span><span class="small">Immunology and serology</span><span class="small">2 results</span></div><div><span>Hepatitis B surface antigen (HBsAg)</span><span class="small">Immunology and serology</span><span class="small">1 result</span></div><div><span>Urinalysis (dipstick)</span><span class="small">Parasitology</span><span class="small">10 results</span></div><div><span>Malaria rapid diagnostic test (mRDT)</span><span class="small">Parasitology</span><span class="small">2 results</span></div></div><div class="card__f"><span class="small">Doctors see it as one line in ordering. Tests not on your menu cannot be added to a profile.</span></div></section><section class="card"><div class="card__h"><h2>Pre-operative bloods</h2><span class="pill">4 tests</span><span class="sp"></span><a class="btn btn--s" href="#">Edit</a></div><div class="lst prof"><div><span>Full blood count</span><span class="small">Haematology</span><span class="small">31 results</span></div><div><span>Urea, electrolytes and creatinine (U&amp;E / RFTs)</span><span class="small">Clinical chemistry</span><span class="small">7 results</span></div><div><span>Coagulation screen (PT, INR, APTT)</span><span class="small">Haematology</span><span class="small">3 results</span></div><div><span>Group and save (ABO, RhD, antibody screen)</span><span class="small">Blood transfusion</span><span class="small">3 results</span></div></div><div class="card__f"><span class="small">Used by theatre lists. Group and save goes to Blood transfusion automatically.</span></div></section><section class="card"><div class="card__h"><h2>Medical check-up</h2><span class="pill">7 tests</span><span class="sp"></span><a class="btn btn--s" href="#">Edit</a></div><div class="lst prof"><div><span>Full blood count</span><span class="small">Haematology</span><span class="small">31 results</span></div><div><span>Liver function tests (LFTs)</span><span class="small">Clinical chemistry</span><span class="small">8 results</span></div><div><span>Urea, electrolytes and creatinine (U&amp;E / RFTs)</span><span class="small">Clinical chemistry</span><span class="small">7 results</span></div><div><span>Lipid profile</span><span class="small">Clinical chemistry</span><span class="small">4 results</span></div><div><span>HbA1c (glycated haemoglobin)</span><span class="small">Clinical chemistry</span><span class="small">1 result</span></div><div><span>Urinalysis (urine R/E: macroscopy, dipstick and microscopy)</span><span class="small">Parasitology</span><span class="small">20 results</span></div><div><span>Hepatitis B surface antigen (HBsAg)</span><span class="small">Immunology and serology</span><span class="small">1 result</span></div></div><div class="card__f"><span class="small">Used by the wellness clinic. Each test is billed by its own line unless the profile has a price.</span></div></section><section class="card"><div class="card__h"><h2>Lupus work-up</h2><span class="pill">6 tests</span><span class="sp"></span><a class="btn btn--s" href="#">Edit</a></div><div class="lst prof"><div><span>ANA (immunofluorescence, HEp-2)</span><span class="small">Immunology and serology</span><span class="small">3 results</span></div><div><span>Anti-dsDNA antibodies</span><span class="small">Immunology and serology</span><span class="small">1 result</span></div><div><span>Complement C3 and C4</span><span class="small">Immunology and serology</span><span class="small">2 results</span></div><div><span>Full blood count</span><span class="small">Haematology</span><span class="small">31 results</span></div><div><span>Urinalysis (urine R/E: macroscopy, dipstick and microscopy)</span><span class="small">Parasitology</span><span class="small">20 results</span></div><div><span>Urine protein:creatinine ratio (uPCR)</span><span class="small">Clinical chemistry</span><span class="small">3 results</span></div></div><div class="card__f"><span class="small">Built by the physicians. The referred tests leave on one manifest with the partner lab.</span></div></section></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

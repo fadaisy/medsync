@@ -10,7 +10,13 @@ import ACTIONS from "./parity-actions.json";
  * app/lab/actions.ts, used only where LAB_WORKSPACE is off.
  */
 const ROOT = resolve(__dirname, "../../..");
-const LEGACY = new Set(["enterLabResultAction", "rejectLabResultAction", "releaseLabResultAction"]);
+const LEGACY = new Set([
+  "enterLabResultAction",
+  "rejectLabResultAction",
+  "releaseLabResultAction",
+  // Lab test menu v2 (TM-3, ADR 0350): the offering is keyed by the test, so no linking step remains.
+  "setTestServiceAction",
+]);
 const walk = (d: string): string[] =>
   readdirSync(d).flatMap((n) => {
     const f = join(d, n);

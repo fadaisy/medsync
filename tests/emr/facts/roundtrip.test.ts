@@ -76,14 +76,14 @@ function project(concept: Id, drop?: string): Projection {
 }
 
 describe("round-trip: every catalogue concept projects, validates and is interpretable", () => {
-  it("covers the whole catalogue (145 v1 + 59 v1.1 + 86 v1.2 + 165 v1.3 + 10 v1.5 + 60 v1.6)", () => {
-    expect(ALL).toHaveLength(525);
+  it("covers the whole catalogue (145 v1 + 59 v1.1 + 86 v1.2 + 165 v1.3 + 10 v1.5 + 60 v1.6 + 428 v1.7)", () => {
+    expect(ALL).toHaveLength(953);
   });
 
   it.each(ALL)("%s", (concept) => {
     const out = project(concept);
-    if (concept === "obs.uncatalogued") {
-      // A4: stored encrypted, shown as "Uncatalogued", never a fact.
+    if (concept === "obs.uncatalogued" || def(concept).valueType === "as_typed") {
+      // A4: stored encrypted, shown as typed (v1.7's free-text lab results too), never a fact.
       expect(out).toEqual({ facts: [], quarantined: [] });
       return;
     }

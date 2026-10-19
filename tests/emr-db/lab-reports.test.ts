@@ -242,11 +242,7 @@ describe.skipIf(!laneOn)("Lab Phase 3 lab reports and quality indicators (Step 1
       await pg.query(
         `INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, hours, stated_tat, confirmed_at, section_id)
          VALUES ($1, 'lab', $2, 'in_house', '24h', $3, now(), $4)`,
-        [h, `fx-${code}`, stated, sec],
-      );
-      await pg.query(
-        `INSERT INTO lab_test_services (hospital_id, test_code, offering_code, set_by) VALUES ($1, $2, $3, $4)`,
-        [h, code, `fx-${code}`, actor.tech.userId],
+        [h, code, stated, sec],
       );
     }
 

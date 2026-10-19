@@ -115,14 +115,20 @@ export async function saveConfigDraftAction(raw: unknown): Promise<ActionResult>
 
 /** CC-1: the concept addendum, global, keyed by the data file's hash. */
 export async function draftAddendumAction(raw: unknown): Promise<ActionResult> {
-  const p = z.object({ hash: z.string().regex(/^[0-9a-f]{64}$/) }).safeParse(raw);
+  const p = z
+    .object({
+      hash: z.string().regex(/^[0-9a-f]{64}$/),
+      key: z.enum(["cfc-1.6.0", "cfc-1.7.0"]).default("cfc-1.6.0"),
+    })
+    .safeParse(raw);
   if (!p.success) return bad(p.error);
+  const { key, hash } = p.data;
   return run(() =>
     asLead((tx, a) =>
       saveConfigDraft(
         tx,
         a,
-        { kind: "addendum", key: "cfc-1.6.0", payload: p.data, global: true },
+        { kind: "addendum", key, payload: { hash }, global: true },
         new Date(),
       ),
     ),

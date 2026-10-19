@@ -187,15 +187,11 @@ describe.skipIf(!laneOn)("Lab Phase 3 external quality assessment (Step 7)", () 
       [h, "test.hiv_rapid"],
       [h2, "test.fbc"],
     ] as const) {
-      const offering = `fx-${code}`;
+      const offering = code; // Lab test menu v2 (TM-3): keyed by the test
       await pg.query(
         `INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, hours, stated_tat, confirmed_at)
          VALUES ($1, 'lab', $2, 'in_house', '24h', 'fixture 2 h', now())`,
         [hid, offering],
-      );
-      await pg.query(
-        `INSERT INTO lab_test_services (hospital_id, test_code, offering_code, set_by) VALUES ($1, $2, $3, $4)`,
-        [hid, code, offering, actor.lead.userId],
       );
     }
   }, 300_000);

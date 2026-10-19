@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { SectionKey } from "./test-menu";
 import type { Target } from "./turnaround";
 import type { LabStage, WorklistInput } from "./worklist";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
@@ -23,6 +24,7 @@ import { startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { highRiskFor } from "./collection-store";
 import { labBenchLiveFor, labHighRiskLiveFor } from "./feature";
 import { ANALYSER_MODELS } from "./profiles";
+import { hubSectionCode, sectionFor } from "./test-menu";
 import { releasedTurnaround, targetFor } from "./turnaround";
 
 /**
@@ -44,7 +46,11 @@ const defaultDb = () => appDb as unknown as EmrDb;
 /** The hospital's lab sections: live, unarchived units of its LABORATORY department. */
 export async function loadLabSections(hospitalId: string, database: EmrDb = defaultDb()) {
   return database
-    .select({ id: hospitalDepartments.id, name: hospitalDepartments.name })
+    .select({
+      id: hospitalDepartments.id,
+      name: hospitalDepartments.name,
+      code: hospitalDepartments.catalogueCode,
+    })
     .from(hospitalDepartments)
     .innerJoin(parent, eq(parent.id, hospitalDepartments.parentId))
     .where(
@@ -69,13 +75,16 @@ interface Sources {
       reasonCiphertext: string | null;
     }
   >;
-  /** LOINC code → the hub offering's section and stated turnaround. */
-  offerings: Map<string, { sectionId: string | null; statedTat: string | null }>;
-  /** test id → the catalogue's target minutes. */
-  catalogue: Map<string, number | null>;
+  /** Test code → its offering's legacy unit, section override and stated turnaround. */
+  offerings: Map<
+    string,
+    { sectionId: string | null; sectionOverride: SectionKey | null; statedTat: string | null }
+  >;
+  /** test id → its operational target, code and catalogue section (TM-2). */
+  catalogue: Map<string, { minutes: number | null; code: string; section: SectionKey | null }>;
 }
 
-/** Two or three round trips: orders + departments, catalogue, then offerings if any LOINC code. */
+/** Two or three round trips: orders + departments, catalogue, then the tests' offerings (TM-3: keyed by test). */
 async function loadSources(
   database: EmrDb,
   hospitalId: string,
@@ -102,17 +111,23 @@ async function loadSources(
       : Promise.resolve([]),
     testIds.length
       ? database
-          .select({ id: testCatalogue.id, minutes: testCatalogue.turnaroundTargetMinutes })
+          .select({
+            id: testCatalogue.id,
+            minutes: testCatalogue.turnaroundTargetMinutes,
+            code: testCatalogue.code,
+            section: testCatalogue.section,
+          })
           .from(testCatalogue)
           .where(inArray(testCatalogue.id, testIds))
       : Promise.resolve([]),
   ]);
-  const loincs = [...new Set(orderRows.map((r) => r.loinc).filter((c): c is string => !!c))];
-  const offeringRows = loincs.length
+  const codes = [...new Set(catalogueRows.map((r) => r.code))];
+  const offeringRows = codes.length
     ? await database
         .select({
           code: diagnosticOfferings.code,
           sectionId: diagnosticOfferings.sectionId,
+          sectionOverride: diagnosticOfferings.sectionOverride,
           statedTat: diagnosticOfferings.statedTat,
         })
         .from(diagnosticOfferings)
@@ -120,7 +135,7 @@ async function loadSources(
           and(
             eq(diagnosticOfferings.hospitalId, hospitalId),
             eq(diagnosticOfferings.kind, "lab"),
-            inArray(diagnosticOfferings.code, loincs),
+            inArray(diagnosticOfferings.code, codes),
           ),
         )
     : [];
@@ -137,19 +152,28 @@ async function loadSources(
       ]),
     ),
     offerings: new Map(
-      offeringRows.map((o) => [o.code, { sectionId: o.sectionId, statedTat: o.statedTat }]),
+      offeringRows.map((o) => [
+        o.code,
+        {
+          sectionId: o.sectionId,
+          sectionOverride: o.sectionOverride as SectionKey | null,
+          statedTat: o.statedTat,
+        },
+      ]),
     ),
-    catalogue: new Map(catalogueRows.map((c) => [c.id, c.minutes])),
+    catalogue: new Map(
+      catalogueRows.map((c) => [
+        c.id,
+        { minutes: c.minutes, code: c.code, section: c.section as SectionKey | null },
+      ]),
+    ),
   };
 }
 
-function targetFrom(sources: Sources, orderId: string, testId: string | null): Target | null {
-  const loinc = sources.orders.get(orderId)?.loinc;
-  const offering = loinc ? sources.offerings.get(loinc) : undefined;
-  return targetFor(
-    offering?.statedTat ?? null,
-    testId ? (sources.catalogue.get(testId) ?? null) : null,
-  );
+function targetFrom(sources: Sources, testId: string | null): Target | null {
+  const test = testId ? sources.catalogue.get(testId) : undefined;
+  const offering = test ? sources.offerings.get(test.code) : undefined;
+  return targetFor(offering?.statedTat ?? null, test?.minutes ?? null);
 }
 
 /** When each specimen was collected and, if it was, received (one round trip). */
@@ -208,7 +232,10 @@ export async function loadLabWorklist(
     // A row with no specimen time cannot be on the lab's list; the loader only returns ones with.
     if (!time || !stage) continue;
     const order = sources.orders.get(b.orderId);
-    const offering = order?.loinc ? sources.offerings.get(order.loinc) : undefined;
+    const test = b.testId ? sources.catalogue.get(b.testId) : undefined;
+    const offering = test ? sources.offerings.get(test.code) : undefined;
+    // TM-4, LW-3: the test's effective section, as the hub unit staff are assigned to.
+    const section = test ? sectionFor(offering, test) : null;
     inputs.push({
       orderId: b.orderId,
       hospitalId,
@@ -223,11 +250,13 @@ export async function loadLabWorklist(
       // A specimen is "received" by its stage; the event time starts the clock.
       receivedAt: stage === "to_receive" ? null : time.receivedAt,
       from: order?.from ?? null,
+      // A legacy row's own unit; a catalogue test's section otherwise (Law 2).
       offeringSectionId: offering?.sectionId ?? null,
-      // E-LAB0-04: the catalogue has no section column yet (one test menu, HARMONISATION §9).
-      catalogueSectionId: null,
+      catalogueSectionId: section
+        ? (sections.find((s) => s.code === hubSectionCode(section))?.id ?? null)
+        : null,
       statedTat: offering?.statedTat ?? null,
-      catalogueTargetMinutes: b.testId ? (sources.catalogue.get(b.testId) ?? null) : null,
+      catalogueTargetMinutes: test?.minutes ?? null,
     });
   }
   const restricted = new Set(
@@ -446,7 +475,7 @@ export async function loadReleasedToday(
     );
   const formOf = new Map(paper.map((p) => [p.reportId, p]));
   return finals.map((f) => {
-    const target = f.orderId ? targetFrom(sources, f.orderId, f.testId) : null;
+    const target = f.orderId ? targetFrom(sources, f.testId) : null;
     const form = formOf.get(f.id);
     const receivedAt = form
       ? form.collectedAt

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1000px">
+<nav class="rail" aria-label="Laboratory spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Today</a>
+<a href="Bench.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>Bench<span class="rail__n">21</span></a>
+<a href="SendOuts.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Send-outs<span class="rail__n">9</span></a>
+<a href="Quality.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quality</a>
+<a href="Reports.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg>Reports</a>
+<a href="Setup.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Lab Guy, signed in with MFA">LG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Laboratory · Test Hospital-1</span><h1>Set-up</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg><input aria-label="Scan or search" placeholder="Scan a tube, or search a patient, lab number or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span><span class="live">Live</span>
+<a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs you <b>7</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<label class="find" style="flex: 0 1 420px; height: 40px; box-shadow: inset 0 0 0 1px var(--line-strong)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input aria-label="Find a setting" placeholder="Find a setting, for example critical limits"></label>
+<span class="row__sp"></span><span class="small">Only the laboratory lead sees Set-up. Every change is a draft until it is signed.</span>
+</div>
+<section class="card">
+<div class="card__h"><h2>Waiting for your signature</h2><span class="pill pill--warn">3</span><span class="sp"></span><span class="small">A fresh authenticator code is asked at signing</span></div>
+<table class="tb">
+<thead><tr><th>Item</th><th>Changed</th><th>Drafted by</th><th>Second signer</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>Critical limits · version 4</b></td><td>Potassium high limit, source added</td><td>LT-B · 17 Oct</td><td>CSO</td><td><a class="btn btn--p btn--s" href="#">Review and sign</a></td></tr>
+<tr><td><b>Delta rule DC-MCV-1</b></td><td>New rule, trial on 90 days attached</td><td>LT-A · 18 Oct</td><td>CSO</td><td><a class="btn btn--s" href="#">Review</a></td></tr>
+<tr><td><b>QC plan · creatinine, BS-240</b></td><td>Target moved from maker's range to this lab's</td><td>LT-B · 19 Oct</td><td>CSO</td><td><a class="btn btn--s" href="#">Review</a></td></tr>
+</tbody>
+</table>
+</section>
+<div class="sg">
+<section class="card"><div class="card__h"><h2>Tests</h2></div><div class="card__b" style="padding: 0 8px 8px; gap: 0">
+<a class="si" href="TestMenu.dc.html"><span class="l">Test menu</span><span class="m">218 tests · 1 changed section</span></a>
+<a class="si" href="Profiles.dc.html"><span class="l">Hospital profiles</span><span class="m">4 profiles</span></a>
+<a class="si" href="#"><span class="l">Test catalogue</span><span class="m">Units and codes</span></a>
+<a class="si" href="#"><span class="l">Analyser profiles</span><span class="m">3 analysers</span></a>
+</div></section>
+<section class="card"><div class="card__h"><h2>Result safety</h2></div><div class="card__b" style="padding: 0 8px 8px; gap: 0">
+<a class="si" href="#"><span class="l">Ranges and cut-offs</span><span class="m">38 signed · 6 drafts</span></a>
+<a class="si" href="#"><span class="l">Critical limits</span><span class="m"><span class="pill pill--warn">Draft v4</span></span></a>
+<a class="si" href="#"><span class="l">Response times and contacts</span><span class="m">Signed</span></a>
+<a class="si" href="#"><span class="l">Delta checks</span><span class="m">4 signed · 1 draft</span></a>
+</div></section>
+<section class="card"><div class="card__h"><h2>Patients</h2></div><div class="card__b" style="padding: 0 8px 8px; gap: 0">
+<a class="si" href="#"><span class="l">What patients see, and when</span><span class="m">Signed v2</span></a>
+<a class="si" href="#"><span class="l">Plain words</span><span class="m">14 of 22 tests</span></a>
+<a class="si" href="#"><span class="l">Results-ready text message</span><span class="m">Signed</span></a>
+</div></section>
+<section class="card"><div class="card__h"><h2>Quality plans</h2></div><div class="card__b" style="padding: 0 8px 8px; gap: 0">
+<a class="si" href="#"><span class="l">QC plans and policy</span><span class="m"><span class="pill pill--warn">1 to sign</span></span></a>
+<a class="si" href="#"><span class="l">Kit, stain and bedside device rules</span><span class="m">Signed</span></a>
+<a class="si" href="#"><span class="l">Lot acceptance and stock levels</span><span class="m"><span class="pill pill--line">Expiry window not set</span></span></a>
+<a class="si" href="#"><span class="l">Equipment schedules and EQA</span><span class="m">Signed</span></a>
+</div></section>
+<section class="card"><div class="card__h"><h2>Partners and machines</h2></div><div class="card__b" style="padding: 0 8px 8px; gap: 0">
+<a class="si" href="#"><span class="l">Partner laboratories</span><span class="m">6 partners</span></a>
+<a class="si" href="#"><span class="l">Analyser bridge and code maps</span><span class="m">1 live</span></a>
+<a class="si" href="#"><span class="l">Connections</span><span class="m">1 retrying</span></a>
+</div></section>
+<section class="card"><div class="card__h"><h2>This laboratory</h2></div><div class="card__b" style="padding: 0 8px 8px; gap: 0">
+<a class="si" href="#"><span class="l">Lab settings</span><span class="m">Elevation, eGFR, payment</span></a>
+<a class="si" href="#"><span class="l">Registers and HMIS mapping</span><span class="m">Signed Sept</span></a>
+<a class="si" href="#"><span class="l">Research drafts</span><span class="m">12 to verify</span></a>
+</div></section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

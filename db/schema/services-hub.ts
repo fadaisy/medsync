@@ -119,6 +119,9 @@ export const diagnosticOfferings = pgTable(
     statedTat: text("stated_tat"),
     referredTo: text("referred_to"),
     machines: integer("machines"),
+    /** 0171 (TM-3): a lab row's code is the test id; its section is the catalogue's unless overridden. */
+    sectionOverride: text("section_override"),
+    statedTurnaroundMinutes: integer("stated_turnaround_minutes"),
     /** NULL = Planned (preset / legacy import), not yet confirmed by the hospital. */
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
     updatedBy: uuid("updated_by"),

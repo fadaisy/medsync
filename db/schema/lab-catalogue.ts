@@ -163,3 +163,40 @@ export const poctOperators = pgTable(
   },
   (t) => [primaryKey({ columns: [t.hospitalId, t.userId, t.grantedAt] })],
 );
+
+/* ─── 0171 Lab test menu v2 (TM-10, TM-11) ─────────────────────────── */
+
+/** TM-10: an ordering shortcut over menu tests; each test keeps its own section, results and class. */
+export const labOrderProfiles = pgTable("lab_order_profiles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  name: text("name").notNull(),
+  note: text("note"),
+  testCodes: text("test_codes").array().notNull(),
+  active: boolean("active").notNull().default(true),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by").notNull(),
+  clientKey: text("client_key").unique(),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+});
+
+/** TM-11: a hospital asks the MedSync catalogue team for a test; never a free-text test. */
+export const labCatalogueRequests = pgTable("lab_catalogue_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  requestedBy: uuid("requested_by").notNull(),
+  name: text("name").notNull(),
+  purpose: text("purpose").notNull(),
+  specimen: text("specimen").notNull(),
+  route: text("route").notNull(),
+  reference: text("reference"),
+  state: text("state").notNull().default("new"),
+  reason: text("reason"),
+  testCode: text("test_code"),
+  decidedBy: uuid("decided_by"),
+  decidedAt: timestamp("decided_at", tz),
+  clientKey: text("client_key").unique(),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+});

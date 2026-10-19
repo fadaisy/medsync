@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Lab test menu v2: set up tests, not results — 19 Oct 2026
+
+Built on `feat/lab-test-menu-v2`. Migrations 0171 (schema) and 0172 (catalogue v2 as CFC v1.7, generated) are
+GATED and owner-applied, in order, then `npm run lab:migrate-offerings` (dry run, then `--apply --actor`). The
+catalogue's new tests stay unorderable until the laboratory lead and the CSO sign addendum `cfc-1.7.0` in the product.
+Strings are a draft (`LAB_TEST_MENU_COPY_STATUS`).
+
+- The menu is per test and results inherit ([ADR 0350](docs/adr/0350-lab-menu-per-test-results-inherit.md));
+  catalogue v2, 291 tests, as an addendum ([ADR 0351](docs/adr/0351-lab-catalogue-v2-addendum-cfc-1-7.md)); level
+  templates ([ADR 0352](docs/adr/0352-lab-level-templates-national-menu.md)); hospital profiles
+  ([ADR 0353](docs/adr/0353-lab-hospital-profiles.md)); catalogue requests
+  ([ADR 0354](docs/adr/0354-lab-catalogue-requests.md)); `loinc_codes` a code reference only
+  ([ADR 0355](docs/adr/0355-loinc-codes-code-reference-only.md)).
+
 ### Added — Lab Phase 5: patients see their results, delta checks, the IPC feed — 17 Oct 2026
 
 Built dark on `feat/lab-beyond-lis`, behind `LAB_DELTA_CHECKS`, `IPC_LAB_FEED`, `PATIENT_RESULTS` and

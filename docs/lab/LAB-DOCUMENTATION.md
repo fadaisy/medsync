@@ -187,6 +187,16 @@ Since Lab Workspace v2 (ADRs 0343–0349, `docs/lab/workspace-v2/`), the lab is 
 | **Reports** `/lab/reports?tab=indicators\|register\|hmis\|downloads`                         | Indicators with one period picker; daily register; HMIS 105 (print and records under `/lab/reports/hmis/*`); downloads                                                                                                                                                                                                          |
 | **Set-up** `/lab/setup` (`lab.manage`)                                                       | Find a setting; waiting for your signature; six groups linking the set-up pages (`/lab/setup/catalogue`, `/ranges`, `/limits`, `/criticals`, `/menu`, `/profiles`, `/drafts`, `/settings`, `/delta`, `/patient-release`, `/demo`, `/analysers`, `/hmis-mapping`). Analysers and the HMIS mapping stay readable by all lab staff |
 
+### The test menu (Lab test menu v2, ADRs 0350–0355, `docs/lab/test-menu-v2/`)
+
+One component (`components/lab/test-menu/`) on two entry points: Set-up → Tests `/lab/setup/menu?tab=profiles`
+(the laboratory lead) and Hospital admin → Diagnostics → Laboratory (the hospital admin). A row is a **catalogue test**
+(291 in catalogue v2), never a result; its section is the catalogue's unless the lab changes it ("Changed from …").
+Start from your level builds a menu from the 2017 national menu; Add tests searches names, short names and results;
+Hospital profiles order several tests as one line; Ask for a test to be added goes to `/admin/lab-catalogue-requests`.
+Offerings live in `diagnostic_offerings` keyed by test id (`code = test_catalogue.code`); the engines are
+`lib/lab/test-menu.ts` (pure), the read `test-menu-read.ts`, the writes `test-menu-write.ts` and `test-menu-actions.ts`.
+
 ### Clinicians
 
 - `/doctor/results`: Results to review (critical first), Sent out, waiting (Phase 4), **The patient sees it** (Phase 5).
@@ -604,18 +614,21 @@ EMR_PGLITE=1 npm run test:emr-db
 
 **Owner and CSO, by priority:**
 
-1. Phase 5: review and push `feat/lab-beyond-lis`; apply 0154–0157; sign `LAB5_COPY_STATUS`; redeploy
+1. Lab test menu v2: apply 0171 then 0172 (worktree `medsync-tm2`); run `npm run lab:migrate-offerings` (dry run,
+   then `--apply --actor`); sign addendum `cfc-1.7.0` (lead, then CSO) in Set-up → Drafts; sign
+   `LAB_TEST_MENU_COPY_STATUS`.
+2. Phase 5: review and push `feat/lab-beyond-lis`; apply 0154–0157; sign `LAB5_COPY_STATUS`; redeploy
    `system-ussd-act`.
-2. Patient results (before any patient sees a result): the legal opinion (Q7: minors, the basis for app and SMS,
+3. Patient results (before any patient sees a result): the legal opinion (Q7: minors, the basis for app and SMS,
    holds and s.24); privacy notice, terms and PDPO registration (Q8); the data protection lead signs the consent
    wording; the lab lead and CSO sign the release table, plain words and minors rule.
-3. Delta checks and IPC: rules and the alert list signed; IPC link nurse, IPC lead and surveillance focal person named;
+4. Delta checks and IPC: rules and the alert list signed; IPC link nurse, IPC lead and surveillance focal person named;
    the focal person checks `idsr-transcription.md`; the 2025 IPC guideline chapters obtained (Q17).
-4. SMS: the sender ID registered with Africa's Talking and the regulator (Q11, PS-7); a test handset message.
-5. Phase 2: sign the CFC v1.6 addendum. Phase 3: verify the HMIS rows (OA-1), eHMIS ids (OA-2), the parallel month.
+5. SMS: the sender ID registered with Africa's Talking and the regulator (Q11, PS-7); a test handset message.
+6. Phase 2: sign the CFC v1.6 addendum. Phase 3: verify the HMIS rows (OA-1), eHMIS ids (OA-2), the parallel month.
    Phase 4: GATE S, the rate limit, permission map v3, the NHLDS letter.
-6. Hazard log scores and signatures for Phases 2–5; permission maps v2 and v3.
-7. Unset `DEV_SKIP_MFA`; clean trial-hospital flags.
+7. Hazard log scores and signatures for Phases 2–5; permission maps v2 and v3.
+8. Unset `DEV_SKIP_MFA`; clean trial-hospital flags.
 
 **Known gaps worth a phase of their own:** the analyser bridge (needs the maker's LIS document), autoverification,
 microbiology, national connections, push notifications for criticals, a records-office link in the admin navigation,

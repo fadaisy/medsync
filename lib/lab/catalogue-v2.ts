@@ -12,6 +12,13 @@ import { analyserProfiles, labSignedConfigs, testCatalogue } from "@/db/schema";
 import { readAsClinician } from "@/lib/emr/db";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { loadFactSnapshot } from "@/lib/facts/loader";
+import {
+  V17_ABNORMAL_ANSWERS,
+  V17_ADDENDUM_KEY,
+  V17_ADDITIONS,
+  V17_NEW_TESTS,
+  V17_OTHER_UNITS,
+} from "./catalogue-v17.generated";
 import { labCatalogueV2LiveFor } from "./feature";
 import { rowsFor } from "./profiles";
 import { configSignErrors, LEAD_ONLY_KINDS, PAYLOADS } from "./signed-config";
@@ -25,9 +32,19 @@ import { configSignErrors, LEAD_ONLY_KINDS, PAYLOADS } from "./signed-config";
 
 export const ADDENDUM_KEY = "cfc-1.6.0";
 const TESTS_V2 = V16.testsV2 as Record<string, string[]>;
-const NEW_TESTS = new Set(V16.testsAdd.map((t) => t.id));
-export const ABNORMAL_ANSWERS = V16.abnormalAnswers as Record<string, string[]>;
-export const OTHER_UNITS = V16.otherUnits as Record<string, { unit: string; multiplyBy: number }[]>;
+/** CC-1: the tests each addendum activates when it is signed (v1.6, and v1.7 = Lab test menu v2, TM-1). */
+const NEW_TESTS: Record<string, readonly string[]> = {
+  [ADDENDUM_KEY]: V16.testsAdd.map((t) => t.id),
+  [V17_ADDENDUM_KEY]: V17_NEW_TESTS,
+};
+export const ABNORMAL_ANSWERS = {
+  ...V16.abnormalAnswers,
+  ...V17_ABNORMAL_ANSWERS,
+} as Record<string, readonly string[]>;
+export const OTHER_UNITS = { ...V16.otherUnits, ...V17_OTHER_UNITS } as Record<
+  string,
+  readonly { unit: string; multiplyBy: number }[]
+>;
 
 const invalid = (m: string) => new EmrWriteError("invalid", m);
 const scopeOf = (hospitalId: string | null) =>
@@ -62,7 +79,7 @@ export async function loadConfigs(tx: EmrTx, hospitalId: string): Promise<Signed
 }
 
 /** CC-1: the addendum is in force once both signatures land. */
-export async function addendumSigned(tx: EmrTx): Promise<boolean> {
+export async function addendumSigned(tx: EmrTx, key = ADDENDUM_KEY): Promise<boolean> {
   const [r] = await tx
     .select({ id: labSignedConfigs.id })
     .from(labSignedConfigs)
@@ -70,7 +87,7 @@ export async function addendumSigned(tx: EmrTx): Promise<boolean> {
       and(
         isNull(labSignedConfigs.hospitalId),
         eq(labSignedConfigs.kind, "addendum"),
-        eq(labSignedConfigs.key, ADDENDUM_KEY),
+        eq(labSignedConfigs.key, key),
         eq(labSignedConfigs.status, "signed"),
       ),
     )
@@ -81,6 +98,22 @@ export async function addendumSigned(tx: EmrTx): Promise<boolean> {
 /** The v2 catalogue is on here: the flag, and the signed addendum. */
 export async function catalogueV2Active(tx: EmrTx, hospitalId: string) {
   return labCatalogueV2LiveFor(hospitalId) && (await addendumSigned(tx));
+}
+
+/**
+ * The result list each test reports here, without a pinned profile (the menu's "{n} results"): v1.6's list where
+ * the v2 catalogue is active, plus v1.7's additions once signed. Two reads, then a pure lookup.
+ */
+export async function resultLists(tx: EmrTx, hospitalId: string) {
+  const [v2, v17] = await Promise.all([
+    catalogueV2Active(tx, hospitalId),
+    addendumSigned(tx, V17_ADDENDUM_KEY),
+  ]);
+  return (code: string, components: readonly string[]) => {
+    const list = v2 ? (TESTS_V2[code] ?? components) : components;
+    const extra = v17 ? (V17_ADDITIONS[code] ?? []).filter((c) => !list.includes(c)) : [];
+    return [...list, ...extra];
+  };
 }
 
 /** AP-5: the profile pinned at receipt for this order's newest specimen, if any. */
@@ -140,14 +173,19 @@ export async function componentsFor(
   profile: Profile | null;
   labOnly: Set<string>;
 }> {
+  // TM-1: v1.7 only appends to an existing test, once its addendum is signed.
+  const extra =
+    V17_ADDITIONS[test.code] && (await addendumSigned(tx, V17_ADDENDUM_KEY))
+      ? V17_ADDITIONS[test.code]!.filter((c) => !test.components.includes(c))
+      : [];
   const base = {
     active: false,
-    components: [...test.components],
+    components: [...test.components, ...extra],
     profile: null,
     labOnly: new Set<string>(),
   };
   if (!(await catalogueV2Active(tx, hospitalId))) return base;
-  const v2 = TESTS_V2[test.code] ?? [...test.components];
+  const v2 = [...(TESTS_V2[test.code] ?? test.components), ...extra];
   const profile = orderId ? await pinnedProfile(tx, orderId) : null;
   if (!profile) return { ...base, active: true, components: v2 };
   const rows = rowsFor(profile, viewer);
@@ -429,10 +467,12 @@ export async function signConfig(
     })
     .where(eq(labSignedConfigs.id, c.id));
   // CC-1: the addendum's new tests become orderable when it is signed.
-  if (c.kind === "addendum")
+  if (c.kind === "addendum" && NEW_TESTS[c.key]?.length)
     await tx
       .update(testCatalogue)
       .set({ active: true })
-      .where(and(isNull(testCatalogue.hospitalId), inArray(testCatalogue.code, [...NEW_TESTS])));
+      .where(
+        and(isNull(testCatalogue.hospitalId), inArray(testCatalogue.code, [...NEW_TESTS[c.key]!])),
+      );
   return { kind: c.kind as ConfigKind, key: c.key };
 }

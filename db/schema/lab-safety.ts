@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
@@ -32,6 +33,11 @@ export const labSettings = pgTable("lab_settings", {
   highRiskProcedure: text("high_risk_procedure"),
   /* 0112: operational quality settings (alert window, look-back, count frequency, …), never clinical. */
   quality: jsonb("quality").notNull().default({}),
+  /* 0171 (TM-5): catalogue sections this hospital does not run. */
+  hiddenSections: text("hidden_sections")
+    .array()
+    .notNull()
+    .default(sql`'{}'`),
   updatedBy: uuid("updated_by"),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });

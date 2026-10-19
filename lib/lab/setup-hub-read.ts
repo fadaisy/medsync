@@ -4,7 +4,7 @@ import type { LabNavId } from "./nav";
 import type { ConfigDraftRow, HubFacts, TallyRow } from "./setup-hub";
 import type { EmrDb } from "@/lib/emr/db";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
-import { and, count, eq, isNull, max, or, sql } from "drizzle-orm";
+import { and, count, eq, isNull, max, ne, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
@@ -13,6 +13,7 @@ import {
   criticalLimitVersions,
   criticalResponseVersions,
   devices,
+  diagnosticOfferings,
   labPartners,
   labSignedConfigs,
   referenceRangeVersions,
@@ -114,18 +115,23 @@ export async function loadSetupHub(
     versionTally(conn, referenceRangeVersions, h),
     versionTally(conn, criticalLimitVersions, h),
     versionTally(conn, criticalResponseVersions, h),
+    // Lab test menu v2 (TM-3): the tests on this hospital's menu, keyed by the test; there is no link step.
     conn
-      .select({
-        tests: sql<number>`count(distinct ${testCatalogue.code})`,
-        unlinked: sql<number>`count(distinct ${testCatalogue.code}) filter (where not exists (
-            select 1 from lab_test_services s where s.hospital_id = ${h} and s.test_code = ${testCatalogue.code}))`,
-      })
+      .select({ tests: sql<number>`count(distinct ${testCatalogue.code})` })
       .from(testCatalogue)
+      .innerJoin(
+        diagnosticOfferings,
+        and(
+          eq(diagnosticOfferings.code, testCatalogue.code),
+          eq(diagnosticOfferings.hospitalId, h),
+          eq(diagnosticOfferings.kind, "lab"),
+        ),
+      )
       .where(
         and(
           eq(testCatalogue.kind, "lab"),
-          eq(testCatalogue.active, true),
-          or(isNull(testCatalogue.hospitalId), eq(testCatalogue.hospitalId, h)),
+          isNull(testCatalogue.hospitalId),
+          ne(diagnosticOfferings.provision, "not_offered"),
         ),
       ),
     visible.has("setup_catalogue") ? testsWithoutUnit(h, new Date(), database) : [],
@@ -160,7 +166,7 @@ export async function loadSetupHub(
     ranges,
     limits,
     response,
-    menu: { tests: Number(menu[0]?.tests ?? 0), unlinked: Number(menu[0]?.unlinked ?? 0) },
+    menu: { tests: Number(menu[0]?.tests ?? 0) },
     noUnit: noUnit.length,
     profiles: {
       inUse: Number(profiles.find((p) => p.state === "in_use")?.n ?? 0),

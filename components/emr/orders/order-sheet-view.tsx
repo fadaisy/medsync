@@ -2,17 +2,19 @@ import type {
   MenuTest,
   OrderDraft,
   OrderLineDraft,
+  OrderProfile,
   PatientIdentity,
   Priority,
   ReasonOption,
 } from "./model";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CheckIcon, SearchIcon } from "lucide-react";
+import { CheckIcon, InfoIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LAB3_HIV_PURPOSE } from "@/content/lab-phase-3";
+import { LAB_TEST_MENU } from "@/content/lab-test-menu";
 import { cn } from "@/lib/utils";
 import { RestrictedMark } from "../chips";
 import { StatusWord } from "../status-word";
@@ -48,6 +50,7 @@ export interface OrderSheetHandlers {
 export function OrderSheetView({
   identity,
   menu,
+  profiles = [],
   reasons,
   draft,
   query,
@@ -57,6 +60,7 @@ export function OrderSheetView({
 }: {
   identity: PatientIdentity;
   menu: readonly MenuTest[];
+  profiles?: readonly OrderProfile[];
   reasons: readonly ReasonOption[];
   draft: OrderDraft;
   query: string;
@@ -102,6 +106,39 @@ export function OrderSheetView({
         )}
       </section>
 
+      {profiles.length ? (
+        <section aria-labelledby="order-profiles" className="flex flex-col gap-2">
+          <h3 id="order-profiles" className="text-label">
+            {LAB_TEST_MENU.profilesHead}
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {profiles.map((p) => {
+              // TM-10: one line per test, each with its own section, payment and class at placement.
+              const add = p.testIds.filter(
+                (id) => !chosen.has(id) && byId.get(id)?.today?.orderable !== false,
+              );
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  disabled={add.length === 0}
+                  onClick={() => add.forEach((id) => on.onToggle?.(id))}
+                  className={cn(
+                    "text-body-s focus-visible:shadow-focus border-border inline-flex min-h-11 items-center gap-2 rounded-full border px-3 outline-none disabled:opacity-60 sm:min-h-8",
+                    PRESS,
+                  )}
+                >
+                  {p.name}
+                  <span className="text-caption text-muted-foreground">
+                    {LAB_TEST_MENU.addProfile(add.length)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <section aria-labelledby="order-search" className="flex flex-col gap-2">
         <label id="order-search" htmlFor="order-search-input" className="text-body-s font-medium">
           Search the test menu
@@ -116,7 +153,7 @@ export function OrderSheetView({
             type="search"
             value={query}
             onChange={(e) => on.onQuery?.(e.target.value)}
-            placeholder="Test name, code or component"
+            placeholder={LAB_TEST_MENU.search}
             className="min-h-11 pl-9 sm:min-h-9"
             autoComplete="off"
           />
@@ -238,6 +275,13 @@ function TestToggle({
         </span>
       ) : null}
       {test.restricted ? <RestrictedMark /> : null}
+      {!compact && test.advisory ? (
+        // TM-12: a low-value test says why before it is added; the doctor can still order it.
+        <span className="text-caption text-foreground inline-flex items-center gap-1">
+          <InfoIcon aria-hidden className="size-3.5 shrink-0" />
+          {test.advisory}
+        </span>
+      ) : null}
     </button>
   );
 }

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set up tests, not results</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 900px; flex-direction: column; padding: 40px 56px; gap: 24px"><div><span class="ov">Why the test menu is simpler</span><h1 style="margin: 6px 0 0; font: 600 30px/1.2 var(--sans)">Set up tests, not results</h1><p class="small" style="max-width: 820px; font-size: 15px">The Diagnostics page today lists every LOINC code on its own: haemoglobin, MCV and platelets each need a section, a place, hours and a turnaround, and a Full blood count is 27 rows. Version 2 lists what doctors order. Each test comes from the catalogue with its section, specimen, tube and codes already attached.</p></div><div class="ba"><div><span class="ov">Now</span><b class="big">97 rows</b><span class="small">One row per LOINC result, category "Laboratory" for 88 of them. 67 not set. A full blood count alone is 27 rows to classify. C3, C4, ANA and anti-dsDNA are missing.</span></div><div><span class="ov">Version 2</span><b class="big">291 tests · 8 sections</b><span class="small">One row per orderable test, each with a recommended section. Start from your level adds 215 tests for a regional referral hospital in one step; the lab changes only what differs. 556 results sit inside those tests and never need a section of their own.</span></div></div><section class="card"><div class="card__h"><h2>The catalogue by section</h2><span class="sp"></span><span class="small">Tests in the MedSync catalogue v2 · in-house and referred at a regional referral hospital, from the 2017 national standard test menu</span></div><table class="tb"><thead><tr><th>Section</th><th>Tests</th><th>In-house at RRH</th><th>Referred at RRH</th><th>Examples</th></tr></thead><tbody><tr><td><b>Haematology</b></td><td class="mono">28</td><td class="mono">19</td><td class="mono">6</td><td class="small">CD4 count, Erythrocyte sedimentation rate, Full blood count, Prothrombin time and INR, Coagulation screen (PT, INR, APTT), D-dimer, 20-minute whole bl…</td></tr><tr><td><b>Blood transfusion</b></td><td class="mono">6</td><td class="mono">6</td><td class="mono">0</td><td class="small">Blood group (ABO and RhD), Group and crossmatch (GXM), Direct antiglobulin test (direct Coombs), Indirect antiglobulin test (indirect Coombs), Cord bl…</td></tr><tr><td><b>Clinical chemistry</b></td><td class="mono">109</td><td class="mono">63</td><td class="mono">19</td><td class="small">Creatinine (with eGFR), Fasting blood glucose, Liver function tests (LFTs), Random blood glucose (laboratory), Urea, electrolytes and creatinine (U&amp;E …</td></tr><tr><td><b>Immunology and serology</b></td><td class="mono">77</td><td class="mono">22</td><td class="mono">17</td><td class="small">Hepatitis B surface antigen (HBsAg), HIV rapid test (national algorithm), Syphilis rapid test (treponemal), Urine pregnancy test, Hepatitis C antibody…</td></tr><tr><td><b>Microbiology</b></td><td class="mono">24</td><td class="mono">19</td><td class="mono">5</td><td class="small">Sputum AFB smear (ZN), Blood culture and sensitivity, AFB fluorescence (LED) microscopy, Cholera rapid diagnostic test (stool), Gram stain, High vagin…</td></tr><tr><td><b>Parasitology</b></td><td class="mono">18</td><td class="mono">16</td><td class="mono">2</td><td class="small">Malaria rapid diagnostic test (mRDT), Malaria blood smear (B/S for MPs), Urinalysis (dipstick), Aspirate for Leishmania (LD bodies), Blood / lymph nod…</td></tr><tr><td><b>Molecular</b></td><td class="mono">19</td><td class="mono">5</td><td class="mono">12</td><td class="small">GeneXpert MTB/RIF Ultra, HIV-1 viral load, Hepatitis B viral load (HBV DNA), Line probe assay — first line (MTBDRplus), Line probe assay — second line…</td></tr><tr><td><b>Histopathology and cytology</b></td><td class="mono">10</td><td class="mono">1</td><td class="mono">6</td><td class="small">Pap smear (conventional cervical cytology), Body fluid cytology (malignant cells), Bone marrow trephine biopsy (histology), CSF cytology, Fine needle …</td></tr></tbody></table></section></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

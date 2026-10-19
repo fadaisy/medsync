@@ -389,12 +389,10 @@ async function referral(s: DemoState) {
   const [{ code } = { code: "" }] = rowsOf<{ code: string }>(
     await s.db.execute(sql`SELECT code FROM test_catalogue WHERE id = ${tsh.id}`),
   );
+  // Lab test menu v2 (TM-3): the offering is keyed by the test itself.
   await s.db
     .execute(sql`INSERT INTO diagnostic_offerings (hospital_id, kind, code, provision, stated_tat, referred_to, confirmed_at)
-    VALUES (${s.h}, 'lab', 'DEMO-REF-TFT', 'referred', '3 days', 'Demo reference lab', now()) ON CONFLICT DO NOTHING`);
-  await s.db
-    .execute(sql`INSERT INTO lab_test_services (hospital_id, test_code, offering_code, set_by)
-    VALUES (${s.h}, ${code}, 'DEMO-REF-TFT', ${s.lab.userId}) ON CONFLICT DO NOTHING`);
+    VALUES (${s.h}, 'lab', ${code}, 'referred', '3 days', 'Demo reference lab', now()) ON CONFLICT DO NOTHING`);
   const { savePartner, addToManifest, sealManifest, recordHandover } =
     await import("./referral-store");
   const partnerId = await tx(s, (t) =>

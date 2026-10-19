@@ -9,6 +9,7 @@ import type { HIV_PURPOSES } from "@/lib/lab/hiv-purpose";
 
 import { LAB2 } from "@/content/lab-phase-2";
 import { LAB3_HIV_PURPOSE } from "@/content/lab-phase-3";
+import { rankTests } from "@/lib/lab/test-menu";
 
 /* ─── Identity (two identifiers, age and sex in words) ─────────────── */
 
@@ -75,6 +76,16 @@ export interface MenuTest {
   bedside?: { words: string; href: string | null } | null;
   /** D-LAB3-21 (labHmis): an HIV rapid test asks why it is done. */
   needsPurpose?: boolean;
+  /** Lab test menu v2 (TM-8, TM-12): the names people search for, and a low-value test's advisory. */
+  aliases?: readonly string[];
+  advisory?: string | null;
+}
+
+/** TM-10: a hospital profile on the order sheet; ordering it adds one line per test. */
+export interface OrderProfile {
+  id: string;
+  name: string;
+  testIds: string[];
 }
 
 /** A diagnosis on this encounter, offered as the order's reason. */
@@ -93,14 +104,19 @@ export function menuSections(
   const favourites = menu
     .filter((t) => t.favouriteRank !== null)
     .sort((a, b) => a.favouriteRank! - b.favouriteRank!);
-  const q = query.trim().toLowerCase();
-  const rest = menu
-    .filter(
-      (t) =>
-        q !== "" && [t.display, t.code, ...t.components].some((s) => s.toLowerCase().includes(q)),
-    )
-    .sort((a, b) => a.display.localeCompare(b.display));
-  return { favourites, rest };
+  // TM-8, TM-12: the test menu's own search ("RFTs", "B/S", "ALT"); the code still matches as a name.
+  const byCode = new Map(menu.map((t) => [t.code, t]));
+  const rest = rankTests(
+    menu.map((t) => ({
+      code: t.code,
+      display: t.display,
+      aliases: [...(t.aliases ?? []), t.code],
+      components: t.components.map((display) => ({ display })),
+      masked: false,
+    })),
+    query,
+  ).map((t) => byCode.get(t.code)!);
+  return { favourites, rest: query.trim() ? rest : [] };
 }
 
 /** Availability informs, never blocks (HARMONISATION §9): words for the caution chip, or null. */
