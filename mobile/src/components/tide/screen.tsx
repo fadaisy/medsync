@@ -95,32 +95,44 @@ export function HelpButton({
   );
 }
 
-/** The bell. Opens Notifications from anywhere; the count is ink on surface, never red. */
+/**
+ * The bell. Opens Notifications from anywhere; the count is ink on surface,
+ * never red. With unseen notifications it turns teal and rings now and then
+ * (`motion.bellRing`), so "something new" never rests on colour alone.
+ */
 export function BellButton({ count = 0, raised = false }: { count?: number; raised?: boolean }) {
   const t = useTide();
   const router = useRouter();
-  const ground = raised ? t.surface : t.bg;
+  const reduced = useReducedMotion();
+  const unseen = count > 0;
+  const fill = unseen ? t.accent : raised ? t.surface : "transparent";
+  const ground = unseen ? t.accent : raised ? t.surface : t.bg;
   return (
     <Press
       onPress={() => router.push("/notifications")}
-      accessibilityLabel={count > 0 ? `Notifications, ${count} new` : "Notifications"}
+      accessibilityLabel={unseen ? `Notifications, ${count} new` : "Notifications"}
       style={{
         width: 44,
         height: 44,
         borderRadius: 22,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: raised ? t.surface : "transparent",
-        boxShadow: raised ? t.shadow.card : undefined,
+        backgroundColor: fill,
+        boxShadow: raised || unseen ? t.shadow.card : undefined,
       }}
     >
-      <Icon name="bell" size={22} color={t.ink} />
-      {count > 0 ? (
+      <Animated.View
+        key={unseen ? "ring" : "still"}
+        style={[{ transformOrigin: "50% 8%" }, unseen ? motion.bellRing(reduced) : null]}
+      >
+        <Icon name="bell" size={22} color={unseen ? t.onAccent : t.ink} />
+      </Animated.View>
+      {unseen ? (
         <View
           style={{
             position: "absolute",
-            top: 5,
-            right: 5,
+            top: 3,
+            right: 3,
             minWidth: 17,
             height: 17,
             paddingHorizontal: 4,

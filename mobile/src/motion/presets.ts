@@ -249,6 +249,30 @@ export const motion = {
   },
 
   /**
+   * The bell rings while notifications are unseen: a short swing about its
+   * top, then still for the rest of four seconds, so it says "new" without
+   * moving all the time. Stops once they are seen; still under reduce motion.
+   */
+  bellRing(reduced: boolean): Anim {
+    if (reduced) return STILL;
+    return {
+      animationName: {
+        "0%": { transform: [{ rotate: "0deg" }] },
+        "3%": { transform: [{ rotate: "14deg" }] },
+        "6%": { transform: [{ rotate: "-12deg" }] },
+        "9%": { transform: [{ rotate: "8deg" }] },
+        "12%": { transform: [{ rotate: "-5deg" }] },
+        "15%": { transform: [{ rotate: "0deg" }] },
+        "100%": { transform: [{ rotate: "0deg" }] },
+      },
+      animationDuration: 4000,
+      animationDelay: 600,
+      animationIterationCount: "infinite",
+      animationTimingFunction: "ease-in-out",
+    };
+  },
+
+  /**
    * A loading placeholder breathing while its content is on the way: the one
    * loop that means "still loading". Still under reduce motion.
    */
