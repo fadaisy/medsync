@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { LAB2 } from "@/content/lab-phase-2";
 import { db } from "@/db";
@@ -10,6 +9,7 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadResearchDrafts } from "@/lib/lab/drafts-read";
 import { labCatalogueV2LiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
+import { SetupHeader } from "../_components/setup-header";
 import { AddendumDialog, AddendumState, ImportButton } from "./_components/addendum-dialog";
 import { DraftsTable } from "./_components/drafts-table";
 import { DRAFTS } from "./_lib/copy";
@@ -42,7 +42,7 @@ export default async function ResearchDraftsPage() {
   const card = "border-border bg-card shadow-card flex flex-col gap-2 rounded-lg border p-4";
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title={DRAFTS.title}

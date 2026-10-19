@@ -7,7 +7,9 @@ import { StatusWord } from "@/components/emr/status-word";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveLimitsDraftAction, signLimitsAsLeadAction } from "@/lib/lab/measures-actions";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { toDays } from "../../ranges/_lib/ages";
 
@@ -151,7 +153,7 @@ export function LimitsEditor({
                         onChange={(e) => patch(r.key, { [k]: e.target.value })}
                         inputMode="numeric"
                         placeholder="All"
-                        className="min-h-11 w-16 font-mono tabular-nums sm:min-h-9"
+                        className="min-h-11 w-16 tabular-nums sm:min-h-9"
                       />
                       <select
                         aria-label={`Limit ${i + 1} age ${k} unit`}
@@ -172,7 +174,7 @@ export function LimitsEditor({
                     value={r.low}
                     onChange={(e) => patch(r.key, { low: e.target.value })}
                     inputMode="decimal"
-                    className="min-h-11 w-24 text-right font-mono tabular-nums sm:min-h-9"
+                    className="min-h-11 w-24 text-right tabular-nums sm:min-h-9"
                   />
                 </td>
                 <td className="px-1 py-1">
@@ -181,7 +183,7 @@ export function LimitsEditor({
                     value={r.high}
                     onChange={(e) => patch(r.key, { high: e.target.value })}
                     inputMode="decimal"
-                    className="min-h-11 w-24 text-right font-mono tabular-nums sm:min-h-9"
+                    className="min-h-11 w-24 text-right tabular-nums sm:min-h-9"
                   />
                 </td>
                 <td className="px-1 py-1">
@@ -202,16 +204,16 @@ export function LimitsEditor({
                   />
                 </td>
                 <td className="px-1 py-1">
-                  <Button
+                  <LabButton
                     type="button"
-                    variant="ghost"
+                    variant="quiet"
                     size="sm"
                     onClick={() => setRows((x) => x.filter((y) => y.key !== r.key))}
-                    disabled={rows.length === 1}
+                    disabledReason={rows.length === 1 ? LABWS2_SETUP.sweep.whyOneRow : null}
                     className="min-h-11 sm:min-h-7"
                   >
                     Remove<span className="sr-only"> limit {i + 1}</span>
-                  </Button>
+                  </LabButton>
                 </td>
               </tr>
             ))}
@@ -228,15 +230,16 @@ export function LimitsEditor({
         >
           Add a limit
         </Button>
-        <Button
+        <LabButton
           type="button"
           size="sm"
           onClick={save}
-          disabled={pending}
           className="min-h-11 sm:min-h-7"
+          variant="primary"
+          busy={pending}
         >
           Save draft
-        </Button>
+        </LabButton>
       </div>
       {draftId && canSign ? (
         <div className="flex flex-col gap-2">
@@ -264,9 +267,9 @@ export function LimitsEditor({
             />
           ) : (
             <div>
-              <Button type="button" variant="secondary" onClick={sign} disabled={pending}>
+              <LabButton type="button" variant="secondary" onClick={sign} busy={pending}>
                 Sign as laboratory lead
-              </Button>
+              </LabButton>
             </div>
           )}
         </div>

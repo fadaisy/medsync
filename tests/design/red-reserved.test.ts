@@ -796,7 +796,9 @@ describe("red is reserved — Lab Phase 3 surfaces", () => {
   });
 
   it("In stock and Use first are neutral words with a check, never amber", () => {
-    const page = stripComments(readFileSync(resolve(ROOT, "app/lab/stock/page.tsx"), "utf8"));
+    const page = stripComments(
+      readFileSync(resolve(ROOT, "app/lab/quality/_views/stock.tsx"), "utf8"),
+    );
     expect(page).toMatch(/<StatusWord icon glyph=\{CheckIcon\}>\s*\{C\.status\.inStock\}/);
     const forms = stripComments(
       readFileSync(resolve(ROOT, "app/lab/stock/_components/stock-forms.tsx"), "utf8"),

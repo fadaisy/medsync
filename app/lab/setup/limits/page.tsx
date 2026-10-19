@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
@@ -12,6 +12,7 @@ import { labCriticalsLiveFor, labUnitsRangesLiveFor } from "@/lib/lab/feature";
 import { loadLimitsSetup } from "@/lib/lab/limits";
 import { loadMeasuresSetup } from "@/lib/lab/measures-setup";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
+import { SetupHeader } from "../_components/setup-header";
 import { Caution } from "../../criticals/_components/alert-bits";
 import { bandFromDays } from "../ranges/_lib/ages";
 import { LimitsEditor } from "./_components/limits-editor";
@@ -77,7 +78,7 @@ export default async function LimitsSetupPage() {
     : [];
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="Critical limits"
@@ -99,8 +100,12 @@ export default async function LimitsSetupPage() {
         <Caution>
           {stale.length === 1 ? "One signed limit" : `${stale.length} signed limits`} no longer
           match their test&apos;s unit and never fire:{" "}
-          {stale.map((l) => label.get(`${l.testId}:${l.conceptId}`) ?? l.conceptId).join(", ")}.
-          Draft them again in the new unit.
+          {stale
+            .map(
+              (l) => label.get(`${l.testId}:${l.conceptId}`) ?? LABWS2_SETUP.sweep.unknownComponent,
+            )
+            .join(", ")}
+          . Draft them again in the new unit.
         </Caution>
       ) : null}
       <p className="text-body-s text-muted-foreground max-w-[75ch]">

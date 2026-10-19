@@ -15,6 +15,7 @@ import { hmisForm } from "@/lib/lab/hmis-form";
 import { loadHmisMonth, manualKeys } from "@/lib/lab/hmis-store";
 import { cn } from "@/lib/utils";
 import { dateWords, timeWords } from "../_lib/days";
+import { redirectIfV2 } from "../_lib/v2-redirect";
 import { QcChip } from "../quality/_components/qc-chip";
 import { requireQualityScope } from "../quality/_lib/scope";
 import { ActButton, CsvButton, ManualCellsDialog } from "./_components/hmis-forms";
@@ -39,6 +40,12 @@ export default async function HmisPage({
 }: {
   searchParams: Promise<{ month?: string; tab?: string; rev?: string }>;
 }) {
+  // The form's section was `tab`; in Reports `tab` names the place's tab, so the section travels as `part`.
+  const old = await searchParams;
+  await redirectIfV2(
+    `/lab/reports?${new URLSearchParams({ tab: "hmis", ...(old.tab ? { part: old.tab } : {}) })}`,
+    { month: old.month, rev: old.rev },
+  );
   const { scope } = await requireQualityScope(labHmisLiveFor);
   const p = scope.access.permissions;
   const lead = p.has("lab.hmis.check") || p.has("lab.manage");
@@ -141,13 +148,13 @@ export default async function HmisPage({
           </p>
           <ul className="flex flex-col gap-1">
             {v.changed.changes.map((c) => (
-              <li key={c.key} className="font-mono tabular-nums">
+              <li key={c.key} className="tabular-nums">
                 {fill(H.changeLine, {
                   cell: labelOf(c.key),
                   old: c.old ?? "blank",
                   new: c.new ?? "blank",
                 })}{" "}
-                <span className="text-muted-foreground font-sans">
+                <span className="text-muted-foreground">
                   ({c.added.length} added, {c.removed.length} removed)
                 </span>
               </li>

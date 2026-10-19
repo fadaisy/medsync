@@ -18,6 +18,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { LAB2 } from "@/content/lab-phase-2";
+import { LABWS2 } from "@/content/lab-workspace-v2";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import {
   activateProfileAction,
   createProfileAction,
@@ -26,6 +28,7 @@ import {
   setVisibilityAction,
 } from "@/lib/lab/catalogue-v2-actions";
 import { PROFILES as C } from "../_lib/copy";
+import { LabButton } from "../../../_components/v2/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =
@@ -95,9 +98,15 @@ export function AddProfile({ models }: { models: { id: string; display: string }
           <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
             {C.cancel}
           </Button>
-          <Button type="button" onClick={create} disabled={pending || !modelId}>
+          <LabButton
+            type="button"
+            variant="primary"
+            onClick={create}
+            busy={pending}
+            disabledReason={modelId ? null : LABWS2_SETUP.sweep.whyNoModel}
+          >
             {C.create}
-          </Button>
+          </LabButton>
         </SheetFooter>
       </div>
     </EditorDialog>
@@ -293,14 +302,16 @@ export function ProfileDetail({
             />
           ) : (
             <div>
-              <Button
+              <LabButton
                 type="button"
                 onClick={activate}
-                disabled={pending || blockers.length > 0}
                 aria-describedby={blockers.length ? blockersId : undefined}
+                variant="primary"
+                busy={pending}
+                disabledReason={blockers.length > 0 ? LABWS2.reasons.problemsAbove : null}
               >
                 {C.use}
-              </Button>
+              </LabButton>
             </div>
           )}
         </section>
@@ -348,15 +359,16 @@ function CheckBlock({
               className="text-foreground min-h-11 min-w-64 sm:min-h-9"
             />
           </label>
-          <Button
+          <LabButton
             type="button"
             variant="secondary"
             onClick={() => onRecord(text)}
-            disabled={pending || text.trim().length < 3}
+            busy={pending}
+            disabledReason={text.trim().length < 3 ? LABWS2_SETUP.sweep.whyShortNote : null}
           >
             {C.record}
             <span className="sr-only"> {check.code}</span>
-          </Button>
+          </LabButton>
         </div>
       ) : null}
     </div>

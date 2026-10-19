@@ -289,14 +289,14 @@ async function anotherSigner(
  */
 export type Signer = "lead" | "cso" | "focal" | "dp_lead" | "ipc_lead" | "lab_counter";
 const LEAD_SLOT: readonly Signer[] = ["lead", "dp_lead", "ipc_lead"];
-const leadSlotFor = (kind: string): Signer =>
+export const leadSlotFor = (kind: string): Signer =>
   kind === "partner_legal" || kind === "partner_fields" || kind === "results_consent_notice"
     ? "dp_lead"
     : kind === "referral_wording" || kind === "ipc_alert_entry"
       ? "ipc_lead"
       : "lead";
 /** Who signs second: the CSO, the HMIS focal person (hmis_mapping), or a laboratory lead (the IPC alert list). */
-const secondSlotFor = (kind: string): Signer =>
+export const secondSlotFor = (kind: string): Signer =>
   kind === "hmis_mapping" ? "focal" : kind === "ipc_alert_entry" ? "lab_counter" : "cso";
 
 export async function signConfig(

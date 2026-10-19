@@ -20,6 +20,8 @@ import {
   setOperatorAction,
 } from "@/lib/lab/bedside-actions";
 import { SETTINGS } from "../_lib/copy";
+import { LabButton } from "../../../_components/v2/button";
+import { DateField } from "../../../_components/v2/fields";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const C = SETTINGS.bedside;
@@ -146,9 +148,9 @@ export function AddDevice({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {SETTINGS.cancel}
             </Button>
-            <Button type="button" onClick={save} disabled={pending}>
+            <LabButton type="button" onClick={save} variant="primary" busy={pending}>
               {C.save}
-            </Button>
+            </LabButton>
           </SheetFooter>
         </div>
       </EditorDialog>
@@ -228,9 +230,9 @@ export function DeviceActions({
                 <Button type="button" variant="secondary" onClick={() => setDialog(null)}>
                   {SETTINGS.cancel}
                 </Button>
-                <Button type="button" onClick={verify} disabled={pending}>
+                <LabButton type="button" onClick={verify} variant="primary" busy={pending}>
                   {C.verify}
-                </Button>
+                </LabButton>
               </SheetFooter>
             </div>
           </EditorDialog>
@@ -257,14 +259,7 @@ export function DeviceActions({
                       className="min-h-11 font-mono sm:min-h-9"
                     />
                   </Field>
-                  <Field label={C.useBy}>
-                    <Input
-                      type="date"
-                      value={useBy}
-                      onChange={(e) => setUseBy(e.target.value)}
-                      className="min-h-11 font-mono tabular-nums sm:min-h-9"
-                    />
-                  </Field>
+                  <DateField label={C.useBy} value={useBy} onChange={setUseBy} allowFuture />
                   <div className="sm:col-span-2">
                     <Said message={message} />
                   </div>
@@ -273,17 +268,16 @@ export function DeviceActions({
                   <Button type="button" variant="secondary" onClick={() => setDialog(null)}>
                     {SETTINGS.cancel}
                   </Button>
-                  <Button type="button" onClick={addLot} disabled={pending}>
+                  <LabButton type="button" onClick={addLot} variant="primary" busy={pending}>
                     {C.save}
-                  </Button>
+                  </LabButton>
                 </SheetFooter>
               </div>
             </EditorDialog>
-            <Button
+            <LabButton
               type="button"
-              variant="ghost"
+              variant="quiet"
               size="sm"
-              disabled={pending}
               onClick={() =>
                 act(
                   () => setDeviceStateAction({ deviceId, state: "retired", note: null }),
@@ -291,10 +285,11 @@ export function DeviceActions({
                 )
               }
               className="min-h-11 sm:min-h-7"
+              busy={pending}
             >
               {C.retire}
               <span className="sr-only"> {model}</span>
-            </Button>
+            </LabButton>
           </>
         ) : null}
       </div>
@@ -316,11 +311,10 @@ export function OperatorToggle({
   const { pending, message, act } = useAct();
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button
+      <LabButton
         type="button"
-        variant={granted ? "ghost" : "secondary"}
+        variant={granted ? "quiet" : "secondary"}
         size="sm"
-        disabled={pending}
         onClick={() =>
           act(
             () => setOperatorAction({ userId, granted: !granted }),
@@ -328,10 +322,11 @@ export function OperatorToggle({
           )
         }
         className="min-h-11 sm:min-h-7"
+        busy={pending}
       >
         {granted ? C.revoke : C.grant}
         <span className="sr-only"> {name}</span>
-      </Button>
+      </LabButton>
       <Said message={message} />
     </div>
   );

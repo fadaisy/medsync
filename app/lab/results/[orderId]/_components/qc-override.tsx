@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 import { inputClass, Pop } from "../../../_components/pop";
+import { LabButton } from "../../../_components/v2/button";
 import { QUALITY } from "../../../quality/_lib/copy";
 
 const H = QUALITY.hold;
@@ -35,13 +36,15 @@ export default function QcOverride({
       open={open}
       setOpen={setOpen}
       action={
-        <Button
+        <LabButton
           type="button"
           onClick={() => release(reason)}
-          disabled={pending || reason.trim().length < 3}
+          variant="primary"
+          busy={pending}
+          disabledReason={reason.trim().length < 3 ? LABWS2.reasons.reasonAtLeast3 : null}
         >
           {H.override(held.join(", "))}
-        </Button>
+        </LabButton>
       }
     >
       <label className="text-body-s flex flex-col gap-1">

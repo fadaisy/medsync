@@ -19,6 +19,7 @@ import {
   signConfigAsLeadAction,
 } from "@/lib/lab/catalogue-v2-actions";
 import { DRAFTS } from "../_lib/copy";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "./sign-button";
 
@@ -128,14 +129,15 @@ export function AddendumDialog({ addendum }: { addendum: ResearchDrafts["addendu
           <div className="flex flex-col items-end gap-2">
             {!config ? (
               <>
-                <Button
+                <LabButton
                   type="button"
                   onClick={() => act(() => draftAddendumAction({ hash: addendum.hash }), C.drafted)}
-                  disabled={pending}
                   className="min-h-11 sm:min-h-8"
+                  variant="primary"
+                  busy={pending}
                 >
                   {C.draft}
-                </Button>
+                </LabButton>
                 <Said message={message} />
               </>
             ) : config.state === "draft" ? (
@@ -170,14 +172,15 @@ export function ImportButton() {
   return (
     <div className="flex flex-col gap-1">
       <div>
-        <Button
+        <LabButton
           type="button"
           onClick={() => act(() => importResearchAction(), DRAFTS.import.done)}
-          disabled={pending}
           className="min-h-11 sm:min-h-8"
+          variant="primary"
+          busy={pending}
         >
           {DRAFTS.import.button}
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>

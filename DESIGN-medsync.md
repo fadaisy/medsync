@@ -404,3 +404,40 @@ Semantic, glanceable state colour for the ABCDE resus surface — colour **means
 - **Findings stay calmer than actions** (findings _describe_; actions are where colour-as-state matters): a selected finding uses the brand **teal** selected state; the airway-STATE indicator carries the urgency, not the individual chips.
 
 Reused by every ABCDE step (B/C/D/E) so the whole resus surface stays consistent.
+
+## Laboratory workspace — MedSync Tide at desk density (ADR 0344; CSO signature pending)
+
+`/lab` is the one staff surface on Tide. Every rule above still applies, except where this section says otherwise. Other staff workspaces stay on Chroma.
+
+- **Scope.** The tokens apply only while the lab shell (`data-lab-tide`) is on the page: `:root:has([data-lab-tide])` in `app/globals.css`. Use the semantic classes and the `tide-*` utilities; never use raw hex.
+- **Ground and ink.** The ground is soft grey `#f6f7f9`, with white cards (`shadow-tide-card`, radius 18). The ink ramp is navy-tinted, ink-900 being `#1b2540`.
+- **Accent.**
+  - The lagoon fill (`bg-tide-lagoon`, `#2dd4bf`) always carries navy text (`text-tide-on-lagoon`). Lagoon fills only:
+    - the one primary action of a card or panel;
+    - the current place's dot;
+    - the selected queue row's tint.
+  - Lagoon is never text. Links and focus stay teal-700 (`text-primary`, the `accent-text` role).
+- **Navy band.** `bg-tide-navy-900` with `text-tide-on-band` / `-on-band-2` marks the patient band and the Today hero. Both text tokens are at least 4.5:1.
+- **Type.**
+  - Figtree is the text face; Geist Mono is for identifiers only (lab number, hospital number, form and manifest numbers).
+  - A figure is never in code type.
+  - Body is 13–14px. The page title is 24/28 at weight 500, one per screen, in the top bar.
+- **Shape and size.**
+  - Radii: cards 18, tiles 16, rows 12, fields 10.
+  - Heights: buttons 36, small buttons 30, table rows at least 44, rail items at least 54.
+  - Tabs and chips are pills.
+- **Colour.**
+  - Red appears only for a critical (`CriticalPill`, `CriticalTile`, `ResultValueText`) and the Emergency button (`EmergencyInline`).
+  - Amber (`Pill tone="caution"`) is for late, held, delta waiting, overdue, quarantined and down.
+  - **Nothing in the lab is green.** "Passed" is a neutral pill with a check.
+  - Change lines are an arrow and words in ink, never a coloured badge.
+- **Field kit (ADR 0348).**
+  - No native date inputs: use `DateTimeField` / `DateField`.
+  - Pick by name with `PickField`; chips for four or fewer options.
+  - A disabled `LabButton` always prints its reason.
+  - Three kinds of nothing: an empty list says why and what next; "No data" is muted; "Not set" names who sets it.
+  - No dashed boxes.
+- **Charts.** Hand-built SVG in the cascade tones. Each has a text alternative, and the larger ones a "view as table" disclosure. Marks differ by shape or lightness as well as hue.
+- **Not adopted.** Tide's lagoon glow (`shadow-accent`): this system forbids glows.
+- **Pop-ups** stay centred dialogs.
+- **Dark.** Values are written but not shipped; the lab ships light.

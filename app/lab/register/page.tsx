@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { LAB } from "@/content/lab";
 import { fill, LAB3, LAB3_REGISTER } from "@/content/lab-phase-3";
+import { LABWS2_REPORTS } from "@/content/lab-workspace-v2-reports";
 import { db } from "@/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { labHmisLiveFor } from "@/lib/lab/feature";
@@ -20,7 +21,9 @@ import {
 } from "@/lib/lab/register-store";
 import { dayOf } from "@/lib/lab/stock";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
+import { DateField } from "../_components/v2/fields";
 import { dateWords, dayWords, timeWords } from "../_lib/days";
+import { redirectIfV2 } from "../_lib/v2-redirect";
 import { requireQualityScope } from "../quality/_lib/scope";
 import { PrintRegister, RegisterColumns } from "./_components/register-forms";
 
@@ -42,6 +45,7 @@ export default async function RegisterPage({
 }: {
   searchParams: Promise<{ section?: string; day?: string; register?: string }>;
 }) {
+  await redirectIfV2("/lab/reports?tab=register", searchParams);
   const { scope, lead } = await requireQualityScope(labHmisLiveFor);
   const now = new Date();
   const sp = await searchParams;
@@ -105,10 +109,12 @@ export default async function RegisterPage({
               ))}
             </select>
           </label>
-          <label className="text-body-s flex flex-col gap-1">
-            <span className="text-muted-foreground">Day</span>
-            <input type="date" name="day" defaultValue={day} max={today} className={field} />
-          </label>
+          <DateField
+            label={LABWS2_REPORTS.register.day}
+            name="day"
+            defaultValue={day}
+            now={now.toISOString()}
+          />
           <label className="text-body-s flex flex-col gap-1">
             <span className="text-muted-foreground">Register</span>
             <select name="register" defaultValue={register} className={field}>

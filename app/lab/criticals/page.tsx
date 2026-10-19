@@ -15,6 +15,7 @@ import { loadLabCriticals } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { PatientNameMrn, RecordList } from "../_components/record-list";
+import { redirectIfV2 } from "../_lib/v2-redirect";
 import { AlertCell, Caution, MarkedValues } from "./_components/alert-bits";
 
 export const metadata: Metadata = { title: "Criticals · Laboratory · MedSync" };
@@ -26,6 +27,7 @@ export const dynamic = "force-dynamic";
  * Reading it runs the lazy escalation path first (ES-3); a stale scheduler is said in amber (ES-5).
  */
 export default async function LabCriticalsPage() {
+  await redirectIfV2("/lab/needs-you?filter=results");
   const scope = await requireLabTechScope();
   if (
     !scope.workspaceLive ||

@@ -6,8 +6,9 @@ import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2 } from "@/content/lab-workspace-v2";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import {
   approveSmsTemplateAction,
   editSmsTemplateAction,
@@ -17,6 +18,7 @@ import {
   setContactsAction,
   signResponseAsLeadAction,
 } from "@/lib/lab/criticals/setup-actions";
+import { LabButton } from "../../../_components/v2/button";
 
 /**
  * Critical-results set-up forms (§5.8). Every value is typed by the hospital: no field ships with a
@@ -105,9 +107,8 @@ export function SettingsForm({
         the numbers are right)
       </label>
       <div>
-        <Button
+        <LabButton
           type="button"
-          disabled={pending}
           onClick={() =>
             act(
               () =>
@@ -115,9 +116,11 @@ export function SettingsForm({
               "Settings saved.",
             )
           }
+          variant="primary"
+          busy={pending}
         >
           Save settings
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -148,7 +151,7 @@ export function ResponseDraftForm({
             value={ack}
             onChange={(e) => setAck(e.target.value)}
             inputMode="numeric"
-            className="min-h-11 w-32 font-mono tabular-nums sm:min-h-9"
+            className="min-h-11 w-32 tabular-nums sm:min-h-9"
           />
         </Field>
         <Field label="Then level 1, waiting (minutes)">
@@ -157,7 +160,7 @@ export function ResponseDraftForm({
             value={l1}
             onChange={(e) => setL1(e.target.value)}
             inputMode="numeric"
-            className="min-h-11 w-32 font-mono tabular-nums sm:min-h-9"
+            className="min-h-11 w-32 tabular-nums sm:min-h-9"
           />
         </Field>
         <Field label="At level 2, overdue after (minutes)">
@@ -166,7 +169,7 @@ export function ResponseDraftForm({
             value={l2}
             onChange={(e) => setL2(e.target.value)}
             inputMode="numeric"
-            className="min-h-11 w-32 font-mono tabular-nums sm:min-h-9"
+            className="min-h-11 w-32 tabular-nums sm:min-h-9"
           />
         </Field>
       </div>
@@ -180,10 +183,11 @@ export function ResponseDraftForm({
         />
       </Field>
       <div>
-        <Button
+        <LabButton
           type="button"
           variant="secondary"
-          disabled={pending || ack.trim() === ""}
+          busy={pending}
+          disabledReason={ack.trim() === "" ? LABWS2_SETUP.sweep.whyNoAck : null}
           onClick={() =>
             act(
               () =>
@@ -198,7 +202,7 @@ export function ResponseDraftForm({
           }
         >
           Save draft
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -241,9 +245,9 @@ export function SignAsLead({ versionId, author }: { versionId: string; author: b
         />
       ) : (
         <div>
-          <Button type="button" disabled={pending} onClick={sign}>
+          <LabButton type="button" onClick={sign} variant="primary" busy={pending}>
             Sign as laboratory lead
-          </Button>
+          </LabButton>
         </div>
       )}
       <Said message={message} />
@@ -283,38 +287,40 @@ export function ContactsEditor({
       <ol className="flex flex-col gap-1">
         {list.map((p, i) => (
           <li key={p.userId} className="text-body-s flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground w-5 font-mono tabular-nums">{i + 1}.</span>
+            <span className="text-muted-foreground w-5 tabular-nums">{i + 1}.</span>
             <span className="min-w-0 flex-1">{p.name}</span>
-            <Button
+            <LabButton
               type="button"
               size="sm"
-              variant="ghost"
-              disabled={pending || i === 0}
+              variant="quiet"
               onClick={() => move(i, -1)}
               className="min-h-11 sm:min-h-7"
+              busy={pending}
+              disabledReason={i === 0 ? LABWS2.reasons.alreadyFirst : null}
             >
               Up
-            </Button>
-            <Button
+            </LabButton>
+            <LabButton
               type="button"
               size="sm"
-              variant="ghost"
-              disabled={pending || i === list.length - 1}
+              variant="quiet"
               onClick={() => move(i, 1)}
               className="min-h-11 sm:min-h-7"
+              busy={pending}
+              disabledReason={i === list.length - 1 ? LABWS2.reasons.alreadyLast : null}
             >
               Down
-            </Button>
-            <Button
+            </LabButton>
+            <LabButton
               type="button"
               size="sm"
-              variant="ghost"
-              disabled={pending}
+              variant="quiet"
               onClick={() => save(list.filter((x) => x.userId !== p.userId))}
               className="min-h-11 sm:min-h-7"
+              busy={pending}
             >
               Remove
-            </Button>
+            </LabButton>
           </li>
         ))}
       </ol>
@@ -335,11 +341,12 @@ export function ContactsEditor({
               </option>
             ))}
         </select>
-        <Button
+        <LabButton
           type="button"
           size="sm"
           variant="secondary"
-          disabled={pending || !pick}
+          busy={pending}
+          disabledReason={pick ? null : LABWS2_SETUP.sweep.whyNoPick}
           onClick={() => {
             const o = options.find((x) => x.userId === pick);
             if (o) save([...list, { userId: o.userId, name: o.label }]);
@@ -348,7 +355,7 @@ export function ContactsEditor({
           className="min-h-11 sm:min-h-7"
         >
           Add
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -397,21 +404,20 @@ export function TemplateEditor({
         Use {"{place}"} and {"{lab number}"} only. No patient, test or value.
       </span>
       <div className="flex flex-wrap gap-2">
-        <Button
+        <LabButton
           type="button"
           size="sm"
           variant="secondary"
-          disabled={pending}
           onClick={() => act(() => editSmsTemplateAction({ kind, body }), "Saved as a draft.")}
           className="min-h-11 sm:min-h-7"
+          busy={pending}
         >
           Save wording
-        </Button>
+        </LabButton>
         {draft ? (
-          <Button
+          <LabButton
             type="button"
             size="sm"
-            disabled={pending}
             onClick={() =>
               act(
                 () => approveSmsTemplateAction({ templateId: draft.id }),
@@ -419,15 +425,16 @@ export function TemplateEditor({
               )
             }
             className="min-h-11 sm:min-h-7"
+            variant="primary"
+            busy={pending}
           >
             Approve (first of two)
-          </Button>
+          </LabButton>
         ) : null}
         {pendingReview ? (
-          <Button
+          <LabButton
             type="button"
             size="sm"
-            disabled={pending || pendingReview.firstApprover === me}
             onClick={() =>
               act(
                 () => approveSmsTemplateAction({ templateId: pendingReview.id }),
@@ -435,11 +442,16 @@ export function TemplateEditor({
               )
             }
             className="min-h-11 sm:min-h-7"
+            variant="primary"
+            busy={pending}
+            disabledReason={
+              pendingReview.firstApprover === me ? LABWS2.reasons.secondApprover : null
+            }
           >
             {pendingReview.firstApprover === me
               ? "Waiting for a second approver"
               : "Approve (second of two)"}
-          </Button>
+          </LabButton>
         ) : null}
       </div>
       <Said message={message} />
@@ -452,14 +464,14 @@ export function SeedTemplates() {
   return (
     <div className="flex flex-col gap-2">
       <div>
-        <Button
+        <LabButton
           type="button"
           variant="secondary"
-          disabled={pending}
           onClick={() => act(() => seedSmsTemplatesAction(), "Draft messages added.")}
+          busy={pending}
         >
           Start from the draft messages
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>

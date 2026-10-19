@@ -48,7 +48,7 @@ export const EQUIPMENT = {
     provider: "Service provider",
     contact: "Provider contact",
     installedOn: "Installed on",
-    concepts: "Components it measures (concepts, comma-separated)",
+    concepts: "Components it measures",
     tests: "Tests it runs (codes, comma-separated)",
     save: "Save",
     saved: "Saved.",

@@ -35,6 +35,9 @@ import { navFor } from "@/lib/lab/nav";
 import { labWorklistFor, rejectedFor, releasedTodayFor } from "@/lib/lab/page-data";
 import { cn } from "@/lib/utils";
 import { LabShell } from "./_components/lab-shell";
+import { LabShellV2 } from "./_components/v2/shell";
+import { labV2 } from "./_lib/places";
+import { shellPayload } from "./_lib/shell-payload";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -50,6 +53,8 @@ export const metadata: Metadata = {
 export default async function LabLayout({ children }: { children: ReactNode }) {
   const scope = await requireLabTechScope();
   if (!scope.workspaceLive) return <LegacyLabLayout scope={scope}>{children}</LegacyLabLayout>;
+  const v2 = await labV2();
+  if (v2.live) return <LabShellV2 payload={await shellPayload(v2)}>{children}</LabShellV2>;
 
   const emr = emrV1LiveFor(scope.hospitalId);
   const criticals = emr && (await criticalsLive(scope.hospitalId));

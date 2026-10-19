@@ -90,3 +90,21 @@ export function ResultValueText({
 export function CriticalPill() {
   return <StatusWord tone="critical">Critical</StatusWord>;
 }
+
+/**
+ * Lab Workspace v2 (Needs you, prompt 5.3): the icon tile of an open critical, the one red tile in the lab
+ * inbox. Every other tile is neutral. The word is in the row beside it.
+ */
+export function CriticalTile({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "bg-status-critical-bg grid size-9 shrink-0 place-items-center rounded-xl text-red-700",
+        className,
+      )}
+    >
+      <OctagonAlertIcon className="size-[18px]" />
+    </span>
+  );
+}

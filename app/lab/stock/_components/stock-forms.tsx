@@ -1,5 +1,6 @@
 "use client";
 
+import type { PickOption } from "../../_components/v2/fields";
 import type { ItemRow, Settings } from "@/lib/lab/stock-read";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
+import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import {
   grandfatherLotsAction,
   issueStockAction,
@@ -26,12 +28,21 @@ import {
 import { cn } from "@/lib/utils";
 import { STOCK as C } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
+import { DateField, PickField } from "../../_components/v2/fields";
 import { dayWords } from "../../_lib/days";
+import { ActButton } from "../../quality/_components/act-button";
+import { ConceptMultiPick } from "../../quality/_components/concept-pick";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 /* ─── Items (lead) ─────────────────────────────────────────────────── */
 
-export function ItemDialog({ initial }: { initial?: ItemRow }) {
+export function ItemDialog({
+  initial,
+  concepts,
+}: {
+  initial?: ItemRow;
+  concepts: readonly PickOption[];
+}) {
   const { pending, message, act } = useAct();
   const [open, setOpen] = useState(false);
   const [f, setF] = useState({
@@ -41,11 +52,11 @@ export function ItemDialog({ initial }: { initial?: ItemRow }) {
     packSize: initial?.packSize?.toString() ?? "",
     testsPerUnit: initial?.testsPerUnit?.toString() ?? "",
     testCodes: initial?.testCodes.join(", ") ?? "",
-    conceptIds: initial?.conceptIds.join(", ") ?? "",
     tracer: initial?.hmisTracerCode ?? "",
     min: initial?.minMonths?.toString() ?? "",
     max: initial?.maxMonths?.toString() ?? "",
   });
+  const [conceptIds, setConceptIds] = useState<string[]>(initial?.conceptIds ?? []);
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) =>
     setF((x) => ({ ...x, [k]: e.target.value }));
   const list = (s: string) =>
@@ -63,7 +74,7 @@ export function ItemDialog({ initial }: { initial?: ItemRow }) {
         packSize: num(f.packSize),
         testsPerUnit: num(f.testsPerUnit),
         testCodes: list(f.testCodes),
-        conceptIds: list(f.conceptIds),
+        conceptIds,
         hmisTracerCode: f.tracer.trim() || null,
         storageDeviceId: initial?.storageDeviceId ?? null,
         minMonths: num(f.min),
@@ -84,9 +95,9 @@ export function ItemDialog({ initial }: { initial?: ItemRow }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {I.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -145,13 +156,14 @@ export function ItemDialog({ initial }: { initial?: ItemRow }) {
               className={cn(inputClass, "font-mono")}
             />
           </Field>
-          <Field label={I.concepts}>
-            <Input
-              value={f.conceptIds}
-              onChange={set("conceptIds")}
-              className={cn(inputClass, "font-mono")}
+          <div className="sm:col-span-2">
+            <ConceptMultiPick
+              label={LABWS2_QUALITY.sweep.conceptsItem}
+              options={concepts}
+              value={conceptIds}
+              onChange={setConceptIds}
             />
-          </Field>
+          </div>
           <Field label={I.min}>
             <Input
               type="number"
@@ -214,9 +226,9 @@ export function SettingsDialog({ settings }: { settings: Settings }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {S.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -274,9 +286,9 @@ export function CountDialog({ items }: { items: readonly ItemRow[] }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {C.countForm.save}
-          </Button>
+          </ActButton>
         }
       >
         <table className="text-body-s w-full border-collapse text-left">
@@ -303,7 +315,7 @@ export function CountDialog({ items }: { items: readonly ItemRow[] }) {
                 <tr key={l.id} className="border-border/60 border-t">
                   <td className="py-2 pr-3">{l.item}</td>
                   <td className="py-2 pr-3 font-mono">{l.lot}</td>
-                  <td className="py-2 pr-3 text-right font-mono tabular-nums">{l.onHand}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums">{l.onHand}</td>
                   <td className="py-2 pr-3">
                     <Input
                       type="number"
@@ -313,7 +325,7 @@ export function CountDialog({ items }: { items: readonly ItemRow[] }) {
                       onChange={(e) =>
                         setCounted((x) => ({ ...x, [l.id]: { ...c, n: e.target.value } }))
                       }
-                      className={cn(inputClass, "w-24 font-mono tabular-nums")}
+                      className={cn(inputClass, "w-24 tabular-nums")}
                     />
                   </td>
                   <td className="py-2">
@@ -382,9 +394,9 @@ export function SwitchOnDialog({ items }: { items: readonly ItemRow[] }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {S.save}
-          </Button>
+          </ActButton>
         }
       >
         <Field label={S.statement}>
@@ -419,21 +431,19 @@ export function SwitchOnDialog({ items }: { items: readonly ItemRow[] }) {
                 className={cn(inputClass, "font-mono")}
               />
             </Field>
-            <Field label={C.panel.lotColumns[2]!}>
-              <Input
-                type="date"
-                value={x.useBy}
-                onChange={(e) => patch(i, "useBy", e.target.value)}
-                className={cn(inputClass, "font-mono")}
-              />
-            </Field>
+            <DateField
+              label={C.panel.lotColumns[2]!}
+              value={x.useBy}
+              onChange={(v) => patch(i, "useBy", v)}
+              allowFuture
+            />
             <Field label={C.actions.quantity}>
               <Input
                 type="number"
                 min={0}
                 value={x.quantity}
                 onChange={(e) => patch(i, "quantity", e.target.value)}
-                className={cn(inputClass, "font-mono")}
+                className={cn(inputClass, "tabular-nums")}
               />
             </Field>
           </div>
@@ -473,6 +483,8 @@ export function ItemPanel({
   keeper,
   me,
   places,
+  concepts,
+  v2 = false,
 }: {
   item: ItemRow;
   lookBackMonths: number;
@@ -480,6 +492,8 @@ export function ItemPanel({
   keeper: boolean;
   me: string;
   places: Places;
+  concepts: readonly PickOption[];
+  v2?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const P = C.panel;
@@ -496,7 +510,7 @@ export function ItemPanel({
         setOpen={setOpen}
         action={
           <Link
-            href={`/lab/stock/order?item=${i.id}`}
+            href={`${v2 ? "/lab/quality/stock/order" : "/lab/stock/order"}?item=${i.id}`}
             target="_blank"
             className={buttonVariants({ variant: "secondary" })}
           >
@@ -546,8 +560,8 @@ export function ItemPanel({
               {i.lots.map((l) => (
                 <tr key={l.id} className="border-border/60 border-t align-top">
                   <td className="py-2 pr-3 font-mono">{l.lot}</td>
-                  <td className="py-2 pr-3 text-right font-mono tabular-nums">{l.onHand}</td>
-                  <td className="py-2 pr-3 font-mono tabular-nums">
+                  <td className="py-2 pr-3 text-right tabular-nums">{l.onHand}</td>
+                  <td className="py-2 pr-3 tabular-nums">
                     {l.useBy ? dayWords(l.useBy) : C.noExpiry}
                   </td>
                   <td className="py-2">
@@ -576,10 +590,12 @@ export function ItemPanel({
           <p className="text-caption text-muted-foreground">{LAB3.useFirst}</p>
         </section>
 
-        {keeper && i.lots.length ? <LotActions item={i} lead={lead} places={places} /> : null}
+        {keeper && i.lots.length ? (
+          <LotActions item={i} lead={lead} places={places} concepts={concepts} />
+        ) : null}
         <PlanBlock item={i} lead={lead} me={me} />
       </Pop>
-      {lead ? <ItemDialog initial={i} /> : null}
+      {lead ? <ItemDialog initial={i} concepts={concepts} /> : null}
     </div>
   );
 }
@@ -588,7 +604,17 @@ export function ItemPanel({
 
 type Act = "issue" | "inUse" | "quarantine" | "release" | "writeOff" | "adjust" | "return";
 
-function LotActions({ item, lead, places }: { item: ItemRow; lead: boolean; places: Places }) {
+function LotActions({
+  item,
+  lead,
+  places,
+  concepts,
+}: {
+  item: ItemRow;
+  lead: boolean;
+  places: Places;
+  concepts: readonly PickOption[];
+}) {
   const { pending, message, act } = useAct();
   const A = C.actions;
   const [lotId, setLotId] = useState(item.lots.find((l) => l.useFirst)?.id ?? item.lots[0]!.id);
@@ -687,7 +713,7 @@ function LotActions({ item, lead, places }: { item: ItemRow; lead: boolean; plac
               type="number"
               value={f.quantity}
               onChange={set("quantity")}
-              className={cn(inputClass, "font-mono")}
+              className={cn(inputClass, "tabular-nums")}
             />
           </Field>
         ) : null}
@@ -724,13 +750,13 @@ function LotActions({ item, lead, places }: { item: ItemRow; lead: boolean; plac
                 ))}
               </select>
             </Field>
-            <Field label={A.concept}>
-              <Input
-                value={f.concept}
-                onChange={set("concept")}
-                className={cn(inputClass, "font-mono")}
-              />
-            </Field>
+            <PickField
+              label={LABWS2_QUALITY.sweep.concept}
+              options={[{ value: "", label: LABWS2_QUALITY.sweep.noConcepts }, ...concepts]}
+              value={f.concept}
+              forceList
+              onChange={(v) => setF((x) => ({ ...x, concept: v }))}
+            />
           </>
         ) : null}
         {needsReason || (what === "issue" && !lot.useFirst) ? (
@@ -759,9 +785,9 @@ function LotActions({ item, lead, places }: { item: ItemRow; lead: boolean; plac
         </StatusWord>
       ) : null}
       <div className="flex items-center gap-3">
-        <Button type="button" variant="secondary" onClick={save} disabled={pending}>
+        <ActButton type="button" variant="secondary" onClick={save} busy={pending}>
           {A.save}
-        </Button>
+        </ActButton>
         <Said message={message} />
       </div>
     </section>
@@ -897,7 +923,7 @@ function PlanBlock({ item, lead, me }: { item: ItemRow; lead: boolean; me: strin
                       step="any"
                       value={f[k]}
                       onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))}
-                      className={cn(inputClass, "font-mono")}
+                      className={cn(inputClass, "tabular-nums")}
                     />
                   </Field>
                 ))}
@@ -948,9 +974,9 @@ function PlanBlock({ item, lead, me }: { item: ItemRow; lead: boolean; me: strin
             </Field>
           </div>
           <div className="flex flex-wrap items-end gap-3">
-            <Button type="button" variant="secondary" onClick={save} disabled={pending}>
+            <ActButton type="button" variant="secondary" onClick={save} busy={pending}>
               {L.save}
-            </Button>
+            </ActButton>
             {draft ? (
               <>
                 {draft.authoredBy === me ? (
@@ -963,7 +989,8 @@ function PlanBlock({ item, lead, me }: { item: ItemRow; lead: boolean; me: strin
                     />
                   </Field>
                 ) : null}
-                <Button
+                <ActButton
+                  variant="primary"
                   type="button"
                   onClick={() =>
                     act(
@@ -975,10 +1002,10 @@ function PlanBlock({ item, lead, me }: { item: ItemRow; lead: boolean; me: strin
                       L.signed,
                     )
                   }
-                  disabled={pending}
+                  busy={pending}
                 >
                   {L.sign}
-                </Button>
+                </ActButton>
               </>
             ) : null}
           </div>

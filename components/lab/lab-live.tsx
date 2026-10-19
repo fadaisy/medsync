@@ -17,7 +17,16 @@ const DEBOUNCE_MS = 300;
  * names only, and re-reads the page. If the channel is down it says so in amber and polls every 15 s while
  * the tab is visible. New specimens are announced once per 10 s, politely, as a count. No sound.
  */
-export function LabLive({ hospitalId }: { hospitalId: string }) {
+export function LabLive({
+  hospitalId,
+  variant = "worklist",
+  labels,
+}: {
+  hospitalId: string;
+  /** Lab Workspace v2 (prompt 5.1): `topbar` is the "Live" dot, and "paused" is grey, never amber. */
+  variant?: "worklist" | "topbar";
+  labels?: { on: string; paused: string };
+}) {
   const router = useRouter();
   const [up, setUp] = useState<boolean | null>(null);
   const [said, setSaid] = useState("");
@@ -78,6 +87,24 @@ export function LabLive({ hospitalId }: { hospitalId: string }) {
     };
   }, [hospitalId, router]);
 
+  if (variant === "topbar")
+    return (
+      <>
+        {up === false ? (
+          <span className="text-caption text-muted-foreground">
+            {labels?.paused ?? LAB2.live.paused}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="size-2 rounded-full bg-teal-500" />
+            {labels?.on ?? LAB2.live.on}
+          </span>
+        )}
+        <p aria-live="polite" className="sr-only">
+          {said}
+        </p>
+      </>
+    );
   return (
     <>
       {up === false ? (

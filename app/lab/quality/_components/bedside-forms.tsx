@@ -4,7 +4,6 @@ import type { Payload } from "@/lib/lab/signed-config";
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   grandfatherOperatorsAction,
@@ -16,7 +15,9 @@ import {
 } from "@/lib/lab/bedside-quality-actions";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, num, Pop } from "../../_components/pop";
+import { DateField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
+import { ActButton } from "./act-button";
 
 const B = QUALITY.bedside;
 const TRIGGERS = [
@@ -112,9 +113,9 @@ export function DeviceRuleDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {B.saveDraft}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -198,9 +199,9 @@ export function ValidityDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {B.saveDraft}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -276,15 +277,15 @@ export function SignBedside({ configId, author }: { configId: string; author: bo
           }}
         />
       ) : (
-        <Button
+        <ActButton
           type="button"
           variant="secondary"
           className="min-h-11 w-fit sm:min-h-8"
-          disabled={pending}
+          busy={pending}
           onClick={sign}
         >
           {QUALITY.qc.sign}
-        </Button>
+        </ActButton>
       )}
       <Said message={message} />
     </div>
@@ -295,16 +296,16 @@ export function SwitchOn({ testCode, test }: { testCode: string; test: string })
   const { pending, message, act } = useAct();
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <ActButton
         type="button"
         variant="secondary"
         className="min-h-11 w-fit sm:min-h-8"
-        disabled={pending}
+        busy={pending}
         onClick={() => act(() => grandfatherOperatorsAction({ testCode }), B.switchedOn)}
       >
         {B.switchOn}
         <span className="sr-only"> {test}</span>
-      </Button>
+      </ActButton>
       <Said message={message} />
     </div>
   );
@@ -345,9 +346,9 @@ export function RangesDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {B.save}
-          </Button>
+          </ActButton>
         }
       >
         {levels.map((l) => (
@@ -415,9 +416,9 @@ export function AssessDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {B.save}
-          </Button>
+          </ActButton>
         }
       >
         <Ticks
@@ -427,14 +428,7 @@ export function AssessDialog({
           value={methods}
           onChange={setMethods}
         />
-        <Field label={B.assessedOn}>
-          <Input
-            type="date"
-            value={assessedOn}
-            onChange={(e) => setAssessedOn(e.target.value)}
-            className={`${inputClass} max-w-48`}
-          />
-        </Field>
+        <DateField label={B.assessedOn} value={assessedOn} onChange={setAssessedOn} />
       </Pop>
       <Said message={message} />
     </div>

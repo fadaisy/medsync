@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import {
   addNcActionAction,
   authoriseResumptionAction,
@@ -15,7 +15,10 @@ import {
 } from "@/lib/lab/qc-actions";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, Pop, selectClass } from "../../_components/pop";
+import { LabButton } from "../../_components/v2/button";
+import { DateField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
+import { ActButton } from "./act-button";
 
 type Result = { ok: true } | { ok: false; error: string };
 const N = QUALITY.nc;
@@ -48,9 +51,9 @@ export function OpenNcDialog({ machines }: { machines: { id: string; model: stri
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {N.open}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -132,9 +135,9 @@ export function AddActionDialog({ ncId }: { ncId: string }) {
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {N.addAction}
-          </Button>
+          </ActButton>
         }
       >
         <Field label={N.what}>
@@ -154,14 +157,12 @@ export function AddActionDialog({ ncId }: { ncId: string }) {
               className={inputClass}
             />
           </Field>
-          <Field label={N.by}>
-            <Input
-              type="date"
-              value={f.by}
-              onChange={(e) => setF({ ...f, by: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
+          <DateField
+            label={N.by}
+            value={f.by}
+            onChange={(v) => setF({ ...f, by: v })}
+            allowFuture
+          />
         </div>
       </Pop>
       <Said message={message} />
@@ -194,16 +195,16 @@ export function ActionState({
     }, "Updated.");
   return (
     <div className="flex flex-wrap items-start gap-2">
-      <Button
+      <ActButton
         type="button"
         variant="secondary"
         className="min-h-11 sm:min-h-8"
-        disabled={pending}
+        busy={pending}
         onClick={() => update("done")}
       >
         {N.done}
         <span className="sr-only">: {what}</span>
-      </Button>
+      </ActButton>
       <Pop
         label={N.cancel}
         sr={what}
@@ -213,9 +214,14 @@ export function ActionState({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={() => update("cancelled")} disabled={pending}>
+          <ActButton
+            variant="primary"
+            type="button"
+            onClick={() => update("cancelled")}
+            busy={pending}
+          >
             {N.cancel}
-          </Button>
+          </ActButton>
         }
       >
         <Field label="Reason">
@@ -252,35 +258,42 @@ export function DecideItem({ itemId, label }: { itemId: string; label: string })
           </option>
         ))}
       </select>
-      <Button
+      <LabButton
         type="button"
-        variant="secondary"
-        className="min-h-11 sm:min-h-8"
-        disabled={pending || !d}
+        size="sm"
+        busy={pending}
+        disabledReason={d ? null : LABWS2_QUALITY.sweep.decideFirst}
         onClick={() =>
           act(() => decideLookbackItemAction({ itemId, decision: d }), L.decisions[d] ?? "")
         }
       >
         {L.record}
         <span className="sr-only">: {label}</span>
-      </Button>
+      </LabButton>
       <Said message={message} />
     </div>
   );
 }
 
-export function ResumeButton({ ncId, disabled }: { ncId: string; disabled: boolean }) {
+export function ResumeButton({
+  ncId,
+  disabledReason,
+}: {
+  ncId: string;
+  disabledReason: string | null;
+}) {
   const { pending, message, act } = useAct();
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <LabButton
         type="button"
-        className="min-h-11 w-fit sm:min-h-9"
-        disabled={pending || disabled}
+        busy={pending}
+        disabledReason={disabledReason}
+        reasonPlacement="below"
         onClick={() => act(() => authoriseResumptionAction({ ncId }), N.resumed)}
       >
         {N.authorise}
-      </Button>
+      </LabButton>
       <Said message={message} />
     </div>
   );
@@ -348,14 +361,15 @@ export function CloseForm({ ncId }: { ncId: string }) {
           }}
         />
       ) : (
-        <Button
+        <ActButton
+          variant="primary"
           type="button"
           className="min-h-11 w-fit sm:min-h-9"
-          disabled={pending}
+          busy={pending}
           onClick={close}
         >
           {N.sign}
-        </Button>
+        </ActButton>
       )}
       <Said message={message} />
     </div>

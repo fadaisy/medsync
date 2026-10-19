@@ -1,3 +1,4 @@
+import type { SP } from "../_lib/v2-redirect";
 import type { ReportParams } from "./_lib/params";
 import type { Metadata } from "next";
 
@@ -17,10 +18,13 @@ import {
   reportRows,
   statedTargets,
 } from "@/lib/lab/report-store";
+import { DateField } from "../_components/v2/fields";
 import { dateWords, dayWords, timeWords } from "../_lib/days";
+import { labV2 } from "../_lib/places";
 import { monthWords } from "../hmis/_lib/month";
 import { requireQualityScope } from "../quality/_lib/scope";
 import { reportParams } from "./_lib/params";
+import { ReportsPlace } from "./_views/place";
 
 export const metadata: Metadata = { title: "Lab reports · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
@@ -30,16 +34,21 @@ const field =
   "border-input bg-card text-body-s focus-visible:shadow-focus min-h-11 rounded-sm border px-2 outline-none sm:min-h-9";
 
 /**
+ * /lab/reports is the Reports place's own path (gate-a §3): with Lab Workspace v2 on it is the tabbed place
+ * (5.9); off, the old page exactly as before.
+ */
+export default async function LabReportsPage({ searchParams }: { searchParams: Promise<SP> }) {
+  if ((await labV2()).live) return <ReportsPlace sp={await searchParams} />;
+  return <OldReportsPage searchParams={searchParams as Promise<ReportParams>} />;
+}
+
+/**
  * Lab reports and quality indicators (Lab Phase 3 §5.13, artboard 13; labReports): filters (month or range, ward or
  * clinic, section, priority), the eight tiles, turnaround per section, rejections by reason, CSV and the as-of
  * time. Rows are read as the clinical reader through `private.lab_indicator_rows` (lab readers only, 0118), counted
  * at read time by the engine; every number opens its records (/lab/reports/records).
  */
-export default async function LabReportsPage({
-  searchParams,
-}: {
-  searchParams: Promise<ReportParams>;
-}) {
+async function OldReportsPage({ searchParams }: { searchParams: Promise<ReportParams> }) {
   const { scope } = await requireQualityScope(labReportsLiveFor);
   const now = new Date();
   const p = reportParams(await searchParams, now);
@@ -106,14 +115,18 @@ export default async function LabReportsPage({
           p.range ? null : p.month,
           p.months.map((m) => [m, monthWords(m)]),
         )}
-        <label className="text-body-s flex flex-col gap-1">
-          <span className="text-muted-foreground">{R.filters.from}</span>
-          <input type="date" name="from" defaultValue={p.range?.from} className={field} />
-        </label>
-        <label className="text-body-s flex flex-col gap-1">
-          <span className="text-muted-foreground">{R.filters.to}</span>
-          <input type="date" name="to" defaultValue={p.range?.to} className={field} />
-        </label>
+        <DateField
+          label={R.filters.from}
+          name="from"
+          defaultValue={p.range?.from}
+          now={now.toISOString()}
+        />
+        <DateField
+          label={R.filters.to}
+          name="to"
+          defaultValue={p.range?.to}
+          now={now.toISOString()}
+        />
         {select(
           "ward",
           R.filters.ward,

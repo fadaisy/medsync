@@ -1,6 +1,6 @@
 import type { WorklistPayload } from "./_components/worklist-screen";
 import type { LabTechScope } from "@/lib/lab-tech/scope";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { FlaskConicalIcon } from "lucide-react";
 
 import { LAB } from "@/content/lab";
@@ -12,13 +12,15 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
 import { labBenchLiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE, labWorklistFor, requestNow } from "@/lib/lab/page-data";
-import { analyteName, repeatTasks } from "@/lib/lab/qc-store";
+import { landingFor } from "@/lib/lab/places";
+import { repeatTasks } from "@/lib/lab/qc-store";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
-import { RepeatDone } from "./_components/repeat-done";
+import { RepeatTasks } from "./_components/repeat-tasks";
 import { ResultRowActions } from "./_components/result-row-actions";
 import { WorklistScreen } from "./_components/worklist-screen";
-import { dateWords, timeWords } from "./_lib/days";
+import { labV2 } from "./_lib/places";
+import { withQuery } from "./_lib/v2-redirect";
 import { ncLiveFor } from "./quality/_lib/scope";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +34,11 @@ const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : n
  * exactly what /lab showed before — the EMR worklist, or the older list.
  */
 export default async function LabWorklistPage({ searchParams }: { searchParams: Promise<Params> }) {
+  // Lab Workspace v2 (D-UI-04): the lead lands on Today, everyone else on the Bench, with the worklist's
+  // section and stage kept. A role decision, so a temporary redirect.
+  const v2 = await labV2();
+  if (v2.live)
+    redirect(withQuery(landingFor(v2.scope.access.permissions, v2.places), await searchParams));
   const scope = await requireLabTechScope();
   // EMR v1: the record's worklist — the Phase 0 section worklist where LAB_WORKSPACE is on.
   if (emrV1LiveFor(scope.hospitalId))
@@ -98,64 +105,11 @@ async function SectionWorklist({
   };
   return repeats.length ? (
     <>
-      <RepeatTasks tasks={repeats} ids={ids} />
+      <RepeatTasks tasks={repeats} ids={ids} base="/lab/results" />
       <WorklistScreen payload={payload} />
     </>
   ) : (
     <WorklistScreen payload={payload} />
-  );
-}
-
-/** LB-3: "Repeat when QC passes" decisions whose QC now passes, each with two identifiers (Law 12). */
-function RepeatTasks({
-  tasks,
-  ids,
-}: {
-  tasks: Awaited<ReturnType<typeof repeatTasks>>;
-  ids: Awaited<ReturnType<typeof identitiesFor>>;
-}) {
-  return (
-    <section
-      aria-labelledby="repeats"
-      className="border-border bg-card text-body-s mx-4 mt-4 flex flex-col gap-2 rounded-lg border p-4 sm:mx-6"
-    >
-      <h2 id="repeats" className="text-heading-s font-medium">
-        Repeat when QC passes ({tasks.length})
-      </h2>
-      <ul className="flex flex-col gap-3">
-        {tasks.map((t) => {
-          const who = ids.get(t.patientUserId);
-          const label = `${who?.name ?? "Name withheld"}, ${analyteName(t.conceptId ?? "")}`;
-          return (
-            <li key={t.id} className="flex flex-wrap items-start justify-between gap-3">
-              <span className="flex flex-col">
-                <span>{who?.name ?? "Name withheld"}</span>
-                <span className="text-caption text-muted-foreground font-mono">
-                  {who?.mrn ?? "MRN not found"}
-                </span>
-              </span>
-              <span className="flex flex-col">
-                <span>
-                  {analyteName(t.conceptId ?? "")} {t.value} · {t.number}
-                </span>
-                <span className="text-caption text-muted-foreground">
-                  Released {dateWords(t.releasedAt)} {timeWords(t.releasedAt)}
-                </span>
-              </span>
-              {t.orderId ? (
-                <Link
-                  href={`/lab/results/${t.orderId}`}
-                  className="font-medium text-teal-700 underline-offset-4 hover:underline"
-                >
-                  Open the result<span className="sr-only">: {label}</span>
-                </Link>
-              ) : null}
-              <RepeatDone itemId={t.id} label={label} />
-            </li>
-          );
-        })}
-      </ul>
-    </section>
   );
 }
 

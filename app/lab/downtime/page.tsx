@@ -1,3 +1,4 @@
+import type { SP } from "../_lib/v2-redirect";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -9,9 +10,11 @@ import { clinicianOptions } from "@/lib/emr/read/results";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { formLabel, loadDowntime } from "@/lib/lab/downtime-store";
 import { labDowntimeLiveFor } from "@/lib/lab/feature";
+import { tableDate } from "@/lib/lab/field-kit";
 import { labTests } from "@/lib/lab/measures-setup";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { startOfLocalDay } from "@/supabase/functions/_shared/slots";
+import { redirectIfV2 } from "../_lib/v2-redirect";
 import { PrintForms, RecordDowntime, RecordDrill } from "./_components/downtime-forms";
 import { EnterForm } from "./_components/enter-form";
 
@@ -23,7 +26,8 @@ export const dynamic = "force-dynamic";
  * down, record the downtime itself, print blank numbered forms, record a drill. Paper is a first-
  * class path: entering a form should take less time than writing it did.
  */
-export default async function DowntimePage() {
+export default async function DowntimePage({ searchParams }: { searchParams: Promise<SP> }) {
+  await redirectIfV2("/lab/bench/downtime", searchParams);
   const scope = await requireLabTechScope();
   if (
     !scope.workspaceLive ||
@@ -107,7 +111,9 @@ export default async function DowntimePage() {
         </h2>
         <RecordDrill />
         {data.drills.length ? (
-          <p className="text-body-s text-muted-foreground">Last drill: {data.drills[0]!.heldOn}.</p>
+          <p className="text-body-s text-muted-foreground">
+            Last drill: {tableDate(data.drills[0]!.heldOn)}.
+          </p>
         ) : null}
       </section>
     </div>

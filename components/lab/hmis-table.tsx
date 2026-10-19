@@ -8,7 +8,7 @@ import { cellKey, DONE, rowKey } from "@/lib/lab/hmis105";
 const H = LAB3_HMIS;
 const th = "text-caption text-muted-foreground px-2 py-2 text-left font-medium";
 const td = "border-border border-t px-2 py-2 align-top";
-const num = "text-right font-mono tabular-nums";
+const NUM = "text-right font-mono tabular-nums";
 
 /**
  * One section of the HMIS 105 laboratory report (§5.11, artboard 11): grouped rows as on the form, a dash where
@@ -22,13 +22,17 @@ export function HmisTable({
   cells,
   drill,
   testNames,
+  textFigures = false,
 }: {
   form: HmisFormFile;
   section: string;
   cells: Record<string, StoredCell>;
   drill: ((key: string) => string) | null;
   testNames: Record<string, string>;
+  /** Lab Workspace v2: counts in the text face (Law 7); the other callers keep the mono figures. */
+  textFigures?: boolean;
 }) {
+  const num = textFigures ? "text-right tabular-nums" : NUM;
   const meta = form.sections.find((s) => s.id === section);
   const formRows = form.rows.filter((r) => r.section === section);
   // 10.5's rows are free text on the form ("Routine Test Type, specify"): the tests counted there.

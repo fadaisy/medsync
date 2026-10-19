@@ -15,6 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import {
   saveConfigDraftAction,
   setReportEgfrAction,
@@ -23,6 +24,7 @@ import {
 import { setLabSettingsAction } from "@/lib/lab/one-menu-actions";
 import { PAYLOADS } from "@/lib/lab/signed-config";
 import { SETTINGS as C } from "../_lib/copy";
+import { LabButton } from "../../../_components/v2/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =
@@ -72,9 +74,9 @@ export function SignAsLead({
         />
       ) : (
         <div>
-          <Button type="button" variant="secondary" onClick={sign} disabled={pending}>
+          <LabButton type="button" variant="secondary" onClick={sign} busy={pending}>
             {C.sign}
-          </Button>
+          </LabButton>
         </div>
       )}
       <Said message={message} />
@@ -101,7 +103,7 @@ export function ElevationForm({ initial }: { initial: Payload<"elevation"> | nul
             value={metres}
             onChange={(e) => setMetres(e.target.value)}
             inputMode="numeric"
-            className="min-h-11 w-32 font-mono tabular-nums sm:min-h-9"
+            className="min-h-11 w-32 tabular-nums sm:min-h-9"
           />
         </Field>
         <Field label={C.elevation.source}>
@@ -112,9 +114,9 @@ export function ElevationForm({ initial }: { initial: Payload<"elevation"> | nul
             className="min-h-11 min-w-72 sm:min-h-9"
           />
         </Field>
-        <Button type="button" onClick={save} disabled={pending}>
+        <LabButton type="button" onClick={save} variant="primary" busy={pending}>
           {C.saveDraft}
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -174,14 +176,15 @@ export function PaymentModeForm({ mode: saved }: { mode: PaymentMode }) {
         ))}
       </fieldset>
       <div>
-        <Button
+        <LabButton
           type="button"
           variant="secondary"
-          disabled={pending || mode === saved}
+          busy={pending}
+          disabledReason={mode === saved ? LABWS2_SETUP.sweep.whyUnchanged : null}
           onClick={() => act(() => setLabSettingsAction({ paymentMode: mode }), C.payment.saved)}
         >
           {C.payment.save}
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -212,14 +215,15 @@ export function ProcedureForm({ initial }: { initial: string | null }) {
             className="min-h-11 min-w-72 sm:min-h-9"
           />
         </Field>
-        <Button
+        <LabButton
           type="button"
           variant="secondary"
           onClick={save}
-          disabled={pending || text.trim() === (initial ?? "")}
+          busy={pending}
+          disabledReason={text.trim() === (initial ?? "") ? LABWS2_SETUP.sweep.whyUnchanged : null}
         >
           {C.procedure.save}
-        </Button>
+        </LabButton>
       </div>
       <Said message={message} />
     </div>
@@ -327,7 +331,7 @@ export function HivEditor({ initial }: { initial: Payload<"hiv_algorithm"> | nul
                   value={retest}
                   onChange={(e) => setRetest(e.target.value)}
                   inputMode="numeric"
-                  className="min-h-11 w-32 font-mono tabular-nums sm:min-h-9"
+                  className="min-h-11 w-32 tabular-nums sm:min-h-9"
                 />
               </Field>
               <Field label={C.hiv.circular}>
@@ -376,17 +380,19 @@ export function HivEditor({ initial }: { initial: Payload<"hiv_algorithm"> | nul
                           </select>
                         </td>
                         <td className="px-1 py-1">
-                          <Button
+                          <LabButton
                             type="button"
-                            variant="ghost"
+                            variant="quiet"
                             size="sm"
                             onClick={() => setRules((rs) => rs.filter((_, j) => j !== i))}
-                            disabled={rules.length === 1}
+                            disabledReason={
+                              rules.length === 1 ? LABWS2_SETUP.sweep.whyOneRow : null
+                            }
                             className="min-h-11 sm:min-h-7"
                           >
                             {C.hiv.remove}
                             <span className="sr-only"> rule {i + 1}</span>
-                          </Button>
+                          </LabButton>
                         </td>
                       </tr>
                     ))}
@@ -413,9 +419,9 @@ export function HivEditor({ initial }: { initial: Payload<"hiv_algorithm"> | nul
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {C.cancel}
             </Button>
-            <Button type="button" onClick={save} disabled={pending}>
+            <LabButton type="button" onClick={save} variant="primary" busy={pending}>
               {C.saveDraft}
-            </Button>
+            </LabButton>
           </SheetFooter>
         </div>
       </EditorDialog>

@@ -5,8 +5,9 @@ import { useState, useTransition } from "react";
 
 import { ChoiceChips } from "@/components/emr/orders/choice-chips";
 import { StatusWord } from "@/components/emr/status-word";
-import { Button } from "@/components/ui/button";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 import { rejectSpecimen } from "@/lib/emr/actions/orders";
+import { LabButton } from "./v2/button";
 
 /**
  * Reject the specimen from the result screen (Lab Phase 0: the worklist row keeps one control, so
@@ -38,17 +39,16 @@ export function RejectSpecimen({
         <p className="text-body-s text-muted-foreground">
           Specimen unsuitable? Reject it and the ward is asked to collect again.
         </p>
-        <Button
+        <LabButton
           type="button"
           variant="secondary"
-          size="md"
           aria-expanded={open}
-          disabled={pending}
           onClick={() => setOpen((v) => !v)}
           className="min-h-11 sm:min-h-0"
+          busy={pending}
         >
           Reject specimen
-        </Button>
+        </LabButton>
       </div>
       {open ? (
         <div className="flex flex-col items-start gap-2">
@@ -59,11 +59,9 @@ export function RejectSpecimen({
             value={reason}
             onChange={setReason}
           />
-          <Button
+          <LabButton
             type="button"
             variant="secondary"
-            size="md"
-            disabled={pending || !reason}
             className="min-h-11 sm:min-h-0"
             onClick={() =>
               start(async () => {
@@ -80,9 +78,11 @@ export function RejectSpecimen({
                 router.refresh();
               })
             }
+            busy={pending}
+            disabledReason={!reason ? LABWS2.reasons.pickReason : null}
           >
             Reject and ask for a recollection
-          </Button>
+          </LabButton>
         </div>
       ) : null}
       <span role="status" aria-live="polite" className="text-body-s">

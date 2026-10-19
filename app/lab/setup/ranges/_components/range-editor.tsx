@@ -9,9 +9,11 @@ import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveRangeDraftAction, signRangeAsLeadAction } from "@/lib/lab/measures-actions";
 import { resolveRange } from "@/lib/lab/ranges";
 import { toDays } from "../_lib/ages";
+import { LabButton } from "../../../_components/v2/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =
@@ -179,7 +181,7 @@ export function RangeEditor({
                         value={b[k]}
                         onChange={(e) => patch(i, { [k]: e.target.value })}
                         inputMode="numeric"
-                        className="min-h-11 w-16 font-mono tabular-nums sm:min-h-9"
+                        className="min-h-11 w-16 tabular-nums sm:min-h-9"
                       />
                       <select
                         aria-label={`Band ${i + 1} age ${k} unit`}
@@ -200,7 +202,7 @@ export function RangeEditor({
                     value={b.low}
                     onChange={(e) => patch(i, { low: e.target.value })}
                     inputMode="decimal"
-                    className="min-h-11 w-20 text-right font-mono tabular-nums sm:min-h-9"
+                    className="min-h-11 w-20 text-right tabular-nums sm:min-h-9"
                   />
                 </td>
                 <td className="px-1 py-1">
@@ -209,7 +211,7 @@ export function RangeEditor({
                     value={b.high}
                     onChange={(e) => patch(i, { high: e.target.value })}
                     inputMode="decimal"
-                    className="min-h-11 w-20 text-right font-mono tabular-nums sm:min-h-9"
+                    className="min-h-11 w-20 text-right tabular-nums sm:min-h-9"
                   />
                 </td>
                 <td className="px-1 py-1">
@@ -222,16 +224,16 @@ export function RangeEditor({
                   />
                 </td>
                 <td className="px-1 py-1">
-                  <Button
+                  <LabButton
                     type="button"
-                    variant="ghost"
+                    variant="quiet"
                     size="sm"
                     onClick={() => setBands((x) => x.filter((_, j) => j !== i))}
-                    disabled={bands.length === 1}
+                    disabledReason={bands.length === 1 ? LABWS2_SETUP.sweep.whyOneBand : null}
                     className="min-h-11 sm:min-h-7"
                   >
                     Remove<span className="sr-only"> band {i + 1}</span>
-                  </Button>
+                  </LabButton>
                 </td>
               </tr>
             ))}
@@ -277,7 +279,7 @@ export function RangeEditor({
         </ul>
       </section>
       <div className="flex flex-wrap items-center gap-3">
-        <Button
+        <LabButton
           type="button"
           onClick={() =>
             act(
@@ -297,10 +299,11 @@ export function RangeEditor({
               "Draft saved. It is not used until it is signed by the laboratory lead and the CSO.",
             )
           }
-          disabled={pending}
+          variant="primary"
+          busy={pending}
         >
           Save draft
-        </Button>
+        </LabButton>
       </div>
       {draftId && canSign ? (
         <div className="flex flex-col gap-2">
@@ -328,9 +331,9 @@ export function RangeEditor({
             />
           ) : (
             <div>
-              <Button type="button" variant="secondary" onClick={sign} disabled={pending}>
+              <LabButton type="button" variant="secondary" onClick={sign} busy={pending}>
                 Sign as laboratory lead
-              </Button>
+              </LabButton>
             </div>
           )}
         </div>

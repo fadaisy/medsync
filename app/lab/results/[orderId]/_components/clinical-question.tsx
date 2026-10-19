@@ -4,10 +4,10 @@ import type { RevealResult } from "@/lib/lab/bench-actions";
 import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { Button } from "@/components/ui/button";
 import { LAB } from "@/content/lab";
 import { LAB2 } from "@/content/lab-phase-2";
 import { revealWorkingDiagnosisAction } from "@/lib/lab/bench-actions";
+import { LabButton } from "../../../_components/v2/button";
 
 const B = LAB.bench;
 const when = new Intl.DateTimeFormat("en-GB", {
@@ -59,12 +59,10 @@ export function ClinicalQuestion({
         ) : null}
       </dl>
       {!shown ? (
-        <Button
+        <LabButton
           type="button"
           variant="secondary"
-          size="md"
           className="min-h-11 self-start sm:min-h-0"
-          disabled={busy}
           onClick={() =>
             start(async () => {
               const r = await revealWorkingDiagnosisAction({ patientUserId, orderId });
@@ -72,9 +70,10 @@ export function ClinicalQuestion({
               if (r.ok && r.data) setShown(r.data);
             })
           }
+          busy={busy}
         >
           {LAB2.workingDiagnosis.button}
-        </Button>
+        </LabButton>
       ) : null}
       <div role="status" className="flex flex-col gap-1">
         {error ? <StatusWord tone="caution">{error}</StatusWord> : null}

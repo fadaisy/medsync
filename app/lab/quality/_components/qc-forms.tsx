@@ -9,6 +9,7 @@ import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
+import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import { targetFor } from "@/lib/lab/qc";
 import {
   recordKitQcAction,
@@ -23,7 +24,9 @@ import { evaluateRules, RULE_IDS, runDecision, zScore } from "@/lib/lab/qc-rules
 import { cn } from "@/lib/utils";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
+import { LabButton } from "../../_components/v2/button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
+import { ActButton } from "./act-button";
 
 type Result = { ok: true } | { ok: false; error: string };
 const Q = QUALITY;
@@ -80,15 +83,15 @@ export function SignDraft({ configId, author }: { configId: string; author: bool
           }}
         />
       ) : (
-        <Button
+        <ActButton
           type="button"
           variant="secondary"
           className="min-h-11 w-fit sm:min-h-8"
-          disabled={pending}
+          busy={pending}
           onClick={sign}
         >
           {Q.qc.sign}
-        </Button>
+        </ActButton>
       )}
       <Said message={message} />
     </div>
@@ -125,9 +128,9 @@ export function PolicyDialog({ initial }: { initial: Payload<"qc_policy"> | null
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {Q.qc.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -279,9 +282,9 @@ export function PlanDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {Q.qc.save}
-          </Button>
+          </ActButton>
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -363,7 +366,7 @@ export function PlanDialog({
                 inputMode="decimal"
                 value={l.mean}
                 onChange={(e) => setLevel(i, { mean: e.target.value })}
-                className={cn(inputClass, "font-mono")}
+                className={cn(inputClass, "tabular-nums")}
               />
             </Field>
             <Field label="SD">
@@ -371,16 +374,15 @@ export function PlanDialog({
                 inputMode="decimal"
                 value={l.sd}
                 onChange={(e) => setLevel(i, { sd: e.target.value })}
-                className={cn(inputClass, "font-mono")}
+                className={cn(inputClass, "tabular-nums")}
               />
             </Field>
           </fieldset>
         ))}
         <div className="flex gap-2">
-          <Button
+          <LabButton
             type="button"
-            variant="secondary"
-            disabled={levels.length >= 3}
+            disabledReason={levels.length >= 3 ? LABWS2_QUALITY.sweep.addLevelMax : null}
             onClick={() =>
               setLevels((ls) => [
                 ...ls,
@@ -389,15 +391,15 @@ export function PlanDialog({
             }
           >
             Add a level
-          </Button>
-          <Button
+          </LabButton>
+          <LabButton
             type="button"
-            variant="ghost"
-            disabled={levels.length <= 1}
+            variant="quiet"
+            disabledReason={levels.length <= 1 ? LABWS2_QUALITY.sweep.removeLevelMin : null}
             onClick={() => setLevels((ls) => ls.slice(0, -1))}
           >
             Remove the last level
-          </Button>
+          </LabButton>
         </div>
         {ruleBoxes(reject, setReject, Q.plan.rejectOn)}
         {ruleBoxes(warn, setWarn, Q.plan.warnOn)}
@@ -439,17 +441,17 @@ export function SetTarget({
   const { pending, message, act } = useAct();
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <ActButton
         type="button"
         variant="secondary"
         className="min-h-11 w-fit sm:min-h-8"
-        disabled={pending}
+        busy={pending}
         onClick={() =>
           act(() => setLabTargetAction({ deviceId, conceptId, level, controlLotId }), Q.qc.saved)
         }
       >
         {Q.plan.setTarget(label)}
-      </Button>
+      </ActButton>
       <Said message={message} />
     </div>
   );
@@ -593,15 +595,13 @@ export function RunForm({
                     onChange={(e) =>
                       setLines({ ...lines_, [l.level]: { ...line, value: e.target.value } })
                     }
-                    className={cn(inputClass, "w-28 text-right font-mono tabular-nums")}
+                    className={cn(inputClass, "w-28 text-right tabular-nums")}
                   />
                 </td>
-                <td className="py-2 pr-3 font-mono tabular-nums">
+                <td className="py-2 pr-3 tabular-nums">
                   {t ? `${t.mean} ± ${t.sd} ${plan.unit}` : "No target for this lot"}
                 </td>
-                <td className="py-2 pr-3 text-right font-mono tabular-nums">
-                  {z === null ? "—" : sd(z)}
-                </td>
+                <td className="py-2 pr-3 text-right tabular-nums">{z === null ? "—" : sd(z)}</td>
                 <td className="py-2 pr-3">
                   {z === null ? "—" : rulesOf(l.level).join(" · ") || Q.run.noneBroken}
                 </td>
@@ -663,13 +663,21 @@ export function RunForm({
         </div>
       ) : null}
       <div>
-        <Button
+        <ActButton
           type="button"
+          variant="primary"
           onClick={submit}
-          disabled={pending || !decision || (decision === "rejected" && first.length < 3)}
+          busy={pending}
+          disabledReason={
+            !decision
+              ? LABWS2_QUALITY.sweep.runNoDecision
+              : decision === "rejected" && first.length < 3
+                ? LABWS2_QUALITY.sweep.runNoStep
+                : null
+          }
         >
           {decision === "rejected" ? Q.run.reject(analyte.toLowerCase()) : Q.run.accept}
-        </Button>
+        </ActButton>
       </div>
       <Said message={message} />
     </section>
@@ -727,9 +735,14 @@ export function KitCheckDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending || !complete}>
+          <LabButton
+            type="button"
+            onClick={save}
+            busy={pending}
+            disabledReason={complete ? null : LABWS2_QUALITY.sweep.kitIncomplete}
+          >
             {Q.kits.save}
-          </Button>
+          </LabButton>
         }
       >
         <Field label="Why it is run">
@@ -873,9 +886,9 @@ export function KitRuleDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <ActButton variant="primary" type="button" onClick={save} busy={pending}>
             {Q.qc.save}
-          </Button>
+          </ActButton>
         }
       >
         <fieldset className="flex flex-col gap-2">
@@ -965,14 +978,14 @@ export function KitRuleDialog({
           >
             Add a control
           </Button>
-          <Button
+          <LabButton
             type="button"
-            variant="ghost"
-            disabled={controls.length <= 1}
+            variant="quiet"
+            disabledReason={controls.length <= 1 ? LABWS2_QUALITY.sweep.removeControlMin : null}
             onClick={() => setControls(controls.slice(0, -1))}
           >
             Remove the last control
-          </Button>
+          </LabButton>
         </div>
         <label className="text-body-s flex min-h-11 items-center gap-2 sm:min-h-0">
           <input

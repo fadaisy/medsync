@@ -19,11 +19,13 @@ import { loadStock } from "@/lib/lab/stock-read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { RecordList } from "../_components/record-list";
 import { dateWords, timeWords } from "../_lib/days";
+import { labV2 } from "../_lib/places";
 import { dueWords, monthWords } from "../hmis/_lib/month";
 import { QcChip } from "./_components/qc-chip";
 import { QUALITY } from "./_lib/copy";
 import { requireQualityScope } from "./_lib/scope";
 import { qcWord } from "./_lib/status";
+import { QualityPlace } from "./_views/place";
 
 export const metadata: Metadata = { title: "Quality today · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
@@ -52,7 +54,7 @@ function Tile({ label, value, href }: { label: string; value: string; href: stri
  * Quality today (Lab Phase 3 §5.1, artboard 1; labQc): four tiles, today's QC by analyte, kit and stain, and
  * what needs the viewer. Statuses are the engine's over the cached rows (QH-1); every number links to its list.
  */
-export default async function QualityTodayPage() {
+async function OldQualityToday() {
   const { scope } = await requireQualityScope();
   const now = new Date();
   const h = scope.hospitalId;
@@ -284,4 +286,18 @@ export default async function QualityTodayPage() {
       </div>
     </div>
   );
+}
+
+/**
+ * /lab/quality keeps its path (gate-a §3): under Lab Workspace v2 it is the tabbed Quality place
+ * (`?tab=today|plans|runs|stock|equipment|eqa|bedside|nc`); with the flag off, the old Quality today page.
+ */
+export default async function QualityPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const v2 = await labV2();
+  if (v2.live) return <QualityPlace v2={v2} sp={await searchParams} />;
+  return <OldQualityToday />;
 }

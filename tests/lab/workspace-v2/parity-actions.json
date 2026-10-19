@@ -1,0 +1,679 @@
+{
+ "acceptLotAction": {
+  "old": [
+   "app/lab/stock/_components/receive-forms.tsx"
+  ]
+ },
+ "activateProfileAction": {
+  "old": [
+   "app/lab/setup/profiles/_components/profile-forms.tsx"
+  ]
+ },
+ "addLotAction": {
+  "old": [
+   "app/lab/setup/settings/_components/bedside-register.tsx"
+  ]
+ },
+ "addNcActionAction": {
+  "old": [
+   "app/lab/quality/_components/nc-forms.tsx"
+  ]
+ },
+ "addToManifestAction": {
+  "old": [
+   "app/lab/refer/_components/send-panel.tsx"
+  ]
+ },
+ "approveSmsTemplateAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "attachScanAction": {
+  "old": [
+   "app/lab/referrals/[id]/result/result-form.tsx"
+  ]
+ },
+ "authoriseResumptionAction": {
+  "old": [
+   "app/lab/quality/_components/nc-forms.tsx"
+  ]
+ },
+ "checkHmis105Action": {
+  "old": [
+   "app/lab/hmis/_components/hmis-forms.tsx"
+  ]
+ },
+ "checkPaperIdentityAction": {
+  "old": [
+   "app/lab/referrals/[id]/result/result-form.tsx"
+  ]
+ },
+ "closeNonconformityAction": {
+  "old": [
+   "app/lab/quality/_components/nc-forms.tsx"
+  ]
+ },
+ "couldNotReachAction": {
+  "old": [
+   "app/lab/criticals/_components/call-log.tsx"
+  ]
+ },
+ "createAliquotAction": {
+  "old": [
+   "app/lab/refer/_components/send-panel.tsx"
+  ]
+ },
+ "createPairingCodeAction": {
+  "old": [
+   "app/lab/exchange/_components/connection-forms.tsx"
+  ]
+ },
+ "createProfileAction": {
+  "old": [
+   "app/lab/setup/profiles/_components/profile-forms.tsx"
+  ]
+ },
+ "createScanUploadAction": {
+  "old": [
+   "app/lab/referrals/[id]/result/result-form.tsx"
+  ]
+ },
+ "decideLookbackItemAction": {
+  "old": [
+   "app/lab/quality/_components/nc-forms.tsx"
+  ]
+ },
+ "draftAddendumAction": {
+  "old": [
+   "app/lab/setup/drafts/_components/addendum-dialog.tsx"
+  ]
+ },
+ "editSmsTemplateAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "enableSenderAction": {
+  "old": [
+   "app/lab/exchange/_components/connection-forms.tsx"
+  ]
+ },
+ "enterDowntimeFormAction": {
+  "old": [
+   "app/lab/downtime/_components/enter-form.tsx"
+  ]
+ },
+ "enterLabResultAction": {
+  "old": [
+   "app/lab/_components/result-row-actions.tsx"
+  ]
+ },
+ "exportHmis105Action": {
+  "old": [
+   "app/lab/hmis/_components/hmis-forms.tsx"
+  ]
+ },
+ "fileElectronicResultAction": {
+  "old": [
+   "app/lab/exchange/_components/connection-forms.tsx"
+  ]
+ },
+ "findPatientAction": {
+  "old": [
+   "app/lab/downtime/_components/enter-form.tsx"
+  ]
+ },
+ "findSpecimenAction": {
+  "old": [
+   "app/lab/_components/bench-bar.tsx"
+  ]
+ },
+ "generateHmis105Action": {
+  "old": [
+   "app/lab/hmis/_components/hmis-forms.tsx"
+  ]
+ },
+ "grandfatherLotsAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "grandfatherOperatorsAction": {
+  "old": [
+   "app/lab/quality/_components/bedside-forms.tsx"
+  ]
+ },
+ "importResearchAction": {
+  "old": [
+   "app/lab/setup/drafts/_components/addendum-dialog.tsx"
+  ]
+ },
+ "issueStockAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "loadDemoDayAction": {
+  "old": [
+   "app/lab/setup/demo/load-button.tsx"
+  ]
+ },
+ "logCriticalCallAction": {
+  "old": [
+   "app/lab/criticals/_components/call-log.tsx"
+  ]
+ },
+ "markBackInServiceAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx"
+  ]
+ },
+ "markDownAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx"
+  ]
+ },
+ "markLostAction": {
+  "old": [
+   "app/lab/referrals/_components/referral-forms.tsx"
+  ]
+ },
+ "openNonconformityAction": {
+  "old": [
+   "app/lab/quality/_components/nc-forms.tsx"
+  ]
+ },
+ "openRawAction": {
+  "old": [
+   "app/lab/exchange/_components/connection-forms.tsx"
+  ]
+ },
+ "prepareRevisionAction": {
+  "old": [
+   "app/lab/hmis/_components/hmis-forms.tsx"
+  ]
+ },
+ "printManifestAction": {
+  "old": [
+   "app/lab/refer/manifests/[id]/print/print-manifest.tsx"
+  ]
+ },
+ "printRegisterAction": {
+  "old": [
+   "app/lab/register/_components/register-forms.tsx"
+  ]
+ },
+ "quarantineLotAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx",
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "receiveByLabelAction": {
+  "old": [
+   "app/lab/_components/bench-bar.tsx"
+  ]
+ },
+ "receiveDeliveryAction": {
+  "old": [
+   "app/lab/stock/_components/receive-forms.tsx"
+  ]
+ },
+ "receiveSpecimen": {
+  "old": [
+   "app/lab/_components/worklist-screen.tsx"
+  ]
+ },
+ "recordAltAssessmentAction": {
+  "old": [
+   "app/lab/quality/_components/eqa-forms.tsx"
+  ]
+ },
+ "recordCompetencyAction": {
+  "old": [
+   "app/lab/quality/_components/bedside-forms.tsx"
+  ]
+ },
+ "recordCountAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "recordDeltaOutcomeAction": {
+  "old": [
+   "app/lab/results/[orderId]/_components/delta-panel.tsx"
+  ]
+ },
+ "recordDraftCheckAction": {
+  "old": [
+   "app/lab/setup/drafts/_components/drafts-table.tsx"
+  ]
+ },
+ "recordDrillAction": {
+  "old": [
+   "app/lab/downtime/_components/downtime-forms.tsx"
+  ]
+ },
+ "recordEqaResultsAction": {
+  "old": [
+   "app/lab/quality/_components/eqa-forms.tsx"
+  ]
+ },
+ "recordEqaScoresAction": {
+  "old": [
+   "app/lab/quality/_components/eqa-forms.tsx"
+  ]
+ },
+ "recordEquipmentLogAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx"
+  ]
+ },
+ "recordHandoverAction": {
+  "old": [
+   "app/lab/refer/_components/send-panel.tsx"
+  ]
+ },
+ "recordKitQcAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "recordManifestReceiptAction": {
+  "old": [
+   "app/lab/refer/_components/send-panel.tsx"
+  ]
+ },
+ "recordMovementAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "recordOutbreakReferralAction": {
+  "old": [
+   "app/lab/refer/_components/send-panel.tsx"
+  ]
+ },
+ "recordPeriodAction": {
+  "old": [
+   "app/lab/downtime/_components/downtime-forms.tsx"
+  ]
+ },
+ "recordQcRunAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "recordReferralEventAction": {
+  "old": [
+   "app/lab/referrals/_components/referral-forms.tsx"
+  ]
+ },
+ "recordRoundAction": {
+  "old": [
+   "app/lab/quality/_components/eqa-forms.tsx"
+  ]
+ },
+ "recordTemperatureAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx"
+  ]
+ },
+ "registerDeviceAction": {
+  "old": [
+   "app/lab/setup/settings/_components/bedside-register.tsx"
+  ]
+ },
+ "rejectBandAction": {
+  "old": [
+   "app/lab/setup/drafts/_components/drafts-table.tsx"
+  ]
+ },
+ "rejectLabResultAction": {
+  "old": [
+   "app/lab/_components/result-row-actions.tsx"
+  ]
+ },
+ "rejectLotAction": {
+  "old": [
+   "app/lab/stock/_components/receive-forms.tsx"
+  ]
+ },
+ "rejectSpecimen": {
+  "old": [
+   "app/lab/_components/reject-specimen.tsx"
+  ]
+ },
+ "releaseLabResultAction": {
+  "old": [
+   "app/lab/_components/result-row-actions.tsx"
+  ]
+ },
+ "releaseLotFromQuarantineAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "releasePaperResultAction": {
+  "old": [
+   "app/lab/referrals/[id]/result/result-form.tsx"
+  ]
+ },
+ "releaseResults": {
+  "old": [
+   "app/lab/results/[orderId]/_components/qc-hold.tsx"
+  ]
+ },
+ "releaseWithCriticalMarkAction": {
+  "old": [
+   "app/lab/results/[orderId]/_components/lab-result-entry.tsx"
+  ]
+ },
+ "repeatDoneAction": {
+  "old": [
+   "app/lab/_components/repeat-done.tsx"
+  ]
+ },
+ "requestCancelAction": {
+  "old": [
+   "app/lab/referrals/_components/referral-forms.tsx"
+  ]
+ },
+ "reserveFormsAction": {
+  "old": [
+   "app/lab/downtime/_components/downtime-forms.tsx"
+  ]
+ },
+ "resolveCheckAction": {
+  "old": [
+   "app/lab/setup/profiles/_components/profile-forms.tsx"
+  ]
+ },
+ "resolveMatchAction": {
+  "old": [
+   "app/lab/exchange/matches/_components/match-forms.tsx"
+  ]
+ },
+ "retryOrSetAsideAction": {
+  "old": [
+   "app/lab/exchange/_components/connection-forms.tsx"
+  ]
+ },
+ "revealWorkingDiagnosisAction": {
+  "old": [
+   "app/lab/results/[orderId]/_components/clinical-question.tsx"
+  ]
+ },
+ "revokeSenderAction": {
+  "old": [
+   "app/lab/exchange/_components/connection-forms.tsx"
+  ]
+ },
+ "saveAcceptancePlanAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "saveCompetencyValidityAction": {
+  "old": [
+   "app/lab/quality/_components/bedside-forms.tsx"
+  ]
+ },
+ "saveConfigDraftAction": {
+  "old": [
+   "app/lab/setup/ranges/_components/flag-basis.tsx",
+   "app/lab/setup/ranges/_components/scheme-editor.tsx",
+   "app/lab/setup/settings/_components/settings-forms.tsx"
+  ]
+ },
+ "saveDeltaRuleAction": {
+  "old": [
+   "app/lab/setup/delta/_components/delta-forms.tsx"
+  ]
+ },
+ "saveDeviceQcRuleAction": {
+  "old": [
+   "app/lab/quality/_components/bedside-forms.tsx"
+  ]
+ },
+ "saveEqaSettingsAction": {
+  "old": [
+   "app/lab/quality/_components/eqa-forms.tsx"
+  ]
+ },
+ "saveEquipmentAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx"
+  ]
+ },
+ "saveHmisMappingAction": {
+  "old": [
+   "app/lab/hmis/mapping/_components/mapping-editor.tsx"
+  ]
+ },
+ "saveKitQcRuleAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "saveLabSettingsAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "saveLimitsDraftAction": {
+  "old": [
+   "app/lab/setup/limits/_components/limits-editor.tsx"
+  ]
+ },
+ "saveManualCellsAction": {
+  "old": [
+   "app/lab/hmis/_components/hmis-forms.tsx"
+  ]
+ },
+ "saveMeasureAction": {
+  "old": [
+   "app/lab/setup/catalogue/_components/measure-form.tsx"
+  ]
+ },
+ "savePartnerAction": {
+  "old": [
+   "app/lab/exchange/partners/_components/partner-forms.tsx"
+  ]
+ },
+ "savePartnerConfigAction": {
+  "old": [
+   "app/lab/exchange/partners/_components/partner-forms.tsx"
+  ]
+ },
+ "savePatientReleaseDraftAction": {
+  "old": [
+   "app/lab/setup/patient-release/_components/release-forms.tsx"
+  ]
+ },
+ "saveQcPlanAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "saveQcPolicyAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "saveRangeDraftAction": {
+  "old": [
+   "app/lab/setup/ranges/_components/range-editor.tsx"
+  ]
+ },
+ "saveRegisterConfigAction": {
+  "old": [
+   "app/lab/register/_components/register-forms.tsx"
+  ]
+ },
+ "saveResponseDraftAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "saveScheduleAction": {
+  "old": [
+   "app/lab/equipment/_components/equipment-forms.tsx"
+  ]
+ },
+ "saveSchemeAction": {
+  "old": [
+   "app/lab/quality/_components/eqa-forms.tsx"
+  ]
+ },
+ "saveStockItemAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "sealManifestAction": {
+  "old": [
+   "app/lab/refer/_components/send-panel.tsx"
+  ]
+ },
+ "seedSmsTemplatesAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "setContactsAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "setDeviceStateAction": {
+  "old": [
+   "app/lab/setup/settings/_components/bedside-register.tsx"
+  ]
+ },
+ "setLabSettingsAction": {
+  "old": [
+   "app/lab/setup/settings/_components/settings-forms.tsx"
+  ]
+ },
+ "setLabTargetAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "setLotInUseAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "setOperatorAction": {
+  "old": [
+   "app/lab/setup/settings/_components/bedside-register.tsx"
+  ]
+ },
+ "setReportEgfrAction": {
+  "old": [
+   "app/lab/setup/settings/_components/settings-forms.tsx"
+  ]
+ },
+ "setStockSettingsAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "setStripLotRangesAction": {
+  "old": [
+   "app/lab/quality/_components/bedside-forms.tsx"
+  ]
+ },
+ "setTestServiceAction": {
+  "old": [
+   "app/lab/setup/menu/_components/service-picker.tsx"
+  ]
+ },
+ "setVerifiedAction": {
+  "old": [
+   "app/lab/setup/profiles/_components/profile-forms.tsx"
+  ]
+ },
+ "setVisibilityAction": {
+  "old": [
+   "app/lab/setup/profiles/_components/profile-forms.tsx"
+  ]
+ },
+ "signAcceptancePlanAction": {
+  "old": [
+   "app/lab/stock/_components/stock-forms.tsx"
+  ]
+ },
+ "signBedsideConfigAction": {
+  "old": [
+   "app/lab/quality/_components/bedside-forms.tsx"
+  ]
+ },
+ "signConfigAsLeadAction": {
+  "old": [
+   "app/lab/setup/delta/_components/delta-forms.tsx",
+   "app/lab/setup/drafts/_components/addendum-dialog.tsx",
+   "app/lab/setup/ranges/_components/scheme-sign.tsx",
+   "app/lab/setup/settings/_components/settings-forms.tsx"
+  ]
+ },
+ "signHmisMappingAction": {
+  "old": [
+   "app/lab/hmis/mapping/_components/mapping-editor.tsx"
+  ]
+ },
+ "signLimitsAsLeadAction": {
+  "old": [
+   "app/lab/setup/limits/_components/limits-editor.tsx"
+  ]
+ },
+ "signPartnerConfigAction": {
+  "old": [
+   "app/lab/exchange/partners/_components/partner-forms.tsx"
+  ]
+ },
+ "signQcConfigAction": {
+  "old": [
+   "app/lab/quality/_components/qc-forms.tsx"
+  ]
+ },
+ "signRangeAsLeadAction": {
+  "old": [
+   "app/lab/setup/drafts/_components/drafts-table.tsx",
+   "app/lab/setup/ranges/_components/range-editor.tsx"
+  ]
+ },
+ "signRegisterConfigAction": {
+  "old": [
+   "app/lab/register/_components/register-forms.tsx"
+  ]
+ },
+ "signResponseAsLeadAction": {
+  "old": [
+   "app/lab/setup/criticals/_components/setup-forms.tsx"
+  ]
+ },
+ "testComponentsAction": {
+  "old": [
+   "app/lab/downtime/_components/enter-form.tsx"
+  ]
+ },
+ "trialDeltaRuleAction": {
+  "old": [
+   "app/lab/setup/delta/_components/delta-forms.tsx"
+  ]
+ },
+ "undoReceiveAction": {
+  "old": [
+   "app/lab/_components/bench-bar.tsx"
+  ]
+ },
+ "updateNcActionAction": {
+  "old": [
+   "app/lab/quality/_components/nc-forms.tsx"
+  ]
+ }
+}

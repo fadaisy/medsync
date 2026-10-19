@@ -27,16 +27,20 @@ describe("LAB_WORKSPACE off", () => {
   });
 
   it("Released today and Rejected do not exist", () => {
-    for (const p of ["app/lab/released/page.tsx", "app/lab/rejected/page.tsx"])
+    for (const p of ["app/lab/bench/_views/released.tsx", "app/lab/bench/_views/rejected.tsx"])
       expect(read(p), p).toMatch(/if \(!scope\.workspaceLive\) notFound\(\);/);
   });
 
   it("the result screen adds nothing: notice and Reject are behind the flag", () => {
-    const page = read("app/lab/results/[orderId]/page.tsx");
-    expect(page).toMatch(
-      /workspace && !criticalFlaggingActive\(scope\.hospitalId\) \?\s*\(?\s*<FlaggingNotice \/>/,
+    // Lab Workspace v2: the result screen's reads live in one loader shared with the bench work pane.
+    const load = read("app/lab/results/[orderId]/_lib/load.ts");
+    expect(load).toMatch(
+      /const flagging = workspace\s*\?[\s\S]*?!criticalFlaggingActive\(scope\.hospitalId\)\s*\?\s*"notice"/,
     );
-    expect(page).toMatch(/workspace && !data\.report\?\.released/);
+    expect(load).toMatch(/workspace && !data\.report\?\.released/);
+    expect(read("app/lab/results/[orderId]/page.tsx")).toMatch(
+      /flagging === "notice" \?\s*\(?\s*<FlaggingNotice \/>/,
+    );
   });
 
   it("the scope keeps bouncing a non-lab user to the landing page", () => {

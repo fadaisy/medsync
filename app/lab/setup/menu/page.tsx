@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { and, eq, isNull, or } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { Pill } from "@/components/ui/pill";
 import { LAB } from "@/content/lab";
 import { db } from "@/db";
@@ -13,6 +12,7 @@ import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { labOneMenuLiveFor } from "@/lib/lab/feature";
 import { menuToday } from "@/lib/lab/one-menu-read";
+import { SetupHeader } from "../_components/setup-header";
 import { ServicePicker } from "./_components/service-picker";
 
 export const metadata: Metadata = { title: "Test menu · Laboratory · MedSync" };
@@ -108,7 +108,7 @@ export default async function TestMenuPage({
   );
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="Test menu"

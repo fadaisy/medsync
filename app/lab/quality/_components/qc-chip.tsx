@@ -4,7 +4,7 @@ import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { StatusWord } from "@/components/emr/status-word";
 import { QUALITY } from "../_lib/copy";
 
-/** Passed: neutral with a check · warning: amber · failed and held: dark amber · due or not run: dashed. */
+/** Passed: neutral with a check · warning: amber · failed and held: dark amber · due or not run: a neutral pill. */
 export function QcChip({ tone, children }: { tone: QcTone; children: string }) {
   if (tone === "passed")
     return (
@@ -21,7 +21,7 @@ export function QcChip({ tone, children }: { tone: QcTone; children: string }) {
       </span>
     );
   return (
-    <span className="text-caption text-muted-foreground border-border inline-flex items-center rounded border border-dashed px-2 py-0.5 font-medium">
+    <span className="text-caption bg-muted text-ink-700 inline-flex items-center rounded-full px-2 py-0.5 font-medium">
       {children}
     </span>
   );

@@ -1,47 +1,28 @@
-import type { BenchContext } from "@/lib/lab/read";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { BiohazardIcon, TriangleAlertIcon } from "lucide-react";
+import { TriangleAlertIcon } from "lucide-react";
 
-import { paymentWords } from "@/components/emr/orders/model";
 import { CriticalComm } from "@/components/emr/results/critical-comm";
 import { ResultEntry } from "@/components/emr/results/result-entry";
 import { StatusWord } from "@/components/emr/status-word";
-import { LAB } from "@/content/lab";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
-import { LAB2 } from "@/content/lab-phase-2";
 import { fill, LAB3 } from "@/content/lab-phase-3";
-import { db } from "@/db";
-import { emrV1LiveFor } from "@/lib/emr/feature";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
-import { loadResultEntry } from "@/lib/emr/read/results";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
-import { criticalFlaggingActive } from "@/lib/lab/critical-flagging";
-import { alertsForOrder, loadLabCriticals, previewRecipients } from "@/lib/lab/criticals/read";
-import { criticalsLive, unitsRangesLive } from "@/lib/lab/criticals/readiness";
-import { flagsForOrder } from "@/lib/lab/delta-read";
-import {
-  labBenchLiveFor,
-  labDeltaChecksLiveFor,
-  labHighRiskLiveFor,
-  labQcLiveFor,
-} from "@/lib/lab/feature";
-import { flaggingActiveFor } from "@/lib/lab/limits";
-import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
-import { holdFor } from "@/lib/lab/qc-read";
+import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { analyteName } from "@/lib/lab/qc-store";
-import { highRiskForOrder, loadBenchContext, loadRejectableSpecimen } from "@/lib/lab/read";
-import { fixedForOrder } from "@/lib/lab/units-read";
 import { FlaggingNotice } from "../../_components/flagging-notice";
 import { RejectSpecimen } from "../../_components/reject-specimen";
+import { redirectIfV2 } from "../../_lib/v2-redirect";
 import { AlertCell, Caution } from "../../criticals/_components/alert-bits";
 import { QUALITY } from "../../quality/_lib/copy";
 import { ClinicalQuestion } from "./_components/clinical-question";
 import { DeltaPanel } from "./_components/delta-panel";
 import { LabResultEntry } from "./_components/lab-result-entry";
 import { QcHoldActions } from "./_components/qc-hold";
+import { HighRiskBlock, SpecimenCard } from "./_components/specimen-bits";
+import { loadResultScreen } from "./_lib/load";
 
 const REASONS = Object.entries(REJECTION_REASON_TEXT).map(([value, words]) => ({
   value,
@@ -65,114 +46,33 @@ export default async function LabResultEntryPage({
   params: Promise<{ orderId: string }>;
 }) {
   const { orderId } = await params;
+  await redirectIfV2(`/lab/bench/${orderId}`);
   const scope = await requireLabTechScope();
-  if (!emrV1LiveFor(scope.hospitalId)) notFound();
-  const loaded = await loadResultEntry(scope, orderId, {
-    mode: "direct",
-    surface: "lab_result_entry",
-  });
-  if (!loaded) notFound();
-  // Lab Phase 1 §5.1 (LAB_UNITS_RANGES): the catalogue's unit and the signed range, while entering.
-  const fixed =
-    scope.workspaceLive && loaded.mode === "direct" && (await unitsRangesLive(scope.hospitalId))
-      ? await fixedForOrder(
-          scope.hospitalId,
-          orderId,
-          loaded.patientUserId,
-          scope.access.permissions.has("lab.manage"),
-          undefined,
-          // Released: each value as its snapshot holds it (Law 8).
-          loaded.report?.released ? loaded.report.id : undefined,
-          await criticalsLive(scope.hospitalId),
-        )
-      : null;
-  const withFixed = fixed
-    ? {
-        ...loaded,
-        components: loaded.components.map((c) =>
-          fixed[c.conceptId] ? { ...c, fixed: fixed[c.conceptId] } : c,
-        ),
-      }
-    : loaded;
-  const workspace = scope.workspaceLive;
-  // Lab Phase 3 (§5.3, labQc): the QC column, the hold block and the override, read from the cached rows.
-  const qcHeld = new Set(withFixed.report?.released ? (withFixed.report.qcHeld ?? []) : []);
-  const qc =
-    workspace && withFixed.mode === "direct" && labQcLiveFor(scope.hospitalId)
-      ? await db.transaction((t) =>
-          holdFor(
-            t as never,
-            scope.hospitalId,
-            {
-              orderId,
-              concepts: withFixed.components
-                .filter((c) => c.valueType === "quantity")
-                .map((c) => c.conceptId),
-              priority: withFixed.priority,
-            },
-            requestNow(),
-          ),
-        )
-      : null;
-  // Before release every blocked component is held; after it, only those the report still holds.
-  const blocked = (qc?.components ?? []).filter(
-    (c) => c.blocked && (!withFixed.report?.released || qcHeld.has(c.conceptId)),
+  const {
+    data,
+    qc,
+    blocked,
+    qcHeld,
+    delta,
+    criticals,
+    now,
+    preview,
+    alerts,
+    list,
+    highRisk,
+    bench,
+    specimenId,
+    flagging,
+  } = await loadResultScreen(
+    scope,
+    orderId,
+    "Release waits for a decision on each delta check above.",
   );
-  const base = qc
-    ? {
-        ...withFixed,
-        components: withFixed.components.map((c) => {
-          const s = qc.components.find((x) => x.conceptId === c.conceptId);
-          return s ? { ...c, qc: qcEntryWord(s, qcHeld.has(c.conceptId)) } : c;
-        }),
-      }
-    : withFixed;
-  // Lab Phase 5 (§5.6, DL-6): delta checks on this order; Release waits for a decision on each.
-  const delta =
-    workspace && labDeltaChecksLiveFor(scope.hospitalId)
-      ? await db.transaction((tx) => flagsForOrder(tx, scope.hospitalId, orderId))
-      : [];
-  const data = {
-    ...base,
-    releaseBlocked: delta.some((f) => !f.outcome)
-      ? "Release waits for a decision on each delta check above."
-      : null,
-  };
-  // Lab Phase 1 (§5.2): the mark panel on a result not yet released, and the alert's status after.
-  const criticals = workspace && data.mode === "direct" && (await criticalsLive(scope.hospitalId));
-  const now = requestNow();
   const fmt = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: LAB_TIME_ZONE,
   });
-  const preview =
-    criticals && !data.report?.released && scope.access.permissions.has("lab.result.release")
-      ? await previewRecipients(
-          scope,
-          { orderId, patientUserId: data.patientUserId, restricted: false },
-          now,
-        )
-      : null;
-  const [alerts, list] =
-    criticals && data.report?.released
-      ? await Promise.all([
-          alertsForOrder(scope.hospitalId, orderId),
-          loadLabCriticals(scope.hospitalId, now, LAB_TIME_ZONE),
-        ])
-      : [[], null];
-  // Lab Phase 2 §5.6, HR-3: the high-risk warning above the results while it is on.
-  const highRisk = labHighRiskLiveFor(scope.hospitalId)
-    ? await highRiskForOrder(scope.hospitalId, orderId)
-    : null;
-  // Lab Phase 2 §5.6 (labBench): the clinical question and this specimen, beside the results.
-  const bench = labBenchLiveFor(scope.hospitalId)
-    ? await loadBenchContext(scope.hospitalId, orderId)
-    : null;
-  const specimenId =
-    workspace && !data.report?.released
-      ? await loadRejectableSpecimen(scope.hospitalId, orderId)
-      : null;
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
       <Link
@@ -181,11 +81,9 @@ export default async function LabResultEntryPage({
       >
         Back to the worklist
       </Link>
-      {workspace && criticals ? (
-        <FlaggingNotice
-          phase1={(await flaggingActiveFor(scope.hospitalId, db as never)) ? "on" : "off"}
-        />
-      ) : workspace && !criticalFlaggingActive(scope.hospitalId) ? (
+      {flagging === "on" || flagging === "off" ? (
+        <FlaggingNotice phase1={flagging} />
+      ) : flagging === "notice" ? (
         <FlaggingNotice />
       ) : null}
       {alerts.map((a) => (
@@ -338,56 +236,6 @@ export default async function LabResultEntryPage({
   );
 }
 
-/** §5.3's QC column: Held (amber) and the other statuses, each a word. */
-function qcEntryWord(
-  c: { status: string; blocked: boolean },
-  heldInReport: boolean,
-): { word: string; tone: "passed" | "amber" | "none" } {
-  if (heldInReport || c.blocked) return { word: "Held", tone: "amber" };
-  if (c.status === "passed" || c.status === "provisional_target")
-    return { word: "Passed", tone: "passed" };
-  if (c.status === "warning") return { word: "Warning 1-2s", tone: "amber" };
-  if (c.status === "failed") return { word: "QC failed", tone: "amber" };
-  if (c.status === "no_plan") return { word: "No QC plan", tone: "amber" };
-  return { word: "QC not run today", tone: "none" };
-}
-
-/** Amber, bordered, an icon and the words (never red: a warning to take care, not an emergency). */
-function HighRiskBlock({
-  source,
-  procedure,
-}: {
-  source: "rule" | "manual";
-  procedure: string | null;
-}) {
-  const link = procedure && /^https?:\/\//i.test(procedure) ? procedure : null;
-  return (
-    <div
-      role="status"
-      className="bg-status-caution-bg border-status-caution-fg dark:text-status-caution-fg text-body-s flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-amber-800"
-    >
-      <BiohazardIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
-      <div className="flex flex-col gap-1">
-        <p className="font-medium">
-          {source === "manual" ? LAB2.highRisk.manual : LAB2.highRisk.block}
-        </p>
-        {link ? (
-          <a
-            href={link}
-            target="_blank"
-            rel="noreferrer"
-            className="w-fit font-medium underline underline-offset-4"
-          >
-            Open the procedure
-          </a>
-        ) : procedure ? (
-          <p>Procedure: {procedure}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 /** Lab Phase 2 §5.6: the cards on the right from `lg` up, stacked under the results on smaller screens. */
 function BesideResults({ aside, children }: { aside: ReactNode; children: ReactNode }) {
   if (!aside) return children;
@@ -396,45 +244,5 @@ function BesideResults({ aside, children }: { aside: ReactNode; children: ReactN
       <div className="flex min-w-0 flex-col gap-6">{children}</div>
       <aside className="flex flex-col gap-4">{aside}</aside>
     </div>
-  );
-}
-
-/** "This specimen" (§5.6): payment, identity at collection and the pinned analyser; only what exists. */
-function SpecimenCard({ bench, time }: { bench: BenchContext; time: (d: Date) => string }) {
-  const B = LAB.bench;
-  const payment = bench.paymentState ? paymentWords(bench.paymentState) : null;
-  const rows: [string, ReactNode][] = [];
-  if (payment) rows.push([B.payment, payment]);
-  if (bench.identity)
-    rows.push([
-      B.identity,
-      <>
-        {B.outcome[bench.identity.outcome] ?? bench.identity.outcome},{" "}
-        {B.method[bench.identity.method] ?? bench.identity.method}, {time(bench.identity.at)}
-        {bench.identity.wristband ? (
-          <span className="text-muted-foreground block">{LAB2.label.wristband}</span>
-        ) : null}
-      </>,
-    ]);
-  if (bench.analyser) rows.push([B.analyser, bench.analyser.model]);
-  if (bench.analyser?.bench) rows.push([B.bench, bench.analyser.bench]);
-  if (rows.length === 0) return null;
-  return (
-    <section
-      aria-labelledby="this-specimen"
-      className="border-border bg-card shadow-card text-body-s flex flex-col gap-3 rounded-lg border p-4"
-    >
-      <h2 id="this-specimen" className="text-heading-s text-foreground font-medium">
-        {B.specimen}
-      </h2>
-      <dl className="flex flex-col gap-2">
-        {rows.map(([k, v]) => (
-          <div key={k}>
-            <dt className="text-caption text-muted-foreground">{k}</dt>
-            <dd className="text-foreground">{v}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }

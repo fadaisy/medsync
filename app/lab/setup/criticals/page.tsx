@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { PageHeader } from "@/components/medsync/page-header";
 import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -10,6 +9,7 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadCriticalsSetup } from "@/lib/lab/criticals/setup";
 import { labCriticalsLiveFor } from "@/lib/lab/feature";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
+import { SetupHeader } from "../_components/setup-header";
 import { Caution } from "../../criticals/_components/alert-bits";
 import {
   ContactsEditor,
@@ -70,7 +70,7 @@ export default async function CriticalsSetupPage() {
   };
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-6 sm:px-6">
-      <PageHeader
+      <SetupHeader
         place={`${scope.hospitalName} · ${LAB.place}`}
         placeInTopBar
         title="Critical results set-up"

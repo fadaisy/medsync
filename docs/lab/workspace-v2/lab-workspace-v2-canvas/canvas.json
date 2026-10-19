@@ -1,0 +1,196 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-19T09:20:00Z"
+ },
+ "title": "Lab Workspace v2",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 1040,
+   "title": "1 Today: the lab at a glance",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Bench.dc.html": {
+   "x": 1520,
+   "y": 0,
+   "w": 1440,
+   "h": 980,
+   "title": "2 Bench: queue, result, checks",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "NeedsYou.dc.html": {
+   "x": 3040,
+   "y": 0,
+   "w": 1440,
+   "h": 980,
+   "title": "3 Needs you: one inbox for the lab",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Command.dc.html": {
+   "x": 4560,
+   "y": 0,
+   "w": 1440,
+   "h": 980,
+   "title": "4 Scan or search anything (Ctrl K)",
+   "is_interactive": true
+  },
+  "SendOuts.dc.html": {
+   "x": 0,
+   "y": 1360,
+   "w": 1440,
+   "h": 980,
+   "title": "5 Send-outs: referrals as a board",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Quality.dc.html": {
+   "x": 1520,
+   "y": 1360,
+   "w": 1440,
+   "h": 1000,
+   "title": "6 Quality: today, with honest empty states",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Setup.dc.html": {
+   "x": 3040,
+   "y": 1360,
+   "w": 1440,
+   "h": 1000,
+   "title": "7 Set-up: one hub, signatures first",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Downtime.dc.html": {
+   "x": 0,
+   "y": 2700,
+   "w": 1440,
+   "h": 1000,
+   "title": "8 Downtime: one task at a time",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "QcPlan.dc.html": {
+   "x": 1520,
+   "y": 2700,
+   "w": 1440,
+   "h": 980,
+   "title": "9 Start a QC plan, by name not by id",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Reports.dc.html": {
+   "x": 3040,
+   "y": 2700,
+   "w": 1440,
+   "h": 980,
+   "title": "10 Reports: one period picker",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Fields.dc.html": {
+   "x": 4560,
+   "y": 2700,
+   "w": 1440,
+   "h": 1160,
+   "title": "11 Field kit: dates, picks, numbers, empty states",
+   "expand": "fill"
+  },
+  "NavMap.dc.html": {
+   "x": 0,
+   "y": 4220,
+   "w": 1440,
+   "h": 1060,
+   "title": "12 Where every menu item went",
+   "expand": "fill"
+  },
+  "TodayV1.dc.html": {
+   "x": 0,
+   "y": 5400,
+   "w": 1440,
+   "h": 1000,
+   "title": "Earlier: Today, first version",
+   "expand": "fill",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Bench.dc.html",
+  "NeedsYou.dc.html",
+  "Command.dc.html",
+  "SendOuts.dc.html",
+  "Quality.dc.html",
+  "Setup.dc.html",
+  "Downtime.dc.html",
+  "QcPlan.dc.html",
+  "Reports.dc.html",
+  "Fields.dc.html",
+  "NavMap.dc.html",
+  "TodayV1.dc.html"
+ ],
+ "notes": {
+  "rowA": {
+   "x": 0,
+   "y": -260,
+   "text": "The day and the bench",
+   "kind": "title1",
+   "maxW": 6000
+  },
+  "rowB": {
+   "x": 0,
+   "y": 1080,
+   "text": "The other spaces",
+   "kind": "title1",
+   "maxW": 4480
+  },
+  "rowC": {
+   "x": 0,
+   "y": 2440,
+   "text": "Forms that were hard to use",
+   "kind": "title1",
+   "maxW": 6000
+  },
+  "rowD": {
+   "x": 0,
+   "y": 3960,
+   "text": "Navigation map",
+   "kind": "title1",
+   "maxW": 1440
+  },
+  "disclaimer": {
+   "x": -420,
+   "y": 0,
+   "w": 340,
+   "text": "Illustrative. No real patients. Counts, values, limits, turnaround figures and names are examples, not signed values.",
+   "fill": "gray"
+  },
+  "rowE": {
+   "x": 0,
+   "y": 5140,
+   "text": "Earlier version",
+   "kind": "title1",
+   "maxW": 1440
+  }
+ },
+ "designSystems": [
+  {
+   "title": "MedSync Tide",
+   "namespace": "medsync-tide",
+   "artifact": "https://claude.ai/artifact/5vvCpkVoYk8G11PtLaSRuk",
+   "version": "1792249799-9225",
+   "copiedAt": "2026-10-19T09:20:00Z"
+  }
+ ]
+}

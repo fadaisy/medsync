@@ -1,5 +1,6 @@
 import type { SchemePayload } from "@/lib/lab/signed-config";
 
+import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import {
   ageWords,
   boundWords,
@@ -48,8 +49,10 @@ export function SchemeTable({
                     const c = label(b.category);
                     return (
                       <li key={j}>
-                        <span className="font-medium">{c?.label ?? b.category}</span>:{" "}
-                        <span className="tabular-nums">{boundWords(b)}</span>
+                        <span className="font-medium">
+                          {c?.label ?? LABWS2_SETUP.sweep.unknownCategory}
+                        </span>
+                        : <span className="tabular-nums">{boundWords(b)}</span>
                         {c?.abnormal ? " · abnormal" : ""}
                       </li>
                     );

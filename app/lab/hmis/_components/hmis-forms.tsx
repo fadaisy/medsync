@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LAB3_HMIS } from "@/content/lab-phase-3";
 import {
@@ -13,6 +12,7 @@ import {
   saveManualCellsAction,
 } from "@/lib/lab/hmis-actions";
 import { Pop } from "../../_components/pop";
+import { LabButton } from "../../_components/v2/button";
 import { Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 const H = LAB3_HMIS;
@@ -42,15 +42,15 @@ export function ActButton({
   const run = () => RUN[kind](month, revision);
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <LabButton
         type="button"
         variant={variant}
-        disabled={pending}
         onClick={() => act(run, okText)}
         className="min-h-11 w-fit sm:min-h-8"
+        busy={pending}
       >
         {label}
-      </Button>
+      </LabButton>
       <Said message={message} />
     </div>
   );
@@ -82,15 +82,15 @@ export function CsvButton({
     }, H.csv);
   return (
     <div className="flex flex-col gap-1">
-      <Button
+      <LabButton
         type="button"
         variant="secondary"
-        disabled={pending}
         onClick={download}
         className="min-h-11 w-fit sm:min-h-8"
+        busy={pending}
       >
         {H.csv}
-      </Button>
+      </LabButton>
       <Said message={message} />
     </div>
   );
@@ -130,9 +130,9 @@ export function ManualCellsDialog({
         open={open}
         setOpen={setOpen}
         action={
-          <Button type="button" onClick={save} disabled={pending}>
+          <LabButton type="button" onClick={save} variant="primary" busy={pending}>
             Save
-          </Button>
+          </LabButton>
         }
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +145,7 @@ export function ManualCellsDialog({
                 onChange={(e) =>
                   setValues((v) => ({ ...v, [c.key]: e.target.value.replace(/[^0-9]/g, "") }))
                 }
-                className="min-h-11 w-32 font-mono tabular-nums sm:min-h-9"
+                className="min-h-11 w-32 tabular-nums sm:min-h-9"
               />
             </label>
           ))}

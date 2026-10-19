@@ -7,9 +7,9 @@ import { useRef, useState } from "react";
 import { autoCritical, fixedFlag, toResultValues } from "@/components/emr/results/model";
 import { useResultEntry } from "@/components/emr/results/result-entry";
 import { ResultEntryView } from "@/components/emr/results/result-entry-view";
-import { Button } from "@/components/ui/button";
 import { CRITICALS_COPY, CRITICALS_UI } from "@/content/lab-criticals";
 import { releaseWithCriticalMarkAction } from "@/lib/lab/criticals/actions";
+import { LabButton } from "../../../_components/v2/button";
 import { MarkPanel } from "./mark-panel";
 
 export interface PanelPreview {
@@ -178,18 +178,18 @@ export function LabResultEntry({
           const isMarked = marked.includes(c.conceptId);
           return (
             <div className="flex">
-              <Button
+              <LabButton
                 id={`mark-${c.conceptId}`}
                 type="button"
                 size="sm"
-                variant={isMarked || outOfRange(line) ? "secondary" : "ghost"}
+                variant={isMarked || outOfRange(line) ? "secondary" : "quiet"}
                 aria-pressed={isMarked}
                 onClick={() => openFor(c)}
-                disabled={e.pending}
                 className="min-h-11 sm:min-h-7"
+                busy={e.pending}
               >
                 {isMarked ? P.marked : P.mark}
-              </Button>
+              </LabButton>
             </div>
           );
         }}
