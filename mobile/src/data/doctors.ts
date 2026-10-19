@@ -1,13 +1,38 @@
-import type { ClinicianOption, ServiceLine, WalkInDepartment } from "@/lib/booking";
+import type { ClinicianOption, ClinicSession, ServiceLine, WalkInDepartment } from "@/lib/booking";
 
 import { createStore, useStore } from "@/data/store";
-import { feeFor, feeText } from "@/features/visits/logic";
+import { dayKeyOf, feeFor, feeText } from "@/features/visits/logic";
 import {
   fetchBookableClinicians,
   fetchPatientProfile,
   fetchServiceLines,
+  fetchSessions,
   fetchWalkInDepartments,
+  sessionTakeable,
 } from "@/lib/booking";
+
+/** Where a clinician's clinic days are filed: their hospital and their user id. */
+export const clinicDayKey = (hospitalId: string, userId: string) => `${hospitalId}|${userId}`;
+
+/**
+ * The first clinic day each clinician runs with a place left, per hospital.
+ * A clinic day is availability too: a doctor with no personal slots who runs
+ * the General Clinic on Tuesday is open on Tuesday.
+ */
+export function firstClinicDays(
+  byHospital: ReadonlyMap<string, readonly ClinicSession[]>,
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const [hospitalId, sessions] of byHospital)
+    for (const s of sessions) {
+      if (!sessionTakeable(s) || !s.clinicianUserId) continue;
+      const k = clinicDayKey(hospitalId, s.clinicianUserId);
+      const day = dayKeyOf(s.startsAtIso);
+      const had = out.get(k);
+      if (!had || day < had) out.set(k, day);
+    }
+  return out;
+}
 
 /**
  * "See a doctor" on Home: the real clinicians at every active hospital, from
@@ -128,6 +153,8 @@ export function toDoctorCards(
   linesByHospital: ReadonlyMap<string, readonly Pick<ServiceLine, "departmentId" | "fee">[]>,
   homeWalkIns: readonly WalkInDepartment[],
   homeHospitalId: string | null,
+  /** `firstClinicDays`: the clinic days each clinician runs. */
+  clinicDays: ReadonlyMap<string, string> = new Map(),
 ): DoctorCard[] {
   const openNow = new Set(homeWalkIns.filter((d) => d.openNow).map((d) => d.id));
   const cards = new Map<string, DoctorCard>();
@@ -140,7 +167,11 @@ export function toDoctorCards(
       hospitalName: c.hospitalName,
       departmentId: c.departmentId,
       departmentName: c.departmentName,
-      nextDayKey: Object.keys(c.slotsByDate).sort()[0] ?? null,
+      // ponytail: a clinic day counts for each department they book in at that hospital.
+      nextDayKey:
+        [Object.keys(c.slotsByDate).sort()[0], clinicDays.get(clinicDayKey(c.hospitalId, c.userId))]
+          .filter((d): d is string => !!d)
+          .sort()[0] ?? null,
       // A price list that did not load is not "No fee": say so rather than guess.
       feeWords: hospitalLines ? (feeLabel ?? feeText(fee)) : FEE_UNKNOWN,
       walkInToday: home && openNow.has(c.departmentId),
@@ -222,7 +253,7 @@ export async function loadDoctors(): Promise<void> {
     const clinicians = everyone.filter(isDoctor);
     const home = profile?.hospitalId ?? null;
     const hospitalIds = [...new Set(clinicians.map((c) => c.hospitalId))];
-    const [lines, walkIns] = await Promise.all([
+    const [lines, walkIns, sessions] = await Promise.all([
       Promise.all(
         hospitalIds.map((hospitalId) =>
           fetchServiceLines({ hospitalId }).then(
@@ -234,10 +265,24 @@ export async function loadDoctors(): Promise<void> {
       ).then((pairs) => pairs.flat()),
       // Walk-in hours only decide "Come today", which joins the line at the patient's own hospital.
       home ? fetchWalkInDepartments(home).catch(() => [] as WalkInDepartment[]) : [],
+      Promise.all(
+        hospitalIds.map((hospitalId) =>
+          fetchSessions({ hospitalId }).then(
+            (s) => [[hospitalId, s] as const],
+            () => [],
+          ),
+        ),
+      ).then((pairs) => pairs.flat()),
     ]);
     store.set({
       status: "ready",
-      doctors: toDoctorCards(clinicians, new Map(lines), walkIns, home),
+      doctors: toDoctorCards(
+        clinicians,
+        new Map(lines),
+        walkIns,
+        home,
+        firstClinicDays(new Map(sessions)),
+      ),
     });
   } catch {
     store.set((s) => (s.status === "ready" ? s : { ...s, status: "error" }));

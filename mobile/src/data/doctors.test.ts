@@ -1,9 +1,10 @@
-import type { ClinicianOption } from "@/lib/booking";
+import type { ClinicianOption, ClinicSession } from "@/lib/booking";
 
 import {
   availabilityWords,
   doctorFilters,
   FEE_UNKNOWN,
+  firstClinicDays,
   initialsOf,
   isDoctor,
   matchesFilter,
@@ -12,7 +13,10 @@ import {
   WALK_IN_FILTER,
 } from "@/data/doctors";
 
-jest.mock("@/lib/booking", () => ({}));
+jest.mock("@/lib/booking", () => ({
+  sessionTakeable: (s: { placesLeft: number; clinicianUserId: string | null }) =>
+    s.placesLeft > 0 && s.clinicianUserId !== null,
+}));
 
 const clinician = (over: Partial<ClinicianOption>): ClinicianOption => ({
   userId: "u1",
@@ -213,5 +217,58 @@ describe("doctors only", () => {
     for (const id of ["d01", "d08", "d0a", "d0b", "d0c", "d0d", "d12", "d13"])
       expect(isDoctor({ cadreId: `00000000-0000-0000-0000-000000000${id}` })).toBe(false);
     expect(isDoctor({ cadreId: null })).toBe(false);
+  });
+});
+
+describe("a clinic day the doctor runs is availability too", () => {
+  const day = (over: Partial<ClinicSession>): ClinicSession => ({
+    id: "s1",
+    serviceLineId: "l1",
+    startsAtIso: "2026-10-21T05:00:00Z",
+    endsAtIso: "2026-10-21T09:00:00Z",
+    clinicianUserId: "u1",
+    clinicianName: "Dr [Name A]",
+    venue: null,
+    placesLeft: 20,
+    ...over,
+  });
+
+  it("keeps the first day with a place, per hospital and clinician", () => {
+    const days = firstClinicDays(
+      new Map([
+        [
+          "h1",
+          [
+            day({ startsAtIso: "2026-10-20T05:00:00Z", placesLeft: 0 }),
+            day({ startsAtIso: "2026-10-23T05:00:00Z" }),
+            day({}),
+            day({ clinicianUserId: null, startsAtIso: "2026-10-19T05:00:00Z" }),
+          ],
+        ],
+      ]),
+    );
+    expect([...days]).toEqual([["h1|u1", "2026-10-21"]]);
+  });
+
+  it("opens a doctor with no personal slots on the day they run a clinic", () => {
+    const [card] = toDoctorCards(
+      [clinician({})],
+      lines([["h1", []]]),
+      [],
+      "h1",
+      new Map([["h1|u1", "2026-10-21"]]),
+    );
+    expect(card.nextDayKey).toBe("2026-10-21");
+  });
+
+  it("takes the earlier of a slot and a clinic day", () => {
+    const [card] = toDoctorCards(
+      [clinician({ slotsByDate: { "2026-10-20": [slot] } })],
+      lines([["h1", []]]),
+      [],
+      "h1",
+      new Map([["h1|u1", "2026-10-21"]]),
+    );
+    expect(card.nextDayKey).toBe("2026-10-20");
   });
 });

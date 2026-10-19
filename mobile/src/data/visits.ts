@@ -421,7 +421,8 @@ export function slotDays(
 
 /**
  * Published clinic days within the booking horizon that take this reason,
- * grouped by day; or, with `doctor`, that clinician's own open slots. A day
+ * grouped by day; or, with `doctor`, that clinician's own open slots and the
+ * clinic days they run. A day
  * with no place left stays on the calendar as "no open times".
  */
 export async function loadDays(
@@ -446,7 +447,7 @@ export async function loadDays(
         hospitalName: c.hospitalName,
         patientCode: profile?.patientCode ?? null,
         doctorName: c.fullName,
-        days: slotDays(c, lines, reason),
+        days: await doctorDays(c, doctor.hospitalId, lines, reason),
       };
   }
   if (!profile?.hospitalId)
@@ -466,17 +467,36 @@ export async function loadDays(
         x.userId === doctor.userId &&
         (!doctor.departmentId || x.departmentId === doctor.departmentId),
     );
-    if (c) return { ...base, doctorName: c.fullName, days: slotDays(c, lines, reason) };
+    if (c)
+      return {
+        ...base,
+        doctorName: c.fullName,
+        days: await doctorDays(c, profile.hospitalId, lines, reason),
+      };
   }
   const [lines, sessions] = await Promise.all([
     fetchServiceLines({ hospitalId: profile.hospitalId }),
     fetchSessions({ hospitalId: profile.hospitalId }),
   ]);
+  return { ...base, doctorName: null, days: clinicDays(sessions, lines, reason) };
+}
+
+/**
+ * Published clinic days that take this reason, grouped by day; with
+ * `clinicianUserId`, only the days that clinician runs.
+ */
+export function clinicDays(
+  sessions: readonly ClinicSession[],
+  lines: readonly ServiceLine[],
+  reason: AppointmentReason,
+  clinicianUserId?: string,
+): DayOption[] {
   const byId = new Map(lines.map((l) => [l.id, l]));
   const days: DayOption[] = [];
   for (const s of sessions) {
     const line = byId.get(s.serviceLineId);
     if (!line || !line.reasonCodes.includes(reason) || s.clinicianUserId === null) continue;
+    if (clinicianUserId && s.clinicianUserId !== clinicianUserId) continue;
     const key = dayKeyOf(s.startsAtIso);
     let day = days.find((d) => d.key === key);
     if (!day) days.push((day = { key, sessions: [] }));
@@ -491,7 +511,28 @@ export async function loadDays(
       ...sessionFee(line),
     });
   }
-  return { ...base, doctorName: null, days };
+  return days;
+}
+
+/** A doctor's own slots and the clinic days they run, one calendar, by day. */
+export function mergeDays(a: readonly DayOption[], b: readonly DayOption[]): DayOption[] {
+  const out = new Map<string, DayOption>();
+  for (const d of [...a, ...b]) {
+    const had = out.get(d.key);
+    out.set(d.key, had ? { key: d.key, sessions: [...had.sessions, ...d.sessions] } : d);
+  }
+  return [...out.values()].sort((x, y) => x.key.localeCompare(y.key));
+}
+
+/** The doctor's slots plus the clinic days they run at that hospital. */
+async function doctorDays(
+  c: ClinicianOption,
+  hospitalId: string,
+  lines: readonly ServiceLine[],
+  reason: AppointmentReason,
+): Promise<DayOption[]> {
+  const sessions = await fetchSessions({ hospitalId }).catch(() => [] as ClinicSession[]);
+  return mergeDays(slotDays(c, lines, reason), clinicDays(sessions, lines, reason, c.userId));
 }
 
 /** Ask for a day: a place in a clinic day, or a clinician's slot, through `pt-request-appointment`. */

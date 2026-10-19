@@ -1,6 +1,6 @@
-import type { ClinicianOption, ServiceLine } from "@/lib/booking";
+import type { ClinicianOption, ClinicSession, ServiceLine } from "@/lib/booking";
 
-import { loadAhead, slotDays } from "@/data/visits";
+import { clinicDays, loadAhead, mergeDays, slotDays } from "@/data/visits";
 
 const mockRpc = jest.fn();
 jest.mock("@/lib/supabase", () => ({
@@ -79,5 +79,43 @@ describe("a clinician's open slots as days", () => {
     const [day] = slotDays(c, [line], "refill");
     expect(day.sessions[0].fee).toBeNull();
     expect(day.sessions[0].slot?.serviceLineId).toBeUndefined();
+  });
+});
+
+describe("a doctor's calendar holds the clinic days they run", () => {
+  const line = {
+    id: "l1",
+    name: "General Clinic",
+    departmentName: "Internal Medicine",
+    reasonCodes: ["new_concern"],
+    fee: { posture: "none", baseFeeUgx: null, lineName: "General Clinic", cadreFees: [] },
+    feeLine: null,
+  } as unknown as ServiceLine;
+  const s = (over: Partial<ClinicSession>): ClinicSession => ({
+    id: "s1",
+    serviceLineId: "l1",
+    startsAtIso: "2026-10-21T05:00:00Z",
+    endsAtIso: "2026-10-21T09:00:00Z",
+    clinicianUserId: "u1",
+    clinicianName: "Dr [Name A]",
+    venue: null,
+    placesLeft: 20,
+    ...over,
+  });
+
+  it("keeps only that clinician's days, for a reason the clinic takes", () => {
+    const sessions = [s({}), s({ id: "s2", clinicianUserId: "u2" })];
+    expect(clinicDays(sessions, [line], "new_concern", "u1").map((d) => d.sessions[0].id)).toEqual([
+      "s1",
+    ]);
+    expect(clinicDays(sessions, [line], "follow_up", "u1")).toEqual([]);
+    expect(clinicDays(sessions, [line], "new_concern")).toHaveLength(1);
+  });
+
+  it("merges slots and clinic days by day, in order", () => {
+    const a = [{ key: "2026-10-22", sessions: [] }];
+    const b = clinicDays([s({})], [line], "new_concern", "u1");
+    expect(mergeDays(a, b).map((d) => d.key)).toEqual(["2026-10-21", "2026-10-22"]);
+    expect(mergeDays(b, b)[0].sessions).toHaveLength(2);
   });
 });
