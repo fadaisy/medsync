@@ -135,13 +135,27 @@ function DoctorTile({ d }: { d: DoctorCard }) {
         boxShadow: t.shadow.float,
       }}
     >
-      <View style={{ height: PHOTO_H, backgroundColor: t.surface2 }}>
+      {/* The photo clips its own top corners: an iOS image ignores the card's clip. */}
+      <View
+        style={{
+          height: PHOTO_H,
+          backgroundColor: t.surface2,
+          borderTopLeftRadius: tRadius.cardLg,
+          borderTopRightRadius: tRadius.cardLg,
+          overflow: "hidden",
+        }}
+      >
         {d.photoUrl ? (
           <Image
             source={{ uri: d.photoUrl }}
             accessibilityIgnoresInvertColors
             resizeMode="cover"
-            style={{ width: "100%", height: "100%" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              borderTopLeftRadius: tRadius.cardLg,
+              borderTopRightRadius: tRadius.cardLg,
+            }}
           />
         ) : (
           <View
@@ -169,25 +183,54 @@ function DoctorTile({ d }: { d: DoctorCard }) {
             </View>
           </View>
         )}
-        {walkIn ? (
+        {/* Availability as one icon (the words are in the card's label): a tick when open
+            today, a calendar for a later day, a clock when none is open yet. */}
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            position: "absolute",
+            top: tSpace[3],
+            left: tSpace[3],
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[1.5],
+          }}
+        >
           <View
             style={{
-              position: "absolute",
-              top: tSpace[3],
-              left: tSpace[3],
-              flexDirection: "row",
+              width: 30,
+              height: 30,
+              borderRadius: 15,
               alignItems: "center",
-              gap: 5,
-              minHeight: 26,
-              paddingHorizontal: 10,
-              borderRadius: tRadius.pill,
-              backgroundColor: t.band,
+              justifyContent: "center",
+              backgroundColor: available.today ? t.accent : t.surface,
             }}
           >
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent }} />
-            <Text style={[tType.caption, { color: t.onBandAccent }]}>Walk-ins today</Text>
+            <Icon
+              name={available.today ? "check" : d.nextDayKey ? "calendar" : "clock"}
+              size={15}
+              strokeWidth={available.today ? 3 : 2}
+              color={available.today ? t.onAccent : d.nextDayKey ? t.ink : t.ink3}
+            />
           </View>
-        ) : null}
+          {walkIn ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 5,
+                minHeight: 26,
+                paddingHorizontal: 10,
+                borderRadius: tRadius.pill,
+                backgroundColor: t.band,
+              }}
+            >
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent }} />
+              <Text style={[tType.caption, { color: t.onBandAccent }]}>Walk-ins today</Text>
+            </View>
+          ) : null}
+        </View>
         <View
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
@@ -260,31 +303,11 @@ function DoctorTile({ d }: { d: DoctorCard }) {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: tSpace[2],
+              gap: 6,
             }}
           >
-            <View style={{ flexShrink: 1, flexDirection: "row", alignItems: "center", gap: 5 }}>
-              <Icon
-                name="calendar"
-                size={13}
-                color={available.today ? t.onBandAccent : t.onBand2}
-              />
-              <Text
-                style={[
-                  tType.labelS,
-                  {
-                    flexShrink: 1,
-                    fontSize: 13,
-                    color: available.today ? t.onBandAccent : t.onBand,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {available.text}
-              </Text>
-            </View>
-            <Text style={[tType.caption, { color: t.onBand2 }]} numberOfLines={1}>
+            <Icon name="wallet" size={13} color={t.onBand2} />
+            <Text style={[tType.caption, { flex: 1, color: t.onBand }]} numberOfLines={1}>
               {where.feeWords}
             </Text>
           </View>
