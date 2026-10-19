@@ -304,6 +304,17 @@ function DoctorTile({ d }: { d: DoctorCard }) {
             <Text style={[tType.caption, { flex: 1, color: t.onBand }]} numberOfLines={1}>
               {where.feeWords}
             </Text>
+            {walkIn ? (
+              <Button
+                size="sm"
+                variant="accent"
+                label="Come today"
+                accessibilityLabel={`Come today to ${walkIn.departmentName}, ${walkIn.hospitalName}`}
+                onPress={() =>
+                  router.push({ pathname: "/book/today", params: { clinic: walkIn.departmentId } })
+                }
+              />
+            ) : null}
             {firstOpen && !walkIn ? (
               <View
                 accessibilityElementsHidden
@@ -321,17 +332,6 @@ function DoctorTile({ d }: { d: DoctorCard }) {
               </View>
             ) : null}
           </View>
-          {walkIn ? (
-            <Button
-              size="sm"
-              variant="accent"
-              label="Come today"
-              accessibilityLabel={`Come today to ${walkIn.departmentName}, ${walkIn.hospitalName}`}
-              onPress={() =>
-                router.push({ pathname: "/book/today", params: { clinic: walkIn.departmentId } })
-              }
-            />
-          ) : null}
         </View>
       </View>
     </Press>
