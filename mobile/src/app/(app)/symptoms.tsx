@@ -48,7 +48,7 @@ export default function SymptomsScreen() {
 
 function Body() {
   const router = useRouter();
-  const { item } = useLocalSearchParams<{ item?: string }>();
+  const { item, area } = useLocalSearchParams<{ item?: string; area?: string }>();
   const { colors } = useTheme();
   const mode = useCatalogMode();
   const [profile, setProfile] = useState<PatientProfile | null | undefined>();
@@ -138,6 +138,8 @@ function Body() {
         {...chrome}
         showPregnancy={showPregnancy}
         initial={step.initial}
+        // Book's "Something is wrong" door: open on the area tapped, the first time only.
+        openCategory={step.initial ? undefined : area}
         watermark={mode === "draft_watermarked"}
         hospitalName={hospitalName}
         emergencyPhone={emergencyPhone}

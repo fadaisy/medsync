@@ -61,6 +61,7 @@ export function SymptomCatalog({
   trailing,
   showPregnancy,
   initial,
+  openCategory,
   watermark,
   hospitalName,
   emergencyPhone,
@@ -74,6 +75,8 @@ export function SymptomCatalog({
   showPregnancy: boolean;
   /** Where to start: the home's danger tile arrives with one item; S4's Back brings the whole selection. */
   initial?: Partial<CatalogSelection>;
+  /** Open on one body area's list: Book's "Something is wrong" door arrives with the area tapped. */
+  openCategory?: string;
   watermark: boolean;
   hospitalName: string | null;
   emergencyPhone: string | null;
@@ -93,7 +96,19 @@ export function SymptomCatalog({
   const [qualifiers, setQualifiers] = useState<Record<string, Record<string, string>>>(
     () => initial?.qualifiers ?? {},
   );
-  const [sheet, setSheet] = useState<{ title: string; items: CatalogItem[] } | null>(null);
+  const [sheet, setSheet] = useState<{ title: string; items: CatalogItem[] } | null>(() => {
+    const category = CATALOG.categories.find((c) => c.key === openCategory);
+    if (!category) return null;
+    const startAudience = toAudience(
+      initial?.audience
+        ? fromAudience(initial.audience, initial.pregnant ?? false)
+        : DEFAULT_AUDIENCE,
+    );
+    return {
+      title: t(CATALOG, category.labelKey),
+      items: visibleItems(CATALOG, startAudience).filter((i) => i.category === category.key),
+    };
+  });
   // Arriving with ONE item ticked (the home's danger tile) is a selection like
   // any other: an emergency-tier one interrupts. A whole selection coming
   // back from S4 has already been through it, so its reasons start declined.
