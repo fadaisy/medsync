@@ -65,6 +65,7 @@ export default function BookScreen() {
   // "on behalf of" (pt-declare-intake), unlike asking for a day.
   const todayOff = who !== null;
   const areas = visibleCategories(CATALOG, "adult");
+  const helpInPage = door === "wrong";
 
   const whoChip = (
     label: string,
@@ -107,6 +108,8 @@ export default function BookScreen() {
       overline="Visits"
       overlineColor={t.area.visits}
       title="Book a visit"
+      // The "Something is wrong" card draws its own red Help, so the header one steps aside (law L6 still holds).
+      help={helpInPage ? "none" : "round"}
       helpSource="book"
     >
       {glance?.hasHospital === false ? <HospitalPicker onChosen={load} /> : null}
@@ -466,11 +469,13 @@ export default function BookScreen() {
         </View>
       ) : null}
 
-      <Text
-        style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3, textAlign: "center" }]}
-      >
-        Very unwell right now? Do not book. Press the red Help button.
-      </Text>
+      {helpInPage ? null : (
+        <Text
+          style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3, textAlign: "center" }]}
+        >
+          Very unwell right now? Do not book. Press the red Help button.
+        </Text>
+      )}
     </Screen>
   );
 }
