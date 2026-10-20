@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
+import { LinkPending } from "./link-pending";
 
 /**
  * The space header (prompt 5.1): the place's views as pill tabs with counts, then filter chips, then the view's
@@ -41,12 +42,13 @@ export function PillTabs({
             aria-current={on ? "page" : undefined}
             aria-label={t.count != null && t.countLabel ? `${t.label}, ${t.countLabel}` : undefined}
             className={cn(
-              "focus-visible:shadow-focus inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] whitespace-nowrap outline-none",
+              "focus-visible:shadow-focus relative isolate inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] whitespace-nowrap outline-none",
               on
                 ? "bg-card text-foreground shadow-tide-card font-semibold"
                 : "text-ink-600 hover:text-foreground font-medium",
             )}
           >
+            <LinkPending className="bg-card" />
             {t.label}
             {t.count != null ? (
               <span
@@ -95,12 +97,13 @@ export function FilterChips({
             href={c.href}
             aria-current={on ? "true" : undefined}
             className={cn(
-              "focus-visible:shadow-focus inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] whitespace-nowrap outline-none",
+              "focus-visible:shadow-focus relative isolate inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] whitespace-nowrap outline-none",
               on
                 ? "bg-tide-navy-900 text-tide-on-band font-semibold"
                 : "bg-card text-ink-700 hover:bg-ink-50 font-medium shadow-[inset_0_0_0_1px_var(--color-ink-300)]",
             )}
           >
+            <LinkPending className="bg-tide-sunken" />
             {c.label}
             {c.count != null ? <span className="tabular-nums opacity-80">{c.count}</span> : null}
           </Link>

@@ -214,6 +214,8 @@ export function TestMenu({ data }: { data: TestMenuData }) {
                 />
                 <button
                   type="button"
+                  disabled={act.pending}
+                  aria-busy={act.pending || undefined}
                   className="text-caption text-ink-600 hover:text-foreground focus-visible:shadow-focus sr-only rounded-sm px-1 outline-none group-focus-within:not-sr-only group-hover:not-sr-only"
                   onClick={() =>
                     act.run(
@@ -246,7 +248,10 @@ export function TestMenu({ data }: { data: TestMenuData }) {
             ))}
           </aside>
 
-          <section className="bg-card shadow-tide-card flex min-w-0 flex-col rounded-xl pb-20">
+          <section
+            aria-busy={act.pending || undefined}
+            className="bg-card shadow-tide-card flex min-w-0 flex-col rounded-xl pb-20"
+          >
             <div className="flex flex-wrap items-center gap-2 p-4 pb-2">
               <label className="relative min-w-64 flex-1">
                 <span className="sr-only">{C.search}</span>

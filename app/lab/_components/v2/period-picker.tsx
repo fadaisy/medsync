@@ -4,7 +4,7 @@ import type { PickOption } from "./fields";
 import type { PeriodPreset } from "@/lib/lab/period";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { CalendarIcon, ChevronDownIcon } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -65,7 +65,7 @@ export function PeriodPicker({
   mode?: "period" | "month";
   months?: readonly string[];
 }) {
-  const router = useRouter();
+  const [pending, push] = usePush();
   const [open, setOpen] = useState(false);
   const [first, setFirst] = useState<string | null>(null);
   const label = mode === "month" ? monthLong(value.month) : periodWords(value, today, P);
@@ -73,7 +73,7 @@ export function PeriodPicker({
   const go = (href: string) => {
     setOpen(false);
     setFirst(null);
-    router.push(href);
+    push(href);
   };
   return (
     <Popover
@@ -83,7 +83,11 @@ export function PeriodPicker({
         setFirst(null);
       }}
     >
-      <PopoverTrigger className={cn(CHIP, CHIP_ON)} aria-label={`${P.label}: ${label}`}>
+      <PopoverTrigger
+        className={cn(CHIP, CHIP_ON, BUSY)}
+        aria-label={`${P.label}: ${label}`}
+        aria-busy={pending || undefined}
+      >
         <CalendarIcon aria-hidden className="size-4" />
         {label}
         <ChevronDownIcon aria-hidden className="size-3.5 opacity-80" />
@@ -177,13 +181,16 @@ export function PickChip({
   /** Offer "All" (the parameter removed). Off where one value is always chosen. */
   all?: boolean;
 }) {
-  const router = useRouter();
+  const [pending, push] = usePush();
   const [open, setOpen] = useState(false);
   const chosen = options.find((o) => o.value === value);
   const label = fill(F.chip, { name, value: chosen?.label ?? F.all });
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className={cn(CHIP, chosen ? CHIP_ON : CHIP_OFF)}>
+      <PopoverTrigger
+        className={cn(CHIP, chosen ? CHIP_ON : CHIP_OFF, BUSY)}
+        aria-busy={pending || undefined}
+      >
         {label}
         <ChevronDownIcon aria-hidden className="size-3.5 opacity-80" />
       </PopoverTrigger>
@@ -196,13 +203,23 @@ export function PickChip({
           value={value ?? ""}
           onChange={(v) => {
             setOpen(false);
-            router.push(hrefWith(base, keep, param, v));
+            push(hrefWith(base, keep, param, v));
           }}
         />
       </PopoverContent>
     </Popover>
   );
 }
+
+/** Same-route navigation keeps the old page up, so the control says it is waiting (dims, `aria-busy`). */
+function usePush() {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  return [pending, (href: string) => start(() => router.push(href))] as const;
+}
+
+const BUSY =
+  "transition-opacity duration-normal ease-expo-out motion-reduce:transition-none aria-busy:opacity-60";
 
 /** One day (the daily register): the field kit's date field, applied at once. */
 export function DayPicker({
@@ -221,14 +238,16 @@ export function DayPicker({
   /** The server's time (ISO), the field's reference for "today". */
   now: string;
 }) {
-  const router = useRouter();
+  const [pending, push] = usePush();
   return (
-    <DateField
-      label={label}
-      hideLabel
-      value={value}
-      now={now}
-      onChange={(v) => router.push(hrefWith(base, keep, param, v))}
-    />
+    <span aria-busy={pending || undefined} className={cn("inline-block", BUSY)}>
+      <DateField
+        label={label}
+        hideLabel
+        value={value}
+        now={now}
+        onChange={(v) => push(hrefWith(base, keep, param, v))}
+      />
+    </span>
   );
 }
