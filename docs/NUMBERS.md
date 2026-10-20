@@ -32,6 +32,7 @@ the work merges. Highest numbers are read across `origin/main` and every local a
 | migration 0154–0169      | Lab Phase 5: 0154 to 0157 used; 0158 lab catalogue codes; 0159 to 0169 spare                                     | `feat/lab-beyond-lis`        | 17 Oct 2026 | claimed                      |
 | migration 0171–0172, ADR 0350–0355 | Lab test menu v2 (0171 schema, 0172 catalogue v2 = CFC v1.7)                                    | `feat/lab-test-menu-v2`      | 19 Oct 2026 | used (unapplied)             |
 | ADR 0328–0345            | Lab Phase 5: 0328 to 0339 used; 0340 to 0342 taken by Mobile Tide v1 (`feat/mobile-tide-v1`); 0343 to 0345 spare | `feat/lab-beyond-lis`        | 17 Oct 2026 | claimed                      |
+| migration 0178 | Lab: remove the demo (`lab_demo_remove`); 0174–0177 are taken on other branches | `feat/lab-demo-unload` | 20 Oct 2026 | used (unapplied) |
 
 On `origin/main` (cf404abd, 11 Oct 2026) the highest migration is **0121** and the highest ADR **0280**.
 

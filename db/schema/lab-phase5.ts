@@ -202,6 +202,8 @@ export const labDemoLoads = pgTable("lab_demo_loads", {
   scenario: text("scenario").notNull(),
   counts: jsonb("counts").notNull().default({}),
   error: text("error"),
+  /** 0178: when "Remove the demo" deleted this load's rows. */
+  removedAt: timestamp("removed_at", tz),
 });
 
 export const labDemoPatients = pgTable(

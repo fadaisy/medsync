@@ -24,7 +24,8 @@ import { DEMO_SECTIONS } from "./demo-sections";
  *    delta limits, control ranges) the value is derived from those ranges and labelled "Demo".
  *  - Each section runs in its own transactions; one that fails is recorded on the load and the rest carry on.
  *
- * Laboratory records are append-only, so a demo is never deleted: the demo hospital is the sandbox.
+ * Removal (owner request, 20 Oct 2026; migration 0178) is `lab_demo_remove`, one SQL function: a hard delete of the
+ * demo's rows, in a demo hospital only, with the audit log kept.
  */
 
 export const DEMO_PATIENTS = 8;
@@ -499,6 +500,27 @@ export async function loadLabDemo(
 /** Kept for callers of the first version: the same full load. */
 export const loadLabDemoDay = loadLabDemo;
 
+/** What a removal would delete here, by kind; null until migration 0178 is applied. */
+export async function demoFootprint(db: EmrDb, hospitalId: string, actorId: string) {
+  try {
+    return rowsOf<{ r: Record<string, number> }>(
+      await db.execute(sql`SELECT public.lab_demo_remove(${hospitalId}, ${actorId}, true) AS r`),
+    )[0]!.r;
+  } catch {
+    return null;
+  }
+}
+
+/** Removes every demo row in this demo hospital in one transaction (migration 0178); returns what went, by kind. */
+export async function removeLabDemo(db: EmrDb, hospitalId: string, actorId: string) {
+  return db.transaction(
+    async (t) =>
+      rowsOf<{ r: Record<string, number> }>(
+        await t.execute(sql`SELECT public.lab_demo_remove(${hospitalId}, ${actorId}, false) AS r`),
+      )[0]!.r,
+  );
+}
+
 /** The demo hospital's loads, newest first, for the page. */
 export async function demoLoads(db: EmrDb, hospitalId: string) {
   return rowsOf<{
@@ -506,8 +528,11 @@ export async function demoLoads(db: EmrDb, hospitalId: string) {
     startedAt: Date;
     counts: Record<string, number>;
     error: string | null;
+    removedAt: string | null;
   }>(
-    await db.execute(sql`SELECT id, started_at AS "startedAt", counts, error FROM lab_demo_loads
+    // `to_jsonb` reads removed_at (0178) without failing before that migration is applied.
+    await db.execute(sql`SELECT id, started_at AS "startedAt", counts, error,
+        to_jsonb(l) ->> 'removed_at' AS "removedAt" FROM lab_demo_loads l
       WHERE hospital_id = ${hospitalId} ORDER BY started_at DESC LIMIT 20`),
   );
 }
