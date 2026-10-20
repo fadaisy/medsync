@@ -4,13 +4,15 @@ import type { ComponentProps, ReactNode } from "react";
 import { useId } from "react";
 
 import { Button as UiButton } from "@/components/ui/button";
+import { LABWS2_LOADING } from "@/content/lab-workspace-v2-loading";
 import { cn } from "@/lib/utils";
 
 /**
  * The lab's button (prompt 5.12). `primary` is the lagoon fill with navy text, one per card or panel (Law 9);
  * `secondary` is outlined; `text` is a link-weight button. There is no separate `disabled` prop: a button is
  * disabled exactly when it has a `disabledReason`, and the reason is printed beside it and read with it
- * (`aria-describedby`). So a disabled button without a reason cannot be written (D-UI-10).
+ * (`aria-describedby`). So a disabled button without a reason cannot be written (D-UI-10). A busy button dims,
+ * is `aria-busy`, and a polite status beside it says so; it cannot be pressed twice.
  */
 export type LabButtonVariant = "primary" | "secondary" | "text" | "quiet";
 
@@ -51,12 +53,13 @@ export function LabButton({
       variant="secondary"
       disabled={blocked || !!busy}
       aria-describedby={blocked ? `${id}-why` : props["aria-describedby"]}
+      aria-busy={busy || undefined}
       className={cn(
         V[variant],
         size === "md"
           ? "h-9 rounded-full px-4 text-[13.5px]"
           : "h-[30px] rounded-full px-3 text-[13px]",
-        "disabled:opacity-100",
+        busy ? "disabled:opacity-60" : "disabled:opacity-100",
         blocked && variant === "primary" && "bg-tide-sunken text-ink-600",
         blocked && variant !== "primary" && "text-ink-500",
         className,
@@ -65,7 +68,17 @@ export function LabButton({
       {children}
     </UiButton>
   );
-  if (!blocked) return button;
+  if (!blocked)
+    return busy === undefined ? (
+      button
+    ) : (
+      <>
+        {button}
+        <span role="status" className="sr-only">
+          {busy ? LABWS2_LOADING.working : ""}
+        </span>
+      </>
+    );
   return (
     <span
       className={cn(
