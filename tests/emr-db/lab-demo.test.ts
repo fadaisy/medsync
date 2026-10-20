@@ -11,6 +11,8 @@ import { generateKey } from "@/lib/encryption";
 import { bandValue, loadLabDemo, midValue, stageOf } from "@/lib/lab/demo";
 import { bootLane, clinician, department, hospital, laneOn, patient } from "./_pglite";
 
+type Snap = Record<string, (string | number)[]>;
+
 const FLAGS = [
   "LAB_WORKSPACE",
   "LAB_UNITS_RANGES",
@@ -63,7 +65,33 @@ describe.skipIf(!laneOn)("Lab demo loader: every page (A19)", () => {
   const env = { ...process.env };
   const one = async <T = Record<string, unknown>>(q: string, params: unknown[] = []) =>
     (await pg.query<T>(q, params)).rows[0] as T;
-  const deps = { makePatientUser: () => patient(pg) };
+  // As in the app: an account with an `.invalid` address (the auth mirror copies it to public.users).
+  const deps = {
+    makePatientUser: async () =>
+      (
+        await one<{ id: string }>(
+          `INSERT INTO auth.users (email) VALUES ('lab-demo-' || gen_random_uuid() || '@demo.medsync.invalid')
+           RETURNING id`,
+        )
+      ).id,
+  };
+  let before: Snap;
+  /** Every table's row count, and its ids where it has an id column. */
+  const snapshot = async (): Promise<Snap> => {
+    const tables = (
+      await pg.query<{ t: string; id: boolean }>(
+        `SELECT table_schema || '.' || table_name AS t, EXISTS (SELECT 1 FROM information_schema.columns c
+           WHERE c.table_schema = t.table_schema AND c.table_name = t.table_name AND c.column_name = 'id') AS id
+           FROM information_schema.tables t WHERE table_schema IN ('public', 'auth') AND table_type = 'BASE TABLE'`,
+      )
+    ).rows;
+    const out: Snap = {};
+    for (const { t, id } of tables)
+      out[t] = id
+        ? (await pg.query<{ id: string }>(`SELECT id::text AS id FROM ${t}`)).rows.map((r) => r.id)
+        : [(await one<{ n: number }>(`SELECT count(*)::int AS n FROM ${t}`)).n];
+    return out;
+  };
   const count = async (table: string) =>
     (
       await one<{ n: number }>(`SELECT count(*)::int AS n FROM ${table} WHERE hospital_id = $1`, [
@@ -121,6 +149,15 @@ describe.skipIf(!laneOn)("Lab demo loader: every page (A19)", () => {
   });
 
   it("fills every lab page in one load", async () => {
+    // A real patient in the demo hospital, who must survive a removal.
+    const realPatient = await patient(pg);
+    await pg.query(
+      `INSERT INTO encounters (hospital_id, patient_user_id, clinician_user_id, department_id, state, started_at)
+       SELECT $1, $2, user_id, department_id, 'in_progress', now() FROM staff_affiliations
+        WHERE hospital_id = $1 LIMIT 1`,
+      [h, realPatient],
+    );
+    before = await snapshot();
     await pg.query(
       `INSERT INTO lab_demo_hospitals (hospital_id, marked_by, note) VALUES ($1, $2, 'Lane demo')`,
       [h, lab.userId],
@@ -153,6 +190,65 @@ describe.skipIf(!laneOn)("Lab demo loader: every page (A19)", () => {
     );
     expect(supers.n).toBe(0);
   }, 600_000);
+
+  it("removes every demo row and touches nothing else; a second removal changes nothing", async () => {
+    const dry = await one<{ r: Record<string, number> }>(
+      `SELECT public.lab_demo_remove($1, $2, true) AS r`,
+      [h, lab.userId],
+    );
+    expect(dry.r.patients).toBe(22);
+    expect(dry.r.staff).toBe(8);
+    const done = await one<{ r: Record<string, number> }>(
+      `SELECT public.lab_demo_remove($1, $2, false) AS r`,
+      [h, lab.userId],
+    );
+    expect(done.r.rows).toBeGreaterThan(500);
+    const after = await snapshot();
+    // Kept on purpose: the audit trail, the loads (marked removed), research units, settings naming real staff and
+    // reserved blank form numbers (never reused). The demo mark itself is added after the snapshot.
+    const kept = new Set([
+      "public.audit_log",
+      "public.lab_demo_hospitals",
+      "public.downtime_form_numbers",
+      "public.lab_demo_loads",
+      "public.patient_code_seq",
+      "public.lab_component_measures",
+      "public.critical_contacts",
+    ]);
+    const changed = Object.keys(before).filter(
+      (t) =>
+        !kept.has(t) &&
+        JSON.stringify([...before[t]!].sort()) !== JSON.stringify([...after[t]!].sort()),
+    );
+    expect(changed).toEqual([]);
+    expect(
+      (
+        await one<{ n: number }>(
+          `SELECT count(*)::int AS n FROM lab_demo_loads WHERE removed_at IS NULL`,
+        )
+      ).n,
+    ).toBe(0);
+    // Every trigger the removal switched off is back on.
+    const triggersOff = await one<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_trigger WHERE NOT tgisinternal AND tgenabled = 'D'`,
+    );
+    expect(triggersOff.n).toBe(0);
+    const again = await one<{ r: Record<string, number> }>(
+      `SELECT public.lab_demo_remove($1, $2, false) AS r`,
+      [h, lab.userId],
+    );
+    expect(again.r.rows).toBeUndefined();
+    const second = await snapshot();
+    expect(
+      Object.keys(second).filter((t) => JSON.stringify(second[t]) !== JSON.stringify(after[t])),
+    ).toEqual([]);
+  }, 600_000);
+
+  it("refuses to remove from a hospital that is not a demo hospital", async () => {
+    await expect(
+      pg.query(`SELECT public.lab_demo_remove($1, $2, false)`, [real, lab.userId]),
+    ).rejects.toThrow(/not a demo hospital/);
+  });
 
   it("a real hospital can never hold demo rows", async () => {
     await expect(

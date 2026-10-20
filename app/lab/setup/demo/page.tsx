@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { LAB } from "@/content/lab";
+import { LAB_DEMO_REMOVE } from "@/content/lab-demo";
 import { db } from "@/db";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
-import { demoLoads, isDemoHospital } from "@/lib/lab/demo";
+import { demoFootprint, demoLoads, isDemoHospital } from "@/lib/lab/demo";
 import { SetupHeader } from "../_components/setup-header";
 import { LoadDemoDay } from "./load-button";
+import { RemoveDemo } from "./remove-button";
 
 export const metadata: Metadata = { title: "Demo lab day · Laboratory · MedSync" };
 export const dynamic = "force-dynamic";
@@ -25,15 +27,18 @@ const when = new Intl.DateTimeFormat("en-GB", {
 /**
  * Demo lab day (Lab Phase 5, owner request; A19). Only in a hospital marked as a demo hospital, for `lab.manage`.
  * Each load adds patients labelled "Demo patient NN" with orders at every stage of the worklist. Results are the
- * middle of this hospital's own signed ranges; nothing clinical is invented. Demo records stay (lab records are
- * append-only); the demo hospital is the sandbox.
+ * middle of this hospital's own signed ranges; nothing clinical is invented. "Remove the demo" deletes them again
+ * (migration 0178).
  */
 export default async function DemoPage() {
   const scope = await requireLabTechScope();
   if (!scope.workspaceLive || !emrV1LiveFor(scope.hospitalId)) notFound();
   if (!scope.access.permissions.has("lab.manage")) notFound();
   if (!(await isDemoHospital(db as never, scope.hospitalId))) notFound();
-  const loads = await demoLoads(db as never, scope.hospitalId);
+  const [loads, footprint] = await Promise.all([
+    demoLoads(db as never, scope.hospitalId),
+    demoFootprint(db as never, scope.hospitalId, scope.userId),
+  ]);
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
       <SetupHeader
@@ -59,7 +64,10 @@ export default async function DemoPage() {
           &ldquo;Demo CSO&rdquo; and others) in this hospital only. Nobody can sign in as a demo
           patient or demo staff member, and demo records never reach a real hospital.
         </p>
-        <LoadDemoDay />
+        <div className="flex flex-wrap items-start gap-3">
+          <LoadDemoDay />
+          <RemoveDemo footprint={footprint} />
+        </div>
       </section>
       <section className="border-border bg-card text-body-s flex flex-col gap-2 rounded-lg border p-4">
         <h2 className="text-heading-s">Loads</h2>
@@ -71,6 +79,9 @@ export default async function DemoPage() {
               <li key={l.id}>
                 <span>{when.format(new Date(l.startedAt))}</span> ·{" "}
                 {`${l.counts.patients ?? 0} patients, ${l.counts.orders ?? 0} tests, ${l.counts.released ?? 0} released, ${l.counts["signed settings"] ?? 0} settings signed`}
+                {l.removedAt ? (
+                  <span className="text-muted-foreground"> · {LAB_DEMO_REMOVE.removed}</span>
+                ) : null}
                 {l.error ? (
                   <span className="text-muted-foreground"> · Stopped: {l.error}</span>
                 ) : null}
