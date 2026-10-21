@@ -361,7 +361,7 @@ export async function recordHandover(
     ctx.tx
       .select({
         id: pharmacyBatches.id,
-        pointId: pharmacyBatches.dispensingPointId,
+        pointId: sql<string>`${pharmacyBatches.dispensingPointId}`,
         productId: pharmacyBatches.productId,
         batchNumber: pharmacyBatches.batchNumber,
         expiry: pharmacyBatches.expiry,

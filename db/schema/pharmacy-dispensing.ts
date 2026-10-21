@@ -65,6 +65,8 @@ export const pharmacyProducts = pgTable("pharmacy_products", {
   issueUnit: text("issue_unit").notNull(),
   registrationNumber: text("registration_number"),
   priceUgx: numeric("price_ugx", { precision: 14, scale: 2 }),
+  /** SC-3 (0180): optional GS1 GTIN, one active product per hospital. */
+  gtin: text("gtin"),
   active: boolean("active").notNull().default(true),
   addedAtWindow: boolean("added_at_window").notNull().default(false),
   createdBy: uuid("created_by").notNull(),
@@ -142,13 +144,30 @@ export const MOVEMENT_KINDS = [
   "count_correction",
   "transfer_out",
   "transfer_in",
+  // Phase 2 (0180, SL-12)
+  "issued",
+  "received_from_issue",
+  "returned_out",
+  "returned_in",
+  "lent",
+  "borrowed",
+  "loan_returned_out",
+  "loan_returned_in",
+  "ward_used",
+  "cart_used",
+  "quarantined_out",
+  "quarantined_in",
+  "written_off",
+  "returned_to_supplier",
 ] as const;
 export type MovementKind = (typeof MOVEMENT_KINDS)[number];
 
 export const pharmacyBatches = pgTable("pharmacy_batches", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
-  dispensingPointId: uuid("dispensing_point_id").notNull(),
+  /** A dispensing point's id, or NULL at a Phase 2 location (0180: `location_id`). */
+  dispensingPointId: uuid("dispensing_point_id"),
+  locationId: uuid("location_id"),
   productId: uuid("product_id").notNull(),
   batchNumber: text("batch_number").notNull(),
   expiry: date("expiry").notNull(),
@@ -162,7 +181,14 @@ export const pharmacyBatches = pgTable("pharmacy_batches", {
 export const pharmacyStockMovements = pgTable("pharmacy_stock_movements", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
-  dispensingPointId: uuid("dispensing_point_id").notNull(),
+  /** A dispensing point's id, or NULL at a Phase 2 location (0180: `location_id`). */
+  dispensingPointId: uuid("dispensing_point_id"),
+  locationId: uuid("location_id"),
+  pairId: uuid("pair_id"),
+  unitCost: numeric("unit_cost", { precision: 14, scale: 2 }),
+  allocated: boolean("allocated").notNull().default(false),
+  counterpartyId: uuid("counterparty_id"),
+  loanMovementId: uuid("loan_movement_id"),
   batchId: uuid("batch_id").notNull(),
   kind: text("kind").$type<MovementKind>().notNull(),
   quantity: integer("quantity").notNull(),
@@ -182,7 +208,8 @@ export const pharmacyStockMovements = pgTable("pharmacy_stock_movements", {
 export const pharmacyCounts = pgTable("pharmacy_counts", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
-  dispensingPointId: uuid("dispensing_point_id").notNull(),
+  dispensingPointId: uuid("dispensing_point_id"),
+  locationId: uuid("location_id"),
   scope: text("scope").notNull(),
   medicineId: text("medicine_id"),
   countedBy: uuid("counted_by").notNull(),

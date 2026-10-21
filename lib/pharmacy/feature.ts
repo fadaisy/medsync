@@ -1,5 +1,6 @@
 import { PHARMACY_PHASE1_COPY, PHARMACY_SIGNED_COPY } from "@/content/pharmacy";
 import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
+import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -47,3 +48,38 @@ export const pharmacyNationalListLiveFor = (hospitalId: string) =>
     [...PHARMACY_PHASE1_COPY, NATIONAL_LIST_COPY],
     "pharmacy_national_list",
   ) && pharmacyWorkspaceLiveFor(hospitalId);
+
+/**
+ * Pharmacy Phase 2 (Law 14, D-PH2-24): six per-hospital flags, off by default, each inside the workspace. With all
+ * six off, behaviour is the Phase 1 baseline. In production each stays off while the Phase 2 wording is draft.
+ * Each location also goes live on its own (5.12): a flag never switches a location on.
+ */
+const stores = (value: string | undefined, hospitalId: string, tag: string) =>
+  workspaceLiveFor(value, hospitalId, [PHARMACY_STORES_COPY], tag) && pharmacyWorkspaceLiveFor(hospitalId);
+
+export const pharmacyStoreLiveFor = (h: string) => stores(process.env.PHARMACY_STORE, h, "pharmacy_store");
+export const pharmacyWardStockLiveFor = (h: string) =>
+  stores(process.env.PHARMACY_WARD_STOCK, h, "pharmacy_ward_stock");
+export const pharmacyCartsLiveFor = (h: string) => stores(process.env.PHARMACY_CARTS, h, "pharmacy_carts");
+export const pharmacyRecallLiveFor = (h: string) => stores(process.env.PHARMACY_RECALL, h, "pharmacy_recall");
+export const pharmacyMonthEndLiveFor = (h: string) =>
+  stores(process.env.PHARMACY_MONTH_END, h, "pharmacy_month_end");
+export const pharmacyOrderingLiveFor = (h: string) =>
+  stores(process.env.PHARMACY_ORDERING, h, "pharmacy_ordering");
+
+export interface StoresFlags {
+  store: boolean;
+  wardStock: boolean;
+  carts: boolean;
+  recall: boolean;
+  monthEnd: boolean;
+  ordering: boolean;
+}
+export const storesFlagsFor = (h: string): StoresFlags => ({
+  store: pharmacyStoreLiveFor(h),
+  wardStock: pharmacyWardStockLiveFor(h),
+  carts: pharmacyCartsLiveFor(h),
+  recall: pharmacyRecallLiveFor(h),
+  monthEnd: pharmacyMonthEndLiveFor(h),
+  ordering: pharmacyOrderingLiveFor(h),
+});

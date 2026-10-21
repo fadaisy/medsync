@@ -290,7 +290,7 @@ async function batchAt(ctx: PharmacyCtx, batchId: string, pointId: string) {
   const [b] = await ctx.tx
     .select({
       id: pharmacyBatches.id,
-      pointId: pharmacyBatches.dispensingPointId,
+      pointId: sql<string>`${pharmacyBatches.dispensingPointId}`,
       productId: pharmacyBatches.productId,
       batchNumber: pharmacyBatches.batchNumber,
       expiry: pharmacyBatches.expiry,

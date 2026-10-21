@@ -143,3 +143,4 @@ export * from "./lab-exchange";
 export * from "./lab-phase5";
 // ─── Pharmacy Phase 1: dispensing with stock (migrations 0122–0135 — GATED, ADRs 0260–0279)
 export * from "./pharmacy-dispensing";
+export * from "./pharmacy-stores";

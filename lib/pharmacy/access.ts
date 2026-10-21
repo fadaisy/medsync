@@ -2,6 +2,7 @@ import type { PermissionMap } from "@/lib/workspace-access/access";
 
 import MAP from "@/data/pharmacy/permission-map.v1.json";
 import MAP_V2 from "@/data/pharmacy/permission-map.v2.json";
+import MAP_V3 from "@/data/pharmacy/permission-map.v3.json";
 import { cadrePermissions, mapProblems as problemsOf } from "@/lib/workspace-access/access";
 
 /**
@@ -20,6 +21,7 @@ export const PHARMACY_PERMISSIONS = [
   "pharmacy.stock",
   "pharmacy.controlled",
   "pharmacy.manage",
+  "pharmacy.store",
 ] as const;
 export type PharmacyPermission = (typeof PHARMACY_PERMISSIONS)[number];
 
@@ -78,4 +80,19 @@ export function pharmacyDispensingAccess(
 
 export function mapV2Problems(map: PermissionMap = PHARMACY_MAP_V2): string[] {
   return problemsOf(map, PHARMACY_PERMISSIONS, NOT_FROM_CADRE_V2);
+}
+
+/* ─── Pharmacy Phase 2: the permission map, version 3 (D-PH2-02, Appendix A) ─── */
+
+export const PHARMACY_MAP_V3: PermissionMap = MAP_V3;
+
+/**
+ * v3 adds only `pharmacy.store`. Phase 1's maps stay as they are; the store permission is added beside them
+ * from v3, and only where `PHARMACY_STORE` is on for the hospital (lib/pharmacy/actor.ts).
+ */
+export function withStoreAccess(access: PharmacyAccess, cadreCode: string | null, storeOn: boolean): PharmacyAccess {
+  if (!storeOn) return access;
+  const v3 = cadrePermissions(PHARMACY_MAP_V3, cadreCode, PHARMACY_PERMISSIONS, NOT_FROM_CADRE_V2);
+  if (!v3.has("pharmacy.store")) return access;
+  return { permissions: new Set([...access.permissions, "pharmacy.store"]) };
 }

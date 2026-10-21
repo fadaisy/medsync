@@ -853,7 +853,7 @@ export async function loadShelf(
     database
       .select({
         id: pharmacyBatches.id,
-        pointId: pharmacyBatches.dispensingPointId,
+        pointId: sql<string>`${pharmacyBatches.dispensingPointId}`,
         productId: pharmacyBatches.productId,
         medicineId: pharmacyProducts.medicineId,
         batchNumber: pharmacyBatches.batchNumber,
@@ -868,7 +868,7 @@ export async function loadShelf(
       ),
     database
       .select({
-        pointId: pharmacyBatches.dispensingPointId,
+        pointId: sql<string>`${pharmacyBatches.dispensingPointId}`,
         medicineId: pharmacyProducts.medicineId,
         at: sql<Date>`max(${pharmacyCounts.countedAt})`.mapWith(pharmacyCounts.countedAt),
       })

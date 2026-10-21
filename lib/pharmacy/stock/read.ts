@@ -236,7 +236,7 @@ async function loadPointStock(
   const batchRows = await tx
     .select({
       id: pharmacyBatches.id,
-      pointId: pharmacyBatches.dispensingPointId,
+      pointId: sql<string>`${pharmacyBatches.dispensingPointId}`,
       productId: pharmacyBatches.productId,
       medicineId: pharmacyProducts.medicineId,
       batchNumber: pharmacyBatches.batchNumber,
