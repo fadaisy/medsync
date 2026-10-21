@@ -1,8 +1,9 @@
 import type { PharmacyPermission } from "./access";
+import type { StoresFlags } from "@/lib/pharmacy/feature";
 import type { NavItem } from "@/lib/workspace-access/nav";
 
 import { navFor as navItemsFor } from "@/lib/workspace-access/nav";
-import { dispensingMap, pharmacyDispensingAccess } from "./access";
+import { dispensingMap, pharmacyDispensingAccess, withStoreAccess } from "./access";
 
 /**
  * The pharmacy workspace navigation (Pharmacy Phase 0, NV-P1; Phase 1, 5.1). Queue · Open lines ·
@@ -17,10 +18,20 @@ export type PharmacyNavId =
   | "stock"
   | "controlled"
   | "downtime"
-  | "emergency";
+  | "emergency"
+  // Phase 2, the Store group (5.1)
+  | "deliveries"
+  | "issues"
+  | "wards"
+  | "carts"
+  | "expiry"
+  | "monthEnd"
+  | "orders";
 export interface PharmacyNavFlags {
   dispensing: boolean;
   downtime: boolean;
+  /** Phase 2 (D-PH2-24); absent means off. */
+  stores?: StoresFlags;
 }
 export type PharmacyNavItem = NavItem<PharmacyNavId, PharmacyPermission, PharmacyNavFlags>;
 
@@ -77,6 +88,38 @@ export const PHARMACY_NAV: readonly PharmacyNavItem[] = [
     exact: false,
     visibleFor: view,
   },
+  // Phase 2, the Store group (5.1): each shown only with its flag on and the permission held.
+  ...(
+    [
+      ["deliveries", "Deliveries", "/pharmacy/store/deliveries", "store", "pharmacy.store"],
+      ["issues", "Issues and requisitions", "/pharmacy/store/issues", "store", "pharmacy.store"],
+      ["wards", "Ward stock", "/pharmacy/store/wards", "wardStock", "pharmacy.view"],
+      ["carts", "Emergency carts", "/pharmacy/store/carts", "carts", "pharmacy.view"],
+      ["expiry", "Expiry and recall", "/pharmacy/store/expiry", "recall", "pharmacy.view"],
+      ["monthEnd", "Month end", "/pharmacy/store/month-end", "monthEnd", "pharmacy.view"],
+      ["orders", "Orders", "/pharmacy/store/orders", "ordering", "pharmacy.view"],
+    ] as const
+  ).map(
+    ([id, label, href, flag, perm], i): PharmacyNavItem => ({
+      id,
+      label,
+      href,
+      order: 20 + i,
+      exact: false,
+      visibleFor: (p, f) => !!f?.stores?.[flag] && p.has(perm),
+    }),
+  ),
+];
+
+/** The first visible Store item opens the group's heading in the sidebar. */
+export const STORE_NAV_IDS: readonly PharmacyNavId[] = [
+  "deliveries",
+  "issues",
+  "wards",
+  "carts",
+  "expiry",
+  "monthEnd",
+  "orders",
 ];
 
 export function pharmacyNavFor(
@@ -97,7 +140,9 @@ export function pharmacyNavPermissions(
   flags: PharmacyNavFlags,
   map = dispensingMap(),
 ): ReadonlySet<PharmacyPermission> {
-  return flags.dispensing || flags.downtime
-    ? pharmacyDispensingAccess(cadreCode, map).permissions
-    : phase0;
+  const base =
+    flags.dispensing || flags.downtime
+      ? pharmacyDispensingAccess(cadreCode, map).permissions
+      : phase0;
+  return withStoreAccess({ permissions: base }, cadreCode, !!flags.stores?.store).permissions;
 }

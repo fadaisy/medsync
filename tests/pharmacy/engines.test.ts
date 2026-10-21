@@ -8,7 +8,12 @@ import { dispensingMap, PHARMACY_MAP_V2, pharmacyAccess } from "@/lib/pharmacy/a
 import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state";
 import { answeredChecks, CHECK_TITLE } from "@/lib/pharmacy/checks";
 import { computeDoses, NO_CART, toDoseRow } from "@/lib/pharmacy/emergency-doses";
-import { PHARMACY_NAV, pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
+import {
+  PHARMACY_NAV,
+  pharmacyNavFor,
+  pharmacyNavPermissions,
+  STORE_NAV_IDS,
+} from "@/lib/pharmacy/nav";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { DRUGS, offersRegimens } from "@/lib/prescribing/formulary";
 
@@ -324,7 +329,8 @@ describe("NV-P1: navigation", () => {
   });
 
   it("Phase 1 (5.1): the full order, each item behind its flag", () => {
-    expect(PHARMACY_NAV.map((i) => i.label)).toEqual([
+    // Phase 2 appends the Store group after these (5.1); Phase 1's own order is unchanged.
+    expect(PHARMACY_NAV.filter((i) => !STORE_NAV_IDS.includes(i.id)).map((i) => i.label)).toEqual([
       "Queue",
       "Open lines",
       "Supplied today",
@@ -343,6 +349,37 @@ describe("NV-P1: navigation", () => {
         downtime: true,
       }),
     ).toHaveLength(3);
+  });
+
+  it("Phase 2 (5.1): the Store group, after Phase 1's items, each behind its own flag and permission", () => {
+    const all = {
+      store: true,
+      wardStock: true,
+      carts: true,
+      recall: true,
+      monthEnd: true,
+      ordering: true,
+    };
+    const off = {
+      store: false,
+      wardStock: false,
+      carts: false,
+      recall: false,
+      monthEnd: false,
+      ordering: false,
+    };
+    const view = new Set(["pharmacy.view"] as const);
+    const store = new Set(["pharmacy.view", "pharmacy.store"] as const);
+    expect(
+      pharmacyNavFor(store, { dispensing: false, downtime: false, stores: off }).map((i) => i.id),
+    ).toEqual(["queue", "emergency"]);
+    expect(
+      pharmacyNavFor(store, { dispensing: false, downtime: false, stores: all }).map((i) => i.id),
+    ).toEqual(["queue", "emergency", ...STORE_NAV_IDS]);
+    // Deliveries and Issues need pharmacy.store; the rest read with pharmacy.view.
+    expect(
+      pharmacyNavFor(view, { dispensing: false, downtime: false, stores: all }).map((i) => i.id),
+    ).toEqual(["queue", "emergency", "wards", "carts", "expiry", "monthEnd", "orders"]);
   });
 
   it("the layout's permissions: Phase 0's with both flags off, the dispensing map with a Phase 1 flag on", () => {

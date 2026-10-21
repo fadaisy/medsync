@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { SidebarNavItem } from "@/components/medsync/sidebar-nav";
+import { SidebarGroupLabel, SidebarNavItem } from "@/components/medsync/sidebar-nav";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,6 +26,8 @@ export interface WorkspaceNavEntry {
   also?: readonly string[];
   /** Light the sidebar item on its `also` paths too (the pharmacy's Queue); the lab's does not. */
   sidebarAlso?: boolean;
+  /** A group heading drawn above this item in the sidebar (the pharmacy's Store group, Phase 2 5.1). */
+  groupStart?: string;
 }
 
 export const isActiveEntry = (
@@ -42,6 +44,11 @@ export function WorkspaceSidebarNav({ items }: { items: readonly WorkspaceNavEnt
     <ul className="flex flex-col gap-0.5">
       {items.map((item) => (
         <li key={item.id}>
+          {item.groupStart ? (
+            <div className="mt-3">
+              <SidebarGroupLabel>{item.groupStart}</SidebarGroupLabel>
+            </div>
+          ) : null}
           <SidebarNavItem
             href={item.href}
             label={item.label}

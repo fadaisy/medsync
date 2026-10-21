@@ -55,13 +55,17 @@ export const pharmacyNationalListLiveFor = (hospitalId: string) =>
  * Each location also goes live on its own (5.12): a flag never switches a location on.
  */
 const stores = (value: string | undefined, hospitalId: string, tag: string) =>
-  workspaceLiveFor(value, hospitalId, [PHARMACY_STORES_COPY], tag) && pharmacyWorkspaceLiveFor(hospitalId);
+  workspaceLiveFor(value, hospitalId, [PHARMACY_STORES_COPY], tag) &&
+  pharmacyWorkspaceLiveFor(hospitalId);
 
-export const pharmacyStoreLiveFor = (h: string) => stores(process.env.PHARMACY_STORE, h, "pharmacy_store");
+export const pharmacyStoreLiveFor = (h: string) =>
+  stores(process.env.PHARMACY_STORE, h, "pharmacy_store");
 export const pharmacyWardStockLiveFor = (h: string) =>
   stores(process.env.PHARMACY_WARD_STOCK, h, "pharmacy_ward_stock");
-export const pharmacyCartsLiveFor = (h: string) => stores(process.env.PHARMACY_CARTS, h, "pharmacy_carts");
-export const pharmacyRecallLiveFor = (h: string) => stores(process.env.PHARMACY_RECALL, h, "pharmacy_recall");
+export const pharmacyCartsLiveFor = (h: string) =>
+  stores(process.env.PHARMACY_CARTS, h, "pharmacy_carts");
+export const pharmacyRecallLiveFor = (h: string) =>
+  stores(process.env.PHARMACY_RECALL, h, "pharmacy_recall");
 export const pharmacyMonthEndLiveFor = (h: string) =>
   stores(process.env.PHARMACY_MONTH_END, h, "pharmacy_month_end");
 export const pharmacyOrderingLiveFor = (h: string) =>

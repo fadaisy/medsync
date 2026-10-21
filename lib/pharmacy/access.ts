@@ -90,7 +90,11 @@ export const PHARMACY_MAP_V3: PermissionMap = MAP_V3;
  * v3 adds only `pharmacy.store`. Phase 1's maps stay as they are; the store permission is added beside them
  * from v3, and only where `PHARMACY_STORE` is on for the hospital (lib/pharmacy/actor.ts).
  */
-export function withStoreAccess(access: PharmacyAccess, cadreCode: string | null, storeOn: boolean): PharmacyAccess {
+export function withStoreAccess(
+  access: PharmacyAccess,
+  cadreCode: string | null,
+  storeOn: boolean,
+): PharmacyAccess {
   if (!storeOn) return access;
   const v3 = cadrePermissions(PHARMACY_MAP_V3, cadreCode, PHARMACY_PERMISSIONS, NOT_FROM_CADRE_V2);
   if (!v3.has("pharmacy.store")) return access;
