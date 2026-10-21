@@ -225,6 +225,16 @@ describe("source rules", () => {
       "app/pharmacy/open-lines/actions.ts",
       "app/pharmacy/review-actions.ts",
       "app/pharmacy/stock/actions.ts",
+      // Pharmacy Phase 2: the Store group (Steps 4 to 9).
+      "app/pharmacy/store/actions.ts",
+      "app/pharmacy/store/carts/actions.ts",
+      "app/pharmacy/store/deliveries/actions.ts",
+      "app/pharmacy/store/expiry/actions.ts",
+      "app/pharmacy/store/issues/actions.ts",
+      "app/pharmacy/store/month-end/actions.ts",
+      "app/pharmacy/store/orders/actions.ts",
+      "app/pharmacy/store/packs/actions.ts",
+      "app/pharmacy/store/wards/actions.ts",
       "app/pharmacy/supply-actions.ts",
     ]);
     for (const f of actions)

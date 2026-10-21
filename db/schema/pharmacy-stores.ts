@@ -142,7 +142,9 @@ export const pharmacyOrderLines = pgTable("pharmacy_order_lines", {
   cut: jsonb("cut"),
   closedAt: timestamp("closed_at", tz),
   closedBy: uuid("closed_by"),
-  closeReason: text("close_reason").$type<"received" | "supplier_out" | "cancelled" | "substituted" | "other">(),
+  closeReason: text("close_reason").$type<
+    "received" | "supplier_out" | "cancelled" | "substituted" | "other"
+  >(),
   closeNote: text("close_note"),
 });
 
@@ -176,7 +178,9 @@ export const pharmacyDeliveryLines = pgTable("pharmacy_delivery_lines", {
   acceptedQuantity: integer("accepted_quantity").notNull().default(0),
   rejectedKeptQuantity: integer("rejected_kept_quantity").notNull().default(0),
   rejectedReturnedQuantity: integer("rejected_returned_quantity").notNull().default(0),
-  rejectReason: text("reject_reason").$type<"damaged" | "wrong_product" | "expired" | "short_dated" | "other">(),
+  rejectReason: text("reject_reason").$type<
+    "damaged" | "wrong_product" | "expired" | "short_dated" | "other"
+  >(),
   batchNumber: text("batch_number"),
   expiry: date("expiry"),
   expiryMonthOnly: boolean("expiry_month_only").notNull().default(false),

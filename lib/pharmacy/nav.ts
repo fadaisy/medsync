@@ -26,7 +26,9 @@ export type PharmacyNavId =
   | "carts"
   | "expiry"
   | "monthEnd"
-  | "orders";
+  | "orders"
+  | "places"
+  | "packs";
 export interface PharmacyNavFlags {
   dispensing: boolean;
   downtime: boolean;
@@ -98,6 +100,7 @@ export const PHARMACY_NAV: readonly PharmacyNavItem[] = [
       ["expiry", "Expiry and recall", "/pharmacy/store/expiry", "recall", "pharmacy.view"],
       ["monthEnd", "Month end", "/pharmacy/store/month-end", "monthEnd", "pharmacy.view"],
       ["orders", "Orders", "/pharmacy/store/orders", "ordering", "pharmacy.view"],
+      ["places", "Places and suppliers", "/pharmacy/store/places", "store", "pharmacy.view"],
     ] as const
   ).map(
     ([id, label, href, flag, perm], i): PharmacyNavItem => ({
@@ -109,6 +112,16 @@ export const PHARMACY_NAV: readonly PharmacyNavItem[] = [
       visibleFor: (p, f) => !!f?.stores?.[flag] && p.has(perm),
     }),
   ),
+  {
+    // Appendix D packs (and Phase 1's own), signed in the app: with any Phase 2 flag on. With all six off the rail
+    // is Phase 1's exactly (Law 14).
+    id: "packs",
+    label: "Signed packs",
+    href: "/pharmacy/store/packs",
+    order: 40,
+    exact: false,
+    visibleFor: (p, f) => p.has("pharmacy.view") && Object.values(f?.stores ?? {}).some(Boolean),
+  },
 ];
 
 /** The first visible Store item opens the group's heading in the sidebar. */
@@ -120,6 +133,8 @@ export const STORE_NAV_IDS: readonly PharmacyNavId[] = [
   "expiry",
   "monthEnd",
   "orders",
+  "places",
+  "packs",
 ];
 
 export function pharmacyNavFor(

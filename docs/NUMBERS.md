@@ -49,5 +49,5 @@ unapplied files numbered 0101 and 0102; the pharmacy's became 0120 and 0121. Rel
 renumbers its ADR.
 
 | ADR 0360–0366            | Tide everywhere (web migration)                                | `feat/tide-everywhere`       | 21 Oct 2026 | 0360–0361 used               |
-| migration 0180–0204      | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | claimed                      |
+| migration 0180–0204      | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | 0180–0182, 0184 used         |
 | ADR 0370–0384            | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | claimed                      |

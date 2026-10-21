@@ -207,11 +207,14 @@ export function ReceiveDialog({
   title = STOCK.receive.title,
   save = actions.receiveStock,
   before,
+  from = Object.keys(DELIVERY_FROM) as (keyof typeof DELIVERY_FROM)[],
 }: {
   products: DialogProduct[];
   title?: string;
   save?: (input: ReceiveFields) => Promise<StockResult<unknown>>;
   before?: ReactNode;
+  /** Phase 2 Law 3 (S17a): the sources still offered here (`deliveryFromOffered`); every one by default. */
+  from?: readonly (keyof typeof DELIVERY_FROM)[];
 }) {
   const ids = { product: useId(), batch: useId(), qty: useId(), ref: useId() };
   const [productId, setProductId] = useState(products[0]?.id ?? "");
@@ -274,12 +277,14 @@ export function ReceiveDialog({
           <legend className="text-ink-700 text-caption mb-1.5 font-medium">
             {STOCK.receive.from}
           </legend>
-          {Object.entries(DELIVERY_FROM).map(([code, word], i) => (
-            <label key={code} className="text-body-s inline-flex min-h-11 items-center gap-2">
-              <input type="radio" name="from" value={code} defaultChecked={i === 0} required />
-              {word}
-            </label>
-          ))}
+          {from
+            .map((code) => [code, DELIVERY_FROM[code]] as const)
+            .map(([code, word], i) => (
+              <label key={code} className="text-body-s inline-flex min-h-11 items-center gap-2">
+                <input type="radio" name="from" value={code} defaultChecked={i === 0} required />
+                {word}
+              </label>
+            ))}
         </fieldset>
         <Field label={STOCK.receive.ref} id={ids.ref}>
           <Input id={ids.ref} name="deliveryRef" maxLength={120} className={TARGET} />

@@ -12,6 +12,7 @@ import type {
 } from "@/lib/prescribing/pharmacy";
 import { sql } from "drizzle-orm";
 
+import { notRecalled } from "@/lib/pharmacy/stores/recall-read";
 import { getAvailability, mappingInForce, toStockLine } from "@/lib/prescribing/pharmacy";
 
 /**
@@ -88,6 +89,7 @@ export async function readStock(
         JOIN public.pharmacy_products pr ON pr.id = b.product_id
         LEFT JOIN public.pharmacy_stock_movements m ON m.batch_id = b.id
        WHERE b.dispensing_point_id IN (SELECT id FROM pts) AND pr.medicine_id IN (SELECT med FROM meds)
+         AND ${notRecalled(hospitalId, sql`b.id`)}
        GROUP BY b.id, pr.medicine_id
     ), facts AS (
       SELECT pt.id AS point, md.med,

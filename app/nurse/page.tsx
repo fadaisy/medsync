@@ -12,8 +12,11 @@ import {
 } from "lucide-react";
 
 import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
+import { CautionNotice } from "@/components/medsync/caution-notice";
+import { WARDS } from "@/content/pharmacy-stores-wards";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
 import { requireNurseScope } from "@/lib/nurse/scope";
+import { nurseWardNotices } from "@/lib/nurse/ward-stock";
 
 export const metadata: Metadata = { title: "Overview · Nurse · MedSync" };
 export const dynamic = "force-dynamic";
@@ -32,6 +35,8 @@ export default async function NurseOverviewPage() {
     departmentId: scope.departmentId,
     limit: 10,
   });
+  // Pharmacy Phase 2 (5.7): recall notices for the nurse's wards; staff-facing, never a patient.
+  const notices = await nurseWardNotices(scope);
 
   return (
     <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
@@ -55,6 +60,24 @@ export default async function NurseOverviewPage() {
           care-team, prescribing) ship.
         </p>
       </header>
+
+      {notices.length ? (
+        <CautionNotice lead={WARDS.notices.title}>
+          <ul className="flex flex-col gap-1">
+            {notices.map((n) => (
+              <li key={n.id}>
+                <Link
+                  href={`/nurse/ward-stock?location=${n.locationId}`}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {n.ward}
+                </Link>
+                : {WARDS.notices.line(n.product, n.batchNumber)}
+              </li>
+            ))}
+          </ul>
+        </CautionNotice>
+      ) : null}
 
       {/* Incoming intakes for this department */}
       <div className="reveal-up" style={{ animationDelay: "70ms" }}>

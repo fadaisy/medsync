@@ -15,6 +15,7 @@ import { noProductText } from "@/lib/pharmacy/catalogue";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { getStockDetail, pointsBesides } from "@/lib/pharmacy/stock/read";
+import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import {
   AddProductDialog,
@@ -111,7 +112,10 @@ export default async function StockMedicinePage({
           <>
             {canStock ? (
               <>
-                <ReceiveDialog products={dialogProducts} />
+                <ReceiveDialog
+                  products={dialogProducts}
+                  from={deliveryFromOffered(actor.hospitalId)}
+                />
                 <CountDialog
                   label={STOCK.actions.count}
                   what={d.name}

@@ -43,6 +43,7 @@ import { withdrawListEntry, writeListEntries } from "@/lib/pharmacy/patient-list
 import { foldWith, loadGroupOfLine, loadHospitalContext } from "@/lib/pharmacy/review/load";
 import { nudge } from "@/lib/pharmacy/review/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
+import { recalledAmong } from "@/lib/pharmacy/stores/recall-read";
 import { lockLine } from "@/lib/pharmacy/write";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { handoverWrites } from "./handover";
@@ -498,6 +499,7 @@ export async function recordHandover(
       medicineId: products.find((p) => p.id === b.productId)?.medicineId ?? "",
     })),
     balances: new Map(sums.map((s) => [s.batchId, Number(s.n)])),
+    blocked: await recalledAmong(ctx.tx, hospitalId, batchIds),
     controlledCleared: controlled !== null,
   };
   const allowedPoints = new Set(counselling?.items.map((c) => c.code) ?? []);

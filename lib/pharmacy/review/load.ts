@@ -52,6 +52,7 @@ import {
   keyFilter,
   lineColumns,
 } from "@/lib/pharmacy/read";
+import { notRecalled } from "@/lib/pharmacy/stores/recall-read";
 
 /**
  * The record a review, a query or an outcome reads (Pharmacy Phase 1, LO-1..LO-9, LN-1..LN-8, RQ-2,
@@ -864,7 +865,12 @@ export async function loadShelf(
       .from(pharmacyBatches)
       .innerJoin(pharmacyProducts, eq(pharmacyProducts.id, pharmacyBatches.productId))
       .where(
-        and(eq(pharmacyBatches.hospitalId, hospitalId), inArray(pharmacyProducts.medicineId, ids)),
+        and(
+          eq(pharmacyBatches.hospitalId, hospitalId),
+          inArray(pharmacyProducts.medicineId, ids),
+          // SL-14 (Phase 2): a recalled batch is never offered or proposed.
+          notRecalled(hospitalId, pharmacyBatches.id),
+        ),
       ),
     database
       .select({

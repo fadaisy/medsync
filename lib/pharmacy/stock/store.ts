@@ -13,6 +13,7 @@ import {
   expiryText,
   STOCK,
 } from "@/content/pharmacy-stock";
+import { STORE } from "@/content/pharmacy-stores-store";
 import { pharmacyDispensingPoints } from "@/db/schema/pharmacy";
 import {
   pharmacyBatchCorrections,
@@ -28,6 +29,7 @@ import {
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { isMedicine } from "@/lib/pharmacy/catalogue";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
+import { pharmacyStoreLiveFor, pharmacyWardStockLiveFor } from "@/lib/pharmacy/feature";
 import { loadPoint } from "@/lib/pharmacy/write";
 import { drugById } from "@/lib/prescribing/formulary";
 import { correctBatch, expiresOn, isExpired, localDate } from "./ledger";
@@ -430,6 +432,18 @@ async function newProduct(
 
 /* ─── Writes ──────────────────────────────────────────────────────────── */
 
+/**
+ * Pharmacy Phase 2, Law 3 (S17a): Phase 1's one-leg receipts close as the two-leg paths open. With the store on,
+ * stock from the main store, another facility or a ward arrives only as a confirmed issue, a loan or a return;
+ * with ward stock on, a ward's stock comes back only as a return. What Receive stock still offers here.
+ */
+export function deliveryFromOffered(hospitalId: string): (keyof typeof DELIVERY_FROM)[] {
+  const all = Object.keys(DELIVERY_FROM) as (keyof typeof DELIVERY_FROM)[];
+  if (pharmacyStoreLiveFor(hospitalId)) return ["supplier"];
+  if (pharmacyWardStockLiveFor(hospitalId)) return all.filter((f) => f !== "ward_return");
+  return all;
+}
+
 /** 5.8 Receive stock (S1, S6). */
 export async function receiveStock(
   ctx: PharmacyCtx,
@@ -439,6 +453,8 @@ export async function receiveStock(
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
+  if (!deliveryFromOffered(ctx.actor.hospitalId).includes(input.from))
+    throw fail("config", STORE.phase1ReceiveClosed);
   const product = await productOf(ctx, input.productId);
   const witnessAttestationId = await witnessFor(ctx, product.medicineId, witness);
   if (!product.active) throw fail("conflict", "That product has been ended.");
@@ -667,6 +683,18 @@ export async function adjustStock(
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
+  // Phase 2 Law 3, S33a: with recall on, damaged and expired stock goes to quarantine, not Adjust.
+  if (
+    input.quantity < 0 &&
+    (input.reasonCode === "damaged" || input.reasonCode === "expired_removed")
+  ) {
+    const { pharmacyRecallLiveFor } = await import("@/lib/pharmacy/feature");
+    if (pharmacyRecallLiveFor(ctx.actor.hospitalId))
+      throw new EmrWriteError(
+        "invalid",
+        (await import("@/content/pharmacy-stores-supply")).EXPIRY.useQuarantine,
+      );
+  }
   const batch = await batchAt(ctx, input.batchId, point.id);
   const witnessAttestationId = await witnessFor(ctx, batch.medicineId, witness);
   const id = await move(ctx, {

@@ -588,6 +588,8 @@ export const pharmacyBriefings = pgTable("pharmacy_briefings", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
   dispensingPointId: uuid("dispensing_point_id"),
+  /** 0182 (Pharmacy Phase 2, 5.12): a briefing at a store, ward or cart. */
+  locationId: uuid("location_id"),
   audience: text("audience").$type<"pharmacy" | "prescribers">().notNull(),
   heldOn: date("held_on").notNull(),
   notes: text("notes"),

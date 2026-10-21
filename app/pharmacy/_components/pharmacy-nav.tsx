@@ -12,7 +12,9 @@ import {
   HourglassIcon,
   ListIcon,
   LockKeyholeIcon,
+  MapPinIcon,
   ShoppingCartIcon,
+  SignatureIcon,
   SirenIcon,
   TruckIcon,
   WarehouseIcon,
@@ -46,6 +48,8 @@ const ICON = {
   expiry: HourglassIcon,
   monthEnd: CalendarCheckIcon,
   orders: ShoppingCartIcon,
+  places: MapPinIcon,
+  packs: SignatureIcon,
 } as const;
 
 export interface PharmacyNavEntry {

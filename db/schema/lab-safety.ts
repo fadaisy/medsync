@@ -334,6 +334,10 @@ export const downtimeDrills = pgTable("downtime_drills", {
   /** 0128 (DT-1, D-PH1-46). */
   workspace: text("workspace").$type<"lab" | "pharmacy">().notNull().default("lab"),
   dispensingPointId: uuid("dispensing_point_id"),
+  /** 0182 (Pharmacy Phase 2, 5.12): a store's drill, and whether it included a delivery and an issue on paper. */
+  locationId: uuid("location_id"),
+  includedDelivery: boolean("included_delivery").notNull().default(false),
+  includedIssue: boolean("included_issue").notNull().default(false),
 });
 
 export const labBriefings = pgTable("lab_briefings", {

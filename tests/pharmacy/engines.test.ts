@@ -379,7 +379,21 @@ describe("NV-P1: navigation", () => {
     // Deliveries and Issues need pharmacy.store; the rest read with pharmacy.view.
     expect(
       pharmacyNavFor(view, { dispensing: false, downtime: false, stores: all }).map((i) => i.id),
-    ).toEqual(["queue", "emergency", "wards", "carts", "expiry", "monthEnd", "orders"]);
+    ).toEqual([
+      "queue",
+      "emergency",
+      "wards",
+      "carts",
+      "expiry",
+      "monthEnd",
+      "orders",
+      "places",
+      "packs",
+    ]);
+    // With all six off, the rail is Phase 1's exactly (Law 14): no Signed packs either.
+    expect(
+      pharmacyNavFor(view, { dispensing: true, downtime: false, stores: off }).map((i) => i.id),
+    ).not.toContain("packs");
   });
 
   it("the layout's permissions: Phase 0's with both flags off, the dispensing map with a Phase 1 flag on", () => {

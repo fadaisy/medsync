@@ -3,7 +3,7 @@
 import type { CountBatch, CountedLine, Witnessed } from "../../_components/controlled-blocks";
 import type { DialogProduct } from "../../stock/_components/stock-dialogs";
 import type { WitnessOption } from "@/lib/pharmacy/controlled-read";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 
@@ -139,11 +139,14 @@ export function CountNowDialog({
 
 /** CD-5: receive a controlled product, with the witness first. */
 export function ReceiveControlledDialog({
+  from,
   medicine,
   products,
   witnesses,
   timeZone,
 }: {
+  /** Where stock may come from (Phase 2 Law 3: the store's two-leg paths close Phase 1's one-leg ones). */
+  from?: ComponentProps<typeof ReceiveDialog>["from"];
   medicine: string;
   products: DialogProduct[];
   witnesses: WitnessOption[];
@@ -153,6 +156,7 @@ export function ReceiveControlledDialog({
   return (
     <ReceiveDialog
       products={products}
+      from={from}
       title={P.receiveTitle(medicine)}
       before={
         <WitnessBlock

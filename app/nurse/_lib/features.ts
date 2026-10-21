@@ -29,7 +29,8 @@ export type NurseIconKey =
   | "beds"
   | "bedside"
   | "supervisees"
-  | "cosign_queue";
+  | "cosign_queue"
+  | "ward_stock";
 
 export type NurseFeatureSlug =
   | ""
@@ -47,7 +48,8 @@ export type NurseFeatureSlug =
   | "beds"
   | "bedside/devices"
   | "supervisees"
-  | "cosign-queue";
+  | "cosign-queue"
+  | "ward-stock";
 
 export interface NurseFeatureArea {
   slug: NurseFeatureSlug;
@@ -57,7 +59,7 @@ export interface NurseFeatureArea {
   placeholder: boolean;
   visibleTo?: "all" | "registered+" | "in_charge";
   /** Shown only when this feature flag is on for the nurse's hospital. */
-  flag?: "ward_builder" | "poct_quality";
+  flag?: "ward_builder" | "poct_quality" | "ward_stock";
 }
 
 export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
@@ -166,6 +168,16 @@ export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
     placeholder: false,
     visibleTo: "all",
     flag: "poct_quality",
+  },
+  {
+    // Pharmacy Phase 2 (5.4): the ward's own stock, for nurses who hold a ward right there (Appendix A).
+    slug: "ward-stock",
+    label: "Ward stock",
+    hint: "Your ward's stock: counts, requisitions, receipts",
+    iconKey: "ward_stock",
+    placeholder: false,
+    visibleTo: "all",
+    flag: "ward_stock",
   },
   {
     slug: "assignments",

@@ -57,6 +57,8 @@ export const WARNING_LINES = ["Keep out of the reach of children."] as const;
 export const LOOK_BACK_REASONS: Record<string, string> = {
   supplied_without_review: "Supplied without a pharmacist",
   disputed_phone_answer: "Supplied on a phone answer the clinician later disputed",
+  // Pharmacy Phase 2 (SL-14, S33b): a downtime back-entry of a recalled or quarantined batch.
+  batch_recalled_or_quarantined: "Batch was recalled or quarantined",
 };
 
 const fill = (s: string, v: Record<string, string | number>) =>

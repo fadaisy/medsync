@@ -14,6 +14,7 @@ import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
 import { pharmacyDispensingLiveFor, pharmacyNationalListLiveFor } from "@/lib/pharmacy/feature";
 import { getStockPage } from "@/lib/pharmacy/stock/read";
+import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DRUGS } from "@/lib/prescribing/formulary";
 import {
   AddProductDialog,
@@ -97,7 +98,7 @@ export default async function StockPage() {
           canStock ? (
             <>
               {nationalList}
-              <ReceiveDialog products={products} />
+              <ReceiveDialog products={products} from={deliveryFromOffered(actor.hospitalId)} />
               <CountDialog
                 label={STOCK.actions.fullCount}
                 what={point.name}

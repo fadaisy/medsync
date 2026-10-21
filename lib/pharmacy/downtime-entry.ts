@@ -41,6 +41,8 @@ import { cadreNames } from "@/lib/pharmacy/read";
 import { loadGroupOfLine, loadHospitalContext } from "@/lib/pharmacy/review/load";
 import { reviewBasis } from "@/lib/pharmacy/review/review";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
+import { BATCH_RECALLED_FLAG } from "@/lib/pharmacy/stores/packs";
+import { recalledAmong } from "@/lib/pharmacy/stores/recall-read";
 import { lockLine } from "@/lib/pharmacy/write";
 
 /**
@@ -471,12 +473,15 @@ export async function enterDowntimeRow(ctx: PharmacyCtx, input: RowInputT): Prom
       occurredAt: ctx.now,
       effectiveAt: at,
     });
-  if (reasons.length)
+  // SL-14 (Phase 2): a recalled batch is still recorded, flagged, and its patient is on the recall's list 2.
+  const flags: string[] = reasons.map((r) => r.reason);
+  if ((await recalledAmong(ctx.tx, hospitalId, [batch.id])).size) flags.push(BATCH_RECALLED_FLAG);
+  if (flags.length)
     await ctx.tx.insert(pharmacyLookBacks).values({
       hospitalId,
       supplyId,
       kind: "flagged",
-      reasons: reasons.map((r) => r.reason),
+      reasons: flags,
       actorUserId: ctx.actor.userId,
       at: ctx.now,
     });
