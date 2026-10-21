@@ -537,6 +537,10 @@ DROP POLICY IF EXISTS pharmacy_stock_movements_people ON public.pharmacy_stock_m
 CREATE POLICY pharmacy_stock_movements_people ON public.pharmacy_stock_movements FOR SELECT TO medsync_clinical_reader
   USING (location_id IS NOT NULL AND hospital_id = (SELECT private.current_hospital_id())
          AND private.pharmacy_location_reader(location_id));
+DROP POLICY IF EXISTS pharmacy_product_locations_people ON public.pharmacy_product_locations;
+CREATE POLICY pharmacy_product_locations_people ON public.pharmacy_product_locations FOR SELECT
+  TO medsync_clinical_reader
+  USING (hospital_id = (SELECT private.current_hospital_id()) AND private.pharmacy_location_reader(location_id));
 DROP POLICY IF EXISTS pharmacy_products_people ON public.pharmacy_products;
 CREATE POLICY pharmacy_products_people ON public.pharmacy_products FOR SELECT TO medsync_clinical_reader
   USING (hospital_id = (SELECT private.current_hospital_id()) AND EXISTS (
