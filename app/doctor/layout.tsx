@@ -10,6 +10,7 @@ import { doctorWorkspace } from "@/lib/workspace/feature";
 import { newestAnnouncement } from "./_components/critical-alerts";
 import { DoctorShell } from "./_components/doctor-shell";
 import { myCriticals } from "./_lib/criticals";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -28,7 +29,7 @@ export default async function DoctorLayout({ children }: { children: ReactNode }
       workspace={doctorWorkspace(scope.hospitalId)}
       criticalCount={criticals?.alerts.open.length ?? null}
     >
-      {children}
+      <TideScope group="doctor">{children}</TideScope>
       {criticals ? (
         <CriticalLive userId={scope.userId} announce={newestAnnouncement(criticals.alerts.open)} />
       ) : null}

@@ -10,6 +10,7 @@ import { isLabTechUser } from "@/lib/lab-tech/scope";
 import { isPharmacyUser } from "@/lib/pharmacy/scope";
 import { resusDeskV2 } from "@/lib/resus/feature";
 import { cn } from "@/lib/utils";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -78,7 +79,7 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
         </div>
       </header>
 
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="min-w-0 flex-1"><TideScope group="staff-other">{children}</TideScope></main>
       {/* No resus route in this workspace: the banner names the place, without "Open resus". */}
       {resusDeskV2() ? <ArrestAlarm hospitalId={scope.hospitalId} resusBase={null} /> : null}
     </div>

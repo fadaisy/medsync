@@ -5,6 +5,7 @@ import { LANDING_FOCUS } from "@/components/landing/primitives";
 import { AUTH_SHELL } from "@/content/auth";
 import { legalConfig } from "@/lib/legal";
 import { cn } from "@/lib/utils";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 /**
  * AuthLayout (ADR 0099) — the shell for /sign-in, the MFA step, /forgot-password,
@@ -30,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </header>
 
       <main className="flex flex-1 justify-center px-4 pt-[12vh] pb-16 sm:px-8">
-        <div className="w-full max-w-100">{children}</div>
+        <div className="w-full max-w-100"><TideScope group="public">{children}</TideScope></div>
       </main>
 
       <footer className="border-border border-t">

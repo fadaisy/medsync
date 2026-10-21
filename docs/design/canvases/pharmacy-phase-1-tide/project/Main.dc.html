@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Queue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1000px">
+<nav class="rail" aria-label="Pharmacy spaces">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Queue<span class="rail__n">14</span></a>
+<a href="OpenLines.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Open lines<span class="rail__n">5</span></a>
+<a href="Supplied.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15"/><path d="M3.29 7 12 12l8.71-5"/><path d="M12 22V12"/></svg>Supplied today</a>
+<a href="Stock.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Stock</a>
+<a href="Controlled.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>Controlled</a>
+<a href="Downtime.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/></svg>Downtime entry<span class="rail__n">1</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v4"/><path d="M14 13h-4"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M18 6v14"/><path d="M6 6v14"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>Emergency doses</a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharmacist, signed in with MFA">PH</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Test Hospital-1</span><h1>Queue</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a prescription, patient or slip code" placeholder="Find a prescription, patient or slip code"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Acting dispensing point: Outpatient pharmacy. Change">Outpatient pharmacy <span>· Pharmacist</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Review lane"><a class="on" href="#" aria-current="page">Pharmacist first <span class="n">4</span></a><a href="#">Standard <span class="n">10</span></a><a href="#">All <span class="n">14</span></a></nav>
+<div class="chips" aria-label="Stage"><a class="chip on" href="#">All stages <span class="n">4</span></a><a class="chip" href="#">To review <span class="n">2</span></a><a class="chip" href="#">Queried <span class="n">1</span></a><a class="chip" href="#">Ready to hand over <span class="n">0</span></a><a class="chip" href="#">Awaiting co-sign <span class="n">1</span></a></div>
+<span class="row__sp"></span>
+<label class="in" style="width: 250px"><span class="in__x">Prescriptions for</span><select aria-label="Prescriptions for"><option>This point</option><option>Inpatient pharmacy</option><option>Emergency pharmacy</option><option>All dispensing points</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></label>
+<span class="small">Updated 10:42</span><button class="btn btn--s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>Refresh</button>
+</div>
+
+<section class="card">
+<table class="qt">
+<colgroup><col style="width: 21%"><col style="width: 21%"><col style="width: 17%"><col style="width: 15%"><col style="width: 7%"><col style="width: 9%"><col style="width: 10%"></colgroup>
+<thead><tr><th>Patient</th><th>Medicines</th><th>Why a pharmacist first</th><th>Stage</th><th>Waiting</th><th>Payment</th><th style="text-align: right">Action</th></tr></thead>
+<tbody>
+<tr class="on">
+<td><span class="who"><b>Patient Nine-9</b><span class="id">MS-2026-00009</span><span class="at">Diabetes clinic · Medical officer</span></span></td>
+<td><span class="meds"><b>Metformin, Amlodipine, Amoxicillin</b><span>3 lines · </span><span class="w">1 not on the shelf</span></span></td>
+<td><div class="chips" style="gap: 4px"><span class="rc rc--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Stop overridden</span></div></td>
+<td><span class="stg">To review</span></td>
+<td><span class="wait">50 min</span></td>
+<td>Paid</td>
+<td><div class="act"><a class="btn btn--s" href="Review.dc.html">Review</a></div></td>
+</tr>
+<tr>
+<td><span class="who"><b>Patient Two-2</b><span class="id">MS-2026-00002</span><span class="at">Ward 4A, going home · Medical officer</span></span></td>
+<td><span class="meds"><b>Morphine, Paracetamol</b><span>2 lines · all on the shelf</span></span></td>
+<td><div class="chips" style="gap: 4px"><span class="rc">Controlled drug</span></div></td>
+<td><span class="stg">To review</span></td>
+<td><span class="wait">31 min</span></td>
+<td>Exempt</td>
+<td><div class="act"><a class="btn btn--s" href="Controlled.dc.html">Review</a></div></td>
+</tr>
+<tr>
+<td><span class="who"><b>Patient Fifteen-15</b><span class="id">MS-2026-00033</span><span class="at">Emergency · Intern doctor</span></span></td>
+<td><span class="meds"><b>Ceftriaxone, Metronidazole</b><span>2 lines · stock not counted</span></span></td>
+<td><div class="chips" style="gap: 4px"><span class="rc">Kidney function</span><span class="rc rc--more">+1</span></div></td>
+<td><div class="chips" style="gap: 4px; flex-direction: column; align-items: flex-start"><span class="stg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Queried <small>· 12 min</small></span><span class="rc rc--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>Changed since printing</span></div></td>
+<td><span class="wait">23 min</span></td>
+<td>Emergency</td>
+<td><div class="act"><a class="btn btn--s" href="#">Review</a></div></td>
+</tr>
+<tr>
+<td><span class="who"><b>Patient Four-4</b><span class="id">MS-2026-00021</span><span class="at">Outpatients · Clinical officer</span></span></td>
+<td><span class="meds"><b>Amoxicillin</b><span>1 line · all on the shelf</span></span></td>
+<td><div class="chips" style="gap: 4px"><span class="rc">Child under <span class="ph" style="margin-left: 3px">[age]</span></span></div></td>
+<td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Awaiting co-sign</span></td>
+<td><span class="wait">37 min</span></td>
+<td>Not recorded</td>
+<td><div class="act"><a class="btn btn--s" href="#">Open</a><span class="small">Cannot be supplied yet</span></div></td>
+</tr>
+<tr class="div"><td colspan="7">Written before today, still without an outcome<span>Never drops off. Close it with a reason if the patient will not come.</span></td></tr>
+<tr>
+<td><span class="who"><b>Patient Eleven-11</b><span class="id">MS-2026-00027</span><span class="at">Medical outpatients · Medical officer</span></span></td>
+<td><span class="meds"><b>Warfarin</b><span>1 line · all on the shelf</span></span></td>
+<td><div class="chips" style="gap: 4px"><span class="rc">High-risk list</span></div></td>
+<td><span class="stg">To review</span></td>
+<td><span class="wait">2 days</span></td>
+<td>Not recorded</td>
+<td><div class="act"><a class="btn btn--s" href="#">Review</a><a class="btn btn--t btn--s" href="#">Close as not collected</a></div></td>
+</tr>
+</tbody>
+</table>
+<div class="foot">4 of 14 at Outpatient pharmacy, pharmacist first. Waiting starts when the prescription was written. A prescription leaves the queue only with a recorded outcome for every line.</div>
+<div class="explain">
+<div><b>How the lanes work at this hospital.</b> A prescription goes to Pharmacist first when it carries a reason this hospital has switched on: a stop the prescriber overrode, a controlled drug, a child under <span class="ph">[age]</span>, a kidney function flag, or a medicine on the hospital's high-risk list. Everything else is Standard and is checked by the person who supplies it.
+<ul><li>Each reason is switched on at GATE A by the Clinical Safety Officer, with the counts in front of them.</li><li>Stock never moves a prescription between lanes. It only helps you order the work.</li></ul></div>
+<div><b>If no review rule is signed,</b> there is one lane and this line reads: <i>"This hospital has not signed its review rule, so every prescription needs a pharmacist."</i>
+<ul><li>Waiting has no colour and no target. This slice signs no waiting time.</li><li>Payment is shown as recorded. It never disables anything on this page.</li></ul></div>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

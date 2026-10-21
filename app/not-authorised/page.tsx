@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { LAB } from "@/content/lab";
 import { PHARMACY } from "@/content/pharmacy";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "No access",
@@ -27,6 +28,8 @@ export default async function NotAuthorisedPage({
         ? PHARMACY.refused.body
         : "You do not have access to this page.";
   return (
+    <>
+      <TideScope group="public">{null}</TideScope>
     <main className="mx-auto flex min-h-svh w-full max-w-120 flex-col justify-center gap-4 px-4 py-16">
       <h1 className="font-display text-display-s text-foreground">{LAB.refused.title}</h1>
       <p className="text-body-m text-muted-foreground">{body}</p>
@@ -37,5 +40,6 @@ export default async function NotAuthorisedPage({
         {LAB.refused.home}
       </Link>
     </main>
+    </>
   );
 }

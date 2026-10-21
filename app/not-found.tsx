@@ -4,6 +4,7 @@ import { ArrowLeftIcon, ArrowUpRightIcon, HouseIcon } from "lucide-react";
 
 import { OnboardingCtaCluster } from "@/components/landing/_cta-cluster";
 import { cn } from "@/lib/utils";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
  */
 export default function NotFound() {
   return (
+    <>
+      <TideScope group="public">{null}</TideScope>
     <div className="bg-background relative flex min-h-svh w-full flex-col">
       {/* Atmosphere — softer than the hero, just a tint */}
       <div
@@ -75,5 +78,6 @@ export default function NotFound() {
         </p>
       </main>
     </div>
+    </>
   );
 }

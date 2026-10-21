@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  */
 const buttonVariants = cva(
   [
-    "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap",
+    "medsync-btn inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap",
     "border border-transparent font-medium [letter-spacing:-0.003em] outline-none select-none",
     "transition-[background-color,border-color,color,box-shadow,transform] duration-100 ease-expo-out",
     "focus-visible:shadow-focus",

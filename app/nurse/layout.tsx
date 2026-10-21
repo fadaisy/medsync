@@ -8,6 +8,7 @@ import { requireNurseScope } from "@/lib/nurse/scope";
 import { resusDeskV2 } from "@/lib/resus/feature";
 import { wardBuilderLiveFor } from "@/lib/wards/feature";
 import { NurseShell } from "./_components/nurse-shell";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -23,7 +24,7 @@ export default async function NurseLayout({ children }: { children: ReactNode })
         poctQuality: emrV1LiveFor(scope.hospitalId) && labPoctQualityLiveFor(scope.hospitalId),
       }}
     >
-      {children}
+      <TideScope group="nurse">{children}</TideScope>
       {resusDeskV2() ? (
         <ArrestAlarm hospitalId={scope.hospitalId} resusBase="/nurse/resus" />
       ) : null}

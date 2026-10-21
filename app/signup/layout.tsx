@@ -7,6 +7,7 @@ import { EmergencyButton } from "@/components/landing/emergency-button";
 import { SIGNUP_HOLD, SITE } from "@/content/landing";
 import { signupsClosedHere } from "@/lib/legal";
 import { SignupUnavailable } from "./_components/unavailable";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -84,6 +85,7 @@ export default function SignupLayout({ children }: { children: ReactNode }) {
           children
         )}
       </main>
+      <TideScope group="public">{null}</TideScope>
     </div>
   );
 }

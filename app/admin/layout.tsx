@@ -7,6 +7,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "./_components/admin-shell";
 import { getApprovalsCount } from "./_lib/approvals-count";
 import { getPaletteEntities } from "./_lib/palette-entities";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -90,7 +91,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       paletteHospitals={paletteEntities.hospitals}
       palettePeople={paletteEntities.people}
     >
-      {children}
+      <TideScope group="superadmin">{children}</TideScope>
     </AdminShell>
   );
 }
