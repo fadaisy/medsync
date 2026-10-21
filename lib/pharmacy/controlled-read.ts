@@ -2,7 +2,7 @@ import type { EmrDb } from "@/lib/emr/db";
 import type { PharmacyPermission } from "@/lib/pharmacy/access";
 import type { WitnessList } from "@/lib/pharmacy/controlled";
 import type { Movement, MovementKind } from "@/lib/pharmacy/stock/ledger";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { db as appDb } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
@@ -341,7 +341,7 @@ export async function getControlledRegister(
           .select({
             id: pharmacyStockMovements.id,
             batchId: pharmacyStockMovements.batchId,
-            pointId: pharmacyStockMovements.dispensingPointId,
+            pointId: sql<string>`${pharmacyStockMovements.dispensingPointId}`,
             kind: pharmacyStockMovements.kind,
             quantity: pharmacyStockMovements.quantity,
             effectiveAt: pharmacyStockMovements.effectiveAt,

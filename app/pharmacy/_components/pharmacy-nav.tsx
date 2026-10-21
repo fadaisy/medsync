@@ -5,11 +5,19 @@ import type { PharmacyNavId } from "@/lib/pharmacy/nav";
 import {
   ActivityIcon,
   ArchiveIcon,
+  CalendarCheckIcon,
   CheckCheckIcon,
   ClockIcon,
   FileDownIcon,
+  HourglassIcon,
   ListIcon,
   LockKeyholeIcon,
+  MapPinIcon,
+  ShoppingCartIcon,
+  SignatureIcon,
+  SirenIcon,
+  TruckIcon,
+  WarehouseIcon,
 } from "lucide-react";
 
 import {
@@ -18,6 +26,8 @@ import {
   WorkspaceSidebarNav,
 } from "@/components/medsync/workspace-nav";
 import { PHARMACY } from "@/content/pharmacy";
+import { STORES_NAV } from "@/content/pharmacy-stores";
+import { STORE_NAV_IDS } from "@/lib/pharmacy/nav";
 
 /**
  * The pharmacy's sidebar items and its narrow-screen link row (§5.2), drawn by the shared
@@ -31,6 +41,15 @@ const ICON = {
   controlled: LockKeyholeIcon,
   downtime: FileDownIcon,
   emergency: ActivityIcon,
+  deliveries: TruckIcon,
+  issues: WarehouseIcon,
+  wards: ArchiveIcon,
+  carts: SirenIcon,
+  expiry: HourglassIcon,
+  monthEnd: CalendarCheckIcon,
+  orders: ShoppingCartIcon,
+  places: MapPinIcon,
+  packs: SignatureIcon,
 } as const;
 
 export interface PharmacyNavEntry {
@@ -44,11 +63,15 @@ export interface PharmacyNavEntry {
 }
 
 const entries = (items: readonly PharmacyNavEntry[]): WorkspaceNavEntry[] =>
-  items.map((i) => ({
+  items.map((i, idx) => ({
     ...i,
     icon: ICON[i.id],
     also: i.id === "queue" ? ["/pharmacy/prescriptions"] : [],
     sidebarAlso: true,
+    groupStart:
+      STORE_NAV_IDS.includes(i.id) && items.findIndex((x) => STORE_NAV_IDS.includes(x.id)) === idx
+        ? STORES_NAV.group
+        : undefined,
   }));
 
 export function PharmacySidebarNav({ items }: { items: readonly PharmacyNavEntry[] }) {

@@ -15,6 +15,7 @@ import {
   HeartPulseIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
+  PackageIcon,
   PillIcon,
   RadioIcon,
   ScrollTextIcon,
@@ -42,6 +43,7 @@ const ICONS: Record<NurseIconKey, LucideIcon> = {
   bedside: FingerprintIcon,
   supervisees: GraduationCapIcon,
   cosign_queue: ListChecksIcon,
+  ward_stock: PackageIcon,
 };
 
 /** Which part of the hospital each item belongs to (ADR 0162); none = neutral. */
@@ -57,6 +59,7 @@ const DOMAIN: Partial<Record<NurseIconKey, Domain>> = {
   assignment_board: "operations",
   supervisees: "clinical",
   cosign_queue: "clinical",
+  ward_stock: "pharmacy",
   // resus has no domain hue: it wears the clinical state colours.
 };
 

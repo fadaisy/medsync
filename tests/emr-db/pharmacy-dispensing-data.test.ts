@@ -815,9 +815,9 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
 
   /* ─── Permissions in SQL agree with the map; manage comes from the hub ── */
 
-  it("private.pharmacy_cadre_permissions equals permission map v2 for every cadre", async () => {
+  it("private.pharmacy_cadre_permissions equals permission map v3 for every cadre", async () => {
     const map = JSON.parse(
-      readFileSync(resolve(process.cwd(), "data/pharmacy/permission-map.v2.json"), "utf8"),
+      readFileSync(resolve(process.cwd(), "data/pharmacy/permission-map.v3.json"), "utf8"),
     ) as { cadres: Record<string, string[]> };
     for (const cadre of [
       ...Object.keys(map.cadres),

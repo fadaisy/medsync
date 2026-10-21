@@ -5,7 +5,8 @@ import type { PharmacyActor, PharmacyPoint } from "@/lib/pharmacy/write";
 import { cookies } from "next/headers";
 
 import { db } from "@/db";
-import { pharmacyDispensingAccess } from "@/lib/pharmacy/access";
+import { pharmacyDispensingAccess, withStoreAccess } from "@/lib/pharmacy/access";
+import { pharmacyStoreLiveFor } from "@/lib/pharmacy/feature";
 import { actingPoint, pharmacyPointsFor } from "@/lib/pharmacy/points";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 
@@ -24,7 +25,11 @@ export async function requirePharmacyActor(): Promise<PharmacyActor & { points: 
     cadreCode: scope.cadreCode,
     cadreName: scope.cadreName,
     pointId: point?.id ?? null,
-    access: pharmacyDispensingAccess(scope.cadreCode),
+    access: withStoreAccess(
+      pharmacyDispensingAccess(scope.cadreCode),
+      scope.cadreCode,
+      pharmacyStoreLiveFor(scope.hospitalId),
+    ),
     points,
   };
 }

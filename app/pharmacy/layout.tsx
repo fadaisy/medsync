@@ -4,13 +4,18 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 
+import { TideScope } from "@/components/medsync/tide-scope";
 import { sentenceCase, WorkspaceShell } from "@/components/medsync/workspace-shell";
 import { PHARMACY } from "@/content/pharmacy";
 import { DOWNTIME_PAGE } from "@/content/pharmacy-golive";
 import { db } from "@/db";
 import { POINT_COOKIE } from "@/lib/pharmacy/actor";
 import { countSheetsToEnter } from "@/lib/pharmacy/downtime-store";
-import { pharmacyDispensingLiveFor, pharmacyDowntimeLiveFor } from "@/lib/pharmacy/feature";
+import {
+  pharmacyDispensingLiveFor,
+  pharmacyDowntimeLiveFor,
+  storesFlagsFor,
+} from "@/lib/pharmacy/feature";
 import { pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
 import { dispensingNavCountsFor, dosesCountFor, queueFor } from "@/lib/pharmacy/page-data";
 import { actingPoint, pharmacyPointsFor } from "@/lib/pharmacy/points";
@@ -19,7 +24,6 @@ import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { FindField } from "./_components/find-field";
 import { PharmacyCrumb, PharmacyPhoneNav, PharmacySidebarNav } from "./_components/pharmacy-nav";
 import { PointChooser } from "./_components/point-chooser";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "Pharmacy",
@@ -41,6 +45,7 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
   const flags = {
     dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
     downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
+    stores: storesFlagsFor(scope.hospitalId),
   };
   const points = flags.dispensing
     ? await pharmacyPointsFor(db as unknown as EmrDb, scope.userId, scope.hospitalId)

@@ -11,7 +11,8 @@ import {
 
 /** Pharmacy Phase 0 — the access engine (PA-1..PA-5; gate-a-proposal §2). */
 describe("pharmacy access", () => {
-  it("PA-1: six names, one granted", () => {
+  // Permission map v3 (Pharmacy Phase 2, Appendix A, signed 21 Oct 2026) amends PA-1 to seven names.
+  it("PA-1: seven names, one granted", () => {
     expect(PHARMACY_PERMISSIONS).toEqual([
       "pharmacy.view",
       "pharmacy.review",
@@ -19,6 +20,7 @@ describe("pharmacy access", () => {
       "pharmacy.stock",
       "pharmacy.controlled",
       "pharmacy.manage",
+      "pharmacy.store",
     ]);
     for (const cadre of PHARMACY_MAP_CADRES)
       expect([...pharmacyAccess(cadre).permissions]).toEqual(["pharmacy.view"]);

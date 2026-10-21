@@ -18,6 +18,7 @@ import { getControlledRegister, rangeOf, witnessCandidates } from "@/lib/pharmac
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { REGISTER_COPY } from "@/lib/pharmacy/print/register";
+import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { SELECT } from "../_components/review-dialogs";
 import {
@@ -98,6 +99,7 @@ export default async function ControlledPage({
                 timeZone={DEFAULT_TIME_ZONE}
               />
               <ReceiveControlledDialog
+                from={deliveryFromOffered(actor.hospitalId)}
                 medicine={chosen.name}
                 products={data.products.map((p) => ({ ...p, medicineName: chosen.name }))}
                 witnesses={witnesses}

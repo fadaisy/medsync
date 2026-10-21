@@ -72,6 +72,7 @@ export const HANDOVER_COPY = {
   strengthReason: "{Medicine}: a different strength needs a reason and the pharmacist's line.",
   batchWrong: "{Medicine}: batch {number} is not this product at this dispensing point.",
   batchExpired: "Batch {number} expired on {date}. Remove it from the shelf.",
+  batchBlocked: "Batch {number} is recalled. It cannot be supplied; move it to quarantine.",
   batchReason: "{Medicine}: a batch that is not first to expire needs a reason.",
   permission: "You cannot record a hand-over.",
   pointNotLive: "This dispensing point is not recording supplies in MedSync.",
@@ -171,6 +172,8 @@ export interface HandoverFacts {
   >;
   batches: readonly Batch[];
   balances: ReadonlyMap<string, number>;
+  /** SL-14 (Phase 2): batches under an open recall; never supplied live, never proposed. */
+  blocked?: ReadonlySet<string>;
   /**
    * CD-2: the controlled supply's own checks passed (pharmacy.controlled, a standing witness, a committed
    * count of each batch, both paper attestations, the witness's agreement). Only then is a controlled
@@ -199,6 +202,7 @@ export type RefusalCode =
   | "strength_reason"
   | "batch_wrong"
   | "batch_expired"
+  | "batch_blocked"
   | "batch_short"
   | "batch_reason"
   | "permission"
@@ -392,12 +396,17 @@ function checkLine(
           fill(HANDOVER_COPY.batchExpired, { number: b.batchNumber, date: b.expiry }),
         ),
       );
+    else if (facts.blocked?.has(b.id))
+      out.push(
+        refuse("batch_blocked", fill(HANDOVER_COPY.batchBlocked, { number: b.batchNumber })),
+      );
     use.set(b.id, (use.get(b.id) ?? 0) + (Number.isInteger(r.quantity) ? r.quantity : 0));
   }
   if (whole && !line.batchChoiceReason?.trim()) {
     const proposal = proposeBatches({
       batches: facts.batches.filter(
-        (b) => b.productId === line.productId && b.pointId === plan.pointId,
+        (b) =>
+          b.productId === line.productId && b.pointId === plan.pointId && !facts.blocked?.has(b.id),
       ),
       balances: facts.balances,
       quantity: total,

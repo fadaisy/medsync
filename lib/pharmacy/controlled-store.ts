@@ -713,7 +713,7 @@ export async function transferControlled(
   const medicineId = await medicineOfMovement(ctx, r.id);
   await entry(ctx, { kind: "transfer", medicineId, witness, movementId: r.id });
   const [arrived] = await ctx.tx
-    .select({ id: pharmacyStockMovements.id, pointId: pharmacyStockMovements.dispensingPointId })
+    .select({ id: pharmacyStockMovements.id, pointId: sql<string>`${pharmacyStockMovements.dispensingPointId}` })
     .from(pharmacyStockMovements)
     .where(
       and(

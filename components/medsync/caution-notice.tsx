@@ -29,9 +29,10 @@ export function CautionNotice({
       )}
     >
       <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
-      <p>
+      {/* A div, not a p: children may hold a list (the pharmacy's carts notice). */}
+      <div>
         <strong className="font-semibold">{lead}</strong> {children}
-      </p>
+      </div>
     </div>
   );
 }
