@@ -79,7 +79,7 @@ export default async function IssuesPage() {
       {rows.length === 0 ? (
         <p className="text-body-s text-muted-foreground">{I.empty}</p>
       ) : (
-        <div className="border-border overflow-x-auto rounded-lg border">
+        <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
           <table className="text-body-s w-full">
             <thead className="bg-ink-50 text-left">
               <tr>
@@ -140,7 +140,7 @@ export default async function IssuesPage() {
         place={PHARMACY.place}
         placeInTopBar
         title={I.title}
-        subline={<p className="text-body-s text-muted-foreground">{I.lead}</p>}
+        subline={<span className="text-body-s text-muted-foreground">{I.lead}</span>}
         right={
           <>
             <Link
@@ -204,7 +204,7 @@ export default async function IssuesPage() {
         {data.loans.length === 0 ? (
           <p className="text-body-s text-muted-foreground">{L.none}</p>
         ) : (
-          <div className="border-border overflow-x-auto rounded-lg border">
+          <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
             <table className="text-body-s w-full">
               <thead className="bg-ink-50 text-left">
                 <tr>

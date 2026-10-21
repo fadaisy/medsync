@@ -54,7 +54,9 @@ export default async function PlacesPage() {
         placeInTopBar
         title={STORE.places.title}
         subline={
-          <p className="text-body-s text-muted-foreground max-w-[70ch]">{STORE.places.lead}</p>
+          <span className="text-body-s text-muted-foreground max-w-[70ch]">
+            {STORE.places.lead}
+          </span>
         }
         right={
           manages ? (
@@ -73,7 +75,7 @@ export default async function PlacesPage() {
         {data.locations.length === 0 ? (
           <p className="text-body-s text-muted-foreground">{STORE.places.noLocations}</p>
         ) : (
-          <div className="border-border overflow-x-auto rounded-lg border">
+          <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
             <table className="text-body-s w-full">
               <thead className="bg-ink-50 text-left">
                 <tr>

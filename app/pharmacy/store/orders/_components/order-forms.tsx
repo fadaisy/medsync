@@ -133,7 +133,7 @@ export function ProposalForm({
           {O.emergency}
         </label>
       </div>
-      <div className="border-border overflow-x-auto rounded-lg border">
+      <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
         <table className="text-caption w-full">
           <thead className="bg-ink-50">
             <tr>

@@ -192,7 +192,11 @@ export default async function MonthEndPage({
         <p className="text-body-s text-muted-foreground">{M.countWhere}</p>
       ) : null}
 
-      <section aria-label={M.title} className="border-border overflow-x-auto rounded-lg border">
+      <section
+        aria-label={M.title}
+        tabIndex={0}
+        className="border-border overflow-x-auto rounded-lg border"
+      >
         <table className="text-caption w-full">
           <thead className="bg-ink-50 text-left">
             <tr>

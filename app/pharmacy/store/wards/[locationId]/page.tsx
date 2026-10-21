@@ -1,4 +1,5 @@
 import type { EmrDb } from "@/lib/emr/db";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/medsync/page-header";
@@ -22,6 +23,8 @@ import {
   setWardSupplyModel,
   signWardLevels,
 } from "../actions";
+
+export const metadata: Metadata = { title: "Ward stock · Pharmacy" };
 
 export const dynamic = "force-dynamic";
 

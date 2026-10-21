@@ -42,7 +42,7 @@ const day = new Intl.DateTimeFormat("en-GB", {
 const box = "border-border overflow-x-auto rounded-lg border";
 const cell = "px-3 py-2";
 const Table = ({ cols, children }: { cols: string[]; children: ReactNode }) => (
-  <div className={box}>
+  <div className={box} tabIndex={0}>
     <table className="text-body-s w-full">
       <thead className="bg-ink-50 text-left">
         <tr>
@@ -115,9 +115,9 @@ export default async function RecallPage({ params }: { params: Promise<{ id: str
         placeInTopBar
         title={`${RECALL.title}: ${t.productName} · ${r.batchNumber ?? RECALL.allBatches}`}
         subline={
-          <p className="text-body-s text-muted-foreground">
+          <span className="text-body-s text-muted-foreground">
             {`${RECALL.sources[r.source]} · ${r.noticeRef} · ${r.noticeDate} · ${RECALL.classes[r.statedClass]} · ${r.level}`}
-          </p>
+          </span>
         }
         right={
           open ? (

@@ -739,7 +739,7 @@ export function IssueForm({
   const needsWitness = open.some((l) => l.controlled && Number(qty[l.id] ?? 0) > 0);
   return (
     <div className="flex flex-col gap-4">
-      <div className="border-border overflow-x-auto rounded-lg border">
+      <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
         <table className="text-body-s w-full">
           <thead className="bg-ink-50 text-left">
             <tr>

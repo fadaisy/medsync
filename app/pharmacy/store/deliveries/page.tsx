@@ -41,7 +41,7 @@ export default async function DeliveriesPage() {
         place={PHARMACY.place}
         placeInTopBar
         title={S.title}
-        subline={<p className="text-body-s text-muted-foreground">{S.lead}</p>}
+        subline={<span className="text-body-s text-muted-foreground">{S.lead}</span>}
         right={
           <>
             <Link
@@ -76,7 +76,7 @@ export default async function DeliveriesPage() {
       {data.deliveries.length === 0 ? (
         <p className="text-body-s text-muted-foreground">{S.empty}</p>
       ) : (
-        <div className="border-border overflow-x-auto rounded-lg border">
+        <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
           <table className="text-body-s w-full">
             <thead className="bg-ink-50 text-left">
               <tr>

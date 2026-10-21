@@ -52,14 +52,14 @@ export default async function PacksPage() {
         place={PHARMACY.place}
         placeInTopBar
         title={PACKS.title}
-        subline={<p className="text-body-s text-muted-foreground">{PACKS.intro}</p>}
+        subline={<span className="text-body-s text-muted-foreground">{PACKS.intro}</span>}
       />
       {groups.map((g) => (
         <section key={g.title} aria-labelledby={`packs-${g.title}`} className="flex flex-col gap-2">
           <h2 id={`packs-${g.title}`} className="text-heading-s text-foreground">
             {g.title}
           </h2>
-          <div className="border-border overflow-x-auto rounded-lg border">
+          <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
             <table className="text-body-s w-full">
               <thead className="bg-ink-50 text-left">
                 <tr>

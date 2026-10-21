@@ -161,7 +161,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
           {v.lines.length === 0 ? (
             <p className="text-body-s text-muted-foreground">{D.noLines}</p>
           ) : (
-            <div className="border-border overflow-x-auto rounded-lg border">
+            <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
               <table className="text-body-s w-full">
                 <thead className="bg-ink-50 text-left">
                   <tr>

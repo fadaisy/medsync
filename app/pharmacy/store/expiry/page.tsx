@@ -115,7 +115,7 @@ export default async function ExpiryPage() {
           <p className="text-body-s text-muted-foreground">{C.none}</p>
         ) : (
           page.expiring.map((g) => (
-            <div key={g.locationId} className={box}>
+            <div key={g.locationId} className={box} tabIndex={0}>
               <table className="text-body-s w-full">
                 <caption className="text-body-s px-3 py-2 text-left">{place(g.locationId)}</caption>
                 {head([C.batch, C.expiry, C.quantity, EXPIRY.suggested])}
@@ -152,7 +152,7 @@ export default async function ExpiryPage() {
         {page.expired.length === 0 ? (
           <p className="text-body-s text-muted-foreground">{C.none}</p>
         ) : (
-          <div className={box}>
+          <div className={box} tabIndex={0}>
             <table className="text-body-s w-full">
               {head([C.batch, C.location, C.quantity, C.status, C.actions])}
               <tbody className="divide-border divide-y">
@@ -200,7 +200,7 @@ export default async function ExpiryPage() {
         {page.quarantine.length === 0 ? (
           <p className="text-body-s text-muted-foreground">{C.none}</p>
         ) : (
-          <div className={box}>
+          <div className={box} tabIndex={0}>
             <table className="text-body-s w-full">
               {head([C.batch, EXPIRY.held, EXPIRY.why, EXPIRY.since, C.actions])}
               <tbody className="divide-border divide-y">

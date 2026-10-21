@@ -230,7 +230,7 @@ export function WardStockView({
         </section>
       ) : null}
 
-      <div className="border-border overflow-x-auto rounded-lg border">
+      <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
         <table className="text-body-s w-full min-w-[720px] border-collapse">
           <caption className="sr-only">{T.caption}</caption>
           <thead className="bg-muted text-left">

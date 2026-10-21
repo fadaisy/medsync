@@ -1,4 +1,5 @@
 import type { EmrDb } from "@/lib/emr/db";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TriangleAlertIcon } from "lucide-react";
@@ -15,6 +16,8 @@ import { getCartsPage, manages, unplacedCarts } from "@/lib/pharmacy/stores/ward
 import { AddPlaceDialog, TARGET } from "../wards/_components/ward-dialogs";
 import { when } from "../wards/_lib/view";
 import { createCartLocation } from "./actions";
+
+export const metadata: Metadata = { title: "Emergency carts · Pharmacy" };
 
 export const dynamic = "force-dynamic";
 

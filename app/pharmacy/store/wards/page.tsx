@@ -1,4 +1,5 @@
 import type { EmrDb } from "@/lib/emr/db";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -11,6 +12,8 @@ import { pharmacyWardStockLiveFor } from "@/lib/pharmacy/feature";
 import { listPlaces, manages, recallNotices, unplacedWards } from "@/lib/pharmacy/stores/ward-read";
 import { AddPlaceDialog, TARGET } from "./_components/ward-dialogs";
 import { createWardLocation } from "./actions";
+
+export const metadata: Metadata = { title: "Ward stock · Pharmacy" };
 
 export const dynamic = "force-dynamic";
 
