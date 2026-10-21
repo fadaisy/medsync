@@ -19,6 +19,7 @@ import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { FindField } from "./_components/find-field";
 import { PharmacyCrumb, PharmacyPhoneNav, PharmacySidebarNav } from "./_components/pharmacy-nav";
 import { PointChooser } from "./_components/point-chooser";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "Pharmacy",
@@ -112,7 +113,7 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
       point={chooser}
       userName={scope.fullName ?? scope.userEmail ?? sentenceCase(scope.cadreName)}
     >
-      {children}
+      <TideScope group="pharmacy">{children}</TideScope>
     </WorkspaceShell>
   );
 }

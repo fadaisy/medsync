@@ -3,6 +3,8 @@ import { SirenIcon } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { CTA } from "@/content/landing";
+import { TIDE_COPY } from "@/content/tide";
+import { tideOn } from "@/lib/design/tide";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,10 +16,12 @@ import { cn } from "@/lib/utils";
  * (components/emergency/emergency-pill.tsx hides itself there).
  */
 export function EmergencyButton({ className }: { className?: string }) {
+  const help = tideOn("public"); // D-TW-04: "Help" on public routes under Tide
   return (
     <Link
       href={CTA.emergency.href}
       data-emergency
+      aria-label={help ? TIDE_COPY.helpLabel : undefined}
       className={cn(
         buttonVariants({ variant: "emergency", size: "sm" }),
         "text-body-s relative h-9 rounded-full px-3.5 after:absolute after:-inset-1 after:content-['']",
@@ -26,7 +30,7 @@ export function EmergencyButton({ className }: { className?: string }) {
       )}
     >
       <SirenIcon aria-hidden className="size-4" strokeWidth={2} />
-      {CTA.emergency.label}
+      {help ? TIDE_COPY.help : CTA.emergency.label}
     </Link>
   );
 }

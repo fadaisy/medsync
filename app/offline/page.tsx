@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "You are offline",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
  */
 export default function OfflinePage() {
   return (
+    <>
+      <TideScope group="public">{null}</TideScope>
     <main className="bg-background mx-auto flex min-h-svh w-full max-w-xl flex-col gap-4 px-4 py-8 sm:px-6">
       <h1 className="font-display text-display-s text-foreground">You are offline</h1>
       <p className="text-muted-foreground text-body-m leading-relaxed">
@@ -29,5 +32,6 @@ export default function OfflinePage() {
         Try again
       </a>
     </main>
+    </>
   );
 }

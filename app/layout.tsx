@@ -119,7 +119,7 @@ export default function RootLayout({
               signed in or out, staff workspaces included. It hides itself
               on /emergency/** and on / and /about, whose header carries
               Emergency (ADR 0099). */}
-          <EmergencyPill />
+          <EmergencyPill tide={process.env.TIDE_SURFACES} />
         </Providers>
         <Analytics />
         <script

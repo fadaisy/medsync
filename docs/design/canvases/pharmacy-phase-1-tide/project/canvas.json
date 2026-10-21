@@ -1,0 +1,226 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-20T20:40:00Z"
+ },
+ "title": "Pharmacy Phase 1 \u00b7 Tide",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 1000,
+   "title": "1 Queue: two lanes, every line to an outcome",
+   "expand": "fill"
+  },
+  "Review.dc.html": {
+   "x": 1520,
+   "y": 0,
+   "w": 1440,
+   "h": 1360,
+   "title": "2 Review and supply: one decision per line",
+   "expand": "fill"
+  },
+  "Strength.dc.html": {
+   "x": 3040,
+   "y": 0,
+   "w": 1440,
+   "h": 960,
+   "title": "3 Product, batch, and a strength change",
+   "expand": "fill"
+  },
+  "NotOnShelf.dc.html": {
+   "x": 4560,
+   "y": 0,
+   "w": 1440,
+   "h": 1000,
+   "title": "4 Not on the shelf: four outcomes, who is told",
+   "expand": "fill"
+  },
+  "Handover.dc.html": {
+   "x": 6080,
+   "y": 0,
+   "w": 1440,
+   "h": 1360,
+   "title": "5 Hand-over: two identifiers, labels, payment",
+   "expand": "fill"
+  },
+  "Controlled.dc.html": {
+   "x": 7600,
+   "y": 0,
+   "w": 1440,
+   "h": 1280,
+   "title": "6 Controlled drug: witness first, blind count",
+   "expand": "fill"
+  },
+  "OpenLines.dc.html": {
+   "x": 0,
+   "y": 1700,
+   "w": 1440,
+   "h": 920,
+   "title": "7 Open lines: owed and buying outside",
+   "expand": "fill"
+  },
+  "Supplied.dc.html": {
+   "x": 1520,
+   "y": 1700,
+   "w": 1440,
+   "h": 1000,
+   "title": "8 Supplied today and the look-back list",
+   "expand": "fill"
+  },
+  "Reverse.dc.html": {
+   "x": 3040,
+   "y": 1700,
+   "w": 1440,
+   "h": 920,
+   "title": "9 Reverse a supply, or correct the record",
+   "expand": "fill"
+  },
+  "Stock.dc.html": {
+   "x": 4560,
+   "y": 1700,
+   "w": 1440,
+   "h": 1160,
+   "title": "10 Stock at the point, with a blind count",
+   "expand": "fill"
+  },
+  "Downtime.dc.html": {
+   "x": 6080,
+   "y": 1700,
+   "w": 1440,
+   "h": 1040,
+   "title": "11 Downtime entry: enter a sheet, flag, never refuse",
+   "expand": "fill"
+  },
+  "Slip.dc.html": {
+   "x": 0,
+   "y": 3160,
+   "w": 559,
+   "h": 794,
+   "title": "12 Not-supplied slip (A5)"
+  },
+  "DowntimeSheet.dc.html": {
+   "x": 639,
+   "y": 3160,
+   "w": 794,
+   "h": 1123,
+   "title": "13 Downtime sheet (A4)"
+  },
+  "Doctor.dc.html": {
+   "x": 0,
+   "y": 4600,
+   "w": 1440,
+   "h": 1160,
+   "title": "14 Doctor: a pharmacy query and the stock line",
+   "expand": "fill"
+  },
+  "DoctorPhone.dc.html": {
+   "x": 1520,
+   "y": 4600,
+   "w": 390,
+   "h": 844,
+   "title": "15 Doctor's answer at 390 px"
+  },
+  "PatientList.dc.html": {
+   "x": 1990,
+   "y": 4600,
+   "w": 390,
+   "h": 1120,
+   "title": "16 Patient web page: my medicines"
+  },
+  "Messages.dc.html": {
+   "x": 2460,
+   "y": 4600,
+   "w": 390,
+   "h": 844,
+   "title": "17 Messages: hospital name only"
+  },
+  "GoLive.dc.html": {
+   "x": 2930,
+   "y": 4600,
+   "w": 1440,
+   "h": 1000,
+   "title": "18 Hospital admin: switch on dispensing at a point",
+   "expand": "fill"
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Review.dc.html",
+  "Strength.dc.html",
+  "NotOnShelf.dc.html",
+  "Handover.dc.html",
+  "Controlled.dc.html",
+  "OpenLines.dc.html",
+  "Supplied.dc.html",
+  "Reverse.dc.html",
+  "Stock.dc.html",
+  "Downtime.dc.html",
+  "Slip.dc.html",
+  "DowntimeSheet.dc.html",
+  "Doctor.dc.html",
+  "DoctorPhone.dc.html",
+  "PatientList.dc.html",
+  "Messages.dc.html",
+  "GoLive.dc.html"
+ ],
+ "notes": {
+  "rowA": {
+   "x": 0,
+   "y": -280,
+   "text": "At the window",
+   "kind": "title1",
+   "maxW": 8800
+  },
+  "rowB": {
+   "x": 0,
+   "y": 1420,
+   "text": "After the window: open lines, stock, downtime",
+   "kind": "title1",
+   "maxW": 7520
+  },
+  "rowC": {
+   "x": 0,
+   "y": 2880,
+   "text": "Paper: print only, black on white",
+   "kind": "title1",
+   "maxW": 1433
+  },
+  "rowD": {
+   "x": 0,
+   "y": 4320,
+   "text": "The doctor, the patient and going live",
+   "kind": "title1",
+   "maxW": 4500
+  },
+  "disclaimer": {
+   "x": -420,
+   "y": 0,
+   "w": 340,
+   "text": "Illustrative. No real patients. Medicines, quantities, batches, stock figures, prices, ages and times are examples, not signed values. Directions, strengths in patient views and every threshold appear as [placeholders].",
+   "fill": "gray"
+  },
+  "source": {
+   "x": -420,
+   "y": 520,
+   "w": 340,
+   "text": "Drawn from PROMPT-PHARMACY-PHASE-1.md section 5. Where this canvas and the prompt differ, the prompt wins. The earlier Chroma boards 1.1 to 1.12 are replaced by these.",
+   "fill": "gray"
+  }
+ },
+ "designSystems": [
+  {
+   "title": "MedSync Tide",
+   "namespace": "medsync-tide",
+   "artifact": "https://claude.ai/artifact/5vvCpkVoYk8G11PtLaSRuk",
+   "version": "1792404157-5449",
+   "copiedAt": "2026-10-20T20:40:00Z"
+  }
+ ]
+}

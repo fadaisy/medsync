@@ -47,3 +47,5 @@ unapplied files numbered 0101 and 0102; the pharmacy's became 0120 and 0121. Rel
 **Known collision:** ADR **0073** names two files: `0073-clerkship-problem-list-synthesis.md` (main) and
 `0073-examination-shared-parameter-qc.md` (`origin/feat/exam-consistency-qc` only). Whoever merges that branch
 renumbers its ADR.
+
+| ADR 0360–0366            | Tide everywhere (web migration)                                | `feat/tide-everywhere`       | 21 Oct 2026 | 0360–0361 used               |

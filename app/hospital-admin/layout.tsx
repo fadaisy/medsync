@@ -5,6 +5,7 @@ import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { availabilityCount } from "@/lib/services/data";
 import { HospitalShell } from "./_components/hospital-shell";
 import { getHospitalPendingStaffCount } from "./_lib/staff-pending-count";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -61,7 +62,7 @@ export default async function HospitalAdminLayout({ children }: { children: Reac
       staffPendingCount={staffPendingCount}
       servicesProblemCount={servicesProblemCount}
     >
-      {children}
+      <TideScope group="hospital-admin">{children}</TideScope>
     </HospitalShell>
   );
 }

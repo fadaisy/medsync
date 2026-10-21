@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { SirenIcon } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { TIDE_COPY } from "@/content/tide";
+import { tideOn } from "@/lib/design/tide";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,11 +42,17 @@ const HEADER_EMERGENCY = [
   "/onboarding/mfa-setup",
 ];
 
-export function EmergencyPill() {
+/** Staff workspaces keep "Emergency"; under Tide every other route says "Help" (D-TW-04). */
+const STAFF = ["/doctor", "/nurse", "/reception", "/pharmacy", "/lab", "/ncd", "/hospital-admin", "/admin", "/clinician", "/ipc", "/hmis", "/referral-governance"];
+
+export function EmergencyPill({ tide }: { tide?: string }) {
   const pathname = usePathname();
   if (pathname === "/emergency" || pathname.startsWith("/emergency/")) return null;
   if (pathname === "/" || pathname === "/about") return null; // ADR 0099: the landing header carries Emergency
   if (HEADER_EMERGENCY.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
+  const help =
+    !STAFF.some((p) => pathname === p || pathname.startsWith(`${p}/`)) &&
+    tideOn(pathname.startsWith("/patient") ? "patient-web" : "public", tide);
   const abovePatientBars = pathname === "/patient" || pathname.startsWith("/patient/");
 
   // Its own landmark: axe's region rule wants every piece of page content
@@ -65,7 +73,7 @@ export function EmergencyPill() {
     >
       <Link
         href="/emergency"
-        aria-label="Emergency — get help now"
+        aria-label={help ? TIDE_COPY.helpLabel : "Emergency — get help now"}
         className={cn(
           buttonVariants({ variant: "emergency", size: "lg" }),
           "min-h-12 rounded-full shadow-lg",
@@ -73,7 +81,7 @@ export function EmergencyPill() {
         )}
       >
         <SirenIcon aria-hidden className="size-5" strokeWidth={2} />
-        Emergency
+        {help ? TIDE_COPY.help : "Emergency"}
       </Link>
     </nav>
   );

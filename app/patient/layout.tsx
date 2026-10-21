@@ -8,6 +8,7 @@ import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope"
 import { PatientNavRail } from "./_components/patient-nav-rail";
 import { RegisterServiceWorker } from "./_components/register-sw";
 import { LANDING_NAV, PATIENT_NAV } from "./_lib/nav";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -107,7 +108,7 @@ export default async function PatientLayout({ children }: { children: ReactNode 
                 ruling 7): the red pill in the root layout is the affordance
                 on every screen, and /emergency carries the hospital's
                 verified number. The consent gate keeps its own block. */}
-            {children}
+            <TideScope group="patient-web">{children}</TideScope>
           </div>
         </main>
       </div>

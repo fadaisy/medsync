@@ -52,7 +52,7 @@ describe("the pill — one tap from anywhere, two to a call", () => {
     );
     const providers = /<Providers>([\s\S]*?)<\/Providers>/.exec(layout)?.[1] ?? "";
     expect(providers.indexOf("{children}")).toBeGreaterThanOrEqual(0);
-    expect(providers.indexOf("<EmergencyPill />")).toBeGreaterThan(providers.indexOf("{children}"));
+    expect(providers.indexOf("<EmergencyPill ")).toBeGreaterThan(providers.indexOf("{children}"));
   });
 
   it("no layout under app/ re-declares <html> — the root layout is the only one, so the pill is on every route", () => {
@@ -69,7 +69,7 @@ describe("the pill — one tap from anywhere, two to a call", () => {
   it("is one Link to /emergency, carries the word with the icon, hides on /emergency/**, pulses once and motion-safe only", () => {
     expect(pill).toMatch(/href="\/emergency"/);
     expect(pill.match(/<Link\b/g)?.length).toBe(1);
-    expect(pill).toMatch(/>\s*Emergency\s*<\/Link>/);
+    expect(pill).toMatch(/: "Emergency"\}\s*<\/Link>/); // Tide: "Help" off staff routes (D-TW-04)
     expect(pill).toMatch(/pathname === "\/emergency" \|\| pathname\.startsWith\("\/emergency\/"\)/);
     expect(pill).toMatch(/motion-safe:animate-\[[^\]]*_1\]/);
     expect(pill).not.toMatch(/infinite/);

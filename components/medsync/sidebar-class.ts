@@ -4,4 +4,4 @@
  * client reference's text, not these classes, and the sidebar shows on phones.
  */
 export const SIDEBAR_CLASS =
-  "bg-sidebar border-sidebar-border hidden w-[248px] shrink-0 flex-col border-r lg:flex";
+  "medsync-rail bg-sidebar border-sidebar-border hidden w-[248px] shrink-0 flex-col border-r lg:flex";

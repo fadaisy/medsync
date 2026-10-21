@@ -13,6 +13,7 @@ import { SiteNav } from "@/components/landing/site-nav";
 import { Trust } from "@/components/landing/trust/trust";
 import { OPEN_GRAPH } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
+import { TideScope } from "@/components/medsync/tide-scope";
 
 /**
  * Landing v4 "Slim" (ADR 0099): eight sections, nothing else. Every string
@@ -27,6 +28,8 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
+    <>
+      <TideScope group="public">{null}</TideScope>
     <div className={cn("bg-background flex min-h-svh flex-col", LANDING_FOCUS)}>
       <SiteNav />
       <main className="flex-1">
@@ -41,5 +44,6 @@ export default function HomePage() {
       </main>
       <SiteFooter />
     </div>
+    </>
   );
 }
