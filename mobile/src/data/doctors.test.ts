@@ -1,14 +1,22 @@
-import type { ClinicianOption } from "@/lib/booking";
+import type { ClinicianOption, ClinicSession } from "@/lib/booking";
 
 import {
+  availabilityWords,
   doctorFilters,
+  FEE_UNKNOWN,
+  firstClinicDays,
   initialsOf,
+  isDoctor,
   matchesFilter,
+  ratingWords,
   toDoctorCards,
   WALK_IN_FILTER,
 } from "@/data/doctors";
 
-jest.mock("@/lib/booking", () => ({}));
+jest.mock("@/lib/booking", () => ({
+  sessionTakeable: (s: { placesLeft: number; clinicianUserId: string | null }) =>
+    s.placesLeft > 0 && s.clinicianUserId !== null,
+}));
 
 const clinician = (over: Partial<ClinicianOption>): ClinicianOption => ({
   userId: "u1",
@@ -37,8 +45,10 @@ const priced = {
   fee: { posture: "full", baseFeeUgx: 30000, lineName: "OPD", cadreFees: [] },
 };
 
+const lines = (entries: [string, (typeof priced)[]][]) => new Map(entries);
+
 describe("doctor cards from the server's clinicians", () => {
-  it("maps name, role, next open day, walk-ins and fee", () => {
+  it("maps name, role, and each place's next open day, walk-ins and fee", () => {
     const [card] = toDoctorCards(
       [
         clinician({
@@ -46,46 +56,104 @@ describe("doctor cards from the server's clinicians", () => {
           specialty: "Diabetes",
         }),
       ],
-      [priced],
+      lines([["h1", [priced]]]),
       [{ id: "d1", name: "General clinic", openNow: true }],
+      "h1",
     );
     expect(card).toMatchObject({
-      key: "u1:d1",
+      key: "u1",
       name: "Dr [Name A]",
       role: "Diabetes",
-      place: "General clinic",
       initials: "A",
       nextDayKey: "2026-10-20",
-      walkInToday: true,
-      feeWords: "UGX 30,000",
     });
+    expect(card.places).toEqual([
+      expect.objectContaining({
+        hospitalId: "h1",
+        departmentName: "General clinic",
+        nextDayKey: "2026-10-20",
+        walkInToday: true,
+        feeWords: "UGX 30,000",
+        home: true,
+      }),
+    ]);
   });
 
   it("falls back to the cadre, no open day, no walk-ins and No fee", () => {
-    const [card] = toDoctorCards([clinician({})], [], []);
+    const [card] = toDoctorCards([clinician({})], lines([["h1", []]]), [], null);
     expect(card.role).toBe("Medical Officer");
     expect(card.nextDayKey).toBeNull();
-    expect(card.walkInToday).toBe(false);
-    expect(card.feeWords).toBe("No fee");
+    expect(card.places[0]).toMatchObject({ walkInToday: false, feeWords: "No fee", home: false });
+  });
+
+  it("one card per doctor, listing every hospital, the patient's own first", () => {
+    const cards = toDoctorCards(
+      [
+        clinician({
+          hospitalId: "h2",
+          hospitalName: "Hospital B",
+          slotsByDate: { "2026-10-19": [slot] },
+        }),
+        clinician({
+          hospitalId: "h1",
+          hospitalName: "Hospital A",
+          slotsByDate: { "2026-10-25": [slot] },
+        }),
+        clinician({
+          userId: "u2",
+          fullName: "Dr [Name B]",
+          hospitalId: "h2",
+          hospitalName: "Hospital B",
+        }),
+      ],
+      lines([]),
+      [],
+      "h1",
+    );
+    expect(cards.map((c) => c.userId)).toEqual(["u1", "u2"]);
+    expect(cards[0].places.map((p) => p.hospitalName)).toEqual(["Hospital A", "Hospital B"]);
+    // The soonest open day anywhere, not only at the first hospital listed.
+    expect(cards[0].nextDayKey).toBe("2026-10-19");
+  });
+
+  it("a price list that did not load says so, never No fee", () => {
+    const [card] = toDoctorCards([clinician({})], lines([]), [], null);
+    expect(card.places[0].feeWords).toBe(FEE_UNKNOWN);
+  });
+
+  it("walk-ins only at the patient's own hospital", () => {
+    const [card] = toDoctorCards(
+      [clinician({ hospitalId: "h2" })],
+      lines([]),
+      [{ id: "d1", name: "General clinic", openNow: true }],
+      "h1",
+    );
+    expect(card.places[0].walkInToday).toBe(false);
   });
 
   it("carries no count, rating or place number", () => {
-    const [card] = toDoctorCards([clinician({ rating: { average: 4.9, count: 10 } })], [], []);
+    const [card] = toDoctorCards(
+      [clinician({ rating: { average: 4.9, count: 10 } })],
+      lines([]),
+      [],
+      null,
+    );
     expect(Object.keys(card)).not.toEqual(expect.arrayContaining(["rating", "ahead"]));
   });
 });
 
 describe("filters only for facets the data has", () => {
-  it("none for one department that all take walk-ins", () => {
-    const cards = toDoctorCards([clinician({}), clinician({ userId: "u2" })], [], []);
+  it("none for one hospital and one department that all take walk-ins", () => {
+    const cards = toDoctorCards([clinician({}), clinician({ userId: "u2" })], lines([]), [], "h1");
     expect(doctorFilters(cards)).toEqual([]);
   });
 
-  it("walk-ins and departments when they differ", () => {
+  it("walk-ins and departments when they differ at one hospital", () => {
     const cards = toDoctorCards(
       [clinician({}), clinician({ userId: "u2", departmentId: "d2", departmentName: "Eye" })],
-      [],
+      lines([]),
       [{ id: "d1", name: "General clinic", openNow: true }],
+      "h1",
     );
     expect(doctorFilters(cards)).toEqual([WALK_IN_FILTER, "Eye", "General clinic"]);
     expect(cards.filter((c) => matchesFilter(c, WALK_IN_FILTER)).map((c) => c.userId)).toEqual([
@@ -95,8 +163,112 @@ describe("filters only for facets the data has", () => {
     expect(cards.filter((c) => matchesFilter(c, null))).toHaveLength(2);
   });
 
+  it("hospitals when there are two or more", () => {
+    const cards = toDoctorCards(
+      [
+        clinician({ hospitalName: "Hospital A" }),
+        clinician({ userId: "u2", hospitalId: "h2", hospitalName: "Hospital B" }),
+      ],
+      lines([]),
+      [],
+      null,
+    );
+    expect(doctorFilters(cards)).toEqual(["Hospital A", "Hospital B"]);
+    expect(cards.filter((c) => matchesFilter(c, "Hospital B")).map((c) => c.userId)).toEqual([
+      "u2",
+    ]);
+  });
+
   it("initials skip the title", () => {
     expect(initialsOf("Dr Jane Doe")).toBe("JD");
     expect(initialsOf("")).toBe("DR");
+  });
+});
+
+describe("card words", () => {
+  it("rating in words, never a made-up one", () => {
+    expect(ratingWords({ average: 4.84, count: 12 })).toBe("4.8 (12 ratings)");
+    expect(ratingWords({ average: 5, count: 1 })).toBe("5.0 (1 rating)");
+    expect(ratingWords(null)).toBe("No ratings yet");
+    expect(ratingWords({ average: 0, count: 0 })).toBe("No ratings yet");
+  });
+  it("availability: today, the next day, or none", () => {
+    const words = (k: string) => `day ${k}`;
+    expect(availabilityWords("2026-10-18", "2026-10-18", words)).toEqual({
+      text: "Available today",
+      today: true,
+    });
+    expect(availabilityWords("2026-10-20", "2026-10-18", words).text).toBe(
+      "Next open: day 2026-10-20",
+    );
+    expect(availabilityWords(null, "2026-10-18", words).text).toBe(
+      "No open day in the next two weeks",
+    );
+  });
+});
+
+describe("doctors only", () => {
+  it("keeps medical officers, consultants and dentists", () => {
+    expect(isDoctor({ cadreId: "00000000-0000-0000-0000-000000000d02" })).toBe(true);
+    expect(isDoctor({ cadreId: "00000000-0000-0000-0000-000000000d05" })).toBe(true);
+    expect(isDoctor({ cadreId: "00000000-0000-0000-0000-000000000d07" })).toBe(true);
+  });
+  it("leaves out interns, nurses, clinical officers, lab staff and pharmacists", () => {
+    for (const id of ["d01", "d08", "d0a", "d0b", "d0c", "d0d", "d12", "d13"])
+      expect(isDoctor({ cadreId: `00000000-0000-0000-0000-000000000${id}` })).toBe(false);
+    expect(isDoctor({ cadreId: null })).toBe(false);
+  });
+});
+
+describe("a clinic day the doctor runs is availability too", () => {
+  const day = (over: Partial<ClinicSession>): ClinicSession => ({
+    id: "s1",
+    serviceLineId: "l1",
+    startsAtIso: "2026-10-21T05:00:00Z",
+    endsAtIso: "2026-10-21T09:00:00Z",
+    clinicianUserId: "u1",
+    clinicianName: "Dr [Name A]",
+    venue: null,
+    placesLeft: 20,
+    ...over,
+  });
+
+  it("keeps the first day with a place, per hospital and clinician", () => {
+    const days = firstClinicDays(
+      new Map([
+        [
+          "h1",
+          [
+            day({ startsAtIso: "2026-10-20T05:00:00Z", placesLeft: 0 }),
+            day({ startsAtIso: "2026-10-23T05:00:00Z" }),
+            day({}),
+            day({ clinicianUserId: null, startsAtIso: "2026-10-19T05:00:00Z" }),
+          ],
+        ],
+      ]),
+    );
+    expect([...days]).toEqual([["h1|u1", "2026-10-21"]]);
+  });
+
+  it("opens a doctor with no personal slots on the day they run a clinic", () => {
+    const [card] = toDoctorCards(
+      [clinician({})],
+      lines([["h1", []]]),
+      [],
+      "h1",
+      new Map([["h1|u1", "2026-10-21"]]),
+    );
+    expect(card.nextDayKey).toBe("2026-10-21");
+  });
+
+  it("takes the earlier of a slot and a clinic day", () => {
+    const [card] = toDoctorCards(
+      [clinician({ slotsByDate: { "2026-10-20": [slot] } })],
+      lines([["h1", []]]),
+      [],
+      "h1",
+      new Map([["h1|u1", "2026-10-21"]]),
+    );
+    expect(card.nextDayKey).toBe("2026-10-20");
   });
 });

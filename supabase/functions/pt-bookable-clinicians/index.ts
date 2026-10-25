@@ -34,6 +34,7 @@ import type {
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, serviceClient } from "../_shared/auth.ts";
+import { PATIENT_BOOKING_HORIZON_DAYS } from "../_shared/booking-horizon.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
@@ -58,7 +59,7 @@ const log = makeLogger("pt-bookable-clinicians");
  * may BOOK is `pt-request-appointment`'s and deliberately nowhere else; the
  * two agree so nothing offered here is refused there for its date alone.
  */
-const LOOKAHEAD_DAYS = 14;
+const LOOKAHEAD_DAYS = PATIENT_BOOKING_HORIZON_DAYS;
 
 const InputSchema = z.object({
   hospital_id: z.string().uuid().optional(),

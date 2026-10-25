@@ -1,3 +1,5 @@
+import type { PlaceOption } from "@/data/signup";
+
 import { formatUgPhone, isUgMobile } from "@/components/tide/field";
 
 /**
@@ -23,10 +25,11 @@ export interface PlaceChoice {
   label: string;
 }
 
-/** A spot on the drawn map, in the drawing's own 350 × 220 units. */
+/** A point on the real map (ADR 0402), with the phone geocoder's words for it. */
 export interface PinSpot {
-  x: number;
-  y: number;
+  lat: number;
+  lng: number;
+  address: string | null;
 }
 
 export interface SignupDraft {
@@ -42,7 +45,7 @@ export interface SignupDraft {
   refusedMinor: boolean;
   place: PlaceChoice | null;
   village: string;
-  /** Saved to the patient's own profile after sign-in, only with `pinConsent` (migration 0170). */
+  /** Saved as the patient's home place after sign-in, only with `pinConsent` (`PLACE_CONSENT`, migration 0185). */
   pin: PinSpot | null;
   pinConsent: boolean;
   email: string;
@@ -269,19 +272,6 @@ export function buildSubmission(d: SignupDraft, notice: ShownNotice, sms: ShownS
   };
 }
 
-/**
- * The home pin's consent: the exact words the patient agrees to, and the
- * version stored with the pin (`patient_profiles.home_pin_consent_version`).
- * Change a word, change the version. The words claim nothing about who reads
- * it, because nothing reads it yet (migration 0170).
- */
-export const HOME_PIN_CONSENT = {
-  version: "home-pin-v1",
-  title: "Keep a pin of my home",
-  words:
-    "Saved with your MedSync account, to help an ambulance or health worker find you. You can say no.",
-} as const;
-
 /** A v4 UUID for the action's idempotency key (`^[0-9a-f-]{36}$`). Called once per draft. */
 export function signupKey(random: () => number = Math.random): string {
   const hex = Array.from({ length: 32 }, () => Math.floor(random() * 16).toString(16));
@@ -289,4 +279,15 @@ export function signupKey(random: () => number = Math.random): string {
   hex[16] = ((parseInt(hex[16], 16) & 0x3) | 0x8).toString(16);
   const h = hex.join("");
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+/**
+ * The official entry a geocoder's area name points to: the first result whose
+ * label starts with those words ("Rubaga Division" → "Rubaga Division,
+ * Kampala"). Null when nothing names it, so the patient picks by hand.
+ */
+export function autoPick(query: string, places: readonly PlaceOption[]): PlaceOption | null {
+  const want = query.trim().toLowerCase();
+  if (!want) return null;
+  return places.find((p) => p.label.toLowerCase().startsWith(want)) ?? null;
 }

@@ -77,6 +77,8 @@ export interface History {
   };
   /** Set once, by "Continue in the new format" (lib/clerking/convert). */
   converted?: Conversion;
+  /** Patient-reported rows (patient_reported_history ids, ADR 0414) dismissed at this visit. */
+  reportedDismissed?: string[];
 }
 
 /* ─── A v1 draft continued in the new format (legacy-conversion.v1.json) ─── */

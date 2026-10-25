@@ -1,5 +1,7 @@
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -23,9 +25,13 @@ import { authUsers } from "./_auth";
  *   - self_medications           the patient's own med list
  *   - self_medication_takes      confirmed-taken events; adherence
  *
- * RLS: patient SELECT/INSERT/UPDATE/DELETE on own rows. No clinician
- * access — that's a separate `clinical_observations` table when the
- * clinical module ships.
+ * RLS: patient SELECT/INSERT/UPDATE/DELETE on own rows; since 0188 the
+ * care team (public.has_clinical_relationship) reads the active log rows.
+ *
+ * 0189 adds patient_reported_history (ADR 0414): the patient's own
+ * conditions, allergies and family history in the clerking catalogue's
+ * ids, append-only (insert, or retire state active → removed), read by
+ * the care team and shown on the desk as patient-reported, unconfirmed.
  */
 
 /* ─── personal_health_logs ───────────────────────────────────────── */
@@ -55,7 +61,7 @@ export const personalHealthLogs = pgTable(
   (t) => [
     check(
       "personal_health_logs_kind_check",
-      sql`${t.kind} IN ('glucose','bp','weight','spo2','temperature','symptom','note','other','pulse','mood','water','activity')`,
+      sql`${t.kind} IN ('glucose','bp','weight','spo2','temperature','symptom','note','other','pulse','mood','water','activity','steps','exercise','meal')`,
     ),
     check("personal_health_logs_state_check", sql`${t.state} IN ('active','deleted')`),
     check(
@@ -137,3 +143,92 @@ export const selfMedicationTakes = pgTable(
 
 export type SelfMedicationTake = typeof selfMedicationTakes.$inferSelect;
 export type NewSelfMedicationTake = typeof selfMedicationTakes.$inferInsert;
+
+/* ─── patient_reported_history (0189) ────────────────────────────── */
+export const patientReportedHistory = pgTable(
+  "patient_reported_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    /** condition | allergy | family | no_known_allergies */
+    kind: text("kind").notNull(),
+    /** A clerking catalogue id (MS-EMR-CLERK-CAT-001), or 'other' with other_text. */
+    itemId: text("item_id"),
+    otherText: text("other_text"),
+    onsetYear: smallint("onset_year"),
+    /** Conditions: the patient no longer has it. */
+    resolved: boolean("resolved"),
+    /** Family: option_sets.relations id. */
+    relation: text("relation"),
+    /** Allergies: allergies.reactions ids. */
+    reactions: text("reactions")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    severity: text("severity"),
+    supersedesId: uuid("supersedes_id").references((): AnyPgColumn => patientReportedHistory.id),
+    state: text("state").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    removedAt: timestamp("removed_at", { withTimezone: true }),
+  },
+  (t) => [
+    check(
+      "patient_reported_history_kind_check",
+      sql`${t.kind} IN ('condition','allergy','family','no_known_allergies')`,
+    ),
+    check("patient_reported_history_state_check", sql`${t.state} IN ('active','removed')`),
+    check(
+      "patient_reported_history_relation_check",
+      sql`${t.relation} IS NULL OR ${t.relation} IN ('mother','father','sibling','child','grandparent','other_relative')`,
+    ),
+    check(
+      "patient_reported_history_severity_check",
+      sql`${t.severity} IS NULL OR ${t.severity} IN ('mild','moderate','severe')`,
+    ),
+    index("patient_reported_history_active_idx")
+      .on(t.patientUserId, t.kind)
+      .where(sql`${t.state} = 'active'`),
+  ],
+);
+
+export type PatientReportedHistory = typeof patientReportedHistory.$inferSelect;
+
+/* ─── patient_food_products (0191) ───────────────────────────────── */
+/** Packaged foods the patient logged from a barcode or a label (ADR 0357): values per 100 g. */
+export const patientFoodProducts = pgTable(
+  "patient_food_products",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    barcode: text("barcode"),
+    name: text("name").notNull(),
+    brand: text("brand"),
+    kcal100g: numeric("kcal_100g").notNull(),
+    carbs100g: numeric("carbs_100g").notNull(),
+    protein100g: numeric("protein_100g"),
+    fat100g: numeric("fat_100g"),
+    fibre100g: numeric("fibre_100g"),
+    servingG: numeric("serving_g"),
+    /** open_food_facts | label_photo | typed */
+    source: text("source").notNull(),
+    state: text("state").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      "patient_food_products_source_check",
+      sql`${t.source} IN ('open_food_facts','label_photo','typed')`,
+    ),
+    check("patient_food_products_state_check", sql`${t.state} IN ('active','deleted')`),
+    index("patient_food_products_patient_idx")
+      .on(t.patientUserId, t.barcode)
+      .where(sql`${t.state} = 'active'`),
+  ],
+);
+
+export type PatientFoodProduct = typeof patientFoodProducts.$inferSelect;

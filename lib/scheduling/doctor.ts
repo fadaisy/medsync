@@ -13,11 +13,13 @@ import {
   queueEntries,
 } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
+import { loadBookingAttachments } from "@/lib/scheduling/attachments";
 import { revealPatientIdentities, toPatientIdentity } from "@/lib/scheduling/patient-identity";
 import { ACUITY_TIERS } from "@/lib/triage/constants";
 import {
   DEFAULT_TIME_ZONE,
   endOfLocalDay,
+  localDateKey,
   startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
 
@@ -140,14 +142,17 @@ export async function fetchPendingApprovals(args: {
     .orderBy(asc(appointments.startsAt))
     .limit(args.limit ?? 20);
 
-  const revealed = await revealPatientIdentities({
-    viewer: { userId: args.clinicianUserId, hospitalId: args.hospitalId },
-    surface: "doctor_pending_rail",
-    patients: rows,
-  });
+  const [revealed, sent] = await Promise.all([
+    revealPatientIdentities({
+      viewer: { userId: args.clinicianUserId, hospitalId: args.hospitalId },
+      surface: "doctor_pending_rail",
+      patients: rows,
+    }),
+    loadBookingAttachments(rows.map((r) => r.id)),
+  ]);
 
   return rows.map((r) => {
-    const identity = toPatientIdentity(r, revealed);
+    const identity = toPatientIdentity(r, revealed, sent.get(r.id));
     return {
       id: r.id,
       startsAtIso: r.startsAt.toISOString(),
@@ -240,11 +245,14 @@ export async function fetchDepartmentQueueToday(args: {
     // ones a nurse has actually assessed.
     .orderBy(sql`${queueEntries.priorityOrder} ASC NULLS LAST`, asc(queueEntries.sequenceNumber));
 
-  const revealed = await revealPatientIdentities({
-    viewer: args.viewer,
-    surface: "doctor_queue_rail",
-    patients: rows,
-  });
+  const [revealed, sent] = await Promise.all([
+    revealPatientIdentities({
+      viewer: args.viewer,
+      surface: "doctor_queue_rail",
+      patients: rows,
+    }),
+    loadBookingAttachments(rows.map((r) => r.appointmentId)),
+  ]);
 
   return rows.map((r) => ({
     id: r.id,
@@ -256,7 +264,11 @@ export async function fetchDepartmentQueueToday(args: {
     priorityLabel: acuityLabel(r.priorityOrder),
     patientUserId: r.patientUserId,
     patientCode: r.patientCode,
-    identity: toPatientIdentity(r, revealed),
+    identity: toPatientIdentity(
+      r,
+      revealed,
+      r.appointmentId ? sent.get(r.appointmentId) : undefined,
+    ),
     appointmentId: r.appointmentId,
     encounterId: r.encounterId,
     notes: r.notes,
@@ -462,4 +474,54 @@ export async function fetchClinicianAvailabilityBlocks(args: {
     notes: r.notes,
     label: r.label,
   }));
+}
+
+/**
+ * The clinician's next `days` days from tomorrow, each with how many live
+ * bookings it holds and how many still wait for their yes: the home
+ * dashboard's "Coming days" (ADR 0410). Bucketed on `localDateKey`, the
+ * hospital's day, like reception's strip.
+ */
+export async function fetchClinicianComingDays(args: {
+  clinicianUserId: string;
+  hospitalId: string;
+  days: number;
+  now?: Date;
+}): Promise<{ dateKey: string; booked: number; toApprove: number }[]> {
+  const DAY_MS = 86_400_000;
+  const start = startOfLocalDay(
+    new Date((args.now ?? new Date()).getTime() + DAY_MS),
+    DEFAULT_TIME_ZONE,
+  );
+  const end = endOfLocalDay(
+    new Date(start.getTime() + (args.days - 1) * DAY_MS + DAY_MS / 2),
+    DEFAULT_TIME_ZONE,
+  );
+  const out = new Map<string, { dateKey: string; booked: number; toApprove: number }>();
+  for (let i = 0; i < args.days; i++) {
+    const dateKey = localDateKey(
+      new Date(start.getTime() + i * DAY_MS + DAY_MS / 2),
+      DEFAULT_TIME_ZONE,
+    );
+    out.set(dateKey, { dateKey, booked: 0, toApprove: 0 });
+  }
+  const rows = await db
+    .select({ startsAt: appointments.startsAt, status: appointments.status })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.clinicianUserId, args.clinicianUserId),
+        eq(appointments.hospitalId, args.hospitalId),
+        gte(appointments.startsAt, start),
+        lt(appointments.startsAt, end),
+        inArray(appointments.status, ["confirmed", "pending_approval", "requested"]),
+      ),
+    );
+  for (const r of rows) {
+    const day = out.get(localDateKey(r.startsAt, DEFAULT_TIME_ZONE));
+    if (!day) continue;
+    day.booked++;
+    if (r.status !== "confirmed") day.toApprove++;
+  }
+  return [...out.values()];
 }

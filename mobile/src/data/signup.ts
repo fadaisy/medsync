@@ -1,6 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as LocalAuthentication from "expo-local-authentication";
-
 import { track } from "@/lib/analytics";
 import { supabase } from "@/lib/supabase";
 
@@ -75,37 +72,23 @@ export async function verifyPhoneCode(phoneE164: string, code: string): Promise<
   }
 }
 
-/* ─── "Use fingerprint next time" ────────────────────────────────────── */
+/* ─── After sign-up ──────────────────────────────────────────────────── */
 
-const BIO_KEY = "medsync-bio-next-time-v1";
+let freshSignup = false;
 
-/** Whether this phone can offer a fingerprint at all: hardware and one enrolled. */
-export async function fingerprintAvailable(): Promise<boolean> {
-  try {
-    return (
-      (await LocalAuthentication.hasHardwareAsync()) &&
-      (await LocalAuthentication.isEnrolledAsync())
-    );
-  } catch {
-    return false;
-  }
+/**
+ * Set by "Continue" on the welcome screen just before it signs in. The root
+ * gate then swaps in the app, and Home takes the flag once to open
+ * "A few more details". Module state, so it lives for this launch only.
+ */
+export function markFreshSignup(): void {
+  freshSignup = true;
 }
 
-/** The saved choice. Off unless the patient turned it on (default off). */
-export async function readFingerprintChoice(): Promise<boolean> {
-  try {
-    return (await AsyncStorage.getItem(BIO_KEY)) === "1";
-  } catch {
-    return false;
-  }
-}
-
-export async function saveFingerprintChoice(on: boolean): Promise<void> {
-  try {
-    await AsyncStorage.setItem(BIO_KEY, on ? "1" : "0");
-  } catch {
-    // A locked store forgets a preference, not the sign-in.
-  }
+export function takeFreshSignup(): boolean {
+  const was = freshSignup;
+  freshSignup = false;
+  return was;
 }
 
 /* ─── Sign-up ────────────────────────────────────────────────────────── */
@@ -180,61 +163,3 @@ export async function submitSignup(
     return { ok: false, formError: OFFLINE };
   }
 }
-
-/* ─── The home pin (migration 0170) ──────────────────────────────────── */
-
-/**
- * After sign-up AND sign-in: the patient's own `patient_profiles` row takes
- * the pin, the consent version and when (policy `patient_profiles_update_own`,
- * migration 0011). All four go together, as the 0170 check demands; saying no
- * calls nothing. False on any failure, including 0170 not applied yet: the
- * account is made either way, and the screen says the pin was not saved.
- * The coordinates are never logged.
- */
-export async function saveHomePin(
-  at: { lat: number; lng: number },
-  consentVersion: string,
-  now: Date,
-): Promise<boolean> {
-  try {
-    const { data } = await supabase.auth.getSession();
-    const userId = data.session?.user.id;
-    if (!userId) return false;
-    const { error } = await supabase
-      .from("patient_profiles")
-      .update({
-        // numeric(9,6): six places is about 10 cm, finer than any pin.
-        home_pin_lat: Number(at.lat.toFixed(6)),
-        home_pin_lng: Number(at.lng.toFixed(6)),
-        home_pin_consent_version: consentVersion,
-        home_pin_consented_at: now.toISOString(),
-      })
-      .eq("id", userId);
-    return !error;
-  } catch {
-    return false;
-  }
-}
-
-/* ─── The drawn map (art, not UI) ────────────────────────────────────── */
-
-/**
- * The colours of the "Pin your home" drawing. Illustration, so they live
- * with the data: paper, water, parks, blocks, roads and labels. The pin
- * itself uses the theme (navy with a teal centre, never red).
- */
-export const MAP_ART = {
-  paper: "#f2efe9",
-  water: "#aadaff",
-  park: "#c8e6c9",
-  block: "#e8e3da",
-  road: "#ffffff",
-  roadEdge: "#dadce0",
-  main: "#fde293",
-  mainEdge: "#f9c74f",
-  label: "#5f6368",
-  waterLabel: "#4a7dbf",
-  mainLabel: "#9a7b1c",
-  clinic: "#296a89",
-  shadow: "rgba(0, 0, 0, 0.25)",
-} as const;

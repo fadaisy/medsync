@@ -18,6 +18,8 @@ const all = (reduced: boolean): [string, Anim][] => [
   ["rise", motion.rise(200, reduced)],
   ["sosPulse", motion.sosPulse(900, reduced)],
   ["bob", motion.bob(3000, 0, reduced)],
+  ["skeletonPulse", motion.skeletonPulse(reduced)],
+  ["bellRing", motion.bellRing(reduced)],
 ];
 
 /** Law L13: with "reduce motion" on, every preset is an opacity change or nothing. */
@@ -34,6 +36,8 @@ describe("reduced motion", () => {
   it("loops stop", () => {
     expect(motion.sosPulse(0, true).animationName).toBe("none");
     expect(motion.bob(3000, 0, true).animationName).toBe("none");
+    expect(motion.skeletonPulse(true).animationName).toBe("none");
+    expect(motion.bellRing(true).animationName).toBe("none");
   });
 
   it("transitions do not move", () => {

@@ -3,6 +3,7 @@ import type { FeeInputs } from "@shared/fees";
 import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { BookingSymptom } from "@shared/symptoms";
 import type { ImagePickerOptions } from "expo-image-picker";
+import { PATIENT_BOOKING_HORIZON_DAYS } from "@shared/booking-horizon";
 import { feeRange, rangeLine } from "@shared/fees";
 import {
   DEFAULT_TIME_ZONE,
@@ -349,6 +350,8 @@ export interface AppointmentRow {
   clinicianPhotoUrl: string | null;
   departmentName: string;
   hospitalName: string;
+  /** Where the hospital is, when its admin has set it (Profile); null until then. */
+  hospitalPin: { lat: number; lng: number } | null;
   /** Carried because rescheduling has to rebuild this clinician's grid. */
   hospitalId: string;
   departmentId: string;
@@ -381,6 +384,15 @@ export interface AppointmentRow {
   quotedFeeLabel: string | null;
 }
 
+/** A hospital's map pin, only when both numbers are there. */
+function pinOf(
+  h: { latitude: number | null; longitude: number | null } | null | undefined,
+): { lat: number; lng: number } | null {
+  return h && h.latitude !== null && h.longitude !== null
+    ? { lat: h.latitude, lng: h.longitude }
+    : null;
+}
+
 interface AppointmentQueryRow {
   id: string;
   provisional_patient_id: string | null;
@@ -404,7 +416,7 @@ interface AppointmentQueryRow {
   quoted_fee_ugx: number | null;
   quoted_fee_label: string | null;
   hospital_departments: Embed<{ name: string }>;
-  hospitals: Embed<{ name: string }>;
+  hospitals: Embed<{ name: string; latitude: number | null; longitude: number | null }>;
 }
 
 /**
@@ -447,7 +459,7 @@ export async function fetchAppointments(
       "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
         "reason, reason_note, symptoms, booking_code, session_id, position_number, " +
         "arrival_window_start, arrival_window_end, confirmed_by_patient_at, cancelled_reason, " +
-        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name)",
+        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name, latitude, longitude)",
     )
     .or(`${own}${members}`);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
@@ -481,6 +493,7 @@ export async function fetchAppointments(
       clinicianPhotoUrl: clinicians.get(r.clinician_user_id)?.photoUrl ?? null,
       departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
       hospitalName: embedded(r.hospitals)?.name ?? "Your hospital",
+      hospitalPin: pinOf(embedded(r.hospitals)),
       hospitalId: r.hospital_id,
       departmentId: r.department_id,
       clinicianUserId: r.clinician_user_id,
@@ -819,10 +832,15 @@ interface ServiceLineRow {
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
+/**
+ * The department is named by its foreign key: `service_lines` points at
+ * `hospital_departments` twice (`department_id`, and the services hub's
+ * `unit_id`), and an unnamed embed is refused as ambiguous (PGRST201).
+ */
 const LINE_SELECT =
   "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, confidential, " +
   "payment_posture, fee_ugx, service_line_fees(cadre_id, fee_ugx, cadres(name)), " +
-  "hospital_departments(name), hospitals(name, emergency_phone)";
+  "hospital_departments!service_lines_department_id_fkey(name), hospitals(name, emergency_phone)";
 
 function toLine(r: ServiceLineRow): ServiceLine {
   const hospital = embedded(r.hospitals);
@@ -927,7 +945,7 @@ interface SessionRow {
 }
 
 /** ADR 0084 §8: the server refuses a day past this; the list never offers one. */
-const HORIZON_MS = 14 * 86_400_000;
+const HORIZON_MS = PATIENT_BOOKING_HORIZON_DAYS * 86_400_000;
 
 /**
  * Published, future clinic days within the 14-day horizon — every line at a
@@ -1002,7 +1020,7 @@ export const APPOINTMENT_REASONS: readonly {
   },
   {
     value: "new_concern",
-    title: "New or worsening problem",
+    title: "General check-up for a new complaint",
     hint: "Something you want looked at fresh.",
   },
   { value: "refill", title: "Medicine refill", hint: "You need more, or need it reviewed." },

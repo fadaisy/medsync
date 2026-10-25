@@ -4,9 +4,9 @@ import type { WaitlistEntry } from "@/lib/notifications";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { Button, Card, DateTile, Icon, Note, Press, Screen } from "@/components/tide";
+import { Button, Card, DateTile, Icon, Note, Press, Screen, SkeletonCard } from "@/components/tide";
 import { useMedicines } from "@/data/medicines";
 import { loadWeek } from "@/data/visits";
 import {
@@ -157,7 +157,10 @@ export default function VisitsScreen() {
           <Button label="Try again" variant="outline" size="md" onPress={load} />
         </View>
       ) : week === null ? (
-        <ActivityIndicator color={t.ink} accessibilityLabel="Loading your visits" />
+        <View style={{ gap: tSpace[2.5] }}>
+          <SkeletonCard label="Loading your visits" lines={2} />
+          <SkeletonCard label="" lines={2} />
+        </View>
       ) : null}
 
       {/* An open offer is the most time-bound thing on the page. */}

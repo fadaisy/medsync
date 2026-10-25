@@ -1,5 +1,5 @@
+import type { GeoWords } from "@/data/places";
 import type { PlaceOption, SignupNotice } from "@/data/signup";
-import type { PinAnchor } from "@/features/auth/map-pin";
 import type { SignupDraft, Step } from "@/features/auth/rules";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
@@ -10,19 +10,22 @@ import {
   ChipRow,
   FieldError,
   FieldLabel,
+  findMe,
   Icon,
   IconDisc,
   Note,
   PhoneField,
+  PlaceMap,
   Press,
   TextField,
   TextLink,
+  wordsFor,
 } from "@/components/tide";
+import { PLACE_CONSENT } from "@/data/places";
 import { searchPlaces, signupFromAppOn } from "@/data/signup";
-import { MapPin } from "@/features/auth/map-pin";
 import {
+  autoPick,
   checkDob,
-  HOME_PIN_CONSENT,
   isEmail,
   MINOR_NOTE,
   NAME_MAX,
@@ -33,7 +36,6 @@ import {
   STEP_NAMES,
   VILLAGE_MAX,
 } from "@/features/auth/rules";
-import { flag } from "@/lib/flags";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -182,20 +184,53 @@ export function AboutStep({
 
 /* ─── Step 2 · Where you live ────────────────────────────────────────── */
 
-export function PlaceStep({
-  draft,
-  patch,
-  anchor,
-  onAnchor,
-}: {
-  draft: SignupDraft;
-  patch: Patch;
-  anchor: PinAnchor | null;
-  onAnchor: (a: PinAnchor) => void;
-}) {
+/**
+ * "Use my location" or "Pin it on a map" (ADR 0402): the phone geocoder's
+ * area name pre-fills the place search, so the patient still picks the
+ * official UBOS entry, and its street words pre-fill "Village or address"
+ * unless the patient typed their own. The pin itself is saved as the home
+ * place after sign-in, and only with the PLACE_CONSENT yes.
+ */
+export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }) {
   const t = useTide();
   const [q, setQ] = useState("");
   const [found, setFound] = useState<{ q: string; places: PlaceOption[] } | null>(null);
+  const [mapOpen, setMapOpen] = useState(draft.pin !== null);
+  const [finding, setFinding] = useState(false);
+  const [locNote, setLocNote] = useState<string | null>(null);
+  // The village words we filled in: a later pin may replace them, never what the patient typed.
+  const [autoVillage, setAutoVillage] = useState<string | null>(null);
+  // The search words the phone's geocoder filled in; their single best match is picked for the patient.
+  const [autoQuery, setAutoQuery] = useState<string | null>(null);
+
+  const fill = (geo: GeoWords) => {
+    if (!draft.place && geo.query) {
+      setQ(geo.query);
+      setAutoQuery(geo.query);
+    }
+    if (geo.village && (draft.village === "" || draft.village === autoVillage)) {
+      const village = geo.village.slice(0, VILLAGE_MAX);
+      patch({ village });
+      setAutoVillage(village);
+    }
+  };
+
+  const locateMe = async () => {
+    setFinding(true);
+    setLocNote(null);
+    const at = await findMe();
+    setFinding(false);
+    if ("problem" in at) {
+      setLocNote(at.problem);
+      return;
+    }
+    setMapOpen(true);
+    patch({ pin: { ...at, address: null } });
+    const geo = await wordsFor(at.lat, at.lng);
+    if (!geo) return;
+    patch({ pin: { ...at, address: geo.address } });
+    fill(geo);
+  };
 
   // Ask the web's place search a moment after typing stops. The answer is
   // keyed by its query so a slow reply for "ka" cannot overwrite "kawe".
@@ -204,23 +239,49 @@ export function PlaceStep({
     let live = true;
     const id = setTimeout(() => {
       void searchPlaces(q).then((places) => {
-        if (live) setFound({ q, places });
+        if (!live) return;
+        setFound({ q, places });
+        // Filled from the patient's own location: take the official entry that
+        // names it. It shows as chosen with "Change", so the patient still decides.
+        const best = q === autoQuery ? autoPick(q, places) : null;
+        if (best) {
+          patch({ place: { code: best.code, label: best.label } });
+          setQ("");
+          setAutoQuery(null);
+        }
       });
     }, 250);
     return () => {
       live = false;
       clearTimeout(id);
     };
-  }, [q]);
+  }, [q, autoQuery, patch]);
 
   const results = found && found.q === q && q.trim().length >= 2 ? found.places : null;
-  const showPin = flag("mobileMapPin");
 
   return (
     <View style={{ gap: tSpace[4] }}>
       <StepHeading title="Where you live" sub="So we can show clinics near you." />
+
       <View style={{ gap: tSpace[1.5] }}>
-        <FieldLabel>District or subcounty</FieldLabel>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        >
+          <FieldLabel>District or subcounty</FieldLabel>
+          {!draft.place ? (
+            <Press
+              onPress={() => void locateMe()}
+              disabled={finding}
+              accessibilityLabel="Use my location to fill this in"
+              style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1], minHeight: 44 }}
+            >
+              <Icon name="locate" size={16} color={t.accentText} />
+              <Text style={[tType.labelS, { color: t.accentText }]}>
+                {finding ? "Finding you…" : "Use my location"}
+              </Text>
+            </Press>
+          ) : null}
+        </View>
         {draft.place ? (
           <View
             style={{
@@ -249,23 +310,32 @@ export function PlaceStep({
           <>
             <TextField
               value={q}
-              onChangeText={setQ}
+              onChangeText={(v) => {
+                setQ(v);
+                setAutoQuery(null);
+              }}
               placeholder="Search, e.g. Kawempe"
               accessibilityLabel="Search your district or subcounty"
               inputProps={{ autoCorrect: false, returnKeyType: "search" }}
             />
+            {locNote ? (
+              <Text accessibilityLiveRegion="polite" style={[tType.bodyS, { color: t.ink2 }]}>
+                {locNote}
+              </Text>
+            ) : null}
             {!signupFromAppOn ? (
               <Note tone="plain">
                 Sign-up from the app is not switched on yet, so the place search is off.
               </Note>
             ) : results === null ? (
               <Text style={[tType.bodyS, { color: t.ink3 }]}>
-                Type at least 2 letters of your district or subcounty.
+                Type at least 2 letters, or use your location.
               </Text>
             ) : results.length === 0 ? (
               <Text style={[tType.bodyS, { color: t.ink3 }]}>No match. Try the district name.</Text>
             ) : (
               <View style={{ gap: tSpace[1.5] }}>
+                <Text style={[tType.bodyS, { color: t.ink3 }]}>Tap your area to choose it.</Text>
                 {results.map((p) => (
                   <Press
                     key={p.code}
@@ -298,49 +368,96 @@ export function PlaceStep({
           </>
         )}
       </View>
-      <View style={{ gap: tSpace[1] }}>
-        <TextField
-          label="Village or address"
-          optional
-          value={draft.village}
-          onChangeText={(v) => patch({ village: v })}
-          placeholder="e.g. Bwaise II, near the market"
-          maxLength={VILLAGE_MAX}
-          multiline
-        />
-        <Text style={[tType.micro, { color: t.ink3, alignSelf: "flex-end" }]}>
-          {draft.village.length}/{VILLAGE_MAX}
-        </Text>
-      </View>
-      {showPin ? (
-        <View style={{ gap: tSpace[2] }}>
-          <FieldLabel optional>Pin your home</FieldLabel>
-          <CheckRow
-            checked={draft.pinConsent}
-            onToggle={() =>
-              // Declining takes the pin away with it: nothing is kept without the yes.
-              patch(draft.pinConsent ? { pinConsent: false, pin: null } : { pinConsent: true })
-            }
-            title={HOME_PIN_CONSENT.title}
-            sub={HOME_PIN_CONSENT.words}
-          />
-          {draft.pinConsent ? (
-            <>
-              <MapPin
-                pin={draft.pin}
-                onPin={(pin) => patch({ pin })}
-                anchor={anchor}
-                onAnchor={onAnchor}
-              />
-              <Text style={[tType.bodyS, { fontSize: 12, lineHeight: 16, color: t.ink3 }]}>
-                {
-                  'Tap "Use my location" first, then tap the map to move the pin. Without your location the pin is not saved.'
-                }
+
+      <TextField
+        label="Village or address"
+        optional
+        value={draft.village}
+        onChangeText={(v) => patch({ village: v })}
+        placeholder="e.g. Bwaise II, near the market"
+        maxLength={VILLAGE_MAX}
+      />
+
+      <View style={{ gap: tSpace[2] }}>
+        <FieldLabel optional>Pin your home</FieldLabel>
+        {mapOpen ? (
+          <>
+            <PlaceMap
+              value={draft.pin}
+              height={180}
+              onPick={(pick) => {
+                patch({
+                  pin: { lat: pick.lat, lng: pick.lng, address: pick.geo?.address ?? null },
+                });
+                if (pick.geo) fill(pick.geo);
+              }}
+            />
+            {draft.pin ? (
+              <Press
+                onPress={() => patch({ pinConsent: !draft.pinConsent })}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: draft.pinConsent }}
+                accessibilityLabel={`Save as my home place. ${PLACE_CONSENT.words}`}
+                haptic={false}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: tSpace[2.5],
+                  minHeight: 44,
+                }}
+              >
+                <View
+                  style={{
+                    width: 24,
+                    height: 24,
+                    marginTop: 1,
+                    borderRadius: 7,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: draft.pinConsent ? t.primary : t.surface,
+                    borderWidth: draft.pinConsent ? 0 : 2,
+                    borderColor: t.lineStrong,
+                  }}
+                >
+                  {draft.pinConsent ? (
+                    <Icon name="check" size={15} color={t.onPrimary} strokeWidth={3} />
+                  ) : null}
+                </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={[tType.labelS, { color: t.ink }]}>Save as my home place</Text>
+                  <Text style={[tType.bodyS, { fontSize: 13, color: t.ink2 }]}>
+                    {PLACE_CONSENT.words}
+                  </Text>
+                </View>
+              </Press>
+            ) : null}
+          </>
+        ) : (
+          <Press
+            onPress={() => setMapOpen(true)}
+            accessibilityLabel="Pin your home on a map"
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: tSpace[3],
+              minHeight: 56,
+              paddingHorizontal: tSpace[3.5],
+              borderRadius: tRadius.card,
+              backgroundColor: t.surface,
+              boxShadow: t.shadow.card,
+            }}
+          >
+            <Icon name="mapPin" size={20} color={t.accentText} />
+            <View style={{ flex: 1 }}>
+              <Text style={[tType.labelS, { color: t.ink }]}>Pin it on a map</Text>
+              <Text style={[tType.bodyS, { fontSize: 13, color: t.ink2 }]}>
+                Helps a health worker find you
               </Text>
-            </>
-          ) : null}
-        </View>
-      ) : null}
+            </View>
+            <Icon name="forward" size={18} color={t.ink3} />
+          </Press>
+        )}
+      </View>
     </View>
   );
 }
@@ -570,13 +687,14 @@ export function CheckRow({
 
 /* ─── Done ───────────────────────────────────────────────────────────── */
 
+/** A preview only: "Continue" signs in and Home opens the details screen with these inputs. */
 const LATER = [
-  "National ID",
-  "Next of kin",
-  "Usual hospital",
   "Photo",
   "Title",
   "Preferred language",
+  "Usual hospital",
+  "National ID",
+  "Next of kin",
 ];
 
 export function DoneStep({ firstName }: { firstName: string }) {
@@ -603,10 +721,10 @@ export function DoneStep({ firstName }: { firstName: string }) {
           accessibilityRole="header"
           style={[tType.labelS, { fontFamily: tFont.bold, color: t.ink }]}
         >
-          Later, in your profile
+          Next, a few details
         </Text>
         <Text style={[tType.bodyS, { lineHeight: 19, color: t.ink2 }]}>
-          We will ask for these when you need them. No rush.
+          About 2 minutes · all optional
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {LATER.map((w) => (

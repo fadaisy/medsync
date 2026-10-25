@@ -4,35 +4,35 @@ Migration and ADR numbers claimed by work in flight, so two branches never take 
 here, in the branch that will use it, **before** writing the first migration or ADR. Release unused numbers when
 the work merges. Highest numbers are read across `origin/main` and every local and remote branch.
 
-| Block                    | Claimed by                                                                                                       | Branch                       | On          | State                        |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------- | ---------------------------- |
-| migration 0097           | Lab Phase 0 (lab access sync)                                                                                    | `feat/lab-front-door`        | 10 Oct 2026 | used                         |
-| ADR 0221–0226            | Lab Phase 0                                                                                                      | `feat/lab-front-door`        | 10 Oct 2026 | used                         |
-| migration 0098–0100      | Pharmacy Phase 0 (access, placement, prescription reads)                                                         | `feat/pharmacy-front-door`   | 10 Oct 2026 | used                         |
-| ADR 0227–0237            | Pharmacy Phase 0                                                                                                 | `feat/pharmacy-front-door`   | 10 Oct 2026 | used                         |
-| migration 0101           | Lab: staff keep access to their specimens (hotfix)                                                               | `feat/lab-front-door`        | 11 Oct 2026 | used                         |
-| ADR 0238                 | Lab: the same hotfix                                                                                             | `feat/lab-front-door`        | 11 Oct 2026 | used                         |
-| migration 0102–0119      | Lab Phase 1 (safety floor) and lab phases after it                                                               | `feat/lab-safety-floor`      | 11 Oct 2026 | claimed                      |
-| ADR 0239–0259            | Lab Phase 1 and lab phases after it                                                                              | `feat/lab-safety-floor`      | 11 Oct 2026 | claimed                      |
-| migration 0120–0139      | Pharmacy Phase 0 (0120, 0121) and the pharmacy phases after it                                                   | `feat/pharmacy-front-door`   | 11 Oct 2026 | 0120–0121 used, rest claimed |
-| ADR 0260–0279            | The pharmacy phases after Phase 0                                                                                | `feat/pharmacy-front-door`   | 11 Oct 2026 | claimed                      |
-| ADR 0280                 | Several accounts in one browser                                                                                  | `feat/multi-account`         | 11 Oct 2026 | used                         |
-| migration 0140–0146      | Pharmacy Phase 1 (extends the pharmacy block to 0122–0146)                                                       | `feat/pharmacy-dispensing`   | 11 Oct 2026 | claimed                      |
-| migration 0107–0111      | Lab Phase 2 (catalogue v2, one menu, bedside, NCD feed)                                                          | `feat/lab-one-menu`          | 12 Oct 2026 | used (unapplied)             |
-| ADR 0251–0259            | Lab Phase 2                                                                                                      | `feat/lab-one-menu`          | 12 Oct 2026 | used                         |
-| ADR 0281                 | Pharmacy Phase 1: the CSO signs alone for now                                                                    | `feat/pharmacy-dispensing`   | 13 Oct 2026 | used                         |
-| migration 0136, ADR 0282 | Pharmacy: the national list as the catalogue                                                                     | `feat/pharmacy-dispensing`   | 13 Oct 2026 | used (unapplied)             |
-| migration 0112–0118      | Lab Phase 3 (registers, reports and quality)                                                                     | `feat/lab-quality-registers` | 13 Oct 2026 | used (unapplied)             |
-| migration 0119           | Lab Phase 3 (spare, unused)                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
-| migration 0150–0159      | Lab Phase 3 (spare, unused)                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
-| ADR 0300–0311            | Lab Phase 3                                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | used                         |
-| ADR 0312–0319            | Lab Phase 3 (spare, unused)                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
-| migration 0150–0169      | Lab Phase 4: 0150 to 0153 used, the rest spare                                                                   | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
-| ADR 0312–0329            | Lab Phase 4: 0312 to 0327 used, 0328 and 0329 spare                                                              | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
-| migration 0154–0169      | Lab Phase 5: 0154 to 0157 used; 0158 lab catalogue codes; 0159 to 0169 spare                                     | `feat/lab-beyond-lis`        | 17 Oct 2026 | claimed                      |
-| migration 0171–0172, ADR 0350–0355 | Lab test menu v2 (0171 schema, 0172 catalogue v2 = CFC v1.7)                                    | `feat/lab-test-menu-v2`      | 19 Oct 2026 | used (unapplied)             |
-| ADR 0328–0345            | Lab Phase 5: 0328 to 0339 used; 0340 to 0342 taken by Mobile Tide v1 (`feat/mobile-tide-v1`); 0343 to 0345 spare | `feat/lab-beyond-lis`        | 17 Oct 2026 | claimed                      |
-| migration 0178 | Lab: remove the demo (`lab_demo_remove`); 0174–0177 are taken on other branches | `feat/lab-demo-unload` | 20 Oct 2026 | used (unapplied) |
+| Block                              | Claimed by                                                                                                       | Branch                       | On          | State                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------- | ---------------------------- |
+| migration 0097                     | Lab Phase 0 (lab access sync)                                                                                    | `feat/lab-front-door`        | 10 Oct 2026 | used                         |
+| ADR 0221–0226                      | Lab Phase 0                                                                                                      | `feat/lab-front-door`        | 10 Oct 2026 | used                         |
+| migration 0098–0100                | Pharmacy Phase 0 (access, placement, prescription reads)                                                         | `feat/pharmacy-front-door`   | 10 Oct 2026 | used                         |
+| ADR 0227–0237                      | Pharmacy Phase 0                                                                                                 | `feat/pharmacy-front-door`   | 10 Oct 2026 | used                         |
+| migration 0101                     | Lab: staff keep access to their specimens (hotfix)                                                               | `feat/lab-front-door`        | 11 Oct 2026 | used                         |
+| ADR 0238                           | Lab: the same hotfix                                                                                             | `feat/lab-front-door`        | 11 Oct 2026 | used                         |
+| migration 0102–0119                | Lab Phase 1 (safety floor) and lab phases after it                                                               | `feat/lab-safety-floor`      | 11 Oct 2026 | claimed                      |
+| ADR 0239–0259                      | Lab Phase 1 and lab phases after it                                                                              | `feat/lab-safety-floor`      | 11 Oct 2026 | claimed                      |
+| migration 0120–0139                | Pharmacy Phase 0 (0120, 0121) and the pharmacy phases after it                                                   | `feat/pharmacy-front-door`   | 11 Oct 2026 | 0120–0121 used, rest claimed |
+| ADR 0260–0279                      | The pharmacy phases after Phase 0                                                                                | `feat/pharmacy-front-door`   | 11 Oct 2026 | claimed                      |
+| ADR 0280                           | Several accounts in one browser                                                                                  | `feat/multi-account`         | 11 Oct 2026 | used                         |
+| migration 0140–0146                | Pharmacy Phase 1 (extends the pharmacy block to 0122–0146)                                                       | `feat/pharmacy-dispensing`   | 11 Oct 2026 | claimed                      |
+| migration 0107–0111                | Lab Phase 2 (catalogue v2, one menu, bedside, NCD feed)                                                          | `feat/lab-one-menu`          | 12 Oct 2026 | used (unapplied)             |
+| ADR 0251–0259                      | Lab Phase 2                                                                                                      | `feat/lab-one-menu`          | 12 Oct 2026 | used                         |
+| ADR 0281                           | Pharmacy Phase 1: the CSO signs alone for now                                                                    | `feat/pharmacy-dispensing`   | 13 Oct 2026 | used                         |
+| migration 0136, ADR 0282           | Pharmacy: the national list as the catalogue                                                                     | `feat/pharmacy-dispensing`   | 13 Oct 2026 | used (unapplied)             |
+| migration 0112–0118                | Lab Phase 3 (registers, reports and quality)                                                                     | `feat/lab-quality-registers` | 13 Oct 2026 | used (unapplied)             |
+| migration 0119                     | Lab Phase 3 (spare, unused)                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
+| migration 0150–0159                | Lab Phase 3 (spare, unused)                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
+| ADR 0300–0311                      | Lab Phase 3                                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | used                         |
+| ADR 0312–0319                      | Lab Phase 3 (spare, unused)                                                                                      | `feat/lab-quality-registers` | 13 Oct 2026 | released                     |
+| migration 0150–0169                | Lab Phase 4: 0150 to 0153 used, the rest spare                                                                   | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
+| ADR 0312–0329                      | Lab Phase 4: 0312 to 0327 used, 0328 and 0329 spare                                                              | `feat/lab-connect-outward`   | 17 Oct 2026 | claimed                      |
+| migration 0154–0169                | Lab Phase 5: 0154 to 0157 used; 0158 lab catalogue codes; 0159 to 0169 spare                                     | `feat/lab-beyond-lis`        | 17 Oct 2026 | claimed                      |
+| migration 0171–0172, ADR 0350–0355 | Lab test menu v2 (0171 schema, 0172 catalogue v2 = CFC v1.7)                                                     | `feat/lab-test-menu-v2`      | 19 Oct 2026 | used (unapplied)             |
+| ADR 0328–0345                      | Lab Phase 5: 0328 to 0339 used; 0340 to 0342 taken by Mobile Tide v1 (`feat/mobile-tide-v1`); 0343 to 0345 spare | `feat/lab-beyond-lis`        | 17 Oct 2026 | claimed                      |
+| migration 0178                     | Lab: remove the demo (`lab_demo_remove`); 0174–0177 are taken on other branches                                  | `feat/lab-demo-unload`       | 20 Oct 2026 | used (unapplied)             |
 
 On `origin/main` (cf404abd, 11 Oct 2026) the highest migration is **0121** and the highest ADR **0280**.
 
@@ -48,6 +48,16 @@ unapplied files numbered 0101 and 0102; the pharmacy's became 0120 and 0121. Rel
 `0073-examination-shared-parameter-qc.md` (`origin/feat/exam-consistency-qc` only). Whoever merges that branch
 renumbers its ADR.
 
-| ADR 0360–0366            | Tide everywhere (web migration)                                | `feat/tide-everywhere`       | 21 Oct 2026 | 0360–0361 used               |
-| migration 0180–0204      | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | 0180–0182, 0184 used         |
-| ADR 0370–0384            | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | claimed                      |
+| ADR 0360–0366 | Tide everywhere (web migration) | `feat/tide-everywhere` | 21 Oct 2026 | 0360–0361 used |
+| migration 0180–0204 | Pharmacy Phase 2 (stores, wards and supply) | `feat/pharmacy-stores` | 21 Oct 2026 | 0180–0182, 0184 used |
+| ADR 0370–0384 | Pharmacy Phase 2 (stores, wards and supply) | `feat/pharmacy-stores` | 21 Oct 2026 | claimed |
+| migration 0185–0191 | Patient phone Tide v1 (was 0171–0177 on `feat/mobile-tide-v1`; renumbered at merge, unapplied) | `feat/patient-web-tide` | 25 Oct 2026 | used (unapplied) |
+| ADR 0402–0414 | Patient phone Tide v1 (was 0343–0355 on `feat/mobile-tide-v1`; renumbered at merge) | `feat/patient-web-tide` | 25 Oct 2026 | used |
+| ADR 0415–0424 | Patient web Tide | `feat/patient-web-tide` | 25 Oct 2026 | claimed |
+
+**Resolved 25 Oct 2026:** merging `feat/mobile-tide-v1` into `feat/patient-web-tide` met main's lab migrations 0171–0173
+and lab ADRs 0343–0355. The phone's became migrations 0185–0191 (pharmacy Phase 2, merged, keeps 0192–0204) and ADRs
+0402–0414 (0340–0342 and 0356–0358 keep their numbers). Old → new: 0343→0402 places, 0344→0403 doctors-only times,
+0345→0404 ask for a day, 0346→0405 voice notes, 0347→0406 staff see attachments, 0348→0407 ticket, 0349→0408 turn
+the ticket, 0350→0409 boarding pass, 0351→0410 staff home, 0352→0411 say or photograph, 0353→0412 food list,
+0354→0413 move tracker, 0355→0414 patient-reported history. The reference doc still cites the old numbers.

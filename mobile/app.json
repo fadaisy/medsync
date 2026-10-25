@@ -41,9 +41,28 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "MedSync uses your photo on your patient profile.",
-          "cameraPermission": "MedSync uses your photo on your patient profile.",
-          "microphonePermission": false
+          "photosPermission": "MedSync uses your photos for your profile picture, and to send to your doctor when you ask for a visit.",
+          "cameraPermission": "MedSync uses the camera for your profile picture, for photos or videos you send to your doctor, and to read food barcodes and nutrition labels when you log a meal.",
+          "microphonePermission": "MedSync records sound with a video you send to your doctor."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "MedSync records a voice note when you choose to send one to your doctor.",
+          "speechRecognitionPermission": "MedSync turns your voice note into words on this phone, so your doctor can read it."
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "MedSync counts your steps so you and your care team can see how active you are."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "MedSync records a voice note when you choose to send one to your doctor."
         }
       ],
       [
@@ -56,7 +75,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "MedSync uses your location only to list the nearest hospitals when you ask for emergency help. It stays on your phone unless you choose to share it with a hospital.",
+          "locationWhenInUsePermission": "MedSync uses your location only when you ask: to pin your places on a map, to share your live location for a time you choose, and to list the nearest hospitals when you ask for emergency help. It is not tracked in the background.",
           "isAndroidBackgroundLocationEnabled": false
         }
       ],

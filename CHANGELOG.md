@@ -19,6 +19,52 @@ Strings are a draft (`LAB_TEST_MENU_COPY_STATUS`).
   ([ADR 0354](docs/adr/0354-lab-catalogue-requests.md)); `loinc_codes` a code reference only
   ([ADR 0355](docs/adr/0355-loinc-codes-code-reference-only.md)).
 
+### Changed — "Something is wrong" on the phone, in three steps — 2026-10-19
+
+[ADR 0358](docs/adr/0358-symptom-steps.md) replaces the old symptom catalogue screens with the owner's board D:
+
+- **Tick what fits.** It opens on the body area tapped on Book, and the area chips change it. Emergency signs have their own card and open Help in place, with a call to the hospital. The patient can also write it in their own words.
+- **A few questions.** Each chosen sign's own follow-up questions, then when it started.
+- **What to do.** The catalogue's own tier word, one main door, and what the clinic will see.
+
+### Added — The patient's own conditions, allergies and family history, on the phone and the desk — 2026-10-18
+
+[ADR 0414](docs/adr/0414-patient-reported-history-on-the-phone-and-the-desk.md) adds the following:
+
+- **Picked from the clinician's lists.** Me → My conditions, Allergies and Family history use the signed clerking catalogue's own conditions, allergy picks, reactions, severity and relations. A condition takes a year and "still have it / resolved". "No known allergies" is one tap. Anything else can go in the patient's own words.
+- **Pre-filled on the desk, never confirmed on its own.** The v2 clerking desk shows the rows as "Patient-reported, not yet confirmed" in Conditions, Allergies and Family history. Confirm puts them in the note, or on the allergy record with the patient as source. Dismiss hides them for the visit.
+- **Migration 0189 (owner-applied).** It adds `patient_reported_history`: the patient's own rows, append-only (an edit supersedes, a removal retires), audited, and read by the care team.
+- **A real back for the health card.** It shows the number large, allergies, conditions (only when shown, never private ones), the next of kin on file, and who to call if found. It turns like the visit ticket, so the back is no longer the front mirrored.
+- **Every Me row works.** Language shows the saved preferred language, text size follows the phone, and the privacy row says who sees what.
+
+### Added — Staff see and play what a patient sent with a booking — 2026-10-18
+
+[ADR 0406](docs/adr/0406-staff-see-booking-attachments.md) adds the following:
+
+- **On the patient card.** Reception's Expected page, the doctor's pending and queue rails and the clinician's schedule detail show "Sent 2 photos · 1 voice note · View". The link opens the photos, videos and voice notes in the centred dialog, with links signed for one hour.
+- **Only with the audited name.** The files show only where the patient's name came through the audited reveal, the same rule as the name and photo.
+
+### Changed — Ask for a day: a time wheel, the symptom catalogue, and photos, videos and voice notes — 2026-10-18
+
+[ADR 0404](docs/adr/0404-ask-for-a-day-says-it-or-shows-it.md) changes the following:
+
+- **A time wheel and a countdown.** A doctor's open times are on a scroll wheel. A card beside it counts down to the chosen time, to the second.
+- **The note comes before payment.** "Anything the doctor should know?" uses the symptom catalogue v0.1, by area or by search, in a list about four rows tall that scrolls. Choices go to the clinic as words. A danger sign points to Help, and a "be seen today" item points to today's options.
+- **Photos, videos and voice notes.** A patient can add a voice note, photos from the phone, or a photo or video taken there and then. They send after the request is made. To type by talking, the patient uses the keyboard's microphone.
+- **Migration 0186 (owner-applied).** It adds the private `appointment-attachments` bucket and the append-only `appointment_attachments` table.
+- **Voice notes become words, on the phone** ([ADR 0405](docs/adr/0405-voice-notes-become-words-on-the-phone.md)). In a development build, the on-device recogniser records the note and writes what is said into the note box. Expo Go keeps the keyboard's microphone. `npm start` opens Expo Go, and `npm run start:dev` serves a development build. Migration 0187 lets the bucket take wav.
+- **Voice notes play from the speaker, with a waveform** that moves while recording and fills as the note plays.
+
+### Added — Patient places on a real map, and live location shares — 2026-10-18
+
+[ADR 0402](docs/adr/0402-patient-places-and-live-location-shares.md) adds the following:
+
+- **A real map.** The phone uses a free map (Apple Maps on iPhone, Google Maps on Android) with "Use my location". The phone's own geocoder fills in sign-up's district search and village.
+- **Labelled places.** A patient can save several places, labelled Home, Work or their own word, with one chosen as home. They manage them under Me → My places.
+- **Time-limited live location share.** "Share my live location" lasts 15 minutes, 1 hour or until stopped (at most 8 hours). It can start from Help or from an upcoming visit. Only the latest position is kept.
+- **A private family link.** The patient can send `/share/location/<token>` to family. The page shows the position while the share is live and reveals nothing after it ends.
+- **Migration 0185 (owner-applied).** It adds `patient_places`, `location_shares` and `location_share_view()`. It also copies 0170's single home pin in as a home place.
+
 ### Added — Lab Phase 5: patients see their results, delta checks, the IPC feed — 17 Oct 2026
 
 Built dark on `feat/lab-beyond-lis`, behind `LAB_DELTA_CHECKS`, `IPC_LAB_FEED`, `PATIENT_RESULTS` and

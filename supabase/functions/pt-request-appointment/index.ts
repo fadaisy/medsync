@@ -40,6 +40,7 @@ import { z } from "npm:zod@4.4.3";
 
 import { getCaller, serviceClient } from "../_shared/auth.ts";
 import { beyondHorizonMessage, bookAppointment, bookingResponse } from "../_shared/book.ts";
+import { PATIENT_BOOKING_HORIZON_DAYS } from "../_shared/booking-horizon.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
@@ -75,7 +76,6 @@ const log = makeLogger("pt-request-appointment");
  * ("Choose from the days the clinic has open"), never "the next 2 weeks".
  * Applies to both modes — a session is a day the patient holds too.
  */
-const PATIENT_BOOKING_HORIZON_DAYS = 14;
 
 /** ADR 0088: booking requests per patient per rolling hour before a 429. */
 const RATE_LIMIT_PER_HOUR = 5;

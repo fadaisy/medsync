@@ -1,7 +1,7 @@
 import type { DayMood } from "@/data/mood";
 import type { SaveResult } from "@/offline/outbox";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
 import {
@@ -9,6 +9,7 @@ import {
   Button,
   Cascade,
   CascadeStep,
+  cascadeTone,
   Icon,
   MoodFace,
   Pill,
@@ -16,14 +17,24 @@ import {
   Screen,
   SectionHead,
   Segments,
+  SkeletonCard,
   Toast,
 } from "@/components/tide";
+import { DAY_GOAL, GLASSES, useActivity } from "@/data/activity";
+import { STEP_AIM, stepsOn } from "@/data/exercise";
+import { useHealthLog } from "@/data/health-log";
+import { dayTotals, mealsOn } from "@/data/meals";
 import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { moodRepo, useMood } from "@/data/mood";
 import { useNotifications } from "@/data/notifications";
 import { useReadings, whenWords } from "@/data/readings";
+import { takeFreshSignup } from "@/data/signup";
+import { usePhoneSteps } from "@/features/care-more/use-steps";
 import { Doctors } from "@/features/home/doctors";
+import { HealthCard } from "@/features/home/health-card";
+import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
+import { fetchMyAvatarUrl } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { checkReading, readingValueText } from "@/lib/readings";
 import { useSession } from "@/lib/session";
@@ -43,7 +54,7 @@ const KIND_WORDS = { bp: "Blood pressure", sugar: "Blood sugar", weight: "Weight
 /**
  * Home, your day (F-02). The greeting, today's mood, the day cascade built
  * from the patient's own log (doses taken today, the latest reading, the dose
- * due now on top) and "See a doctor". A patient with nothing logged yet gets
+ * due now on top, today's steps and Move minutes against their common goals, today's meals) and "See a doctor". A patient with nothing logged yet gets
  * one calm card that starts them off. Home also starts the outbox, so saves
  * made offline send once the phone is back.
  */
@@ -53,10 +64,20 @@ export default function HomeScreen() {
   const now = useNow();
   const { session } = useSession();
   const med = useMedicines(now);
+  const act = useActivity(now);
+  const log = useHealthLog();
+  // ponytail: a second counter while Move and eat is open too; each writes only a day's growth, so at worst an extra row.
+  const phoneSteps = usePhoneSteps(log.rows, now);
   const { readings, loading: readingsLoading, error: readingsError, retry } = useReadings();
   const { unread } = useNotifications();
+  const shareShown = useShareBannerShown();
   const [toast, setToast] = useState<{ text: string; undo?: () => void } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Straight after sign-up, once: the details the welcome screen promised.
+  useEffect(() => {
+    if (takeFreshSignup()) router.push({ pathname: "/profile/details", params: { welcome: "1" } });
+  }, [router]);
 
   useEffect(() => {
     track("home_rendered", { ms: sinceBoot() });
@@ -76,15 +97,40 @@ export default function HomeScreen() {
   const first =
     typeof fullName === "string" && fullName.trim() ? fullName.trim().split(/\s+/)[0] : "there";
   const initials = first === "there" ? "·" : first.slice(0, 2).toUpperCase();
+  // The photo the patient set on Me, read again whenever Home comes back into view.
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      void fetchMyAvatarUrl().then(setAvatarUrl, () => {});
+    }, []),
+  );
 
   const { doses, dueNow } = med;
   const due = dueNow[0];
   const takenToday = doses.filter((d) => d.status === "taken");
   const next = doses.find((d) => d.status === "later");
   const latest = readings[0];
-  const loading = (med.loading || readingsLoading) && !doses.length && !latest;
+  const loading = (med.loading || readingsLoading || act.loading) && !doses.length && !latest;
   const failed = (med.error || readingsError) && !doses.length && !latest;
-  const firstRun = !loading && !failed && !med.medicines.length && !readings.length;
+  const meals = mealsOn(log.rows, now);
+  const eaten = dayTotals(meals);
+  const firstRun =
+    !loading &&
+    !failed &&
+    !med.medicines.length &&
+    !readings.length &&
+    !act.minutesToday &&
+    !act.water &&
+    !meals.length;
+  const moved = act.minutesToday;
+  // As on Move: the phone's count, or the day's saved total if that is higher.
+  const stepsToday =
+    phoneSteps.status === "on" ? Math.max(phoneSteps.today, stepsOn(log.rows, [now])[0]) : null;
+  const minutesLine = !moved
+    ? "No active minutes logged yet today"
+    : moved >= DAY_GOAL
+      ? "Today's active minutes goal reached"
+      : `${moved} of ${DAY_GOAL} active minutes today`;
 
   const steps = [
     ...takenToday.slice(-2).map((d) => ({
@@ -107,8 +153,51 @@ export default function HomeScreen() {
           },
         ]
       : []),
+    {
+      key: "move",
+      icon: "walk" as const,
+      title:
+        stepsToday !== null
+          ? `Move · ${stepsToday.toLocaleString("en-GB")} of ${STEP_AIM.toLocaleString("en-GB")} steps`
+          : `Move · ${moved} of ${DAY_GOAL} minutes`,
+      line:
+        stepsToday !== null
+          ? minutesLine
+          : !moved
+            ? "Nothing logged yet today"
+            : moved >= DAY_GOAL
+              ? "Today's goal reached"
+              : `${DAY_GOAL - moved} minutes to go today`,
+      done: stepsToday !== null ? stepsToday >= STEP_AIM || moved >= DAY_GOAL : moved >= DAY_GOAL,
+      href: "/care/activity" as const,
+    },
+    {
+      key: "eat",
+      icon: "utensils" as const,
+      title: meals.length ? `Eat · ${eaten.kcal} kcal today` : "Eat · nothing logged yet",
+      line: meals.length
+        ? `${meals.length} ${meals.length === 1 ? "food" : "foods"} · ${Math.round(eaten.carbsG)} g carbs`
+        : "Tap to add what you eat",
+      // No calorie goal is set for anyone, so a day of meals is never "done".
+      done: false,
+      href: { pathname: "/care/activity", params: { tab: "eat" } } as const,
+    },
+    {
+      key: "water",
+      icon: "droplet" as const,
+      title: `Water · ${act.water} of ${GLASSES} glasses`,
+      line: !act.water
+        ? "Tap to log a glass"
+        : act.water >= GLASSES
+          ? "Today's glasses done"
+          : `${GLASSES - act.water} more to go today`,
+      done: act.water >= GLASSES,
+      href: { pathname: "/care/activity", params: { tab: "eat" } } as const,
+    },
   ];
-  const tail = due || next;
+  // Only Move, Eat and Water: nothing taken or read yet today.
+  const quietDay = !takenToday.length && !latest;
+  const tail = due || next || quietDay;
 
   const take = async (id: string) => {
     const result: SaveResult = await medicinesRepo.take(id, now);
@@ -125,9 +214,11 @@ export default function HomeScreen() {
         help="pill"
         helpSource="home"
         bell={unread || true}
+        // Room between the greeting and Today / This week.
+        contentStyle={{ paddingTop: tSpace[5] }}
         header={
           <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[2.5] }}>
-            <Avatar initials={initials} size={44} />
+            <Avatar initials={initials} photoUrl={avatarUrl} size={44} />
             <View>
               <Text style={[tType.bodyS, { color: t.ink2 }]}>Hello,</Text>
               <Text style={[tType.heading, { fontSize: 18, color: t.ink }]}>{first}</Text>
@@ -135,6 +226,8 @@ export default function HomeScreen() {
           </View>
         }
       >
+        {shareShown ? <ActiveShareBanner /> : null}
+
         <Segments
           tone="accent"
           options={[
@@ -149,10 +242,16 @@ export default function HomeScreen() {
 
         <MoodCard now={now} onSaved={(text) => showToast({ text })} />
 
+        <HealthCard />
+
         <View style={{ gap: tSpace[3] }}>
           <SectionHead title="Here is your day" />
           {loading ? (
-            <Text style={[tType.bodyM, { color: t.ink2 }]}>Loading your day…</Text>
+            <View style={{ gap: tSpace[2.5] }}>
+              <SkeletonCard label="Loading your day" lines={1} />
+              <SkeletonCard label="" lines={1} />
+              <SkeletonCard label="" lines={1} />
+            </View>
           ) : failed ? (
             <View style={{ gap: tSpace[2], alignItems: "flex-start" }}>
               <Text style={[tType.bodyM, { color: t.ink2 }]}>Couldn&apos;t load your day.</Text>
@@ -176,7 +275,7 @@ export default function HomeScreen() {
               {steps.map((s, i) => (
                 <CascadeStep
                   key={s.key}
-                  step={Math.min(i, 2) as 0 | 1 | 2}
+                  step={cascadeTone(i)}
                   icon={s.icon}
                   title={s.title}
                   line={s.line}
@@ -203,7 +302,7 @@ export default function HomeScreen() {
                   title={`${SLOT_WORDS[next.slot]} medicine`}
                   line={`Next · ${next.time} · ${next.medicine}`}
                 />
-              ) : !steps.length ? (
+              ) : quietDay ? (
                 <DoneCard
                   upcoming
                   title="Nothing due right now"

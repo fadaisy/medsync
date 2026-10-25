@@ -68,6 +68,12 @@ export const env = createEnv({
      */
     USSD_WEBHOOK_SECRET: z.string().min(16, "USSD_WEBHOOK_SECRET should be ≥ 16 chars.").optional(),
     AT_CALLBACK_IPS: z.string().optional(),
+    /**
+     * ADR 0411. Reads the numbers off a photo of a home BP monitor, sugar meter
+     * or scale for the phone's "Log a reading". Optional: without it the photo
+     * button says it is not switched on, and typing and voice still work.
+     */
+    ANTHROPIC_API_KEY: z.string().min(20).optional(),
 
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   },
@@ -94,6 +100,7 @@ export const env = createEnv({
     AFRICASTALKING_SENDER_ID: process.env.AFRICASTALKING_SENDER_ID,
     CRON_SECRET: process.env.CRON_SECRET,
     EXPO_PUSH_ACCESS_TOKEN: process.env.EXPO_PUSH_ACCESS_TOKEN,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     SMS_WEBHOOK_SECRET: process.env.SMS_WEBHOOK_SECRET,
     USSD_WEBHOOK_SECRET: process.env.USSD_WEBHOOK_SECRET,
     AT_CALLBACK_IPS: process.env.AT_CALLBACK_IPS,

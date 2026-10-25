@@ -12,9 +12,10 @@ import { addLog, dayKey, lastDays, latestByDay, useHealthLog } from "@/data/heal
  *              web shows "5 glasses" for it.
  * - activity → kind 'activity', unit 'min': one row per walk the patient
  *              logs, summed per day.
- * The phone has no step counter and no meal log, so neither is shown.
+ * Meals are their own kind, in `meals.ts` (ADR 0356).
  */
-export const ACTIVITY_NOTE = "Only you can see what you log here.";
+/** The care team reads what the patient logs (migration 0188, ADR 0413). */
+export const ACTIVITY_NOTE = "You and your care team can see what you log here.";
 
 /** Illustration colours for the plate guide and the water glasses: art, not UI. */
 export const PLATE_ART = {
@@ -71,7 +72,8 @@ export function waterOn(rows: LogRow[], day: Date): number {
 export function minutesOn(rows: LogRow[], days: Date[]): number[] {
   const sums = new Map<string, number>();
   for (const r of rows)
-    if (r.kind === "activity" && r.v1 !== null) {
+    // Quick walks ('activity') and logged or timed activities ('exercise', ADR 0413) both count.
+    if ((r.kind === "activity" || r.kind === "exercise") && r.v1 !== null) {
       const k = dayKey(new Date(r.recordedAt));
       sums.set(k, (sums.get(k) ?? 0) + r.v1);
     }
@@ -85,6 +87,10 @@ export const activityRepo = {
   },
   logWalk(minutes: number): Promise<SaveResult> {
     return addLog({ kind: "activity", v1: minutes, unit: "min" });
+  },
+  /** One activity: minutes, about how much energy (or null), and what it was (`exerciseUnit`). */
+  logExercise(unit: string, minutes: number, kcal: number | null): Promise<SaveResult> {
+    return addLog({ kind: "exercise", v1: minutes, v2: kcal, unit });
   },
 };
 

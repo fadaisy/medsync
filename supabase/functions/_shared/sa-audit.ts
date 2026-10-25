@@ -225,6 +225,8 @@ export type SaAuditTargetKind =
   | "emergency_contact"
   | "patient_symptom_catalog_version";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function recordSaAudit(params: {
   actorId: string;
   action: SaAuditAction;
@@ -244,7 +246,9 @@ export async function recordSaAudit(params: {
     target_kind: params.targetKind,
     target_id: params.targetId,
     reason: params.reason,
-    request_id: params.requestId ?? null,
+    // The column is a uuid: a client's correlation id in another shape (the phone sent
+    // `mob-…` until 19 Oct 2026) must not fail the audit, and so the action, for a log key.
+    request_id: params.requestId && UUID.test(params.requestId) ? params.requestId : null,
     ip_address: params.ipAddress ?? null,
     user_agent: params.userAgent ?? null,
     before_data: params.beforeData ?? null,
