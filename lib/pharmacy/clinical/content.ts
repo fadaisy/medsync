@@ -16,8 +16,28 @@ export const PACKS = [
   "aware_pack",
   "review_settings",
   "reaction_timelines",
+  "reconciliation_rules",
 ] as const;
 export type Pack = (typeof PACKS)[number];
+
+/** MR-3: the discrepancy rules of 5.7, R1 to R14. */
+export const RULES = [
+  "R1",
+  "R2",
+  "R3",
+  "R4",
+  "R5",
+  "R6",
+  "R7",
+  "R8",
+  "R9",
+  "R10",
+  "R11",
+  "R12",
+  "R13",
+  "R14",
+] as const;
+export type Rule = (typeof RULES)[number];
 
 export const SEVERITIES = ["contraindicated", "serious", "monitor"] as const;
 export type Severity = (typeof SEVERITIES)[number];
@@ -107,6 +127,11 @@ export const PAYLOADS = {
       .min(1)
       .max(24 * 30),
     otherDays: z.number().int().min(1).max(365),
+  }),
+  /** MR-3: which discrepancy rules are on, and the reasons a pharmacist may give to explain one. */
+  reconciliation_rules: z.object({
+    on: z.array(z.enum(RULES)).max(RULES.length),
+    explainReasons: z.array(z.string().trim().min(2).max(160)).min(1).max(30),
   }),
 } satisfies Record<Pack, z.ZodType>;
 

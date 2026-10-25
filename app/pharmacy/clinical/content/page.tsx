@@ -9,6 +9,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
 import { CLINICAL_UI } from "@/content/pharmacy-clinical";
+import { PACK_LABEL } from "@/content/pharmacy-reconciliation";
 import { db } from "@/db";
 import { pharmacyContentEntries } from "@/db/schema/pharmacy-clinical";
 import { asClinicalReader } from "@/lib/emr/db";
@@ -33,6 +34,7 @@ export const metadata: Metadata = { title: "Clinical content · Pharmacy" };
 export const dynamic = "force-dynamic";
 
 const EDITABLE: readonly Pack[] = [
+  "reconciliation_rules",
   "review_settings",
   "reaction_timelines",
   "interaction_pair",
@@ -108,7 +110,7 @@ export default async function ClinicalContentPage() {
           <section key={pack} aria-labelledby={`pack-${pack}`} className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id={`pack-${pack}`} className="text-heading-s">
-                {CLINICAL_UI.packs[pack]}
+                {PACK_LABEL[pack]}
               </h2>
               <span className="text-body-s text-muted-foreground">
                 {CLINICAL_UI.inForce(inForce)} · {CLINICAL_UI.drafts(waiting)}
@@ -131,7 +133,7 @@ export default async function ClinicalContentPage() {
                 <table className="text-body-s w-full">
                   <thead className="text-muted-foreground text-left">
                     <tr>
-                      <th className="p-2 font-medium">{CLINICAL_UI.packs[pack]}</th>
+                      <th className="p-2 font-medium">{PACK_LABEL[pack]}</th>
                       <th className="p-2 font-medium">{CLINICAL_UI.fields.source}</th>
                       <th className="p-2 font-medium">Status</th>
                       <th className="p-2 font-medium">

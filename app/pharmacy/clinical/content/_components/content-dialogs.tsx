@@ -8,7 +8,8 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CLINICAL_UI } from "@/content/pharmacy-clinical";
-import { LEVELS, SEVERITIES } from "@/lib/pharmacy/clinical/content";
+import { PACK_LABEL, RECON_UI } from "@/content/pharmacy-reconciliation";
+import { LEVELS, RULES, SEVERITIES } from "@/lib/pharmacy/clinical/content";
 import { AttestBox } from "../../../store/_components/supply-kit";
 import {
   Field,
@@ -130,7 +131,7 @@ export function EditDialog({
   return (
     <StoreDialog
       label={label}
-      title={U.editTitle(entryKey ?? U.packs[pack])}
+      title={U.editTitle(entryKey ?? PACK_LABEL[pack])}
       description={U.reference}
       submit={U.saveDraft}
       width="wide"
@@ -169,13 +170,21 @@ export function EditDialog({
                   }
                 : pack === "reaction_timelines"
                   ? { seriousHours: num(d, "seriousHours"), otherDays: num(d, "otherDays") }
-                  : pack === "lookback_windows"
+                  : pack === "reconciliation_rules"
                     ? {
-                        chartedHours: num(d, "chartedHours"),
-                        suppliedDays: num(d, "suppliedDays"),
-                        suppliedDaysByMedicine: {},
+                        on: d.getAll("on").map(String),
+                        explainReasons: str(d, "explainReasons")
+                          .split("\n")
+                          .map((x) => x.trim())
+                          .filter(Boolean),
                       }
-                    : { minimum: num(d, "minimum") };
+                    : pack === "lookback_windows"
+                      ? {
+                          chartedHours: num(d, "chartedHours"),
+                          suppliedDays: num(d, "suppliedDays"),
+                          suppliedDaysByMedicine: {},
+                        }
+                      : { minimum: num(d, "minimum") };
         const key =
           pack === "interaction_pair" ? [str(d, "a"), str(d, "b")].sort().join("+") : pack;
         return saveContentDraft({
@@ -290,6 +299,32 @@ export function EditDialog({
               inputMode="numeric"
               defaultValue={(p.noCultureWindowHours as number) ?? ""}
               className={TARGET}
+            />
+          </Field>
+        </div>
+      ) : pack === "reconciliation_rules" ? (
+        <div className="flex flex-col gap-3">
+          <fieldset className="flex flex-col gap-1">
+            <legend className="text-body-s mb-1">{RECON_UI.rulesOn}</legend>
+            {RULES.map((r) => (
+              <label key={r} className="text-body-s flex min-h-11 items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="on"
+                  value={r}
+                  defaultChecked={((p.on as string[] | undefined) ?? []).includes(r)}
+                />
+                {r}: {RECON_UI.rules[r]}
+              </label>
+            ))}
+          </fieldset>
+          <Field label={RECON_UI.explainReasons} id="explainReasons">
+            <textarea
+              id="explainReasons"
+              name="explainReasons"
+              rows={4}
+              defaultValue={((p.explainReasons as string[] | undefined) ?? []).join("\n")}
+              className={SELECT}
             />
           </Field>
         </div>

@@ -1,6 +1,7 @@
 import { PHARMACY_PHASE1_COPY, PHARMACY_SIGNED_COPY } from "@/content/pharmacy";
 import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
 import { PHARMACY_CLINICAL_COPY } from "@/content/pharmacy-clinical";
+import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
@@ -106,8 +107,18 @@ export const pharmacyStewardshipLiveFor = (h: string) =>
   clinical(process.env.PHARMACY_STEWARDSHIP, h, "pharmacy_stewardship");
 export const pharmacyReactionsLiveFor = (h: string) =>
   clinical(process.env.PHARMACY_REACTIONS, h, "pharmacy_reactions");
+/** Step 9: also off in production while its own wording (the patient's sheet among it) is draft. */
+export const pharmacyReconciliationLiveFor = (h: string) =>
+  clinical(process.env.PHARMACY_RECONCILIATION, h, "pharmacy_reconciliation") &&
+  workspaceLiveFor(
+    process.env.PHARMACY_RECONCILIATION,
+    h,
+    [PHARMACY_RECONCILIATION_COPY],
+    "pharmacy_reconciliation",
+  );
 /** Clinical content shows when any Phase 3 flag is on (5.1). */
 export const anyClinicalLiveFor = (h: string) =>
+  pharmacyReconciliationLiveFor(h) ||
   pharmacyInteractionsLiveFor(h) ||
   pharmacyInterventionReviewLiveFor(h) ||
   pharmacyStewardshipLiveFor(h) ||

@@ -5,9 +5,12 @@
 import type { Actor, Lane, Pg } from "./_pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { factsFor } from "@/lib/pharmacy/clinical/reconciliation-read";
 import {
   bootLane,
   department,
+  drizzleFor,
+  encounter,
   hospital,
   laneOn,
   patient,
@@ -214,4 +217,62 @@ describe.skipIf(!laneOn)("Pharmacy Phase 3 data layer (0210)", () => {
        VALUES ($1, $2, $2, 1, '{}'::jsonb, 'Fixture source', 'draft', $3)`,
       [f.h, pack, f.pharmacist],
     );
+
+  it("0212: one reconciliation per admission; a confirmation carries its list; a close needs a reason; append-only", async () => {
+    const pt = await patient(pg);
+    const dept = await department(pg, f.h, "Ward dept");
+    const ward = (
+      await one(
+        `INSERT INTO public.hospital_wards (hospital_id, department_id, name, slug) VALUES ($1, $2, 'Ward R', 'ward-r') RETURNING id`,
+        [f.h, dept],
+      )
+    ).id;
+    const src = await encounter(pg, {
+      hospitalId: f.h,
+      patientUserId: pt,
+      clinicianUserId: f.doctor,
+    });
+    const adm = (
+      await one(
+        `INSERT INTO public.admissions (hospital_id, patient_user_id, source_encounter_id, ward_id, decided_by)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [f.h, pt, src, ward, f.doctor],
+      )
+    ).id;
+    const rec = (
+      await one(
+        `INSERT INTO public.pharmacy_reconciliations (hospital_id, patient_user_id, admission_id, opened_by)
+         VALUES ($1, $2, $3, $4) RETURNING id`,
+        [f.h, pt, adm, f.doctor],
+      )
+    ).id;
+    expect(
+      await err(
+        `INSERT INTO public.pharmacy_reconciliations (hospital_id, patient_user_id, admission_id, opened_by) VALUES ($1, $2, $3, $4)`,
+        [f.h, pt, adm, f.doctor],
+      ),
+    ).toMatch(/unique|duplicate/i);
+    const ev = (kind: string, extra = "", vals: unknown[] = []) =>
+      err(
+        `INSERT INTO public.pharmacy_reconciliation_events (reconciliation_id, hospital_id, kind, actor_user_id${extra})
+         VALUES ($1, $2, $3, $4${vals.map((_, i) => `, $${i + 5}`).join("")})`,
+        [rec, f.h, kind, f.pharmacist, ...vals],
+      );
+    expect(await ev("confirmed")).toMatch(/prce_confirmed/);
+    expect(await ev("confirmed", ", snapshot", ['[{"key":"a"}]'])).toBe("ran");
+    expect(await ev("closed", ", reason", ["other"])).toMatch(/prce_closed/);
+    expect(await ev("closed", ", reason, note", ["other", "Patient phoned"])).toBe("ran");
+    expect(
+      await err(
+        `INSERT INTO public.pharmacy_reconciliation_decisions (reconciliation_id, hospital_id, row_key, decision, decided_by)
+         VALUES ($1, $2, 'med_a', 'guess', $3)`,
+        [rec, f.h, f.doctor],
+      ),
+    ).not.toBe("ran");
+    expect(await err(`DELETE FROM public.pharmacy_reconciliation_events`)).not.toBe("ran");
+    expect(await entryPack("reconciliation_rules")).toBe("ran");
+    const read = await factsFor(await drizzleFor(pg), f.h, rec, new Date());
+    expect(read?.state).toBe("closed");
+    expect(read?.facts.before).toEqual([]);
+  });
 });

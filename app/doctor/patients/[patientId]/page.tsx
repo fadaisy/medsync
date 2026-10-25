@@ -23,6 +23,7 @@ import { isOperator } from "@/lib/lab/bedside-store";
 import { openAlertsForPatient } from "@/lib/lab/criticals/read";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
 import { labBedsideLiveFor } from "@/lib/lab/feature";
+import { pharmacyReconciliationLiveFor } from "@/lib/pharmacy/feature";
 import { ChartCriticals } from "../../_components/critical-alerts";
 
 export const metadata: Metadata = { title: "Patient · Doctor · MedSync" };
@@ -68,6 +69,15 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
       <>
         <ChartCriticals alerts={open} />
         <EmrChart chart={chart} surface="doctor" />
+        {pharmacyReconciliationLiveFor(scope.hospitalId) ? (
+          <div className="mx-auto w-full max-w-[1200px] px-4 pb-2 md:px-8">
+            <Link href={`/doctor/patients/${chart.patientUserId}/home-medicines`}>
+              <Button type="button" variant="secondary" className="tap">
+                Medicines for home
+              </Button>
+            </Link>
+          </div>
+        ) : null}
         {bedside ? (
           <div className="mx-auto w-full max-w-[1200px] px-4 pb-4 md:px-8">
             <Link href={`/doctor/patients/${chart.patientUserId}/bedside`}>
@@ -120,6 +130,14 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
         >
           Prescribe / order
         </Link>
+        {pharmacyReconciliationLiveFor(scope.hospitalId) ? (
+          <Link
+            href={`/doctor/patients/${summary.patientUserId}/home-medicines`}
+            className="border-border bg-card hover:bg-muted/30 tap inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-medium transition-colors"
+          >
+            Medicines for home
+          </Link>
+        ) : null}
       </div>
 
       {/* Header — name + identity strip */}

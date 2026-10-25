@@ -11,6 +11,7 @@ import {
   ClockIcon,
   FileDownIcon,
   HourglassIcon,
+  ListChecksIcon,
   ListIcon,
   LockKeyholeIcon,
   MapPinIcon,
@@ -59,6 +60,7 @@ const ICON = {
   clinicalContent: BookCheckIcon,
   stewardship: PillIcon,
   reactions: TriangleAlertIcon,
+  reconciliation: ListChecksIcon,
 } as const;
 
 export interface PharmacyNavEntry {

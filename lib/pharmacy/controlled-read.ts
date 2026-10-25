@@ -23,7 +23,11 @@ import {
 import { prescriptions } from "@/db/schema/prescribing";
 import { cadres } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
-import { PHARMACY_PERMISSIONS, pharmacyDispensingAccess } from "@/lib/pharmacy/access";
+import {
+  dispensingMap,
+  PHARMACY_PERMISSIONS,
+  pharmacyDispensingAccess,
+} from "@/lib/pharmacy/access";
 import {
   controlledClasses,
   PROPOSED_WITNESS_LIST,
@@ -144,7 +148,9 @@ export async function witnessCandidates(
     if (seen.has(r.userId)) return [];
     seen.add(r.userId);
     const ok = witnessAllowed({
-      witnessPermissions: [...pharmacyDispensingAccess(r.code).permissions],
+      witnessPermissions: [
+        ...pharmacyDispensingAccess(r.code, dispensingMap(undefined, hospitalId)).permissions,
+      ],
       signedWitnessList: list,
       witnessUserId: r.userId,
       actorUserId,
