@@ -66,8 +66,15 @@ export const PHARMACY_MAP_V2: PermissionMap = MAP_V2;
  * question 1 has an interim answer on record (D-PH1-03), so production keeps version 1 — the same
  * production gate as Phase 0's wording (CS-5). Phase 0's own paths keep `pharmacyAccess` and v1.
  */
-export function dispensingMap(env: string | undefined = process.env.VERCEL_ENV): PermissionMap {
-  return env === "production" ? PERMISSION_MAP : PHARMACY_MAP_V2;
+export function dispensingMap(
+  env: string | undefined = process.env.VERCEL_ENV,
+  hospitalId: string | null = null,
+  devHospitals: string | undefined = process.env.PHARMACY_DEV_HOSPITALS,
+): PermissionMap {
+  if (env !== "production") return PHARMACY_MAP_V2;
+  // ADR 0394: the owner's development override, not a legal answer. Only hospital ids named one by one; no "all".
+  const dev = (devHospitals ?? "").split(",").map((x) => x.trim());
+  return hospitalId && dev.includes(hospitalId) ? PHARMACY_MAP_V2 : PERMISSION_MAP;
 }
 
 export function pharmacyDispensingAccess(

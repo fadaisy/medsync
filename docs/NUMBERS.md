@@ -52,4 +52,4 @@ renumbers its ADR.
 | migration 0180–0204      | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | 0180–0182, 0184 used         |
 | ADR 0370–0384            | Pharmacy Phase 2 (stores, wards and supply)                    | `feat/pharmacy-stores`       | 21 Oct 2026 | claimed                      |
 | migration 0210–0229      | Pharmacy Phase 3 (clinical pharmacy and stewardship)           | `feat/pharmacy-clinical`     | 25 Oct 2026 | 0210 used                    |
-| ADR 0390–0401            | Pharmacy Phase 3 (clinical pharmacy and stewardship)           | `feat/pharmacy-clinical`     | 25 Oct 2026 | claimed (0390–0393 used)     |
+| ADR 0390–0401            | Pharmacy Phase 3 (clinical pharmacy and stewardship)           | `feat/pharmacy-clinical`     | 25 Oct 2026 | claimed (0390–0394 used)     |
