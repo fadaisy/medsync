@@ -104,10 +104,11 @@ export function checkInteractions(input: InteractionInput): Fired[] {
         .filter(
           (a) =>
             a.key === e.key &&
-            input.now.getTime() - a.answeredAt.getTime() <=
+            input.now.getTime() - new Date(a.answeredAt).getTime() <=
               input.levels!.suppressionDays * 86_400_000,
         )
-        .sort((x, y) => y.answeredAt.getTime() - x.answeredAt.getTime())[0] ?? null;
+        .sort((x, y) => new Date(y.answeredAt).getTime() - new Date(x.answeredAt).getTime())[0] ??
+      null;
     if (suppressedBy) level = "note";
     const cur = adding.has(other) ? null : current.get(other)!;
     fired.push({

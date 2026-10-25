@@ -449,6 +449,7 @@ export function PlanPrescribeDialog({
     cosign: drug?.flags.controlled ? v.payload.cosign.controlled : v.payload.cosign.routine,
     pharmacy: pharmacyAvailability(drug?.id ?? ""),
     stock: drug ? (lines[drug.id] ?? null) : null,
+    interactions: v.payload.interactions ?? null,
   };
   const stockLine = drug && stockAt ? (lines[drug.id] ?? null) : null;
   // D-PH1-22: "Pick something else" answers nothing; it goes back to choosing.

@@ -14,9 +14,20 @@
 import type { PharmacyAvailability, StockLine } from "./pharmacy";
 import type { PlanRx } from "./plan-rx";
 import type { Drug } from "./reference/formulary-types";
+import type { Fired } from "@/lib/pharmacy/clinical/interactions";
+import type { InteractionContext } from "@/lib/pharmacy/clinical/read";
 
+import { CLINICAL_B, firedLine } from "@/content/pharmacy-clinical";
+import { checkInteractions } from "@/lib/pharmacy/clinical/interactions";
 import { PAEDIATRIC_AGE_THRESHOLD, runSafetyChecks } from "./engine";
-import { allergyGroupName, classById, emergencyOriginOf, isFluid, regimenById } from "./formulary";
+import {
+  allergyGroupName,
+  classById,
+  drugById,
+  emergencyOriginOf,
+  isFluid,
+  regimenById,
+} from "./formulary";
 import { stockLineWords } from "./pharmacy";
 import { CHECK_REASONS, OVERRIDE_REASONS, STOCK_REASONS } from "./plan-rx";
 import { getEmergencyDrug } from "./reference/emergency-drug-catalog";
@@ -58,6 +69,8 @@ export interface PlanCheck {
   overrideable: boolean;
   /** The dose is dangerously far out: the prescriber types it to confirm. */
   egregious?: boolean;
+  /** IX-5: the signed entries this interaction check answers (id, key, version), stored with the answer. */
+  entries?: { id: string; key: string; version: number }[];
 }
 
 export const OUTCOME_WORD: Record<PlanCheckOutcome, string> = {
@@ -104,6 +117,8 @@ export interface PlanCheckContext {
   pharmacy: PharmacyAvailability;
   /** Pharmacy Phase 1 (5.10): the real answer, behind `pharmacyStockAnswer`; absent → `pharmacy` as before. */
   stock?: StockLine | null;
+  /** Pharmacy Phase 3 (5.3): the signed pairs and the patient's current medicines, behind `pharmacyInteractions`. */
+  interactions?: InteractionContext | null;
 }
 
 /** Hypoglycaemia threshold (JBDS-IP 2023, signed in the emergency formulary: "CBG < 4.0 mmol/L"). */
@@ -390,6 +405,62 @@ function childCheck(drug: Drug, rx: PlanRx, ctx: PlanCheckContext, fromEngine: b
 }
 
 /** All checks for one prescription, most severe first. */
+/**
+ * Pharmacy Phase 3 (5.3, IX-1 to IX-8): one check row for every signed pair that fires for this medicine, at the
+ * highest signed level; answered once, the answer stored with each entry (IX-5). With the flag off, or nothing in
+ * force, the baseline line stays (S23).
+ */
+function interactionCheck(drug: Drug, ctx: PlanCheckContext): PlanCheck {
+  const base = {
+    code: "interactions" as const,
+    title: "Interactions",
+    proposed: false,
+    overrideable: true,
+  };
+  const ix = ctx.interactions;
+  if (!ix || !ix.pairs)
+    return {
+      ...base,
+      proposed: true,
+      outcome: "not_checked",
+      message: "Interactions are not checked until an interaction reference is signed.",
+    };
+  if (!ix.levels) return { ...base, outcome: "not_checked", message: CLINICAL_B.levelsUnsigned };
+  const others = ctx.others
+    .filter((o) => o.drugId && o.drugId !== drug.id)
+    .map((o) => ({ medicineId: o.drugId!, source: "active_line" as const, since: new Date(0) }));
+  const fired = checkInteractions({
+    entries: ix.entries,
+    levels: ix.levels,
+    current: [...ix.current, ...others],
+    adding: [drug.id],
+    mode: "dialog",
+    earlier: ix.earlier,
+    now: new Date(),
+  });
+  // Law 4: "no alert" is a Note that says how little is checked, never "Passed".
+  if (!fired.length)
+    return { ...base, outcome: "note", message: CLINICAL_B.dialogNothingFired(ix.pairs) };
+  const top = fired[0]!.level;
+  return {
+    ...base,
+    outcome: top,
+    message: fired.map(firedWords).join(" "),
+    entries: fired.map((f) => ({ id: f.entryId, key: f.key, version: f.version })),
+  };
+}
+
+const nameOf = (id: string) =>
+  id === "restricted" ? "a medicine in a restricted class" : (drugById(id)?.generic ?? id);
+const firedWords = (f: Fired) =>
+  f.suppressedBy
+    ? CLINICAL_B.suppressed(
+        new Date(f.suppressedBy.answeredAt).toISOString().slice(0, 10),
+        f.suppressedBy.cadre,
+        f.suppressedBy.reason,
+      )
+    : firedLine({ ...f, adding: nameOf(f.adding), other: nameOf(f.other) });
+
 export function planChecks(drug: Drug, rx: PlanRx, ctx: PlanCheckContext): PlanCheck[] {
   const out: PlanCheck[] = [];
   const origin = emergencyOriginOf(drug.id);
@@ -496,14 +567,7 @@ export function planChecks(drug: Drug, rx: PlanRx, ctx: PlanCheckContext): PlanC
   if (!isFluid(drug) || rx.kind === "drug") out.push(duplicateCheck(drug, ctx));
   out.push(indicationCheck(drug, rx, ctx));
   out.push(culturesCheck(drug, ctx));
-  out.push({
-    code: "interactions",
-    outcome: "not_checked",
-    title: "Interactions",
-    message: "Interactions are not checked until an interaction reference is signed.",
-    proposed: true,
-    overrideable: true,
-  });
+  out.push(interactionCheck(drug, ctx));
   out.push(stockCheck(ctx));
   out.push(cosignCheck(drug, ctx));
   out.push(
