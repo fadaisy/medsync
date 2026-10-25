@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 /**
  * Pharmacy Phase 3, first merge (migration 0210, GATED; GATE A signed 25 Oct 2026). The SQL is the source of truth:
@@ -59,4 +59,71 @@ export const pharmacyQueryPcne = pgTable("pharmacy_query_pcne", {
   mapEntryId: uuid("map_entry_id").notNull(),
   coderUserId: uuid("coder_user_id").notNull(),
   codedAt: timestamp("coded_at", tz).notNull().defaultNow(),
+});
+
+/* ─── 0211: stewardship reviews and suspected reactions ─────────────── */
+
+export const pharmacyAmsReviews = pgTable("pharmacy_ams_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  patientUserId: uuid("patient_user_id").notNull(),
+  prescriptionId: uuid("prescription_id").notNull(),
+  answer: text("answer").$type<"continue" | "change" | "switch_oral" | "stop">().notNull(),
+  stopDate: date("stop_date"),
+  reason: text("reason"),
+  queryId: uuid("query_id"),
+  actorUserId: uuid("actor_user_id").notNull(),
+  actorCadre: text("actor_cadre"),
+  reviewedAt: timestamp("reviewed_at", tz).notNull().defaultNow(),
+});
+
+export const pharmacyReactionReports = pgTable("pharmacy_reaction_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  patientUserId: uuid("patient_user_id").notNull(),
+  reference: text("reference").notNull(),
+  kind: text("kind").notNull(),
+  reactionText: text("reaction_text").notNull(),
+  manifestation: text("manifestation"),
+  startedOn: date("started_on"),
+  seriousness: text("seriousness").array().notNull(),
+  outcome: text("outcome").notNull(),
+  actionTaken: text("action_taken").notNull(),
+  rechallenge: text("rechallenge").notNull(),
+  reporter: text("reporter").notNull(),
+  recordedBy: uuid("recorded_by").notNull(),
+  recorderCadre: text("recorder_cadre"),
+  recordedAt: timestamp("recorded_at", tz).notNull().defaultNow(),
+  clientKey: text("client_key"),
+});
+
+export const pharmacyReactionMedicines = pgTable("pharmacy_reaction_medicines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reportId: uuid("report_id").notNull(),
+  hospitalId: uuid("hospital_id").notNull(),
+  medicineId: text("medicine_id"),
+  productId: uuid("product_id"),
+  batchId: uuid("batch_id"),
+  uncodedText: text("uncoded_text"),
+  main: boolean("main").notNull().default(false),
+  allergyId: uuid("allergy_id"),
+});
+
+export const pharmacyReactionEvents = pgTable("pharmacy_reaction_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reportId: uuid("report_id").notNull(),
+  hospitalId: uuid("hospital_id").notNull(),
+  kind: text("kind")
+    .$type<
+      "causality" | "submitted" | "closed_not_submitted" | "correction" | "printed" | "copied"
+    >()
+    .notNull(),
+  causality: text("causality"),
+  route: text("route"),
+  submittedOn: date("submitted_on"),
+  reference: text("reference"),
+  field: text("field"),
+  note: text("note"),
+  actorUserId: uuid("actor_user_id").notNull(),
+  at: timestamp("at", tz).notNull().defaultNow(),
 });

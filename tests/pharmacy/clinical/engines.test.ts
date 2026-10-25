@@ -341,7 +341,9 @@ describe("5.1 the notice (S22)", () => {
     expect(withSignedPairs(base, null)).toBe(base);
     const out = withSignedPairs(base, 12);
     expect(out).toMatch(/^MedSync checks 12 signed interaction pairs/);
-    expect(out).toMatch(/No alert does not mean no interaction\. Its dose references are still being signed/);
+    expect(out).toMatch(
+      /No alert does not mean no interaction\. Its dose references are still being signed/,
+    );
     expect(out).not.toMatch(/does not check drug interactions/);
   });
 });

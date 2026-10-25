@@ -76,7 +76,7 @@ describe.skipIf(!laneOn)("Pharmacy Phase 3 data layer (0210)", () => {
       `UPDATE public.pharmacy_content_entries SET status = 'in_force', in_force_at = now() WHERE id = $1`,
       [f.inForce],
     );
-  });
+  }, 180_000);
 
   it("CC-2: in force needs two signers, or one with a recorded exception", async () => {
     const e = await entry();
