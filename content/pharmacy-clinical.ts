@@ -2,13 +2,13 @@ import type { SignedCopy } from "@/content/signed-copy";
 
 /**
  * Pharmacy Phase 3: clinical pharmacy and stewardship. Every string staff or patients read on the Clinical pages,
- * the dialog's interaction line and the notice. Draft until the CSO signs (Appendix B); in production the Phase 3
- * flags stay off while this is draft (CS-5). Never edit the status here without a signature.
+ * the dialog's interaction line and the notice. Signed by the CSO on 25 Oct 2026 as written (Steps 0–8). Any change
+ * returns it to `draft` until it is signed again; in production the Phase 3 flags stay off while it is draft (CS-5).
  */
 export const PHARMACY_CLINICAL_COPY: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-25",
 };
 
 /** Appendix B, word for word (first merge). */
