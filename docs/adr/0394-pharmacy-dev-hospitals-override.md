@@ -21,3 +21,7 @@ The owner wants to develop and test on the production deployment at the test hos
 
 - Only test hospitals with fixture patients are listed, never a hospital treating real patients.
 - Before any real go-live, unset `PHARMACY_DEV_HOSPITALS` and record the six legal answers. The same go-live checklist item applies to `DEV_SKIP_MFA`.
+
+## Amendment, 25 Oct 2026
+
+At the owner's request, `PHARMACY_DEV_HOSPITALS=1` now means every hospital in production, so the owner can see the pharmacy working everywhere during development. A list of ids still works as before. The rule above still holds: unset it before any hospital treats real patients.

@@ -54,13 +54,13 @@ describe("permission map v2 (D-PH1-03, PA2-1, PA2-2)", () => {
     expect([...inProd]).toEqual(["pharmacy.view"]);
   });
 
-  it("ADR 0394: production uses v2 only for hospitals named in PHARMACY_DEV_HOSPITALS", () => {
+  it("ADR 0394: production uses v2 for hospitals named in PHARMACY_DEV_HOSPITALS, or every hospital with 1", () => {
     const list = "h-test, h-other";
     expect(dispensingMap("production", "h-test", list).version).toBe("2.0.0");
     expect(dispensingMap("production", "h-real", list).version).toBe("1.0.0");
     expect(dispensingMap("production", null, list).version).toBe("1.0.0");
     expect(dispensingMap("production", "h-test", undefined).version).toBe("1.0.0");
-    expect(dispensingMap("production", "h-test", "1").version).toBe("1.0.0");
+    expect(dispensingMap("production", "h-real", "1").version).toBe("2.0.0");
   });
 
   it("leaves Phase 0's access on v1 everywhere", () => {
