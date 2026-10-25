@@ -18,7 +18,7 @@
 | Intervention review (codes, outcomes, CSV) | `PHARMACY_INTERVENTION_REVIEW` | signed | Built |
 | Stewardship (AWaRe figures, reviews due, Reserve, by ward) | `PHARMACY_STEWARDSHIP` | signed | Built; see the limits |
 | Suspected reactions (record, unconfirmed allergy, report, submission) | `PHARMACY_REACTIONS` | signed | Built; see the limits |
-| Reconciliation at discharge (prescriber decisions, pharmacist confirm, patient sheet) | `PHARMACY_RECONCILIATION` | `PHARMACY_RECONCILIATION_COPY`, **draft** | Built; off in production until signed |
+| Reconciliation at discharge (prescriber decisions, pharmacist confirm, patient sheet) | `PHARMACY_RECONCILIATION` | `PHARMACY_RECONCILIATION_COPY`, **signed** 25 Oct | Built |
 
 ## Section 13 numbers
 

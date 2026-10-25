@@ -4,13 +4,13 @@ import { CLINICAL_UI } from "@/content/pharmacy-clinical";
 
 /**
  * Pharmacy Phase 3, Step 9: reconciliation at discharge. Every string the prescriber, the pharmacist and the patient
- * read for it, the patient's sheet included. Draft until the CSO signs; in production `PHARMACY_RECONCILIATION`
- * stays off while this is draft (CS-5). Kept apart so the signed Phase 3 wording stays signed.
+ * read for it, the patient's sheet included. Signed by the CSO on 25 Oct 2026 as written. Any change returns it to
+ * `draft` until it is signed again; in production `PHARMACY_RECONCILIATION` stays off while it is draft (CS-5).
  */
 export const PHARMACY_RECONCILIATION_COPY: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-25",
 };
 
 export const RECON_UI = {
