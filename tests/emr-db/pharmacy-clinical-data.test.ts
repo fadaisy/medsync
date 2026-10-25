@@ -5,7 +5,16 @@
 import type { Actor, Lane, Pg } from "./_pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { bootLane, department, hospital, laneOn, probe, staff, superadmin } from "./_pglite";
+import {
+  bootLane,
+  department,
+  hospital,
+  laneOn,
+  patient,
+  probe,
+  staff,
+  superadmin,
+} from "./_pglite";
 
 const reader = (userId: string, hospitalId: string): Actor => ({
   role: "medsync_clinical_reader",
@@ -174,4 +183,35 @@ describe.skipIf(!laneOn)("Pharmacy Phase 3 data layer (0210)", () => {
     );
     expect(def.d).toMatch(/accepted_interaction/);
   });
+
+  it("0211: a submission needs a route and a date; reports and events are append-only; the new packs are allowed", async () => {
+    const pt = await patient(pg);
+    const r = await one(
+      `INSERT INTO public.pharmacy_reaction_reports (hospital_id, patient_user_id, reference, kind, reaction_text,
+         seriousness, outcome, action_taken, rechallenge, reporter, recorded_by)
+       VALUES ($1, $2, 'R-ABCDEFGH', 'suspected_reaction', 'Rash after the dose', ARRAY['not_serious'], 'recovering',
+         'stopped_by_clinician', 'not_given_again', 'staff', $3) RETURNING id`,
+      [f.h, pt, f.pharmacist],
+    );
+    const ev = (extra: string) =>
+      err(
+        `INSERT INTO public.pharmacy_reaction_events (report_id, hospital_id, kind, actor_user_id${extra ? ", route, submitted_on" : ""})
+         VALUES ($1, $2, 'submitted', $3${extra})`,
+        [r.id, f.h, f.pharmacist],
+      );
+    expect(await ev("")).toMatch(/pre_submitted/);
+    expect(await ev(", 'Med Safety app', current_date")).toBe("ran");
+    expect(await err(`UPDATE public.pharmacy_reaction_reports SET outcome = 'died'`)).not.toBe(
+      "ran",
+    );
+    expect(await err(`DELETE FROM public.pharmacy_reaction_events`)).not.toBe("ran");
+    for (const pack of ["aware_pack", "review_settings", "reaction_timelines"])
+      expect(await entryPack(pack)).toBe("ran");
+  });
+  const entryPack = (pack: string) =>
+    err(
+      `INSERT INTO public.pharmacy_content_entries (hospital_id, pack, key, version, payload, source, status, author_user_id)
+       VALUES ($1, $2, $2, 1, '{}'::jsonb, 'Fixture source', 'draft', $3)`,
+      [f.h, pack, f.pharmacist],
+    );
 });

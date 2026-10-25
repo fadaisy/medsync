@@ -15,9 +15,11 @@ import {
   LockKeyholeIcon,
   MapPinIcon,
   MessagesSquareIcon,
+  PillIcon,
   ShoppingCartIcon,
   SignatureIcon,
   SirenIcon,
+  TriangleAlertIcon,
   TruckIcon,
   WarehouseIcon,
 } from "lucide-react";
@@ -55,6 +57,8 @@ const ICON = {
   packs: SignatureIcon,
   interventions: MessagesSquareIcon,
   clinicalContent: BookCheckIcon,
+  stewardship: PillIcon,
+  reactions: TriangleAlertIcon,
 } as const;
 
 export interface PharmacyNavEntry {

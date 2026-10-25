@@ -16,6 +16,8 @@ import {
   pharmacyDowntimeLiveFor,
   pharmacyInteractionsLiveFor,
   pharmacyInterventionReviewLiveFor,
+  pharmacyReactionsLiveFor,
+  pharmacyStewardshipLiveFor,
   storesFlagsFor,
 } from "@/lib/pharmacy/feature";
 import { pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
@@ -51,6 +53,8 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
     clinical: {
       interactions: pharmacyInteractionsLiveFor(scope.hospitalId),
       interventionReview: pharmacyInterventionReviewLiveFor(scope.hospitalId),
+      stewardship: pharmacyStewardshipLiveFor(scope.hospitalId),
+      reactions: pharmacyReactionsLiveFor(scope.hospitalId),
     },
   };
   const points = flags.dispensing

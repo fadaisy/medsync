@@ -21,8 +21,13 @@ import { db } from "@/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { medicineChoices } from "@/lib/pharmacy/clinical/reaction-read";
 import { interactionsStateFor } from "@/lib/pharmacy/clinical/read";
-import { pharmacyDispensingLiveFor, pharmacyInteractionsLiveFor } from "@/lib/pharmacy/feature";
+import {
+  pharmacyDispensingLiveFor,
+  pharmacyInteractionsLiveFor,
+  pharmacyReactionsLiveFor,
+} from "@/lib/pharmacy/feature";
 import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { getPrescription, logPrescriptionViewed, patientFacts } from "@/lib/pharmacy/read";
@@ -32,6 +37,7 @@ import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PharmacyNotice } from "../../_components/pharmacy-notice";
 import { BringInButton } from "../../_components/review-dialogs";
 import { ReviewScreen } from "../../_components/review-screen";
+import { RecordReactionDialog } from "../../clinical/reactions/_components/record-dialog";
 import { InteractionAlerts } from "./_components/interaction-alerts";
 
 export const dynamic = "force-dynamic";
@@ -420,6 +426,14 @@ async function ReviewPage({
       />
       {pharmacyInteractionsLiveFor(scope.hospitalId) ? (
         <InteractionAlerts hospitalId={scope.hospitalId} patientUserId={data.patientUserId} />
+      ) : null}
+      {pharmacyReactionsLiveFor(scope.hospitalId) && can(actor.access, "pharmacy.dispense") ? (
+        <div>
+          <RecordReactionDialog
+            patientUserId={data.patientUserId}
+            medicines={await medicineChoices(db as unknown as EmrDb, data.patientUserId, now)}
+          />
+        </div>
       ) : null}
       <ReviewScreen
         data={data}

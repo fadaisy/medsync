@@ -30,3 +30,53 @@
 2. **Sign the Phase 3 wording:** `content/pharmacy-clinical.ts`, currently draft. Until it is signed, the flags stay off in production.
 3. **Turn on** `PHARMACY_INTERACTIONS` and `PHARMACY_INTERVENTION_REVIEW` per hospital.
 4. **Then, in Clinical content:** import the candidates, have the pharmacist reviewer finish the pairs, sign the alert levels and look-back windows, then sign the pairs.
+
+---
+
+# Steps 7–8: stewardship and reactions (25 Oct 2026)
+
+**Built:**
+
+- **Migration 0211:**
+  - packs `aware_pack`, `review_settings` and `reaction_timelines`;
+  - `pharmacy_ams_reviews`;
+  - the reaction reports, their medicines and their events.
+
+  All are append-only, with RLS.
+- **Engines:** `lib/pharmacy/clinical/stewardship.ts` and `reactions.ts`.
+- **Write paths:**
+  - `reaction-store.ts`;
+  - `lib/emr/write/reactions.ts`, which writes the unconfirmed allergy.
+- **AWaRe import:** an exact match on the generic; the medicines it cannot match are listed.
+- **Pages:**
+  - `/pharmacy/clinical/stewardship` shows the figures with their counts, the reviews due, the Reserve antibiotics started, and a by-ward list;
+  - `/pharmacy/clinical/reactions` is the list, with state and due-by;
+  - `/pharmacy/clinical/reactions/[id]` shows the report with initials, age and sex. From there, staff print or copy it (both logged), set causality, record it as submitted (route and date), or close it with a reason.
+- **Record a suspected reaction:** a dialog on the prescription review page.
+- **Nav:** Stewardship and Reactions entries, behind `PHARMACY_STEWARDSHIP` and `PHARMACY_REACTIONS`.
+- **ADRs:** 0392 and 0393.
+
+**Checks:**
+
+- typecheck clean;
+- lint clean;
+- pharmacy unit tests: 843 passed;
+- 0211 lane test passed (a submission needs a route and a date; reports and events are append-only; the new packs are allowed).
+
+**Not done (honest):**
+
+- **Stewardship gaps:**
+  - the doctor-side review card and MAR chip;
+  - recording an AMS review from the page (the table exists, the form does not);
+  - the ward is not read;
+  - a culture's "released" state is not shown (lab events are not joined).
+- **Reaction gaps:**
+  - the confirm/refute screen for prescribers;
+  - more than one suspected medicine per form.
+- **Waiting for the owner's go-ahead:** Steps 9–10 (reconciliation, hardening).
+
+**For the owner:**
+
+- apply 0210 → 0211 (`cd ~/Desktop/medsync-pharmclose && npm run db:migrate`);
+- sign `PHARMACY_CLINICAL_COPY`;
+- import and sign the AWaRe pack, the review settings and the reaction timelines.
