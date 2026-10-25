@@ -26,9 +26,13 @@ const code = (f: string) =>
     .replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 /** Files that may paint red: the Help pill, the danger tone and a critical StatusPill (L3). Areas add theirs. */
-const RED_ALLOWED = ["components/tide/kit.tsx", "components/tide/shell.tsx"];
+const RED_ALLOWED = [
+  "components/tide/kit.tsx",
+  "components/tide/shell.tsx",
+  "components/tide/reading-check.tsx", // the chest-pain row and the danger interrupt
+];
 /** Files that may paint amber or green: StatusPill and Note (L4). Areas add the check band and the charts. */
-const SIGNAL_ALLOWED = ["components/tide/kit.tsx"];
+const SIGNAL_ALLOWED = ["components/tide/kit.tsx", "components/tide/reading-check.tsx"];
 
 describe("patient web guards", () => {
   it("scans something", () => expect(FILES.length).toBeGreaterThan(5));

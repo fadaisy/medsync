@@ -82,7 +82,10 @@ const block = (blk) =>
   [
     ...Object.entries(map).map(([k, p]) => `  --pw-${k}: ${val(blk, p)};`),
     ...Object.entries(shadows).map(
-      ([k, p]) => `  --pw-shadow-${k}: ${val(blk, p).replace(/0px/g, "0")};`,
+      ([k, p]) =>
+        `  --pw-shadow-${k}: ${val(blk, p)
+          .replace(/\b0px/g, "0")
+          .replace(/(\.\d*?)0+\b/g, "$1")};`,
     ),
   ].join("\n");
 const L = grab("tideLight"),

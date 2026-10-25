@@ -4,7 +4,12 @@
  * when its new page is built. Step 9 moves `app/pw/` to its real URLs and deletes the list and the flag.
  * Pure: proxy.ts runs it on every request.
  */
-export const PW_ROUTES: readonly RegExp[] = [];
+export const PW_ROUTES: readonly RegExp[] = [
+  /^\/patient\/?$/,
+  /^\/patient\/mood\/?$/,
+  /^\/patient\/notifications\/?$/,
+  /^\/patient\/care\/readings\/?$/,
+];
 
 export function patientWebTideOn(env: string | undefined = process.env.PATIENT_WEB_TIDE): boolean {
   return env === "1";

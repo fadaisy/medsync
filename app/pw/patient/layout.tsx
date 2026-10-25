@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { PatientShell } from "@/components/tide/shell";
+import { loadAddDialogDay } from "@/lib/patient-web/day";
 import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
 import { AddButton } from "../_components/add-dialog";
 
@@ -14,8 +15,15 @@ export default async function PatientWebShell({ children }: { children: ReactNod
   const gated = consent !== null && consent.acceptedAt === null;
   const name = scope.primaryHospitalName;
   const place = name ? { name, initials: initialsOf(name) } : undefined;
+  // The plus's "Right now" dose and the rail's Care badge come from the same day (S5).
+  const day = gated ? null : await loadAddDialogDay(scope.userId).catch(() => null);
   return (
-    <PatientShell bare={gated} plus={<AddButton />} place={place}>
+    <PatientShell
+      bare={gated}
+      plus={<AddButton day={day} />}
+      dosesDue={day?.today.dueNow.length ?? 0}
+      place={place}
+    >
       {children}
     </PatientShell>
   );

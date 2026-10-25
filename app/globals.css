@@ -1677,7 +1677,7 @@ select:not([multiple]):not([size]):not(.appearance-none) {
   --pw-emergency-band: #b91c1c;
   --pw-on-emergency: #ffffff;
   --pw-scrim: rgba(27, 37, 64, 0.28);
-  --pw-shadow-card: 0 1px 2px rgba(27, 37, 64, 0.06), 0 10 24px -14px rgba(27, 37, 64, 0.22);
+  --pw-shadow-card: 0 1px 2px rgba(27, 37, 64, 0.06), 0 10px 24px -14px rgba(27, 37, 64, 0.22);
   --pw-shadow-float: 0 2px 6px rgba(27, 37, 64, 0.08), 0 16px 28px -12px rgba(27, 37, 64, 0.18);
   --pw-shadow-accent: 0 8px 22px -6px rgba(45, 212, 191, 0.65);
   --pw-shadow-emergency: 0 6px 16px -6px rgba(220, 38, 38, 0.6);
@@ -1734,7 +1734,7 @@ select:not([multiple]):not([size]):not(.appearance-none) {
   --pw-emergency-band: #b91c1c;
   --pw-on-emergency: #ffffff;
   --pw-scrim: rgba(0, 0, 0, 0.45);
-  --pw-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.1), 0 10 24px -14px rgba(0, 0, 0, 0.35);
+  --pw-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.1), 0 10px 24px -14px rgba(0, 0, 0, 0.35);
   --pw-shadow-float: 0 2px 6px rgba(0, 0, 0, 0.4), 0 16px 26px -12px rgba(0, 0, 0, 0.45);
   --pw-shadow-accent: 0 8px 22px -6px rgba(45, 212, 191, 0.65);
   --pw-shadow-emergency: 0 6px 16px -6px rgba(220, 38, 38, 0.6);
