@@ -14,6 +14,10 @@ import { countSheetsToEnter } from "@/lib/pharmacy/downtime-store";
 import {
   pharmacyDispensingLiveFor,
   pharmacyDowntimeLiveFor,
+  pharmacyInteractionsLiveFor,
+  pharmacyInterventionReviewLiveFor,
+  pharmacyReactionsLiveFor,
+  pharmacyStewardshipLiveFor,
   storesFlagsFor,
 } from "@/lib/pharmacy/feature";
 import { pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
@@ -46,6 +50,12 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
     dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
     downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
     stores: storesFlagsFor(scope.hospitalId),
+    clinical: {
+      interactions: pharmacyInteractionsLiveFor(scope.hospitalId),
+      interventionReview: pharmacyInterventionReviewLiveFor(scope.hospitalId),
+      stewardship: pharmacyStewardshipLiveFor(scope.hospitalId),
+      reactions: pharmacyReactionsLiveFor(scope.hospitalId),
+    },
   };
   const points = flags.dispensing
     ? await pharmacyPointsFor(db as unknown as EmrDb, scope.userId, scope.hospitalId)

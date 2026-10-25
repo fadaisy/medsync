@@ -9,6 +9,7 @@ import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state
 import { answeredChecks, CHECK_TITLE } from "@/lib/pharmacy/checks";
 import { computeDoses, NO_CART, toDoseRow } from "@/lib/pharmacy/emergency-doses";
 import {
+  CLINICAL_NAV_IDS,
   PHARMACY_NAV,
   pharmacyNavFor,
   pharmacyNavPermissions,
@@ -330,7 +331,11 @@ describe("NV-P1: navigation", () => {
 
   it("Phase 1 (5.1): the full order, each item behind its flag", () => {
     // Phase 2 appends the Store group after these (5.1); Phase 1's own order is unchanged.
-    expect(PHARMACY_NAV.filter((i) => !STORE_NAV_IDS.includes(i.id)).map((i) => i.label)).toEqual([
+    expect(
+      PHARMACY_NAV.filter(
+        (i) => !STORE_NAV_IDS.includes(i.id) && !CLINICAL_NAV_IDS.includes(i.id),
+      ).map((i) => i.label),
+    ).toEqual([
       "Queue",
       "Open lines",
       "Supplied today",

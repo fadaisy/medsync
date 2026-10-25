@@ -1,0 +1,2710 @@
+{
+  "source": {
+    "title": "The selection and use of essential medicines, 2025: WHO AWaRe (Access, Watch, Reserve) classification of antibiotics for evaluation and monitoring of use",
+    "edition": "2025 (WHO reference B09489, published 5 September 2025; Excel workbook, sheet 'AWaRe classification 2025' and sheet 'Not recommended')",
+    "url": "https://www.who.int/publications/i/item/B09489",
+    "accessed": "2026-10-24"
+  },
+  "antibiotics": [
+    {
+      "inn": "amikacin",
+      "aware": "Access",
+      "atc": "J01GB06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Amikacin. WHO EML/EMLc 2025 listed: yes. Not found as a medicine in EMHSLU 2023; the word appears only in Section D laboratory supplies (susceptibility testing)."
+    },
+    {
+      "inn": "amoxicillin",
+      "aware": "Access",
+      "atc": "J01CA04",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Amoxicillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: capsule 250 mg (HC2, V); dispersible tablet 250 mg and 125 mg (HC1, V)."
+    },
+    {
+      "inn": "amoxicillin + clavulanic acid",
+      "aware": "Access",
+      "atc": "J01CR02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Amoxicillin/clavulanic-acid. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: tablet 250/125 mg (RR, E); also s25.2 COPD antibiotics, printed as tablet '600mg+25mg' (HC4, V), strength looks like a typographical error, verify. Tablet 875/125 mg deleted from 2016 edition."
+    },
+    {
+      "inn": "amoxicillin + sulbactam",
+      "aware": "Access",
+      "atc": "J01CR02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Amoxicillin/sulbactam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ampicillin",
+      "aware": "Access",
+      "atc": "J01CA01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Ampicillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: powder for injection 500 mg (HC3, V). No oral ampicillin listed."
+    },
+    {
+      "inn": "ampicillin + sulbactam",
+      "aware": "Access",
+      "atc": "J01CR01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ampicillin/sulbactam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "arbekacin",
+      "aware": "Watch",
+      "atc": "J01GB12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Arbekacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "aspoxicillin",
+      "aware": "Watch",
+      "atc": "J01CA19",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Aspoxicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "azanidazole",
+      "aware": "Access",
+      "atc": "P01AB04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Azanidazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "azidocillin",
+      "aware": "Access",
+      "atc": "J01CE04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Azidocillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "azithromycin",
+      "aware": "Watch",
+      "atc": "J01FA10",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Azithromycin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: tablet 250 mg (H, N), oral suspension 200 mg/5 ml (HC2, E); s25.2 COPD tablet 500 mg (H, N)."
+    },
+    {
+      "inn": "azlocillin",
+      "aware": "Watch",
+      "atc": "J01CA09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Azlocillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "aztreonam",
+      "aware": "Reserve",
+      "atc": "J01DF01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Aztreonam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "aztreonam + avibactam",
+      "aware": "Reserve",
+      "atc": "J01DF51",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Aztreonam/avibactam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "bacampicillin",
+      "aware": "Access",
+      "atc": "J01CA06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Bacampicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "bekanamycin",
+      "aware": "Watch",
+      "atc": "J01GB13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Bekanamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "benzathine benzylpenicillin",
+      "aware": "Access",
+      "atc": "J01CE08",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Benzathine-benzylpenicillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1 as 'benzathine penicillin': powder for injection 2.4 MU (HC3, E)."
+    },
+    {
+      "inn": "benzathine phenoxymethylpenicillin",
+      "aware": "Access",
+      "atc": "J01CE10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Benzathine-phenoxymethylpenicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "benzylpenicillin",
+      "aware": "Access",
+      "atc": "J01CE01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Benzylpenicillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: powder for injection 600 mg (HC2, V)."
+    },
+    {
+      "inn": "biapenem",
+      "aware": "Watch",
+      "atc": "J01DH05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Biapenem. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "brodimoprim",
+      "aware": "Access",
+      "atc": "J01EA02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Brodimoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "carbenicillin",
+      "aware": "Watch",
+      "atc": "J01CA03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Carbenicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "carindacillin",
+      "aware": "Watch",
+      "atc": "J01CA05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Carindacillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "carumonam",
+      "aware": "Reserve",
+      "atc": "J01DF02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Carumonam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefacetrile",
+      "aware": "Access",
+      "atc": "J01DB10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefacetrile. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefaclor",
+      "aware": "Watch",
+      "atc": "J01DC04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefaclor. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefadroxil",
+      "aware": "Access",
+      "atc": "J01DB05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefadroxil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefalexin",
+      "aware": "Access",
+      "atc": "J01DB01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Cefalexin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: capsules 250 mg (H, N)."
+    },
+    {
+      "inn": "cefaloridine",
+      "aware": "Access",
+      "atc": "J01DB02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefaloridine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefalotin",
+      "aware": "Access",
+      "atc": "J01DB03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefalotin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefamandole",
+      "aware": "Watch",
+      "atc": "J01DC03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefamandole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefapirin",
+      "aware": "Access",
+      "atc": "J01DB08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefapirin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefatrizine",
+      "aware": "Access",
+      "atc": "J01DB07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefatrizine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefazedone",
+      "aware": "Access",
+      "atc": "J01DB06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefazedone. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefazolin",
+      "aware": "Access",
+      "atc": "J01DB04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefazolin. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text, although on WHO EML 2025 (surgical prophylaxis)."
+    },
+    {
+      "inn": "cefbuperazone",
+      "aware": "Watch",
+      "atc": "J01DC13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefbuperazone. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefcapene pivoxil",
+      "aware": "Watch",
+      "atc": "J01DD17",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefcapene-pivoxil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefdinir",
+      "aware": "Watch",
+      "atc": "J01DD15",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefdinir. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefditoren pivoxil",
+      "aware": "Watch",
+      "atc": "J01DD16",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefditoren-pivoxil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefepime",
+      "aware": "Watch",
+      "atc": "J01DE01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefepime. WHO EML/EMLc 2025 listed: no. Not found as a medicine in EMHSLU 2023; appears only in Section D laboratory supplies."
+    },
+    {
+      "inn": "cefetamet pivoxil",
+      "aware": "Watch",
+      "atc": "J01DD10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefetamet-pivoxil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefiderocol",
+      "aware": "Reserve",
+      "atc": "J01DI04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefiderocol. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefixime",
+      "aware": "Watch",
+      "atc": "J01DD08",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Cefixime. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: tablet 200 mg (H, N)."
+    },
+    {
+      "inn": "cefmenoxime",
+      "aware": "Watch",
+      "atc": "J01DD05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefmenoxime. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefmetazole",
+      "aware": "Watch",
+      "atc": "J01DC09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefmetazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefminox",
+      "aware": "Watch",
+      "atc": "J01DC12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefminox. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefodizime",
+      "aware": "Watch",
+      "atc": "J01DD09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefodizime. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefonicid",
+      "aware": "Watch",
+      "atc": "J01DC06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefonicid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefoperazone",
+      "aware": "Watch",
+      "atc": "J01DD12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefoperazone. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceforanide",
+      "aware": "Watch",
+      "atc": "J01DC11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceforanide. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefoselis",
+      "aware": "Watch",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefoselis. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched). ATC: not assigned in WHO source."
+    },
+    {
+      "inn": "cefotaxime",
+      "aware": "Watch",
+      "atc": "J01DD01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefotaxime. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "cefotetan",
+      "aware": "Watch",
+      "atc": "J01DC05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefotetan. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefotiam",
+      "aware": "Watch",
+      "atc": "J01DC07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefotiam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefoxitin",
+      "aware": "Watch",
+      "atc": "J01DC01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefoxitin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefozopran",
+      "aware": "Watch",
+      "atc": "J01DE03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefozopran. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefpiramide",
+      "aware": "Watch",
+      "atc": "J01DD11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefpiramide. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefpirome",
+      "aware": "Watch",
+      "atc": "J01DE02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefpirome. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefpodoxime proxetil",
+      "aware": "Watch",
+      "atc": "J01DD13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefpodoxime-proxetil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefprozil",
+      "aware": "Watch",
+      "atc": "J01DC10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefprozil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefradine",
+      "aware": "Access",
+      "atc": "J01DB09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefradine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefroxadine",
+      "aware": "Access",
+      "atc": "J01DB11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefroxadine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefsulodin",
+      "aware": "Watch",
+      "atc": "J01DD03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefsulodin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftaroline fosamil",
+      "aware": "Reserve",
+      "atc": "J01DI02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftaroline-fosamil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftazidime",
+      "aware": "Watch",
+      "atc": "J01DD02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftazidime. WHO EML/EMLc 2025 listed: yes. Not found as a medicine in EMHSLU 2023; appears only in Section D laboratory supplies."
+    },
+    {
+      "inn": "ceftazidime + avibactam",
+      "aware": "Reserve",
+      "atc": "J01DD52",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftazidime/avibactam. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cefteram pivoxil",
+      "aware": "Watch",
+      "atc": "J01DD18",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cefteram-pivoxil. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftezole",
+      "aware": "Access",
+      "atc": "J01DB12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftezole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftibuten",
+      "aware": "Watch",
+      "atc": "J01DD14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftibuten. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftizoxime",
+      "aware": "Watch",
+      "atc": "J01DD07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftizoxime. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftobiprole medocaril",
+      "aware": "Reserve",
+      "atc": "J01DI01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftobiprole-medocaril. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftolozane + tazobactam",
+      "aware": "Reserve",
+      "atc": "J01DI54",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ceftolozane/tazobactam. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ceftriaxone",
+      "aware": "Watch",
+      "atc": "J01DD04",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Ceftriaxone. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: powder for injection 1 g and 500 mg (HC3, V). Most used antibiotic in the Uganda 13-hospital PPS (37% of prescriptions)."
+    },
+    {
+      "inn": "cefuroxime",
+      "aware": "Watch",
+      "atc": "J01DC02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Cefuroxime. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1 specialist: tablet 250 mg (RR, E), oral suspension 125 mg/5 ml (RR, N), sodium powder for injection 500 mg (RR, E); also s25.2 COPD capsule 250 mg (H, E)."
+    },
+    {
+      "inn": "chloramphenicol",
+      "aware": "Access",
+      "atc": "J01BA01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Chloramphenicol. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: powder for injection 1 g (HC4, E), capsule 250 mg (H, N). Also topical: eye drops/ointment 0.5% (s21.1, HC2, E) and ear drops 5% (s28.1, HC2, E); topical use is outside AWaRe systemic monitoring."
+    },
+    {
+      "inn": "chlortetracycline",
+      "aware": "Watch",
+      "atc": "J01AA03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Chlortetracycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cinoxacin",
+      "aware": "Watch",
+      "atc": "J01MB06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Cinoxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ciprofloxacin",
+      "aware": "Watch",
+      "atc": "J01MA02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Ciprofloxacin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: tablet 500 mg (HC2, V); specialist solution for IV infusion 2 mg/ml (RR, E). Also eye/ear drops 0.3% (s21.1, s28.1, HC3, N)."
+    },
+    {
+      "inn": "clarithromycin",
+      "aware": "Watch",
+      "atc": "J01FA09",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Clarithromycin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s25.2 (medicines for COPD, antibiotics): tablet 500 mg (H, N). Not in s6.2."
+    },
+    {
+      "inn": "clindamycin",
+      "aware": "Access",
+      "atc": "J01FF01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Clindamycin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: injection 150 mg/ml (H, E). No oral clindamycin in s6.2.2; the name also appears on EMHSLU p35 (antiprotozoal pages), entry not read."
+    },
+    {
+      "inn": "clofoctol",
+      "aware": "Watch",
+      "atc": "J01XX03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Clofoctol. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "clometocillin",
+      "aware": "Access",
+      "atc": "J01CE07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Clometocillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "clomocycline",
+      "aware": "Watch",
+      "atc": "J01AA11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Clomocycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "cloxacillin",
+      "aware": "Access",
+      "atc": "J01CF02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Cloxacillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: capsules 250 mg and powder for injection 500 mg (HC3, E)."
+    },
+    {
+      "inn": "colistin (IV)",
+      "aware": "Reserve",
+      "atc": "J01XB01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Colistin_IV. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "colistin (oral)",
+      "aware": "Reserve",
+      "atc": "A07AA10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Colistin_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "dalbavancin",
+      "aware": "Reserve",
+      "atc": "J01XA04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Dalbavancin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "dalfopristin + quinupristin",
+      "aware": "Reserve",
+      "atc": "J01FG02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Dalfopristin/quinupristin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "daptomycin",
+      "aware": "Reserve",
+      "atc": "J01XX09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Daptomycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "delafloxacin",
+      "aware": "Watch",
+      "atc": "J01MA23",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Delafloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "demeclocycline",
+      "aware": "Watch",
+      "atc": "J01AA01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Demeclocycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "dibekacin",
+      "aware": "Watch",
+      "atc": "J01GB09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Dibekacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "dicloxacillin",
+      "aware": "Access",
+      "atc": "J01CF01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Dicloxacillin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to cloxacillin. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "dirithromycin",
+      "aware": "Watch",
+      "atc": "J01FA13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Dirithromycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "doripenem",
+      "aware": "Watch",
+      "atc": "J01DH04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Doripenem. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "doxycycline",
+      "aware": "Access",
+      "atc": "J01AA02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Doxycycline. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: tablet 100 mg (HC2, V); s25.2 COPD tablet 100 mg (HC3, V)."
+    },
+    {
+      "inn": "enoxacin",
+      "aware": "Watch",
+      "atc": "J01MA04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Enoxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "epicillin",
+      "aware": "Access",
+      "atc": "J01CA07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Epicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "eravacycline",
+      "aware": "Reserve",
+      "atc": "J01AA13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Eravacycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ertapenem",
+      "aware": "Watch",
+      "atc": "J01DH03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ertapenem. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "erythromycin",
+      "aware": "Watch",
+      "atc": "J01FA01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Erythromycin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to clarithromycin (EMLc). EMHSLU 2023 s6.2.2: tablet (scored) 250 mg (HC3, V)."
+    },
+    {
+      "inn": "faropenem",
+      "aware": "Reserve",
+      "atc": "J01DI03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Faropenem. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "fidaxomicin",
+      "aware": "Watch",
+      "atc": "A07AA12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Fidaxomicin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "fleroxacin",
+      "aware": "Watch",
+      "atc": "J01MA08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Fleroxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "flomoxef",
+      "aware": "Watch",
+      "atc": "J01DC14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Flomoxef. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "flucloxacillin",
+      "aware": "Access",
+      "atc": "J01CF05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Flucloxacillin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to cloxacillin. Not found in EMHSLU 2023 text; EMHSLU lists cloxacillin."
+    },
+    {
+      "inn": "flumequine",
+      "aware": "Watch",
+      "atc": "J01MB07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Flumequine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "flurithromycin",
+      "aware": "Watch",
+      "atc": "J01FA14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Flurithromycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "fosfomycin (IV)",
+      "aware": "Reserve",
+      "atc": "J01XX01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Fosfomycin_IV. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "fosfomycin (oral)",
+      "aware": "Watch",
+      "atc": "J01XX01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Fosfomycin_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "furazidin",
+      "aware": "Access",
+      "atc": "J01XE03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Furazidin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "fusidic acid",
+      "aware": "Watch",
+      "atc": "J01XC01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Fusidic-acid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "garenoxacin",
+      "aware": "Watch",
+      "atc": "J01MA19",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Garenoxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "gatifloxacin",
+      "aware": "Watch",
+      "atc": "J01MA16",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Gatifloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "gemifloxacin",
+      "aware": "Watch",
+      "atc": "J01MA15",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Gemifloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "gentamicin",
+      "aware": "Access",
+      "atc": "J01GB03",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Gentamicin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: injection 40 mg/ml (HC3, V). Also ear drops 0.3% (s28.1, HC4, V)."
+    },
+    {
+      "inn": "gepotidacin",
+      "aware": "Watch",
+      "atc": "J01XX13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Gepotidacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "grepafloxacin",
+      "aware": "Watch",
+      "atc": "J01MA11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Grepafloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "hetacillin",
+      "aware": "Access",
+      "atc": "J01CA18",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Hetacillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "iclaprim",
+      "aware": "Reserve",
+      "atc": "J01EA03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Iclaprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "imipenem + cilastatin",
+      "aware": "Watch",
+      "atc": "J01DH51",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Imipenem/cilastatin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to meropenem. EMHSLU 2023 s6.2.1 specialist: powder for injection 500 mg (RR, E)."
+    },
+    {
+      "inn": "imipenem + cilastatin + relebactam",
+      "aware": "Reserve",
+      "atc": "J01DH56",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Imipenem/cilastatin/relebactam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "isepamicin",
+      "aware": "Watch",
+      "atc": "J01GB11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Isepamicin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "josamycin",
+      "aware": "Watch",
+      "atc": "J01FA07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Josamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "kanamycin (IV)",
+      "aware": "Watch",
+      "atc": "J01GB04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Kanamycin_IV. WHO EML/EMLc 2025 listed: no. Kanamycin powder for injection 1 g deleted from the 2016 edition (EMHSLU 2023 deletions list)."
+    },
+    {
+      "inn": "kanamycin (oral)",
+      "aware": "Watch",
+      "atc": "A07AA08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Kanamycin_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "lascufloxacin",
+      "aware": "Watch",
+      "atc": "J01MA25",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Lascufloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "latamoxef",
+      "aware": "Watch",
+      "atc": "J01DD06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Latamoxef. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "lefamulin",
+      "aware": "Reserve",
+      "atc": "J01XX12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Lefamulin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "levofloxacin",
+      "aware": "Watch",
+      "atc": "J01MA12",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Levofloxacin. WHO EML/EMLc 2025 listed: no. EMHSLU 2023 s6.2.4 specialist (anti-TB): tablet 250 mg and 100 mg (H, V). Not listed as a general antibacterial."
+    },
+    {
+      "inn": "levonadifloxacin",
+      "aware": "Watch",
+      "atc": "J01MA24",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Levonadifloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "lincomycin",
+      "aware": "Watch",
+      "atc": "J01FF02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Lincomycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "linezolid",
+      "aware": "Reserve",
+      "atc": "J01XX08",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Linezolid. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.4 specialist (anti-TB): tablet 100 mg (H, V); also printed under s6.2.3 without level. Tablet 600 mg deleted from 2016 edition. No injection listed."
+    },
+    {
+      "inn": "lomefloxacin",
+      "aware": "Watch",
+      "atc": "J01MA07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Lomefloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "loracarbef",
+      "aware": "Watch",
+      "atc": "J01DC08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Loracarbef. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "lymecycline",
+      "aware": "Watch",
+      "atc": "J01AA04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Lymecycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "mecillinam",
+      "aware": "Access",
+      "atc": "J01CA11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Mecillinam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "meropenem",
+      "aware": "Watch",
+      "atc": "J01DH02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Meropenem. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1 specialist: powder for injection 500 mg (RR, V)."
+    },
+    {
+      "inn": "meropenem + vaborbactam",
+      "aware": "Reserve",
+      "atc": "J01DH52",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Meropenem/vaborbactam. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "metacycline",
+      "aware": "Watch",
+      "atc": "J01AA05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Metacycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "metampicillin",
+      "aware": "Access",
+      "atc": "J01CA14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Metampicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "meticillin",
+      "aware": "Access",
+      "atc": "J01CF03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Meticillin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to cloxacillin. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "metronidazole (IV)",
+      "aware": "Access",
+      "atc": "J01XD01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Metronidazole_IV. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: IV infusion 5 mg/ml (HC4, V)."
+    },
+    {
+      "inn": "metronidazole (oral)",
+      "aware": "Access",
+      "atc": "P01AB01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Metronidazole_oral. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2 and s6.5.1: tablet 200 mg (HC2, V). Topical gel 0.75% and wound powder are listed in s2.3 (palliative care); topical use is outside AWaRe systemic monitoring."
+    },
+    {
+      "inn": "mezlocillin",
+      "aware": "Watch",
+      "atc": "J01CA10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Mezlocillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "micronomicin",
+      "aware": "Watch",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Micronomicin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched). ATC: not assigned in WHO source."
+    },
+    {
+      "inn": "midecamycin",
+      "aware": "Watch",
+      "atc": "J01FA03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Midecamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "minocycline (IV)",
+      "aware": "Reserve",
+      "atc": "J01AA08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Minocycline_IV. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "minocycline (oral)",
+      "aware": "Watch",
+      "atc": "J01AA08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Minocycline_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "miocamycin",
+      "aware": "Watch",
+      "atc": "J01FA11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Miocamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "moxifloxacin",
+      "aware": "Watch",
+      "atc": "J01MA14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Moxifloxacin. WHO EML/EMLc 2025 listed: no. Moxifloxacin tablet 400 mg deleted from the 2016 edition (EMHSLU 2023 deletions list)."
+    },
+    {
+      "inn": "nafcillin",
+      "aware": "Access",
+      "atc": "J01CF06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Nafcillin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to cloxacillin. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "nalidixic acid",
+      "aware": "Watch",
+      "atc": "J01MB02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Nalidixic-acid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "nemonoxacin",
+      "aware": "Watch",
+      "atc": "J01MB08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Nemonoxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "neomycin (IV)",
+      "aware": "Watch",
+      "atc": "J01GB05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Neomycin_IV. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "neomycin (oral)",
+      "aware": "Watch",
+      "atc": "A07AA01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Neomycin_oral. WHO EML/EMLc 2025 listed: no. Not on EMHSLU 2023 as a systemic product. Neomycin appears only as neomycin + betamethasone eye drops (s21.2, RR, E)."
+    },
+    {
+      "inn": "netilmicin",
+      "aware": "Watch",
+      "atc": "J01GB07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Netilmicin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "nifurtoinol",
+      "aware": "Access",
+      "atc": "J01XE02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Nifurtoinol. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "nimorazole",
+      "aware": "Access",
+      "atc": "P01AB06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Nimorazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "nitrofurantoin",
+      "aware": "Access",
+      "atc": "J01XE01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Nitrofurantoin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: tablet 100 mg (HC2, E)."
+    },
+    {
+      "inn": "norfloxacin",
+      "aware": "Watch",
+      "atc": "J01MA06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Norfloxacin. WHO EML/EMLc 2025 listed: no. Not found as a medicine in EMHSLU 2023; appears only in Section D laboratory supplies."
+    },
+    {
+      "inn": "ofloxacin",
+      "aware": "Watch",
+      "atc": "J01MA01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ofloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "oleandomycin",
+      "aware": "Watch",
+      "atc": "J01FA05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Oleandomycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "omadacycline",
+      "aware": "Reserve",
+      "atc": "J01AA15",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Omadacycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "oritavancin",
+      "aware": "Reserve",
+      "atc": "J01XA05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Oritavancin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ornidazole (IV)",
+      "aware": "Access",
+      "atc": "J01XD03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ornidazole_IV. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ornidazole (oral)",
+      "aware": "Access",
+      "atc": "P01AB03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ornidazole_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "oxacillin",
+      "aware": "Access",
+      "atc": "J01CF04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Oxacillin. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to cloxacillin. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "oxolinic acid",
+      "aware": "Watch",
+      "atc": "J01MB05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Oxolinic-acid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "oxytetracycline",
+      "aware": "Watch",
+      "atc": "J01AA06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Oxytetracycline. WHO EML/EMLc 2025 listed: no. Systemic oxytetracycline not on EMHSLU 2023. Ophthalmic only: hydrocortisone + oxytetracycline + polymyxin B eye drops (s21.2, HC4, N)."
+    },
+    {
+      "inn": "panipenem",
+      "aware": "Watch",
+      "atc": "J01DH55",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Panipenem. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "paromomycin (oral)",
+      "aware": "Watch",
+      "atc": "A07AA06",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Paromomycin_oral. WHO EML/EMLc 2025 listed: no. EMHSLU 2023 s6.2.2 specialist: paromomycin sulphate capsule 250 mg (RR, N)."
+    },
+    {
+      "inn": "pazufloxacin",
+      "aware": "Watch",
+      "atc": "J01MA18",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pazufloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "pefloxacin",
+      "aware": "Watch",
+      "atc": "J01MA03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pefloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "penamecillin",
+      "aware": "Access",
+      "atc": "J01CE06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Penamecillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "penimepicycline",
+      "aware": "Watch",
+      "atc": "J01AA10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Penimepicycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "pheneticillin",
+      "aware": "Watch",
+      "atc": "J01CE05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pheneticillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "phenoxymethylpenicillin",
+      "aware": "Access",
+      "atc": "J01CE02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Phenoxymethylpenicillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: tablet 250 mg (HC2, N)."
+    },
+    {
+      "inn": "pipemidic acid",
+      "aware": "Watch",
+      "atc": "J01MB04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pipemidic-acid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "piperacillin",
+      "aware": "Watch",
+      "atc": "J01CA12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Piperacillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "piperacillin + tazobactam",
+      "aware": "Watch",
+      "atc": "J01CR05",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Piperacillin/tazobactam. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1 specialist: powder for injection 2 g/250 mg (RR, E)."
+    },
+    {
+      "inn": "piromidic acid",
+      "aware": "Watch",
+      "atc": "J01MB03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Piromidic-acid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "pivampicillin",
+      "aware": "Access",
+      "atc": "J01CA02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pivampicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "pivmecillinam",
+      "aware": "Access",
+      "atc": "J01CA08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pivmecillinam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "plazomicin",
+      "aware": "Reserve",
+      "atc": "J01GB14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Plazomicin. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "polymyxin B (IV)",
+      "aware": "Reserve",
+      "atc": "J01XB02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Polymyxin-B_IV. WHO EML/EMLc 2025 listed: yes. Not on EMHSLU 2023 as a systemic product. Polymyxin B appears only in an eye-drop combination (s21.2)."
+    },
+    {
+      "inn": "polymyxin B (oral)",
+      "aware": "Reserve",
+      "atc": "A07AA05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Polymyxin-B_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "pristinamycin",
+      "aware": "Watch",
+      "atc": "J01FG01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Pristinamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "procaine benzylpenicillin",
+      "aware": "Access",
+      "atc": "J01CE09",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Procaine-benzylpenicillin. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.1: procaine benzylpenicillin forte, powder for injection 4 MU (H, N)."
+    },
+    {
+      "inn": "propenidazole",
+      "aware": "Access",
+      "atc": "P01AB05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Propenidazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "propicillin",
+      "aware": "Access",
+      "atc": "J01CE03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Propicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "prulifloxacin",
+      "aware": "Watch",
+      "atc": "J01MA17",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Prulifloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ribostamycin",
+      "aware": "Watch",
+      "atc": "J01GB10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ribostamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rifabutin",
+      "aware": "Watch",
+      "atc": "J04AB04",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Rifabutin. WHO EML/EMLc 2025 listed: no. EMHSLU 2023 s6.2.4: capsule 150 mg (HC3, E). TB programme medicine."
+    },
+    {
+      "inn": "rifampicin",
+      "aware": "Watch",
+      "atc": "J04AB02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Rifampicin. WHO EML/EMLc 2025 listed: no. EMHSLU 2023 s6.2.3 and s6.2.4: tablet 150 mg (HC3, V) and fixed-dose TB and leprosy combinations. Usually managed under TB/leprosy programmes; signers to decide whether it counts in hospital AWaRe shares."
+    },
+    {
+      "inn": "rifamycin (IV)",
+      "aware": "Watch",
+      "atc": "J04AB03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rifamycin_IV. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rifamycin (oral)",
+      "aware": "Watch",
+      "atc": "A07AA13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rifamycin_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rifaximin",
+      "aware": "Watch",
+      "atc": "A07AA11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rifaximin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rokitamycin",
+      "aware": "Watch",
+      "atc": "J01FA12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rokitamycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rolitetracycline",
+      "aware": "Watch",
+      "atc": "J01AA09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rolitetracycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rosoxacin",
+      "aware": "Watch",
+      "atc": "J01MB01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rosoxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "roxithromycin",
+      "aware": "Watch",
+      "atc": "J01FA06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Roxithromycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "rufloxacin",
+      "aware": "Watch",
+      "atc": "J01MA10",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Rufloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sarecycline",
+      "aware": "Watch",
+      "atc": "J01AA14",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sarecycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "satranidazole",
+      "aware": "Access",
+      "atc": "P01AB08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Satranidazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "secnidazole",
+      "aware": "Access",
+      "atc": "P01AB07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Secnidazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "sisomicin",
+      "aware": "Watch",
+      "atc": "J01GB08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sisomicin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sitafloxacin",
+      "aware": "Watch",
+      "atc": "J01MA21",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sitafloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "solithromycin",
+      "aware": "Watch",
+      "atc": "J01FA16",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Solithromycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sparfloxacin",
+      "aware": "Watch",
+      "atc": "J01MA09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sparfloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "spectinomycin",
+      "aware": "Access",
+      "atc": "J01XX04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Spectinomycin. WHO EML/EMLc 2025 listed: yes. Not found as a medicine in EMHSLU 2023; appears only in Section D laboratory supplies."
+    },
+    {
+      "inn": "spiramycin",
+      "aware": "Watch",
+      "atc": "J01FA02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Spiramycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "streptoduocin",
+      "aware": "Watch",
+      "atc": "J01GA02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Streptoduocin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "streptomycin (IV)",
+      "aware": "Watch",
+      "atc": "J01GA01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Streptomycin_IV. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "streptomycin (oral)",
+      "aware": "Watch",
+      "atc": "A07AA04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Streptomycin_oral. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulbactam",
+      "aware": "Access",
+      "atc": "J01CG01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulbactam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulbenicillin",
+      "aware": "Watch",
+      "atc": "J01CA16",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulbenicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfadiazine",
+      "aware": "Access",
+      "atc": "J01EC02",
+      "onEmhslu2023": "unknown",
+      "notes": "WHO 2025 name: Sulfadiazine. WHO EML/EMLc 2025 listed: no. The word appears on EMHSLU 2023 p35 (antiprotozoal pages); the entry itself was not read. Verify against print."
+    },
+    {
+      "inn": "sulfadiazine + tetroxoprim",
+      "aware": "Access",
+      "atc": "J01EE06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfadiazine/tetroxoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfadiazine + trimethoprim",
+      "aware": "Access",
+      "atc": "J01EE02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfadiazine/trimethoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfadimethoxine",
+      "aware": "Access",
+      "atc": "J01ED01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfadimethoxine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfadimidine",
+      "aware": "Access",
+      "atc": "J01EB03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfadimidine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfadimidine + trimethoprim",
+      "aware": "Access",
+      "atc": "J01EE05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfadimidine/trimethoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfafurazole",
+      "aware": "Access",
+      "atc": "J01EB05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfafurazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfaisodimidine",
+      "aware": "Access",
+      "atc": "J01EB01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfaisodimidine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfalene",
+      "aware": "Access",
+      "atc": "J01ED02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfalene. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamazone",
+      "aware": "Access",
+      "atc": "J01ED09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamazone. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamerazine",
+      "aware": "Access",
+      "atc": "J01ED07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamerazine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamerazine + trimethoprim",
+      "aware": "Access",
+      "atc": "J01EE07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamerazine/trimethoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamethizole",
+      "aware": "Access",
+      "atc": "J01EB02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamethizole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamethoxazole",
+      "aware": "Access",
+      "atc": "J01EC01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamethoxazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamethoxazole + trimethoprim",
+      "aware": "Access",
+      "atc": "J01EE01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Sulfamethoxazole/trimethoprim. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2 as 'cotrimoxazole': tablets 120 mg, 480 mg (HC2, V), 960 mg (HC2, E); specialist IV infusion 96 mg/ml (RR, N). Also appears on EMHSLU p35 (antiprotozoal pages), entry not read."
+    },
+    {
+      "inn": "sulfamethoxypyridazine",
+      "aware": "Access",
+      "atc": "J01ED05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamethoxypyridazine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfametomidine",
+      "aware": "Access",
+      "atc": "J01ED03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfametomidine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfametoxydiazine",
+      "aware": "Access",
+      "atc": "J01ED04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfametoxydiazine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfametrole + trimethoprim",
+      "aware": "Access",
+      "atc": "J01EE03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfametrole/trimethoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamoxole",
+      "aware": "Access",
+      "atc": "J01EC03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamoxole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfamoxole + trimethoprim",
+      "aware": "Access",
+      "atc": "J01EE04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfamoxole/trimethoprim. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfanilamide",
+      "aware": "Access",
+      "atc": "J01EB06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfanilamide. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfaperin",
+      "aware": "Access",
+      "atc": "J01ED06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfaperin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfaphenazole",
+      "aware": "Access",
+      "atc": "J01ED08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfaphenazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfapyridine",
+      "aware": "Access",
+      "atc": "J01EB04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfapyridine. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfathiazole",
+      "aware": "Access",
+      "atc": "J01EB07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfathiazole. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sulfathiourea",
+      "aware": "Access",
+      "atc": "J01EB08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sulfathiourea. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "sultamicillin",
+      "aware": "Access",
+      "atc": "J01CR04",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Sultamicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "talampicillin",
+      "aware": "Access",
+      "atc": "J01CA15",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Talampicillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "tazobactam",
+      "aware": "Watch",
+      "atc": "J01CG02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tazobactam. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "tebipenem",
+      "aware": "Watch",
+      "atc": "J01DH06",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tebipenem. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "tedizolid",
+      "aware": "Reserve",
+      "atc": "J01XX11",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tedizolid. WHO EML/EMLc 2025 listed: yes. WHO note: therapeutic alternative to linezolid (EML). Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "teicoplanin",
+      "aware": "Watch",
+      "atc": "J01XA02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Teicoplanin. WHO EML/EMLc 2025 listed: no. Not found as a medicine in EMHSLU 2023; appears only in Section D laboratory supplies."
+    },
+    {
+      "inn": "telavancin",
+      "aware": "Reserve",
+      "atc": "J01XA03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Telavancin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "telithromycin",
+      "aware": "Watch",
+      "atc": "J01FA15",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Telithromycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "temafloxacin",
+      "aware": "Watch",
+      "atc": "J01MA05",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Temafloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "temocillin",
+      "aware": "Watch",
+      "atc": "J01CA17",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Temocillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "tetracycline",
+      "aware": "Access",
+      "atc": "J01AA07",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tetracycline. WHO EML/EMLc 2025 listed: no. Systemic tetracycline not on EMHSLU 2023. Tetracycline eye ointment 1% is listed (s21.1 HC2 V, and newborn care section); topical use is outside AWaRe systemic monitoring."
+    },
+    {
+      "inn": "thiamphenicol",
+      "aware": "Access",
+      "atc": "J01BA02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Thiamphenicol. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ticarcillin",
+      "aware": "Watch",
+      "atc": "J01CA13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ticarcillin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "ticarcillin + clavulanic acid",
+      "aware": "Watch",
+      "atc": "J01CR03",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Ticarcillin/clavulanic-acid. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "tigecycline",
+      "aware": "Reserve",
+      "atc": "J01AA12",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tigecycline. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text."
+    },
+    {
+      "inn": "tinidazole (IV)",
+      "aware": "Access",
+      "atc": "J01XD02",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tinidazole_IV. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "tinidazole (oral)",
+      "aware": "Access",
+      "atc": "P01AB02",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Tinidazole_oral. WHO EML/EMLc 2025 listed: no. EMHSLU 2023 s6.5.1 (antiamoebic and antigiardiasis): tablet 500 mg (H, N)."
+    },
+    {
+      "inn": "tobramycin",
+      "aware": "Watch",
+      "atc": "J01GB01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tobramycin. WHO EML/EMLc 2025 listed: no. Systemic tobramycin not on EMHSLU 2023. Ophthalmic only: eye drops 0.3% (s21.1, RR, E) and dexamethasone + tobramycin (s21.2, RR, E)."
+    },
+    {
+      "inn": "tosufloxacin",
+      "aware": "Watch",
+      "atc": "J01MA22",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Tosufloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "trimethoprim",
+      "aware": "Access",
+      "atc": "J01EA01",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Trimethoprim. WHO EML/EMLc 2025 listed: yes. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "troleandomycin",
+      "aware": "Watch",
+      "atc": "J01FA08",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Troleandomycin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "trovafloxacin",
+      "aware": "Watch",
+      "atc": "J01MA13",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Trovafloxacin. WHO EML/EMLc 2025 listed: no. Not found in EMHSLU 2023 text (antibacterial, ophthalmic, otic, dermatological and COPD sections searched)."
+    },
+    {
+      "inn": "vancomycin (IV)",
+      "aware": "Watch",
+      "atc": "J01XA01",
+      "onEmhslu2023": true,
+      "notes": "WHO 2025 name: Vancomycin_IV. WHO EML/EMLc 2025 listed: yes. EMHSLU 2023 s6.2.2: injection 500 mg (RR, E)."
+    },
+    {
+      "inn": "vancomycin (oral)",
+      "aware": "Watch",
+      "atc": "A07AA09",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 name: Vancomycin_oral. WHO EML/EMLc 2025 listed: yes. No oral vancomycin product on EMHSLU 2023; only injection 500 mg (RR, E). WHO lists oral vancomycin on EML 2025."
+    },
+    {
+      "inn": "acetylspiramycin + metronidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: acetylspiramycin/metronidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amikacin + cefepime",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amikacin/cefepime. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + bacillus coagulans + cloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/bacillus coagulans/cloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + bacillus coagulans + dicloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/bacillus coagulans/dicloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + clavulanic acid + lactic ferments",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/clavulanic acid/lactic ferments. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + clavulanic acid + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/clavulanic acid/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + clavulanic acid + nimesulide",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/clavulanic acid/nimesulide. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + cloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/cloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + cloxacillin + lactic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/cloxacillin/lactic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + cloxacillin + lactobacillus acidophilus + serrapeptase",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/cloxacillin/lactobacillus acidophilus/serrapeptase. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + cloxacillin + lactobacillus lactis",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/cloxacillin/lactobacillus lactis. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + cloxacillin + serrapeptase",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/cloxacillin/serrapeptase. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + dicloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/dicloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + dicloxacillin + saccharomyces boulardii",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/dicloxacillin/saccharomyces boulardii. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + flucloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/flucloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + flucloxacillin + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/flucloxacillin/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + metronidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/metronidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "amoxicillin + pivsulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: amoxicillin/pivsulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + bacillus coagulans + cloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/bacillus coagulans/cloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + cloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/cloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023. Seen in Uganda: the 13-hospital PPS reported ampicillin-cloxacillin in use, with the highest missed-dose share (30.4%), and noted it is 'not recommended' in AWaRe."
+    },
+    {
+      "inn": "ampicillin + cloxacillin + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/cloxacillin/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + cloxacillin + saccharomyces boulardii",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/cloxacillin/saccharomyces boulardii. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + dicloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/dicloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + dicloxacillin + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/dicloxacillin/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + flucloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/flucloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + lidocaine + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/lidocaine/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + oxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/oxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ampicillin + sultamicillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ampicillin/sultamicillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ascorbic acid + metamizole sodium + penicillin g + streptomycin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ascorbic acid/metamizole sodium/penicillin g/streptomycin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "azithromycin + cefixime",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: azithromycin/cefixime. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "azithromycin + cefixime + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: azithromycin/cefixime/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "azithromycin + cefpodoxime proxetil",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: azithromycin/cefpodoxime proxetil. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "azithromycin + fluconazole + secnidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: azithromycin/fluconazole/secnidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "azithromycin + levofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: azithromycin/levofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "azithromycin + ofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: azithromycin/ofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "benzyl penicillin + streptomycin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: benzyl penicillin/streptomycin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "benzylpenicillin + procaine-benzylpenicillin + benzathine-benzylpenicillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: benzylpenicillin/procaine-benzylpenicillin/benzathine-benzylpenicillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "bromelains + doxycycline + lactobacillus reuteri + lactobacillus rhamnosus + ornidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: bromelains/doxycycline/lactobacillus reuteri/lactobacillus rhamnosus/ornidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "bromhexine + sulfamethoxazole + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: bromhexine/sulfamethoxazole/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefaclor + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefaclor/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefadroxil + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefadroxil/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefadroxil + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefadroxil/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefalexin + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefalexin/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefdinir + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefdinir/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefepime + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefepime/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefepime + tazobactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefepime/tazobactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + cefpodoxime proxetil",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/cefpodoxime proxetil. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + clavulanic acid + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/clavulanic acid/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + cloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/cloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + cloxacillin + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/cloxacillin/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + dicloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/dicloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + lactobacillus acidophilus + ofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/lactobacillus acidophilus/ofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + levofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/levofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + linezolid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/linezolid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + moxifloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/moxifloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + ofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/ofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefixime + ornidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefixime/ornidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefoperazone + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefoperazone/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefoperazone + tazobactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefoperazone/tazobactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefotaxime + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefotaxime/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + cloxacillin + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/cloxacillin/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + dicloxacillin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/dicloxacillin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + dicloxacillin + lactobacillus acidophilus",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/dicloxacillin/lactobacillus acidophilus. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + levofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/levofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + ofloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/ofloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefpodoxime proxetil + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefpodoxime proxetil/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftazidime + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftazidime/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftazidime + tazobactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftazidime/tazobactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftazidime + tobramycin (as printed: tobramicin)",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftazidime/tobramicin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftibuten + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftibuten/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftriaxone + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftriaxone/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftriaxone + tazobactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftriaxone/tazobactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ceftriaxone + vancomycin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ceftriaxone/vancomycin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefuroxime axetil + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefuroxime axetil/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefuroxime axetil + linezolid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefuroxime axetil/linezolid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefuroxime axetil + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefuroxime axetil/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefuroxime + clavulanic acid",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefuroxime/clavulanic acid. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefuroxime + metronidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefuroxime/metronidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "cefuroxime + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: cefuroxime/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "chloramphenicol + tetracycline",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: chloramphenicol/tetracycline. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ciprofloxacin + metronidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ciprofloxacin/metronidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ciprofloxacin + ornidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ciprofloxacin/ornidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ciprofloxacin + tinidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ciprofloxacin/tinidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "doxycycline + tinidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: doxycycline/tinidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "erythromycin + sulfamethoxazole + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: erythromycin/sulfamethoxazole/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "erythromycin + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: erythromycin/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "fosfomycin + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: fosfomycin/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "gatifloxacin + ornidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: gatifloxacin/ornidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "kanamycin + penicillin g",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: kanamycin/penicillin g. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "levofloxacin + metronidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: levofloxacin/metronidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "levofloxacin + ornidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: levofloxacin/ornidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "meropenem + sodium + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: meropenem/sodium/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "meropenem + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: meropenem/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "metronidazole + diloxanide",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: metronidazole/diloxanide. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "metronidazole + furazolidone",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: metronidazole/furazolidone. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "metronidazole + norfloxacin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: metronidazole/norfloxacin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "metronidazole + spiramycin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: metronidazole/spiramycin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "metronidazole + tetracycline",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: metronidazole/tetracycline. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "mezlocillin + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: mezlocillin/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "norfloxacin + tinidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: norfloxacin/tinidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ofloxacin + nitazoxanide",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ofloxacin/nitazoxanide. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ofloxacin + ornidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ofloxacin/ornidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "ofloxacin + tinidazole",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: ofloxacin/tinidazole. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "oleandomycin + tetracycline",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: oleandomycin/tetracycline. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "penicillins + combinations-with-other-antibacterials",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: penicillins/combinations-with-other-antibacterials. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "piperacillin + sulbactam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: piperacillin/sulbactam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "pivampicillin + pivmecillinam",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: pivampicillin/pivmecillinam. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "rifampicin + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: rifampicin/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "sulfacarbamide + sulfadiazine + sulfadimidine",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: sulfacarbamide/sulfadiazine/sulfadimidine. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "sulfadiazine + sulfamethoxazole + trimethoprim",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: sulfadiazine/sulfamethoxazole/trimethoprim. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "sulfonamides + combinations-with-other-antibacterials-(excl-trimethoprim)",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: sulfonamides/combinations-with-other-antibacterials-(excl-trimethoprim). Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "tetracycline + chlortetracycline + demeclocycline",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: tetracycline/chlortetracycline/demeclocycline. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "tetracycline + nystatin",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: tetracycline/nystatin. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    },
+    {
+      "inn": "tinidazole + diloxanide",
+      "aware": "Not recommended",
+      "atc": "",
+      "onEmhslu2023": false,
+      "notes": "WHO 2025 'Antibiotics not recommended' sheet entry: tinidazole/diloxanide. Fixed-dose combination; WHO does not recommend its use in clinical practice. Not on EMHSLU 2023."
+    }
+  ],
+  "gaps": [
+    "AWaRe groups taken only from the WHO 2025 workbook (B09489). The 2025 workbook carries no ATC codes for 'Not recommended' combinations, so atc is empty for those.",
+    "WHO classifies two products as 'not assigned' ATC (cefoselis, micronomicin); atc left empty.",
+    "WHO classes some antibiotics by route (colistin, fosfomycin, kanamycin, metronidazole, minocycline, neomycin, ornidazole, polymyxin B, rifamycin, streptomycin, tinidazole, vancomycin); MedSync must map by route as well as INN. Fosfomycin and minocycline change group with route (IV Reserve, oral Watch).",
+    "AWaRe covers systemic antibacterials (mainly ATC J01, with some A07 and P01 entries). Ophthalmic, otic and topical products on EMHSLU 2023 (chloramphenicol, ciprofloxacin, gentamicin, tetracycline, tobramycin, oxytetracycline + polymyxin B, neomycin, framycetin, silver sulphadiazine, metronidazole gel) need a signed rule on whether they are counted; the candidate default is to exclude them from AWaRe shares.",
+    "TB and leprosy medicines are not in the AWaRe workbook except rifamycins and some fluoroquinolones and linezolid. Signers must decide whether programme TB use counts in hospital AWaRe shares.",
+    "Products on the Ugandan market were not verified against the National Drug Authority register: nda.or.ug could not be reached from this environment. The list is therefore the full WHO 2025 list, with EMHSLU 2023 presence marked; 'plausibly on the Ugandan market' is not asserted beyond EMHSLU and the Uganda PPS.",
+    "EMHSLU 2023 presence read from the full PDF text of the guluhospital.net copy; the MoH library copy could not be opened. sulfadiazine is marked unknown because its entry on p35 was not read.",
+    "The EMHSLU 2023 amoxicillin + clavulanic acid COPD entry is printed as '600mg+25mg'; likely a typographical error, to be verified by the pharmacist reviewer.",
+    "The 2025 Expert Committee report (B09544) describing which antibiotics were added or reclassified in 2025 could not be opened, so changes from 2023 are not listed.",
+    "WHO DDD values (ATC/DDD index) were not collected; any DDD metric needs them."
+  ]
+}

@@ -146,3 +146,4 @@ export * from "./pharmacy-dispensing";
 export * from "./pharmacy-stores";
 export { pharmacyLoanClosures } from "./pharmacy-stores-0182";
 export * from "./pharmacy-stores-0184";
+export * from "./pharmacy-clinical";

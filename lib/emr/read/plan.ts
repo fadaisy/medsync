@@ -24,7 +24,12 @@ import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/pr
 import { decrypt } from "@/lib/encryption";
 import { labOneMenuLiveFor } from "@/lib/lab/feature";
 import { menuToday } from "@/lib/lab/one-menu-read";
-import { pharmacyDispensingLiveFor, pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
+import { interactionContextFor } from "@/lib/pharmacy/clinical/read";
+import {
+  pharmacyDispensingLiveFor,
+  pharmacyInteractionsLiveFor,
+  pharmacyStockAnswerLiveFor,
+} from "@/lib/pharmacy/feature";
 import { loadPrescriberPharmacy } from "@/lib/pharmacy/review/prescriber-read";
 import { drugById } from "@/lib/prescribing/formulary";
 import { willRead } from "@/lib/prescribing/plan-rx";
@@ -139,6 +144,10 @@ export async function loadPlanPayload(
         encounterId: input.encounterId,
       });
       const wards = await admittingWards(tx, actor.hospitalId);
+      // Pharmacy Phase 3 (5.3): the signed pairs and this patient's current medicines, behind the flag.
+      const interactions = pharmacyInteractionsLiveFor(actor.hospitalId)
+        ? await interactionContextFor(tx, actor.hospitalId, input.patientUserId, input.now)
+        : null;
       // Lab Phase 2 (labOneMenu, §5.1): the Plan basket reads the same availability as the order sheet.
       const today = labOneMenuLiveFor(actor.hospitalId)
         ? await menuToday(tx, actor.hospitalId, input.now)
@@ -178,6 +187,7 @@ export async function loadPlanPayload(
         facts,
         rx,
         wards: wards.map((w) => ({ id: w.id, name: w.name, counts: countsWords(w.counts) })),
+        interactions,
         cosign,
         reasons,
         labToday,
@@ -309,6 +319,7 @@ export async function loadPlanPayload(
     kidneyTestOrdered: reader.orders.some((o) => o.testId && KIDNEY.has(o.testId)),
     monitoring: reader.monitoring,
     ...(pharmacy ? { pharmacy } : {}),
+    ...(owner.interactions ? { interactions: owner.interactions } : {}),
     ...((actor.surface === "doctor" || actor.surface === "clinician") &&
     pharmacyStockAnswerLiveFor(actor.hospitalId)
       ? {
