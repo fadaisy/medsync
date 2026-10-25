@@ -45,3 +45,15 @@ export const firedLine = (f: {
   version: number;
 }) =>
   `${SEVERITY_WORD[f.severity]}: ${f.adding} with ${f.other}. ${f.effect} ${f.management} Source: ${f.source ?? "not recorded"}. Entry ${f.key}, version ${f.version}.`;
+
+/**
+ * 5.1, Law 4: with signed pairs in force, the notice's "does not check drug interactions" clause becomes the signed
+ * partial sentence; the rest of the Phase 1 wording is kept as it is. With none in force, the text is unchanged.
+ */
+export const withSignedPairs = (text: string, pairs: number | null): string =>
+  pairs
+    ? text.replace(
+        /MedSync does not check drug interactions at this hospital, and (.)/,
+        (_, c: string) => `${CLINICAL_B.noticePartial(pairs)} ${c.toUpperCase()}`,
+      )
+    : text;

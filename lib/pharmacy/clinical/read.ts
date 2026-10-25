@@ -1,5 +1,5 @@
 import type { Entry, Pack, Payload } from "./content";
-import type { CurrentMed, EarlierAnswer } from "./interactions";
+import type { CurrentMed, EarlierAnswer, InteractionsChecked } from "./interactions";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import { and, eq, gte, sql } from "drizzle-orm";
 
@@ -8,7 +8,7 @@ import { medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
 import { pharmacyContentEntries } from "@/db/schema/pharmacy-clinical";
 import { pharmacyProducts, pharmacySupplies } from "@/db/schema/pharmacy-dispensing";
 import { prescriptions } from "@/db/schema/prescribing";
-import { currentMedicines } from "./interactions";
+import { currentMedicines, interactionsChecked } from "./interactions";
 
 /** Pharmacy Phase 3: reads for the interaction check (IX-2) and the content pages. Server only. */
 
@@ -166,4 +166,25 @@ export async function interactionContextFor(
     earlier,
     pairs: entries.filter((e) => !e.blocked).length,
   };
+}
+
+/** IX-9 for the notice: `none` with the flag off or nothing in force; `partial` with the signed count. */
+export async function interactionsStateFor(
+  db: Db,
+  hospitalId: string,
+  flagOn: boolean,
+): Promise<InteractionsChecked> {
+  if (!flagOn) return { state: "none" };
+  const [entries, levels] = await Promise.all([
+    entriesInForce(db, hospitalId, "interaction_pair"),
+    entriesInForce(db, hospitalId, "alert_levels"),
+  ]);
+  const latest = entries
+    .map((e) => (e as Entry & { inForceAt?: Date | null }).inForceAt)
+    .filter(Boolean) as Date[];
+  return interactionsChecked(
+    entries,
+    levels.length > 0,
+    latest.length ? new Date(Math.max(...latest.map(Number))) : null,
+  );
 }

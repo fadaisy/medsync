@@ -1,3 +1,4 @@
+import type { EmrDb } from "@/lib/emr/db";
 import type { ViewLine } from "@/lib/pharmacy/prescription-view";
 import type { PatientFacts } from "@/lib/pharmacy/read";
 import type { ReactNode } from "react";
@@ -14,11 +15,14 @@ import {
   OVERRIDE_CAUTION,
   PHARMACY,
 } from "@/content/pharmacy";
+import { withSignedPairs } from "@/content/pharmacy-clinical";
 import { REVIEW } from "@/content/pharmacy-review";
+import { db } from "@/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
-import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { interactionsStateFor } from "@/lib/pharmacy/clinical/read";
+import { pharmacyDispensingLiveFor, pharmacyInteractionsLiveFor } from "@/lib/pharmacy/feature";
 import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { getPrescription, logPrescriptionViewed, patientFacts } from "@/lib/pharmacy/read";
@@ -116,7 +120,7 @@ export default async function PharmacyPrescriptionPage({
 
       <IdentityStrip name={who.name} mrn={who.mrn} ageSex={who.ageSex} facts={facts} />
 
-      <PharmacyNotice hospitalId={scope.hospitalId} />
+      <PharmacyNotice hospitalId={scope.hospitalId} pairs={await signedPairs(scope.hospitalId)} />
       {bringIn}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -377,6 +381,11 @@ async function ReviewPage({
   data: NonNullable<Awaited<ReturnType<typeof getReview>>>;
 }) {
   const now = new Date();
+  const ix = await interactionsStateFor(
+    db as unknown as EmrDb,
+    scope.hospitalId,
+    pharmacyInteractionsLiveFor(scope.hospitalId),
+  );
   const [ids, facts, prescribers] = await Promise.all([
     identitiesFor(scope, [data.patientUserId], "pharmacy_prescription"),
     patientFacts(data.patientUserId, now),
@@ -401,11 +410,12 @@ async function ReviewPage({
       />
       <IdentityStrip name={who.name} mrn={who.mrn} ageSex={who.ageSex} facts={facts} />
       <CautionNotice
-        lead={
+        lead={withSignedPairs(
           data.doses.total
             ? REVIEW.noticeReview(data.doses.signed, data.doses.total)
-            : REVIEW.noticeReviewNoCounts
-        }
+            : REVIEW.noticeReviewNoCounts,
+          ix.state === "partial" ? ix.pairs : null,
+        )}
       />
       <ReviewScreen
         data={data}
@@ -419,3 +429,13 @@ async function ReviewPage({
     </div>
   );
 }
+
+/** 5.1: the signed pair count for the notice, with `pharmacyInteractions` on; null leaves it unchanged. */
+const signedPairs = async (hospitalId: string) => {
+  const ix = await interactionsStateFor(
+    db as unknown as EmrDb,
+    hospitalId,
+    pharmacyInteractionsLiveFor(hospitalId),
+  );
+  return ix.state === "partial" ? ix.pairs : null;
+};

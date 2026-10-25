@@ -1,5 +1,6 @@
 import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PHARMACY_NOTICE } from "@/content/pharmacy";
+import { withSignedPairs } from "@/content/pharmacy-clinical";
 import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state";
 
 /**
@@ -8,7 +9,14 @@ import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state
  * counts come from the shipped list (CS-3); without them, the wording without numbers. No close
  * button; `role="status"`.
  */
-export function PharmacyNotice({ hospitalId }: { hospitalId: string }) {
+export function PharmacyNotice({
+  hospitalId,
+  pairs = null,
+}: {
+  hospitalId: string;
+  /** Pharmacy Phase 3 (5.1): the signed pair count with `pharmacyInteractions` on; null leaves the text. */
+  pairs?: number | null;
+}) {
   const state = pharmacyChecksState(hospitalId);
   if (!anythingNotDone(state)) return null;
   const refs = state.doseReferences;
@@ -17,5 +25,5 @@ export function PharmacyNotice({ hospitalId }: { hospitalId: string }) {
         .replace("{signed}", String(refs.signed))
         .replace("{total}", String(refs.total))
     : PHARMACY_NOTICE.bodyNoCounts;
-  return <CautionNotice lead={PHARMACY_NOTICE.lead}>{body}</CautionNotice>;
+  return <CautionNotice lead={PHARMACY_NOTICE.lead}>{withSignedPairs(body, pairs)}</CautionNotice>;
 }

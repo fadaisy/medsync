@@ -332,3 +332,16 @@ describe("IV: interventions", () => {
     for (const q of qs) expect(csv).not.toMatch(new RegExp(`(^|,)${q.id}(,|$)`, "m"));
   });
 });
+
+describe("5.1 the notice (S22)", () => {
+  it("with signed pairs, the interaction clause becomes the partial sentence; without, the text is unchanged", async () => {
+    const { withSignedPairs } = await import("@/content/pharmacy-clinical");
+    const { REVIEW } = await import("@/content/pharmacy-review");
+    const base = REVIEW.noticeQueueNoCounts;
+    expect(withSignedPairs(base, null)).toBe(base);
+    const out = withSignedPairs(base, 12);
+    expect(out).toMatch(/^MedSync checks 12 signed interaction pairs/);
+    expect(out).toMatch(/No alert does not mean no interaction\. Its dose references are still being signed/);
+    expect(out).not.toMatch(/does not check drug interactions/);
+  });
+});
