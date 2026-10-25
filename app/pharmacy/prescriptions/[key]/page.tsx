@@ -32,6 +32,7 @@ import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PharmacyNotice } from "../../_components/pharmacy-notice";
 import { BringInButton } from "../../_components/review-dialogs";
 import { ReviewScreen } from "../../_components/review-screen";
+import { InteractionAlerts } from "./_components/interaction-alerts";
 
 export const dynamic = "force-dynamic";
 
@@ -417,6 +418,9 @@ async function ReviewPage({
           ix.state === "partial" ? ix.pairs : null,
         )}
       />
+      {pharmacyInteractionsLiveFor(scope.hospitalId) ? (
+        <InteractionAlerts hospitalId={scope.hospitalId} patientUserId={data.patientUserId} />
+      ) : null}
       <ReviewScreen
         data={data}
         canReview={can(actor.access, "pharmacy.review")}

@@ -28,12 +28,17 @@ export type PharmacyNavId =
   | "monthEnd"
   | "orders"
   | "places"
-  | "packs";
+  | "packs"
+  // Phase 3, the Clinical group (5.1)
+  | "clinicalContent"
+  | "interventions";
 export interface PharmacyNavFlags {
   dispensing: boolean;
   downtime: boolean;
   /** Phase 2 (D-PH2-24); absent means off. */
   stores?: StoresFlags;
+  /** Phase 3 (Law 14); absent means off. */
+  clinical?: { interactions: boolean; interventionReview: boolean };
 }
 export type PharmacyNavItem = NavItem<PharmacyNavId, PharmacyPermission, PharmacyNavFlags>;
 
@@ -122,7 +127,28 @@ export const PHARMACY_NAV: readonly PharmacyNavItem[] = [
     exact: false,
     visibleFor: (p, f) => p.has("pharmacy.view") && Object.values(f?.stores ?? {}).some(Boolean),
   },
+  // Phase 3 (5.1): Interventions behind its flag; Clinical content with any Phase 3 flag on.
+  {
+    id: "interventions",
+    label: "Interventions",
+    href: "/pharmacy/clinical/interventions",
+    order: 50,
+    exact: false,
+    visibleFor: (p, f) => !!f?.clinical?.interventionReview && p.has("pharmacy.review"),
+  },
+  {
+    id: "clinicalContent",
+    label: "Clinical content",
+    href: "/pharmacy/clinical/content",
+    order: 51,
+    exact: false,
+    visibleFor: (p, f) =>
+      p.has("pharmacy.view") && !!(f?.clinical?.interactions || f?.clinical?.interventionReview),
+  },
 ];
+
+/** The first visible Phase 3 item opens the Clinical heading in the sidebar. */
+export const CLINICAL_NAV_IDS: readonly PharmacyNavId[] = ["interventions", "clinicalContent"];
 
 /** The first visible Store item opens the group's heading in the sidebar. */
 export const STORE_NAV_IDS: readonly PharmacyNavId[] = [
