@@ -33,7 +33,8 @@ export type PharmacyNavId =
   | "clinicalContent"
   | "interventions"
   | "stewardship"
-  | "reactions";
+  | "reactions"
+  | "reconciliation";
 export interface PharmacyNavFlags {
   dispensing: boolean;
   downtime: boolean;
@@ -45,6 +46,7 @@ export interface PharmacyNavFlags {
     interventionReview: boolean;
     stewardship?: boolean;
     reactions?: boolean;
+    reconciliation?: boolean;
   };
 }
 export type PharmacyNavItem = NavItem<PharmacyNavId, PharmacyPermission, PharmacyNavFlags>;
@@ -168,6 +170,14 @@ export const PHARMACY_NAV: readonly PharmacyNavItem[] = [
     exact: false,
     visibleFor: (p, f) => !!f?.clinical?.reactions && p.has("pharmacy.view"),
   },
+  {
+    id: "reconciliation",
+    label: "Reconciliation",
+    href: "/pharmacy/clinical/reconciliation",
+    order: 54,
+    exact: false,
+    visibleFor: (p, f) => !!f?.clinical?.reconciliation && p.has("pharmacy.view"),
+  },
 ];
 
 /** The first visible Phase 3 item opens the Clinical heading in the sidebar. */
@@ -176,6 +186,7 @@ export const CLINICAL_NAV_IDS: readonly PharmacyNavId[] = [
   "clinicalContent",
   "stewardship",
   "reactions",
+  "reconciliation",
 ];
 
 /** The first visible Store item opens the group's heading in the sidebar. */

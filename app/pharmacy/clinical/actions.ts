@@ -11,8 +11,13 @@ import { CLINICAL_UI } from "@/content/pharmacy-clinical";
 import { logger } from "@/lib/logger";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import * as reactions from "@/lib/pharmacy/clinical/reaction-store";
+import * as reconciliation from "@/lib/pharmacy/clinical/reconciliation-store";
 import * as store from "@/lib/pharmacy/clinical/store";
-import { anyClinicalLiveFor, pharmacyReactionsLiveFor } from "@/lib/pharmacy/feature";
+import {
+  anyClinicalLiveFor,
+  pharmacyReactionsLiveFor,
+  pharmacyReconciliationLiveFor,
+} from "@/lib/pharmacy/feature";
 import * as packs from "@/lib/pharmacy/stores/packs";
 import { attestResult } from "@/lib/pharmacy/stores/supply-action";
 import { storeNeed } from "@/lib/pharmacy/stores/write";
@@ -124,6 +129,23 @@ export async function recordReportEvent(raw: unknown) {
       raw,
       "pharmacy.review",
       reactions.reportEvent,
+    ),
+  );
+}
+
+/* ─── Reconciliation at discharge (5.7, Section 8), behind `pharmacyReconciliation` ─── */
+
+/** MR-3, MR-4, MR-6: explain, add, confirm, close and logged prints (`pharmacy.review`). */
+export async function recordReconciliationEvent(raw: unknown) {
+  if (!pharmacyReconciliationLiveFor((await requirePharmacyActor()).hospitalId))
+    return { ok: false as const, code: "config" as const, error: CLINICAL_UI.flagOff };
+  return bare(
+    await act(
+      "recordReconciliationEvent",
+      reconciliation.EventInput,
+      raw,
+      "pharmacy.review",
+      reconciliation.reconciliationEvent,
     ),
   );
 }

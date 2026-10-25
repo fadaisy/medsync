@@ -127,3 +127,54 @@ export const pharmacyReactionEvents = pgTable("pharmacy_reaction_events", {
   actorUserId: uuid("actor_user_id").notNull(),
   at: timestamp("at", tz).notNull().defaultNow(),
 });
+
+/* ─── 0212: reconciliation at discharge (MR-1 to MR-7) ─── */
+
+export const pharmacyReconciliations = pgTable("pharmacy_reconciliations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  patientUserId: uuid("patient_user_id").notNull(),
+  admissionId: uuid("admission_id").notNull().unique(),
+  openedBy: uuid("opened_by").notNull(),
+  openedAt: timestamp("opened_at", tz).notNull().defaultNow(),
+  clientKey: text("client_key").unique(),
+});
+
+export const pharmacyReconciliationDecisions = pgTable("pharmacy_reconciliation_decisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reconciliationId: uuid("reconciliation_id").notNull(),
+  hospitalId: uuid("hospital_id").notNull(),
+  rowKey: text("row_key").notNull(),
+  decision: text("decision")
+    .$type<
+      | "continue"
+      | "restart"
+      | "changed"
+      | "stay_stopped"
+      | "paused"
+      | "ends_on_ward"
+      | "new_for_home"
+    >()
+    .notNull(),
+  reason: text("reason"),
+  decidedBy: uuid("decided_by").notNull(),
+  deciderCadre: text("decider_cadre"),
+  decidedAt: timestamp("decided_at", tz).notNull().defaultNow(),
+  clientKey: text("client_key").unique(),
+});
+
+export const pharmacyReconciliationEvents = pgTable("pharmacy_reconciliation_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reconciliationId: uuid("reconciliation_id").notNull(),
+  hospitalId: uuid("hospital_id").notNull(),
+  kind: text("kind")
+    .$type<"explained" | "added" | "confirmed" | "closed" | "reopened" | "printed">()
+    .notNull(),
+  discrepancy: text("discrepancy"),
+  reason: text("reason"),
+  note: text("note"),
+  snapshot: jsonb("snapshot"),
+  actorUserId: uuid("actor_user_id").notNull(),
+  at: timestamp("at", tz).notNull().defaultNow(),
+  clientKey: text("client_key").unique(),
+});
