@@ -69,7 +69,11 @@ describe("the store's screens", () => {
       expect(read(join(ROOT, f)), f).toMatch(/<ScanField/);
   });
 
-  it("the copy stays draft (never signed here)", () => {
-    expect(PHARMACY_STORES_COPY.status).toBe("draft");
+  it("the copy carries the CSO's signature (25 Oct 2026)", () => {
+    expect(PHARMACY_STORES_COPY).toEqual({
+      status: "signed",
+      signedBy: "Fadhul (CSO)",
+      signedOn: "2026-10-25",
+    });
   });
 });

@@ -2,10 +2,15 @@ import type { SignedCopy } from "@/content/signed-copy";
 
 /**
  * Pharmacy Phase 2: stores, wards and supply. Every string staff or patients read on the Store group, the ward
- * stock page and the cart check. Draft until the CSO signs (Appendix B); in production the six Phase 2 flags
- * stay off while this is draft (CS-5). Never edit the status here without a signature.
+ * stock page and the cart check. Signed by the CSO on 25 Oct 2026, in session, every Phase 2 string as written
+ * (957 strings across content/pharmacy-stores*.ts; sign-off page https://claude.ai/artifact/PrfHTzwXwv63DYamXFnR4e).
+ * Any change returns it to `draft`, and the six Phase 2 flags off in production (CS-5), until it is signed again.
  */
-export const PHARMACY_STORES_COPY: SignedCopy = { status: "draft", signedBy: null, signedOn: null };
+export const PHARMACY_STORES_COPY: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-25",
+};
 
 /** Appendix B, word for word. */
 export const STORES_B = {

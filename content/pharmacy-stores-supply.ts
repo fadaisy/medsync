@@ -2,13 +2,13 @@ import type { SignedCopy } from "@/content/signed-copy";
 
 /**
  * Pharmacy Phase 2, lane C: signed packs, expiry and recall, month end and the order. Every string staff read on
- * those pages. Draft until the CSO signs; Appendix B strings stay in `content/pharmacy-stores.ts` (STORES_B) and
- * are only used from there. Never edit the status here without a signature.
+ * those pages. Signed by the CSO on 25 Oct 2026 with the rest of the Phase 2 wording; Appendix B strings stay in
+ * `content/pharmacy-stores.ts` (STORES_B). Any change returns it to `draft` until it is signed again.
  */
 export const PHARMACY_STORES_SUPPLY_COPY: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-25",
 };
 
 /** The D-PH2-22 exception, word for word (gate-a-proposal, signed 21 Oct 2026). */
