@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient web · Tide, Steps 0–2 (foundation) — 25 Oct 2026
+
+Built on `feat/patient-web-tide` (PROMPT-PATIENT-WEB-TIDE). The phone branch `feat/mobile-tide-v1` is merged in, its
+migrations renumbered 0185–0191 and its colliding ADRs 0402–0414 (`docs/NUMBERS.md`). GATE A decisions taken as
+recommended ([ADR 0415](docs/adr/0415-patient-web-replaces-old-patient-pages.md)–[0421](docs/adr/0421-sos-on-devices-that-cannot-dial.md)).
+
+- `packages/patient-core`: the patient's pure rules, shared by phone and web ([ADR 0420](docs/adr/0420-packages-patient-core.md)).
+- Patient-density Tide tokens generated from the phone's `tide.ts`; the kit in `components/tide/`; `PatientShell`
+  with the rail and the pill ([ADR 0416](docs/adr/0416-patient-web-shell-rail-and-pill.md)); the gallery at `/pw/gallery`.
+- `PATIENT_WEB_TIDE` serves the new pages at the old URLs through `proxy.ts`; off, nothing changes.
+- Guards (`tests/patient-web`), the zero-dependency CDP harness and the test-patient seed (`scripts/patient-web`).
+
 ### Changed — Lab test menu v2: set up tests, not results — 19 Oct 2026
 
 Built on `feat/lab-test-menu-v2`. Migrations 0171 (schema) and 0172 (catalogue v2 as CFC v1.7, generated) are

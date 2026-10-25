@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getAuthState } from "@/lib/auth";
+import { pwRewrite } from "@/lib/patient-web/routes";
 import { updateSession } from "@/lib/supabase/proxy";
 
 /**
@@ -34,6 +35,8 @@ const PUBLIC_PREFIXES = [
   "/emergency",
   // A patient's live location link for family (ADR 0402): read by token alone, no sign-in.
   "/share",
+  // The patient kit's harness page (PROMPT-PATIENT-WEB-TIDE S1): fixtures only, no patient data.
+  "/pw/gallery",
 ];
 
 const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);
@@ -67,6 +70,8 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // (per kickoff), so the MFA branches in proxy.ts don't fire for
   // pure patients; a clinician-also-patient still gets MFA.
   "/patient",
+  // The new patient pages (D-PW-10), reached directly only while PATIENT_WEB_TIDE is on.
+  "/pw",
 ];
 
 function isPublic(pathname: string): boolean {
@@ -91,6 +96,19 @@ function redirectTo(url: URL, response: NextResponse): NextResponse {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const response = await gate(request);
+  // D-PW-10: the new patient pages serve at the old URLs while PATIENT_WEB_TIDE is on. Gating above ran on
+  // the URL the patient asked for; redirects (sign-in, MFA) pass through untouched.
+  const target = pwRewrite(request.nextUrl.pathname);
+  if (!target || response.headers.has("location")) return response;
+  const url = request.nextUrl.clone();
+  url.pathname = target;
+  const rewrite = NextResponse.rewrite(url, { request }); // carries the cookies updateSession refreshed
+  for (const cookie of response.cookies.getAll()) rewrite.cookies.set(cookie);
+  return rewrite;
+}
+
+async function gate(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   // Refresh cookies first — must happen for both public and protected so an

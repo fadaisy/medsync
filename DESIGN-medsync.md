@@ -9,17 +9,17 @@ MedSync Tide is calm, rounded and generous: a soft grey ground, navy ink, white 
 
 ## Densities (D-TW-02)
 
-| | Desk (staff, admin) | Phone (patient web) | Public (landing, sign-in, onboarding) |
-|---|---|---|---|
-| Body | 13–14px, table cells 13px | 17/25, to 200% | 17/25 |
-| Page title | 24/28 at 500 | `display` 36/40 at 500 | hero 56/60 desktop, 40/44 at 390 (D-TW-05) |
-| Buttons | pills, 36px (small 30px) | 52px pills | 52px pills |
-| Targets | ≥ 44px | ≥ 48px | ≥ 48px |
-| Radii | cards 18, tiles 16, rows 12, fields 10–12 | cards 22, cascade 28 | cards 22 |
-| Navigation | floating rail, icon plus word, lagoon dot under the current place, counts in ink | top bar: mark, back, Help | top bar: mark, links, Sign in, Help |
-| Emergency | **Emergency** red pill, top right | **Help** red pill | **Help** red pill |
+|            | Desk (staff, admin)                                                              | Phone (patient web)                                                                                                   | Public (landing, sign-in, onboarding)      |
+| ---------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Body       | 13–14px, table cells 13px                                                        | 17/25, to 200%                                                                                                        | 17/25                                      |
+| Page title | 24/28 at 500                                                                     | `display` 36/40 at 500                                                                                                | hero 56/60 desktop, 40/44 at 390 (D-TW-05) |
+| Buttons    | pills, 36px (small 30px)                                                         | 52px pills; main buttons navy, lagoon for now, the plus and the unseen bell (D-PW-01)                                 | 52px pills                                 |
+| Targets    | ≥ 44px                                                                           | ≥ 48px                                                                                                                | ≥ 48px                                     |
+| Radii      | cards 18, tiles 16, rows 12, fields 10–12                                        | cards 22, cascade 28                                                                                                  | cards 22                                   |
+| Navigation | floating rail, icon plus word, lagoon dot under the current place, counts in ink | floating rail (≥ 761 px) or the phone's bottom pill (≤ 760 px), the plus in the middle; Help in the header (ADR 0416) | top bar: mark, links, Sign in, Help        |
+| Emergency  | **Emergency** red pill, top right                                                | **Help** red pill                                                                                                     | **Help** red pill                          |
 
-The reference for the desk is the lab (`app/lab/_components/v2`, ADR 0344) and the *Pharmacy Phase 1 · Tide* canvas (`docs/design/canvases/pharmacy-phase-1-tide/`).
+The reference for the desk is the lab (`app/lab/_components/v2`, ADR 0344) and the _Pharmacy Phase 1 · Tide_ canvas (`docs/design/canvases/pharmacy-phase-1-tide/`).
 
 ## Colour laws (Law 6)
 
@@ -34,13 +34,13 @@ The reference for the desk is the lab (`app/lab/_components/v2`, ADR 0344) and t
 
 **Area dots** sit on each space's overline only, never behind text, never on a button:
 
-| Space | Token |
-|---|---|
-| Pharmacy, lab, medicines | `area-medicines` |
-| Doctor, nurse, encounters | `area-readings` |
-| Reception, visits | `area-visits` |
-| Care team, NCD registry | `area-team` |
-| Admin, superadmin, account | `area-me` |
+| Space                      | Token            |
+| -------------------------- | ---------------- |
+| Pharmacy, lab, medicines   | `area-medicines` |
+| Doctor, nurse, encounters  | `area-readings`  |
+| Reception, visits          | `area-visits`    |
+| Care team, NCD registry    | `area-team`      |
+| Admin, superadmin, account | `area-me`        |
 
 ## Typography (D-TW-03)
 
