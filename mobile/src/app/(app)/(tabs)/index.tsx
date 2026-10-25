@@ -31,6 +31,7 @@ import { useReadings, whenWords } from "@/data/readings";
 import { takeFreshSignup } from "@/data/signup";
 import { usePhoneSteps } from "@/features/care-more/use-steps";
 import { Doctors } from "@/features/home/doctors";
+import { HealthCard } from "@/features/home/health-card";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
 import { fetchMyAvatarUrl } from "@/lib/booking";
@@ -240,6 +241,8 @@ export default function HomeScreen() {
         />
 
         <MoodCard now={now} onSaved={(text) => showToast({ text })} />
+
+        <HealthCard />
 
         <View style={{ gap: tSpace[3] }}>
           <SectionHead title="Here is your day" />
