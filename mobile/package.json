@@ -80,6 +80,7 @@
       "^@/(.*)$": "<rootDir>/src/$1",
       "^@shared/(.*)$": "<rootDir>/../supabase/functions/_shared/$1",
       "^@clinical-rules/(.*)$": "<rootDir>/../packages/clinical-rules/$1",
+      "^@patient-core/(.*)$": "<rootDir>/../packages/patient-core/$1",
       "^@patient/(.*)$": "<rootDir>/../lib/patient/$1"
     },
     "setupFiles": [

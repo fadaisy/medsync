@@ -1,0 +1,710 @@
+[
+  {
+    "input": {
+      "kind": "bp",
+      "top": 179.9,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 180,
+      "bottom": 70
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 180.1,
+      "bottom": 70
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 139.9,
+      "bottom": 70
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 140,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 140.1,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 89.9,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 90,
+      "bottom": 70
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 90.1,
+      "bottom": 70
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 49.9,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 50,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 50.1,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 119.9
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 120
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 120.1
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 89.9
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 90
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 90.1
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 49.9
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 50
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 50.1
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 29.9
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 30
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 120,
+      "bottom": 30.1
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 39.9
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 40
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 40.1
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 129.9
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 130
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 130.1
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 49.9
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 50
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 50.1
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 99.9
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 100
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "pulse",
+      "value": 100.1
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 3.9,
+      "context": "fasting"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4,
+      "context": "fasting"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4.1,
+      "context": "fasting"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.6,
+      "context": "fasting"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.7,
+      "context": "fasting"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.8,
+      "context": "fasting"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.1,
+      "context": "fasting"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.2,
+      "context": "fasting"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.3,
+      "context": "fasting"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 3.9,
+      "context": "lunch"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4,
+      "context": "lunch"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4.1,
+      "context": "lunch"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.6,
+      "context": "lunch"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.7,
+      "context": "lunch"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.8,
+      "context": "lunch"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.1,
+      "context": "lunch"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.2,
+      "context": "lunch"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.3,
+      "context": "lunch"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 3.9,
+      "context": "supper"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4,
+      "context": "supper"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4.1,
+      "context": "supper"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.6,
+      "context": "supper"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.7,
+      "context": "supper"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.8,
+      "context": "supper"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.1,
+      "context": "supper"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.2,
+      "context": "supper"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 7.3,
+      "context": "supper"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 3.9,
+      "context": "after"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4,
+      "context": "after"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4.1,
+      "context": "after"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.6,
+      "context": "after"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.7,
+      "context": "after"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.8,
+      "context": "after"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 9.9,
+      "context": "after"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 10,
+      "context": "after"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 10.1,
+      "context": "after"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 3.9,
+      "context": "bedtime"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4,
+      "context": "bedtime"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4.1,
+      "context": "bedtime"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.6,
+      "context": "bedtime"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.7,
+      "context": "bedtime"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.8,
+      "context": "bedtime"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 8.2,
+      "context": "bedtime"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 8.3,
+      "context": "bedtime"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 8.4,
+      "context": "bedtime"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 3.9,
+      "context": "random"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4,
+      "context": "random"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 4.1,
+      "context": "random"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.6,
+      "context": "random"
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.7,
+      "context": "random"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 16.8,
+      "context": "random"
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 9.9,
+      "context": "random"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 10,
+      "context": "random"
+    },
+    "level": "ok"
+  },
+  {
+    "input": {
+      "kind": "sugar",
+      "value": 10.1,
+      "context": "random"
+    },
+    "level": "watch"
+  }
+]

@@ -15,6 +15,9 @@
       "@clinical-rules/*": [
         "../packages/clinical-rules/*"
       ],
+      "@patient-core/*": [
+        "../packages/patient-core/*"
+      ],
       "@patient/*": [
         "../lib/patient/*"
       ]

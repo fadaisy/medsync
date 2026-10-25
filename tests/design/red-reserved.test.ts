@@ -650,7 +650,8 @@ describe("never colour alone — the Expo app", () => {
         expect(elementAt(src, i).tag, path).toMatch(/\blabel=/);
       }
     }
-    const booking = MOBILE.find(([p]) => p === "mobile/src/lib/booking.ts")?.[1] ?? "";
+    // The map lives in the shared core since D-PW-09; mobile/src/lib/booking.ts re-exports it.
+    const booking = readFileSync(resolve(ROOT, "packages/patient-core/visits.ts"), "utf8");
     const map = booking.slice(booking.indexOf("export const STATUS_LABEL"));
     const entries = [...map.slice(0, map.indexOf("};")).matchAll(/^\s+(\w+): "([^"]*)",$/gm)];
     expect(entries.length).toBeGreaterThanOrEqual(10); // the ten appointments.status values

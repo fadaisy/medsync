@@ -41,7 +41,9 @@ describe("any item in three interactions (PRD §7.3, board D)", () => {
   });
 
   it("the follow-ups are each chosen item's own qualifiers, in the catalogue's words", () => {
-    expect(stripComments(read(`${C}/logic.ts`))).toMatch(/item\.qualifiers \?\? \[\]/);
+    expect(stripComments(read("packages/patient-core/symptoms.ts"))).toMatch(
+      /item\.qualifiers \?\? \[\]/,
+    );
     expect(stripComments(read(`${C}/steps.tsx`))).toMatch(/say\(CATALOG, q\.promptKey\)/);
   });
 });
@@ -57,7 +59,7 @@ describe("the tier is a word, never a colour alone (PRD §7.5)", () => {
 
 describe("the emergency interrupt (PRD §5.4)", () => {
   it("is derived from the classification — an E item, a qualifier or a combination opens it; a decline holds until the item is removed", () => {
-    const logic = stripComments(read(`${C}/logic.ts`));
+    const logic = stripComments(read("packages/patient-core/symptoms.ts"));
     expect(logic).toMatch(/const c = classify\(sel, pkg\)/);
     expect(logic).toMatch(/c\.reasons\.find\(\(k\) => !declined\.includes\(k\)\)/);
     const src = stripComments(read(SCREEN));
