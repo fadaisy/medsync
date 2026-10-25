@@ -4,6 +4,7 @@ import type { PharmacyCtx } from "@/lib/pharmacy/write";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import AWARE from "@/data/pharmacy/clinical/aware-candidates.json";
 import CANDIDATES from "@/data/pharmacy/clinical/interaction-candidates.json";
 import {
   pharmacyContentEntries,
@@ -17,6 +18,7 @@ import {
   cannotSend,
   PACKS,
   PAYLOADS,
+  planAware,
   planImport,
   signRefusal,
   statusAfterSigning,
@@ -277,6 +279,23 @@ export async function importCandidates(ctx: PharmacyCtx, input: z.infer<typeof I
     })
     .returning({ id: pharmacyContentImports.id });
   return { id: row!.id, counts: plan.counts };
+}
+
+/** AM-0: the AWaRe edition as one draft (key "edition"); signing it is one signature for the whole pack. */
+export async function importAware(ctx: PharmacyCtx, input: z.infer<typeof ImportInput>) {
+  const edition = `${AWARE.source.title} (${AWARE.source.edition})`.slice(0, 200);
+  const payload = planAware(
+    AWARE.antibiotics,
+    DRUGS.map((d) => ({ id: d.id, generic: d.generic })),
+    edition,
+  );
+  return saveDraft(ctx, {
+    clientKey: input.clientKey,
+    pack: "aware_pack",
+    key: "edition",
+    payload,
+    source: AWARE.source.title.slice(0, 1000),
+  });
 }
 
 const REFUSAL: Record<string, string> = {

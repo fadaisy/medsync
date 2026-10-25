@@ -23,6 +23,7 @@ import { peopleAt } from "@/lib/pharmacy/stores/packs";
 import { DRUGS } from "@/lib/prescribing/formulary";
 import {
   EditDialog,
+  ImportAwareButton,
   ImportButton,
   SignDialog,
   WithdrawDialog,
@@ -32,6 +33,8 @@ export const metadata: Metadata = { title: "Clinical content · Pharmacy" };
 export const dynamic = "force-dynamic";
 
 const EDITABLE: readonly Pack[] = [
+  "review_settings",
+  "reaction_timelines",
   "interaction_pair",
   "alert_levels",
   "lookback_windows",
@@ -82,6 +85,7 @@ export default async function ClinicalContentPage() {
           reviews ? (
             <div className="flex flex-wrap gap-2">
               <ImportButton />
+              <ImportAwareButton />
               <EditDialog
                 pack="interaction_pair"
                 entryKey={null}

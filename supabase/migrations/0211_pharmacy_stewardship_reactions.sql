@@ -3,8 +3,9 @@
 --
 -- GATED: owner-applied (`npm run db:migrate`), after 0210. ADDITIVE.
 --
---   1. Two content packs: the AWaRe pack (one signed edition, keyed by medicine and route) and the antibiotic review
---      settings (interval per group, groups prompted, no-culture window). Neither acts unsigned (Law 3, Law 6).
+--   1. Three content packs: the AWaRe pack (one signed edition, keyed by medicine and route), the antibiotic review
+--      settings (interval per group, groups prompted, no-culture window) and the reaction reporting timelines
+--      (D-PH3-22). None acts unsigned (Law 3, Law 6).
 --   2. pharmacy_ams_reviews: a prescriber's answer to a review prompt; append-only. A stop date is stored here and
 --      never on the prescription (D-PH3-09).
 --   3. pharmacy_reaction_reports, _medicines, _events: the hospital's record of suspected reactions and the NDA report's
@@ -14,7 +15,7 @@
 ALTER TABLE public.pharmacy_content_entries DROP CONSTRAINT IF EXISTS pharmacy_content_entries_pack_check;
 ALTER TABLE public.pharmacy_content_entries ADD CONSTRAINT pharmacy_content_entries_pack_check CHECK (pack IN (
   'interaction_pair','alert_levels','lookback_windows','query_codes_added','check_worth_signing','pcne_map',
-  'aware_pack','review_settings'));
+  'aware_pack','review_settings','reaction_timelines'));
 
 CREATE TABLE IF NOT EXISTS public.pharmacy_ams_reviews (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -102,3 +102,13 @@ export const pharmacyInteractionsLiveFor = (h: string) =>
   clinical(process.env.PHARMACY_INTERACTIONS, h, "pharmacy_interactions");
 export const pharmacyInterventionReviewLiveFor = (h: string) =>
   clinical(process.env.PHARMACY_INTERVENTION_REVIEW, h, "pharmacy_intervention_review");
+export const pharmacyStewardshipLiveFor = (h: string) =>
+  clinical(process.env.PHARMACY_STEWARDSHIP, h, "pharmacy_stewardship");
+export const pharmacyReactionsLiveFor = (h: string) =>
+  clinical(process.env.PHARMACY_REACTIONS, h, "pharmacy_reactions");
+/** Clinical content shows when any Phase 3 flag is on (5.1). */
+export const anyClinicalLiveFor = (h: string) =>
+  pharmacyInteractionsLiveFor(h) ||
+  pharmacyInterventionReviewLiveFor(h) ||
+  pharmacyStewardshipLiveFor(h) ||
+  pharmacyReactionsLiveFor(h);

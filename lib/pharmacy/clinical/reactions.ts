@@ -122,8 +122,3 @@ export function reportFields(
 /** AR-5: the copied text, one line per field. */
 export const reportText = (fields: ReturnType<typeof reportFields>) =>
   fields.map((f) => `${f.section}. ${f.label}: ${f.value}`).join("\n");
-
-const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-/** A short, unambiguous reference for the report (printed in place of the hospital number). */
-export const newReference = (rand: () => number = Math.random) =>
-  `R-${Array.from({ length: 8 }, () => ALPHABET[Math.floor(rand() * ALPHABET.length)]).join("")}`;

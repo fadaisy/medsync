@@ -22,6 +22,7 @@ import {
 } from "../../../store/places/_components/store-kit";
 import {
   attestSigner,
+  importAware,
   importCandidates,
   saveContentDraft,
   signContentEntry,
@@ -30,6 +31,32 @@ import {
 
 const U = CLINICAL_UI;
 const F = U.fields;
+
+/** AM-0: the AWaRe edition as one draft pack; unmatched antibiotics are listed, never guessed. */
+export function ImportAwareButton() {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [said, setSaid] = useState<string | null>(null);
+  return (
+    <div className="flex flex-col gap-1">
+      <Button
+        variant="secondary"
+        className={TARGET}
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            const r = await importAware({ clientKey: newKey() });
+            setSaid(r.ok ? null : r.error);
+            router.refresh();
+          })
+        }
+      >
+        {U.importAware}
+      </Button>
+      <Refusal error={said} />
+    </div>
+  );
+}
 
 /** CC-3: imports the candidate file as drafts; a second import changes nothing. */
 export function ImportButton() {
@@ -128,13 +155,27 @@ export function EditDialog({
                   review: levels("review"),
                   suppressionDays: num(d, "suppressionDays"),
                 }
-              : pack === "lookback_windows"
+              : pack === "review_settings"
                 ? {
-                    chartedHours: num(d, "chartedHours"),
-                    suppliedDays: num(d, "suppliedDays"),
-                    suppliedDaysByMedicine: {},
+                    intervalDays: Object.fromEntries(
+                      (["Access", "Watch", "Reserve"] as const)
+                        .map((g) => [
+                          g,
+                          str(d, `interval${g}`) ? num(d, `interval${g}`) : undefined,
+                        ])
+                        .filter(([, v]) => v !== undefined),
+                    ),
+                    noCultureWindowHours: num(d, "noCultureWindowHours"),
                   }
-                : { minimum: num(d, "minimum") };
+                : pack === "reaction_timelines"
+                  ? { seriousHours: num(d, "seriousHours"), otherDays: num(d, "otherDays") }
+                  : pack === "lookback_windows"
+                    ? {
+                        chartedHours: num(d, "chartedHours"),
+                        suppliedDays: num(d, "suppliedDays"),
+                        suppliedDaysByMedicine: {},
+                      }
+                    : { minimum: num(d, "minimum") };
         const key =
           pack === "interaction_pair" ? [str(d, "a"), str(d, "b")].sort().join("+") : pack;
         return saveContentDraft({
@@ -225,6 +266,50 @@ export function EditDialog({
               name="suppressionDays"
               inputMode="numeric"
               defaultValue={(p.suppressionDays as number) ?? ""}
+              className={TARGET}
+            />
+          </Field>
+        </div>
+      ) : pack === "review_settings" ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(["Access", "Watch", "Reserve"] as const).map((g) => (
+            <Field key={g} label={F[`interval${g}`]} id={`interval${g}`}>
+              <Input
+                id={`interval${g}`}
+                name={`interval${g}`}
+                inputMode="numeric"
+                defaultValue={((p.intervalDays as P | undefined)?.[g] as number) ?? ""}
+                className={TARGET}
+              />
+            </Field>
+          ))}
+          <Field label={F.noCultureWindowHours} id="noCultureWindowHours">
+            <Input
+              id="noCultureWindowHours"
+              name="noCultureWindowHours"
+              inputMode="numeric"
+              defaultValue={(p.noCultureWindowHours as number) ?? ""}
+              className={TARGET}
+            />
+          </Field>
+        </div>
+      ) : pack === "reaction_timelines" ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label={F.seriousHours} id="seriousHours">
+            <Input
+              id="seriousHours"
+              name="seriousHours"
+              inputMode="numeric"
+              defaultValue={(p.seriousHours as number) ?? ""}
+              className={TARGET}
+            />
+          </Field>
+          <Field label={F.otherDays} id="otherDays">
+            <Input
+              id="otherDays"
+              name="otherDays"
+              inputMode="numeric"
+              defaultValue={(p.otherDays as number) ?? ""}
               className={TARGET}
             />
           </Field>

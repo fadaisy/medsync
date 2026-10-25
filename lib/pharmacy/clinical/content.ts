@@ -13,6 +13,9 @@ export const PACKS = [
   "query_codes_added",
   "check_worth_signing",
   "pcne_map",
+  "aware_pack",
+  "review_settings",
+  "reaction_timelines",
 ] as const;
 export type Pack = (typeof PACKS)[number];
 
@@ -74,7 +77,56 @@ export const PAYLOADS = {
       z.object({ problem: z.string().max(10), intervention: z.string().max(10) }),
     ),
   }),
+  /** AM-0, D-PH3-06: one signed edition; key "medicine" or "medicine:route"; unmatched listed, never guessed. */
+  aware_pack: z.object({
+    edition: z.string().trim().min(3).max(200),
+    tags: z.record(
+      z.string().regex(/^[a-z0-9_]{2,80}(:[a-z_]{2,20})?$/),
+      z.enum(["Access", "Watch", "Reserve", "unknown"]),
+    ),
+    unmatched: z.array(z.string().max(120)),
+  }),
+  /** D-PH3-07: interval per group, typed by the AMS chair; none proposed. */
+  review_settings: z.object({
+    intervalDays: z.object({
+      Access: z.number().int().min(1).max(60).optional(),
+      Watch: z.number().int().min(1).max(60).optional(),
+      Reserve: z.number().int().min(1).max(60).optional(),
+    }),
+    noCultureWindowHours: z
+      .number()
+      .int()
+      .min(0)
+      .max(24 * 14),
+  }),
+  /** D-PH3-22: the due-by display only. */
+  reaction_timelines: z.object({
+    seriousHours: z
+      .number()
+      .int()
+      .min(1)
+      .max(24 * 30),
+    otherDays: z.number().int().min(1).max(365),
+  }),
 } satisfies Record<Pack, z.ZodType>;
+
+/** AM-0 import: exact match on the generic name to the hospital's list; everything else is listed as unmatched. */
+export function planAware(
+  rows: readonly { inn: string; aware: string }[],
+  medicines: readonly { id: string; generic: string }[],
+  edition: string,
+): Payload<"aware_pack"> {
+  const byName = new Map(medicines.map((m) => [m.generic.trim().toLowerCase(), m.id]));
+  const tags: Record<string, "Access" | "Watch" | "Reserve" | "unknown"> = {};
+  const unmatched: string[] = [];
+  for (const r of rows) {
+    const id = byName.get(r.inn.trim().toLowerCase());
+    const g = r.aware as "Access" | "Watch" | "Reserve";
+    if (id && ["Access", "Watch", "Reserve"].includes(g)) tags[id] = g;
+    else unmatched.push(r.inn);
+  }
+  return { edition, tags, unmatched: unmatched.slice(0, 1000) };
+}
 export type Payload<P extends Pack> = z.infer<(typeof PAYLOADS)[P]>;
 
 export type Status = "draft" | "reviewer_signed" | "in_force" | "withdrawn";
