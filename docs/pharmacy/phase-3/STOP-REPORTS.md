@@ -80,3 +80,15 @@
 - apply 0210 → 0211 (`cd ~/Desktop/medsync-pharmclose && npm run db:migrate`);
 - sign `PHARMACY_CLINICAL_COPY`;
 - import and sign the AWaRe pack, the review settings and the reaction timelines.
+
+---
+
+# Steps 9–10: reconciliation and hardening (25 Oct 2026)
+
+Step 9 is commit 258853ec: 0212, the engine, the prescriber's Medicines for home page, and the pharmacist's Reconciliation pages.
+
+Step 10 adds:
+- tests for S48, for no prescription writes, and for H3-14;
+- ADR 0395;
+- `hazard-log.md` and `USER-GUIDE.md`;
+- `FINAL-REPORT.md`, which holds the numbers, the Definition of Done and what is open.
