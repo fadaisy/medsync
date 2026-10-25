@@ -30,9 +30,16 @@ const RED_ALLOWED = [
   "components/tide/kit.tsx",
   "components/tide/shell.tsx",
   "components/tide/reading-check.tsx", // the chest-pain row and the danger interrupt
+  "components/tide/book-danger.tsx", // the symptom steps' red panel
+  "components/tide/care-sugar-diary.tsx", // a danger reading's diary cell, with its word
 ];
 /** Files that may paint amber or green: StatusPill and Note (L4). Areas add the check band and the charts. */
-const SIGNAL_ALLOWED = ["components/tide/kit.tsx", "components/tide/reading-check.tsx"];
+const SIGNAL_ALLOWED = [
+  "components/tide/kit.tsx",
+  "components/tide/reading-check.tsx",
+  "components/tide/care-sugar-diary.tsx",
+  "components/tide/care-week-chart.tsx",
+];
 
 describe("patient web guards", () => {
   it("scans something", () => expect(FILES.length).toBeGreaterThan(5));
@@ -125,5 +132,34 @@ describe("patient web guards", () => {
       { encoding: "utf8" },
     );
     expect(block.trim()).toBe(fresh.trim());
+  });
+});
+
+describe("PW_ROUTES", () => {
+  it("rewrites every built page and nothing else", async () => {
+    const { pwRewrite } = await import("@/lib/patient-web/routes");
+    const id = "00000000-0000-4000-8000-000000000001";
+    for (const p of [
+      "/patient",
+      "/patient/mood",
+      "/patient/notifications",
+      "/patient/care",
+      "/patient/care/readings",
+      "/patient/care/move",
+      `/patient/visits/${id}`,
+      "/patient/book/wrong",
+      "/patient/me",
+      "/patient/me/family",
+      `/patient/me/records/${id}`,
+    ])
+      expect(pwRewrite(p, true)).toBe(`/pw${p}`);
+    for (const p of [
+      "/patient/consent",
+      "/patient/hospitals",
+      "/patient/care/visits/x",
+      "/emergency",
+    ])
+      expect(pwRewrite(p, true)).toBeNull();
+    expect(pwRewrite("/patient", false)).toBeNull();
   });
 });

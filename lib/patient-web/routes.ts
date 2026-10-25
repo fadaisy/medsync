@@ -8,7 +8,11 @@ export const PW_ROUTES: readonly RegExp[] = [
   /^\/patient\/?$/,
   /^\/patient\/mood\/?$/,
   /^\/patient\/notifications\/?$/,
-  /^\/patient\/care\/readings\/?$/,
+  /^\/patient\/care(\/(readings|medicines|trends|labs|move|messages))?\/?$/,
+  /^\/patient\/visits(\/[0-9a-f-]{36})?\/?$/,
+  /^\/patient\/book(\/(wrong|today|day))?\/?$/,
+  /^\/patient\/me(\/(conditions|allergies|family|places|profile|household))?\/?$/,
+  /^\/patient\/me\/records(\/[0-9a-f-]{36})?\/?$/,
 ];
 
 export function patientWebTideOn(env: string | undefined = process.env.PATIENT_WEB_TIDE): boolean {

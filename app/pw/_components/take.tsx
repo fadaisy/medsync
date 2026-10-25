@@ -183,7 +183,7 @@ function stateLine(d: DayDose): string {
 const SLOTS = Object.keys(SLOT_WORDS) as DoseSlot[];
 
 /** Add a medicine by its name and the times of day (the phone's add-medicine.tsx). No amount (L5). */
-function AddMedicineForm({
+export function AddMedicineForm({
   onDone,
   onCancel,
 }: {

@@ -3,6 +3,7 @@ import "server-only";
 import type { Today } from "./today";
 import type { LogKind, LogRow } from "@patient-core/log";
 import type { MedRow, TakeRec } from "@patient-core/medicines";
+import { instructionsWithoutDose, nameWithoutDose } from "@patient-core/care-no-dose";
 import { readingsFrom, whenWords } from "@patient-core/log";
 import { readingValueText } from "@patient-core/readings";
 import { and, asc, desc, eq, gte, inArray } from "drizzle-orm";
@@ -100,7 +101,13 @@ export async function loadMedicines(userId: string): Promise<{ meds: MedRow[]; t
   ]);
   return {
     // The dose column is never read (law L5).
-    meds: meds.map((m) => ({ ...m, dose: null, createdAt: m.createdAt.toISOString() })),
+    meds: meds.map((m) => ({
+      ...m,
+      name: nameWithoutDose(m.name),
+      instructions: instructionsWithoutDose(m.instructions),
+      dose: null,
+      createdAt: m.createdAt.toISOString(),
+    })),
     takes: takes.map((t) => ({
       id: t.id,
       medicationId: t.medicationId,
