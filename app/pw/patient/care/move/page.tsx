@@ -9,7 +9,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 import { MoveView } from "./_components/move-view";
 
-export const metadata: Metadata = { title: "Move and eat · MedSync" };
+export const metadata: Metadata = { title: "Move and eat" };
 export const dynamic = "force-dynamic";
 
 const C = CARE_COPY.move;

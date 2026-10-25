@@ -5,7 +5,7 @@ import { listNotifications } from "@/lib/patient-web/notifications";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { NotificationList } from "./_components/notification-list";
 
-export const metadata: Metadata = { title: "Notifications · MedSync" };
+export const metadata: Metadata = { title: "Notifications" };
 export const dynamic = "force-dynamic";
 
 /**

@@ -19,7 +19,7 @@ import { HospitalPicker } from "../_components/hospital-picker";
 import { adultAreas, catalogueMode } from "../_lib/catalogue";
 import { DayFailed, DayForm, ReasonFirst } from "./_components/day-form";
 
-export const metadata: Metadata = { title: "Ask for a day · MedSync" };
+export const metadata: Metadata = { title: "Ask for a day" };
 export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

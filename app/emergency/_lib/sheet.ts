@@ -22,6 +22,8 @@ import { createClient } from "@/lib/supabase/server";
  */
 export interface EmergencyContext {
   signedIn: boolean;
+  /** The signed-in user, for the patient web's medic card (read under RLS there); null signed out. */
+  userId: string | null;
   hospitalId: string | null;
   hospitalName: string | null;
   sheet: EmergencySheet;
@@ -94,6 +96,7 @@ export async function loadEmergencyContext(): Promise<EmergencyContext> {
 
   return {
     signedIn: userId !== null,
+    userId,
     hospitalId: hospital?.id ?? null,
     hospitalName: hospital?.name ?? null,
     sheet,

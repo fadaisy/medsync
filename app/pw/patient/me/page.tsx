@@ -25,7 +25,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import pkg from "@/package.json";
 import { MeView } from "./_components/me-view";
 
-export const metadata: Metadata = { title: "Me · MedSync" };
+export const metadata: Metadata = { title: "Me" };
 export const dynamic = "force-dynamic";
 
 /**

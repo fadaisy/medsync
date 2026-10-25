@@ -13,7 +13,7 @@ import { HonestNote } from "../_components/why-coming";
 import { RetryButton } from "../../_components/home-bits";
 import { TodayForm } from "./_components/today-form";
 
-export const metadata: Metadata = { title: "Join today's line · MedSync" };
+export const metadata: Metadata = { title: "Join today's line" };
 export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

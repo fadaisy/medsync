@@ -9,7 +9,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 import { DetailsForm } from "./_components/details-form";
 
-export const metadata: Metadata = { title: "A few more details · MedSync" };
+export const metadata: Metadata = { title: "A few more details" };
 export const dynamic = "force-dynamic";
 
 /**

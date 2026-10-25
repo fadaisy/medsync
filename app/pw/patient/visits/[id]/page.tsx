@@ -28,7 +28,7 @@ import { reasonTitle } from "../_lib/reason";
 import { RetryButton } from "../../_components/home-bits";
 import { VisitActions } from "./_components/visit-actions";
 
-export const metadata: Metadata = { title: "Visit · MedSync" };
+export const metadata: Metadata = { title: "Visit" };
 export const dynamic = "force-dynamic";
 
 const back = { href: "/patient/visits", label: C.back };

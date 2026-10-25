@@ -36,7 +36,7 @@ import { HomeSegments, RetryButton } from "./_components/home-bits";
 import { MoodCard } from "./_components/mood-card";
 import { buildDay } from "./_lib/cascade";
 
-export const metadata: Metadata = { title: "Home · MedSync" };
+export const metadata: Metadata = { title: "Home" };
 export const dynamic = "force-dynamic";
 
 // One read per request, shared by the day and the right column.

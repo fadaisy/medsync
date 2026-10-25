@@ -4,6 +4,8 @@ import { PatientShell } from "@/components/tide/shell";
 import { loadAddDialogDay } from "@/lib/patient-web/day";
 import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
 import { AddButton } from "../_components/add-dialog";
+import { DeviceChoice } from "./_components/device-choice";
+import { readDeviceChoice } from "./_lib/device";
 
 /**
  * The signed-in shell. `resolvePatientScope`, not `require`, as the old shell: pages carry the consent gate
@@ -24,6 +26,7 @@ export default async function PatientWebShell({ children }: { children: ReactNod
       dosesDue={day?.today.dueNow.length ?? 0}
       place={place}
     >
+      <DeviceChoice choice={await readDeviceChoice()} />
       {children}
     </PatientShell>
   );

@@ -11,7 +11,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../_components/home-bits";
 import { MoodViews } from "./_components/mood-views";
 
-export const metadata: Metadata = { title: "How you have felt · MedSync" };
+export const metadata: Metadata = { title: "How you have felt" };
 export const dynamic = "force-dynamic";
 
 /**

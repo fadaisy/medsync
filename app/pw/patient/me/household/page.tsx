@@ -11,7 +11,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 import { HouseholdForm } from "./_components/household-form";
 
-export const metadata: Metadata = { title: "People I book for · MedSync" };
+export const metadata: Metadata = { title: "People I book for" };
 export const dynamic = "force-dynamic";
 
 /**

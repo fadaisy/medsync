@@ -10,7 +10,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 import { PlacesView } from "./_components/places-view";
 
-export const metadata: Metadata = { title: "My places · MedSync" };
+export const metadata: Metadata = { title: "My places" };
 export const dynamic = "force-dynamic";
 
 /**

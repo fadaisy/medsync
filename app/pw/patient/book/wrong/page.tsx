@@ -9,7 +9,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { adultAreas, catalogueMode } from "../_lib/catalogue";
 import { WrongSteps } from "./_components/wrong-steps";
 
-export const metadata: Metadata = { title: "Something is wrong · MedSync" };
+export const metadata: Metadata = { title: "Something is wrong" };
 export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

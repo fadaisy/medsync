@@ -13,6 +13,9 @@ export const PW_ROUTES: readonly RegExp[] = [
   /^\/patient\/book(\/(wrong|today|day))?\/?$/,
   /^\/patient\/me(\/(conditions|allergies|family|places|profile|household))?\/?$/,
   /^\/patient\/me\/records(\/[0-9a-f-]{36})?\/?$/,
+  /^\/patient\/consent\/?$/,
+  /^\/signup\/patient\/?$/,
+  /^\/emergency(\/(lines|crisis|sexual-violence|tell|status))?\/?$/,
 ];
 
 export function patientWebTideOn(env: string | undefined = process.env.PATIENT_WEB_TIDE): boolean {

@@ -12,7 +12,7 @@ import { formatFullDate } from "@/lib/patient/booking-format";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 
-export const metadata: Metadata = { title: "Visit records · MedSync" };
+export const metadata: Metadata = { title: "Visit records" };
 export const dynamic = "force-dynamic";
 
 /**

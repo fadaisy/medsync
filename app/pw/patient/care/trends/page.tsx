@@ -12,7 +12,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 import { TrendsView } from "./_components/trends-view";
 
-export const metadata: Metadata = { title: "Health trends · MedSync" };
+export const metadata: Metadata = { title: "Health trends" };
 export const dynamic = "force-dynamic";
 
 const C = CARE_COPY.trends;

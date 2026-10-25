@@ -7,7 +7,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { BookForm } from "./_components/book-form";
 import { adultAreas, catalogueMode } from "./_lib/catalogue";
 
-export const metadata: Metadata = { title: "Book a visit · MedSync" };
+export const metadata: Metadata = { title: "Book a visit" };
 export const dynamic = "force-dynamic";
 
 /**

@@ -11,7 +11,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { SUMMARY_HEADINGS } from "@/lib/patient/visit-summary";
 import { AddMedicine } from "../_components/add-medicine";
 
-export const metadata: Metadata = { title: "Your visit · MedSync" };
+export const metadata: Metadata = { title: "Your visit" };
 export const dynamic = "force-dynamic";
 
 /**

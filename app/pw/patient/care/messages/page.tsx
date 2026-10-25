@@ -5,7 +5,7 @@ import { ButtonLink, ICON } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
 import { CARE_COPY } from "@/content/patient/care";
 
-export const metadata: Metadata = { title: "Messages · MedSync" };
+export const metadata: Metadata = { title: "Messages" };
 
 const C = CARE_COPY.messages;
 

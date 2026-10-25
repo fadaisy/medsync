@@ -28,7 +28,7 @@ import { WaitlistOffer } from "./_components/waitlist-offer";
 import { WeekView } from "./_components/week-view";
 import { reasonTitle } from "./_lib/reason";
 
-export const metadata: Metadata = { title: "Visits · MedSync" };
+export const metadata: Metadata = { title: "Visits" };
 export const dynamic = "force-dynamic";
 
 /**

@@ -1,21 +1,14 @@
-import type { EItem, Tile } from "./_components/pre-alert-form";
-import type { CatalogItem } from "@/supabase/functions/_shared/symptom-catalog/types";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { firstAidCardsLive, preAlertLive } from "@/lib/emergency/feature";
 import { cn } from "@/lib/utils";
-import { CATALOG } from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
-import {
-  dangerSigns,
-  t,
-  visibleItems,
-} from "@/supabase/functions/_shared/symptom-catalog/classify";
 import { CloseLink } from "./_components/close-link";
 import { EmergencySheet, FirstAidCards } from "./_components/emergency-sheet";
 import { PreAlertForm } from "./_components/pre-alert-form";
 import { loadEmergencyContext, splitContacts } from "./_lib/sheet";
+import { emergencyItems, tiles } from "./_lib/tiles";
 
 export const metadata: Metadata = {
   title: "Emergency — get help now",
@@ -44,30 +37,6 @@ type Search = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? null;
 const list = (v: string | string[] | undefined) =>
   (Array.isArray(v) ? v : v ? [v] : []).filter(Boolean);
-
-/** The adult danger-sign strip (Appendix A.0) plus the next emergency items in catalog order. */
-function tiles(): Tile[] {
-  const strip = dangerSigns(CATALOG, "adult");
-  const seen = new Set(strip.map((i) => i.key));
-  const more = visibleItems(CATALOG, "adult").filter((i) => i.tier === "E" && !seen.has(i.key));
-  return [...strip, ...more].slice(0, 8).map((i) => ({
-    key: i.key,
-    label: t(CATALOG, i.labelKey),
-    icon: i.icon,
-  }));
-}
-
-/** Every emergency item as a small label map — the client bundle never carries the package. */
-function emergencyItems(): EItem[] {
-  return (CATALOG.items as CatalogItem[])
-    .filter((i) => i.tier === "E")
-    .map((i) => ({
-      key: i.key,
-      label: t(CATALOG, i.labelKey),
-      stroke: i.flags?.includes("stroke_time") ?? false,
-      isolation: i.flags?.includes("isolation") ?? false,
-    }));
-}
 
 export default async function EmergencyPage({ searchParams }: { searchParams: Promise<Search> }) {
   const [sp, ctx] = await Promise.all([searchParams, loadEmergencyContext()]);

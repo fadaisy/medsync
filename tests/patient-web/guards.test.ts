@@ -32,6 +32,8 @@ const RED_ALLOWED = [
   "components/tide/reading-check.tsx", // the chest-pain row and the danger interrupt
   "components/tide/book-danger.tsx", // the symptom steps' red panel
   "components/tide/care-sugar-diary.tsx", // a danger reading's diary cell, with its word
+  "app/pw/emergency/_components/help-view.tsx", // the SOS band and End emergency
+  "app/pw/emergency/lines/page.tsx", // the call button and the no-number panel
 ];
 /** Files that may paint amber or green: StatusPill and Note (L4). Areas add the check band and the charts. */
 const SIGNAL_ALLOWED = [
@@ -151,13 +153,18 @@ describe("PW_ROUTES", () => {
       "/patient/me",
       "/patient/me/family",
       `/patient/me/records/${id}`,
+      "/patient/consent",
+      "/signup/patient",
+      "/emergency",
+      "/emergency/lines",
     ])
       expect(pwRewrite(p, true)).toBe(`/pw${p}`);
     for (const p of [
-      "/patient/consent",
       "/patient/hospitals",
       "/patient/care/visits/x",
-      "/emergency",
+      "/emergency/unknown",
+      "/sign-in",
+      "/signup/clinical",
     ])
       expect(pwRewrite(p, true)).toBeNull();
     expect(pwRewrite("/patient", false)).toBeNull();

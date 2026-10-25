@@ -10,7 +10,7 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { RetryButton } from "../../_components/home-bits";
 import { MedicinesView } from "./_components/medicines-view";
 
-export const metadata: Metadata = { title: "Medicines · MedSync" };
+export const metadata: Metadata = { title: "Medicines" };
 export const dynamic = "force-dynamic";
 
 const C = CARE_COPY.meds;
