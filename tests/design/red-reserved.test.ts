@@ -568,7 +568,8 @@ describe("red is reserved — the Expo app", () => {
     "mobile/src/theme/tide.ts", // defines the Tide pairs, light and dark
     "mobile/src/components/tide/primitives.tsx", // StatusPill's `critical` tone
     "mobile/src/app/(app)/danger.tsx", // the danger interrupt
-    "mobile/src/data/trends.ts", // a danger reading's judgement
+    // A danger reading's judgement lives in packages/patient-core/care-trends.ts since D-PW-09;
+    // mobile/src/data/trends.ts only re-exports it.
     "mobile/src/features/care/week-chart.tsx", // a danger reading on the week chart
     "mobile/src/data/food/foods.ts", // food names ("tomato"), not a colour
     "mobile/src/features/care-more/chat-parts.tsx", // a danger reading shared in the chat

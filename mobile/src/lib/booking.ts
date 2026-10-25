@@ -1,8 +1,12 @@
 import type { EdgeResult } from "@/lib/edge";
+import type { WalkInDepartment } from "@patient-core/doctors";
+import type { HouseholdRelationship } from "@patient-core/me-profile";
 import type { FeeInputs } from "@shared/fees";
 import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { BookingSymptom } from "@shared/symptoms";
 import type { ImagePickerOptions } from "expo-image-picker";
+import { toUgandaE164 } from "@patient-core/me-profile";
+import { MIN_REASON_CHARS } from "@patient-core/visits-calendar";
 import { PATIENT_BOOKING_HORIZON_DAYS } from "@shared/booking-horizon";
 import { feeRange, rangeLine } from "@shared/fees";
 import {
@@ -17,6 +21,14 @@ import { normaliseSymptoms } from "@shared/symptoms";
 
 import { callEdge, requestId } from "@/lib/edge";
 import { supabase } from "@/lib/supabase";
+
+export type { HouseholdRelationship } from "@patient-core/me-profile";
+export { HOUSEHOLD_RELATIONSHIPS, toUgandaE164 } from "@patient-core/me-profile";
+
+export { MIN_REASON_CHARS } from "@patient-core/visits-calendar";
+
+export type { WalkInDepartment } from "@patient-core/doctors";
+export { sessionTakeable } from "@patient-core/doctors";
 
 /**
  * Every read and every write the booking app makes. Screens call this file and
@@ -616,18 +628,6 @@ export async function fetchLiveIntake(hospitalId: string): Promise<LiveIntake | 
 
 /* ─── the same-day door ──────────────────────────────────────────── */
 
-export interface WalkInDepartment {
-  id: string;
-  name: string;
-  /**
-   * Whether the hospital's clock is inside this department's walk-in window
-   * right now. NO queue length rides along: pricing each clinical destination
-   * by wait turns a differential ("Cardiology or General Medicine?") into a
-   * wait-shopping decision (ADR 0084 §5).
-   */
-  openNow: boolean;
-}
-
 interface DepartmentRow {
   id: string;
   name: string;
@@ -874,14 +874,6 @@ export async function fetchServiceLine(id: string): Promise<ServiceLine | null> 
 }
 
 /** One published clinic day a patient can take a place in. */
-/**
- * A clinic day a patient can actually take: a place left AND a clinician
- * named (PRD §3.6; the core 409s an unnamed day). One predicate for every
- * "next", "within" and "still open" on the phone.
- */
-export function sessionTakeable(s: Pick<ClinicSession, "placesLeft" | "clinicianUserId">): boolean {
-  return s.placesLeft > 0 && s.clinicianUserId !== null;
-}
 
 export interface ClinicSession {
   id: string;
@@ -1028,15 +1020,6 @@ export function reasonsFor(line: Pick<ServiceLine, "reasonCodes">) {
 export const INTERSTITIAL_REASONS: ReadonlySet<string> = new Set<AppointmentReason>([
   "new_concern",
 ]);
-
-/**
- * `cancel-appointment` and `reschedule-appointment` both require a reason of
- * at least this many characters — it lands in the audit log. Gate the submit
- * control on the same number: the server's refusal for a short one is zod's
- * "Invalid input", which is precisely the useless generic sentence a patient
- * must never be shown.
- */
-export const MIN_REASON_CHARS = 8;
 
 /**
  * One key per submission attempt, reused across retries of it — a 2G retry
@@ -1218,19 +1201,6 @@ export function rescheduleAppointment(input: {
 
 /* ─── the household (Gate D, ADR 0089; PRD §2.9) ─────────────────── */
 
-/** `booking_agents.relationship` — the migration's CHECK list, with the words a patient picks. */
-export const HOUSEHOLD_RELATIONSHIPS = [
-  { value: "parent", label: "Parent" },
-  { value: "guardian", label: "Guardian" },
-  { value: "child", label: "Adult child" },
-  { value: "spouse", label: "Spouse" },
-  { value: "relative", label: "Relative" },
-  { value: "vht", label: "VHT" },
-  { value: "other", label: "Other" },
-] as const;
-
-export type HouseholdRelationship = (typeof HOUSEHOLD_RELATIONSHIPS)[number]["value"];
-
 /** Someone this account books for — a live `booking_agents` row about a provisional record. */
 export interface HouseholdMember {
   id: string;
@@ -1271,20 +1241,6 @@ export async function fetchHousehold(): Promise<HouseholdMember[]> {
     label: r.member_label,
     relationship: r.relationship,
   }));
-}
-
-/**
- * "+256XXXXXXXXX" from the ways a Ugandan number gets typed — "0772 123 456",
- * "256772123456". Spaces and dashes dropped, a leading 0 swapped for the
- * country code. Anything else is sent as typed and the server's own sentence
- * says what shape it wants.
- */
-export function toUgandaE164(raw: string): string {
-  const digits = raw.replace(/[\s\-()]/g, "");
-  if (digits.startsWith("+")) return digits;
-  if (digits.startsWith("0")) return `+256${digits.slice(1)}`;
-  if (digits.startsWith("256")) return `+${digits}`;
-  return digits;
 }
 
 /**

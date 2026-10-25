@@ -9,7 +9,9 @@ import type {
   PatientProfile,
   ServiceLine,
 } from "@/lib/booking";
+import type { DayOption, SessionOption } from "@patient-core/book-days";
 import type { BookingSymptom } from "@shared/symptoms";
+import { mergeDays } from "@patient-core/book-days";
 import { feeRange } from "@shared/fees";
 
 import { createStore, useStore } from "@/data/store";
@@ -38,6 +40,9 @@ import { flag } from "@/lib/flags";
 import { confirmAttendance } from "@/lib/notifications";
 import { clearPendingCatalogDraft, getPendingCatalogDraft } from "@/lib/pending-symptoms";
 import { supabase } from "@/lib/supabase";
+
+export type { DayOption, SessionOption, SlotPick } from "@patient-core/book-days";
+export { mergeDays } from "@patient-core/book-days";
 
 export type { Ticket } from "@/features/visits/ticket-cache";
 
@@ -331,33 +336,6 @@ export function todaysQueueTicket(all: Ticket[], now: Date): Ticket | null {
 
 /* ─── Ask for a day ─────────────────────────────────────────────── */
 
-/** A clinician's own slot, when the day was asked for with a named clinician. */
-export interface SlotPick {
-  clinicianUserId: string;
-  departmentId: string;
-  startsAtIso: string;
-  endsAtIso: string;
-  serviceLineId?: string;
-}
-
-export interface SessionOption extends Fee {
-  id: string;
-  part: "Morning" | "Afternoon";
-  /** When doors open ("08:00") for a clinic day; null for a clinician's slot, whose time is `slot.startsAtIso`. */
-  doors: string | null;
-  placesLeft: number;
-  clinicianName: string;
-  clinicName: string;
-  room: string;
-  /** Set when this is a clinician's slot rather than a place in a clinic day. */
-  slot?: SlotPick;
-}
-
-export interface DayOption {
-  key: string;
-  sessions: SessionOption[];
-}
-
 export interface Days {
   /** Null when the patient has no hospital yet: the screen asks them to choose one. */
   hospitalId: string | null;
@@ -512,16 +490,6 @@ export function clinicDays(
     });
   }
   return days;
-}
-
-/** A doctor's own slots and the clinic days they run, one calendar, by day. */
-export function mergeDays(a: readonly DayOption[], b: readonly DayOption[]): DayOption[] {
-  const out = new Map<string, DayOption>();
-  for (const d of [...a, ...b]) {
-    const had = out.get(d.key);
-    out.set(d.key, had ? { key: d.key, sessions: [...had.sessions, ...d.sessions] } : d);
-  }
-  return [...out.values()].sort((x, y) => x.key.localeCompare(y.key));
 }
 
 /** The doctor's slots plus the clinic days they run at that hospital. */

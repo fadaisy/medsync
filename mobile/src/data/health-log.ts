@@ -1,46 +1,12 @@
 import type { Row, SaveResult } from "@/offline/outbox";
+import type { LogKind, LogRow } from "@patient-core/log";
 import { useEffect } from "react";
 
 import { createStore, useStore } from "@/data/store";
 import { currentUserId, db, insertOrQueue, newId, readOutbox, unqueue } from "@/offline/outbox";
 
-/**
- * The patient's own log, `personal_health_logs` (migration 0029, kinds widened
- * by 0170, 0188 and 0190, ADRs 0342, 0413, 0356). Readings, mood, water and minutes walked all live in
- * this one table, so one store loads it once and every repository reads its
- * own kinds from it. RLS gives the patient their own rows and nobody else's;
- * no clinician can read this table, which is why no screen says they can.
- *
- * Append-only from the phone: a save is an insert with a client-made id
- * (see the outbox), never an update, so it can be queued offline.
- */
-export type LogKind =
-  | "bp"
-  | "glucose"
-  | "weight"
-  | "pulse"
-  | "mood"
-  | "water"
-  | "activity"
-  | "steps"
-  | "exercise"
-  | "meal"
-  | "symptom"
-  | "note"
-  | "spo2"
-  | "temperature"
-  | "other";
-
-export interface LogRow {
-  id: string;
-  kind: LogKind;
-  /** ISO instant. */
-  recordedAt: string;
-  v1: number | null;
-  v2: number | null;
-  unit: string | null;
-  note: string | null;
-}
+export type { LogKind, LogRow } from "@patient-core/log";
+export { dayKey, lastDays, latestByDay } from "@patient-core/log";
 
 /** The columns one new row fills; the store adds id, owner and time. */
 export interface NewLog {
@@ -230,27 +196,3 @@ export async function removeLog(id: string): Promise<SaveResult> {
 }
 
 /* ─── Calendar helpers, shared by the views ──────────────────────────── */
-
-/** "2026-10-17" in the phone's own zone: the patient's day, as on the web. */
-export function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-/** The latest row of `kind` on each day, by `dayKey`. Rows come newest first. */
-export function latestByDay(rows: LogRow[], kind: LogKind): Map<string, LogRow> {
-  const out = new Map<string, LogRow>();
-  for (const r of rows) {
-    if (r.kind !== kind) continue;
-    const k = dayKey(new Date(r.recordedAt));
-    if (!out.has(k)) out.set(k, r);
-  }
-  return out;
-}
-
-/** The seven days ending today, oldest first. */
-export function lastDays(now: Date, n = 7): Date[] {
-  return Array.from(
-    { length: n },
-    (_, i) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - (n - 1) + i),
-  );
-}

@@ -1,4 +1,24 @@
+import type { DetailsBody, OnFile } from "@patient-core/me-profile";
+
 import { supabase } from "@/lib/supabase";
+
+export type {
+  DetailsBody,
+  DetailsForm,
+  IdType,
+  NokRelationship,
+  OnFile,
+  TitleCode,
+} from "@patient-core/me-profile";
+export {
+  ID_TYPES,
+  LANGUAGES,
+  RELATIONSHIPS,
+  TITLES,
+  detailsBody,
+  formFrom,
+  languageOf,
+} from "@patient-core/me-profile";
 
 /**
  * "A few more details" (after sign-up, and from Me): title, preferred
@@ -20,117 +40,7 @@ export const DETAILS_OFF =
 const OFFLINE = "Couldn't reach MedSync. Check your connection and try again.";
 const FAILED = "Couldn't load your details. Try again.";
 
-export type TitleCode = "mr" | "ms" | "mrs" | "dr" | "other";
-export type IdType = "nin" | "passport" | "refugee_id" | "other";
-export type NokRelationship =
-  | "spouse"
-  | "parent"
-  | "child"
-  | "sibling"
-  | "guardian"
-  | "friend"
-  | "other";
 export type Section = "title" | "language" | "id" | "nok";
-
-export const TITLES: { key: TitleCode | null; label: string }[] = [
-  { key: "mr", label: "Mr" },
-  { key: "ms", label: "Ms" },
-  { key: "mrs", label: "Mrs" },
-  { key: "dr", label: "Dr" },
-  { key: "other", label: "Other" },
-  { key: null, label: "None" },
-];
-/** Stored as the word itself, as the web's free-text field does. */
-export const LANGUAGES = ["English", "Luganda", "Runyankole", "Swahili"] as const;
-export const ID_TYPES: { key: IdType; label: string }[] = [
-  { key: "nin", label: "National ID (NIN)" },
-  { key: "passport", label: "Passport" },
-  { key: "refugee_id", label: "Refugee ID" },
-  { key: "other", label: "Other" },
-];
-export const RELATIONSHIPS: { key: NokRelationship; label: string }[] = [
-  { key: "spouse", label: "Spouse" },
-  { key: "parent", label: "Parent" },
-  { key: "child", label: "Child" },
-  { key: "sibling", label: "Sibling" },
-  { key: "guardian", label: "Guardian" },
-  { key: "friend", label: "Friend" },
-  { key: "other", label: "Other" },
-];
-
-/** The route's GET: never a decrypted value. */
-export interface OnFile {
-  idOnFile: boolean;
-  idType: IdType | null;
-  nokOnFile: boolean;
-  relationship: NokRelationship | null;
-  titleCode: TitleCode | null;
-  preferredLanguage: string | null;
-}
-
-export interface DetailsForm {
-  title: TitleCode | null;
-  /** A chip from LANGUAGES, "Other", or null for none chosen. */
-  languageChoice: string | null;
-  languageOther: string;
-  idType: IdType;
-  idNumber: string;
-  nokName: string;
-  nokRelationship: NokRelationship | null;
-  /** As PhoneField shows it: "772 000 000". */
-  nokPhone: string;
-}
-
-export interface DetailsBody {
-  title?: TitleCode | null;
-  language?: string;
-  id?: { type: IdType; number: string };
-  nok?: { name: string; relationship: NokRelationship | null; phone: string };
-}
-
-/** The form as it opens: what is on file, the ID and next of kin empty (they are never sent back). */
-export function formFrom(on: OnFile): DetailsForm {
-  const stored = on.preferredLanguage?.trim() || null;
-  const known = stored !== null && (LANGUAGES as readonly string[]).includes(stored);
-  return {
-    title: on.titleCode,
-    languageChoice: stored === null ? null : known ? stored : "Other",
-    languageOther: stored !== null && !known ? stored : "",
-    idType: "nin",
-    idNumber: "",
-    nokName: "",
-    nokRelationship: on.relationship,
-    nokPhone: "",
-  };
-}
-
-export function languageOf(form: DetailsForm): string {
-  return (
-    form.languageChoice === "Other" ? form.languageOther : (form.languageChoice ?? "")
-  ).trim();
-}
-
-/**
- * Only what changed: a title or language that differs from the file, an ID
- * while none is on file, a next of kin once a name or phone is typed. An
- * empty body means there is nothing to save.
- */
-export function detailsBody(form: DetailsForm, on: OnFile): DetailsBody {
-  const body: DetailsBody = {};
-  if (form.title !== on.titleCode) body.title = form.title;
-  const language = languageOf(form);
-  if ((language || null) !== (on.preferredLanguage?.trim() || null)) body.language = language;
-  if (!on.idOnFile && form.idNumber.trim())
-    body.id = { type: form.idType, number: form.idNumber.trim() };
-  const digits = form.nokPhone.replace(/\D/g, "");
-  if (form.nokName.trim() || digits)
-    body.nok = {
-      name: form.nokName.trim(),
-      relationship: form.nokRelationship,
-      phone: digits ? `+256${digits}` : "",
-    };
-  return body;
-}
 
 async function token(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();

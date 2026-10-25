@@ -170,3 +170,32 @@ describe("PW_ROUTES", () => {
     expect(pwRewrite("/patient", false)).toBeNull();
   });
 });
+
+describe("308s (GATE A §1)", () => {
+  it("sends every moved old URL to its new home, only with the flag on", async () => {
+    const { pwRedirect, pwRewrite } = await import("@/lib/patient-web/routes");
+    const id = "00000000-0000-4000-8000-000000000001";
+    const map: Record<string, string> = {
+      "/patient/appointments": "/patient/visits",
+      [`/patient/queue/${id}`]: "/patient/visits",
+      "/patient/symptoms": "/patient/book/wrong",
+      [`/patient/clinician/${id}`]: `/patient/book/day?doctor=${id}`,
+      "/patient/track": "/patient/care",
+      "/patient/track/doses": "/patient/care/medicines",
+      "/patient/track/log": "/patient/care/readings",
+      "/patient/results": "/patient/care/labs",
+      "/patient/settings": "/patient/me",
+      [`/patient/care/visits/${id}`]: `/patient/me/records/${id}`,
+      "/patient/profile": "/patient/me/profile",
+      "/patient/household": "/patient/me/household",
+    };
+    for (const [from, to] of Object.entries(map)) {
+      expect(pwRedirect(from, true)).toBe(to);
+      // Every target is a built page.
+      expect(pwRewrite(to.split("?")[0]!, true)).not.toBeNull();
+    }
+    expect(pwRedirect("/patient/appointments", false)).toBeNull();
+    expect(pwRedirect("/patient/hospitals", true)).toBeNull();
+    expect(pwRedirect(`/patient/results/${id}`, true)).toBeNull();
+  });
+});

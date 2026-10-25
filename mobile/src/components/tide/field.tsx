@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
 import type { KeyboardTypeOptions, TextInputProps } from "react-native";
 import { useRef } from "react";
+import { formatUgPhone, isUgMobile } from "@patient-core/getting-in-signup";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { Icon } from "@/components/tide/icon";
 import { Press } from "@/components/tide/press";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+
+export { formatUgPhone, isUgMobile } from "@patient-core/getting-in-signup";
 
 /**
  * Text inputs. 16pt or larger so phones never zoom (law L13); a 2pt inset
@@ -132,22 +135,6 @@ export function TextField({
       {error && value.length > 0 ? <FieldError>{error}</FieldError> : null}
     </View>
   );
-}
-
-/**
- * A Ugandan mobile number: a fixed +256 prefix and nine digits. A leading 0
- * is stripped and the digits are grouped 3·3·3 as the patient types.
- */
-export function formatUgPhone(raw: string): string {
-  let d = raw.replace(/[^0-9]/g, "");
-  if (d.startsWith("256")) d = d.slice(3);
-  if (d.startsWith("0")) d = d.slice(1);
-  d = d.slice(0, 9);
-  return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 9)].filter(Boolean).join(" ");
-}
-
-export function isUgMobile(formatted: string): boolean {
-  return /^7\d{8}$/.test(formatted.replace(/ /g, ""));
 }
 
 export function PhoneField({

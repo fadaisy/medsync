@@ -4,6 +4,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createStore, useStore } from "@/data/store";
 import { fetchPatientProfile } from "@/lib/booking";
 
+export { ageFrom, ageWords, cardNumber, sexLetter } from "@patient-core/me-health";
+
 /**
  * Me: who the patient is, their health card, and the phone's own settings.
  *
@@ -126,38 +128,6 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
 }
 
 /* ── Formatting ─────────────────────────────────────────────────────── */
-
-/** "MS-2026-00042" → "MS 2026 00042": spaced for the card's mono line. */
-export function cardNumber(code: string | null): string {
-  return code ? code.replace(/-/g, " ") : "Given at your first visit";
-}
-
-/**
- * Whole years from a "YYYY-MM-DD" date of birth to `now`, or null when there
- * is no usable date. A birthday later this year has not happened yet.
- */
-export function ageFrom(dob: string | null, now: Date): number | null {
-  const m = dob ? /^(\d{4})-(\d{2})-(\d{2})/.exec(dob) : null;
-  if (!m) return null;
-  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  const thisYear = now.getFullYear();
-  const before =
-    now.getMonth() + 1 < mo || (now.getMonth() + 1 === mo && now.getDate() < d) ? 1 : 0;
-  const age = thisYear - y - before;
-  return age >= 0 && age < 130 ? age : null;
-}
-
-/** "34 years", or null. */
-export function ageWords(dob: string | null, now: Date): string | null {
-  const age = ageFrom(dob, now);
-  return age === null ? null : `${age} ${age === 1 ? "year" : "years"}`;
-}
-
-/** `patient_profiles.sex` → the card's one letter; anything else says nothing. */
-export function sexLetter(sex: string | null): string | null {
-  const s = sex?.toLowerCase();
-  return s === "female" ? "F" : s === "male" ? "M" : null;
-}
 
 /** The account holder's name from auth metadata (`full_name`, written at sign-up). */
 export function metaName(meta: Record<string, unknown> | undefined): string | null {

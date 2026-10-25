@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getAuthState } from "@/lib/auth";
-import { pwRewrite } from "@/lib/patient-web/routes";
+import { pwRedirect, pwRewrite } from "@/lib/patient-web/routes";
 import { updateSession } from "@/lib/supabase/proxy";
 
 /**
@@ -96,6 +96,9 @@ function redirectTo(url: URL, response: NextResponse): NextResponse {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  // GATE A §1: an old patient URL that moved answers 308 to its new home, then gates there.
+  const moved = pwRedirect(request.nextUrl.pathname);
+  if (moved) return NextResponse.redirect(new URL(moved, request.url), 308);
   const response = await gate(request);
   // D-PW-10: the new patient pages serve at the old URLs while PATIENT_WEB_TIDE is on. Gating above ran on
   // the URL the patient asked for; redirects (sign-in, MFA) pass through untouched.

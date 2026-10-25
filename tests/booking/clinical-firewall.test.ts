@@ -581,7 +581,11 @@ describe("PRD §3.6 — a clinic day with no clinician is never offered as booka
     // Phone: the same predicate in the data layer. Tide v1 (ADR 0340): `data/visits.ts` uses it
     // for the open days, and `loadDays` drops a clinic day with no clinician before Book's day
     // screen sees it, so that screen's places-left test runs over gated sessions only.
+    // The gate lives in the shared core since D-PW-09; mobile/src/lib/booking.ts re-exports it.
     expect(read("mobile/src/lib/booking.ts")).toContain(
+      'export { sessionTakeable } from "@patient-core/doctors";',
+    );
+    expect(read("packages/patient-core/doctors.ts")).toContain(
       "return s.placesLeft > 0 && s.clinicianUserId !== null;",
     );
     const visits = stripComments(read("mobile/src/data/visits.ts"));

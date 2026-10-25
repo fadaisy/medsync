@@ -53,7 +53,7 @@ renumbers its ADR.
 | ADR 0370–0384 | Pharmacy Phase 2 (stores, wards and supply) | `feat/pharmacy-stores` | 21 Oct 2026 | claimed |
 | migration 0185–0191 | Patient phone Tide v1 (was 0171–0177 on `feat/mobile-tide-v1`; renumbered at merge, unapplied) | `feat/patient-web-tide` | 25 Oct 2026 | used (unapplied) |
 | ADR 0402–0414 | Patient phone Tide v1 (was 0343–0355 on `feat/mobile-tide-v1`; renumbered at merge) | `feat/patient-web-tide` | 25 Oct 2026 | used |
-| ADR 0415–0424 | Patient web Tide | `feat/patient-web-tide` | 25 Oct 2026 | claimed |
+| ADR 0415–0424 | Patient web Tide (0415–0423 used, 0424 free) | `feat/patient-web-tide` | 25 Oct 2026 | claimed |
 
 **Resolved 25 Oct 2026:** merging `feat/mobile-tide-v1` into `feat/patient-web-tide` met main's lab migrations 0171–0173
 and lab ADRs 0343–0355. The phone's became migrations 0185–0191 (pharmacy Phase 2, merged, keeps 0192–0204) and ADRs

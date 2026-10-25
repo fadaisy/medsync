@@ -154,7 +154,7 @@ for (const route of ROUTES) {
           .filter(el => el.offsetParent).map(el => ({ role: el.getAttribute("role") || el.tagName.toLowerCase(), name: name(el), href: el.getAttribute("href") || undefined }));
         const inScroller = el => { for (let p = el.parentElement; p; p = p.parentElement) { if (/(auto|scroll)/.test(getComputedStyle(p).overflowX)) return true; } return false; };
         const scrollX = [...document.querySelectorAll("main *")].some(el => el.getBoundingClientRect().right > innerWidth + 1 && !inScroller(el));
-        return { axe: bad.map(v => v.id + " (" + v.nodes.length + ")"), help: Boolean(help), scrollX, lcp: Math.round(window.__lcp), actions, path: location.pathname };
+        return { axe: bad.map(v => v.id + " (" + v.nodes.length + ") " + v.nodes.map(n => n.target.join(" ") + " " + (n.any[0]?.message || "")).join(" | ")), help: Boolean(help), scrollX, lcp: Math.round(window.__lcp), actions, path: location.pathname };
       })()`);
       const shot = `${route.replace(/\W+/g, "_").replace(/^_|_$/g, "") || "root"}-${width}-${theme}.png`;
       if (OUT)

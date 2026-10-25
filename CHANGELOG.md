@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
-### Added — Patient web · Tide, Steps 0–2 (foundation) — 25 Oct 2026
+### Added — Patient web · Tide, Steps 0–8 — 25 Oct 2026
 
 Built on `feat/patient-web-tide` (PROMPT-PATIENT-WEB-TIDE). The phone branch `feat/mobile-tide-v1` is merged in, its
 migrations renumbered 0185–0191 and its colliding ADRs 0402–0414 (`docs/NUMBERS.md`). GATE A decisions taken as
@@ -16,6 +16,13 @@ recommended ([ADR 0415](docs/adr/0415-patient-web-replaces-old-patient-pages.md)
   with the rail and the pill ([ADR 0416](docs/adr/0416-patient-web-shell-rail-and-pill.md)); the gallery at `/pw/gallery`.
 - `PATIENT_WEB_TIDE` serves the new pages at the old URLs through `proxy.ts`; off, nothing changes.
 - Guards (`tests/patient-web`), the zero-dependency CDP harness and the test-patient seed (`scripts/patient-web`).
+- Every patient page in Tide behind the flag: Home, Notifications, Mood; Visits and one visit; Book, Something is
+  wrong, Come today, Ask for a day; Care, Medicines, Trends, Labs, Move and eat, Messages; Me and its editors,
+  records, places, profile, household; Help at `/emergency`; patient sign-up and the consent gate. The moved old
+  URLs answer 308 with the flag on. Reports: `docs/patient-web/STOP-*.md`.
+- No conditions or readings in addresses ([ADR 0422](docs/adr/0422-no-conditions-or-readings-in-patient-addresses.md));
+  the own-device choice in a session cookie ([ADR 0423](docs/adr/0423-own-device-choice-in-a-session-cookie.md)).
+- Not yet: the signed parity report, the five-day pilot and the deletion of the old pages (Step 9, the owner's).
 
 ### Changed — Lab test menu v2: set up tests, not results — 19 Oct 2026
 

@@ -27,3 +27,31 @@ export function pwRewrite(pathname: string, on = patientWebTideOn()): string | n
   if (!on || pathname.startsWith("/pw")) return null;
   return PW_ROUTES.some((r) => r.test(pathname)) ? `/pw${pathname}` : null;
 }
+
+/**
+ * The old patient URLs that moved (GATE A §1), 308 while PATIENT_WEB_TIDE is on. Kept at Step 9 when the old
+ * pages go. Not here, because no new page replaces them yet: `/patient/hospitals` (Me changes the usual
+ * hospital there) and `/patient/results/[reportId]` (the result page stays behind PATIENT_RESULTS).
+ */
+const MOVED: readonly [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^\/patient\/(appointments|queue(\/[^/]+)?)\/?$/, () => "/patient/visits"],
+  [/^\/patient\/symptoms\/?$/, () => "/patient/book/wrong"],
+  [/^\/patient\/clinician\/([0-9a-f-]{36})\/?$/, (m) => `/patient/book/day?doctor=${m[1]}`],
+  [/^\/patient\/track\/?$/, () => "/patient/care"],
+  [/^\/patient\/track\/(doses|medications)\/?$/, () => "/patient/care/medicines"],
+  [/^\/patient\/track\/log\/?$/, () => "/patient/care/readings"],
+  [/^\/patient\/results\/?$/, () => "/patient/care/labs"],
+  [/^\/patient\/(menu|settings)\/?$/, () => "/patient/me"],
+  [/^\/patient\/care\/visits\/([0-9a-f-]{36})\/?$/, (m) => `/patient/me/records/${m[1]}`],
+  [/^\/patient\/profile\/?$/, () => "/patient/me/profile"],
+  [/^\/patient\/household\/?$/, () => "/patient/me/household"],
+];
+
+export function pwRedirect(pathname: string, on = patientWebTideOn()): string | null {
+  if (!on) return null;
+  for (const [re, to] of MOVED) {
+    const m = pathname.match(re);
+    if (m) return to(m);
+  }
+  return null;
+}

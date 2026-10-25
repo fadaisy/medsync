@@ -1,9 +1,12 @@
 import { useEffect } from "react";
+import { SHARE_MAX_MINUTES, shouldWrite } from "@patient-core/help-sos";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 
 import { createStore, useStore } from "@/data/store";
 import { currentUserId, db } from "@/offline/outbox";
+
+export { SHARE_MAX_MINUTES, clockWords, leftWords, shouldWrite } from "@patient-core/help-sos";
 
 /**
  * "Share my live location" (ADR 0402, migration 0185): one row in
@@ -20,9 +23,6 @@ import { currentUserId, db } from "@/offline/outbox";
 export type SharePurpose = "emergency" | "visit" | "other";
 export type ShareLength = 15 | 60 | "until stopped";
 
-/** The table's cap (`location_shares_window`): "until I stop" means at most 8 hours. */
-export const SHARE_MAX_MINUTES = 8 * 60;
-
 /** What the patient agrees to before the first position leaves the phone. */
 export const SHARE_CONSENT = {
   version: "location-share-v1",
@@ -37,7 +37,6 @@ export const SHARE_NO_LINK =
   "This build cannot make the link yet, but your position is still being recorded for the share.";
 
 const KEY = "medsync:location-share";
-const WRITE_EVERY_MS = 20_000;
 
 export function shareMinutes(length: ShareLength): number {
   return length === "until stopped" ? SHARE_MAX_MINUTES : length;
@@ -48,19 +47,6 @@ export function shareLink(token: string, origin = process.env.EXPO_PUBLIC_WEB_OR
   return origin ? `${origin.replace(/\/+$/, "")}/share/location/${token}` : null;
 }
 
-/** "14:30": the end time, read on the phone's own clock. */
-export function clockWords(d: Date): string {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-/** "25 min left", "2 h 10 min left", "ending now". */
-export function leftWords(end: Date, now: Date): string {
-  const min = Math.ceil((end.getTime() - now.getTime()) / 60_000);
-  if (min <= 0) return "ending now";
-  if (min < 60) return `${min} min left`;
-  return `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ""} left`;
-}
-
 /** True when the table is not there yet (0185 not applied): PostgREST's own words for it. */
 export function isMissingTable(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
@@ -69,11 +55,6 @@ export function isMissingTable(error: { code?: string; message?: string } | null
     error.code === "42P01" ||
     /does not exist|schema cache/i.test(error.message ?? "")
   );
-}
-
-/** At most one write every 20 seconds: true when this fix should be sent. */
-export function shouldWrite(lastWriteMs: number | null, nowMs: number): boolean {
-  return lastWriteMs === null || nowMs - lastWriteMs >= WRITE_EVERY_MS;
 }
 
 interface Share {

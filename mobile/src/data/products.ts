@@ -1,39 +1,16 @@
-import type { Food } from "@/data/food/types";
 import type { Row, SaveResult } from "@/offline/outbox";
+import type { LabelValues, Product, ProductDraft, ProductSource } from "@patient-core/care-meals";
 import { useEffect } from "react";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+import { fromOpenFoodFacts } from "@patient-core/care-meals";
 
-import { giCategory } from "@/data/food/food-maths";
 import { onAccountChange } from "@/data/health-log";
 import { createStore, useStore } from "@/data/store";
 import { currentUserId, db, insertOrQueue, newId, readOutbox } from "@/offline/outbox";
 
-/**
- * Packaged foods (ADR 0357): found by barcode in Open Food Facts, or read off
- * the pack's nutrition label, or typed in from it. Each one the patient logs
- * is kept in `patient_food_products` (migration 0191) as a snapshot per
- * 100 g, theirs only and read by their care team, so meals add up offline.
- * No label prints a GI, so every product is "GI not known".
- */
-export type ProductSource = "open_food_facts" | "label_photo" | "typed";
-
-export type Product = {
-  id: string;
-  barcode: string | null;
-  name: string;
-  brand: string | null;
-  kcal: number;
-  carbsG: number;
-  proteinG: number | null;
-  fatG: number | null;
-  fibreG: number | null;
-  servingG: number | null;
-  source: ProductSource;
-};
-
-/** A product not yet saved: what a lookup, a label or the form gives. */
-export type ProductDraft = Omit<Product, "id">;
+export type { LabelValues, Product, ProductDraft, ProductSource } from "@patient-core/care-meals";
+export { draftFromForm, fromOpenFoodFacts, productFood } from "@patient-core/care-meals";
 
 const num = (v: unknown): number | null => {
   if (v === null || v === undefined || v === "") return null;
@@ -57,66 +34,10 @@ export function fromDb(r: Record<string, unknown>): Product {
   };
 }
 
-/** A product as a food the meal maths can use. */
-export function productFood(p: Product): Food {
-  return {
-    id: `product:${p.id}`,
-    name: p.brand ? `${p.name} (${p.brand})` : p.name,
-    localNames: [],
-    group: "snacks",
-    portions: [
-      ...(p.servingG ? [{ label: `1 serving (${p.servingG} g)`, grams: p.servingG }] : []),
-      { label: "100 g", grams: 100 },
-    ],
-    per100g: { kcal: p.kcal, carbsG: p.carbsG, proteinG: p.proteinG, fatG: p.fatG, fibreG: p.fibreG },
-    gi: null,
-    giCategory: giCategory(null),
-    sources: [],
-  };
-}
-
 /* ─── Open Food Facts ────────────────────────────────────────────────── */
 
 const OFF = "https://world.openfoodfacts.org/api/v2/product";
 const FIELDS = "product_name,product_name_en,brands,nutriments,serving_quantity";
-
-/**
- * An Open Food Facts product → a draft, or null when it lacks the energy or
- * carbohydrate per 100 g that a meal needs. Values are the database's, per
- * 100 g (or 100 ml for drinks), as volunteers typed them from the label.
- */
-export function fromOpenFoodFacts(code: string, body: unknown): ProductDraft | null {
-  const b = body as {
-    status?: number;
-    product?: {
-      product_name?: string;
-      product_name_en?: string;
-      brands?: string;
-      serving_quantity?: number | string;
-      nutriments?: Record<string, unknown>;
-    };
-  } | null;
-  const p = b?.status === 1 ? b.product : undefined;
-  const n = p?.nutriments ?? {};
-  const kj = num(n["energy-kj_100g"]);
-  const kcal = num(n["energy-kcal_100g"]) ?? (kj !== null ? kj / 4.184 : null);
-  const carbsG = num(n["carbohydrates_100g"]);
-  if (!p || kcal === null || carbsG === null || kcal > 950 || carbsG > 100) return null;
-  const name = (p.product_name_en || p.product_name || "").trim();
-  const serving = num(p.serving_quantity);
-  return {
-    barcode: code,
-    name: name || `Product ${code}`,
-    brand: p.brands?.split(",")[0]?.trim() || null,
-    kcal: Math.round(kcal),
-    carbsG: Math.round(carbsG * 10) / 10,
-    proteinG: num(n["proteins_100g"]),
-    fatG: num(n["fat_100g"]),
-    fibreG: num(n["fiber_100g"]),
-    servingG: serving && serving > 0 && serving <= 5000 ? serving : null,
-    source: "open_food_facts",
-  };
-}
 
 export type Lookup =
   | { kind: "found"; draft: ProductDraft }
@@ -147,11 +68,6 @@ export async function lookupBarcode(code: string): Promise<Lookup> {
 
 const ORIGIN = process.env.EXPO_PUBLIC_WEB_ORIGIN;
 const LABEL_URL = ORIGIN ? `${ORIGIN.replace(/\/$/, "")}/api/mobile/food-label` : null;
-
-/** The form's boxes, as text. */
-export type LabelValues = Partial<
-  Record<"name" | "kcal" | "carbs" | "protein" | "fat" | "fibre" | "servingG", string>
->;
 
 export type LabelResult =
   | { ok: true; values: LabelValues }
@@ -297,45 +213,3 @@ export async function saveProduct(
   return { result, product };
 }
 
-/** The form's text boxes → a draft, or what is wrong with them. */
-export function draftFromForm(
-  v: LabelValues,
-  barcode: string | null,
-  source: ProductSource,
-): { ok: true; draft: ProductDraft } | { ok: false; error: string } {
-  const n = (s?: string) => (s && s.trim() ? Number(s.replace(",", ".")) : null);
-  const name = (v.name ?? "").trim();
-  const [kcal, carbs, protein, fat, fibre, serving] = [
-    n(v.kcal),
-    n(v.carbs),
-    n(v.protein),
-    n(v.fat),
-    n(v.fibre),
-    n(v.servingG),
-  ];
-  if (!name) return { ok: false, error: "Give it a name." };
-  if (kcal === null || !Number.isFinite(kcal) || kcal < 0 || kcal > 950)
-    return { ok: false, error: "Energy per 100 g is between 0 and 950 kcal." };
-  if (carbs === null || !Number.isFinite(carbs) || carbs < 0 || carbs > 100)
-    return { ok: false, error: "Carbohydrate per 100 g is between 0 and 100 g." };
-  for (const x of [protein, fat, fibre])
-    if (x !== null && (!Number.isFinite(x) || x < 0 || x > 100))
-      return { ok: false, error: "Each amount per 100 g is between 0 and 100 g." };
-  if (serving !== null && (!Number.isFinite(serving) || serving < 1 || serving > 5000))
-    return { ok: false, error: "A serving is between 1 and 5000 g." };
-  return {
-    ok: true,
-    draft: {
-      barcode,
-      name,
-      brand: null,
-      kcal: Math.round(kcal),
-      carbsG: carbs,
-      proteinG: protein,
-      fatG: fat,
-      fibreG: fibre,
-      servingG: serving,
-      source,
-    },
-  };
-}

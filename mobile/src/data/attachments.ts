@@ -1,13 +1,11 @@
+import type { AttachmentKind } from "@patient-core/book-attachments";
+import { attachmentPath } from "@patient-core/book-attachments";
+
 import { requestId } from "@/lib/edge";
 import { supabase } from "@/lib/supabase";
 
-/**
- * What a patient sends with "Ask for a day" besides words: photos, a short
- * video, voice notes (migration 0186, ADR 0404). They wait on the phone until
- * the request is made, then go to the private `appointment-attachments`
- * bucket under `<uploader>/<appointment>/` with one row each, under RLS.
- */
-export type AttachmentKind = "photo" | "video" | "voice";
+export type { AttachmentKind } from "@patient-core/book-attachments";
+export { MAX_MEDIA, MAX_VOICE, attachmentPath } from "@patient-core/book-attachments";
 
 export interface Attachment {
   /** Local only: the list key. */
@@ -19,9 +17,6 @@ export interface Attachment {
   /** A voice note's loudness, 0–1, read while recording: its waveform. Local only. */
   levels?: number[];
 }
-
-export const MAX_MEDIA = 6;
-export const MAX_VOICE = 3;
 
 const EXT: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -47,11 +42,6 @@ export function storedMime(kind: AttachmentKind, mime: string | null | undefined
   // A picker that names no type: the phone's usual one for that kind.
   if (!mime) return kind === "photo" ? "image/jpeg" : kind === "video" ? "video/mp4" : "audio/mp4";
   return null;
-}
-
-/** The object path: the uploader's folder, then the appointment, then a fresh name. */
-export function attachmentPath(userId: string, appointmentId: string, mime: string, id: string) {
-  return `${userId}/${appointmentId}/${id}.${EXT[mime] ?? "bin"}`;
 }
 
 /**

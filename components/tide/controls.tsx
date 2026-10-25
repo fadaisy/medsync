@@ -1,14 +1,12 @@
 "use client";
 
 import type { ComponentProps, ReactNode } from "react";
-import { useEffect, useEffectEvent, useId } from "react";
-import { MinusIcon, PlusIcon, XIcon } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useEffect, useEffectEvent, useId, useState } from "react";
+import { MinusIcon, PlusIcon } from "lucide-react";
 
-import { EditorDialog } from "@/components/medsync/editor-dialog";
-import { DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { ICON } from "./kit";
-import { HelpButton } from "./shell";
 
 /** The interactive pieces of the patient kit (§5.4). Tokens only; inputs at 16 px or larger (L13). */
 
@@ -238,19 +236,7 @@ export function Toast({
   );
 }
 
-/**
- * The patient dialog (W1, ADR 0161): centred and landscape over a dimmed ground, focus trapped and returned
- * (the shared EditorDialog). A dialog that carries Help on the phone keeps Help in its header.
- */
-export function Dialog({
-  open,
-  onOpenChange,
-  title,
-  withHelp,
-  width = "medium",
-  footer,
-  children,
-}: {
+export interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -258,34 +244,17 @@ export function Dialog({
   width?: "medium" | "wide";
   footer?: ReactNode;
   children: ReactNode;
-}) {
-  return (
-    <EditorDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      width={width}
-      className="rounded-pw-sheet bg-pw-surface font-pw text-pw-ink"
-    >
-      <div className="flex items-center gap-3 px-6 pt-6 pb-4">
-        <DialogTitle className="font-pw text-pw-ink flex-1 text-2xl leading-[30px] font-semibold tracking-[-0.02em]">
-          {title}
-        </DialogTitle>
-        {withHelp ? <HelpButton /> : null}
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
-          aria-label="Close"
-          className={cn("bg-pw-surface-3 grid size-12 place-items-center rounded-full", FOCUS)}
-        >
-          <XIcon className="size-5" {...ICON} />
-        </button>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">{children}</div>
-      {footer ? (
-        <div className="border-pw-line flex flex-wrap justify-end gap-3 border-t px-6 py-4">
-          {footer}
-        </div>
-      ) : null}
-    </EditorDialog>
-  );
+}
+
+// The dialog library (~38 kB) loads when a dialog first opens, not with every page (prompt §8 budgets).
+const DialogImpl = dynamic(() => import("./dialog-impl"), { ssr: false });
+
+/**
+ * The patient dialog (W1, ADR 0161): centred and landscape over a dimmed ground, focus trapped and returned
+ * (the shared EditorDialog, in ./dialog-impl). Mounted from its first opening on, so it can animate out.
+ */
+export function Dialog(props: DialogProps) {
+  const [seen, setSeen] = useState(props.open);
+  if (props.open && !seen) setSeen(true);
+  return seen ? <DialogImpl {...props} /> : null;
 }
