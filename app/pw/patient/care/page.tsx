@@ -2,7 +2,6 @@ import type { TrendTile } from "@patient-core/care-trends";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { lastSevenDays, longDate } from "@patient-core/care-day";
 import { trendTiles } from "@patient-core/care-trends";
@@ -56,7 +55,6 @@ const ROW =
  */
 export default async function CareHub() {
   const scope = await requirePatientScope();
-  if (!scope.primaryHospitalId) redirect("/patient/hospitals");
   const now = new Date();
   const unseen = await countUnseenNotifications(scope.userId).catch(() => 0);
   return (
@@ -276,7 +274,7 @@ function TrendCard({ tile }: { tile: TrendTile }) {
   );
 }
 
-async function Labs({ userId, hospitalId }: { userId: string; hospitalId: string }) {
+async function Labs({ userId, hospitalId }: { userId: string; hospitalId: string | null }) {
   const labs = await loadLabNames(userId, hospitalId).catch(() => null);
   const names =
     labs?.state === "ready"
