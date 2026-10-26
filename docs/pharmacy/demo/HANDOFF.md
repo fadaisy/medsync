@@ -14,7 +14,8 @@ Built 26 Oct 2026 on `feat/pharmacy-demo` (worktree `~/Desktop/medsync-pharmdemo
    `PHARMACY_STOCK_ANSWER`, `PHARMACY_PATIENT_LIST`, `PHARMACY_DOWNTIME`, `PHARMACY_STORE`, `PHARMACY_WARD_STOCK`,
    `PHARMACY_CARTS`, `PHARMACY_RECALL`, `PHARMACY_MONTH_END`, `PHARMACY_ORDERING`, `PHARMACY_INTERACTIONS`,
    `PHARMACY_INTERVENTION_REVIEW`, `PHARMACY_STEWARDSHIP`, `PHARMACY_REACTIONS`, `PHARMACY_RECONCILIATION`,
-   `PHARMACY_REPEATS`, `PHARMACY_REFILLS`; and in `PHARMACY_DEV_HOSPITALS` (permission map v2). Phase 3 and 4
+   `PHARMACY_REPEATS`, `PHARMACY_REFILLS`. `PHARMACY_DEV_HOSPITALS` must give it permission map v2: in Vercel it is
+   already `1` (every hospital), so nothing to add. Phase 3 and 4
    pages also need their own migrations (0212, 0230–0232) applied.
 4. Deploy, then as that hospital's admin open Pharmacy settings › "Load the pharmacy demo" and press the button.
 5. To walk the pages, your own pharmacist account needs an affiliation in the hospital's PHARMACY department (or a
