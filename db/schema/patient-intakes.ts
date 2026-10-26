@@ -9,6 +9,7 @@ import {
   smallint,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -163,6 +164,12 @@ export const patientIntakes = pgTable(
       .where(sql`${t.provisionalPatientId} IS NOT NULL`),
     index("patient_intakes_dept_idx").on(t.receivingDepartmentId, t.status, t.arrivedAt),
     index("patient_intakes_type_idx").on(t.entryTypeCode, t.arrivedAt),
+    // Migration 0213: one live, non-urgent, non-booked ticket per patient per hospital day.
+    uniqueIndex("patient_intakes_one_live_per_day")
+      .on(t.hospitalId, t.patientUserId, sql`((${t.arrivedAt} AT TIME ZONE 'Africa/Kampala')::date)`)
+      .where(
+        sql`${t.patientUserId} IS NOT NULL AND ${t.status} IN ('declared', 'arrived', 'awaiting_triage', 'triaged') AND ${t.priorityHint} <> 'urgent' AND ${t.entryTypeCode} <> 'booked_arrival' AND ${t.arrivedAt} >= TIMESTAMPTZ '2026-11-01 00:00:00+03'`,
+      ),
   ],
 );
 

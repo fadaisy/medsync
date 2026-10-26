@@ -22,7 +22,7 @@
 import type { SaAuditAction } from "./sa-audit.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.106.1";
 
-import { badRequest, serverError } from "./errors.ts";
+import { badRequest, conflict, serverError } from "./errors.ts";
 import { insertQueueRow } from "./queue.ts";
 import { recordSaAudit } from "./sa-audit.ts";
 
@@ -140,6 +140,9 @@ export function derivePriorityHint(
   return override ?? entryType.default_priority_hint ?? "routine";
 }
 
+/** The partial unique index of migration 0213: one live, non-urgent ticket per patient per hospital day. */
+export const ONE_LIVE_PER_DAY = "patient_intakes_one_live_per_day";
+
 export async function registerIntake(
   ctx: IntakeContext,
   input: IntakeInput,
@@ -238,6 +241,15 @@ export async function registerIntake(
     .select("id, priority_hint, status")
     .single();
   if (insertError) {
+    // Migration 0213: another non-urgent live ticket for this patient today was written first.
+    if (insertError.code === "23505" && insertError.message?.includes(ONE_LIVE_PER_DAY)) {
+      return fail(
+        conflict(
+          "This patient already has an open ticket here today — find it on the queue instead.",
+          init,
+        ),
+      );
+    }
     log.error("intake insert failed", { requestId, reason: insertError.message });
     return fail(serverError("intake insert failed", init));
   }

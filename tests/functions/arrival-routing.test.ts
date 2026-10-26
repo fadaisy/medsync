@@ -28,8 +28,8 @@ const between = (src: string, from: string, to: string) => {
 describe("_shared/queue.ts — the route rule and the one queue writer", () => {
   const src = stripComments(read("supabase/functions/_shared/queue.ts"));
 
-  it("an emergency is always triaged; otherwise the desk's choice stands", () => {
-    expect(src).toContain('return isEmergency ? "triage" : requested;');
+  it("an emergency or urgent arrival is always triaged; otherwise the desk's choice stands", () => {
+    expect(src).toContain('return mustTriage ? "triage" : requested;');
   });
 
   it("triage leaves awaiting_triage, clinic leaves arrived", () => {
@@ -131,7 +131,9 @@ describe("ha-check-in-patient — the desk routes every arrival (R1)", () => {
 
     it("an emergency entry type is forced to triage", () => {
       expect(modeB).toContain("lookupEntryType(sb, intake.entry_type_code)");
-      expect(modeB).toContain("const route = effectiveRoute(input.route, isEmergency);");
+      expect(modeB).toContain(
+        'const route = effectiveRoute(input.route, isEmergency || intake.priority_hint === "urgent");',
+      );
       expect(modeB).toContain("const status = intakeStatusFor(route);");
     });
 
@@ -254,5 +256,32 @@ describe("arrival-routing review fixes (Oct 2026)", () => {
     const src = read("app/doctor/schedule/_components/queue-rail.tsx");
     expect(src).toContain("canEnd={!emrLive && e.encounterClinicianUserId === viewerUserId}");
     expect(src).toMatch(/\{canEnd \? \(\s*<EndVisitButton/);
+  });
+});
+
+describe("urgent arrivals are triaged (owner ruling, 26 Oct 2026)", () => {
+  it("an urgent booking is forced to triage and carries its urgency to the worklist", () => {
+    const src = stripComments(fn("ha-check-in-patient"));
+    expect(src).toContain('const route = effectiveRoute(input.route, appt.priority === "urgent");');
+    expect(src).toContain('priority_hint: appt.priority === "urgent" ? "urgent" : "routine",');
+  });
+});
+
+describe("one live ticket per patient per day, held by the database (migration 0213)", () => {
+  const sqlSrc = read("supabase/migrations/0213_one_live_ticket_per_day.sql");
+
+  it("is a partial unique index that never blocks urgent, booked or older rows", () => {
+    expect(sqlSrc).toContain("CREATE UNIQUE INDEX IF NOT EXISTS patient_intakes_one_live_per_day");
+    expect(sqlSrc).toContain("AT TIME ZONE 'Africa/Kampala'");
+    expect(sqlSrc).toContain("priority_hint <> 'urgent'");
+    expect(sqlSrc).toContain("entry_type_code <> 'booked_arrival'");
+    expect(sqlSrc).toMatch(/GATED/);
+  });
+
+  it("both writers answer the clash with a 409, not a 500", () => {
+    const intake = stripComments(read("supabase/functions/_shared/intake.ts"));
+    expect(intake).toMatch(/insertError\.code === "23505" && insertError\.message\?\.includes\(ONE_LIVE_PER_DAY\)/);
+    const declare = stripComments(fn("pt-declare-intake"));
+    expect(declare).toContain("includes(ONE_LIVE_PER_DAY)");
   });
 });

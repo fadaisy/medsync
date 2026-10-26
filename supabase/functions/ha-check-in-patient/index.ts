@@ -95,7 +95,7 @@ Deno.serve(async (request: Request) => {
     const { data: appt, error: apptErr } = await sb
       .from("appointments")
       .select(
-        "id, hospital_id, department_id, patient_user_id, provisional_patient_id, status, type, starts_at",
+        "id, hospital_id, department_id, patient_user_id, provisional_patient_id, status, type, starts_at, priority",
       )
       .eq("id", input.appointment_id)
       .maybeSingle();
@@ -139,8 +139,8 @@ Deno.serve(async (request: Request) => {
       return conflict("Confirm who this booking is for before checking in.", init);
     }
 
-    // A booking is never an emergency entry, so the desk's route stands.
-    const route = input.route;
+    // A booking is never an emergency entry; an urgent one is still triaged.
+    const route = effectiveRoute(input.route, appt.priority === "urgent");
     const departmentId: string | null = input.department_id ?? appt.department_id ?? null;
     if (
       input.department_id &&
@@ -212,7 +212,7 @@ Deno.serve(async (request: Request) => {
         // kept so an un-reconcile can null the patient without orphaning the row.
         provisional_patient_id: appt.provisional_patient_id ?? null,
         appointment_id: appt.id,
-        priority_hint: "routine",
+        priority_hint: appt.priority === "urgent" ? "urgent" : "routine",
         status: intakeStatusFor(route),
         routed_to: route,
         registered_by_user_id: caller.id,
@@ -247,7 +247,7 @@ Deno.serve(async (request: Request) => {
   const intakeId = input.intake_id!;
   const { data: intake, error: intakeErr } = await sb
     .from("patient_intakes")
-    .select("id, hospital_id, receiving_department_id, patient_user_id, status, entry_type_code")
+    .select("id, hospital_id, receiving_department_id, patient_user_id, status, entry_type_code, priority_hint")
     .eq("id", intakeId)
     .maybeSingle();
   if (intakeErr) return serverError(intakeErr.message, init);
@@ -269,7 +269,7 @@ Deno.serve(async (request: Request) => {
   } catch (e) {
     return serverError(e instanceof Error ? e.message : String(e), init);
   }
-  const route = effectiveRoute(input.route, isEmergency);
+  const route = effectiveRoute(input.route, isEmergency || intake.priority_hint === "urgent");
   const status = intakeStatusFor(route);
   const departmentId: string | null = input.department_id ?? intake.receiving_department_id ?? null;
   if (

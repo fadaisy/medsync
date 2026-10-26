@@ -46,6 +46,7 @@ import {
   serverError,
   unauthorized,
 } from "../_shared/errors.ts";
+import { ONE_LIVE_PER_DAY } from "../_shared/intake.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "../_shared/slots.ts";
@@ -269,6 +270,9 @@ Deno.serve(async (request: Request) => {
     })
     .select("id, status, hospital_id, receiving_department_id, arrived_at")
     .single();
+  if (insertError?.code === "23505" && insertError.message?.includes(ONE_LIVE_PER_DAY)) {
+    return conflict("You already have a live queue ticket at this hospital today.", init);
+  }
   if (insertError || !created) {
     log.error("intake insert failed", { requestId, reason: insertError?.message });
     return serverError("could not create your queue ticket", init);
